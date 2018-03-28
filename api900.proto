@@ -1,0 +1,188 @@
+syntax = "proto3";
+
+option java_package = "io.redvox.apis";
+
+message RedvoxPacket {
+  // Identity information
+  uint32 api = 1;                   // The API version of this protocol
+  string uuid = 2;                  // A unique identifier assigned by the client and not user configurable
+  string redvox_id = 3;             // Device id of the client, user configurable. Alpha-numeric + underscores "_" only.
+  string authenticated_email = 4;   // If the client has authenticated, store authenticated email
+  string authentication_token = 5;  // JWT obtained from authentication
+  string firebase_token = 23;       // Token obtained from Google's Firebase
+
+  // Packet information
+  bool is_backfilled = 6; // Is this live data or backfilled (filled in by the server)
+  bool is_private = 7;    // Is this data private or public?
+  bool is_scrambled = 8;  // Is the audio channel scrambled?
+
+  // Device information
+  string device_make = 9;           // e.g. HTC, iPhone, Samsung, etc
+  string device_model = 10;         // e.g. PixelXL, 6s, etc
+  string device_os = 11;            // e.g. iOS, Android
+  string device_os_version = 12;    // Operating system version
+  string app_version = 13;          // App version
+  float battery_level_percent = 24; // Battery level of device (0.0%-100.0%)
+  float device_temperature_c = 25;  // Temperature of device in Celsius
+
+  // Server information
+  string acquisition_server = 14;           // Full protocol, url, port, and endpoint. e.g. wss://redvox.io:9000/api/900
+  string time_synchronization_server = 15;  // Full protocol, url, port, and endpoint.
+  string authentication_server = 16;        // Full protocol, url, port, and endpoint.
+
+  // Timestamps
+  int64 app_file_start_timestamp_epoch_microseconds_utc = 17; // Timestamp of packet creation
+  int64 app_file_start_timestamp_machine = 18;                // Internal machine time of packet creation
+  int64 server_timestamp_epoch_microseconds_utc = 19;         // Time at which this packet arrives at the server (filled in by the server)
+
+  // Data payloads
+  repeated EvenlySampledChannel evenly_sampled_channels = 20;      // List of evenly sampled channels. i.e. channels with a stable sample rate such as microphone data
+  repeated UnevenlySampledChannel unevenly_sampled_channels = 21;  // List of unevenly sampled channels. i.e. those without a stable sample rate such as barometer or GPS
+  repeated string metadata = 22;                                   // Any extra misc metadata that needs associated with this packet
+}
+
+// An array of int32s
+message Int32Payload {
+  repeated int32 payload = 1;
+}
+
+// An array of uint32s
+message UInt32Payload {
+  repeated uint32 payload = 1;
+}
+
+// An array of int64s
+message Int64Payload {
+  repeated int64 payload = 1;
+}
+
+// An array of uint64s
+message UInt64Payload {
+  repeated uint64 payload = 1;
+}
+
+// An array of float32s
+message Float32Payload {
+  repeated float payload = 1;
+}
+
+// An array of float64s
+message Float64Payload {
+  repeated double payload = 1;
+}
+
+// An array of bytes
+message BytePayload {
+  enum BytePayloadType {
+    BYTES = 0;
+    UINT8 = 1;
+    UNINT16 = 2;
+    UNINT24 = 3;
+    UINT32 = 4;
+    UINT64 = 5;
+    INT8 = 6;
+    INT16 = 7;
+    INT24 = 8;
+    INT32 = 9;
+    INT64 = 10;
+    FLOAT32 = 11;
+    FLOAT64 = 12;
+    OTHER = 13;
+  }
+  BytePayloadType bytePayloadType = 1; // Optionally specify how the bytes are to be decoded
+  bytes payload = 2;
+}
+
+enum ChannelType {
+  MICROPHONE = 0;
+  BAROMETER = 1;
+  LATITUDE = 2;
+  LONGITUDE = 3;
+  SPEED = 4;
+  ALTITUDE = 5;
+  RESERVED_0 = 6;
+  RESERVED_1 = 7;
+  RESERVED_2 = 8;
+  TIME_SYNCHRONIZATION = 9;
+  ACCURACY = 10;
+  ACCELEROMETER_X = 11;
+  ACCELEROMETER_Y = 12;
+  ACCELEROMETER_Z = 13;
+  MAGNETOMETER_X = 14;
+  MAGNETOMETER_Y = 15;
+  MAGNETOMETER_Z = 16;
+  GYROSCOPE_X = 17;
+  GYROSCOPE_Y = 18;
+  GYROSCOPE_Z = 19;
+  OTHER = 20;
+}
+
+// A channel with evenly sampled data. i.e., one with a stable sample rate such as microphone
+// Note: Multiple values can be associated with each channel. If you specify more than one channel type, then the payload should have interleaving values.
+// See unevenly sampled channels for a better explanation of this.
+message EvenlySampledChannel {
+  repeated ChannelType channel_types = 1;                   // Channel types locked to one sample rate
+  string sensor_name = 2;                                   // Name of sensor
+  double sample_rate_hz = 3;                                // Sample rate in Hz
+  int64 first_sample_timestamp_epoch_microseconds_utc = 4;  // Timestamp of first sample in channel
+  oneof payload {                                           // Channel payload, client picks most appropriate payload type
+    BytePayload byte_payload = 5;
+    UInt32Payload uint32_payload = 6;
+    UInt64Payload uint64_payload = 7;
+    Int32Payload int32_payload = 8;
+    Int64Payload int64_payload = 9;
+    Float32Payload float32_payload = 10;
+    Float64Payload float64_payload = 11;
+  }
+  repeated double value_means = 12;   // Mean values in payload, one mean per channel
+  repeated double value_stds = 13;    // Standard deviations in payload, one per channel
+  repeated double value_medians = 14; // Median values in payload, one per channel
+  repeated string metadata = 15;      // Extra metadata to associate with this channel
+}
+
+// A channel without evenly sampled data. i.e., one with a non-stable sample rate such as barometer or GPS
+// Note: Multiple values can be associated with each timestamp such as in the case of a GPS returning lat, lng, speed, and altitude at the same time
+// For each value, specify a channel type, then in the payload, interleave the values.
+// e.g. channel_types = [LATITUDE, LONGITUDE, SPEED, ALTITUDE], then the payload becomes for each timestamp/sample i
+//  payload = [latitude[0], longitude[0], speed[0], altitude[0], latitude[1], longitude[1], speed[1], altitude[1], ..., latitude[i], longitude[i], speed[i], altitude[i]]
+message UnevenlySampledChannel {
+  repeated ChannelType channel_types = 1;         // Channel types associated with provided timestamps
+  string sensor_name = 2;                         // Name of sensor
+  repeated int64 timestamps_microseconds_utc = 3; // List of timestamps for each sample
+  oneof payload {                                 // Channel payload
+    BytePayload byte_payload = 4;
+    UInt32Payload uint32_payload = 5;
+    UInt64Payload uint64_payload = 6;
+    Int32Payload int32_payload = 7;
+    Int64Payload int64_payload = 8;
+    Float32Payload float32_payload = 9;
+    Float64Payload float64_payload = 10;
+  }
+  double sample_interval_mean = 11;               // Mean of sample internval as determined from timestamps
+  double sample_interval_std = 12;                // Standard deviation of sample interval from timestamps
+  double sample_interval_median = 13;             // Median of sample interval from timestamps
+  repeated double value_means = 14;               // Mean values in payload, one mean per channel
+  repeated double value_stds = 15;                // Standard deviations in payload, one per channel
+  repeated double value_medians = 16;             // Medians in payload, one per channel
+  repeated string metadata = 17;                  // Extra metadata to associate with this channel
+}
+
+// Returned to client after each packet send
+message RedvoxPacketResponse {
+  // Response types
+  enum Type {
+    OK = 0;
+    ERROR = 1;
+  }
+  // Error types
+  enum Error {
+    NOT_AUTHENTICATED = 0;
+    OTHER = 1;
+  }
+  Type type = 1;
+  int64 checksum = 2;           // This is a sum of the serialized RedvoxPacket bytes
+  repeated Error errors = 3;    // List of errors
+  repeated string metadata = 4; // Extra metadata to associate with this response
+}
+
+
