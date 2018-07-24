@@ -115,6 +115,7 @@ enum ChannelType {
   GYROSCOPE_Y = 18;
   GYROSCOPE_Z = 19;
   OTHER = 20;
+  LIGHT = 21;
 }
 
 // A channel with evenly sampled data. i.e., one with a stable sample rate such as microphone
