@@ -1,10 +1,10 @@
-import io.redvox.api900.reader
-import io.redvox.api900.api900_pb2
-import tests.mock_packets as mock
+import unittest
 
 import numpy
 
-import unittest
+import redvox.api900.api900_pb2
+import redvox.api900.reader
+import tests.mock_packets as mock
 
 
 class ArraysTestCase(unittest.TestCase):
@@ -21,76 +21,76 @@ class ModuleFunctionTests(ArraysTestCase):
         self.base_packet = mock.base_packet()
         self.simple_mic_packet = mock.simple_mic_packet()
         self.simple_unevenly_sampled_packet = mock.simple_unevenly_sampled_packet()
-        self.evenly_sampled_channel = io.redvox.api900.api900_pb2.EvenlySampledChannel()
-        self.unevenly_sampled_channel = io.redvox.api900.api900_pb2.UnevenlySampledChannel()
+        self.evenly_sampled_channel = redvox.api900.api900_pb2.EvenlySampledChannel()
+        self.unevenly_sampled_channel = redvox.api900.api900_pb2.UnevenlySampledChannel()
 
     # Test getting of generic payloads
     # Evenly sampled channels
     def test_evenly_sampled_channel_uint32_payload(self):
         correct = [1, 2, 3, 4, 5]
         evenly_sampled_channel = mock.set_payload(self.evenly_sampled_channel, numpy.uint32, correct)
-        self.assertArraysEqual(io.redvox.api900.reader.extract_payload(evenly_sampled_channel), numpy.array(correct))
+        self.assertArraysEqual(redvox.api900.reader.extract_payload(evenly_sampled_channel), numpy.array(correct))
 
     def test_evenly_sampled_channel_uint64_payload(self):
         correct = [1, 2, 3, 4, 5]
         evenly_sampled_channel = mock.set_payload(self.evenly_sampled_channel, numpy.uint64, correct)
-        self.assertArraysEqual(io.redvox.api900.reader.extract_payload(evenly_sampled_channel), numpy.array(correct))
+        self.assertArraysEqual(redvox.api900.reader.extract_payload(evenly_sampled_channel), numpy.array(correct))
 
     def test_evenly_sampled_channel_int32_payload(self):
         correct = [1, 2, 3, 4, 5]
         evenly_sampled_channel = mock.set_payload(self.evenly_sampled_channel, numpy.int32, correct)
-        self.assertArraysEqual(io.redvox.api900.reader.extract_payload(evenly_sampled_channel), numpy.array(correct))
+        self.assertArraysEqual(redvox.api900.reader.extract_payload(evenly_sampled_channel), numpy.array(correct))
 
     def test_evenly_sampled_channel_int64_payload(self):
         correct = [1, 2, 3, 4, 5]
         evenly_sampled_channel = mock.set_payload(self.evenly_sampled_channel, numpy.int64, correct)
-        self.assertArraysEqual(io.redvox.api900.reader.extract_payload(evenly_sampled_channel), numpy.array(correct))
+        self.assertArraysEqual(redvox.api900.reader.extract_payload(evenly_sampled_channel), numpy.array(correct))
 
     def test_evenly_sampled_channel_float32_payload(self):
         correct = [1.0, 2.0, 3.0, 4.0, 5.0]
         evenly_sampled_channel = mock.set_payload(self.evenly_sampled_channel, numpy.float32, correct)
-        self.assertArraysEqual(io.redvox.api900.reader.extract_payload(evenly_sampled_channel), numpy.array(correct))
+        self.assertArraysEqual(redvox.api900.reader.extract_payload(evenly_sampled_channel), numpy.array(correct))
 
     def test_evenly_sampled_channel_float64_payload(self):
         correct = [1.0, 2.0, 3.0, 4.0, 5.0]
         evenly_sampled_channel = mock.set_payload(self.evenly_sampled_channel, numpy.float64, correct)
-        self.assertArraysEqual(io.redvox.api900.reader.extract_payload(evenly_sampled_channel), numpy.array(correct))
+        self.assertArraysEqual(redvox.api900.reader.extract_payload(evenly_sampled_channel), numpy.array(correct))
 
     # Unevenly sampled channels
     def test_unevenly_sampled_channel_uint32_payload(self):
         correct = [1, 2, 3, 4, 5]
         unevenly_sampled_channel = mock.set_payload(self.unevenly_sampled_channel, numpy.uint32, correct)
-        self.assertArraysEqual(io.redvox.api900.reader.extract_payload(unevenly_sampled_channel), numpy.array(correct))
+        self.assertArraysEqual(redvox.api900.reader.extract_payload(unevenly_sampled_channel), numpy.array(correct))
 
     def test_unevenly_sampled_channel_uint64_payload(self):
         correct = [1, 2, 3, 4, 5]
         unevenly_sampled_channel = mock.set_payload(self.unevenly_sampled_channel, numpy.uint64, correct)
-        self.assertArraysEqual(io.redvox.api900.reader.extract_payload(unevenly_sampled_channel), numpy.array(correct))
+        self.assertArraysEqual(redvox.api900.reader.extract_payload(unevenly_sampled_channel), numpy.array(correct))
 
     def test_unevenly_sampled_channel_int32_payload(self):
         correct = [1, 2, 3, 4, 5]
         unevenly_sampled_channel = mock.set_payload(self.unevenly_sampled_channel, numpy.int32, correct)
-        self.assertArraysEqual(io.redvox.api900.reader.extract_payload(unevenly_sampled_channel), numpy.array(correct))
+        self.assertArraysEqual(redvox.api900.reader.extract_payload(unevenly_sampled_channel), numpy.array(correct))
 
     def test_unevenly_sampled_channel_int64_payload(self):
         correct = [1, 2, 3, 4, 5]
         unevenly_sampled_channel = mock.set_payload(self.unevenly_sampled_channel, numpy.int64, correct)
-        self.assertArraysEqual(io.redvox.api900.reader.extract_payload(unevenly_sampled_channel), numpy.array(correct))
+        self.assertArraysEqual(redvox.api900.reader.extract_payload(unevenly_sampled_channel), numpy.array(correct))
 
     def test_unevenly_sampled_channel_float32_payload(self):
         correct = [1.0, 2.0, 3.0, 4.0, 5.0]
         unevenly_sampled_channel = mock.set_payload(self.unevenly_sampled_channel, numpy.float32, correct)
-        self.assertArraysEqual(io.redvox.api900.reader.extract_payload(unevenly_sampled_channel), numpy.array(correct))
+        self.assertArraysEqual(redvox.api900.reader.extract_payload(unevenly_sampled_channel), numpy.array(correct))
 
     def test_unevenly_sampled_channel_float64_payload(self):
         correct = [1.0, 2.0, 3.0, 4.0, 5.0]
         unevenly_sampled_channel = mock.set_payload(self.unevenly_sampled_channel, numpy.float64, correct)
-        self.assertArraysEqual(io.redvox.api900.reader.extract_payload(unevenly_sampled_channel), numpy.array(correct))
+        self.assertArraysEqual(redvox.api900.reader.extract_payload(unevenly_sampled_channel), numpy.array(correct))
 
     # Repeated utility functions
     def test_repeated_composite_to_list(self):
         repeated_composite = self.simple_mic_packet.evenly_sampled_channels
-        as_list = io.redvox.api900.reader.repeated_to_list(repeated_composite)
+        as_list = redvox.api900.reader.repeated_to_list(repeated_composite)
         self.assertEqual(type(as_list), list)
         self.assertEqual(len(repeated_composite), len(as_list))
 
@@ -99,7 +99,7 @@ class ModuleFunctionTests(ArraysTestCase):
 
     def test_repeated_scalar_to_list(self):
         repeated_composite = self.simple_mic_packet.metadata
-        as_list = io.redvox.api900.reader.repeated_to_list(repeated_composite)
+        as_list = redvox.api900.reader.repeated_to_list(repeated_composite)
         self.assertEqual(type(as_list), list)
         self.assertEqual(len(repeated_composite), len(as_list))
 
@@ -108,87 +108,89 @@ class ModuleFunctionTests(ArraysTestCase):
 
     def test_repeated_composite_to_list_empty(self):
         repeated_composite = self.simple_mic_packet.unevenly_sampled_channels
-        as_list = io.redvox.api900.reader.repeated_to_list(repeated_composite)
+        as_list = redvox.api900.reader.repeated_to_list(repeated_composite)
         self.assertEqual(type(as_list), list)
         self.assertEqual(len(repeated_composite), 0)
         self.assertEqual(len(as_list), 0)
 
     def test_repeated_scalar_to_list_empty(self):
         repeated_scalar = self.simple_unevenly_sampled_packet.metadata
-        as_list = io.redvox.api900.reader.repeated_to_list(repeated_scalar)
+        as_list = redvox.api900.reader.repeated_to_list(repeated_scalar)
         self.assertEqual(type(as_list), list)
         self.assertEqual(len(repeated_scalar), 0)
         self.assertEqual(len(as_list), 0)
 
     # deinterleave_array
     def test_deinterleave_array_empty(self):
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.deinterleave_array, self.empty_array, 0,
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.deinterleave_array,
+                          self.empty_array, 0,
                           0)
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.deinterleave_array, self.empty_array,
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.deinterleave_array,
+                          self.empty_array,
                           -1, 2)
 
     def test_deinterleave_array_bad_offsets(self):
         a = numpy.array([0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3])
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.deinterleave_array, a, -1, 4)
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.deinterleave_array, a, 4, 4)
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.deinterleave_array, a, 30, 4)
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.deinterleave_array, a, -1, 4)
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.deinterleave_array, a, 4, 4)
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.deinterleave_array, a, 30, 4)
 
     def test_deinterleave_array_bad_steps(self):
         a = numpy.array([0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3])
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.deinterleave_array, a, 0, 0)
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.deinterleave_array, a, 0, 5)
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.deinterleave_array, a, 0, 0)
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.deinterleave_array, a, 0, 5)
 
     def test_deinterleave_array_single(self):
         a = numpy.array([0])
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(a, 0, 1), a)
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(a, 0, 1), a)
         b = numpy.array([0, 1])
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(b, 0, 1), b)
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(b, 0, 1), b)
         c = numpy.array([0, 1, 2])
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(c, 0, 1), c)
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(c, 0, 1), c)
 
     def test_deinterleave_array_double(self):
         a = numpy.array([0, 1])
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(a, 0, 2), numpy.array([0]))
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(a, 1, 2), numpy.array([1]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(a, 0, 2), numpy.array([0]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(a, 1, 2), numpy.array([1]))
         b = numpy.array([0, 1, 0, 1])
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(b, 0, 2), numpy.array([0, 0]))
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(b, 1, 2), numpy.array([1, 1]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(b, 0, 2), numpy.array([0, 0]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(b, 1, 2), numpy.array([1, 1]))
         c = numpy.array([0, 1, 0, 1, 0, 1])
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(c, 0, 2), numpy.array([0, 0, 0]))
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(c, 1, 2), numpy.array([1, 1, 1]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(c, 0, 2), numpy.array([0, 0, 0]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(c, 1, 2), numpy.array([1, 1, 1]))
 
     def test_deinterleave_array_triple(self):
         a = numpy.array([0, 1, 2])
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(a, 0, 3), numpy.array([0]))
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(a, 1, 3), numpy.array([1]))
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(a, 2, 3), numpy.array([2]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(a, 0, 3), numpy.array([0]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(a, 1, 3), numpy.array([1]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(a, 2, 3), numpy.array([2]))
         b = numpy.array([0, 1, 2, 0, 1, 2])
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(b, 0, 3), numpy.array([0, 0]))
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(b, 1, 3), numpy.array([1, 1]))
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(b, 2, 3), numpy.array([2, 2]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(b, 0, 3), numpy.array([0, 0]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(b, 1, 3), numpy.array([1, 1]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(b, 2, 3), numpy.array([2, 2]))
         c = numpy.array([0, 1, 2, 0, 1, 2, 0, 1, 2])
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(c, 0, 3), numpy.array([0, 0, 0]))
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(c, 1, 3), numpy.array([1, 1, 1]))
-        self.assertArraysEqual(io.redvox.api900.reader.deinterleave_array(c, 2, 3), numpy.array([2, 2, 2]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(c, 0, 3), numpy.array([0, 0, 0]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(c, 1, 3), numpy.array([1, 1, 1]))
+        self.assertArraysEqual(redvox.api900.reader.deinterleave_array(c, 2, 3), numpy.array([2, 2, 2]))
 
     def test_interleave_arrays_empty(self):
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.interleave_arrays, [])
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.interleave_arrays, [])
 
     def test_interleave_arrays_single(self):
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.interleave_arrays, [
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.interleave_arrays, [
             numpy.array([1, 2, 3])])
 
     def test_interleave_arrays_different_sizes(self):
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.interleave_arrays, [
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.interleave_arrays, [
             self.empty_array,
             numpy.array([0])])
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.interleave_arrays, [
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.interleave_arrays, [
             numpy.array([0, 1]),
             numpy.array([0])])
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.interleave_arrays, [
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.interleave_arrays, [
             numpy.array([0, 1, 2]),
             numpy.array([0, 1, 2, 3, 4])])
-        self.assertRaises(io.redvox.api900.reader.ReaderException,io.redvox.api900.reader.interleave_arrays, [
+        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.interleave_arrays, [
             numpy.array([0, 1]),
             numpy.array([0, 1]),
             numpy.array([0])])
@@ -197,141 +199,142 @@ class ModuleFunctionTests(ArraysTestCase):
         a = numpy.array([0])
         b = numpy.array([1])
         self.assertArraysEqual(
-           io.redvox.api900.reader.interleave_arrays([a, b]),
-            numpy.array([0, 1]))
+                redvox.api900.reader.interleave_arrays([a, b]),
+                numpy.array([0, 1]))
         c = numpy.array([0, 0])
         d = numpy.array([1, 1])
         self.assertArraysEqual(
-           io.redvox.api900.reader.interleave_arrays([c, d]),
-            numpy.array([0, 1, 0, 1]))
+                redvox.api900.reader.interleave_arrays([c, d]),
+                numpy.array([0, 1, 0, 1]))
         e = numpy.array([0, 2, 4])
         f = numpy.array([1, 3, 5])
         self.assertArraysEqual(
-           io.redvox.api900.reader.interleave_arrays([e, f]),
-            numpy.array([0, 1, 2, 3, 4, 5]))
+                redvox.api900.reader.interleave_arrays([e, f]),
+                numpy.array([0, 1, 2, 3, 4, 5]))
 
     def test_interleave_arrays_triple(self):
         a = numpy.array([0])
         b = numpy.array([1])
         c = numpy.array([2])
         self.assertArraysEqual(
-           io.redvox.api900.reader.interleave_arrays([a, b, c]),
-            numpy.array([0, 1, 2]))
+                redvox.api900.reader.interleave_arrays([a, b, c]),
+                numpy.array([0, 1, 2]))
         d = numpy.array([0, 0])
         e = numpy.array([1, 1])
         f = numpy.array([2, 2])
         self.assertArraysEqual(
-           io.redvox.api900.reader.interleave_arrays([d, e, f]),
-            numpy.array([0, 1, 2, 0, 1, 2]))
+                redvox.api900.reader.interleave_arrays([d, e, f]),
+                numpy.array([0, 1, 2, 0, 1, 2]))
         g = numpy.array([0, 3, 6])
         h = numpy.array([1, 4, 7])
         i = numpy.array([2, 5, 8])
         self.assertArraysEqual(
-           io.redvox.api900.reader.interleave_arrays([g, h, i]),
-            numpy.array([0, 1, 2, 3, 4, 5, 6, 7, 8]))
+                redvox.api900.reader.interleave_arrays([g, h, i]),
+                numpy.array([0, 1, 2, 3, 4, 5, 6, 7, 8]))
 
     def test_safe_index_if_empty_list(self):
         l = []
-        self.assertEqual(io.redvox.api900.reader.safe_index_of(l, None), -1)
+        self.assertEqual(redvox.api900.reader.safe_index_of(l, None), -1)
 
     def test_safe_index_exists(self):
         l = ["a", "b", "c", "a"]
-        self.assertEqual(io.redvox.api900.reader.safe_index_of(l, "a"), 0)
-        self.assertEqual(io.redvox.api900.reader.safe_index_of(l, "b"), 1)
-        self.assertEqual(io.redvox.api900.reader.safe_index_of(l, "c"), 2)
-        self.assertEqual(io.redvox.api900.reader.safe_index_of(["c"], "c"), 0)
+        self.assertEqual(redvox.api900.reader.safe_index_of(l, "a"), 0)
+        self.assertEqual(redvox.api900.reader.safe_index_of(l, "b"), 1)
+        self.assertEqual(redvox.api900.reader.safe_index_of(l, "c"), 2)
+        self.assertEqual(redvox.api900.reader.safe_index_of(["c"], "c"), 0)
 
     def test_safe_index_dne(self):
         l = ["a", "b", "c", "a"]
-        self.assertEqual(io.redvox.api900.reader.safe_index_of(l, 1), -1)
-        self.assertEqual(io.redvox.api900.reader.safe_index_of(l, None), -1)
-        self.assertEqual(io.redvox.api900.reader.safe_index_of(l, True), -1)
-        self.assertEqual(io.redvox.api900.reader.safe_index_of(l, "d"), -1)
+        self.assertEqual(redvox.api900.reader.safe_index_of(l, 1), -1)
+        self.assertEqual(redvox.api900.reader.safe_index_of(l, None), -1)
+        self.assertEqual(redvox.api900.reader.safe_index_of(l, True), -1)
+        self.assertEqual(redvox.api900.reader.safe_index_of(l, "d"), -1)
 
     def test_empty_array(self):
-        self.assertArraysEqual(io.redvox.api900.reader.empty_array(), self.empty_array)
+        self.assertArraysEqual(redvox.api900.reader.empty_array(), self.empty_array)
 
     def test_get_metadata_empty_list(self):
         metadata = []
         self.assertEqual(
-           io.redvox.api900.reader.get_metadata(metadata, ""),
-            "")
+                redvox.api900.reader.get_metadata(metadata, ""),
+                "")
 
     def test_get_metadata_odd_sized_lists(self):
         self.assertRaises(
-           io.redvox.api900.reader.ReaderException,
-           io.redvox.api900.reader.get_metadata, ["a", "b", "c"], "a")
+                redvox.api900.reader.ReaderException,
+                redvox.api900.reader.get_metadata, ["a", "b", "c"], "a")
 
     def test_get_metadata_single_list(self):
         metadata = ["a"]
         self.assertRaises(
-           io.redvox.api900.reader.ReaderException,
-           io.redvox.api900.reader.get_metadata, metadata, "a")
+                redvox.api900.reader.ReaderException,
+                redvox.api900.reader.get_metadata, metadata, "a")
 
     def test_get_metadata_one_kv(self):
         metadata = ["a", "b"]
         self.assertEqual(
-           io.redvox.api900.reader.get_metadata(metadata, "a"),
-            "b")
+                redvox.api900.reader.get_metadata(metadata, "a"),
+                "b")
 
     def test_get_metadata_two_kv(self):
         metadata = ["a", "b", "c", "d"]
         self.assertEqual(
-           io.redvox.api900.reader.get_metadata(metadata, "a"),
-            "b")
+                redvox.api900.reader.get_metadata(metadata, "a"),
+                "b")
         self.assertEqual(
-           io.redvox.api900.reader.get_metadata(metadata, "c"),
-            "d")
+                redvox.api900.reader.get_metadata(metadata, "c"),
+                "d")
 
     def test_get_metadata_multi_kv(self):
         metadata = ["a", "b", "c", "d", "c", "f"]
         self.assertEqual(
-           io.redvox.api900.reader.get_metadata(metadata, "a"),
-            "b")
+                redvox.api900.reader.get_metadata(metadata, "a"),
+                "b")
         self.assertEqual(
-           io.redvox.api900.reader.get_metadata(metadata, "c"),
-            "d")
+                redvox.api900.reader.get_metadata(metadata, "c"),
+                "d")
         self.assertEqual(
-           io.redvox.api900.reader.get_metadata(metadata, "b"),
-            "c")
+                redvox.api900.reader.get_metadata(metadata, "b"),
+                "c")
 
     def test_get_metadata_as_dict_empty(self):
         metadata = []
         self.assertEqual(
-           io.redvox.api900.reader.get_metadata_as_dict(metadata),
-            {})
+                redvox.api900.reader.get_metadata_as_dict(metadata),
+                {})
 
     def test_get_metadata_as_dict_single_list(self):
         metadata = ["a"]
         self.assertRaises(
-           io.redvox.api900.reader.ReaderException,
-           io.redvox.api900.reader.get_metadata_as_dict, metadata)
+                redvox.api900.reader.ReaderException,
+                redvox.api900.reader.get_metadata_as_dict, metadata)
 
     def test_get_metadata_as_dict_odd_sized_lists(self):
         metadata = ["a", "b", "c"]
         self.assertRaises(
-           io.redvox.api900.reader.ReaderException,
-           io.redvox.api900.reader.get_metadata_as_dict, metadata)
+                redvox.api900.reader.ReaderException,
+                redvox.api900.reader.get_metadata_as_dict, metadata)
 
     def test_get_metadata_as_dict_one_kv(self):
         metadata = ["a", "b"]
         self.assertEqual(
-           io.redvox.api900.reader.get_metadata_as_dict(metadata),
-            {"a": "b"})
+                redvox.api900.reader.get_metadata_as_dict(metadata),
+                {"a": "b"})
 
     def test_get_metadata_as_dict_multi_kv(self):
         metadata = ["a", "b", "c", "d", "c", "f"]
         self.assertEqual(
-           io.redvox.api900.reader.get_metadata_as_dict(metadata),
-            {"a": "b",
-             "c": "d"})
+                redvox.api900.reader.get_metadata_as_dict(metadata),
+                {"a": "b",
+                 "c": "d"})
 
 
 class InterleavedChannelTests(ArraysTestCase):
     def setUp(self):
         super().setUp()
-        self.mic_channel =io.redvox.api900.reader.InterleavedChannel(mock.simple_mic_packet().evenly_sampled_channels[0])
-        self.gps_channel =io.redvox.api900.reader.InterleavedChannel(mock.simple_gps_packet().unevenly_sampled_channels[0])
+        self.mic_channel = redvox.api900.reader.InterleavedChannel(mock.simple_mic_packet().evenly_sampled_channels[0])
+        self.gps_channel = redvox.api900.reader.InterleavedChannel(
+                mock.simple_gps_packet().unevenly_sampled_channels[0])
 
     def test_init(self):
         self.assertEqual(self.mic_channel.protobuf_channel.sensor_name, "test microphone sensor name")
@@ -340,20 +343,20 @@ class InterleavedChannelTests(ArraysTestCase):
         self.assertEqual(self.gps_channel.sensor_name, "test gps sensor name")
 
         self.assertArraysEqual(
-            self.mic_channel.payload,
-            numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+                self.mic_channel.payload,
+                numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
         self.assertEqual(self.mic_channel.metadata, ["a", "b", "c", "d"])
         self.assertArraysEqual(self.mic_channel.value_means, numpy.array([5.5]))
         self.assertArraysEqual(self.mic_channel.value_stds, numpy.array([3.0277]))
         self.assertArraysEqual(self.mic_channel.value_medians, numpy.array([5.5]))
 
         self.assertArraysEqual(
-            self.gps_channel.payload,
-            numpy.array([19.0, 155.0, 1.0, 25.0,
-                         20.0, 156.0, 2.0, 26.0,
-                         21.0, 157.0, 3.0, 27.0,
-                         22.0, 158.0, 4.0, 28.0,
-                         23.0, 159.0, 5.0, 29.0]))
+                self.gps_channel.payload,
+                numpy.array([19.0, 155.0, 1.0, 25.0,
+                             20.0, 156.0, 2.0, 26.0,
+                             21.0, 157.0, 3.0, 27.0,
+                             22.0, 158.0, 4.0, 28.0,
+                             23.0, 159.0, 5.0, 29.0]))
         self.assertEqual(self.gps_channel.metadata, [])
         self.assertArraysEqual(self.gps_channel.value_means, numpy.array([1, 2, 3, 4]))
         self.assertArraysEqual(self.gps_channel.value_stds, numpy.array([1, 2, 3, 4]))
@@ -369,185 +372,189 @@ class InterleavedChannelTests(ArraysTestCase):
         self.assertEqual(self.gps_channel.get_channel_type_names(),
                          ["LATITUDE", "LONGITUDE", "SPEED", "ALTITUDE"])
         self.assertArraysEqual(
-            self.mic_channel.payload,
-            numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+                self.mic_channel.payload,
+                numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
         self.assertEqual(self.mic_channel.metadata, ["a", "b", "c", "d"])
         self.assertArraysEqual(self.mic_channel.value_means, numpy.array([5.5]))
         self.assertArraysEqual(self.mic_channel.value_stds, numpy.array([3.0277]))
         self.assertArraysEqual(self.mic_channel.value_medians, numpy.array([5.5]))
 
     def test_channel_index(self):
-        self.assertEqual(self.mic_channel.channel_index(io.redvox.api900.api900_pb2.MICROPHONE), 0)
-        self.assertEqual(self.mic_channel.channel_index(io.redvox.api900.api900_pb2.BAROMETER), -1)
-        self.assertEqual(self.gps_channel.channel_index(io.redvox.api900.api900_pb2.LATITUDE), 0)
-        self.assertEqual(self.gps_channel.channel_index(io.redvox.api900.api900_pb2.LONGITUDE), 1)
-        self.assertEqual(self.gps_channel.channel_index(io.redvox.api900.api900_pb2.SPEED), 2)
-        self.assertEqual(self.gps_channel.channel_index(io.redvox.api900.api900_pb2.ALTITUDE), 3)
-        self.assertEqual(self.gps_channel.channel_index(io.redvox.api900.api900_pb2.MICROPHONE), -1)
+        self.assertEqual(self.mic_channel.channel_index(redvox.api900.api900_pb2.MICROPHONE), 0)
+        self.assertEqual(self.mic_channel.channel_index(redvox.api900.api900_pb2.BAROMETER), -1)
+        self.assertEqual(self.gps_channel.channel_index(redvox.api900.api900_pb2.LATITUDE), 0)
+        self.assertEqual(self.gps_channel.channel_index(redvox.api900.api900_pb2.LONGITUDE), 1)
+        self.assertEqual(self.gps_channel.channel_index(redvox.api900.api900_pb2.SPEED), 2)
+        self.assertEqual(self.gps_channel.channel_index(redvox.api900.api900_pb2.ALTITUDE), 3)
+        self.assertEqual(self.gps_channel.channel_index(redvox.api900.api900_pb2.MICROPHONE), -1)
 
     def test_has_channel(self):
-        self.assertEqual(self.mic_channel.has_channel(io.redvox.api900.api900_pb2.MICROPHONE), True)
-        self.assertEqual(self.mic_channel.has_channel(io.redvox.api900.api900_pb2.BAROMETER), False)
-        self.assertEqual(self.gps_channel.has_channel(io.redvox.api900.api900_pb2.LATITUDE), True)
-        self.assertEqual(self.gps_channel.has_channel(io.redvox.api900.api900_pb2.LONGITUDE), True)
-        self.assertEqual(self.gps_channel.has_channel(io.redvox.api900.api900_pb2.SPEED), True)
-        self.assertEqual(self.gps_channel.has_channel(io.redvox.api900.api900_pb2.ALTITUDE), True)
-        self.assertEqual(self.gps_channel.has_channel(io.redvox.api900.api900_pb2.MICROPHONE), False)
+        self.assertEqual(self.mic_channel.has_channel(redvox.api900.api900_pb2.MICROPHONE), True)
+        self.assertEqual(self.mic_channel.has_channel(redvox.api900.api900_pb2.BAROMETER), False)
+        self.assertEqual(self.gps_channel.has_channel(redvox.api900.api900_pb2.LATITUDE), True)
+        self.assertEqual(self.gps_channel.has_channel(redvox.api900.api900_pb2.LONGITUDE), True)
+        self.assertEqual(self.gps_channel.has_channel(redvox.api900.api900_pb2.SPEED), True)
+        self.assertEqual(self.gps_channel.has_channel(redvox.api900.api900_pb2.ALTITUDE), True)
+        self.assertEqual(self.gps_channel.has_channel(redvox.api900.api900_pb2.MICROPHONE), False)
 
     def test_get_payload_dne(self):
         self.assertArraysEqual(
-            self.mic_channel.get_payload(io.redvox.api900.api900_pb2.BAROMETER),
-            self.empty_array)
+                self.mic_channel.get_payload(redvox.api900.api900_pb2.BAROMETER),
+                self.empty_array)
 
     def test_get_payload_single(self):
         self.assertArraysEqual(
-            self.mic_channel.get_payload(io.redvox.api900.api900_pb2.MICROPHONE),
-            numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+                self.mic_channel.get_payload(redvox.api900.api900_pb2.MICROPHONE),
+                numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
 
     def test_get_payload_interleaved(self):
         self.assertArraysEqual(
-            self.gps_channel.get_payload(io.redvox.api900.api900_pb2.LATITUDE),
-            numpy.array([19.0, 20.0, 21.0, 22.0, 23.0]))
+                self.gps_channel.get_payload(redvox.api900.api900_pb2.LATITUDE),
+                numpy.array([19.0, 20.0, 21.0, 22.0, 23.0]))
         self.assertArraysEqual(
-            self.gps_channel.get_payload(io.redvox.api900.api900_pb2.LONGITUDE),
-            numpy.array([155.0, 156.0, 157.0, 158.0, 159.0]))
+                self.gps_channel.get_payload(redvox.api900.api900_pb2.LONGITUDE),
+                numpy.array([155.0, 156.0, 157.0, 158.0, 159.0]))
         self.assertArraysEqual(
-            self.gps_channel.get_payload(io.redvox.api900.api900_pb2.SPEED),
-            numpy.array([1.0, 2.0, 3.0, 4.0, 5.0]))
+                self.gps_channel.get_payload(redvox.api900.api900_pb2.SPEED),
+                numpy.array([1.0, 2.0, 3.0, 4.0, 5.0]))
         self.assertArraysEqual(
-            self.gps_channel.get_payload(io.redvox.api900.api900_pb2.ALTITUDE),
-            numpy.array([25.0, 26.0, 27.0, 28.0, 29.0]))
+                self.gps_channel.get_payload(redvox.api900.api900_pb2.ALTITUDE),
+                numpy.array([25.0, 26.0, 27.0, 28.0, 29.0]))
 
     def test_get_payload_interleaved_dne(self):
         self.assertArraysEqual(
-            self.gps_channel.get_payload(io.redvox.api900.api900_pb2.BAROMETER),
-            self.empty_array)
+                self.gps_channel.get_payload(redvox.api900.api900_pb2.BAROMETER),
+                self.empty_array)
 
     def test_get_multi_payload_dne(self):
         self.assertArraysEqual(
-            self.gps_channel.get_multi_payload([io.redvox.api900.api900_pb2.BAROMETER]),
-            self.empty_array)
+                self.gps_channel.get_multi_payload([redvox.api900.api900_pb2.BAROMETER]),
+                self.empty_array)
 
     def test_get_multi_payload_single_dne(self):
         return self.assertRaises(
-           io.redvox.api900.reader.ReaderException,
-            self.gps_channel.get_multi_payload,
-            [io.redvox.api900.api900_pb2.LATITUDE,io.redvox.api900.api900_pb2.BAROMETER])
+                redvox.api900.reader.ReaderException,
+                self.gps_channel.get_multi_payload,
+                [redvox.api900.api900_pb2.LATITUDE, redvox.api900.api900_pb2.BAROMETER])
 
     def test_get_multi_payload_single(self):
         self.assertArraysEqual(
-            self.mic_channel.get_multi_payload([io.redvox.api900.api900_pb2.MICROPHONE]),
-            numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+                self.mic_channel.get_multi_payload([redvox.api900.api900_pb2.MICROPHONE]),
+                numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
 
     def test_get_multi_payload_double(self):
         self.assertArraysEqual(
-            self.gps_channel.get_multi_payload([io.redvox.api900.api900_pb2.LATITUDE,io.redvox.api900.api900_pb2.LONGITUDE]),
-            numpy.array([19.0, 155.0,
-                         20.0, 156.0,
-                         21.0, 157.0,
-                         22.0, 158.0,
-                         23.0, 159.0]))
+                self.gps_channel.get_multi_payload(
+                        [redvox.api900.api900_pb2.LATITUDE, redvox.api900.api900_pb2.LONGITUDE]),
+                numpy.array([19.0, 155.0,
+                             20.0, 156.0,
+                             21.0, 157.0,
+                             22.0, 158.0,
+                             23.0, 159.0]))
 
         self.assertArraysEqual(
-            self.gps_channel.get_multi_payload([io.redvox.api900.api900_pb2.LONGITUDE,io.redvox.api900.api900_pb2.LATITUDE]),
-            numpy.array([155.0, 19.0,
-                         156.0, 20.0,
-                         157.0, 21.0,
-                         158.0, 22.0,
-                         159.0, 23.0]))
+                self.gps_channel.get_multi_payload(
+                        [redvox.api900.api900_pb2.LONGITUDE, redvox.api900.api900_pb2.LATITUDE]),
+                numpy.array([155.0, 19.0,
+                             156.0, 20.0,
+                             157.0, 21.0,
+                             158.0, 22.0,
+                             159.0, 23.0]))
 
         self.assertArraysEqual(
-            self.gps_channel.get_multi_payload([io.redvox.api900.api900_pb2.LATITUDE,io.redvox.api900.api900_pb2.ALTITUDE]),
-            numpy.array([19.0, 25.0,
-                         20.0, 26.0,
-                         21.0, 27.0,
-                         22.0, 28.0,
-                         23.0, 29.0]))
+                self.gps_channel.get_multi_payload(
+                        [redvox.api900.api900_pb2.LATITUDE, redvox.api900.api900_pb2.ALTITUDE]),
+                numpy.array([19.0, 25.0,
+                             20.0, 26.0,
+                             21.0, 27.0,
+                             22.0, 28.0,
+                             23.0, 29.0]))
 
         self.assertArraysEqual(
-            self.gps_channel.get_multi_payload([io.redvox.api900.api900_pb2.ALTITUDE,io.redvox.api900.api900_pb2.LONGITUDE]),
-            numpy.array([25.0, 155.0,
-                         26.0, 156.0,
-                         27.0, 157.0,
-                         28.0, 158.0,
-                         29.0, 159.0]))
+                self.gps_channel.get_multi_payload(
+                        [redvox.api900.api900_pb2.ALTITUDE, redvox.api900.api900_pb2.LONGITUDE]),
+                numpy.array([25.0, 155.0,
+                             26.0, 156.0,
+                             27.0, 157.0,
+                             28.0, 158.0,
+                             29.0, 159.0]))
 
     def test_get_multi_payload_multi(self):
         self.assertArraysEqual(
-            self.gps_channel.get_multi_payload([
-               io.redvox.api900.api900_pb2.LATITUDE,
-               io.redvox.api900.api900_pb2.LONGITUDE,
-               io.redvox.api900.api900_pb2.ALTITUDE]),
-            numpy.array([19.0, 155.0, 25.0,
-                         20.0, 156.0, 26.0,
-                         21.0, 157.0, 27.0,
-                         22.0, 158.0, 28.0,
-                         23.0, 159.0, 29.0]))
+                self.gps_channel.get_multi_payload([
+                    redvox.api900.api900_pb2.LATITUDE,
+                    redvox.api900.api900_pb2.LONGITUDE,
+                    redvox.api900.api900_pb2.ALTITUDE]),
+                numpy.array([19.0, 155.0, 25.0,
+                             20.0, 156.0, 26.0,
+                             21.0, 157.0, 27.0,
+                             22.0, 158.0, 28.0,
+                             23.0, 159.0, 29.0]))
 
         self.assertArraysEqual(
-            self.gps_channel.get_multi_payload([
-               io.redvox.api900.api900_pb2.ALTITUDE,
-               io.redvox.api900.api900_pb2.SPEED,
-               io.redvox.api900.api900_pb2.LONGITUDE,
-               io.redvox.api900.api900_pb2.LATITUDE]),
-            numpy.array([25.0, 1.0, 155.0, 19.0,
-                         26.0, 2.0, 156.0, 20.0,
-                         27.0, 3.0, 157.0, 21.0,
-                         28.0, 4.0, 158.0, 22.0,
-                         29.0, 5.0, 159.0, 23.0]))
+                self.gps_channel.get_multi_payload([
+                    redvox.api900.api900_pb2.ALTITUDE,
+                    redvox.api900.api900_pb2.SPEED,
+                    redvox.api900.api900_pb2.LONGITUDE,
+                    redvox.api900.api900_pb2.LATITUDE]),
+                numpy.array([25.0, 1.0, 155.0, 19.0,
+                             26.0, 2.0, 156.0, 20.0,
+                             27.0, 3.0, 157.0, 21.0,
+                             28.0, 4.0, 158.0, 22.0,
+                             29.0, 5.0, 159.0, 23.0]))
 
     def test_get_value_mean_dne(self):
-        self.assertEqual(self.mic_channel.get_value_mean(io.redvox.api900.api900_pb2.BAROMETER),
+        self.assertEqual(self.mic_channel.get_value_mean(redvox.api900.api900_pb2.BAROMETER),
                          0.0)
 
     def test_get_value_mean_single(self):
-        self.assertEqual(self.mic_channel.get_value_mean(io.redvox.api900.api900_pb2.MICROPHONE),
+        self.assertEqual(self.mic_channel.get_value_mean(redvox.api900.api900_pb2.MICROPHONE),
                          5.5)
 
     def test_get_value_mean_multi(self):
-        self.assertEqual(self.gps_channel.get_value_mean(io.redvox.api900.api900_pb2.LATITUDE),
+        self.assertEqual(self.gps_channel.get_value_mean(redvox.api900.api900_pb2.LATITUDE),
                          1)
-        self.assertEqual(self.gps_channel.get_value_mean(io.redvox.api900.api900_pb2.LONGITUDE),
+        self.assertEqual(self.gps_channel.get_value_mean(redvox.api900.api900_pb2.LONGITUDE),
                          2)
-        self.assertEqual(self.gps_channel.get_value_mean(io.redvox.api900.api900_pb2.SPEED),
+        self.assertEqual(self.gps_channel.get_value_mean(redvox.api900.api900_pb2.SPEED),
                          3)
-        self.assertEqual(self.gps_channel.get_value_mean(io.redvox.api900.api900_pb2.ALTITUDE),
+        self.assertEqual(self.gps_channel.get_value_mean(redvox.api900.api900_pb2.ALTITUDE),
                          4)
 
     def test_get_value_std_dne(self):
-        self.assertEqual(self.mic_channel.get_value_std(io.redvox.api900.api900_pb2.BAROMETER),
+        self.assertEqual(self.mic_channel.get_value_std(redvox.api900.api900_pb2.BAROMETER),
                          0.0)
 
     def test_get_value_std_single(self):
-        self.assertEqual(self.mic_channel.get_value_std(io.redvox.api900.api900_pb2.MICROPHONE),
+        self.assertEqual(self.mic_channel.get_value_std(redvox.api900.api900_pb2.MICROPHONE),
                          3.0277)
 
     def test_get_value_std_multi(self):
-        self.assertEqual(self.gps_channel.get_value_std(io.redvox.api900.api900_pb2.LATITUDE),
+        self.assertEqual(self.gps_channel.get_value_std(redvox.api900.api900_pb2.LATITUDE),
                          1)
-        self.assertEqual(self.gps_channel.get_value_std(io.redvox.api900.api900_pb2.LONGITUDE),
+        self.assertEqual(self.gps_channel.get_value_std(redvox.api900.api900_pb2.LONGITUDE),
                          2)
-        self.assertEqual(self.gps_channel.get_value_std(io.redvox.api900.api900_pb2.SPEED),
+        self.assertEqual(self.gps_channel.get_value_std(redvox.api900.api900_pb2.SPEED),
                          3)
-        self.assertEqual(self.gps_channel.get_value_std(io.redvox.api900.api900_pb2.ALTITUDE),
+        self.assertEqual(self.gps_channel.get_value_std(redvox.api900.api900_pb2.ALTITUDE),
                          4)
 
     def test_get_value_median_dne(self):
-        self.assertEqual(self.mic_channel.get_value_median(io.redvox.api900.api900_pb2.BAROMETER),
+        self.assertEqual(self.mic_channel.get_value_median(redvox.api900.api900_pb2.BAROMETER),
                          0.0)
 
     def test_get_value_median_single(self):
-        self.assertEqual(self.mic_channel.get_value_median(io.redvox.api900.api900_pb2.MICROPHONE),
+        self.assertEqual(self.mic_channel.get_value_median(redvox.api900.api900_pb2.MICROPHONE),
                          5.5)
 
     def test_get_value_median_multi(self):
-        self.assertEqual(self.gps_channel.get_value_median(io.redvox.api900.api900_pb2.LATITUDE),
+        self.assertEqual(self.gps_channel.get_value_median(redvox.api900.api900_pb2.LATITUDE),
                          1)
-        self.assertEqual(self.gps_channel.get_value_median(io.redvox.api900.api900_pb2.LONGITUDE),
+        self.assertEqual(self.gps_channel.get_value_median(redvox.api900.api900_pb2.LONGITUDE),
                          2)
-        self.assertEqual(self.gps_channel.get_value_median(io.redvox.api900.api900_pb2.SPEED),
+        self.assertEqual(self.gps_channel.get_value_median(redvox.api900.api900_pb2.SPEED),
                          3)
-        self.assertEqual(self.gps_channel.get_value_median(io.redvox.api900.api900_pb2.ALTITUDE),
+        self.assertEqual(self.gps_channel.get_value_median(redvox.api900.api900_pb2.ALTITUDE),
                          4)
 
     def test_str(self):
@@ -558,7 +565,8 @@ class InterleavedChannelTests(ArraysTestCase):
 class EvenlySampledChannelTests(ArraysTestCase):
     def setUp(self):
         super().setUp()
-        self.mic_channel =io.redvox.api900.reader.EvenlySampledChannel(mock.simple_mic_packet().evenly_sampled_channels[0])
+        self.mic_channel = redvox.api900.reader.EvenlySampledChannel(
+                mock.simple_mic_packet().evenly_sampled_channels[0])
 
     def test_init(self):
         self.assertEqual(self.mic_channel.sample_rate_hz, 80.0)
@@ -572,12 +580,13 @@ class EvenlySampledChannelTests(ArraysTestCase):
 class UnevenlySampledChannelTests(ArraysTestCase):
     def setUp(self):
         super().setUp()
-        self.gps_channel =io.redvox.api900.reader.UnevenlySampledChannel(mock.simple_gps_packet().unevenly_sampled_channels[0])
+        self.gps_channel = redvox.api900.reader.UnevenlySampledChannel(
+                mock.simple_gps_packet().unevenly_sampled_channels[0])
 
     def test_init(self):
         self.assertArraysEqual(
-            self.gps_channel.timestamps_microseconds_utc,
-            numpy.array([1, 2, 3, 4, 5]))
+                self.gps_channel.timestamps_microseconds_utc,
+                numpy.array([1, 2, 3, 4, 5]))
         self.assertEqual(self.gps_channel.sample_interval_mean, 1.0)
         self.assertEqual(self.gps_channel.sample_interval_std, 2.0)
         self.assertEqual(self.gps_channel.sample_interval_median, 3.0)
@@ -590,9 +599,9 @@ class UnevenlySampledChannelTests(ArraysTestCase):
 class WrappedRedvoxPacketTests(ArraysTestCase):
     def setUp(self):
         super().setUp()
-        self.mic_packet =io.redvox.api900.reader.WrappedRedvoxPacket(mock.simple_mic_packet())
-        self.gps_packet =io.redvox.api900.reader.WrappedRedvoxPacket(mock.simple_gps_packet())
-        self.multi_packet =io.redvox.api900.reader.WrappedRedvoxPacket(mock.multi_channel_packet())
+        self.mic_packet = redvox.api900.reader.WrappedRedvoxPacket(mock.simple_mic_packet())
+        self.gps_packet = redvox.api900.reader.WrappedRedvoxPacket(mock.simple_gps_packet())
+        self.multi_packet = redvox.api900.reader.WrappedRedvoxPacket(mock.multi_channel_packet())
 
     def test_init(self):
         self.assertEqual(self.mic_packet.redvox_packet.api, 900)
@@ -612,48 +621,47 @@ class WrappedRedvoxPacketTests(ArraysTestCase):
         self.assertEqual(self.multi_packet.metadata, [])
 
     def test_get_channel(self):
-        self.assertEqual(self.mic_packet.get_channel(io.redvox.api900.api900_pb2.MICROPHONE).sensor_name,
+        self.assertEqual(self.mic_packet.get_channel(redvox.api900.api900_pb2.MICROPHONE).sensor_name,
                          "test microphone sensor name")
-        self.assertEqual(self.mic_packet.get_channel(io.redvox.api900.api900_pb2.BAROMETER),
+        self.assertEqual(self.mic_packet.get_channel(redvox.api900.api900_pb2.BAROMETER),
                          None)
 
-        self.assertEqual(self.gps_packet.get_channel(io.redvox.api900.api900_pb2.LATITUDE).sensor_name,
+        self.assertEqual(self.gps_packet.get_channel(redvox.api900.api900_pb2.LATITUDE).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.gps_packet.get_channel(io.redvox.api900.api900_pb2.LONGITUDE).sensor_name,
+        self.assertEqual(self.gps_packet.get_channel(redvox.api900.api900_pb2.LONGITUDE).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.gps_packet.get_channel(io.redvox.api900.api900_pb2.SPEED).sensor_name,
+        self.assertEqual(self.gps_packet.get_channel(redvox.api900.api900_pb2.SPEED).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.gps_packet.get_channel(io.redvox.api900.api900_pb2.ALTITUDE).sensor_name,
+        self.assertEqual(self.gps_packet.get_channel(redvox.api900.api900_pb2.ALTITUDE).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.gps_packet.get_channel(io.redvox.api900.api900_pb2.MICROPHONE), None)
+        self.assertEqual(self.gps_packet.get_channel(redvox.api900.api900_pb2.MICROPHONE), None)
 
-        self.assertEqual(self.multi_packet.get_channel(io.redvox.api900.api900_pb2.MICROPHONE).sensor_name,
+        self.assertEqual(self.multi_packet.get_channel(redvox.api900.api900_pb2.MICROPHONE).sensor_name,
                          "test microphone sensor name")
-        self.assertEqual(self.multi_packet.get_channel(io.redvox.api900.api900_pb2.LATITUDE).sensor_name,
+        self.assertEqual(self.multi_packet.get_channel(redvox.api900.api900_pb2.LATITUDE).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.multi_packet.get_channel(io.redvox.api900.api900_pb2.LONGITUDE).sensor_name,
+        self.assertEqual(self.multi_packet.get_channel(redvox.api900.api900_pb2.LONGITUDE).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.multi_packet.get_channel(io.redvox.api900.api900_pb2.SPEED).sensor_name,
+        self.assertEqual(self.multi_packet.get_channel(redvox.api900.api900_pb2.SPEED).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.multi_packet.get_channel(io.redvox.api900.api900_pb2.ALTITUDE).sensor_name,
+        self.assertEqual(self.multi_packet.get_channel(redvox.api900.api900_pb2.ALTITUDE).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.multi_packet.get_channel(io.redvox.api900.api900_pb2.OTHER).sensor_name,
+        self.assertEqual(self.multi_packet.get_channel(redvox.api900.api900_pb2.OTHER).sensor_name,
                          "test other sensor name")
 
     def test_has_channel(self):
-        self.assertTrue(self.mic_packet.has_channel(io.redvox.api900.api900_pb2.MICROPHONE))
-        self.assertFalse(self.mic_packet.has_channel(io.redvox.api900.api900_pb2.BAROMETER))
+        self.assertTrue(self.mic_packet.has_channel(redvox.api900.api900_pb2.MICROPHONE))
+        self.assertFalse(self.mic_packet.has_channel(redvox.api900.api900_pb2.BAROMETER))
 
-        self.assertTrue(self.gps_packet.has_channel(io.redvox.api900.api900_pb2.LATITUDE))
-        self.assertTrue(self.gps_packet.has_channel(io.redvox.api900.api900_pb2.LONGITUDE))
-        self.assertTrue(self.gps_packet.has_channel(io.redvox.api900.api900_pb2.SPEED))
-        self.assertTrue(self.gps_packet.has_channel(io.redvox.api900.api900_pb2.ALTITUDE))
-        self.assertFalse(self.gps_packet.has_channel(io.redvox.api900.api900_pb2.MICROPHONE))
+        self.assertTrue(self.gps_packet.has_channel(redvox.api900.api900_pb2.LATITUDE))
+        self.assertTrue(self.gps_packet.has_channel(redvox.api900.api900_pb2.LONGITUDE))
+        self.assertTrue(self.gps_packet.has_channel(redvox.api900.api900_pb2.SPEED))
+        self.assertTrue(self.gps_packet.has_channel(redvox.api900.api900_pb2.ALTITUDE))
+        self.assertFalse(self.gps_packet.has_channel(redvox.api900.api900_pb2.MICROPHONE))
 
-        self.assertTrue(self.multi_packet.has_channel(io.redvox.api900.api900_pb2.MICROPHONE))
-        self.assertTrue(self.multi_packet.has_channel(io.redvox.api900.api900_pb2.LATITUDE))
-        self.assertTrue(self.multi_packet.has_channel(io.redvox.api900.api900_pb2.LONGITUDE))
-        self.assertTrue(self.multi_packet.has_channel(io.redvox.api900.api900_pb2.SPEED))
-        self.assertTrue(self.multi_packet.has_channel(io.redvox.api900.api900_pb2.ALTITUDE))
-        self.assertTrue(self.multi_packet.has_channel(io.redvox.api900.api900_pb2.OTHER))
-
+        self.assertTrue(self.multi_packet.has_channel(redvox.api900.api900_pb2.MICROPHONE))
+        self.assertTrue(self.multi_packet.has_channel(redvox.api900.api900_pb2.LATITUDE))
+        self.assertTrue(self.multi_packet.has_channel(redvox.api900.api900_pb2.LONGITUDE))
+        self.assertTrue(self.multi_packet.has_channel(redvox.api900.api900_pb2.SPEED))
+        self.assertTrue(self.multi_packet.has_channel(redvox.api900.api900_pb2.ALTITUDE))
+        self.assertTrue(self.multi_packet.has_channel(redvox.api900.api900_pb2.OTHER))

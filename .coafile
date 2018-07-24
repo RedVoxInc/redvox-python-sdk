@@ -1,0 +1,22 @@
+[redvox]
+ignore = redvox/api900/api900_pb2.py, tests/**
+files = **.py
+
+[redvox.spacing]
+bears = SpaceConsistencyBear
+use_spaces = True
+
+[redvox.pep8]
+bears = PEP8Bear
+max_line_length = 120
+
+[redvox.pylint]
+bears = PyLintBear
+pylint_disable = C0301, C1801, R
+
+[redvox.pyflakes]
+bears = PyFlakesBear
+
+[redvox.bandit]
+bears = BanditBear
+bandit_skipped_tests = B322

@@ -2,8 +2,6 @@
 This module provides functions and classes for working with api900 protobuf data.
 """
 
-import io.redvox.api900.api900_pb2
-
 import struct
 import typing
 
@@ -12,7 +10,13 @@ import lz4.block
 import numpy
 
 
+import redvox.api900.api900_pb2
+
+
 class ReaderException(Exception):
+    """
+    Custom exception type for API900 reader errors.
+    """
     def __init__(self, msg: str = "ReaderException"):
         super(ReaderException, self).__init__(msg)
 
@@ -50,7 +54,7 @@ def lz4_decompress(buf: bytes) -> bytes:
     return lz4.block.decompress(buf[4:], uncompressed_size=calculate_uncompressed_size(buf))
 
 
-def read_buffer(buf: bytes, is_compressed: bool = True) -> api900.api900_pb2.RedvoxPacket:
+def read_buffer(buf: bytes, is_compressed: bool = True) -> redvox.api900.api900_pb2.RedvoxPacket:
     """Deserializes a serialized protobuf RedvoxPacket buffer.
 
     Args:
@@ -62,12 +66,12 @@ def read_buffer(buf: bytes, is_compressed: bool = True) -> api900.api900_pb2.Red
 
     """
     buffer = lz4_decompress(buf) if is_compressed else buf
-    redvox_packet = api900.api900_pb2.RedvoxPacket()
+    redvox_packet = redvox.api900.api900_pb2.RedvoxPacket()
     redvox_packet.ParseFromString(buffer)
     return redvox_packet
 
 
-def read_file(file: str, is_compressed: bool = None) -> api900.api900_pb2.RedvoxPacket:
+def read_file(file: str, is_compressed: bool = None) -> redvox.api900.api900_pb2.RedvoxPacket:
     """Deserializes a serialized protobuf RedvoxPacket file.
 
     Args:
@@ -88,8 +92,8 @@ def read_file(file: str, is_compressed: bool = None) -> api900.api900_pb2.Redvox
         return read_buffer(fin.read(), _is_compressed)
 
 
-def extract_payload(channel: typing.Union[api900.api900_pb2.EvenlySampledChannel,
-                                          api900.api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
+def extract_payload(channel: typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
+                                          redvox.api900.api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
     """
     Given an evenly on unevenly sampled channel, extracts the entire payload.
 
@@ -127,7 +131,7 @@ def extract_payload(channel: typing.Union[api900.api900_pb2.EvenlySampledChannel
 def repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
                                             containers.RepeatedScalarFieldContainer]) -> typing.List:
     """Transforms a repeated protobuf field into a list.
-    
+
     Args:
         repeated: The repeated field to transform.
 
@@ -216,25 +220,25 @@ def interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
 
     total_arrays = len(arrays)
     total_elements = sum(map(lambda array: array.size, arrays))
-    r = numpy.empty((total_elements,), dtype=arrays[0].dtype)
+    interleaved_array = numpy.empty((total_elements,), dtype=arrays[0].dtype)
     for i in range(total_arrays):
-        r[i::total_arrays] = arrays[i]
+        interleaved_array[i::total_arrays] = arrays[i]
 
-    return r
+    return interleaved_array
 
 
-def safe_index_of(lst: typing.List, v: typing.Any) -> int:
+def safe_index_of(lst: typing.List, val: typing.Any) -> int:
     """Finds the index of an item in a list and instead of throwing an exception returns -1 when the  item DNE.
 
     Args:
         lst: List to search through.
-        v: The value to find the index of.
+        val: The value to find the index of.
 
     Returns:
         The index of the first value v found or -1.
     """
     try:
-        return lst.index(v)
+        return lst.index(val)
     except ValueError:
         return -1
 
@@ -257,7 +261,7 @@ def channel_type_name_from_enum(enum_constant: int) -> str:
     Returns:
         The name of the channel.
     """
-    return api900.api900_pb2.ChannelType.Name(enum_constant)
+    return redvox.api900.api900_pb2.ChannelType.Name(enum_constant)
 
 
 def get_metadata(metadata: typing.List[str], k: str) -> str:
@@ -300,10 +304,10 @@ def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
     metadata_dict = {}
     metadata_copy = metadata.copy()
     while len(metadata_copy) >= 2:
-        k = metadata_copy.pop(0)
-        v = metadata_copy.pop(0)
-        if k not in metadata_dict:
-            metadata_dict[k] = v
+        metadata_key = metadata_copy.pop(0)
+        metadata_value = metadata_copy.pop(0)
+        if metadata_key not in metadata_dict:
+            metadata_dict[metadata_key] = metadata_value
     return metadata_dict
 
 
@@ -326,15 +330,15 @@ class InterleavedChannel:
     This class provides methods for working with interleaved channels as well as accessing interleaved statistic values.
     """
 
-    def __init__(self, channel: typing.Union[api900.api900_pb2.EvenlySampledChannel,
-                                             api900.api900_pb2.UnevenlySampledChannel]):
+    def __init__(self, channel: typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
+                                             redvox.api900.api900_pb2.UnevenlySampledChannel]):
         """Initializes this interleaved channel object.
 
         Args:
             channel: Either a protobuf evenly or unevenly sampled channel.
         """
-        self.protobuf_channel: typing.Union[api900.api900_pb2.EvenlySampledChannel,
-                                            api900.api900_pb2.UnevenlySampledChannel] = channel
+        self.protobuf_channel: typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
+                                            redvox.api900.api900_pb2.UnevenlySampledChannel] = channel
         """Reference to the original protobuf channel"""
 
         self.sensor_name: str = channel.sensor_name
@@ -342,8 +346,8 @@ class InterleavedChannel:
 
         self.channel_types: typing.List[
             typing.Union[
-                api900.api900_pb2.EvenlySampledChannel,
-                api900.api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
+                redvox.api900.api900_pb2.EvenlySampledChannel,
+                redvox.api900.api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
         """List of channel type constant enumerations"""
 
         self.payload: numpy.ndarray = extract_payload(channel)
@@ -361,8 +365,10 @@ class InterleavedChannel:
         self.value_medians: numpy.ndarray = repeated_to_array(channel.value_medians)
         """Interleaves array of median values"""
 
-        self.channel_type_index: typing.Dict[api900.api900_pb2.ChannelType, int] = {self.channel_types[i]: i for i in
-                                                                                    range(len(self.channel_types))}
+        self.channel_type_index: typing.Dict[redvox.api900.api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
+                                                                                           i in
+                                                                                           range(
+                                                                                               len(self.channel_types))}
         """Contains a mapping of channel type to index in channel_types array"""
 
     def get_channel_type_names(self) -> typing.List[str]:
@@ -488,7 +494,7 @@ class EvenlySampledChannel(InterleavedChannel):
     An evenly sampled channel is an interleaved channel that also has a channel with an even sampling rate.
     """
 
-    def __init__(self, channel: api900.api900_pb2.EvenlySampledChannel):
+    def __init__(self, channel: redvox.api900.api900_pb2.EvenlySampledChannel):
         """Initializes this evenly sampled channel.
 
         Args:
@@ -516,7 +522,7 @@ class UnevenlySampledChannel(InterleavedChannel):
     This class also adds easy access to statistics for timestamps.
     """
 
-    def __init__(self, channel: api900.api900_pb2.UnevenlySampledChannel):
+    def __init__(self, channel: redvox.api900.api900_pb2.UnevenlySampledChannel):
         """Initializes this unevenly sampled channel.
 
         Args:
@@ -549,24 +555,25 @@ class WrappedRedvoxPacket:
     directly.
     """
 
-    def __init__(self, redvox_packet: api900.api900_pb2.RedvoxPacket):
+    def __init__(self, redvox_packet: redvox.api900.api900_pb2.RedvoxPacket):
         """Initializes this wrapped redvox packet.
 
         Args:
             redvox_packet: A protobuf redvox packet.
         """
 
-        self.redvox_packet: api900.api900_pb2.RedvoxPacket = redvox_packet
+        self.redvox_packet: redvox.api900.api900_pb2.RedvoxPacket = redvox_packet
         """Protobuf api 900 redvox packet"""
 
         self.evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
-            map(lambda even_channel:
-                EvenlySampledChannel(even_channel),
-                repeated_to_array(redvox_packet.evenly_sampled_channels)))
+                map(lambda even_channel:
+                    EvenlySampledChannel(even_channel),
+                    repeated_to_array(redvox_packet.evenly_sampled_channels)))
         """List of evenly sampled channels"""
+
         self.unevenly_sampled_channels: typing.List[UnevenlySampledChannel] = list(
-            map(lambda uneven_channel: UnevenlySampledChannel(uneven_channel),
-                repeated_to_array(redvox_packet.unevenly_sampled_channels)))
+                map(lambda uneven_channel: UnevenlySampledChannel(uneven_channel),
+                    repeated_to_array(redvox_packet.unevenly_sampled_channels)))
         """List of unevenly sampled channels"""
 
         self.metadata: typing.List[str] = repeated_to_list(redvox_packet.metadata)
@@ -610,8 +617,8 @@ class WrappedRedvoxPacket:
             names.append(list(map(channel_type_name_from_enum, channel_types)))
         return names
 
-    def get_channel(self, channel_type: int) -> typing.Union[api900.api900_pb2.EvenlySampledChannel,
-                                                             api900.api900_pb2.UnevenlySampledChannel]:
+    def get_channel(self, channel_type: int) -> typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
+                                                             redvox.api900.api900_pb2.UnevenlySampledChannel]:
         """Returns a channel from this packet according to the channel type.
 
         Args:
@@ -648,7 +655,7 @@ class WrappedRedvoxPacket:
         return str(self.redvox_packet)
 
 
-def wrap(redvox_packet: api900.api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:
+def wrap(redvox_packet: redvox.api900.api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:
     """Shortcut for wrapping a protobuf packet with our higher level wrapper.
 
     Args:
