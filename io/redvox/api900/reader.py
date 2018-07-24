@@ -2,7 +2,7 @@
 This module provides functions and classes for working with api900 protobuf data.
 """
 
-import api900.api900_pb2
+import io.redvox.api900.api900_pb2
 
 import struct
 import typing
