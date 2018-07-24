@@ -1,6 +1,6 @@
 import api900.reader
 import api900.api900_pb2
-import tests.api900.mock_packets as mock
+import tests.mock_packets as mock
 
 import numpy
 
