@@ -1065,6 +1065,27 @@ class WrappedRedvoxPacket:
         """
         return self.get_accelerometer_channel().get_value_median(redvox.api900.api900_pb2.ACCELEROMETER_Z)
 
+    def get_accelerometer_x_value_std(self):
+        """Returns the std value for the X axis in the accelerometer channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The std value for the accelerometer x-axis channel.
+        """
+        return self.get_accelerometer_channel().get_value_std(redvox.api900.api900_pb2.ACCELEROMETER_X)
+
+    def get_accelerometer_y_value_std(self):
+        """Returns the std value for the Y axis in the accelerometer channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The median value for the accelerometer y-axis channel.
+        """
+        return self.get_accelerometer_channel().get_value_std(redvox.api900.api900_pb2.ACCELEROMETER_Y)
+
+    def get_accelerometer_z_value_std(self):
+        """Returns the std value for the Z axis in the accelerometer channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The std value for the accelerometer z-axis channel.
+        """
+        return self.get_accelerometer_channel().get_value_std(redvox.api900.api900_pb2.ACCELEROMETER_Z)
+
     # ---------- Magnetometer sensor methods
     def has_magnetometer_channels(self) -> bool:
         return self.has_channels([
