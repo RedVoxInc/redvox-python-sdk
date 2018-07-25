@@ -764,7 +764,12 @@ class WrappedRedvoxPacket:
         """
         return self.get_barometer_channel().get_value_std(redvox.api900.api900_pb2.BAROMETER)
 
+    # ---------- Location sensor methods
     def has_location_channel(self) -> bool:
+        """
+        Returns whether this packer contains a location channel.
+        :return: True if this packet does contain a location channel, False otherwise.
+        """
         return self.has_channels([redvox.api900.api900_pb2.LATITUDE,
                                   redvox.api900.api900_pb2.LONGITUDE,
                                   redvox.api900.api900_pb2.ALTITUDE,
@@ -782,38 +787,300 @@ class WrappedRedvoxPacket:
         else:
             raise ReaderException("Redvox AIP 900 packet does not contain a location channel")
 
-    def get_location_sensot_name(self) -> str:
+    def get_location_sensor_name(self) -> str:
+        """Returns the location sensor name.
+        :raises ReaderException: If location channel DNE in this packet.
+        :return: The location sensor name.
+        """
         return self.get_location_channel().sensor_name
 
-    def get_location_payload_timestamps(self):
+    def get_location_payload_timestamps(self) -> numpy.ndarray:
         """Returns the timestamps associated with each location sample.
         :raises ReaderException: If location channel DNE in this packet.
         :return: The timestamps associated with each location sample as a numpy ndarray.
         """
+        return self.get_location_channel().timestamps_microseconds_utc
 
+    def get_location_payload_values(self) -> numpy.ndarray:
+        """
+        Returns the location values associated with each location sample.
 
+        Each value is an array of values such that:
+
+        [[latitude_0, longitude_0, altitude_0, speed_0, accuracy_0],
+         [latitude_1, longitude_1, altitude_1, speed_1, accuracy_1],
+         [latitude_2, longitude_2, altitude_2, speed_2, accuracy_2],
+         ...,
+         [latitude_n, longitude_n, altitude_n, speed_n, accuracy_n]]
+
+        :raises ReaderException: If location channel DNE in this packet.
+        :return: Location values.
+        """
+        return self.get_location_channel().get_multi_payload([
+            redvox.api900.api900_pb2.LATITUDE,
+            redvox.api900.api900_pb2.LONGITUDE,
+            redvox.api900.api900_pb2.ALTITUDE,
+            redvox.api900.api900_pb2.SPEED,
+            redvox.api900.api900_pb2.ACCURACY
+        ])
+
+    def get_location_payload_values_latitude(self) -> numpy.ndarray:
+        """Returns the latitude value associated with each location sample.
+        :raises ReaderException: If location channel DNE in this packet.
+        :return: The latitude value associated with each location sample.
+        """
+        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.LATITUDE)
+
+    def get_location_payload_values_longitude(self) -> numpy.ndarray:
+        """Returns the longitude value associated with each location sample.
+        :raises ReaderException: If location channel DNE in this packet.
+        :return: The longitude value associated with each location sample.
+        """
+        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.LONGITUDE)
+
+    def get_location_payload_values_altitude(self) -> numpy.ndarray:
+        """Returns the altitude value associated with each location sample.
+        :raises ReaderException: If location channel DNE in this packet.
+        :return: The altitude value associated with each location sample.
+        """
+        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.ALTITUDE)
+
+    def get_location_payload_values_speed(self) -> numpy.ndarray:
+        """Returns the speed value associated with each location sample.
+        :raises ReaderException: If location channel DNE in this packet.
+        :return: The speed value associated with each location sample.
+        """
+        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.SPEED)
+
+    def get_location_payload_values_accuracy(self) -> numpy.ndarray:
+        """Returns the accuracy value associated with each location sample.
+        :raises ReaderException: If location channel DNE in this packet.
+        :return: The accuracy value associated with each location sample.
+        """
+        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.ACCURACY)
+
+    def get_location_payload(self) -> numpy.ndarray:
+        """
+        Returns the payload of the location channel an array of arrays where each subarray consists of a timestamp for
+        that sample followed by the payload values.
+
+        The return format is described as follows:
+
+        [[timestamp_0, latitude_0, longitude_0, altitude_0, speed_0, accuracy_0],
+         [timestamp_1, latitude_1, longitude_1, altitude_1, speed_1, accuracy_1],
+         [timestamp_2, latitude_2, longitude_2, altitude_2, speed_2, accuracy_2],
+         ...,
+         [timestamp_n, latitude_n, longitude_n, altitude_n, speed_n, accuracy_n]]
+
+        :return: Location payload.
+        """
+        timestamps = self.get_location_payload_timestamps()
+        values = self.get_location_payload_values()
+        return numpy.column_stack((timestamps, values))
+
+    # ---------- Time synchronization sensor methods
     def has_time_synchronization_channel(self):
+        """
+        Returns whether this wrapped packet contains a time synchronization channel.
+        :return: True if this packet contains a time synchronization channel, False otherwise.
+        """
         return self.has_channel(redvox.api900.api900_pb2.TIME_SYNCHRONIZATION)
 
-    def has_accelerometer_channels(self):
+    def get_time_synchronization_channel(self) -> redvox.api900.api900_pb2.UnevenlySampledChannel:
+        """
+        Returns the time_synchronization unevenly sampled channel.
+        :raises ReaderException: If time_synchronization channel DNE in this packet.
+        :return: The time_synchronization unevenly sampled channel.
+        """
+        if self.has_time_synchronization_channel():
+            return self.get_channel(redvox.api900.api900_pb2.TIME_SYNCHRONIZATION)
+        else:
+            raise ReaderException("Redvox AIP 900 packet does not contain a barometer channel")
+
+    def get_time_synchronization_payload(self) -> numpy.ndarray:
+        """Returns the time synchronization exchange array.
+
+        :raises ReaderException: If time synchronization channel DNE in this packet.
+        :return: The time synchronization exchange array.
+        """
+        return self.get_time_synchronization_channel().get_payload(redvox.api900.api900_pb2.TIME_SYNCHRONIZATION)
+
+    # ---------- Accelerometer sensor methods
+    def has_accelerometer_channel(self) -> bool:
+        """
+        Returns whether or not this packet has an accelerometer channel.
+        :return: True if this channel does have an accelerometer channel, False otherwise.
+        """
         return self.has_channels([
             redvox.api900.api900_pb2.ACCELEROMETER_X,
             redvox.api900.api900_pb2.ACCELEROMETER_Y,
             redvox.api900.api900_pb2.ACCELEROMETER_Z])
 
-    def has_magnetometer_channels(self):
+    def get_accelerometer_channel(self) -> redvox.api900.api900_pb2.UnevenlySampledChannel:
+        """
+        Returns the accelerometer unevenly sampled channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The accelerometer unevenly sampled channel.
+        """
+        if self.has_accelerometer_channel():
+            return self.get_channel(redvox.api900.api900_pb2.ACCELEROMETER_X)
+        else:
+            raise ReaderException("Redvox AIP 900 packet does not contain a accelerometer channel")
+
+    def get_accelerometer_sensor_name(self) -> str:
+        """Returns the accelerometer sensor name.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The accelerometer sensor name.
+        """
+        return self.get_accelerometer_channel().sensor_name
+
+    def get_accelerometer_payload_timestamps(self) -> numpy.ndarray:
+        """Returns the timestamps associated with each accelerometer sample.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The timestamps associated with each accelerometer sample as a numpy ndarray.
+        """
+        return self.get_accelerometer_channel().timestamps_microseconds_utc
+
+    def get_accelerometer_payload_values(self) -> numpy.ndarray:
+        """
+        Returns the accelerometer values associated with each accelerometer sample.
+
+        Each value is an array of values such that:
+
+        [[accelerometer_x_0, accelerometer_y_0, accelerometer_z_0],
+         [accelerometer_x_1, accelerometer_y_1, accelerometer_z_1],
+         [accelerometer_x_2, accelerometer_y_2, accelerometer_z_2],
+         ...,
+         [accelerometer_x_n, accelerometer_y_n, accelerometer_z_n]]
+
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: Accelerometer values.
+        """
+        return self.get_location_channel().get_multi_payload([
+            redvox.api900.api900_pb2.ACCELEROMETER_X,
+            redvox.api900.api900_pb2.ACCELEROMETER_Y,
+            redvox.api900.api900_pb2.ACCELEROMETER_Z
+        ])
+
+    def get_accelerometer_payload_values_x(self) -> numpy.ndarray:
+        """Returns the accelerometer_x value associated with each accelerometer sample.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The accelerometer value associated with each location sample.
+        """
+        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.ACCELEROMETER_X)
+
+    def get_accelerometer_payload_values_y(self) -> numpy.ndarray:
+        """Returns the accelerometer_y value associated with each accelerometer sample.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The accelerometer value associated with each location sample.
+        """
+        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.ACCELEROMETER_Y)
+
+    def get_accelerometer_payload_values_z(self) -> numpy.ndarray:
+        """Returns the accelerometer_z value associated with each accelerometer sample.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The accelerometer value associated with each location sample.
+        """
+        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.ACCELEROMETER_Z)
+
+    def get_accelerometer_payload(self) -> numpy.ndarray:
+        """
+        Returns the payload of the accelerometer channel an array of arrays where each subarray consists of a timestamp
+        for that sample followed by the payload values.
+
+        The return format is described as follows:
+
+        [[timestamp_0, accelerometer_x_0, accelerometer_y_0, accelerometer_z_0],
+         [timestamp_1, accelerometer_x_1, accelerometer_y_1, accelerometer_z_1],
+         [timestamp_2, accelerometer_x_2, accelerometer_y_2, accelerometer_z_2],
+         ...,
+         [timestamp_n, accelerometer_x_n, accelerometer_y_n, accelerometer_z_n]]
+
+        :return: Accelerometer payload.
+        """
+        timestamps = self.get_accelerometer_payload_timestamps()
+        values = self.get_accelerometer_payload_values()
+        return numpy.column_stack((timestamps, values))
+
+    def get_accelerometer_sample_interval_mean(self) -> float:
+        """Returns the mean sample interval for the accelerometer channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The mean sample interval for the accelerometer channel.
+        """
+        return self.get_accelerometer_channel().sample_interval_mean
+
+    def get_accelerometer_sample_interval_median(self) -> float:
+        """Returns the median sample interval for the accelerometer channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The median sample interval for the accelerometer channel.
+        """
+        return self.get_accelerometer_channel().sample_interval_median
+
+    def get_accelerometer_sample_interval_std(self) -> float:
+        """Returns the standard deviation sample interval for the accelerometer channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The standard deviation sample interval for the accelerometer channel.
+        """
+        return self.get_accelerometer_channel().sample_interval_std
+
+    def get_accelerometer_x_value_mean(self):
+        """Returns the mean value for the X axis in the accelerometer channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The mean value for the accelerometer x-axis channel.
+        """
+        return self.get_accelerometer_channel().get_value_mean(redvox.api900.api900_pb2.ACCELEROMETER_X)
+
+    def get_accelerometer_y_value_mean(self):
+        """Returns the mean value for the Y axis in the accelerometer channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The mean value for the accelerometer y-axis channel.
+        """
+        return self.get_accelerometer_channel().get_value_mean(redvox.api900.api900_pb2.ACCELEROMETER_Y)
+
+    def get_accelerometer_z_value_mean(self):
+        """Returns the mean value for the Z axis in the accelerometer channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The mean value for the accelerometer z-axis channel.
+        """
+        return self.get_accelerometer_channel().get_value_mean(redvox.api900.api900_pb2.ACCELEROMETER_Z)
+
+    def get_accelerometer_x_value_median(self):
+        """Returns the median value for the X axis in the accelerometer channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The median value for the accelerometer x-axis channel.
+        """
+        return self.get_accelerometer_channel().get_value_median(redvox.api900.api900_pb2.ACCELEROMETER_X)
+
+    def get_accelerometer_y_value_median(self):
+        """Returns the median value for the Y axis in the accelerometer channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The median value for the accelerometer y-axis channel.
+        """
+        return self.get_accelerometer_channel().get_value_median(redvox.api900.api900_pb2.ACCELEROMETER_Y)
+
+    def get_accelerometer_z_value_median(self):
+        """Returns the median value for the Z axis in the accelerometer channel.
+        :raises ReaderException: If accelerometer channel DNE in this packet.
+        :return: The median value for the accelerometer z-axis channel.
+        """
+        return self.get_accelerometer_channel().get_value_median(redvox.api900.api900_pb2.ACCELEROMETER_Z)
+
+    # ---------- Magnetometer sensor methods
+    def has_magnetometer_channels(self) -> bool:
         return self.has_channels([
             redvox.api900.api900_pb2.MAGNETOMETER_X,
             redvox.api900.api900_pb2.MAGNETOMETER_Y,
             redvox.api900.api900_pb2.MAGNETOMETER_Z])
 
-    def has_gyroscope_channels(self):
+    # ---------- Gyroscope sensor methods
+    def has_gyroscope_channels(self) -> bool:
         return self.has_channels([
             redvox.api900.api900_pb2.GYROSCOPE_X,
             redvox.api900.api900_pb2.GYROSCOPE_Y,
             redvox.api900.api900_pb2.GYROSCOPE_Z])
 
-    def has_light_channel(self):
+    # ---------- Light sensor methods
+    def has_light_channel(self) -> bool:
         return self.has_channel(redvox.api900.api900_pb2.LIGHT)
 
     def __str__(self) -> str:
