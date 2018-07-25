@@ -9,7 +9,6 @@ import google.protobuf.internal.containers as containers
 import lz4.block
 import numpy
 
-
 import redvox.api900.api900_pb2
 
 
@@ -17,35 +16,26 @@ class ReaderException(Exception):
     """
     Custom exception type for API900 reader errors.
     """
+
     def __init__(self, msg: str = "ReaderException"):
         super(ReaderException, self).__init__(msg)
 
 
 def calculate_uncompressed_size(buf: bytes) -> int:
-    """Given a buffer, calculate the original size of the uncompressed packet by looking at the first four bytes.
-
-    Args:
-        buf: Buffer where first 4 bytes contain the size of the original uncompressed packet.
-            The bytes are encoded big endian.
-
-
-    Returns:
-        The total number of bytes in the original uncompressed packet.
-
+    """
+    Given a buffer, calculate the original size of the uncompressed packet by looking at the first four bytes.
+    :param buf: Buffer where first 4 big endian bytes contain the size of the original uncompressed packet.
+    :return: The total number of bytes in the original uncompressed packet.
     """
     return struct.unpack(">I", buf[:4])[0]
 
 
 def lz4_decompress(buf: bytes) -> bytes:
-    """Decompresses an API 900 compressed buffer.
-
-    Args:
-        buf: The buffer to decompress.
-
-    Returns: The uncompressed buffer.
-
     """
-
+    Decompresses an API 900 compressed buffer.
+    :param buf: The buffer to decompress.
+    :return: The uncompressed buffer.
+    """
     uncompressed_size = calculate_uncompressed_size(buf)
 
     if uncompressed_size <= 0:
@@ -55,15 +45,11 @@ def lz4_decompress(buf: bytes) -> bytes:
 
 
 def read_buffer(buf: bytes, is_compressed: bool = True) -> redvox.api900.api900_pb2.RedvoxPacket:
-    """Deserializes a serialized protobuf RedvoxPacket buffer.
-
-    Args:
-        buf: Buffer to deserialize.
-        is_compressed: Whether or not the buffer is compressed or decompressed.
-
-    Returns:
-        Deserialized protobuf redvox packet.
-
+    """
+    Deserializes a serialized protobuf RedvoxPacket buffer.
+    :param buf: Buffer to deserialize.
+    :param is_compressed: Whether or not the buffer is compressed or decompressed.
+    :return: Deserialized protobuf redvox packet.
     """
     buffer = lz4_decompress(buf) if is_compressed else buf
     redvox_packet = redvox.api900.api900_pb2.RedvoxPacket()
@@ -72,15 +58,11 @@ def read_buffer(buf: bytes, is_compressed: bool = True) -> redvox.api900.api900_
 
 
 def read_file(file: str, is_compressed: bool = None) -> redvox.api900.api900_pb2.RedvoxPacket:
-    """Deserializes a serialized protobuf RedvoxPacket file.
-
-    Args:
-        file: File to deserialize.
-        is_compressed: Whether or not the file is compressed or decompressed.
-
-    Returns:
-        Deserialized protobuf redvox packet.
-
+    """
+    Deserializes a serialized protobuf RedvoxPacket file.
+    :param file: File to deserialize.
+    :param is_compressed: Whether or not the file is compressed or decompressed.
+    :return: Deserialized protobuf redvox packet.
     """
     file_ext = file.split(".")[-1]
 
@@ -99,12 +81,8 @@ def extract_payload(channel: typing.Union[redvox.api900.api900_pb2.EvenlySampled
 
     This will return a payload of either ints or floats and is type agnostic when it comes to the underlying
     protobuf type.
-
-    Args:
-        channel: The protobuf channel to extract the payload from.
-
-    Returns:
-        A numpy array of either floats or ints.
+    :param channel: The protobuf channel to extract the payload from.
+    :return: A numpy array of either floats or ints.
     """
     payload_type = channel.WhichOneof("payload")
 
@@ -130,28 +108,20 @@ def extract_payload(channel: typing.Union[redvox.api900.api900_pb2.EvenlySampled
 
 def repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
                                             containers.RepeatedScalarFieldContainer]) -> typing.List:
-    """Transforms a repeated protobuf field into a list.
-
-    Args:
-        repeated: The repeated field to transform.
-
-    Returns:
-        A list of the repeated items.
-
+    """
+    Transforms a repeated protobuf field into a list.
+    :param repeated: The repeated field to transform.
+    :return: A list of the repeated items.
     """
     return repeated[0:len(repeated)]
 
 
 def repeated_to_array(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
                                              containers.RepeatedScalarFieldContainer]) -> numpy.ndarray:
-    """Transforms a repeated protobuf field into a numpy array.
-
-    Args:
-        repeated: The repeated field to transform.
-
-    Returns:
-        An array of the repeated items.
-
+    """
+    Transforms a repeated protobuf field into a numpy array.
+    :param repeated: The repeated field to transform.
+    :return: A numpy array of the repeated items.
     """
     return numpy.array(repeated_to_list(repeated))
 
@@ -174,16 +144,11 @@ def deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.
 
     This function will "deinterleave" the encoding and provide an array of a single channel type.
 
-
-    Args:
-        ndarray: The interleaved.
-        offset: The offset into the array.
-        step: The step size.
-
-    Returns:
-        A numpy array of a single channel type.
+    :param ndarray: Interleaved array.
+    :param offset: Offset into the array.
+    :param step: The step size.
+    :return: A numpy array of a single channel type.
     """
-
     if len(ndarray) == 0:
         raise ReaderException("empty array")
 
@@ -203,15 +168,11 @@ def deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.
 
 
 def interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
-    """Interleaves multiple arrays together.
-
-    Args:
-        arrays: Arrays to interleave.
-
-    Returns:
-        Interleaved arrays.
     """
-
+    Interleaves multiple arrays together.
+    :param arrays: Arrays to interleave.
+    :return: Interleaved arrays.
+    """
     if len(arrays) < 2:
         raise ReaderException("At least 2 arrays are required for interleaving")
 
@@ -228,14 +189,11 @@ def interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
 
 
 def safe_index_of(lst: typing.List, val: typing.Any) -> int:
-    """Finds the index of an item in a list and instead of throwing an exception returns -1 when the  item DNE.
-
-    Args:
-        lst: List to search through.
-        val: The value to find the index of.
-
-    Returns:
-        The index of the first value v found or -1.
+    """
+    Finds the index of an item in a list and instead of throwing an exception returns -1 when the  item DNE.
+    :param lst: List to search through.
+    :param val: The value to find the index of.
+    :return: The index of the first value v found or -1.
     """
     try:
         return lst.index(val)
@@ -245,36 +203,27 @@ def safe_index_of(lst: typing.List, val: typing.Any) -> int:
 
 def empty_array() -> numpy.ndarray:
     """Returns an empty numpy array.
-
-    Returns:
-        An empty numpy array.
+    :return: An empty numpy array.
     """
     return numpy.array([])
 
 
 def channel_type_name_from_enum(enum_constant: int) -> str:
-    """Returns the name of a channel type given its enumeration constant.
-
-    Args:
-        enum_constant: The constant to turn into a name.
-
-    Returns:
-        The name of the channel.
+    """
+    Returns the name of a channel type given its enumeration constant.
+    :param enum_constant: The constant to turn into a name.
+    :return: The name of the channel.
     """
     return redvox.api900.api900_pb2.ChannelType.Name(enum_constant)
 
 
 def get_metadata(metadata: typing.List[str], k: str) -> str:
-    """ Given a meta-data key, extract the value.
-
-    Args:
-        metadata: List of metadata to extract value from.
-        k: The meta-data key.
-
-    Returns:
-        The value corresponding to the key or an empty string "".
     """
-
+    Given a meta-data key, extract the value.
+    :param metadata: List of metadata to extract value from.
+    :param k: The meta-data key.
+    :return: The value corresponding to the key or an empty string.
+    """
     if len(metadata) % 2 != 0:
         raise ReaderException("metadata list must contain an even number of items")
 
@@ -286,15 +235,11 @@ def get_metadata(metadata: typing.List[str], k: str) -> str:
 
 
 def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
-    """Since the metadata is inherently key-value, it may be useful to turn the metadata list into a python dictionary.
-
-    Args:
-        metadata: The metadata list.
-
-    Returns:
-        Metadata as a python dictionary.
     """
-
+    Since the metadata is inherently key-value, it may be useful to turn the metadata list into a python dictionary.
+    :param metadata: The metadata list.
+    :return: Metadata as a python dictionary.
+    """
     if len(metadata) == 0:
         return {}
 
@@ -332,10 +277,9 @@ class InterleavedChannel:
 
     def __init__(self, channel: typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
                                              redvox.api900.api900_pb2.UnevenlySampledChannel]):
-        """Initializes this interleaved channel object.
-
-        Args:
-            channel: Either a protobuf evenly or unevenly sampled channel.
+        """
+        Initializes this interleaved channel object.
+        :param channel: Either a protobuf evenly or unevenly sampled channel.
         """
         self.protobuf_channel: typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
                                             redvox.api900.api900_pb2.UnevenlySampledChannel] = channel
@@ -368,58 +312,46 @@ class InterleavedChannel:
         self.channel_type_index: typing.Dict[redvox.api900.api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
                                                                                            i in
                                                                                            range(
-                                                                                               len(self.channel_types))}
+                                                                                                   len(
+                                                                                                           self.channel_types))}
         """Contains a mapping of channel type to index in channel_types array"""
 
     def get_channel_type_names(self) -> typing.List[str]:
-        """Returns the list of channel_types as a list of names instead of enumeration constants.
-
-        Returns:
-            Returns the list of channel_types as a list of names instead of enumeration constants.
+        """
+        Returns the list of channel_types as a list of names instead of enumeration constants.
+        :return: The list of channel_types as a list of names instead of enumeration constants.
         """
         return list(map(channel_type_name_from_enum, self.channel_types))
 
     def channel_index(self, channel_type: int) -> int:
-        """Returns the index of a channel type or -1 if it DNE.
-
-        Args:
-            channel_type:
-
-        Returns:
-
+        """
+        Returns the index of a channel type or -1 if it DNE.
+        :param channel_type: The channel type to search for.
+        :return: The index of the channel or -1 if it DNE.
         """
         return self.channel_type_index[channel_type] if channel_type in self.channel_type_index else -1
 
     def has_channel(self, channel_type: int) -> bool:
-        """Returns if channel type exists with in this channel.
-
-        Args:
-            channel_type: The channel type to seach for.
-
-        Returns:
-            True if it exists otherwise False
+        """
+        Returns if channel type exists with in this channel.
+        :param channel_type: The channel type to search for.
+        :return: True if it exist, False otherwise.
         """
         return channel_type in self.channel_type_index
 
     def has_payload(self, channel_type: int) -> bool:
-        """Returns if channel contains a non-empty specified payload.
-
-        Args:
-            channel_type: The channel to check for a payload for.
-
-        Returns: Whether this channel contains the specified payload.
-
+        """
+        Returns if channel contains a non-empty specified payload.
+        :param channel_type: The channel to check for a payload for.
+        :return: Whether this channel contains the specified payload.
         """
         return self.has_channel(channel_type) and len(self.payload) > 0
 
     def get_payload(self, channel_type: int) -> numpy.ndarray:
-        """Returns a deinterleaved payload of a given channel type or an empty array.
-
-        Args:
-            channel_type: The channel type to extract/deinterleave from the payload.
-
-        Returns:
-            A numpy array of floats or ints of a single channel type.
+        """
+        Returns a deinterleaved payload of a given channel type or an empty array.
+        :param channel_type: The channel type to extract/deinterleave from the payload.
+        :return: A numpy array of floats or ints of a single channel type.
         """
         idx = self.channel_index(channel_type)
         if idx < 0:
@@ -428,6 +360,11 @@ class InterleavedChannel:
             return deinterleave_array(self.payload, idx, len(self.channel_types))
 
     def get_multi_payload(self, channel_types: typing.List[int]) -> numpy.ndarray:
+        """
+        Returns an interleaved payload with the given channel types.
+        :param channel_types: Channel types to interleave into a single payload.
+        :return: A numpy array of an interleaved payload.
+        """
         channel_types_len = len(channel_types)
         if channel_types_len == 0:
             return empty_array()
@@ -438,13 +375,10 @@ class InterleavedChannel:
             return interleave_arrays(payloads)
 
     def get_value_mean(self, channel_type: int) -> float:
-        """Returns the mean value for a single channel type.
-
-        Args:
-            channel_type: The channel type to extract the mean from.
-
-        Returns:
-            The mean value or 0.0 if the mean value DNE.
+        """
+        Returns the mean value for a single channel type.
+        :param channel_type: The channel type to extract the mean from.
+        :return: The mean value or 0.0 if the mean value DNE.
         """
         idx = self.channel_index(channel_type)
         if idx < 0:
@@ -453,13 +387,10 @@ class InterleavedChannel:
             return self.value_means[idx]
 
     def get_value_std(self, channel_type: int) -> float:
-        """Returns the standard deviation value for a single channel type.
-
-        Args:
-            channel_type: The channel type to extract the mean from.
-
-        Returns:
-            The standard deviation value or 0.0 if the standard deviation value DNE.
+        """
+        Returns the standard deviation value for a single channel type.
+        :param channel_type: The channel type to extract the std from.
+        :return: The standard deviation value or 0.0 if the standard deviation value DNE.
         """
         idx = self.channel_index(channel_type)
         if idx < 0:
@@ -468,13 +399,10 @@ class InterleavedChannel:
             return self.value_stds[idx]
 
     def get_value_median(self, channel_type: int) -> float:
-        """Returns the median value for a single channel type.
-
-        Args:
-            channel_type: The channel type to extract the mean from.
-
-        Returns:
-            The median value or 0.0 if the median value DNE.
+        """
+        Returns the median value for a single channel type.
+        :param channel_type: The channel type to extract the median from.
+        :return:The median value or 0.0 if the median value DNE.
         """
         idx = self.channel_index(channel_type)
         if idx < 0:
@@ -483,6 +411,10 @@ class InterleavedChannel:
             return self.value_medians[idx]
 
     def __str__(self) -> str:
+        """
+        Returns a string representation of this interleaved channel.
+        :return: A string representation of this interleaved chanel.
+        """
         return "sensor_name: {}\nchannel_types: {}\nlen(payload): {}".format(self.sensor_name,
                                                                              list(map(channel_type_name_from_enum,
                                                                                       self.channel_types)),
@@ -495,10 +427,9 @@ class EvenlySampledChannel(InterleavedChannel):
     """
 
     def __init__(self, channel: redvox.api900.api900_pb2.EvenlySampledChannel):
-        """Initializes this evenly sampled channel.
-
-        Args:
-            channel: A protobuf evenly sampled channel.
+        """
+        Initializes this evenly sampled channel.
+        :param channel: A protobuf evenly sampled channel.
         """
         InterleavedChannel.__init__(self, channel)
         self.sample_rate_hz: float = channel.sample_rate_hz
@@ -508,10 +439,14 @@ class EvenlySampledChannel(InterleavedChannel):
         """The timestamp of the first sample"""
 
     def __str__(self) -> str:
+        """
+        Returns a string representation of this evenly sampled channel.
+        :return: A string representation of this evenly sampled channel.
+        """
         return "{}\nsample_rate_hz: {}\nfirst_sample_timestamp_epoch_microseconds_utc: {}".format(
-            super(EvenlySampledChannel, self).__str__(),
-            self.sample_rate_hz,
-            self.first_sample_timestamp_epoch_microseconds_utc)
+                super(EvenlySampledChannel, self).__str__(),
+                self.sample_rate_hz,
+                self.first_sample_timestamp_epoch_microseconds_utc)
 
 
 class UnevenlySampledChannel(InterleavedChannel):
@@ -523,10 +458,9 @@ class UnevenlySampledChannel(InterleavedChannel):
     """
 
     def __init__(self, channel: redvox.api900.api900_pb2.UnevenlySampledChannel):
-        """Initializes this unevenly sampled channel.
-
-        Args:
-            channel: A protobuf unevenly sampled channel.
+        """
+        Initializes this unevenly sampled channel.
+        :param channel: A protobuf unevenly sampled channel.
         """
         InterleavedChannel.__init__(self, channel)
         self.timestamps_microseconds_utc: numpy.ndarray = repeated_to_array(channel.timestamps_microseconds_utc)
@@ -542,6 +476,10 @@ class UnevenlySampledChannel(InterleavedChannel):
         """The median sample interval"""
 
     def __str__(self) -> str:
+        """
+        Returns a string representation of this unevenly sampled channel.
+        :return: A string representation of this unevenly sampled channel.
+        """
         return "{}\nlen(timestamps_microseconds_utc): {}".format(super().__str__(),
                                                                  len(self.timestamps_microseconds_utc))
 
@@ -556,12 +494,10 @@ class WrappedRedvoxPacket:
     """
 
     def __init__(self, redvox_packet: redvox.api900.api900_pb2.RedvoxPacket):
-        """Initializes this wrapped redvox packet.
-
-        Args:
-            redvox_packet: A protobuf redvox packet.
         """
-
+        Initializes this wrapped redvox packet.
+        :param redvox_packet: A protobuf redvox packet.
+        """
         self.redvox_packet: redvox.api900.api900_pb2.RedvoxPacket = redvox_packet
         """Protobuf api 900 redvox packet"""
 
@@ -593,9 +529,9 @@ class WrappedRedvoxPacket:
 
     def get_channel_types(self) -> typing.List[typing.List[int]]:
         """
-        Returns:
-            Returns a list of channel type enumerations. This is a list of lists, and allows us to easily view
-            interleaved channels.
+        Returns a list of channel type enumerations. This is a list of lists, and allows us to easily view
+        interleaved channels.
+        :return: A list of channel type enumerations.
         """
         channel_types = []
         for evenly_sampled_channel in self.evenly_sampled_channels:
@@ -608,9 +544,10 @@ class WrappedRedvoxPacket:
 
     def get_channel_type_names(self) -> typing.List[typing.List[str]]:
         """
-        Returns:
-            Returns a list of channel type names. This is a list of lists, and allows us to easily view
-            interleaved channels.
+        Returns a list of channel type names. This is a list of lists, and allows us to easily view
+        interleaved channels.
+        :return: A list of channel type names. This is a list of lists, and allows us to easily view
+        interleaved channels.
         """
         names = []
         for channel_types in self.get_channel_types():
@@ -619,13 +556,10 @@ class WrappedRedvoxPacket:
 
     def get_channel(self, channel_type: int) -> typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
                                                              redvox.api900.api900_pb2.UnevenlySampledChannel]:
-        """Returns a channel from this packet according to the channel type.
-
-        Args:
-            channel_type: The channel type to search for.
-
-        Returns:
-            A high level channel wrapper or None.
+        """
+        Returns a channel from this packet according to the channel type.
+        :param channel_type: The channel type to search for.
+        :return: A high level channel wrapper or None.
         """
         if channel_type in self._channel_cache:
             return self._channel_cache[channel_type]
@@ -633,19 +567,254 @@ class WrappedRedvoxPacket:
             return None
 
     def has_channel(self, channel_type: int) -> bool:
-        """Returns True is this packet contains a channel with this type otherwise False.
-
-        Args:
-            channel_type: Channel type to search for.
-
-        Returns:
-
+        """
+        Returns True is this packet contains a channel with this type otherwise False.
+        :param channel_type: Channel type to search for.
+        :return: True is this packet contains a channel with this type otherwise False.
         """
         return channel_type in self._channel_cache
 
-    def print_meta(self):
-        """Prints a string representation of the redvox packet without payload data displayed."""
-        pass
+    def has_channels(self, channel_types: typing.List[int]) -> bool:
+        """
+        Checks that this packet contains all of the provided channels.
+        :param channel_types: Channel types that this packet must contain.
+        :return: True if this packet contains all provided channel types, False otherwise.
+        """
+        has_channel_results = map(lambda channel_type: self.has_channel(channel_type), channel_types)
+        for has_channel_result in has_channel_results:
+            if not has_channel_result:
+                return False
+        return True
+
+    # ---------- Microphone sensor methods
+    def has_microphone_channel(self) -> bool:
+        """
+        Returns whether this wrapped packet contains a microphone channel.
+        :return: True if this packet contains a microphone channel, False otherwise.
+        """
+        return self.has_channel(redvox.api900.api900_pb2.MICROPHONE)
+
+    def get_microphone_channel(self) -> redvox.api900.api900_pb2.EvenlySampledChannel:
+        """
+        Returns the microphone evenly sampled channel.
+        :raises ReaderException: If microphone channel DNE in this packet.
+        :return: The microphone evenly sampled channel.
+        """
+        if self.has_microphone_channel():
+            return self.get_channel(redvox.api900.api900_pb2.MICROPHONE)
+        else:
+            raise ReaderException("Redvox API 900 packet does not contain a microphone channel")
+
+    def get_microphone_first_sample_timestamp_epoch_microseconds_utc(self) -> int:
+        """
+        Returns the timestamp of the first microphone sample as microseconds from the epoch UTC.
+        :raises ReaderException: If microphone channel DNE in this packet.
+        :return: The timestamp of the first microphone sample as microseconds from the epoch UTC.
+        """
+        return self.get_microphone_channel().first_sample_timestamp_epoch_microseconds_utc
+
+    def get_microphone_sample_rate_hz(self) -> float:
+        """Returns the sample rate in Hz of the microphone channel.
+        :raises ReaderException: If microphone channel DNE in this packet.
+        :return: The sample rate in Hz of the microphone channel.
+        """
+        return self.get_microphone_channel().sample_rate_hz
+
+    def get_microphone_sensor_name(self) -> str:
+        """Returns the microphone sensor name.
+        :raises ReaderException: If microphone channel DNE in this packet.
+        :return: The microphone sensor name.
+        """
+        return self.get_microphone_channel().sensor_name
+
+    def get_microphone_payload(self) -> numpy.ndarray:
+        """Returns the microphone payload as a numpy array of integers.
+        :raises ReaderException: If microphone channel DNE in this packet.
+        :return: The microphone payload as a numpy array of integers.
+        """
+        return self.get_microphone_channel().get_payload(redvox.api900.api900_pb2.MICROPHONE)
+
+    def get_microphone_value_mean(self) -> float:
+        """Returns the mean of the values in the microphone channel
+        :raises ReaderException: If microphone channel DNE in this packet.
+        :return:
+        ."""
+        return self.get_microphone_channel().get_value_mean(redvox.api900.api900_pb2.MICROPHONE)
+
+    def get_microphone_value_median(self) -> float:
+        """Returns the median of the values in the microphone channel.
+        :raises ReaderException: If microphone channel DNE in this packet.
+        :return:
+        """
+        return self.get_microphone_channel().get_value_median(redvox.api900.api900_pb2.MICROPHONE)
+
+    def get_microphone_value_std(self) -> float:
+        """Returns the standard deviation of the values in the microphone channel.
+        :raises ReaderException: If microphone channel DNE in this packet.
+        :return:
+        """
+        return self.get_microphone_channel().get_value_std(redvox.api900.api900_pb2.MICROPHONE)
+
+    def get_microphone_metadata(self) -> typing.Dict[str, str]:
+        """Returns metadata stored with the microphone channel as a key-value dictionary.
+        :raises ReaderException: If microphone channel DNE in this packet.
+        :return:
+        """
+        return get_metadata_as_dict(self.get_microphone_channel().metadata)
+
+    # ---------- Barometer sensor methods
+    def has_barometer_channel(self):
+        """
+        Returns whether this wrapped packet contains a barometer channel.
+        :return: True if this packet contains a barometer channel, False otherwise.
+        """
+        return self.has_channel(redvox.api900.api900_pb2.BAROMETER)
+
+    def get_barometer_channel(self) -> redvox.api900.api900_pb2.UnevenlySampledChannel:
+        """
+        Returns the barometer unevenly sampled channel.
+        :raises ReaderException: If barometer channel DNE in this packet.
+        :return: The barometer unevenly sampled channel.
+        """
+        if self.has_microphone_channel():
+            return self.get_channel(redvox.api900.api900_pb2.BAROMETER)
+        else:
+            raise ReaderException("Redvox AIP 900 packet does not contain a barometer channel")
+
+    def get_barometer_sensor_name(self) -> str:
+        """Returns the barometer sensor name.
+        :raises ReaderException: If barometer channel DNE in this packet.
+        :return: The barometer sensor name.
+        """
+        return self.get_barometer_channel().sensor_name
+
+    def get_barometer_payload_timestamps(self) -> numpy.ndarray:
+        """Returns the timestamps associated with each barometer sample.
+        :raises ReaderException: If barometer channel DNE in this packet.
+        :return: The timestamps associated with each barometer sample as a numpy ndarray.
+        """
+        return self.get_barometer_channel().timestamps_microseconds_utc
+
+    def get_barometer_payload_values(self) -> numpy.ndarray:
+        """Returns the values associated with each barometer sample.
+        :raises ReaderException: If barometer channel DNE in this packet.
+        :return: The values associated with each barometer sample as a numpy ndarray.
+        """
+        return self.get_barometer_channel().get_payload(redvox.api900.api900_pb2.BAROMETER)
+
+    def get_barometer_payload(self) -> numpy.ndarray:
+        """Returns a 2D numpy array where each sub-array contains the sample timestamp and the barometer value.
+        I.e.:
+        [[timestamp_0, barometer_0],
+         [timestamp_1, barometer_1],
+         [timestamp_2, barometer_2],
+         ...,
+         [timestamp_n, barometer_n]]
+        :raises ReaderException: If barometer channel DNE in this packet.
+        :raises ReaderException: If the length of the timestamps and values are not the same.
+        :return: The timestamps associated with each barometer sample as a numpy ndarray.
+        """
+        timestamps = self.get_barometer_payload_timestamps()
+        values = self.get_barometer_payload_values()
+
+        if len(timestamps) != len(values):
+            raise ReaderException("Barometer channel len(timestamps) != len(values)")
+
+        return numpy.column_stack((timestamps, values))
+
+    def get_barometer_sample_interval_mean(self) -> float:
+        """
+        Returns the mean sample interval of the barometer channel.
+        :return: The mean sample interval of the barometer channel.
+        """
+        return self.get_barometer_channel().sample_interval_mean
+
+    def get_barometer_sample_interval_median(self) -> float:
+        """
+        Returns the median sample interval of the barometer channel.
+        :return: The median sample interval of the barometer channel.
+        """
+        return self.get_barometer_channel().sample_interval_median
+
+    def get_barometer_sample_interval_std(self) -> float:
+        """
+        Returns the standard deviation sample interval of the barometer channel.
+        :return: The standard deviation sample interval of the barometer channel.
+        """
+        return self.get_barometer_channel().sample_interval_std
+
+    def get_barometer_value_mean(self) -> float:
+        """
+        Returns the mean value of the barometer channel.
+        :return: The mean value of the barometer channel.
+        """
+        return self.get_barometer_channel().get_value_mean(redvox.api900.api900_pb2.BAROMETER)
+
+    def get_barometer_value_median(self) -> float:
+        """
+        Returns the median value of the barometer channel.
+        :return: The median value of the barometer channel.
+        """
+        return self.get_barometer_channel().get_value_median(redvox.api900.api900_pb2.BAROMETER)
+
+    def get_barometer_value_std(self) -> float:
+        """
+        Returns the standard deviation value of the barometer channel.
+        :return: The standard deviation value of the barometer channel.
+        """
+        return self.get_barometer_channel().get_value_std(redvox.api900.api900_pb2.BAROMETER)
+
+    def has_location_channel(self) -> bool:
+        return self.has_channels([redvox.api900.api900_pb2.LATITUDE,
+                                  redvox.api900.api900_pb2.LONGITUDE,
+                                  redvox.api900.api900_pb2.ALTITUDE,
+                                  redvox.api900.api900_pb2.SPEED,
+                                  redvox.api900.api900_pb2.ACCURACY])
+
+    def get_location_channel(self) -> redvox.api900.api900_pb2.UnevenlySampledChannel:
+        """
+        Returns the location unevenly sampled channel.
+        :raises ReaderException: If location channel DNE in this packet.
+        :return: The location unevenly sampled channel.
+        """
+        if self.has_location_channel():
+            return self.get_channel(redvox.api900.api900_pb2.LATITUDE)
+        else:
+            raise ReaderException("Redvox AIP 900 packet does not contain a location channel")
+
+    def get_location_sensot_name(self) -> str:
+        return self.get_location_channel().sensor_name
+
+    def get_location_payload_timestamps(self):
+        """Returns the timestamps associated with each location sample.
+        :raises ReaderException: If location channel DNE in this packet.
+        :return: The timestamps associated with each location sample as a numpy ndarray.
+        """
+
+
+    def has_time_synchronization_channel(self):
+        return self.has_channel(redvox.api900.api900_pb2.TIME_SYNCHRONIZATION)
+
+    def has_accelerometer_channels(self):
+        return self.has_channels([
+            redvox.api900.api900_pb2.ACCELEROMETER_X,
+            redvox.api900.api900_pb2.ACCELEROMETER_Y,
+            redvox.api900.api900_pb2.ACCELEROMETER_Z])
+
+    def has_magnetometer_channels(self):
+        return self.has_channels([
+            redvox.api900.api900_pb2.MAGNETOMETER_X,
+            redvox.api900.api900_pb2.MAGNETOMETER_Y,
+            redvox.api900.api900_pb2.MAGNETOMETER_Z])
+
+    def has_gyroscope_channels(self):
+        return self.has_channels([
+            redvox.api900.api900_pb2.GYROSCOPE_X,
+            redvox.api900.api900_pb2.GYROSCOPE_Y,
+            redvox.api900.api900_pb2.GYROSCOPE_Z])
+
+    def has_light_channel(self):
+        return self.has_channel(redvox.api900.api900_pb2.LIGHT)
 
     def __str__(self) -> str:
         """
