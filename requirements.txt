@@ -1,4 +1,3 @@
-coala
 lz4
 numpy
 protobuf

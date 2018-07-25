@@ -312,8 +312,8 @@ class InterleavedChannel:
         self.channel_type_index: typing.Dict[redvox.api900.api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
                                                                                            i in
                                                                                            range(
-                                                                                                   len(
-                                                                                                           self.channel_types))}
+                                                                                               len(
+                                                                                                   self.channel_types))}
         """Contains a mapping of channel type to index in channel_types array"""
 
     def get_channel_type_names(self) -> typing.List[str]:
@@ -410,6 +410,9 @@ class InterleavedChannel:
         else:
             return self.value_medians[idx]
 
+    def get_metadata_as_dict(self) -> typing.Dict[str, str]:
+        return get_metadata_as_dict(self.metadata)
+
     def __str__(self) -> str:
         """
         Returns a string representation of this interleaved channel.
@@ -444,9 +447,9 @@ class EvenlySampledChannel(InterleavedChannel):
         :return: A string representation of this evenly sampled channel.
         """
         return "{}\nsample_rate_hz: {}\nfirst_sample_timestamp_epoch_microseconds_utc: {}".format(
-                super(EvenlySampledChannel, self).__str__(),
-                self.sample_rate_hz,
-                self.first_sample_timestamp_epoch_microseconds_utc)
+            super(EvenlySampledChannel, self).__str__(),
+            self.sample_rate_hz,
+            self.first_sample_timestamp_epoch_microseconds_utc)
 
 
 class UnevenlySampledChannel(InterleavedChannel):
@@ -484,6 +487,105 @@ class UnevenlySampledChannel(InterleavedChannel):
                                                                  len(self.timestamps_microseconds_utc))
 
 
+class WrappedMicrophoneChannel:
+    def __init__(self, evenly_sampled_channel: EvenlySampledChannel):
+        self.microphone_channel = evenly_sampled_channel
+
+    def sample_rate_hz(self) -> float:
+        return self.microphone_channel.sample_rate_hz
+
+    def first_sample_timestamp_epoch_microseconds_utc(self) -> int:
+        return self.microphone_channel.first_sample_timestamp_epoch_microseconds_utc
+
+    def sensor_name(self) -> str:
+        return self.microphone_channel.sensor_name
+
+    def payload_values(self) -> numpy.ndarray:
+        return self.microphone_channel.get_payload(redvox.api900.api900_pb2.MICROPHONE)
+
+    def payload_mean(self) -> float:
+        return self.microphone_channel.get_value_mean(redvox.api900.api900_pb2.MICROPHONE)
+
+    def payload_median(self) -> float:
+        return self.microphone_channel.get_value_median(redvox.api900.api900_pb2.MICROPHONE)
+
+    def payload_std(self) -> float:
+        return self.microphone_channel.get_value_std(redvox.api900.api900_pb2.MICROPHONE)
+
+    def metadata(self) -> typing.Dict[str, str]:
+        return get_metadata_as_dict(self.microphone_channel.metadata)
+
+
+class WrappedUnevenlySampledChannel:
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        self.unevenly_sampled_channel = unevenly_sampled_channel
+
+    def sensor_name(self) -> str:
+        return self.unevenly_sampled_channel.sensor_name
+
+    def timestamps_microseconds_utc(self) -> numpy.ndarray:
+        return self.unevenly_sampled_channel.timestamps_microseconds_utc
+
+    def sample_interval_mean(self) -> float:
+        return self.unevenly_sampled_channel.sample_interval_mean
+
+    def sample_interval_median(self) -> float:
+        return self.unevenly_sampled_channel.sample_interval_median
+
+    def sample_interval_std(self) -> float:
+        return self.unevenly_sampled_channel.sample_interval_std
+
+    def metadata_as_dict(self) -> typing.Dict[str, str]:
+        return get_metadata_as_dict(self.unevenly_sampled_channel.metadata)
+
+
+class WrappedBarometerChannel(WrappedUnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        super().__init__(unevenly_sampled_channel)
+
+    def payload_values(self) -> numpy.ndarray:
+        return self.unevenly_sampled_channel.get_payload(redvox.api900.api900_pb2.BAROMETER)
+
+    def payload_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(redvox.api900.api900_pb2.BAROMETER)
+
+    def payload_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(redvox.api900.api900_pb2.BAROMETER)
+
+    def payload_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(redvox.api900.api900_pb2.BAROMETER)
+
+
+class WrappedLocationChannel(WrappedUnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        super().__init__(unevenly_sampled_channel)
+
+    def payload_values(self):
+        return self.unevenly_sampled_channel.get_multi_payload([
+            redvox.api900.api900_pb2.LATITUDE,
+            redvox.api900.api900_pb2.LONGITUDE,
+            redvox.api900.api900_pb2.ALTITUDE,
+            redvox.api900.api900_pb2.SPEED,
+            redvox.api900.api900_pb2.ACCURACY
+        ])
+
+    def payload_values_latitude(self):
+        return self.unevenly_sampled_channel.get_payload(redvox.api900.api900_pb2.LATITUDE)
+
+    def payload_values_longitude(self):
+        return self.unevenly_sampled_channel.get_payload(redvox.api900.api900_pb2.LONGITUDE)
+
+    def payload_values_altitude(self):
+        return self.unevenly_sampled_channel.get_payload(redvox.api900.api900_pb2.ALTITUDE)
+
+    def payload_values_speed(self):
+        return self.unevenly_sampled_channel.get_payload(redvox.api900.api900_pb2.SPEED)
+
+    def payload_values_accuracy(self):
+        return self.unevenly_sampled_channel.get_payload(redvox.api900.api900_pb2.ACCURACY)
+
+    
+
 class WrappedRedvoxPacket:
     """
     This class provides convenience methods for accessing API 900 protobuf redvox packets.
@@ -502,14 +604,14 @@ class WrappedRedvoxPacket:
         """Protobuf api 900 redvox packet"""
 
         self.evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
-                map(lambda even_channel:
-                    EvenlySampledChannel(even_channel),
-                    repeated_to_array(redvox_packet.evenly_sampled_channels)))
+            map(lambda even_channel:
+                EvenlySampledChannel(even_channel),
+                repeated_to_array(redvox_packet.evenly_sampled_channels)))
         """List of evenly sampled channels"""
 
         self.unevenly_sampled_channels: typing.List[UnevenlySampledChannel] = list(
-                map(lambda uneven_channel: UnevenlySampledChannel(uneven_channel),
-                    repeated_to_array(redvox_packet.unevenly_sampled_channels)))
+            map(lambda uneven_channel: UnevenlySampledChannel(uneven_channel),
+                repeated_to_array(redvox_packet.unevenly_sampled_channels)))
         """List of unevenly sampled channels"""
 
         self.metadata: typing.List[str] = repeated_to_list(redvox_packet.metadata)
