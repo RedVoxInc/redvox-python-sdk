@@ -89,7 +89,7 @@ The `BarometerSensor` class contains methods for directly accessing the fields a
 | Name | Type | Description | 
 |------|------|-------------|
 | timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
-| sensor_name() | str | Returns the name of the sensor for this microphone sensor channel |
+| sensor_name() | str | Returns the name of the sensor for this sensor channel |
 | payload_values() | numpy.ndarray[float] | A numpy array of floats representing the data payload from this packet's barometer channel |
 | payload_mean() | float | The mean value of this packet's barometer data payload |
 | payload_median() | float | The median value of this packet's barometer data payload |
@@ -114,7 +114,7 @@ The `LocationSensor` class contains methods for directly accessing the fields an
 | Name | Type | Description | 
 |------|------|-------------|
 | timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
-| sensor_name() | str | Returns the name of the sensor for this microphone sensor channel |
+| sensor_name() | str | Returns the name of the sensor for this sensor channel |
 | payload_values() | numpy.ndarray[float] | A numpy array of interleaved location values [[latitude_0, longitude_0, altitude_0, speed_0, accuracy_0], [latitude_1, longitude_1, altitude_1, speed_1, accuracy_1], ..., [latitude_n, longitude_n, altitude_n, speed_n, accuracy_n]] |
 | payload_values_latitude() | numpy.ndarray[float] | A numpy array contains the latitude values for each sample |
 | payload_values_longitude() | numpy.ndarray[float] | A numpy array contains the longitude values for each sample |
@@ -164,6 +164,135 @@ The `TimeSynchronizationSensor` class contains methods for directly accessing th
 # TODO
 ```
 
+### Working with accelerometer sensor channels
+
+Accelerometer sensors can be accessed from `WrappedRedvoxPacket` objects by accessing the member `accelerometer_sensors`. Each accelerometer sensor on the device will show up in this list. If there is only one accelerometer, there will only be a single item in the list. If there are no accelerometer sensors for a packet, then the list will be empty.
+
+The `AccelerationSensor` class contains methods for directly accessing the fields and payloads of accelerometer channels. The accelerometer sensor payload can either be accessed as a single interleaved payload which contains all X, Y, and Z components, or each component can be accessed individually. The following table briefly describes the available methods for accelerometer sensor channels. 
+
+| Name | Type | Description | 
+|------|------|-------------|
+| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| sensor_name() | str | Returns the name of the sensor for this sensor channel |
+| payload_values() | numpy.ndarray[float] | A numpy array of floats representing the X, Y, and Z components of this channel [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]] |
+| payload_values_x() | numpy.ndarray[float] | A numpy array of floats representing the X component of this channel. |
+| payload_values_y() | numpy.ndarray[float] | A numpy array of floats representing the Y component of this channel. |
+| payload_values_z() | numpy.ndarray[float] | A numpy array of floats representing the Z component of this channel. |
+| payload_values_x_mean() | float | The mean value of the X component from this packet's channel |
+| payload_values_y_mean() | float | The mean value of the Y component from this packet's channel |
+| payload_values_z_mean() | float | The mean value of the Z component from this packet's channel |
+| payload_values_x_median() | float | The median value of the X component from this packet's channel |
+| payload_values_y_median() | float | The median value of the Y component from this packet's channel |
+| payload_values_z_median() | float | The median value of the Z component from this packet's channel |
+| payload_values_x_std() | float | The standard deviation value of the X component from this packet's channel |
+| payload_values_y_std() | float | The standard deviation value of the Y component from this packet's channel |
+| payload_values_z_std() | float | The standard deviation value of the Z component from this packet's channel |
+| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
+| sample_interval_mean() | float | The median of the sample interval for samples in this packet |
+| sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
+| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
+
+
+##### Example accelerometer sensor reading
+
+```
+# TODO
+```
+
+### Working with magnetometer sensor channels
+
+Magnetometer sensors can be accessed from `WrappedRedvoxPacket` objects by accessing the member `magnetometer_sensors`. Each magnetometer sensor on the device will show up in this list. If there is only one magnetometer, there will only be a single item in the list. If there are no magnetometer sensors for a packet, then the list will be empty.
+
+The `MagnetometerSensor` class contains methods for directly accessing the fields and payloads of magnetometer channels. The magnetometer sensor payload can either be accessed as a single interleaved payload which contains all X, Y, and Z components, or each component can be accessed individually. The following table briefly describes the available methods for magnetometer sensor channels. 
+
+| Name | Type | Description | 
+|------|------|-------------|
+| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| sensor_name() | str | Returns the name of the sensor for this sensor channel |
+| payload_values() | numpy.ndarray[float] | A numpy array of floats representing the X, Y, and Z components of this channel [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]] |
+| payload_values_x() | numpy.ndarray[float] | A numpy array of floats representing the X component of this channel. |
+| payload_values_y() | numpy.ndarray[float] | A numpy array of floats representing the Y component of this channel. |
+| payload_values_z() | numpy.ndarray[float] | A numpy array of floats representing the Z component of this channel. |
+| payload_values_x_mean() | float | The mean value of the X component from this packet's channel |
+| payload_values_y_mean() | float | The mean value of the Y component from this packet's channel |
+| payload_values_z_mean() | float | The mean value of the Z component from this packet's channel |
+| payload_values_x_median() | float | The median value of the X component from this packet's channel |
+| payload_values_y_median() | float | The median value of the Y component from this packet's channel |
+| payload_values_z_median() | float | The median value of the Z component from this packet's channel |
+| payload_values_x_std() | float | The standard deviation value of the X component from this packet's channel |
+| payload_values_y_std() | float | The standard deviation value of the Y component from this packet's channel |
+| payload_values_z_std() | float | The standard deviation value of the Z component from this packet's channel |
+| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
+| sample_interval_mean() | float | The median of the sample interval for samples in this packet |
+| sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
+| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
+
+
+##### Example magnetometer sensor reading
+
+```
+# TODO
+```
+
+### Working with gyroscope sensor channels
+
+Gyroscope sensors can be accessed from `WrappedRedvoxPacket` objects by accessing the member `gyroscope_sensors`. Each gyroscope sensor on the device will show up in this list. If there is only one gyroscope, there will only be a single item in the list. If there are no gyroscope sensors for a packet, then the list will be empty.
+
+The `GyroscopeSensor` class contains methods for directly accessing the fields and payloads of gyroscope channels. The gyroscope sensor payload can either be accessed as a single interleaved payload which contains all X, Y, and Z components, or each component can be accessed individually. The following table briefly describes the available methods for gyroscope sensor channels. 
+
+| Name | Type | Description | 
+|------|------|-------------|
+| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| sensor_name() | str | Returns the name of the sensor for this sensor channel |
+| payload_values() | numpy.ndarray[float] | A numpy array of floats representing the X, Y, and Z components of this channel [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]] |
+| payload_values_x() | numpy.ndarray[float] | A numpy array of floats representing the X component of this channel. |
+| payload_values_y() | numpy.ndarray[float] | A numpy array of floats representing the Y component of this channel. |
+| payload_values_z() | numpy.ndarray[float] | A numpy array of floats representing the Z component of this channel. |
+| payload_values_x_mean() | float | The mean value of the X component from this packet's channel |
+| payload_values_y_mean() | float | The mean value of the Y component from this packet's channel |
+| payload_values_z_mean() | float | The mean value of the Z component from this packet's channel |
+| payload_values_x_median() | float | The median value of the X component from this packet's channel |
+| payload_values_y_median() | float | The median value of the Y component from this packet's channel |
+| payload_values_z_median() | float | The median value of the Z component from this packet's channel |
+| payload_values_x_std() | float | The standard deviation value of the X component from this packet's channel |
+| payload_values_y_std() | float | The standard deviation value of the Y component from this packet's channel |
+| payload_values_z_std() | float | The standard deviation value of the Z component from this packet's channel |
+| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
+| sample_interval_mean() | float | The median of the sample interval for samples in this packet |
+| sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
+| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
+
+
+##### Example gyroscope sensor reading
+
+```
+# TODO
+```
+
+### Working with light sensor channels
+
+Light sensors can be accessed from `WrappedRedvoxPacket` objects by accessing the member `light_sensors`. Each light sensor on the device will show up in this list. If there is only one light sensor, there will only be a single item in the list. If there are no light sensors for a packet, then the list will be empty.
+
+The `LightSensor` class contains methods for directly accessing the fields and payloads of light channels. The following table briefly describes the available methods for light sensor channels.
+
+| Name | Type | Description | 
+|------|------|-------------|
+| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| sensor_name() | str | Returns the name of the sensor for this sensor channel |
+| payload_values() | numpy.ndarray[float] | A numpy array of floats representing the data payload from this packet's barometer channel |
+| payload_mean() | float | The mean value of this packet's light data payload |
+| payload_median() | float | The median value of this packet's light data payload |
+| payload_std() | float | The standard deviation of this packet's light data payload |
+| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
+| sample_interval_mean() | float | The median of the sample interval for samples in this packet |
+| sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
+| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
+
+##### Example barometer sensor reading
+
+```
+# TODO
+```
 
 ### API Documentation
 
