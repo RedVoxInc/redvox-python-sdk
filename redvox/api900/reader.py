@@ -503,9 +503,6 @@ class EvenlySampledSensor:
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         return get_metadata_as_dict(self.evenly_sampled_channel.metadata)
 
-    def exists(self):
-        return self.evenly_sampled_channel is not None
-
 
 class UnevenlySampledSensor:
     def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
@@ -528,9 +525,6 @@ class UnevenlySampledSensor:
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         return get_metadata_as_dict(self.unevenly_sampled_channel.metadata)
-
-    def exists(self):
-        return self.unevenly_sampled_channel is not None
 
 
 class XyzUnevenlySampledSensor(UnevenlySampledSensor):
@@ -600,9 +594,6 @@ class MicrophoneSensor(EvenlySampledChannel):
 
     def payload_std(self) -> float:
         return self.microphone_channel.get_value_std(api900_pb2.MICROPHONE)
-
-    def metadata(self) -> typing.Dict[str, str]:
-        return get_metadata_as_dict(self.microphone_channel.metadata)
 
 
 class BarometerSensor(UnevenlySampledSensor):
