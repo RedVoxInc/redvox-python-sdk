@@ -80,7 +80,47 @@ The `BarometerSensor` class contains methods for directly accessing the fields a
 | sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 
-##### Example microphone sensor reading
+##### Example barometer sensor reading
+
+TODO
+
+### Working with location sensor channels
+
+Location sensors can be accessed from `WrappedRedvoxPacket` objects by accessing the member `location_sensors`. Each location sensor on the device will show up in this list. If there is only one location, there will only be a single item in the list. If there are no location sensors for a packet, then the list will be empty.
+
+The `LocationSensor` class contains methods for directly accessing the fields and payloads of location channels. The location channel can return the payload as interleaved values or also return the individual components of the payload. The following table briefly describes the available methods for location sensor channels. 
+
+| Name | Type | Description | 
+|------|------|-------------|
+| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| sensor_name() | str | Returns the name of the sensor for this microphone sensor channel |
+| payload_values() | numpy.ndarray[float] | A numpy array of interleaved location values [[latitude_0, longitude_0, altitude_0, speed_0, accuracy_0], [latitude_1, longitude_1, altitude_1, speed_1, accuracy_1], ..., [latitude_n, longitude_n, altitude_n, speed_n, accuracy_n]] |
+| payload_values_latitude() | numpy.ndarray[float] | A numpy array contains the latitude values for each sample |
+| payload_values_longitude() | numpy.ndarray[float] | A numpy array contains the longitude values for each sample |
+| payload_values_altitude() | numpy.ndarray[float] | A numpy array contains the altitude values for each sample |
+| payload_values_speed() | numpy.ndarray[float] | A numpy array contains the speed values for each sample |
+| payload_values_accuracy() | numpy.ndarray[float] | A numpy array contains the accuracy values for each sample |
+| payload_values_latitude_mean() | float | Mean value of latitudes from this location channel |
+| payload_values_longitude_mean() | float | Mean value of longitudes from this location channel |
+| payload_values_altitude_mean() | float | Mean value of altitudes from this location channel |
+| payload_values_speed_mean() | float | Mean value of speeds from this location channel |
+| payload_values_accuracy_mean() | float | Mean value of accuracies from this location channel |
+| payload_values_latitude_median() | float | Median value of latitudes from this location channel |
+| payload_values_longitude_median() | float | Median value of longitudes from this location channel |
+| payload_values_altitude_median() | float | Median value of altitudes from this location channel |
+| payload_values_speed_median() | float | Median value of speeds from this location channel |
+| payload_values_accuracy_median() | float | Median value of accuracies from this location channel |
+| payload_values_latitude_std() | float | Standard deviation value of latitudes from this location channel |
+| payload_values_longitude_std() | float | Standard deviation value of longitudes from this location channel |
+| payload_values_altitude_std() | float | Standard deviation value of altitudes from this location channel |
+| payload_values_speed_std() | float | Standard deviation value of speeds from this location channel |
+| payload_values_accuracy_std() | float | Standard deviation value of accuracies from this location channel |
+| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
+| sample_interval_mean() | float | The median of the sample interval for samples in this packet |
+| sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
+| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
+
+##### Example barometer sensor reading
 
 TODO
 
