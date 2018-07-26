@@ -9,7 +9,7 @@ import google.protobuf.internal.containers as containers
 import lz4.block
 import numpy
 
-import api900.lib.api900_pb2
+from redvox.api900.lib import api900_pb2
 
 
 class ReaderException(Exception):
@@ -44,7 +44,7 @@ def lz4_decompress(buf: bytes) -> bytes:
     return lz4.block.decompress(buf[4:], uncompressed_size=calculate_uncompressed_size(buf))
 
 
-def read_buffer(buf: bytes, is_compressed: bool = True) -> api900.lib.api900_pb2.RedvoxPacket:
+def read_buffer(buf: bytes, is_compressed: bool = True) -> api900_pb2.RedvoxPacket:
     """
     Deserializes a serialized protobuf RedvoxPacket buffer.
     :param buf: Buffer to deserialize.
@@ -52,12 +52,12 @@ def read_buffer(buf: bytes, is_compressed: bool = True) -> api900.lib.api900_pb2
     :return: Deserialized protobuf redvox packet.
     """
     buffer = lz4_decompress(buf) if is_compressed else buf
-    redvox_packet = api900.lib.api900_pb2.RedvoxPacket()
+    redvox_packet = api900_pb2.RedvoxPacket()
     redvox_packet.ParseFromString(buffer)
     return redvox_packet
 
 
-def read_file(file: str, is_compressed: bool = None) -> api900.lib.api900_pb2.RedvoxPacket:
+def read_file(file: str, is_compressed: bool = None) -> api900_pb2.RedvoxPacket:
     """
     Deserializes a serialized protobuf RedvoxPacket file.
     :param file: File to deserialize.
@@ -74,8 +74,8 @@ def read_file(file: str, is_compressed: bool = None) -> api900.lib.api900_pb2.Re
         return read_buffer(fin.read(), _is_compressed)
 
 
-def extract_payload(channel: typing.Union[api900.lib.api900_pb2.EvenlySampledChannel,
-                                          api900.lib.api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
+def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                          api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
     """
     Given an evenly on unevenly sampled channel, extracts the entire payload.
 
@@ -214,7 +214,7 @@ def channel_type_name_from_enum(enum_constant: int) -> str:
     :param enum_constant: The constant to turn into a name.
     :return: The name of the channel.
     """
-    return api900.lib.api900_pb2.ChannelType.Name(enum_constant)
+    return api900_pb2.ChannelType.Name(enum_constant)
 
 
 def get_metadata(metadata: typing.List[str], k: str) -> str:
@@ -275,14 +275,14 @@ class InterleavedChannel:
     This class provides methods for working with interleaved channels as well as accessing interleaved statistic values.
     """
 
-    def __init__(self, channel: typing.Union[api900.lib.api900_pb2.EvenlySampledChannel,
-                                             api900.lib.api900_pb2.UnevenlySampledChannel]):
+    def __init__(self, channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                             api900_pb2.UnevenlySampledChannel]):
         """
         Initializes this interleaved channel object.
         :param channel: Either a protobuf evenly or unevenly sampled channel.
         """
-        self.protobuf_channel: typing.Union[api900.lib.api900_pb2.EvenlySampledChannel,
-                                            api900.lib.api900_pb2.UnevenlySampledChannel] = channel
+        self.protobuf_channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                            api900_pb2.UnevenlySampledChannel] = channel
         """Reference to the original protobuf channel"""
 
         self.sensor_name: str = channel.sensor_name
@@ -290,8 +290,8 @@ class InterleavedChannel:
 
         self.channel_types: typing.List[
             typing.Union[
-                api900.lib.api900_pb2.EvenlySampledChannel,
-                api900.lib.api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
+                api900_pb2.EvenlySampledChannel,
+                api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
         """List of channel type constant enumerations"""
 
         self.payload: numpy.ndarray = extract_payload(channel)
@@ -309,11 +309,11 @@ class InterleavedChannel:
         self.value_medians: numpy.ndarray = repeated_to_array(channel.value_medians)
         """Interleaves array of median values"""
 
-        self.channel_type_index: typing.Dict[api900.lib.api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
-                                                                                        i in
-                                                                                        range(
-                                                                                            len(
-                                                                                                self.channel_types))}
+        self.channel_type_index: typing.Dict[api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
+                                                                             i in
+                                                                             range(
+                                                                                 len(
+                                                                                     self.channel_types))}
         """Contains a mapping of channel type to index in channel_types array"""
 
     def get_channel_type_names(self) -> typing.List[str]:
@@ -429,7 +429,7 @@ class EvenlySampledChannel(InterleavedChannel):
     An evenly sampled channel is an interleaved channel that also has a channel with an even sampling rate.
     """
 
-    def __init__(self, channel: api900.lib.api900_pb2.EvenlySampledChannel):
+    def __init__(self, channel: api900_pb2.EvenlySampledChannel):
         """
         Initializes this evenly sampled channel.
         :param channel: A protobuf evenly sampled channel.
@@ -460,7 +460,7 @@ class UnevenlySampledChannel(InterleavedChannel):
     This class also adds easy access to statistics for timestamps.
     """
 
-    def __init__(self, channel: api900.lib.api900_pb2.UnevenlySampledChannel):
+    def __init__(self, channel: api900_pb2.UnevenlySampledChannel):
         """
         Initializes this unevenly sampled channel.
         :param channel: A protobuf unevenly sampled channel.
@@ -487,36 +487,27 @@ class UnevenlySampledChannel(InterleavedChannel):
                                                                  len(self.timestamps_microseconds_utc))
 
 
-class WrappedMicrophoneChannel:
+class EvenlySampledSensor:
     def __init__(self, evenly_sampled_channel: EvenlySampledChannel):
-        self.microphone_channel = evenly_sampled_channel
+        self.evenly_sampled_channel = evenly_sampled_channel
 
     def sample_rate_hz(self) -> float:
-        return self.microphone_channel.sample_rate_hz
+        return self.evenly_sampled_channel.sample_rate_hz
 
     def first_sample_timestamp_epoch_microseconds_utc(self) -> int:
-        return self.microphone_channel.first_sample_timestamp_epoch_microseconds_utc
+        return self.evenly_sampled_channel.first_sample_timestamp_epoch_microseconds_utc
 
     def sensor_name(self) -> str:
-        return self.microphone_channel.sensor_name
+        return self.evenly_sampled_channel.sensor_name
 
-    def payload_values(self) -> numpy.ndarray:
-        return self.microphone_channel.get_payload(api900.lib.api900_pb2.MICROPHONE)
+    def metadata_as_dict(self) -> typing.Dict[str, str]:
+        return get_metadata_as_dict(self.evenly_sampled_channel.metadata)
 
-    def payload_mean(self) -> float:
-        return self.microphone_channel.get_value_mean(api900.lib.api900_pb2.MICROPHONE)
-
-    def payload_median(self) -> float:
-        return self.microphone_channel.get_value_median(api900.lib.api900_pb2.MICROPHONE)
-
-    def payload_std(self) -> float:
-        return self.microphone_channel.get_value_std(api900.lib.api900_pb2.MICROPHONE)
-
-    def metadata(self) -> typing.Dict[str, str]:
-        return get_metadata_as_dict(self.microphone_channel.metadata)
+    def exists(self):
+        return self.evenly_sampled_channel is not None
 
 
-class WrappedUnevenlySampledChannel:
+class UnevenlySampledSensor:
     def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
         self.unevenly_sampled_channel = unevenly_sampled_channel
 
@@ -538,109 +529,12 @@ class WrappedUnevenlySampledChannel:
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         return get_metadata_as_dict(self.unevenly_sampled_channel.metadata)
 
-
-class WrappedBarometerChannel(WrappedUnevenlySampledChannel):
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
-        super().__init__(unevenly_sampled_channel)
-
-    def payload_values(self) -> numpy.ndarray:
-        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.BAROMETER)
-
-    def payload_mean(self) -> float:
-        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.BAROMETER)
-
-    def payload_median(self) -> float:
-        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.BAROMETER)
-
-    def payload_std(self) -> float:
-        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.BAROMETER)
+    def exists(self):
+        return self.unevenly_sampled_channel is not None
 
 
-class WrappedLocationChannel(WrappedUnevenlySampledChannel):
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
-        super().__init__(unevenly_sampled_channel)
-
-    def payload_values(self):
-        return self.unevenly_sampled_channel.get_multi_payload([
-            api900.lib.api900_pb2.LATITUDE,
-            api900.lib.api900_pb2.LONGITUDE,
-            api900.lib.api900_pb2.ALTITUDE,
-            api900.lib.api900_pb2.SPEED,
-            api900.lib.api900_pb2.ACCURACY
-        ])
-
-    def payload_values_latitude(self):
-        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.LATITUDE)
-
-    def payload_values_longitude(self):
-        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.LONGITUDE)
-
-    def payload_values_altitude(self):
-        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.ALTITUDE)
-
-    def payload_values_speed(self):
-        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.SPEED)
-
-    def payload_values_accuracy(self):
-        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.ACCURACY)
-
-    def payload_values_latitude_mean(self) -> float:
-        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.LATITUDE)
-
-    def payload_values_longitude_mean(self) -> float:
-        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.LONGITUDE)
-
-    def payload_values_altitude_mean(self) -> float:
-        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.ALTITUDE)
-
-    def payload_values_speed_mean(self) -> float:
-        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.SPEED)
-
-    def payload_values_accuracy_mean(self) -> float:
-        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.ACCURACY)
-
-    def payload_values_latitude_median(self) -> float:
-        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.LATITUDE)
-
-    def payload_values_longitude_median(self) -> float:
-        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.LONGITUDE)
-
-    def payload_values_altitude_median(self) -> float:
-        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.ALTITUDE)
-
-    def payload_values_speed_median(self) -> float:
-        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.SPEED)
-
-    def payload_values_accuracy_median(self) -> float:
-        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.ACCURACY)
-
-    def payload_values_latitude_std(self) -> float:
-        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.LATITUDE)
-
-    def payload_values_longitude_std(self) -> float:
-        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.LONGITUDE)
-
-    def payload_values_altitude_std(self) -> float:
-        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.ALTITUDE)
-
-    def payload_values_speed_std(self) -> float:
-        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.SPEED)
-
-    def payload_values_accuracy_std(self) -> float:
-        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.ACCURACY)
-
-
-class WrappedTimeSynchronizationChannel:
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
-        self.unevenly_sampled_channel = unevenly_sampled_channel
-
-    def payload_values(self) -> numpy.ndarray:
-        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.TIME_SYNCHRONIZATION)
-
-
-class WrappedXyzUnevenlySampledChannel(WrappedUnevenlySampledChannel):
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel, x_type: int, y_type: int,
-                 z_type: int):
+class XyzUnevenlySampledSensor(UnevenlySampledSensor):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel, x_type: int, y_type: int, z_type: int):
         super().__init__(unevenly_sampled_channel)
         self.x_type = x_type
         self.y_type = y_type
@@ -690,45 +584,165 @@ class WrappedXyzUnevenlySampledChannel(WrappedUnevenlySampledChannel):
         return self.unevenly_sampled_channel.get_value_std(self.z_type)
 
 
-class WrappedAccelerometerChannel(WrappedXyzUnevenlySampledChannel):
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
-        super().__init__(unevenly_sampled_channel,
-                         api900.lib.api900_pb2.ACCELEROMETER_X,
-                         api900.lib.api900_pb2.ACCELEROMETER_Y,
-                         api900.lib.api900_pb2.ACCELEROMETER_Z)
+class MicrophoneSensor(EvenlySampledChannel):
+    def __init__(self, evenly_sampled_channel: EvenlySampledChannel):
+        super().__init__(evenly_sampled_channel)
+        self.microphone_channel = evenly_sampled_channel
+
+    def payload_values(self) -> numpy.ndarray:
+        return self.microphone_channel.get_payload(api900_pb2.MICROPHONE)
+
+    def payload_mean(self) -> float:
+        return self.microphone_channel.get_value_mean(api900_pb2.MICROPHONE)
+
+    def payload_median(self) -> float:
+        return self.microphone_channel.get_value_median(api900_pb2.MICROPHONE)
+
+    def payload_std(self) -> float:
+        return self.microphone_channel.get_value_std(api900_pb2.MICROPHONE)
+
+    def metadata(self) -> typing.Dict[str, str]:
+        return get_metadata_as_dict(self.microphone_channel.metadata)
 
 
-class WrappedMagnetometerChannel(WrappedXyzUnevenlySampledChannel):
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
-        super().__init__(unevenly_sampled_channel,
-                         api900.lib.api900_pb2.MAGNETOMETER_X,
-                         api900.lib.api900_pb2.MAGNETOMETER_Y,
-                         api900.lib.api900_pb2.MAGNETOMETER_Z)
-
-
-class WrappedGyroscopeChannel(WrappedXyzUnevenlySampledChannel):
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
-        super().__init__(unevenly_sampled_channel,
-                         api900.lib.api900_pb2.GYROSCOPE_X,
-                         api900.lib.api900_pb2.GYROSCOPE_Y,
-                         api900.lib.api900_pb2.GYROSCOPE_Z)
-
-
-class WrappedLightChannel(WrappedUnevenlySampledChannel):
+class BarometerSensor(UnevenlySampledSensor):
     def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
         super().__init__(unevenly_sampled_channel)
 
     def payload_values(self) -> numpy.ndarray:
-        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.LIGHT)
+        return self.unevenly_sampled_channel.get_payload(api900_pb2.BAROMETER)
 
     def payload_mean(self) -> float:
-        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.LIGHT)
+        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.BAROMETER)
 
     def payload_median(self) -> float:
-        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.LIGHT)
+        return self.unevenly_sampled_channel.get_value_median(api900_pb2.BAROMETER)
 
     def payload_std(self) -> float:
-        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.LIGHT)
+        return self.unevenly_sampled_channel.get_value_std(api900_pb2.BAROMETER)
+
+
+class LocationSensor(UnevenlySampledSensor):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        super().__init__(unevenly_sampled_channel)
+
+    def payload_values(self):
+        return self.unevenly_sampled_channel.get_multi_payload([
+            api900_pb2.LATITUDE,
+            api900_pb2.LONGITUDE,
+            api900_pb2.ALTITUDE,
+            api900_pb2.SPEED,
+            api900_pb2.ACCURACY
+        ])
+
+    def payload_values_latitude(self):
+        return self.unevenly_sampled_channel.get_payload(api900_pb2.LATITUDE)
+
+    def payload_values_longitude(self):
+        return self.unevenly_sampled_channel.get_payload(api900_pb2.LONGITUDE)
+
+    def payload_values_altitude(self):
+        return self.unevenly_sampled_channel.get_payload(api900_pb2.ALTITUDE)
+
+    def payload_values_speed(self):
+        return self.unevenly_sampled_channel.get_payload(api900_pb2.SPEED)
+
+    def payload_values_accuracy(self):
+        return self.unevenly_sampled_channel.get_payload(api900_pb2.ACCURACY)
+
+    def payload_values_latitude_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.LATITUDE)
+
+    def payload_values_longitude_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.LONGITUDE)
+
+    def payload_values_altitude_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.ALTITUDE)
+
+    def payload_values_speed_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.SPEED)
+
+    def payload_values_accuracy_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.ACCURACY)
+
+    def payload_values_latitude_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(api900_pb2.LATITUDE)
+
+    def payload_values_longitude_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(api900_pb2.LONGITUDE)
+
+    def payload_values_altitude_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(api900_pb2.ALTITUDE)
+
+    def payload_values_speed_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(api900_pb2.SPEED)
+
+    def payload_values_accuracy_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(api900_pb2.ACCURACY)
+
+    def payload_values_latitude_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(api900_pb2.LATITUDE)
+
+    def payload_values_longitude_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(api900_pb2.LONGITUDE)
+
+    def payload_values_altitude_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(api900_pb2.ALTITUDE)
+
+    def payload_values_speed_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(api900_pb2.SPEED)
+
+    def payload_values_accuracy_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(api900_pb2.ACCURACY)
+
+
+class TimeSynchronizationSensor:
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        self.unevenly_sampled_channel = unevenly_sampled_channel
+
+    def payload_values(self) -> numpy.ndarray:
+        return self.unevenly_sampled_channel.get_payload(api900_pb2.TIME_SYNCHRONIZATION)
+
+
+class AccelerometerSensor(XyzUnevenlySampledSensor):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        super().__init__(unevenly_sampled_channel,
+                         api900_pb2.ACCELEROMETER_X,
+                         api900_pb2.ACCELEROMETER_Y,
+                         api900_pb2.ACCELEROMETER_Z)
+
+
+class MagnetometerSensor(XyzUnevenlySampledSensor):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        super().__init__(unevenly_sampled_channel,
+                         api900_pb2.MAGNETOMETER_X,
+                         api900_pb2.MAGNETOMETER_Y,
+                         api900_pb2.MAGNETOMETER_Z)
+
+
+class GyroscopeSensor(XyzUnevenlySampledSensor):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        super().__init__(unevenly_sampled_channel,
+                         api900_pb2.GYROSCOPE_X,
+                         api900_pb2.GYROSCOPE_Y,
+                         api900_pb2.GYROSCOPE_Z)
+
+
+class LightSensor(UnevenlySampledSensor):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        super().__init__(unevenly_sampled_channel)
+
+    def payload_values(self) -> numpy.ndarray:
+        return self.unevenly_sampled_channel.get_payload(api900_pb2.LIGHT)
+
+    def payload_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.LIGHT)
+
+    def payload_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(api900_pb2.LIGHT)
+
+    def payload_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(api900_pb2.LIGHT)
 
 
 class WrappedRedvoxPacket:
@@ -740,12 +754,12 @@ class WrappedRedvoxPacket:
     directly.
     """
 
-    def __init__(self, redvox_packet: api900.lib.api900_pb2.RedvoxPacket):
+    def __init__(self, redvox_packet: api900_pb2.RedvoxPacket):
         """
         Initializes this wrapped redvox packet.
         :param redvox_packet: A protobuf redvox packet.
         """
-        self.redvox_packet: api900.lib.api900_pb2.RedvoxPacket = redvox_packet
+        self.redvox_packet: api900_pb2.RedvoxPacket = redvox_packet
         """Protobuf api 900 redvox packet"""
 
         self.evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
@@ -774,6 +788,15 @@ class WrappedRedvoxPacket:
             for channel_type in unevenly_sampled_channel.channel_types:
                 self._channel_cache[channel_type] = unevenly_sampled_channel
 
+        self.microphone_channels = self.get_channels([api900_pb2.MICROPHONE], MicrophoneSensor)
+        self.barometer_channels = self.get_channels([api900_pb2.BAROMETER], BarometerSensor)
+        self.location_channels = self.get_channels([api900_pb2.LATITUDE], LocationSensor)
+        self.time_synchronization = self.get_channels([api900_pb2.TIME_SYNCHRONIZATION], TimeSynchronizationSensor)
+        self.accelerometer_channels = self.get_channels([api900_pb2.ACCELEROMETER_X], AccelerometerSensor)
+        self.magnetometer_channels = self.get_channels([api900_pb2.MAGNETOMETER_X], MagnetometerSensor)
+        self.gyroscope_channels = self.get_channels([api900_pb2.GYROSCOPE_X], GyroscopeSensor)
+        self.light_channels = self.get_channels([api900_pb2.LIGHT], LightSensor)
+
     def get_channel_types(self) -> typing.List[typing.List[int]]:
         """
         Returns a list of channel type enumerations. This is a list of lists, and allows us to easily view
@@ -801,8 +824,8 @@ class WrappedRedvoxPacket:
             names.append(list(map(channel_type_name_from_enum, channel_types)))
         return names
 
-    def get_channel(self, channel_type: int) -> typing.Union[api900.lib.api900_pb2.EvenlySampledChannel,
-                                                             api900.lib.api900_pb2.UnevenlySampledChannel]:
+    def get_channel(self, channel_type: int) -> typing.Union[api900_pb2.EvenlySampledChannel,
+                                                             api900_pb2.UnevenlySampledChannel]:
         """
         Returns a channel from this packet according to the channel type.
         :param channel_type: The channel type to search for.
@@ -833,8 +856,16 @@ class WrappedRedvoxPacket:
                 return False
         return True
 
+    def get_channels(self, channel_types: typing.List[int], sensor_constructor) -> typing.List:
+        channels = []
+        for channel_type in set(channel_types):
+            if self.has_channel(channel_type):
+                channels.append(sensor_constructor(self.get_channel(channel_type).protobuf_channel))
 
-def wrap(redvox_packet: api900.lib.api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:
+        return channels
+
+
+def wrap(redvox_packet: api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:
     """Shortcut for wrapping a protobuf packet with our higher level wrapper.
 
     Args:
