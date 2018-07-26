@@ -2,14 +2,14 @@ import typing
 
 import numpy
 
-import redvox.api900.api900_pb2
+import api900.lib.api900_pb2
 
 
-def set_payload(redvox_channel: typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
-                                             redvox.api900.api900_pb2.UnevenlySampledChannel],
+def set_payload(redvox_channel: typing.Union[api900.lib.api900_pb2.EvenlySampledChannel,
+                                             api900.lib.api900_pb2.UnevenlySampledChannel],
                 payload_type: typing.Type,
-                payload: typing.List) -> typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
-                                                      redvox.api900.api900_pb2.UnevenlySampledChannel]:
+                payload: typing.List) -> typing.Union[api900.lib.api900_pb2.EvenlySampledChannel,
+                                                      api900.lib.api900_pb2.UnevenlySampledChannel]:
     if payload_type == numpy.byte:
         redvox_channel.byte_payload.payload.extend(payload)
     elif payload_type == numpy.uint32:
@@ -30,8 +30,8 @@ def set_payload(redvox_channel: typing.Union[redvox.api900.api900_pb2.EvenlySamp
     return redvox_channel
 
 
-def base_packet() -> redvox.api900.api900_pb2.RedvoxPacket:
-    base_packet = redvox.api900.api900_pb2.RedvoxPacket()
+def base_packet() -> api900.lib.api900_pb2.RedvoxPacket:
+    base_packet = api900.lib.api900_pb2.RedvoxPacket()
 
     base_packet.api = 900
     base_packet.redvox_id = "1"
@@ -54,7 +54,7 @@ def base_packet() -> redvox.api900.api900_pb2.RedvoxPacket:
     return base_packet
 
 
-def with_evenly_sampled_channel(redvox_packet: redvox.api900.api900_pb2.RedvoxPacket,
+def with_evenly_sampled_channel(redvox_packet: api900.lib.api900_pb2.RedvoxPacket,
                                 channel_types: typing.List[int],
                                 sensor_name: str,
                                 sample_rate_hz: float,
@@ -63,8 +63,8 @@ def with_evenly_sampled_channel(redvox_packet: redvox.api900.api900_pb2.RedvoxPa
                                 value_means: typing.List[float],
                                 value_stds: typing.List[float],
                                 value_medians: typing.List[float],
-                                metadata: typing.List[str]) -> redvox.api900.api900_pb2.RedvoxPacket:
-    evenly_sampled_channel = redvox.api900.api900_pb2.EvenlySampledChannel()
+                                metadata: typing.List[str]) -> api900.lib.api900_pb2.RedvoxPacket:
+    evenly_sampled_channel = api900.lib.api900_pb2.EvenlySampledChannel()
     evenly_sampled_channel.channel_types.extend(channel_types)
     evenly_sampled_channel.sensor_name = sensor_name
     evenly_sampled_channel.sample_rate_hz = sample_rate_hz
@@ -80,7 +80,7 @@ def with_evenly_sampled_channel(redvox_packet: redvox.api900.api900_pb2.RedvoxPa
     return redvox_packet
 
 
-def with_unevenly_sampled_channel(redvox_packet: redvox.api900.api900_pb2.RedvoxPacket,
+def with_unevenly_sampled_channel(redvox_packet: api900.lib.api900_pb2.RedvoxPacket,
                                   channel_types: typing.List[int],
                                   sensor_name: str,
                                   timestamps: typing.List[int],
@@ -91,8 +91,8 @@ def with_unevenly_sampled_channel(redvox_packet: redvox.api900.api900_pb2.Redvox
                                   sample_interval_mean: float,
                                   sample_interval_std: float,
                                   sample_interval_median: float,
-                                  metadata: typing.List[str]) -> redvox.api900.api900_pb2.RedvoxPacket:
-    unevenly_sampled_channel = redvox.api900.api900_pb2.UnevenlySampledChannel()
+                                  metadata: typing.List[str]) -> api900.lib.api900_pb2.RedvoxPacket:
+    unevenly_sampled_channel = api900.lib.api900_pb2.UnevenlySampledChannel()
     unevenly_sampled_channel.channel_types.extend(channel_types)
     unevenly_sampled_channel.sensor_name = sensor_name
     unevenly_sampled_channel.timestamps_microseconds_utc.extend(timestamps)
@@ -114,7 +114,7 @@ def simple_mic_packet():
     packet = base_packet()
     packet.metadata.extend(["a", "b", "c", "d"])
     return with_evenly_sampled_channel(packet,
-                                       [redvox.api900.api900_pb2.MICROPHONE],
+                                       [api900.lib.api900_pb2.MICROPHONE],
                                        "test microphone sensor name",
                                        80.0,
                                        1519166348000000,
@@ -127,7 +127,7 @@ def simple_mic_packet():
 
 def simple_unevenly_sampled_packet():
     return with_unevenly_sampled_channel(base_packet(),
-                                         [redvox.api900.api900_pb2.OTHER],
+                                         [api900.lib.api900_pb2.OTHER],
                                          "test other sensor name",
                                          [1, 2, 3, 4, 5],
                                          [1.0, 2.0, 3.0, 4.0, 5.0],
@@ -142,10 +142,10 @@ def simple_unevenly_sampled_packet():
 
 def simple_gps_packet():
     return with_unevenly_sampled_channel(base_packet(),
-                                         [redvox.api900.api900_pb2.LATITUDE,
-                                          redvox.api900.api900_pb2.LONGITUDE,
-                                          redvox.api900.api900_pb2.SPEED,
-                                          redvox.api900.api900_pb2.ALTITUDE],
+                                         [api900.lib.api900_pb2.LATITUDE,
+                                          api900.lib.api900_pb2.LONGITUDE,
+                                          api900.lib.api900_pb2.SPEED,
+                                          api900.lib.api900_pb2.ALTITUDE],
                                          "test gps sensor name",
                                          [1, 2, 3, 4, 5],
                                          [19.0, 155.0, 1.0, 25.0,
@@ -165,7 +165,7 @@ def simple_gps_packet():
 def multi_channel_packet():
     packet = simple_gps_packet()
     packet = with_evenly_sampled_channel(packet,
-                                         [redvox.api900.api900_pb2.MICROPHONE],
+                                         [api900.lib.api900_pb2.MICROPHONE],
                                          "test microphone sensor name",
                                          80.0,
                                          1519166348000000,
@@ -175,7 +175,7 @@ def multi_channel_packet():
                                          [5.5],
                                          ["a", "b", "c"])
     packet = with_unevenly_sampled_channel(packet,
-                                           [redvox.api900.api900_pb2.OTHER],
+                                           [api900.lib.api900_pb2.OTHER],
                                            "test other sensor name",
                                            [1, 2, 3, 4, 5],
                                            [1.0, 2.0, 3.0, 4.0, 5.0],

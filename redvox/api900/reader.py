@@ -9,7 +9,7 @@ import google.protobuf.internal.containers as containers
 import lz4.block
 import numpy
 
-import redvox.api900.api900_pb2
+import api900.lib.api900_pb2
 
 
 class ReaderException(Exception):
@@ -44,7 +44,7 @@ def lz4_decompress(buf: bytes) -> bytes:
     return lz4.block.decompress(buf[4:], uncompressed_size=calculate_uncompressed_size(buf))
 
 
-def read_buffer(buf: bytes, is_compressed: bool = True) -> redvox.api900.api900_pb2.RedvoxPacket:
+def read_buffer(buf: bytes, is_compressed: bool = True) -> api900.lib.api900_pb2.RedvoxPacket:
     """
     Deserializes a serialized protobuf RedvoxPacket buffer.
     :param buf: Buffer to deserialize.
@@ -52,12 +52,12 @@ def read_buffer(buf: bytes, is_compressed: bool = True) -> redvox.api900.api900_
     :return: Deserialized protobuf redvox packet.
     """
     buffer = lz4_decompress(buf) if is_compressed else buf
-    redvox_packet = redvox.api900.api900_pb2.RedvoxPacket()
+    redvox_packet = api900.lib.api900_pb2.RedvoxPacket()
     redvox_packet.ParseFromString(buffer)
     return redvox_packet
 
 
-def read_file(file: str, is_compressed: bool = None) -> redvox.api900.api900_pb2.RedvoxPacket:
+def read_file(file: str, is_compressed: bool = None) -> api900.lib.api900_pb2.RedvoxPacket:
     """
     Deserializes a serialized protobuf RedvoxPacket file.
     :param file: File to deserialize.
@@ -74,8 +74,8 @@ def read_file(file: str, is_compressed: bool = None) -> redvox.api900.api900_pb2
         return read_buffer(fin.read(), _is_compressed)
 
 
-def extract_payload(channel: typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
-                                          redvox.api900.api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
+def extract_payload(channel: typing.Union[api900.lib.api900_pb2.EvenlySampledChannel,
+                                          api900.lib.api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
     """
     Given an evenly on unevenly sampled channel, extracts the entire payload.
 
@@ -214,7 +214,7 @@ def channel_type_name_from_enum(enum_constant: int) -> str:
     :param enum_constant: The constant to turn into a name.
     :return: The name of the channel.
     """
-    return redvox.api900.api900_pb2.ChannelType.Name(enum_constant)
+    return api900.lib.api900_pb2.ChannelType.Name(enum_constant)
 
 
 def get_metadata(metadata: typing.List[str], k: str) -> str:
@@ -275,14 +275,14 @@ class InterleavedChannel:
     This class provides methods for working with interleaved channels as well as accessing interleaved statistic values.
     """
 
-    def __init__(self, channel: typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
-                                             redvox.api900.api900_pb2.UnevenlySampledChannel]):
+    def __init__(self, channel: typing.Union[api900.lib.api900_pb2.EvenlySampledChannel,
+                                             api900.lib.api900_pb2.UnevenlySampledChannel]):
         """
         Initializes this interleaved channel object.
         :param channel: Either a protobuf evenly or unevenly sampled channel.
         """
-        self.protobuf_channel: typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
-                                            redvox.api900.api900_pb2.UnevenlySampledChannel] = channel
+        self.protobuf_channel: typing.Union[api900.lib.api900_pb2.EvenlySampledChannel,
+                                            api900.lib.api900_pb2.UnevenlySampledChannel] = channel
         """Reference to the original protobuf channel"""
 
         self.sensor_name: str = channel.sensor_name
@@ -290,8 +290,8 @@ class InterleavedChannel:
 
         self.channel_types: typing.List[
             typing.Union[
-                redvox.api900.api900_pb2.EvenlySampledChannel,
-                redvox.api900.api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
+                api900.lib.api900_pb2.EvenlySampledChannel,
+                api900.lib.api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
         """List of channel type constant enumerations"""
 
         self.payload: numpy.ndarray = extract_payload(channel)
@@ -309,11 +309,11 @@ class InterleavedChannel:
         self.value_medians: numpy.ndarray = repeated_to_array(channel.value_medians)
         """Interleaves array of median values"""
 
-        self.channel_type_index: typing.Dict[redvox.api900.api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
-                                                                                           i in
-                                                                                           range(
-                                                                                               len(
-                                                                                                   self.channel_types))}
+        self.channel_type_index: typing.Dict[api900.lib.api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
+                                                                                        i in
+                                                                                        range(
+                                                                                            len(
+                                                                                                self.channel_types))}
         """Contains a mapping of channel type to index in channel_types array"""
 
     def get_channel_type_names(self) -> typing.List[str]:
@@ -429,7 +429,7 @@ class EvenlySampledChannel(InterleavedChannel):
     An evenly sampled channel is an interleaved channel that also has a channel with an even sampling rate.
     """
 
-    def __init__(self, channel: redvox.api900.api900_pb2.EvenlySampledChannel):
+    def __init__(self, channel: api900.lib.api900_pb2.EvenlySampledChannel):
         """
         Initializes this evenly sampled channel.
         :param channel: A protobuf evenly sampled channel.
@@ -460,7 +460,7 @@ class UnevenlySampledChannel(InterleavedChannel):
     This class also adds easy access to statistics for timestamps.
     """
 
-    def __init__(self, channel: redvox.api900.api900_pb2.UnevenlySampledChannel):
+    def __init__(self, channel: api900.lib.api900_pb2.UnevenlySampledChannel):
         """
         Initializes this unevenly sampled channel.
         :param channel: A protobuf unevenly sampled channel.
@@ -501,16 +501,16 @@ class WrappedMicrophoneChannel:
         return self.microphone_channel.sensor_name
 
     def payload_values(self) -> numpy.ndarray:
-        return self.microphone_channel.get_payload(redvox.api900.api900_pb2.MICROPHONE)
+        return self.microphone_channel.get_payload(api900.lib.api900_pb2.MICROPHONE)
 
     def payload_mean(self) -> float:
-        return self.microphone_channel.get_value_mean(redvox.api900.api900_pb2.MICROPHONE)
+        return self.microphone_channel.get_value_mean(api900.lib.api900_pb2.MICROPHONE)
 
     def payload_median(self) -> float:
-        return self.microphone_channel.get_value_median(redvox.api900.api900_pb2.MICROPHONE)
+        return self.microphone_channel.get_value_median(api900.lib.api900_pb2.MICROPHONE)
 
     def payload_std(self) -> float:
-        return self.microphone_channel.get_value_std(redvox.api900.api900_pb2.MICROPHONE)
+        return self.microphone_channel.get_value_std(api900.lib.api900_pb2.MICROPHONE)
 
     def metadata(self) -> typing.Dict[str, str]:
         return get_metadata_as_dict(self.microphone_channel.metadata)
@@ -544,16 +544,16 @@ class WrappedBarometerChannel(WrappedUnevenlySampledChannel):
         super().__init__(unevenly_sampled_channel)
 
     def payload_values(self) -> numpy.ndarray:
-        return self.unevenly_sampled_channel.get_payload(redvox.api900.api900_pb2.BAROMETER)
+        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.BAROMETER)
 
     def payload_mean(self) -> float:
-        return self.unevenly_sampled_channel.get_value_mean(redvox.api900.api900_pb2.BAROMETER)
+        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.BAROMETER)
 
     def payload_median(self) -> float:
-        return self.unevenly_sampled_channel.get_value_median(redvox.api900.api900_pb2.BAROMETER)
+        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.BAROMETER)
 
     def payload_std(self) -> float:
-        return self.unevenly_sampled_channel.get_value_std(redvox.api900.api900_pb2.BAROMETER)
+        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.BAROMETER)
 
 
 class WrappedLocationChannel(WrappedUnevenlySampledChannel):
@@ -562,29 +562,174 @@ class WrappedLocationChannel(WrappedUnevenlySampledChannel):
 
     def payload_values(self):
         return self.unevenly_sampled_channel.get_multi_payload([
-            redvox.api900.api900_pb2.LATITUDE,
-            redvox.api900.api900_pb2.LONGITUDE,
-            redvox.api900.api900_pb2.ALTITUDE,
-            redvox.api900.api900_pb2.SPEED,
-            redvox.api900.api900_pb2.ACCURACY
+            api900.lib.api900_pb2.LATITUDE,
+            api900.lib.api900_pb2.LONGITUDE,
+            api900.lib.api900_pb2.ALTITUDE,
+            api900.lib.api900_pb2.SPEED,
+            api900.lib.api900_pb2.ACCURACY
         ])
 
     def payload_values_latitude(self):
-        return self.unevenly_sampled_channel.get_payload(redvox.api900.api900_pb2.LATITUDE)
+        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.LATITUDE)
 
     def payload_values_longitude(self):
-        return self.unevenly_sampled_channel.get_payload(redvox.api900.api900_pb2.LONGITUDE)
+        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.LONGITUDE)
 
     def payload_values_altitude(self):
-        return self.unevenly_sampled_channel.get_payload(redvox.api900.api900_pb2.ALTITUDE)
+        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.ALTITUDE)
 
     def payload_values_speed(self):
-        return self.unevenly_sampled_channel.get_payload(redvox.api900.api900_pb2.SPEED)
+        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.SPEED)
 
     def payload_values_accuracy(self):
-        return self.unevenly_sampled_channel.get_payload(redvox.api900.api900_pb2.ACCURACY)
+        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.ACCURACY)
 
-    
+    def payload_values_latitude_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.LATITUDE)
+
+    def payload_values_longitude_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.LONGITUDE)
+
+    def payload_values_altitude_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.ALTITUDE)
+
+    def payload_values_speed_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.SPEED)
+
+    def payload_values_accuracy_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.ACCURACY)
+
+    def payload_values_latitude_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.LATITUDE)
+
+    def payload_values_longitude_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.LONGITUDE)
+
+    def payload_values_altitude_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.ALTITUDE)
+
+    def payload_values_speed_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.SPEED)
+
+    def payload_values_accuracy_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.ACCURACY)
+
+    def payload_values_latitude_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.LATITUDE)
+
+    def payload_values_longitude_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.LONGITUDE)
+
+    def payload_values_altitude_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.ALTITUDE)
+
+    def payload_values_speed_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.SPEED)
+
+    def payload_values_accuracy_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.ACCURACY)
+
+
+class WrappedTimeSynchronizationChannel:
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        self.unevenly_sampled_channel = unevenly_sampled_channel
+
+    def payload_values(self) -> numpy.ndarray:
+        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.TIME_SYNCHRONIZATION)
+
+
+class WrappedXyzUnevenlySampledChannel(WrappedUnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel, x_type: int, y_type: int,
+                 z_type: int):
+        super().__init__(unevenly_sampled_channel)
+        self.x_type = x_type
+        self.y_type = y_type
+        self.z_type = z_type
+
+    def payload_values(self) -> numpy.ndarray:
+        return self.unevenly_sampled_channel.get_multi_payload([
+            self.x_type,
+            self.y_type,
+            self.z_type
+        ])
+
+    def payload_values_x(self) -> numpy.ndarray:
+        return self.unevenly_sampled_channel.get_payload(self.x_type)
+
+    def payload_values_y(self) -> numpy.ndarray:
+        return self.unevenly_sampled_channel.get_payload(self.y_type)
+
+    def payload_values_z(self) -> numpy.ndarray:
+        return self.unevenly_sampled_channel.get_payload(self.z_type)
+
+    def payload_values_x_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(self.x_type)
+
+    def payload_values_y_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(self.y_type)
+
+    def payload_values_z_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(self.z_type)
+
+    def payload_values_x_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(self.x_type)
+
+    def payload_values_y_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(self.y_type)
+
+    def payload_values_z_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(self.z_type)
+
+    def payload_values_x_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(self.x_type)
+
+    def payload_values_y_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(self.y_type)
+
+    def payload_values_z_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(self.z_type)
+
+
+class WrappedAccelerometerChannel(WrappedXyzUnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        super().__init__(unevenly_sampled_channel,
+                         api900.lib.api900_pb2.ACCELEROMETER_X,
+                         api900.lib.api900_pb2.ACCELEROMETER_Y,
+                         api900.lib.api900_pb2.ACCELEROMETER_Z)
+
+
+class WrappedMagnetometerChannel(WrappedXyzUnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        super().__init__(unevenly_sampled_channel,
+                         api900.lib.api900_pb2.MAGNETOMETER_X,
+                         api900.lib.api900_pb2.MAGNETOMETER_Y,
+                         api900.lib.api900_pb2.MAGNETOMETER_Z)
+
+
+class WrappedGyroscopeChannel(WrappedXyzUnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        super().__init__(unevenly_sampled_channel,
+                         api900.lib.api900_pb2.GYROSCOPE_X,
+                         api900.lib.api900_pb2.GYROSCOPE_Y,
+                         api900.lib.api900_pb2.GYROSCOPE_Z)
+
+
+class WrappedLightChannel(WrappedUnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        super().__init__(unevenly_sampled_channel)
+
+    def payload_values(self) -> numpy.ndarray:
+        return self.unevenly_sampled_channel.get_payload(api900.lib.api900_pb2.LIGHT)
+
+    def payload_mean(self) -> float:
+        return self.unevenly_sampled_channel.get_value_mean(api900.lib.api900_pb2.LIGHT)
+
+    def payload_median(self) -> float:
+        return self.unevenly_sampled_channel.get_value_median(api900.lib.api900_pb2.LIGHT)
+
+    def payload_std(self) -> float:
+        return self.unevenly_sampled_channel.get_value_std(api900.lib.api900_pb2.LIGHT)
+
 
 class WrappedRedvoxPacket:
     """
@@ -595,12 +740,12 @@ class WrappedRedvoxPacket:
     directly.
     """
 
-    def __init__(self, redvox_packet: redvox.api900.api900_pb2.RedvoxPacket):
+    def __init__(self, redvox_packet: api900.lib.api900_pb2.RedvoxPacket):
         """
         Initializes this wrapped redvox packet.
         :param redvox_packet: A protobuf redvox packet.
         """
-        self.redvox_packet: redvox.api900.api900_pb2.RedvoxPacket = redvox_packet
+        self.redvox_packet: api900.lib.api900_pb2.RedvoxPacket = redvox_packet
         """Protobuf api 900 redvox packet"""
 
         self.evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
@@ -656,8 +801,8 @@ class WrappedRedvoxPacket:
             names.append(list(map(channel_type_name_from_enum, channel_types)))
         return names
 
-    def get_channel(self, channel_type: int) -> typing.Union[redvox.api900.api900_pb2.EvenlySampledChannel,
-                                                             redvox.api900.api900_pb2.UnevenlySampledChannel]:
+    def get_channel(self, channel_type: int) -> typing.Union[api900.lib.api900_pb2.EvenlySampledChannel,
+                                                             api900.lib.api900_pb2.UnevenlySampledChannel]:
         """
         Returns a channel from this packet according to the channel type.
         :param channel_type: The channel type to search for.
@@ -688,533 +833,8 @@ class WrappedRedvoxPacket:
                 return False
         return True
 
-    # ---------- Microphone sensor methods
-    def has_microphone_channel(self) -> bool:
-        """
-        Returns whether this wrapped packet contains a microphone channel.
-        :return: True if this packet contains a microphone channel, False otherwise.
-        """
-        return self.has_channel(redvox.api900.api900_pb2.MICROPHONE)
 
-    def get_microphone_channel(self) -> redvox.api900.api900_pb2.EvenlySampledChannel:
-        """
-        Returns the microphone evenly sampled channel.
-        :raises ReaderException: If microphone channel DNE in this packet.
-        :return: The microphone evenly sampled channel.
-        """
-        if self.has_microphone_channel():
-            return self.get_channel(redvox.api900.api900_pb2.MICROPHONE)
-        else:
-            raise ReaderException("Redvox API 900 packet does not contain a microphone channel")
-
-    def get_microphone_first_sample_timestamp_epoch_microseconds_utc(self) -> int:
-        """
-        Returns the timestamp of the first microphone sample as microseconds from the epoch UTC.
-        :raises ReaderException: If microphone channel DNE in this packet.
-        :return: The timestamp of the first microphone sample as microseconds from the epoch UTC.
-        """
-        return self.get_microphone_channel().first_sample_timestamp_epoch_microseconds_utc
-
-    def get_microphone_sample_rate_hz(self) -> float:
-        """Returns the sample rate in Hz of the microphone channel.
-        :raises ReaderException: If microphone channel DNE in this packet.
-        :return: The sample rate in Hz of the microphone channel.
-        """
-        return self.get_microphone_channel().sample_rate_hz
-
-    def get_microphone_sensor_name(self) -> str:
-        """Returns the microphone sensor name.
-        :raises ReaderException: If microphone channel DNE in this packet.
-        :return: The microphone sensor name.
-        """
-        return self.get_microphone_channel().sensor_name
-
-    def get_microphone_payload(self) -> numpy.ndarray:
-        """Returns the microphone payload as a numpy array of integers.
-        :raises ReaderException: If microphone channel DNE in this packet.
-        :return: The microphone payload as a numpy array of integers.
-        """
-        return self.get_microphone_channel().get_payload(redvox.api900.api900_pb2.MICROPHONE)
-
-    def get_microphone_value_mean(self) -> float:
-        """Returns the mean of the values in the microphone channel
-        :raises ReaderException: If microphone channel DNE in this packet.
-        :return:
-        ."""
-        return self.get_microphone_channel().get_value_mean(redvox.api900.api900_pb2.MICROPHONE)
-
-    def get_microphone_value_median(self) -> float:
-        """Returns the median of the values in the microphone channel.
-        :raises ReaderException: If microphone channel DNE in this packet.
-        :return:
-        """
-        return self.get_microphone_channel().get_value_median(redvox.api900.api900_pb2.MICROPHONE)
-
-    def get_microphone_value_std(self) -> float:
-        """Returns the standard deviation of the values in the microphone channel.
-        :raises ReaderException: If microphone channel DNE in this packet.
-        :return:
-        """
-        return self.get_microphone_channel().get_value_std(redvox.api900.api900_pb2.MICROPHONE)
-
-    def get_microphone_metadata(self) -> typing.Dict[str, str]:
-        """Returns metadata stored with the microphone channel as a key-value dictionary.
-        :raises ReaderException: If microphone channel DNE in this packet.
-        :return:
-        """
-        return get_metadata_as_dict(self.get_microphone_channel().metadata)
-
-    # ---------- Barometer sensor methods
-    def has_barometer_channel(self):
-        """
-        Returns whether this wrapped packet contains a barometer channel.
-        :return: True if this packet contains a barometer channel, False otherwise.
-        """
-        return self.has_channel(redvox.api900.api900_pb2.BAROMETER)
-
-    def get_barometer_channel(self) -> redvox.api900.api900_pb2.UnevenlySampledChannel:
-        """
-        Returns the barometer unevenly sampled channel.
-        :raises ReaderException: If barometer channel DNE in this packet.
-        :return: The barometer unevenly sampled channel.
-        """
-        if self.has_microphone_channel():
-            return self.get_channel(redvox.api900.api900_pb2.BAROMETER)
-        else:
-            raise ReaderException("Redvox AIP 900 packet does not contain a barometer channel")
-
-    def get_barometer_sensor_name(self) -> str:
-        """Returns the barometer sensor name.
-        :raises ReaderException: If barometer channel DNE in this packet.
-        :return: The barometer sensor name.
-        """
-        return self.get_barometer_channel().sensor_name
-
-    def get_barometer_payload_timestamps(self) -> numpy.ndarray:
-        """Returns the timestamps associated with each barometer sample.
-        :raises ReaderException: If barometer channel DNE in this packet.
-        :return: The timestamps associated with each barometer sample as a numpy ndarray.
-        """
-        return self.get_barometer_channel().timestamps_microseconds_utc
-
-    def get_barometer_payload_values(self) -> numpy.ndarray:
-        """Returns the values associated with each barometer sample.
-        :raises ReaderException: If barometer channel DNE in this packet.
-        :return: The values associated with each barometer sample as a numpy ndarray.
-        """
-        return self.get_barometer_channel().get_payload(redvox.api900.api900_pb2.BAROMETER)
-
-    def get_barometer_payload(self) -> numpy.ndarray:
-        """Returns a 2D numpy array where each sub-array contains the sample timestamp and the barometer value.
-        I.e.:
-        [[timestamp_0, barometer_0],
-         [timestamp_1, barometer_1],
-         [timestamp_2, barometer_2],
-         ...,
-         [timestamp_n, barometer_n]]
-        :raises ReaderException: If barometer channel DNE in this packet.
-        :raises ReaderException: If the length of the timestamps and values are not the same.
-        :return: The timestamps associated with each barometer sample as a numpy ndarray.
-        """
-        timestamps = self.get_barometer_payload_timestamps()
-        values = self.get_barometer_payload_values()
-
-        if len(timestamps) != len(values):
-            raise ReaderException("Barometer channel len(timestamps) != len(values)")
-
-        return numpy.column_stack((timestamps, values))
-
-    def get_barometer_sample_interval_mean(self) -> float:
-        """
-        Returns the mean sample interval of the barometer channel.
-        :return: The mean sample interval of the barometer channel.
-        """
-        return self.get_barometer_channel().sample_interval_mean
-
-    def get_barometer_sample_interval_median(self) -> float:
-        """
-        Returns the median sample interval of the barometer channel.
-        :return: The median sample interval of the barometer channel.
-        """
-        return self.get_barometer_channel().sample_interval_median
-
-    def get_barometer_sample_interval_std(self) -> float:
-        """
-        Returns the standard deviation sample interval of the barometer channel.
-        :return: The standard deviation sample interval of the barometer channel.
-        """
-        return self.get_barometer_channel().sample_interval_std
-
-    def get_barometer_value_mean(self) -> float:
-        """
-        Returns the mean value of the barometer channel.
-        :return: The mean value of the barometer channel.
-        """
-        return self.get_barometer_channel().get_value_mean(redvox.api900.api900_pb2.BAROMETER)
-
-    def get_barometer_value_median(self) -> float:
-        """
-        Returns the median value of the barometer channel.
-        :return: The median value of the barometer channel.
-        """
-        return self.get_barometer_channel().get_value_median(redvox.api900.api900_pb2.BAROMETER)
-
-    def get_barometer_value_std(self) -> float:
-        """
-        Returns the standard deviation value of the barometer channel.
-        :return: The standard deviation value of the barometer channel.
-        """
-        return self.get_barometer_channel().get_value_std(redvox.api900.api900_pb2.BAROMETER)
-
-    # ---------- Location sensor methods
-    def has_location_channel(self) -> bool:
-        """
-        Returns whether this packer contains a location channel.
-        :return: True if this packet does contain a location channel, False otherwise.
-        """
-        return self.has_channels([redvox.api900.api900_pb2.LATITUDE,
-                                  redvox.api900.api900_pb2.LONGITUDE,
-                                  redvox.api900.api900_pb2.ALTITUDE,
-                                  redvox.api900.api900_pb2.SPEED,
-                                  redvox.api900.api900_pb2.ACCURACY])
-
-    def get_location_channel(self) -> redvox.api900.api900_pb2.UnevenlySampledChannel:
-        """
-        Returns the location unevenly sampled channel.
-        :raises ReaderException: If location channel DNE in this packet.
-        :return: The location unevenly sampled channel.
-        """
-        if self.has_location_channel():
-            return self.get_channel(redvox.api900.api900_pb2.LATITUDE)
-        else:
-            raise ReaderException("Redvox AIP 900 packet does not contain a location channel")
-
-    def get_location_sensor_name(self) -> str:
-        """Returns the location sensor name.
-        :raises ReaderException: If location channel DNE in this packet.
-        :return: The location sensor name.
-        """
-        return self.get_location_channel().sensor_name
-
-    def get_location_payload_timestamps(self) -> numpy.ndarray:
-        """Returns the timestamps associated with each location sample.
-        :raises ReaderException: If location channel DNE in this packet.
-        :return: The timestamps associated with each location sample as a numpy ndarray.
-        """
-        return self.get_location_channel().timestamps_microseconds_utc
-
-    def get_location_payload_values(self) -> numpy.ndarray:
-        """
-        Returns the location values associated with each location sample.
-
-        Each value is an array of values such that:
-
-        [[latitude_0, longitude_0, altitude_0, speed_0, accuracy_0],
-         [latitude_1, longitude_1, altitude_1, speed_1, accuracy_1],
-         [latitude_2, longitude_2, altitude_2, speed_2, accuracy_2],
-         ...,
-         [latitude_n, longitude_n, altitude_n, speed_n, accuracy_n]]
-
-        :raises ReaderException: If location channel DNE in this packet.
-        :return: Location values.
-        """
-        return self.get_location_channel().get_multi_payload([
-            redvox.api900.api900_pb2.LATITUDE,
-            redvox.api900.api900_pb2.LONGITUDE,
-            redvox.api900.api900_pb2.ALTITUDE,
-            redvox.api900.api900_pb2.SPEED,
-            redvox.api900.api900_pb2.ACCURACY
-        ])
-
-    def get_location_payload_values_latitude(self) -> numpy.ndarray:
-        """Returns the latitude value associated with each location sample.
-        :raises ReaderException: If location channel DNE in this packet.
-        :return: The latitude value associated with each location sample.
-        """
-        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.LATITUDE)
-
-    def get_location_payload_values_longitude(self) -> numpy.ndarray:
-        """Returns the longitude value associated with each location sample.
-        :raises ReaderException: If location channel DNE in this packet.
-        :return: The longitude value associated with each location sample.
-        """
-        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.LONGITUDE)
-
-    def get_location_payload_values_altitude(self) -> numpy.ndarray:
-        """Returns the altitude value associated with each location sample.
-        :raises ReaderException: If location channel DNE in this packet.
-        :return: The altitude value associated with each location sample.
-        """
-        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.ALTITUDE)
-
-    def get_location_payload_values_speed(self) -> numpy.ndarray:
-        """Returns the speed value associated with each location sample.
-        :raises ReaderException: If location channel DNE in this packet.
-        :return: The speed value associated with each location sample.
-        """
-        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.SPEED)
-
-    def get_location_payload_values_accuracy(self) -> numpy.ndarray:
-        """Returns the accuracy value associated with each location sample.
-        :raises ReaderException: If location channel DNE in this packet.
-        :return: The accuracy value associated with each location sample.
-        """
-        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.ACCURACY)
-
-    def get_location_payload(self) -> numpy.ndarray:
-        """
-        Returns the payload of the location channel an array of arrays where each subarray consists of a timestamp for
-        that sample followed by the payload values.
-
-        The return format is described as follows:
-
-        [[timestamp_0, latitude_0, longitude_0, altitude_0, speed_0, accuracy_0],
-         [timestamp_1, latitude_1, longitude_1, altitude_1, speed_1, accuracy_1],
-         [timestamp_2, latitude_2, longitude_2, altitude_2, speed_2, accuracy_2],
-         ...,
-         [timestamp_n, latitude_n, longitude_n, altitude_n, speed_n, accuracy_n]]
-
-        :return: Location payload.
-        """
-        timestamps = self.get_location_payload_timestamps()
-        values = self.get_location_payload_values()
-        return numpy.column_stack((timestamps, values))
-
-    # ---------- Time synchronization sensor methods
-    def has_time_synchronization_channel(self):
-        """
-        Returns whether this wrapped packet contains a time synchronization channel.
-        :return: True if this packet contains a time synchronization channel, False otherwise.
-        """
-        return self.has_channel(redvox.api900.api900_pb2.TIME_SYNCHRONIZATION)
-
-    def get_time_synchronization_channel(self) -> redvox.api900.api900_pb2.UnevenlySampledChannel:
-        """
-        Returns the time_synchronization unevenly sampled channel.
-        :raises ReaderException: If time_synchronization channel DNE in this packet.
-        :return: The time_synchronization unevenly sampled channel.
-        """
-        if self.has_time_synchronization_channel():
-            return self.get_channel(redvox.api900.api900_pb2.TIME_SYNCHRONIZATION)
-        else:
-            raise ReaderException("Redvox AIP 900 packet does not contain a barometer channel")
-
-    def get_time_synchronization_payload(self) -> numpy.ndarray:
-        """Returns the time synchronization exchange array.
-
-        :raises ReaderException: If time synchronization channel DNE in this packet.
-        :return: The time synchronization exchange array.
-        """
-        return self.get_time_synchronization_channel().get_payload(redvox.api900.api900_pb2.TIME_SYNCHRONIZATION)
-
-    # ---------- Accelerometer sensor methods
-    def has_accelerometer_channel(self) -> bool:
-        """
-        Returns whether or not this packet has an accelerometer channel.
-        :return: True if this channel does have an accelerometer channel, False otherwise.
-        """
-        return self.has_channels([
-            redvox.api900.api900_pb2.ACCELEROMETER_X,
-            redvox.api900.api900_pb2.ACCELEROMETER_Y,
-            redvox.api900.api900_pb2.ACCELEROMETER_Z])
-
-    def get_accelerometer_channel(self) -> redvox.api900.api900_pb2.UnevenlySampledChannel:
-        """
-        Returns the accelerometer unevenly sampled channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The accelerometer unevenly sampled channel.
-        """
-        if self.has_accelerometer_channel():
-            return self.get_channel(redvox.api900.api900_pb2.ACCELEROMETER_X)
-        else:
-            raise ReaderException("Redvox AIP 900 packet does not contain a accelerometer channel")
-
-    def get_accelerometer_sensor_name(self) -> str:
-        """Returns the accelerometer sensor name.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The accelerometer sensor name.
-        """
-        return self.get_accelerometer_channel().sensor_name
-
-    def get_accelerometer_payload_timestamps(self) -> numpy.ndarray:
-        """Returns the timestamps associated with each accelerometer sample.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The timestamps associated with each accelerometer sample as a numpy ndarray.
-        """
-        return self.get_accelerometer_channel().timestamps_microseconds_utc
-
-    def get_accelerometer_payload_values(self) -> numpy.ndarray:
-        """
-        Returns the accelerometer values associated with each accelerometer sample.
-
-        Each value is an array of values such that:
-
-        [[accelerometer_x_0, accelerometer_y_0, accelerometer_z_0],
-         [accelerometer_x_1, accelerometer_y_1, accelerometer_z_1],
-         [accelerometer_x_2, accelerometer_y_2, accelerometer_z_2],
-         ...,
-         [accelerometer_x_n, accelerometer_y_n, accelerometer_z_n]]
-
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: Accelerometer values.
-        """
-        return self.get_location_channel().get_multi_payload([
-            redvox.api900.api900_pb2.ACCELEROMETER_X,
-            redvox.api900.api900_pb2.ACCELEROMETER_Y,
-            redvox.api900.api900_pb2.ACCELEROMETER_Z
-        ])
-
-    def get_accelerometer_payload_values_x(self) -> numpy.ndarray:
-        """Returns the accelerometer_x value associated with each accelerometer sample.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The accelerometer value associated with each location sample.
-        """
-        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.ACCELEROMETER_X)
-
-    def get_accelerometer_payload_values_y(self) -> numpy.ndarray:
-        """Returns the accelerometer_y value associated with each accelerometer sample.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The accelerometer value associated with each location sample.
-        """
-        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.ACCELEROMETER_Y)
-
-    def get_accelerometer_payload_values_z(self) -> numpy.ndarray:
-        """Returns the accelerometer_z value associated with each accelerometer sample.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The accelerometer value associated with each location sample.
-        """
-        return self.get_location_channel().get_payload(redvox.api900.api900_pb2.ACCELEROMETER_Z)
-
-    def get_accelerometer_payload(self) -> numpy.ndarray:
-        """
-        Returns the payload of the accelerometer channel an array of arrays where each subarray consists of a timestamp
-        for that sample followed by the payload values.
-
-        The return format is described as follows:
-
-        [[timestamp_0, accelerometer_x_0, accelerometer_y_0, accelerometer_z_0],
-         [timestamp_1, accelerometer_x_1, accelerometer_y_1, accelerometer_z_1],
-         [timestamp_2, accelerometer_x_2, accelerometer_y_2, accelerometer_z_2],
-         ...,
-         [timestamp_n, accelerometer_x_n, accelerometer_y_n, accelerometer_z_n]]
-
-        :return: Accelerometer payload.
-        """
-        timestamps = self.get_accelerometer_payload_timestamps()
-        values = self.get_accelerometer_payload_values()
-        return numpy.column_stack((timestamps, values))
-
-    def get_accelerometer_sample_interval_mean(self) -> float:
-        """Returns the mean sample interval for the accelerometer channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The mean sample interval for the accelerometer channel.
-        """
-        return self.get_accelerometer_channel().sample_interval_mean
-
-    def get_accelerometer_sample_interval_median(self) -> float:
-        """Returns the median sample interval for the accelerometer channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The median sample interval for the accelerometer channel.
-        """
-        return self.get_accelerometer_channel().sample_interval_median
-
-    def get_accelerometer_sample_interval_std(self) -> float:
-        """Returns the standard deviation sample interval for the accelerometer channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The standard deviation sample interval for the accelerometer channel.
-        """
-        return self.get_accelerometer_channel().sample_interval_std
-
-    def get_accelerometer_x_value_mean(self):
-        """Returns the mean value for the X axis in the accelerometer channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The mean value for the accelerometer x-axis channel.
-        """
-        return self.get_accelerometer_channel().get_value_mean(redvox.api900.api900_pb2.ACCELEROMETER_X)
-
-    def get_accelerometer_y_value_mean(self):
-        """Returns the mean value for the Y axis in the accelerometer channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The mean value for the accelerometer y-axis channel.
-        """
-        return self.get_accelerometer_channel().get_value_mean(redvox.api900.api900_pb2.ACCELEROMETER_Y)
-
-    def get_accelerometer_z_value_mean(self):
-        """Returns the mean value for the Z axis in the accelerometer channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The mean value for the accelerometer z-axis channel.
-        """
-        return self.get_accelerometer_channel().get_value_mean(redvox.api900.api900_pb2.ACCELEROMETER_Z)
-
-    def get_accelerometer_x_value_median(self):
-        """Returns the median value for the X axis in the accelerometer channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The median value for the accelerometer x-axis channel.
-        """
-        return self.get_accelerometer_channel().get_value_median(redvox.api900.api900_pb2.ACCELEROMETER_X)
-
-    def get_accelerometer_y_value_median(self):
-        """Returns the median value for the Y axis in the accelerometer channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The median value for the accelerometer y-axis channel.
-        """
-        return self.get_accelerometer_channel().get_value_median(redvox.api900.api900_pb2.ACCELEROMETER_Y)
-
-    def get_accelerometer_z_value_median(self):
-        """Returns the median value for the Z axis in the accelerometer channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The median value for the accelerometer z-axis channel.
-        """
-        return self.get_accelerometer_channel().get_value_median(redvox.api900.api900_pb2.ACCELEROMETER_Z)
-
-    def get_accelerometer_x_value_std(self):
-        """Returns the std value for the X axis in the accelerometer channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The std value for the accelerometer x-axis channel.
-        """
-        return self.get_accelerometer_channel().get_value_std(redvox.api900.api900_pb2.ACCELEROMETER_X)
-
-    def get_accelerometer_y_value_std(self):
-        """Returns the std value for the Y axis in the accelerometer channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The median value for the accelerometer y-axis channel.
-        """
-        return self.get_accelerometer_channel().get_value_std(redvox.api900.api900_pb2.ACCELEROMETER_Y)
-
-    def get_accelerometer_z_value_std(self):
-        """Returns the std value for the Z axis in the accelerometer channel.
-        :raises ReaderException: If accelerometer channel DNE in this packet.
-        :return: The std value for the accelerometer z-axis channel.
-        """
-        return self.get_accelerometer_channel().get_value_std(redvox.api900.api900_pb2.ACCELEROMETER_Z)
-
-    # ---------- Magnetometer sensor methods
-    def has_magnetometer_channels(self) -> bool:
-        return self.has_channels([
-            redvox.api900.api900_pb2.MAGNETOMETER_X,
-            redvox.api900.api900_pb2.MAGNETOMETER_Y,
-            redvox.api900.api900_pb2.MAGNETOMETER_Z])
-
-    # ---------- Gyroscope sensor methods
-    def has_gyroscope_channels(self) -> bool:
-        return self.has_channels([
-            redvox.api900.api900_pb2.GYROSCOPE_X,
-            redvox.api900.api900_pb2.GYROSCOPE_Y,
-            redvox.api900.api900_pb2.GYROSCOPE_Z])
-
-    # ---------- Light sensor methods
-    def has_light_channel(self) -> bool:
-        return self.has_channel(redvox.api900.api900_pb2.LIGHT)
-
-    def __str__(self) -> str:
-        """
-        Returns:
-            The canonical protobuf representation.
-        """
-        return str(self.redvox_packet)
-
-
-def wrap(redvox_packet: redvox.api900.api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:
+def wrap(redvox_packet: api900.lib.api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:
     """Shortcut for wrapping a protobuf packet with our higher level wrapper.
 
     Args:

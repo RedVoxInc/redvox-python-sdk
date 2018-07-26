@@ -2,7 +2,7 @@ import unittest
 
 import numpy
 
-import redvox.api900.api900_pb2
+import api900.lib.api900_pb2
 import redvox.api900.reader
 import tests.mock_packets as mock
 
@@ -21,8 +21,8 @@ class ModuleFunctionTests(ArraysTestCase):
         self.base_packet = mock.base_packet()
         self.simple_mic_packet = mock.simple_mic_packet()
         self.simple_unevenly_sampled_packet = mock.simple_unevenly_sampled_packet()
-        self.evenly_sampled_channel = redvox.api900.api900_pb2.EvenlySampledChannel()
-        self.unevenly_sampled_channel = redvox.api900.api900_pb2.UnevenlySampledChannel()
+        self.evenly_sampled_channel = api900.lib.api900_pb2.EvenlySampledChannel()
+        self.unevenly_sampled_channel = api900.lib.api900_pb2.UnevenlySampledChannel()
 
     # Test getting of generic payloads
     # Evenly sampled channels
@@ -380,72 +380,72 @@ class InterleavedChannelTests(ArraysTestCase):
         self.assertArraysEqual(self.mic_channel.value_medians, numpy.array([5.5]))
 
     def test_channel_index(self):
-        self.assertEqual(self.mic_channel.channel_index(redvox.api900.api900_pb2.MICROPHONE), 0)
-        self.assertEqual(self.mic_channel.channel_index(redvox.api900.api900_pb2.BAROMETER), -1)
-        self.assertEqual(self.gps_channel.channel_index(redvox.api900.api900_pb2.LATITUDE), 0)
-        self.assertEqual(self.gps_channel.channel_index(redvox.api900.api900_pb2.LONGITUDE), 1)
-        self.assertEqual(self.gps_channel.channel_index(redvox.api900.api900_pb2.SPEED), 2)
-        self.assertEqual(self.gps_channel.channel_index(redvox.api900.api900_pb2.ALTITUDE), 3)
-        self.assertEqual(self.gps_channel.channel_index(redvox.api900.api900_pb2.MICROPHONE), -1)
+        self.assertEqual(self.mic_channel.channel_index(api900.lib.api900_pb2.MICROPHONE), 0)
+        self.assertEqual(self.mic_channel.channel_index(api900.lib.api900_pb2.BAROMETER), -1)
+        self.assertEqual(self.gps_channel.channel_index(api900.lib.api900_pb2.LATITUDE), 0)
+        self.assertEqual(self.gps_channel.channel_index(api900.lib.api900_pb2.LONGITUDE), 1)
+        self.assertEqual(self.gps_channel.channel_index(api900.lib.api900_pb2.SPEED), 2)
+        self.assertEqual(self.gps_channel.channel_index(api900.lib.api900_pb2.ALTITUDE), 3)
+        self.assertEqual(self.gps_channel.channel_index(api900.lib.api900_pb2.MICROPHONE), -1)
 
     def test_has_channel(self):
-        self.assertEqual(self.mic_channel.has_channel(redvox.api900.api900_pb2.MICROPHONE), True)
-        self.assertEqual(self.mic_channel.has_channel(redvox.api900.api900_pb2.BAROMETER), False)
-        self.assertEqual(self.gps_channel.has_channel(redvox.api900.api900_pb2.LATITUDE), True)
-        self.assertEqual(self.gps_channel.has_channel(redvox.api900.api900_pb2.LONGITUDE), True)
-        self.assertEqual(self.gps_channel.has_channel(redvox.api900.api900_pb2.SPEED), True)
-        self.assertEqual(self.gps_channel.has_channel(redvox.api900.api900_pb2.ALTITUDE), True)
-        self.assertEqual(self.gps_channel.has_channel(redvox.api900.api900_pb2.MICROPHONE), False)
+        self.assertEqual(self.mic_channel.has_channel(api900.lib.api900_pb2.MICROPHONE), True)
+        self.assertEqual(self.mic_channel.has_channel(api900.lib.api900_pb2.BAROMETER), False)
+        self.assertEqual(self.gps_channel.has_channel(api900.lib.api900_pb2.LATITUDE), True)
+        self.assertEqual(self.gps_channel.has_channel(api900.lib.api900_pb2.LONGITUDE), True)
+        self.assertEqual(self.gps_channel.has_channel(api900.lib.api900_pb2.SPEED), True)
+        self.assertEqual(self.gps_channel.has_channel(api900.lib.api900_pb2.ALTITUDE), True)
+        self.assertEqual(self.gps_channel.has_channel(api900.lib.api900_pb2.MICROPHONE), False)
 
     def test_get_payload_dne(self):
         self.assertArraysEqual(
-                self.mic_channel.get_payload(redvox.api900.api900_pb2.BAROMETER),
+                self.mic_channel.get_payload(api900.lib.api900_pb2.BAROMETER),
                 self.empty_array)
 
     def test_get_payload_single(self):
         self.assertArraysEqual(
-                self.mic_channel.get_payload(redvox.api900.api900_pb2.MICROPHONE),
+                self.mic_channel.get_payload(api900.lib.api900_pb2.MICROPHONE),
                 numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
 
     def test_get_payload_interleaved(self):
         self.assertArraysEqual(
-                self.gps_channel.get_payload(redvox.api900.api900_pb2.LATITUDE),
+                self.gps_channel.get_payload(api900.lib.api900_pb2.LATITUDE),
                 numpy.array([19.0, 20.0, 21.0, 22.0, 23.0]))
         self.assertArraysEqual(
-                self.gps_channel.get_payload(redvox.api900.api900_pb2.LONGITUDE),
+                self.gps_channel.get_payload(api900.lib.api900_pb2.LONGITUDE),
                 numpy.array([155.0, 156.0, 157.0, 158.0, 159.0]))
         self.assertArraysEqual(
-                self.gps_channel.get_payload(redvox.api900.api900_pb2.SPEED),
+                self.gps_channel.get_payload(api900.lib.api900_pb2.SPEED),
                 numpy.array([1.0, 2.0, 3.0, 4.0, 5.0]))
         self.assertArraysEqual(
-                self.gps_channel.get_payload(redvox.api900.api900_pb2.ALTITUDE),
+                self.gps_channel.get_payload(api900.lib.api900_pb2.ALTITUDE),
                 numpy.array([25.0, 26.0, 27.0, 28.0, 29.0]))
 
     def test_get_payload_interleaved_dne(self):
         self.assertArraysEqual(
-                self.gps_channel.get_payload(redvox.api900.api900_pb2.BAROMETER),
+                self.gps_channel.get_payload(api900.lib.api900_pb2.BAROMETER),
                 self.empty_array)
 
     def test_get_multi_payload_dne(self):
         self.assertArraysEqual(
-                self.gps_channel.get_multi_payload([redvox.api900.api900_pb2.BAROMETER]),
+                self.gps_channel.get_multi_payload([api900.lib.api900_pb2.BAROMETER]),
                 self.empty_array)
 
     def test_get_multi_payload_single_dne(self):
         return self.assertRaises(
                 redvox.api900.reader.ReaderException,
                 self.gps_channel.get_multi_payload,
-                [redvox.api900.api900_pb2.LATITUDE, redvox.api900.api900_pb2.BAROMETER])
+                [api900.lib.api900_pb2.LATITUDE, api900.lib.api900_pb2.BAROMETER])
 
     def test_get_multi_payload_single(self):
         self.assertArraysEqual(
-                self.mic_channel.get_multi_payload([redvox.api900.api900_pb2.MICROPHONE]),
+                self.mic_channel.get_multi_payload([api900.lib.api900_pb2.MICROPHONE]),
                 numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
 
     def test_get_multi_payload_double(self):
         self.assertArraysEqual(
                 self.gps_channel.get_multi_payload(
-                        [redvox.api900.api900_pb2.LATITUDE, redvox.api900.api900_pb2.LONGITUDE]),
+                        [api900.lib.api900_pb2.LATITUDE, api900.lib.api900_pb2.LONGITUDE]),
                 numpy.array([19.0, 155.0,
                              20.0, 156.0,
                              21.0, 157.0,
@@ -454,7 +454,7 @@ class InterleavedChannelTests(ArraysTestCase):
 
         self.assertArraysEqual(
                 self.gps_channel.get_multi_payload(
-                        [redvox.api900.api900_pb2.LONGITUDE, redvox.api900.api900_pb2.LATITUDE]),
+                        [api900.lib.api900_pb2.LONGITUDE, api900.lib.api900_pb2.LATITUDE]),
                 numpy.array([155.0, 19.0,
                              156.0, 20.0,
                              157.0, 21.0,
@@ -463,7 +463,7 @@ class InterleavedChannelTests(ArraysTestCase):
 
         self.assertArraysEqual(
                 self.gps_channel.get_multi_payload(
-                        [redvox.api900.api900_pb2.LATITUDE, redvox.api900.api900_pb2.ALTITUDE]),
+                        [api900.lib.api900_pb2.LATITUDE, api900.lib.api900_pb2.ALTITUDE]),
                 numpy.array([19.0, 25.0,
                              20.0, 26.0,
                              21.0, 27.0,
@@ -472,7 +472,7 @@ class InterleavedChannelTests(ArraysTestCase):
 
         self.assertArraysEqual(
                 self.gps_channel.get_multi_payload(
-                        [redvox.api900.api900_pb2.ALTITUDE, redvox.api900.api900_pb2.LONGITUDE]),
+                        [api900.lib.api900_pb2.ALTITUDE, api900.lib.api900_pb2.LONGITUDE]),
                 numpy.array([25.0, 155.0,
                              26.0, 156.0,
                              27.0, 157.0,
@@ -482,9 +482,9 @@ class InterleavedChannelTests(ArraysTestCase):
     def test_get_multi_payload_multi(self):
         self.assertArraysEqual(
                 self.gps_channel.get_multi_payload([
-                    redvox.api900.api900_pb2.LATITUDE,
-                    redvox.api900.api900_pb2.LONGITUDE,
-                    redvox.api900.api900_pb2.ALTITUDE]),
+                    api900.lib.api900_pb2.LATITUDE,
+                    api900.lib.api900_pb2.LONGITUDE,
+                    api900.lib.api900_pb2.ALTITUDE]),
                 numpy.array([19.0, 155.0, 25.0,
                              20.0, 156.0, 26.0,
                              21.0, 157.0, 27.0,
@@ -493,10 +493,10 @@ class InterleavedChannelTests(ArraysTestCase):
 
         self.assertArraysEqual(
                 self.gps_channel.get_multi_payload([
-                    redvox.api900.api900_pb2.ALTITUDE,
-                    redvox.api900.api900_pb2.SPEED,
-                    redvox.api900.api900_pb2.LONGITUDE,
-                    redvox.api900.api900_pb2.LATITUDE]),
+                    api900.lib.api900_pb2.ALTITUDE,
+                    api900.lib.api900_pb2.SPEED,
+                    api900.lib.api900_pb2.LONGITUDE,
+                    api900.lib.api900_pb2.LATITUDE]),
                 numpy.array([25.0, 1.0, 155.0, 19.0,
                              26.0, 2.0, 156.0, 20.0,
                              27.0, 3.0, 157.0, 21.0,
@@ -504,57 +504,57 @@ class InterleavedChannelTests(ArraysTestCase):
                              29.0, 5.0, 159.0, 23.0]))
 
     def test_get_value_mean_dne(self):
-        self.assertEqual(self.mic_channel.get_value_mean(redvox.api900.api900_pb2.BAROMETER),
+        self.assertEqual(self.mic_channel.get_value_mean(api900.lib.api900_pb2.BAROMETER),
                          0.0)
 
     def test_get_value_mean_single(self):
-        self.assertEqual(self.mic_channel.get_value_mean(redvox.api900.api900_pb2.MICROPHONE),
+        self.assertEqual(self.mic_channel.get_value_mean(api900.lib.api900_pb2.MICROPHONE),
                          5.5)
 
     def test_get_value_mean_multi(self):
-        self.assertEqual(self.gps_channel.get_value_mean(redvox.api900.api900_pb2.LATITUDE),
+        self.assertEqual(self.gps_channel.get_value_mean(api900.lib.api900_pb2.LATITUDE),
                          1)
-        self.assertEqual(self.gps_channel.get_value_mean(redvox.api900.api900_pb2.LONGITUDE),
+        self.assertEqual(self.gps_channel.get_value_mean(api900.lib.api900_pb2.LONGITUDE),
                          2)
-        self.assertEqual(self.gps_channel.get_value_mean(redvox.api900.api900_pb2.SPEED),
+        self.assertEqual(self.gps_channel.get_value_mean(api900.lib.api900_pb2.SPEED),
                          3)
-        self.assertEqual(self.gps_channel.get_value_mean(redvox.api900.api900_pb2.ALTITUDE),
+        self.assertEqual(self.gps_channel.get_value_mean(api900.lib.api900_pb2.ALTITUDE),
                          4)
 
     def test_get_value_std_dne(self):
-        self.assertEqual(self.mic_channel.get_value_std(redvox.api900.api900_pb2.BAROMETER),
+        self.assertEqual(self.mic_channel.get_value_std(api900.lib.api900_pb2.BAROMETER),
                          0.0)
 
     def test_get_value_std_single(self):
-        self.assertEqual(self.mic_channel.get_value_std(redvox.api900.api900_pb2.MICROPHONE),
+        self.assertEqual(self.mic_channel.get_value_std(api900.lib.api900_pb2.MICROPHONE),
                          3.0277)
 
     def test_get_value_std_multi(self):
-        self.assertEqual(self.gps_channel.get_value_std(redvox.api900.api900_pb2.LATITUDE),
+        self.assertEqual(self.gps_channel.get_value_std(api900.lib.api900_pb2.LATITUDE),
                          1)
-        self.assertEqual(self.gps_channel.get_value_std(redvox.api900.api900_pb2.LONGITUDE),
+        self.assertEqual(self.gps_channel.get_value_std(api900.lib.api900_pb2.LONGITUDE),
                          2)
-        self.assertEqual(self.gps_channel.get_value_std(redvox.api900.api900_pb2.SPEED),
+        self.assertEqual(self.gps_channel.get_value_std(api900.lib.api900_pb2.SPEED),
                          3)
-        self.assertEqual(self.gps_channel.get_value_std(redvox.api900.api900_pb2.ALTITUDE),
+        self.assertEqual(self.gps_channel.get_value_std(api900.lib.api900_pb2.ALTITUDE),
                          4)
 
     def test_get_value_median_dne(self):
-        self.assertEqual(self.mic_channel.get_value_median(redvox.api900.api900_pb2.BAROMETER),
+        self.assertEqual(self.mic_channel.get_value_median(api900.lib.api900_pb2.BAROMETER),
                          0.0)
 
     def test_get_value_median_single(self):
-        self.assertEqual(self.mic_channel.get_value_median(redvox.api900.api900_pb2.MICROPHONE),
+        self.assertEqual(self.mic_channel.get_value_median(api900.lib.api900_pb2.MICROPHONE),
                          5.5)
 
     def test_get_value_median_multi(self):
-        self.assertEqual(self.gps_channel.get_value_median(redvox.api900.api900_pb2.LATITUDE),
+        self.assertEqual(self.gps_channel.get_value_median(api900.lib.api900_pb2.LATITUDE),
                          1)
-        self.assertEqual(self.gps_channel.get_value_median(redvox.api900.api900_pb2.LONGITUDE),
+        self.assertEqual(self.gps_channel.get_value_median(api900.lib.api900_pb2.LONGITUDE),
                          2)
-        self.assertEqual(self.gps_channel.get_value_median(redvox.api900.api900_pb2.SPEED),
+        self.assertEqual(self.gps_channel.get_value_median(api900.lib.api900_pb2.SPEED),
                          3)
-        self.assertEqual(self.gps_channel.get_value_median(redvox.api900.api900_pb2.ALTITUDE),
+        self.assertEqual(self.gps_channel.get_value_median(api900.lib.api900_pb2.ALTITUDE),
                          4)
 
     def test_str(self):
@@ -621,47 +621,47 @@ class WrappedRedvoxPacketTests(ArraysTestCase):
         self.assertEqual(self.multi_packet.metadata, [])
 
     def test_get_channel(self):
-        self.assertEqual(self.mic_packet.get_channel(redvox.api900.api900_pb2.MICROPHONE).sensor_name,
+        self.assertEqual(self.mic_packet.get_channel(api900.lib.api900_pb2.MICROPHONE).sensor_name,
                          "test microphone sensor name")
-        self.assertEqual(self.mic_packet.get_channel(redvox.api900.api900_pb2.BAROMETER),
+        self.assertEqual(self.mic_packet.get_channel(api900.lib.api900_pb2.BAROMETER),
                          None)
 
-        self.assertEqual(self.gps_packet.get_channel(redvox.api900.api900_pb2.LATITUDE).sensor_name,
+        self.assertEqual(self.gps_packet.get_channel(api900.lib.api900_pb2.LATITUDE).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.gps_packet.get_channel(redvox.api900.api900_pb2.LONGITUDE).sensor_name,
+        self.assertEqual(self.gps_packet.get_channel(api900.lib.api900_pb2.LONGITUDE).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.gps_packet.get_channel(redvox.api900.api900_pb2.SPEED).sensor_name,
+        self.assertEqual(self.gps_packet.get_channel(api900.lib.api900_pb2.SPEED).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.gps_packet.get_channel(redvox.api900.api900_pb2.ALTITUDE).sensor_name,
+        self.assertEqual(self.gps_packet.get_channel(api900.lib.api900_pb2.ALTITUDE).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.gps_packet.get_channel(redvox.api900.api900_pb2.MICROPHONE), None)
+        self.assertEqual(self.gps_packet.get_channel(api900.lib.api900_pb2.MICROPHONE), None)
 
-        self.assertEqual(self.multi_packet.get_channel(redvox.api900.api900_pb2.MICROPHONE).sensor_name,
+        self.assertEqual(self.multi_packet.get_channel(api900.lib.api900_pb2.MICROPHONE).sensor_name,
                          "test microphone sensor name")
-        self.assertEqual(self.multi_packet.get_channel(redvox.api900.api900_pb2.LATITUDE).sensor_name,
+        self.assertEqual(self.multi_packet.get_channel(api900.lib.api900_pb2.LATITUDE).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.multi_packet.get_channel(redvox.api900.api900_pb2.LONGITUDE).sensor_name,
+        self.assertEqual(self.multi_packet.get_channel(api900.lib.api900_pb2.LONGITUDE).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.multi_packet.get_channel(redvox.api900.api900_pb2.SPEED).sensor_name,
+        self.assertEqual(self.multi_packet.get_channel(api900.lib.api900_pb2.SPEED).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.multi_packet.get_channel(redvox.api900.api900_pb2.ALTITUDE).sensor_name,
+        self.assertEqual(self.multi_packet.get_channel(api900.lib.api900_pb2.ALTITUDE).sensor_name,
                          "test gps sensor name")
-        self.assertEqual(self.multi_packet.get_channel(redvox.api900.api900_pb2.OTHER).sensor_name,
+        self.assertEqual(self.multi_packet.get_channel(api900.lib.api900_pb2.OTHER).sensor_name,
                          "test other sensor name")
 
     def test_has_channel(self):
-        self.assertTrue(self.mic_packet.has_channel(redvox.api900.api900_pb2.MICROPHONE))
-        self.assertFalse(self.mic_packet.has_channel(redvox.api900.api900_pb2.BAROMETER))
+        self.assertTrue(self.mic_packet.has_channel(api900.lib.api900_pb2.MICROPHONE))
+        self.assertFalse(self.mic_packet.has_channel(api900.lib.api900_pb2.BAROMETER))
 
-        self.assertTrue(self.gps_packet.has_channel(redvox.api900.api900_pb2.LATITUDE))
-        self.assertTrue(self.gps_packet.has_channel(redvox.api900.api900_pb2.LONGITUDE))
-        self.assertTrue(self.gps_packet.has_channel(redvox.api900.api900_pb2.SPEED))
-        self.assertTrue(self.gps_packet.has_channel(redvox.api900.api900_pb2.ALTITUDE))
-        self.assertFalse(self.gps_packet.has_channel(redvox.api900.api900_pb2.MICROPHONE))
+        self.assertTrue(self.gps_packet.has_channel(api900.lib.api900_pb2.LATITUDE))
+        self.assertTrue(self.gps_packet.has_channel(api900.lib.api900_pb2.LONGITUDE))
+        self.assertTrue(self.gps_packet.has_channel(api900.lib.api900_pb2.SPEED))
+        self.assertTrue(self.gps_packet.has_channel(api900.lib.api900_pb2.ALTITUDE))
+        self.assertFalse(self.gps_packet.has_channel(api900.lib.api900_pb2.MICROPHONE))
 
-        self.assertTrue(self.multi_packet.has_channel(redvox.api900.api900_pb2.MICROPHONE))
-        self.assertTrue(self.multi_packet.has_channel(redvox.api900.api900_pb2.LATITUDE))
-        self.assertTrue(self.multi_packet.has_channel(redvox.api900.api900_pb2.LONGITUDE))
-        self.assertTrue(self.multi_packet.has_channel(redvox.api900.api900_pb2.SPEED))
-        self.assertTrue(self.multi_packet.has_channel(redvox.api900.api900_pb2.ALTITUDE))
-        self.assertTrue(self.multi_packet.has_channel(redvox.api900.api900_pb2.OTHER))
+        self.assertTrue(self.multi_packet.has_channel(api900.lib.api900_pb2.MICROPHONE))
+        self.assertTrue(self.multi_packet.has_channel(api900.lib.api900_pb2.LATITUDE))
+        self.assertTrue(self.multi_packet.has_channel(api900.lib.api900_pb2.LONGITUDE))
+        self.assertTrue(self.multi_packet.has_channel(api900.lib.api900_pb2.SPEED))
+        self.assertTrue(self.multi_packet.has_channel(api900.lib.api900_pb2.ALTITUDE))
+        self.assertTrue(self.multi_packet.has_channel(api900.lib.api900_pb2.OTHER))
