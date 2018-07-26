@@ -53,9 +53,9 @@ Note that for the lists of channels, an empty list indicates that a particular R
 
 ##### Example loading RedVox data
 
-```python
+```
 # TODO
-``
+```
 
 ### Working with microphone sensor channels
 
@@ -76,9 +76,9 @@ The `MicrophoneSensor` class contains methods for directly accessing the fields 
 
 ##### Example microphone sensor reading
 
-```python
+```
 # TODO
-``
+```
 
 ### Working with barometer sensor channels
 
@@ -101,9 +101,9 @@ The `BarometerSensor` class contains methods for directly accessing the fields a
 
 ##### Example barometer sensor reading
 
-```python
+```
 # TODO
-``
+```
 
 ### Working with location sensor channels
 
@@ -143,7 +143,24 @@ The `LocationSensor` class contains methods for directly accessing the fields an
 
 ##### Example locations sensor reading
 
-```python
+```
+# TODO
+```
+
+### Working with time synchronization sensor channels
+
+Time synchronization sensors can be accessed from `WrappedRedvoxPacket` objects by accessing the member `time_synchronization`. Each time synchronization sensor on the device will show up in this list. If there is only one time synchronization, there will only be a single item in the list. If there are no time synchronization sensors for a packet, then the list will be empty.
+
+The `TimeSynchronizationSensor` class contains methods for directly accessing the fields and payloads of time synchronization channels. The following table briefly describes the available methods for time synchronization sensor channels. 
+
+| Name | Type | Description | 
+|------|------|-------------|
+| payload_values() | numpy.ndarray[float] | Time synchronization exchange parameters |
+
+
+##### Example time synchronization sensor reading
+
+```
 # TODO
 ```
 
