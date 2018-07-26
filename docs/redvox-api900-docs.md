@@ -4,6 +4,21 @@ The RedVox SDK is written in Python 3.6+ and provides utility classes, methods, 
 
 The Redvox API 900 utilizes Google's protobuf library for serializing and deserializing data between devices. It's possible to interact with API 900 data directly by selecting a pre-compiled language wrapper at https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/generated_code/ and including the wrapper in your software project. These wrappers provide all the functionality required for creating and reading Redvox API 900 files. The low level API 900 data format is described and documented in detail at: https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/doc/api900/api900.md?at=master&fileviewer=file-view-default
 
+### Table of Contents
+
+* Prerequisites
+* Reading RedVox API 900 files
+* Working with microphone sensor channels
+* Working with barometer sensor channels
+* Working with location sensor channels
+* working with time synchronization channels
+* Working with accelerometer sensor channels
+* Working with magnetometer sensor channels
+* Working with gyroscope sensor channels
+* Working with light sensor channels
+* Generated API Documentation
+* Developer guide (unit tests and linting)
+
 ### Prerequisites
 
 TODO
@@ -38,7 +53,9 @@ Note that for the lists of channels, an empty list indicates that a particular R
 
 ##### Example loading RedVox data
 
-TODO
+```python
+# TODO
+``
 
 ### Working with microphone sensor channels
 
@@ -59,7 +76,9 @@ The `MicrophoneSensor` class contains methods for directly accessing the fields 
 
 ##### Example microphone sensor reading
 
-TODO
+```python
+# TODO
+``
 
 ### Working with barometer sensor channels
 
@@ -82,7 +101,9 @@ The `BarometerSensor` class contains methods for directly accessing the fields a
 
 ##### Example barometer sensor reading
 
-TODO
+```python
+# TODO
+``
 
 ### Working with location sensor channels
 
@@ -120,9 +141,12 @@ The `LocationSensor` class contains methods for directly accessing the fields an
 | sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 
-##### Example barometer sensor reading
+##### Example locations sensor reading
 
-TODO
+```python
+# TODO
+```
+
 
 ### API Documentation
 
