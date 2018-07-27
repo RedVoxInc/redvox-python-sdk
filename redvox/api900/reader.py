@@ -578,22 +578,22 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         return self.unevenly_sampled_channel.get_value_std(self.z_type)
 
 
-class MicrophoneSensor(EvenlySampledChannel):
+class MicrophoneSensor(EvenlySampledSensor):
     def __init__(self, evenly_sampled_channel: EvenlySampledChannel):
         super().__init__(evenly_sampled_channel)
-        self.microphone_channel = evenly_sampled_channel
+        self.evenly_sampled_channel = evenly_sampled_channel
 
     def payload_values(self) -> numpy.ndarray:
-        return self.microphone_channel.get_payload(api900_pb2.MICROPHONE)
+        return self.evenly_sampled_channel.get_payload(api900_pb2.MICROPHONE)
 
     def payload_mean(self) -> float:
-        return self.microphone_channel.get_value_mean(api900_pb2.MICROPHONE)
+        return self.evenly_sampled_channel.get_value_mean(api900_pb2.MICROPHONE)
 
     def payload_median(self) -> float:
-        return self.microphone_channel.get_value_median(api900_pb2.MICROPHONE)
+        return self.evenly_sampled_channel.get_value_median(api900_pb2.MICROPHONE)
 
     def payload_std(self) -> float:
-        return self.microphone_channel.get_value_std(api900_pb2.MICROPHONE)
+        return self.evenly_sampled_channel.get_value_std(api900_pb2.MICROPHONE)
 
 
 class BarometerSensor(UnevenlySampledSensor):
@@ -752,7 +752,6 @@ class WrappedRedvoxPacket:
         """
         self.redvox_packet: api900_pb2.RedvoxPacket = redvox_packet
         """Protobuf api 900 redvox packet"""
-
         self.evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
             map(lambda even_channel:
                 EvenlySampledChannel(even_channel),
@@ -778,15 +777,6 @@ class WrappedRedvoxPacket:
         for unevenly_sampled_channel in self.unevenly_sampled_channels:
             for channel_type in unevenly_sampled_channel.channel_types:
                 self._channel_cache[channel_type] = unevenly_sampled_channel
-
-        self.microphone_channels = self.get_channels([api900_pb2.MICROPHONE], MicrophoneSensor)
-        self.barometer_channels = self.get_channels([api900_pb2.BAROMETER], BarometerSensor)
-        self.location_channels = self.get_channels([api900_pb2.LATITUDE], LocationSensor)
-        self.time_synchronization = self.get_channels([api900_pb2.TIME_SYNCHRONIZATION], TimeSynchronizationSensor)
-        self.accelerometer_channels = self.get_channels([api900_pb2.ACCELEROMETER_X], AccelerometerSensor)
-        self.magnetometer_channels = self.get_channels([api900_pb2.MAGNETOMETER_X], MagnetometerSensor)
-        self.gyroscope_channels = self.get_channels([api900_pb2.GYROSCOPE_X], GyroscopeSensor)
-        self.light_channels = self.get_channels([api900_pb2.LIGHT], LightSensor)
 
     def get_channel_types(self) -> typing.List[typing.List[int]]:
         """
@@ -851,9 +841,130 @@ class WrappedRedvoxPacket:
         channels = []
         for channel_type in set(channel_types):
             if self.has_channel(channel_type):
-                channels.append(sensor_constructor(self.get_channel(channel_type).protobuf_channel))
+                channels.append(sensor_constructor(self.get_channel(channel_type)))
 
         return channels
+
+    def __str__(self):
+        return str(self.redvox_packet)
+
+    def api(self) -> int:
+        return self.redvox_packet.api
+
+    def uuid(self) -> str:
+        return self.redvox_packet.uuid
+
+    def redvox_id(self) -> str:
+        return self.redvox_packet.redvox_id
+
+    def authenticated_email(self) -> str:
+        return self.redvox_packet.authenticated_email
+
+    def authentication_token(self) -> str:
+        return self.redvox_packet.authentication_token
+
+    def firebase_token(self) -> str:
+        return self.redvox_packet.firebase_token
+
+    def is_backfilled(self) -> bool:
+        return self.redvox_packet.is_backfilled
+
+    def is_private(self) -> bool:
+        return self.redvox_packet.is_private
+
+    def is_scrambled(self) -> bool:
+        return self.redvox_packet.is_scrambled
+
+    def device_make(self) -> str:
+        return self.redvox_packet.device_make
+
+    def device_model(self) -> str:
+        return self.redvox_packet.device_model
+
+    def device_os(self) -> str:
+        return self.redvox_packet.device_os
+
+    def device_os_version(self) -> str:
+        return self.redvox_packet.device_os_version
+
+    def app_version(self) -> str:
+        return self.redvox_packet.app_version
+
+    def battery_level_percent(self) -> float:
+        return self.redvox_packet.battery_level_percent
+
+    def device_temperature_c(self) -> float:
+        return self.redvox_packet.device_temperature_c
+
+    def acquisition_server(self) -> str:
+        return self.redvox_packet.acquisition_server
+
+    def time_synchronization_server(self) -> str:
+        return self.redvox_packet.time_synchronization_server
+
+    def authentication_server(self) -> str:
+        return self.redvox_packet.authentication_server
+
+    def app_file_start_timestamp_epoch_microseconds_utc(self) -> int:
+        return self.redvox_packet.app_file_start_timestamp_epoch_microseconds_utc
+
+    def app_file_start_timestamp_machine(self) -> int:
+        return self.redvox_packet.app_file_start_timestamp_machine
+
+    def server_timestamp_epoch_microseconds_utc(self) -> int:
+        return self.redvox_packet.server_timestamp_epoch_microseconds_utc
+
+    def metadata_as_dict(self) -> typing.Dict[str, str]:
+        return get_metadata_as_dict(self.metadata)
+
+    # Sensor channels
+    def has_microphone_channel(self) -> bool:
+        return self.has_channel(api900_pb2.MICROPHONE)
+
+    def microphone_channels(self) -> typing.List[MicrophoneSensor]:
+        return self.get_channels([api900_pb2.MICROPHONE], MicrophoneSensor)
+
+    def has_barometer_channel(self) -> bool:
+        return self.has_channel(api900_pb2.BAROMETER)
+
+    def barometer_channels(self) -> typing.List[BarometerSensor]:
+        return self.get_channels([api900_pb2.BAROMETER], BarometerSensor)
+
+    def has_location_channel(self) -> bool:
+        return self.has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED, api900_pb2.ACCURACY])
+
+    def location_channels(self) -> typing.List[LocationSensor]:
+        return self.get_channels([api900_pb2.LATITUDE], LocationSensor)
+
+    def has_time_synchronization_channel(self) -> bool:
+        return self.has_channel(api900_pb2.TIME_SYNCHRONIZATION)
+
+    def time_synchronization_channels(self) -> typing.List[TimeSynchronizationSensor]:
+        return self.get_channels([api900_pb2.TIME_SYNCHRONIZATION], TimeSynchronizationSensor)
+
+    def has_accelerometer_channel(self) -> bool:
+        return self.has_channels([api900_pb2.ACCELEROMETER_X, api900_pb2.ACCELEROMETER_Y, api900_pb2.ACCELEROMETER_Z])
+
+    def accelerometer_channels(self) -> typing.List[AccelerometerSensor]:
+        return self.get_channels([api900_pb2.ACCELEROMETER_X], AccelerometerSensor)
+
+    def has_magnetometer_channel(self) -> bool:
+        return self.has_channels([api900_pb2.MAGNETOMETER_X, api900_pb2.MAGNETOMETER_Y, api900_pb2.MAGNETOMETER_Z])
+
+    def magnetometer_channels(self) -> typing.List[MagnetometerSensor]:
+        return self.get_channels([api900_pb2.MAGNETOMETER_X], MagnetometerSensor)
+
+    def has_gyroscope_channel(self) -> bool:
+        return self.has_channels([api900_pb2.GYROSCOPE_X, api900_pb2.GYROSCOPE_Y, api900_pb2.GYROSCOPE_Z])
+
+    def gyroscope_channels(self) -> typing.List[GyroscopeSensor]:
+        return self.get_channels([api900_pb2.GYROSCOPE_X], GyroscopeSensor)
+
+    def has_light_channel(self) -> bool:
+        return self.has_channel(api900_pb2.LIGHT)
+
+    def light_channels(self) -> typing.List[LightSensor]:
+        return self.get_channels([api900_pb2.LIGHT], LightSensor)
 
 
 def wrap(redvox_packet: api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:
