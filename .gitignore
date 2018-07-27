@@ -3,3 +3,4 @@ build/
 dist/
 redvox.egg-info/
 *.pyc
+*.iml
