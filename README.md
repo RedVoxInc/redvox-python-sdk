@@ -1,8 +1,6 @@
-### Prerequisites 
+### RedVox Python SDK
 
-The Redvox Python API 900 data reader requires Python 3.6+ as well as the following Python libraries: lz4, protobuf, and numpy.
+This repository contains code for reading and working with the RedVox API 900 data format.
 
-Generally, the libraries can be installed by passing the reqirements.txt file to pip. I.e.:
-
-`pip3 install -r requirements.txt`
+See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/redvox-api900-docs.md for SDK documentation.
 
