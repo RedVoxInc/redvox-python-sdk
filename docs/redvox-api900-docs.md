@@ -7,17 +7,16 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 ### Table of Contents
 
 * [Prerequisites](#markdown-header-prerequisites)
-* Reading RedVox API 900 files
-* Working with microphone sensor channels
-* Working with barometer sensor channels
-* Working with location sensor channels
-* working with time synchronization channels
-* Working with accelerometer sensor channels
-* Working with magnetometer sensor channels
-* Working with gyroscope sensor channels
-* Working with light sensor channels
-* Generated API Documentation
-* Developer guide (unit tests and linting)
+* [Loading RedVox API 900 files](#markdown-header-loading-redvox-api-900-files)
+* [Working with microphone sensor channels](#markdown-header-working-with-microphone-sensor-channels)
+* [Working with barometer sensor channels](#markdown-header-working-with-barometer-sensor-channels)
+* [Working with location sensor channels](#markdown-header-working-with-location-sensor-channels)
+* [working with time synchronization channels](#markdown-header-working-with-time-synchronization-sensor-channels)
+* [Working with accelerometer sensor channels](#markdown-header-working-with-accelerometer-sensor-channels)
+* [Working with magnetometer sensor channels](#markdown-header-working-with-magenetometer-sensor-channels)
+* [Working with gyroscope sensor channels](#markdown-header-working-with-gyroscope-sensor-channels)
+* [Working with light sensor channels](#markdown-header-working-with-light-sensor-channels)
+* [Generated API Documentation](#markdown-header-api-documentation)
 
 ### Prerequisites
 
