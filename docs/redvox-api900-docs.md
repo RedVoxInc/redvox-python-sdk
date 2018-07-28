@@ -6,7 +6,7 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 
 ### Table of Contents
 
-* Prerequisites
+* [Prerequisites](#markdown-header-prerequisites)
 * Reading RedVox API 900 files
 * Working with microphone sensor channels
 * Working with barometer sensor channels
@@ -19,7 +19,7 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * Generated API Documentation
 * Developer guide (unit tests and linting)
 
-### Prerequisites
+### Prerequisites #prerequisites
 
 Python 3.6 or greater is required. 
 
