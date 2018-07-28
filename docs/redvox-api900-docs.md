@@ -21,11 +21,16 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 
 ### Prerequisites
 
-Python 3.6 or greater is required. This project depends on `lz4`, `numpy`, and `protobuf` libraries. `coala` is required if you wish to perform linting and/or static analysis. 
+Python 3.6 or greater is required. 
+
+This project depends on `lz4`, `numpy`, and `protobuf` libraries. `coala` is required if you wish to perform linting and/or static analysis.
+
 
 #### Installing from pip
 
-TODO
+Installing the RedVox SDK via pip is the recommended way of obtaining the library. This method also takes care of installing required dependencies.
+
+To install run `pip install redvox`.
 
 ### Loading RedVox API 900 Files
 
