@@ -488,33 +488,83 @@ class UnevenlySampledChannel(InterleavedChannel):
 
 
 class EvenlySampledSensor:
+    """
+    An EvenlySampledSensor provides a high level abstraction over an EvenlySampledChannel.
+
+    This class exposes top level fields within API 900 evenly sampled channels.
+    Composition is used instead of inheritance to hide the complexities of the underlying class.
+    """
+
     def __init__(self, evenly_sampled_channel: EvenlySampledChannel):
-        self.evenly_sampled_channel = evenly_sampled_channel
+        """
+        Initializes this class.
+        :param evenly_sampled_channel: an instance of an EvenlySampledChannel
+        """
+        self.evenly_sampled_channel: EvenlySampledChannel = evenly_sampled_channel
+        """A reference to the original unevenly sampled channel"""
 
     def sample_rate_hz(self) -> float:
+        """
+        Returns the sample rate in Hz of this evenly sampled channel.
+        :return: The sample rate in Hz of this evenly sampled channel.
+        """
         return self.evenly_sampled_channel.sample_rate_hz
 
     def first_sample_timestamp_epoch_microseconds_utc(self) -> int:
+        """
+        Return the first sample timestamp in microseconds since the epoch UTC.
+        :return: The first sample timestamp in microseconds since the epoch UTC.
+        """
         return self.evenly_sampled_channel.first_sample_timestamp_epoch_microseconds_utc
 
     def sensor_name(self) -> str:
+        """
+        Returns the sensor name associated with this evenly sampled chanel
+        :return: The sensor name associated with this evenly sampled chanel
+        """
         return self.evenly_sampled_channel.sensor_name
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
+        """
+        Returns this channel's metadata (if there is any) as a Python dictionary.
+        :return: This channel's metadata (if there is any) as a Python dictionary.
+        """
         return get_metadata_as_dict(self.evenly_sampled_channel.metadata)
 
 
 class UnevenlySampledSensor:
+    """
+    An UnevenlySampledSensor provides a high level abstraction over an UnevenlySampledChannel.
+
+    This class exposes top level fields within API 900 unevenly sampled channels.
+    Composition is used instead of inheritance to hide the complexities of the underlying class.
+    """
     def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
-        self.unevenly_sampled_channel = unevenly_sampled_channel
+        """
+        Initializes this class.
+        :param unevenly_sampled_channel: an instance of a UnevenlySampledChannel
+        """
+        self.unevenly_sampled_channel: UnevenlySampledChannel = unevenly_sampled_channel
 
     def sensor_name(self) -> str:
+        """
+        Returns the sensor name associated with this unevenly sampled channel.
+        :return: The sensor name associated with this unevenly sampled channel.
+        """
         return self.unevenly_sampled_channel.sensor_name
 
     def timestamps_microseconds_utc(self) -> numpy.ndarray:
+        """
+        Returns a list of ascending timestamps that associate with each sample value
+        :return: A list of ascending timestamps that associate with each sample value
+        """
         return self.unevenly_sampled_channel.timestamps_microseconds_utc
 
     def sample_interval_mean(self) -> float:
+        """
+        Returns the mean sample interval for this unevenly sampled sensor channel.
+        :return: The mean sample interval for this unevenly sampled sensor channel.
+        """
         return self.unevenly_sampled_channel.sample_interval_mean
 
     def sample_interval_median(self) -> float:
@@ -921,50 +971,74 @@ class WrappedRedvoxPacket:
     def has_microphone_channel(self) -> bool:
         return self.has_channel(api900_pb2.MICROPHONE)
 
-    def microphone_channels(self) -> typing.List[MicrophoneSensor]:
-        return self.get_channels([api900_pb2.MICROPHONE], MicrophoneSensor)
+    def microphone_channel(self) -> typing.Optional[MicrophoneSensor]:
+        if self.has_microphone_channel():
+            return MicrophoneSensor(self.get_channel(api900_pb2.MICROPHONE))
+        else:
+            return None
 
     def has_barometer_channel(self) -> bool:
         return self.has_channel(api900_pb2.BAROMETER)
 
-    def barometer_channels(self) -> typing.List[BarometerSensor]:
-        return self.get_channels([api900_pb2.BAROMETER], BarometerSensor)
+    def barometer_channel(self) -> typing.Optional[BarometerSensor]:
+        if self.has_barometer_channel():
+            return BarometerSensor(self.get_channel(api900_pb2.BAROMETER))
+        else:
+            return None
 
     def has_location_channel(self) -> bool:
         return self.has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED, api900_pb2.ACCURACY])
 
-    def location_channels(self) -> typing.List[LocationSensor]:
-        return self.get_channels([api900_pb2.LATITUDE], LocationSensor)
+    def location_channel(self) -> typing.Optional[LocationSensor]:
+        if self.has_location_channel():
+            return LocationSensor(self.get_channel(api900_pb2.LATITUDE))
+        else:
+            return None
 
     def has_time_synchronization_channel(self) -> bool:
         return self.has_channel(api900_pb2.TIME_SYNCHRONIZATION)
 
-    def time_synchronization_channels(self) -> typing.List[TimeSynchronizationSensor]:
-        return self.get_channels([api900_pb2.TIME_SYNCHRONIZATION], TimeSynchronizationSensor)
+    def time_synchronization_channel(self) -> typing.Optional[TimeSynchronizationSensor]:
+        if self.has_time_synchronization_channel():
+            return TimeSynchronizationSensor(self.get_channel(api900_pb2.TIME_SYNCHRONIZATION))
+        else:
+            return None
 
     def has_accelerometer_channel(self) -> bool:
         return self.has_channels([api900_pb2.ACCELEROMETER_X, api900_pb2.ACCELEROMETER_Y, api900_pb2.ACCELEROMETER_Z])
 
-    def accelerometer_channels(self) -> typing.List[AccelerometerSensor]:
-        return self.get_channels([api900_pb2.ACCELEROMETER_X], AccelerometerSensor)
+    def accelerometer_channel(self) -> typing.Optional[AccelerometerSensor]:
+        if self.has_accelerometer_channel():
+            return AccelerometerSensor(self.get_channel(api900_pb2.ACCELEROMETER_X))
+        else:
+            return None
 
     def has_magnetometer_channel(self) -> bool:
         return self.has_channels([api900_pb2.MAGNETOMETER_X, api900_pb2.MAGNETOMETER_Y, api900_pb2.MAGNETOMETER_Z])
 
-    def magnetometer_channels(self) -> typing.List[MagnetometerSensor]:
-        return self.get_channels([api900_pb2.MAGNETOMETER_X], MagnetometerSensor)
+    def magnetometer_channel(self) -> typing.Optional[MagnetometerSensor]:
+        if self.has_magnetometer_channel():
+            return MagnetometerSensor(self.get_channel(api900_pb2.MAGNETOMETER_X))
+        else:
+            return None
 
     def has_gyroscope_channel(self) -> bool:
         return self.has_channels([api900_pb2.GYROSCOPE_X, api900_pb2.GYROSCOPE_Y, api900_pb2.GYROSCOPE_Z])
 
-    def gyroscope_channels(self) -> typing.List[GyroscopeSensor]:
-        return self.get_channels([api900_pb2.GYROSCOPE_X], GyroscopeSensor)
+    def gyroscope_channel(self) -> typing.Optional[GyroscopeSensor]:
+        if self.has_gyroscope_channel():
+            return GyroscopeSensor(self.get_channel(api900_pb2.GYROSCOPE_X))
+        else:
+            return None
 
     def has_light_channel(self) -> bool:
         return self.has_channel(api900_pb2.LIGHT)
 
-    def light_channels(self) -> typing.List[LightSensor]:
-        return self.get_channels([api900_pb2.LIGHT], LightSensor)
+    def light_channel(self) -> typing.Optional[LightSensor]:
+        if self.has_light_channel():
+            return LightSensor(self.get_channel(api900_pb2.LIGHT))
+        else:
+            return None
 
 
 def wrap(redvox_packet: api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:

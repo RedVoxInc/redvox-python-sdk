@@ -30,7 +30,7 @@ print(redvox_api900_file.server_timestamp_epoch_microseconds_utc())
 # First we check to make sure the device has a microphone channel
 if redvox_api900_file.has_microphone_channel():
     # Most of the time, if a device has a sensor, it only has one of them...
-    microphone_sensor_channel = redvox_api900_file.microphone_channels()[0]
+    microphone_sensor_channel = redvox_api900_file.microphone_channel()
 
     # Access to sensor fields
     print(microphone_sensor_channel.sensor_name())
@@ -45,10 +45,11 @@ if redvox_api900_file.has_microphone_channel():
 
 # The barometer channel
 if redvox_api900_file.has_barometer_channel():
-    barometer_sensor_channel = redvox_api900_file.barometer_channels()[0]
+    barometer_sensor_channel = redvox_api900_file.barometer_channel()
 
     # Access to sensor fields
     print(barometer_sensor_channel.sensor_name())
+    print(barometer_sensor_channel.timestamps_microseconds_utc())
     print(barometer_sensor_channel.sample_interval_mean())
     print(barometer_sensor_channel.sample_interval_median())
     print(barometer_sensor_channel.sample_interval_std())
@@ -61,10 +62,11 @@ if redvox_api900_file.has_barometer_channel():
 
 # The location channel
 if redvox_api900_file.has_location_channel():
-    location_channel = redvox_api900_file.location_channels()[0]
+    location_channel = redvox_api900_file.location_channel()
 
     # Access to sensor fields
     print(location_channel.sensor_name())
+    print(location_channel.timestamps_microseconds_utc())
     print(location_channel.sample_interval_mean())
     print(location_channel.sample_interval_median())
     print(location_channel.sample_interval_std())
@@ -99,15 +101,16 @@ if redvox_api900_file.has_location_channel():
 
 # Time synchronization channel
 if redvox_api900_file.has_time_synchronization_channel():
-    time_synchronization_channel = redvox_api900_file.time_synchronization_channels()[0]
+    time_synchronization_channel = redvox_api900_file.time_synchronization_channel()
     print(time_synchronization_channel.payload_values())
 
 # Accelerometer channel
 if redvox_api900_file.has_accelerometer_channel():
-    accelerometer_channel = redvox_api900_file.accelerometer_channels()[0]
+    accelerometer_channel = redvox_api900_file.accelerometer_channel()
 
     # Access to sensor fields
     print(accelerometer_channel.sensor_name())
+    print(accelerometer_channel.timestamps_microseconds_utc())
     print(accelerometer_channel.sample_interval_mean())
     print(accelerometer_channel.sample_interval_median())
     print(accelerometer_channel.sample_interval_std())
@@ -133,10 +136,11 @@ if redvox_api900_file.has_accelerometer_channel():
 
 # Magnetometer channel
 if redvox_api900_file.has_magnetometer_channel():
-    magnetometer_channel = redvox_api900_file.accelerometer_channels()[0]
+    magnetometer_channel = redvox_api900_file.accelerometer_channel()
 
     # Access to sensor fields
     print(magnetometer_channel.sensor_name())
+    print(magnetometer_channel.timestamps_microseconds_utc())
     print(magnetometer_channel.sample_interval_mean())
     print(magnetometer_channel.sample_interval_median())
     print(magnetometer_channel.sample_interval_std())
@@ -162,10 +166,11 @@ if redvox_api900_file.has_magnetometer_channel():
 
 # Gyroscope channel
 if redvox_api900_file.has_magnetometer_channel():
-    gyroscope_channel = redvox_api900_file.accelerometer_channels()[0]
+    gyroscope_channel = redvox_api900_file.accelerometer_channel()
 
     # Access to sensor fields
     print(gyroscope_channel.sensor_name())
+    print(gyroscope_channel.timestamps_microseconds_utc())
     print(gyroscope_channel.sample_interval_mean())
     print(gyroscope_channel.sample_interval_median())
     print(gyroscope_channel.sample_interval_std())
@@ -191,10 +196,11 @@ if redvox_api900_file.has_magnetometer_channel():
 
 # The light channel
 if redvox_api900_file.has_light_channel():
-    light_sensor_channel = redvox_api900_file.light_channels()[0]
+    light_sensor_channel = redvox_api900_file.light_channel()
 
     # Access to sensor fields
     print(light_sensor_channel.sensor_name())
+    print(light_sensor_channel.timestamps_microseconds_utc())
     print(light_sensor_channel.sample_interval_mean())
     print(light_sensor_channel.sample_interval_median())
     print(light_sensor_channel.sample_interval_std())

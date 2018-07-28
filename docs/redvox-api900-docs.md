@@ -16,7 +16,8 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Working with magnetometer sensor channels](#markdown-header-working-with-magenetometer-sensor-channels)
 * [Working with gyroscope sensor channels](#markdown-header-working-with-gyroscope-sensor-channels)
 * [Working with light sensor channels](#markdown-header-working-with-light-sensor-channels)
-* [Generated API Documentation](#markdown-header-api-documentation)
+* [Full Example](https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/example.py)
+* [Generated API Documentation]()
 
 ### Prerequisites
 
@@ -74,21 +75,21 @@ The following methods provide easy access to high-level sensor channel implement
 | Name | Type |
 |------|------|
 | has_microphone_channel() | bool |
-| microphone_channels() | List[MicrophoneSensor] |
+| microphone_channel() | Optional[MicrophoneSensor] |
 | has_barometer_channel() | bool |
-| barometer_channels() | List[BarometerSensor] |
+| barometer_channel() | Optional[BarometerSensor] |
 | has_location_channel() | bool |
-| location_channels() | List[LocationSensor] |
+| location_channel() | Optional[LocationSensor] |
 | has_time_synchronization_channel() | bool |
-| time_synchronization_channels() | List[TimeSynchronizationChannel] |
+| time_synchronization_channel() | Optional[TimeSynchronizationChannel] |
 | has_accelerometer_channel() | bool |
-| accelerometer_channels() | List[AccelerometerSensor] |
+| accelerometer_channel() | Optional[AccelerometerSensor] |
 | has_magnetometer_channel() | bool |
-| magnetometer_channels() | List[MagnetometerSensor] |
+| magnetometer_channel() | Optional[MagnetometerSensor] |
 | has_gyroscope_channel() | bool |
-| gyroscope_channels() | List[GyroscopeSensor] |
+| gyroscope_channel() | Optional[GyroscopeSensor] |
 | has_light_channel() | bool |
-| light_channels() | List[ListSensor] |
+| light_channel() | Optional[ListSensor] |
 
 ##### Example loading RedVox data
 
@@ -181,7 +182,7 @@ redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvx
 # First we check to make sure the device has a microphone channel
 if redvox_api900_file.has_microphone_channel():
     # Most of the time, if a device has a sensor, it only has one of them...
-    microphone_sensor_channel = redvox_api900_file.microphone_channels()[0]
+    microphone_sensor_channel = redvox_api900_file.microphone_channel()
     print(microphone_sensor_channel.sensor_name())
     print(microphone_sensor_channel.sample_rate_hz())
     print(microphone_sensor_channel.first_sample_timestamp_epoch_microseconds_utc())
@@ -216,7 +217,7 @@ The `BarometerSensor` class contains methods for directly accessing the fields a
 redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
 
 if redvox_api900_file.has_barometer_channel():
-    barometer_sensor_channel = redvox_api900_file.barometer_channels()[0]
+    barometer_sensor_channel = redvox_api900_file.barometer_channel()
 
     # Access to sensor fields
     print(barometer_sensor_channel.sensor_name())
@@ -273,7 +274,7 @@ The `LocationSensor` class contains methods for directly accessing the fields an
 redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
 
 if redvox_api900_file.has_location_channel():
-    location_channel = redvox_api900_file.location_channels()[0]
+    location_channel = redvox_api900_file.location_channel()
 
     print(location_channel.sensor_name())
     print(location_channel.sample_interval_mean())
@@ -325,7 +326,7 @@ The `TimeSynchronizationSensor` class contains methods for directly accessing th
 redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
 
 if redvox_api900_file.has_time_synchronization_channel():
-    time_synchronization_channel = redvox_api900_file.time_synchronization_channels()[0]
+    time_synchronization_channel = redvox_api900_file.time_synchronization_channel()
     print(time_synchronization_channel.payload_values())
 ```
 
@@ -364,7 +365,7 @@ The `AccelerationSensor` class contains methods for directly accessing the field
 redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
 
 if redvox_api900_file.has_accelerometer_channel():
-    accelerometer_channel = redvox_api900_file.accelerometer_channels()[0]
+    accelerometer_channel = redvox_api900_file.accelerometer_channel()
 
     # Access to sensor fields
     print(accelerometer_channel.sensor_name())
@@ -429,7 +430,7 @@ redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvx
 
 # Magnetometer channel
 if redvox_api900_file.has_magnetometer_channel():
-    magnetometer_channel = redvox_api900_file.accelerometer_channels()[0]
+    magnetometer_channel = redvox_api900_file.accelerometer_channel()
 
     # Access to sensor fields
     print(magnetometer_channel.sensor_name())
@@ -493,7 +494,7 @@ The `GyroscopeSensor` class contains methods for directly accessing the fields a
 redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
 
 if redvox_api900_file.has_magnetometer_channel():
-    gyroscope_channel = redvox_api900_file.accelerometer_channels()[0]
+    gyroscope_channel = redvox_api900_file.accelerometer_channel()
 
     # Access to sensor fields
     print(gyroscope_channel.sensor_name())
@@ -548,7 +549,7 @@ redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvx
 
 # The light channel
 if redvox_api900_file.has_light_channel():
-    light_sensor_channel = redvox_api900_file.light_channels()[0]
+    light_sensor_channel = redvox_api900_file.light_channel()
 
     # Access to sensor fields
     print(light_sensor_channel.sensor_name())
@@ -563,7 +564,3 @@ if redvox_api900_file.has_light_channel():
     print(light_sensor_channel.payload_values())
 
 ```
-
-### API Documentation
-
-Generated API documentation can be found at: TODO
