@@ -19,7 +19,7 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * Generated API Documentation
 * Developer guide (unit tests and linting)
 
-### Prerequisites #prerequisites
+### Prerequisites
 
 Python 3.6 or greater is required. 
 
