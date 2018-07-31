@@ -7,6 +7,7 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 ### Table of Contents
 
 * [Prerequisites](#markdown-header-prerequisites)
+* [Installing from pip](#markdown-header-installing-from-pip)
 * [Loading RedVox API 900 files](#markdown-header-loading-redvox-api-900-files)
 * [Working with microphone sensor channels](#markdown-header-working-with-microphone-sensor-channels)
 * [Working with barometer sensor channels](#markdown-header-working-with-barometer-sensor-channels)
@@ -26,7 +27,7 @@ Python 3.6 or greater is required.
 This project depends on `lz4`, `numpy`, and `protobuf` libraries. `coala` is required if you wish to perform linting and/or static analysis.
 
 
-#### Installing from pip
+### Installing from pip
 
 Installing the RedVox SDK via pip is the recommended way of obtaining the library. This method also takes care of installing required dependencies.
 
@@ -34,11 +35,21 @@ To install run `pip install redvox`.
 
 ### Loading RedVox API 900 Files
 
-The module `redvox/api900/reader.py` contains two functions for loading RedVox API 900 data files: `read_buffer` and `read_file`.
+The module `redvox/api900/reader.py` contains two functions for loading RedVox API 900 data files: `read_buffer` and `read_file`. The module also contains one function, `wrap`, that wraps the low-level protobuf RedVox packet in our high-level API which allows easy access to packet fields and sensor data.
 
-`read_buffer` accepts an array of bytes which represent a serialized RedVox data packet and returns a `WrappedRedvoxPacket`. `read_file` accepts the path to a RedVox data packet file stored somewhere on the file system and also returns a `WrappedRedvoxPacket`.
+`read_buffer` accepts an array of bytes which represent a serialized RedVox data packet and returns a low-level protobuf `api900_pb2.RedvoxPacket`. `read_file` accepts the path to a RedVox data packet file stored somewhere on the file system and also returns a low-level protobuf `api900_pb2.RedvoxPacket`.
 
 A `WrappedRedvoxPacket` is a Python class that acts as a wrapper around the raw protobuf API and provides convenience methods for accessing fields and sensor channels of the loaded RedVox packet.
+
+We can call the `wrap` function to wrap a low-level protobuf packet in our high-level API.
+
+The following table summarizes the available top-level function of reader.py.
+
+| Name | Type | Description |
+|------|------|-------------|
+| read_file(file: str) | api900_pb2.RedvoxPacket | Reads a file and returns a low-level RedVox API 900 protobuf packet |
+| read_buffer(buf: bytes) | api900_pb2.RedvoxPacket | Reads from a buffer of bytes and returns a low-level RedVox API 900 packet |
+| wrap(redvox_packet: api900_pb2.RedvoxPacket) | WrappedRedvoxPacket | Wraps a low-level RedVox packet in our high-level API |
 
 The following is a table that summarizes the convenience methods provided by the WrappedRedvoxPacket class. For brevity, we only list the new, high-level API methods. If you wish to use or dig into the low-level protobuf API, please see the section titled "Low Level Access".
 
@@ -94,9 +105,9 @@ The following methods provide easy access to high-level sensor channel implement
 ##### Example loading RedVox data
 
 ```
-import redvox.api900.reader
+from redvox.api900 import reader
 
-redvox_api900_file = redvox.api900.reader.read_file("0000001314_1532656864354.rdvxz")
+redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
 print(redvox_api900_file)
 ```
 

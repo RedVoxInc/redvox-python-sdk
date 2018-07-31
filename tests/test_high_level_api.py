@@ -34,7 +34,8 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
 
     def test_firebase_token(self):
         self.assertEqual(self.wrapped_synthetic_packet.firebase_token(), "test_firebase_token")
-        self.assertEqual(self.wrapped_example_packet.firebase_token(), "eCCYsQxSRCE:APA91bG_RPDPvr-ALh8taZp6sBYVM1ehORnXrhG5PTOVR-KuYIf1dygYgaXEWNMKtXtqzQCyP0tkBwNmTjyvCCZSKwy-hVjWm3NKwgE-DtJdvMOMaw5Jb0DS3_NXnVnuVXrzjixMjAnvecFFagXYSBwKv5LUtMWpBw")
+        self.assertEqual(self.wrapped_example_packet.firebase_token(),
+                         "eCCYsQxSRCE:APA91bG_RPDPvr-ALh8taZp6sBYVM1ehORnXrhG5PTOVR-KuYIf1dygYgaXEWNMKtXtqzQCyP0tkBwNmTjyvCCZSKwy-hVjWm3NKwgE-DtJdvMOMaw5Jb0DS3_NXnVnuVXrzjixMjAnvecFFagXYSBwKv5LUtMWpBw")
 
     def test_is_backfilled(self):
         self.assertFalse(self.wrapped_synthetic_packet.is_backfilled())
@@ -78,10 +79,12 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
 
     def test_acquisition_server(self):
         self.assertEqual(self.wrapped_synthetic_packet.acquisition_server(), "test acquisition server")
-        self.assertEqual(self.wrapped_example_packet.acquisition_server(), "wss://milton.soest.hawaii.edu:8000/acquisition/v900")
+        self.assertEqual(self.wrapped_example_packet.acquisition_server(),
+                         "wss://milton.soest.hawaii.edu:8000/acquisition/v900")
 
     def test_time_synchronization_server(self):
-        self.assertEqual(self.wrapped_synthetic_packet.time_synchronization_server(), "test time synchronization server")
+        self.assertEqual(self.wrapped_synthetic_packet.time_synchronization_server(),
+                         "test time synchronization server")
         self.assertEqual(self.wrapped_example_packet.time_synchronization_server(), "wss://redvox.io/synch/v2")
 
     def test_authentication_server(self):
@@ -89,23 +92,35 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         self.assertEqual(self.wrapped_example_packet.authentication_server(), "https://redvox.io/login/mobile")
 
     def test_app_file_start_timestamp_epoch_microseconds_utc(self):
-        self.assertEqual(self.wrapped_synthetic_packet.app_file_start_timestamp_epoch_microseconds_utc(), 1519166348000000)
-        self.assertEqual(self.wrapped_example_packet.app_file_start_timestamp_epoch_microseconds_utc(), 1532656864354000)
+        self.assertEqual(self.wrapped_synthetic_packet.app_file_start_timestamp_epoch_microseconds_utc(),
+                         1519166348000000)
+        self.assertEqual(self.wrapped_example_packet.app_file_start_timestamp_epoch_microseconds_utc(),
+                         1532656864354000)
 
     def test_app_file_start_timestamp_machine(self):
         self.assertEqual(self.wrapped_synthetic_packet.app_file_start_timestamp_machine(), 42)
         self.assertEqual(self.wrapped_example_packet.app_file_start_timestamp_machine(), 1532656848035001)
 
     def test_server_timestamp_epoch_microseconds_utc(self):
-        self.assertEqual(self.wrapped_synthetic_packet.server_timestamp_epoch_microseconds_utc(), 1519166348000000 + 10000)
+        self.assertEqual(self.wrapped_synthetic_packet.server_timestamp_epoch_microseconds_utc(),
+                         1519166348000000 + 10000)
         self.assertEqual(self.wrapped_example_packet.server_timestamp_epoch_microseconds_utc(), 1532656543460000)
 
     def test_metadata(self):
         self.assertTrue("foo" in self.wrapped_synthetic_packet.metadata_as_dict())
         self.assertEqual(self.wrapped_synthetic_packet.metadata_as_dict()["foo"], "bar")
 
+
 class TestEvenlySampledSensor(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.base_packet: api900_pb2.RedvoxPacket = tests.mock_packets.base_packet()
+        self.wrapped_synthetic_packet = reader.wrap(self.base_packet)
+        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.synthetic_microphone_channel = self.wrapped_synthetic_packet.microphone_channel()
+        self.example_microphone_channel = self.wrapped_example_packet.microphone_channel()
+
+    def test_contains_evenly_sampled_channel(self):
+        self.assertTrue(api900_pb2.MICROPHONE in self.wrapped_synthetic_packet.evenly_sampled_channel.channel_types)
 
 
 class TestUnevenlySampledSensor(unittest.TestCase):
