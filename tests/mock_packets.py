@@ -146,6 +146,20 @@ def simple_unevenly_sampled_packet():
                                          3.0,
                                          [])
 
+def simple_bar_packet():
+    return with_unevenly_sampled_channel(base_packet(),
+                                         [api900_pb2.BAROMETER],
+                                         "test barometer sensor name",
+                                         [1, 2, 3, 4, 5],
+                                         [1.0, 2.0, 3.0, 4.0, 5.0],
+                                         [1.0],
+                                         [2.0],
+                                         [3.0],
+                                         1.0,
+                                         2.0,
+                                         3.0,
+                                         [])
+
 
 def simple_gps_packet():
     return with_unevenly_sampled_channel(base_packet(),

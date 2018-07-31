@@ -1,18 +1,9 @@
-import unittest
-
 import numpy
 
 from redvox.api900.lib import api900_pb2
 import redvox.api900.reader
 import tests.mock_packets as mock
-
-
-class ArraysTestCase(unittest.TestCase):
-    def setUp(self):
-        self.empty_array = numpy.array([])
-
-    def assertArraysEqual(self, a1: numpy.ndarray, a2: numpy.ndarray):
-        self.assertTrue(numpy.array_equal(a1, a2), msg="{} != {}".format(a1, a2))
+from tests.test_utils import ArraysTestCase
 
 
 class ModuleFunctionTests(ArraysTestCase):
@@ -117,8 +108,8 @@ class ModuleFunctionTests(ArraysTestCase):
         repeated_scalar = self.simple_unevenly_sampled_packet.metadata
         as_list = redvox.api900.reader.repeated_to_list(repeated_scalar)
         self.assertEqual(type(as_list), list)
-        self.assertEqual(len(repeated_scalar), 0)
-        self.assertEqual(len(as_list), 0)
+        self.assertEqual(len(repeated_scalar), 2)
+        self.assertEqual(len(as_list), 2)
 
     # deinterleave_array
     def test_deinterleave_array_empty(self):
@@ -616,9 +607,9 @@ class WrappedRedvoxPacketTests(ArraysTestCase):
         self.assertEqual(len(self.gps_packet.unevenly_sampled_channels), 1)
         self.assertEqual(len(self.multi_packet.unevenly_sampled_channels), 2)
 
-        self.assertEqual(self.mic_packet.metadata, ["a", "b", "c", "d"])
-        self.assertEqual(self.gps_packet.metadata, [])
-        self.assertEqual(self.multi_packet.metadata, [])
+        self.assertEqual(self.mic_packet.metadata, ["foo", "bar", "a", "b", "c", "d"])
+        self.assertEqual(self.gps_packet.metadata, ["foo", "bar"])
+        self.assertEqual(self.multi_packet.metadata, ["foo", "bar"])
 
     def test_get_channel(self):
         self.assertEqual(self.mic_packet.get_channel(api900_pb2.MICROPHONE).sensor_name,

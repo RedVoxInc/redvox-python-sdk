@@ -33,6 +33,10 @@ Installing the RedVox SDK via pip is the recommended way of obtaining the librar
 
 To install run `pip install redvox`.
 
+### Installing from source
+
+TODO
+
 ### Loading RedVox API 900 Files
 
 The module `redvox/api900/reader.py` contains two functions for loading RedVox API 900 data files: `read_buffer` and `read_file`. The module also contains one function, `wrap`, that wraps the low-level protobuf RedVox packet in our high-level API which allows easy access to packet fields and sensor data.
