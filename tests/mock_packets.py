@@ -146,6 +146,7 @@ def simple_unevenly_sampled_packet():
                                          3.0,
                                          [])
 
+
 def simple_bar_packet():
     return with_unevenly_sampled_channel(base_packet(),
                                          [api900_pb2.BAROMETER],
@@ -158,7 +159,7 @@ def simple_bar_packet():
                                          1.0,
                                          2.0,
                                          3.0,
-                                         [])
+                                         ["foo", "baz"])
 
 
 def simple_gps_packet():
@@ -177,6 +178,27 @@ def simple_gps_packet():
                                          [1, 2, 3, 4],
                                          [1, 2, 3, 4],
                                          [1, 2, 3, 4],
+                                         1.0,
+                                         2.0,
+                                         3.0,
+                                         [])
+
+
+def synthetic_accelerometer_packet():
+    return with_unevenly_sampled_channel(base_packet(),
+                                         [api900_pb2.ACCELEROMETER_X,
+                                          api900_pb2.ACCELEROMETER_Y,
+                                          api900_pb2.ACCELEROMETER_Z],
+                                         "test accelerometer sensor name",
+                                         [1, 2, 3, 4, 5],
+                                         [19.0, 155.0, 1.0,
+                                          20.0, 156.0, 2.0,
+                                          21.0, 157.0, 3.0,
+                                          22.0, 158.0, 4.0,
+                                          23.0, 159.0, 5.0],
+                                         [1, 2, 3],
+                                         [1, 2, 3],
+                                         [1, 2, 3],
                                          1.0,
                                          2.0,
                                          3.0,
