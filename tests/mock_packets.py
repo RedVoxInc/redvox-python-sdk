@@ -36,8 +36,8 @@ def base_packet() -> api900_pb2.RedvoxPacket:
     base_packet.api = 900
     base_packet.redvox_id = "1"
     base_packet.uuid = "2"
-    base_packet.authenticated_email = ""
-    base_packet.authentication_token = ""
+    base_packet.authenticated_email = "foo@bar.baz"
+    base_packet.authentication_token = "test_authentication_token"
     base_packet.is_backfilled = False
     base_packet.is_scrambled = False
     base_packet.device_make = "test device make"
