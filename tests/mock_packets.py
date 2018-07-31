@@ -38,18 +38,25 @@ def base_packet() -> api900_pb2.RedvoxPacket:
     base_packet.uuid = "2"
     base_packet.authenticated_email = "foo@bar.baz"
     base_packet.authentication_token = "test_authentication_token"
+    base_packet.firebase_token = "test_firebase_token"
     base_packet.is_backfilled = False
-    base_packet.is_scrambled = False
+    base_packet.is_scrambled = True
+    base_packet.is_private = True
     base_packet.device_make = "test device make"
     base_packet.device_model = "test device model"
     base_packet.device_os = "test device os"
     base_packet.device_os_version = "test device os version"
     base_packet.app_version = "test app version"
+    base_packet.battery_level_percent = 99.0
+    base_packet.device_temperature_c = 25.0
     base_packet.acquisition_server = "test acquisition server"
     base_packet.time_synchronization_server = "test time synchronization server"
     base_packet.authentication_server = "test authentication server"
     base_packet.app_file_start_timestamp_epoch_microseconds_utc = 1519166348000000
+    base_packet.app_file_start_timestamp_machine = 42
     base_packet.server_timestamp_epoch_microseconds_utc = 1519166348000000 + 10000
+    base_packet.metadata.append("foo")
+    base_packet.metadata.append("bar")
 
     return base_packet
 
