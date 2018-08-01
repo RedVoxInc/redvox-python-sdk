@@ -1,5 +1,5 @@
 from redvox.api900 import reader
-from tests.test_utils import ArraysTestCase
+from tests.utils import ArraysTestCase
 import tests.mock_packets
 
 import unittest

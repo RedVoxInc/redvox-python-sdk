@@ -3,7 +3,7 @@ import numpy
 from redvox.api900.lib import api900_pb2
 import redvox.api900.reader
 import tests.mock_packets as mock
-from tests.test_utils import ArraysTestCase
+from tests.utils import ArraysTestCase
 
 
 class ModuleFunctionTests(ArraysTestCase):
