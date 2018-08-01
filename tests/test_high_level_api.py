@@ -1,10 +1,14 @@
 from redvox.api900 import reader
 from tests.utils import ArraysTestCase
 import tests.mock_packets
+import os
 
 import unittest
 
 from redvox.api900.lib import api900_pb2
+
+wrapped_example_packet = reader.wrap(
+    reader.read_file(os.path.join(os.path.dirname(__file__), '0000001314_1532656864354.rdvxz')))
 
 
 class TestWrappedRedvoxPacket(unittest.TestCase):
@@ -19,7 +23,7 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         self.wrapped_synthetic_gyroscope_packet = reader.wrap(tests.mock_packets.synthetic_gyroscope_packet())
         self.wrapped_synthetic_magnetometer_packet = reader.wrap(tests.mock_packets.synthetic_magnetometer_packet())
         self.wrapped_synthetic_light_packet = reader.wrap(tests.mock_packets.synthetic_light_packet())
-        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.wrapped_example_packet = wrapped_example_packet
 
     def test_api(self):
         self.assertEqual(self.wrapped_synthetic_packet.api(), 900)
@@ -205,7 +209,7 @@ class TestEvenlySampledSensor(unittest.TestCase):
     def setUp(self):
         self.base_packet: api900_pb2.RedvoxPacket = tests.mock_packets.simple_mic_packet()
         self.wrapped_synthetic_packet = reader.wrap(self.base_packet)
-        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.wrapped_example_packet = wrapped_example_packet
         self.synthetic_microphone_channel = self.wrapped_synthetic_packet.microphone_channel()
         self.example_microphone_channel = self.wrapped_example_packet.microphone_channel()
 
@@ -240,7 +244,7 @@ class TestUnevenlySampledSensor(ArraysTestCase):
     def setUp(self):
         self.base_packet: api900_pb2.RedvoxPacket = tests.mock_packets.simple_bar_packet()
         self.wrapped_synthetic_packet = reader.wrap(self.base_packet)
-        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.wrapped_example_packet = wrapped_example_packet
         self.synthetic_barometer_channel = self.wrapped_synthetic_packet.barometer_channel()
         self.example_barometer_channel = self.wrapped_example_packet.barometer_channel()
 
@@ -365,7 +369,7 @@ class TestUnevenlyXyzSampledSensor(ArraysTestCase):
     def setUp(self):
         self.base_packet: api900_pb2.RedvoxPacket = tests.mock_packets.synthetic_accelerometer_packet()
         self.wrapped_synthetic_packet = reader.wrap(self.base_packet)
-        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.wrapped_example_packet = wrapped_example_packet
         self.synthetic_accelerometer_channel = self.wrapped_synthetic_packet.accelerometer_channel()
         self.example_accelerometer_channel = self.wrapped_example_packet.accelerometer_channel()
 
@@ -460,7 +464,7 @@ class TestMicrophoneSensor(ArraysTestCase):
     def setUp(self):
         self.base_packet: api900_pb2.RedvoxPacket = tests.mock_packets.simple_mic_packet()
         self.wrapped_synthetic_packet = reader.wrap(self.base_packet)
-        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.wrapped_example_packet = wrapped_example_packet
         self.synthetic_microphone_channel = self.wrapped_synthetic_packet.microphone_channel()
         self.example_microphone_channel = self.wrapped_example_packet.microphone_channel()
 
@@ -489,7 +493,7 @@ class TestBarometerSensor(ArraysTestCase):
     def setUp(self):
         self.base_packet: api900_pb2.RedvoxPacket = tests.mock_packets.simple_bar_packet()
         self.wrapped_synthetic_packet = reader.wrap(self.base_packet)
-        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.wrapped_example_packet = wrapped_example_packet
         self.synthetic_barometer_channel = self.wrapped_synthetic_packet.barometer_channel()
         self.example_barometer_channel = self.wrapped_example_packet.barometer_channel()
 
@@ -518,7 +522,7 @@ class TestLocationSensor(ArraysTestCase):
     def setUp(self):
         self.synthetic_packet = tests.mock_packets.simple_gps_packet()
         self.wrapped_synthetic_packet = reader.wrap(self.synthetic_packet)
-        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.wrapped_example_packet = wrapped_example_packet
 
         self.synthetic_location_channel = self.wrapped_synthetic_packet.location_channel()
         self.example_location_channel = self.wrapped_example_packet.location_channel()
@@ -630,7 +634,7 @@ class TestTimeSynchronizationSensor(ArraysTestCase):
     def setUp(self):
         self.synthetic_packet = tests.mock_packets.synthetic_time_synch_packet()
         self.wrapped_synthetic_packet = reader.wrap(self.synthetic_packet)
-        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.wrapped_example_packet = wrapped_example_packet
 
         self.synthetic_time_sync = self.wrapped_synthetic_packet.time_synchronization_channel()
         self.example_time_sync = self.wrapped_example_packet.time_synchronization_channel()
@@ -658,7 +662,7 @@ class TestAccelerometerSensor(unittest.TestCase):
     def setUp(self):
         self.wrapped_synthetic_packet = reader.wrap(tests.mock_packets.synthetic_accelerometer_packet())
         self.synthetic_channel = self.wrapped_synthetic_packet.accelerometer_channel()
-        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.wrapped_example_packet = wrapped_example_packet
         self.channel = self.wrapped_example_packet.accelerometer_channel()
 
     def test_x_channel(self):
@@ -678,7 +682,7 @@ class TestMagnetometerSensor(unittest.TestCase):
     def setUp(self):
         self.wrapped_synthetic_packet = reader.wrap(tests.mock_packets.synthetic_magnetometer_packet())
         self.synthetic_channel = self.wrapped_synthetic_packet.magnetometer_channel()
-        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.wrapped_example_packet = wrapped_example_packet
         self.channel = self.wrapped_example_packet.magnetometer_channel()
 
     def test_x_channel(self):
@@ -698,7 +702,7 @@ class TestGyroscopeSensor(unittest.TestCase):
     def setUp(self):
         self.wrapped_synthetic_packet = reader.wrap(tests.mock_packets.synthetic_gyroscope_packet())
         self.synthetic_channel = self.wrapped_synthetic_packet.gyroscope_channel()
-        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.wrapped_example_packet = wrapped_example_packet
         self.channel = self.wrapped_example_packet.gyroscope_channel()
 
     def test_x_channel(self):
@@ -718,7 +722,7 @@ class TestLightSensor(ArraysTestCase):
     def setUp(self):
         self.synthetic_packet = tests.mock_packets.synthetic_light_packet()
         self.wrapped_synthetic_packet = reader.wrap(self.synthetic_packet)
-        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.wrapped_example_packet = wrapped_example_packet
 
         self.synthetic_light_channel = self.wrapped_synthetic_packet.light_channel()
         self.example_light_channel = self.wrapped_example_packet.light_channel()
