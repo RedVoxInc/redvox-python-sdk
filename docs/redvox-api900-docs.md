@@ -35,7 +35,7 @@ To install run `pip install redvox`.
 
 ### Installing from source
 
-TODO
+pip is the recomended way of obtaining this library. However, if you are looking for the source distribution, it can be found at https://bitbucket.org/redvoxhi/redvox-api900-python-reader/downloads/
 
 ### Loading RedVox API 900 Files
 
