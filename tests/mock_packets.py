@@ -132,6 +132,22 @@ def simple_mic_packet():
                                        ["a", "b", "c", "d"])
 
 
+def synthetic_time_synch_packet():
+    packet = base_packet()
+    return with_unevenly_sampled_channel(packet,
+                                         [api900_pb2.TIME_SYNCHRONIZATION],
+                                         "",
+                                         [],
+                                         [1, 2, 3, 4, 5],
+                                         [],
+                                         [],
+                                         [],
+                                         0.0,
+                                         0.0,
+                                         0.0,
+                                         [])
+
+
 def simple_unevenly_sampled_packet():
     return with_unevenly_sampled_channel(base_packet(),
                                          [api900_pb2.OTHER],
@@ -162,22 +178,38 @@ def simple_bar_packet():
                                          ["foo", "baz"])
 
 
+def synthetic_light_packet():
+    return with_unevenly_sampled_channel(base_packet(),
+                                         [api900_pb2.LIGHT],
+                                         "test light sensor name",
+                                         [1, 2, 3, 4, 5],
+                                         [1.0, 2.0, 3.0, 4.0, 5.0],
+                                         [1.0],
+                                         [2.0],
+                                         [3.0],
+                                         1.0,
+                                         2.0,
+                                         3.0,
+                                         [])
+
+
 def simple_gps_packet():
     return with_unevenly_sampled_channel(base_packet(),
                                          [api900_pb2.LATITUDE,
                                           api900_pb2.LONGITUDE,
                                           api900_pb2.SPEED,
-                                          api900_pb2.ALTITUDE],
+                                          api900_pb2.ALTITUDE,
+                                          api900_pb2.ACCURACY],
                                          "test gps sensor name",
                                          [1, 2, 3, 4, 5],
-                                         [19.0, 155.0, 1.0, 25.0,
-                                          20.0, 156.0, 2.0, 26.0,
-                                          21.0, 157.0, 3.0, 27.0,
-                                          22.0, 158.0, 4.0, 28.0,
-                                          23.0, 159.0, 5.0, 29.0],
-                                         [1, 2, 3, 4],
-                                         [1, 2, 3, 4],
-                                         [1, 2, 3, 4],
+                                         [19.0, 155.0, 1.0, 25.0, 10.0,
+                                          20.0, 156.0, 2.0, 26.0, 11.0,
+                                          21.0, 157.0, 3.0, 27.0, 12.0,
+                                          22.0, 158.0, 4.0, 28.0, 13.0,
+                                          23.0, 159.0, 5.0, 29.0, 14.0],
+                                         [1, 2, 3, 4, 5],
+                                         [1, 2, 3, 4, 5],
+                                         [1, 2, 3, 4, 5],
                                          1.0,
                                          2.0,
                                          3.0,
@@ -190,6 +222,48 @@ def synthetic_accelerometer_packet():
                                           api900_pb2.ACCELEROMETER_Y,
                                           api900_pb2.ACCELEROMETER_Z],
                                          "test accelerometer sensor name",
+                                         [1, 2, 3, 4, 5],
+                                         [19.0, 155.0, 1.0,
+                                          20.0, 156.0, 2.0,
+                                          21.0, 157.0, 3.0,
+                                          22.0, 158.0, 4.0,
+                                          23.0, 159.0, 5.0],
+                                         [1, 2, 3],
+                                         [1, 2, 3],
+                                         [1, 2, 3],
+                                         1.0,
+                                         2.0,
+                                         3.0,
+                                         [])
+
+
+def synthetic_magnetometer_packet():
+    return with_unevenly_sampled_channel(base_packet(),
+                                         [api900_pb2.MAGNETOMETER_X,
+                                          api900_pb2.MAGNETOMETER_Y,
+                                          api900_pb2.MAGNETOMETER_Z],
+                                         "test magnetometer sensor name",
+                                         [1, 2, 3, 4, 5],
+                                         [19.0, 155.0, 1.0,
+                                          20.0, 156.0, 2.0,
+                                          21.0, 157.0, 3.0,
+                                          22.0, 158.0, 4.0,
+                                          23.0, 159.0, 5.0],
+                                         [1, 2, 3],
+                                         [1, 2, 3],
+                                         [1, 2, 3],
+                                         1.0,
+                                         2.0,
+                                         3.0,
+                                         [])
+
+
+def synthetic_gyroscope_packet():
+    return with_unevenly_sampled_channel(base_packet(),
+                                         [api900_pb2.GYROSCOPE_X,
+                                          api900_pb2.GYROSCOPE_Y,
+                                          api900_pb2.GYROSCOPE_Z],
+                                         "test gyroscope sensor name",
                                          [1, 2, 3, 4, 5],
                                          [19.0, 155.0, 1.0,
                                           20.0, 156.0, 2.0,

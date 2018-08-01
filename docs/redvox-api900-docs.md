@@ -185,7 +185,6 @@ The `MicrophoneSensor` class contains methods for directly accessing the fields 
 | sensor_name() | str | Returns the name of the sensor for this microphone sensor channel |
 | payload_values() | numpy.ndarray[int] | A numpy array of integers representing the data payload from this packet's microphone channel |
 | payload_mean() | float | The mean value of this packet's microphone data payload |
-| payload_median() | float | The median value of this packet's microphone data payload |
 | payload_std() | float | The standard deviation of this packet's microphone data payload |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 

@@ -729,11 +729,12 @@ class MicrophoneSensor(EvenlySampledSensor):
         """
         return self.evenly_sampled_channel.get_value_mean(api900_pb2.MICROPHONE)
 
-    def payload_median(self) -> float:
-        """Returns the median of this channel's payload.
-        :return: The median of this channel's payload.
-        """
-        return self.evenly_sampled_channel.get_value_median(api900_pb2.MICROPHONE)
+    # Currently, our Android and iOS devices don't calculate a median value here
+    # def payload_median(self) -> float:
+    #     """Returns the median of this channel's payload.
+    #     :return: The median of this channel's payload.
+    #     """
+    #     return self.evenly_sampled_channel.get_value_median(api900_pb2.MICROPHONE)
 
     def payload_std(self) -> float:
         """Returns the standard deviation of this channel's payload.

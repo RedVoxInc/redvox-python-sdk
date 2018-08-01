@@ -366,33 +366,290 @@ class TestUnevenlyXyzSampledSensor(ArraysTestCase):
         self.assertEqual(self.synthetic_accelerometer_channel.payload_values_z_std(), 3)
         self.assertAlmostEqual(self.example_accelerometer_channel.payload_values_z_std(), 0.01730884582806553, 5)
 
-class TestMicrophoneSensor(unittest.TestCase):
-    pass
+
+class TestMicrophoneSensor(ArraysTestCase):
+    def setUp(self):
+        self.base_packet: api900_pb2.RedvoxPacket = tests.mock_packets.simple_mic_packet()
+        self.wrapped_synthetic_packet = reader.wrap(self.base_packet)
+        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.synthetic_microphone_channel = self.wrapped_synthetic_packet.microphone_channel()
+        self.example_microphone_channel = self.wrapped_example_packet.microphone_channel()
+
+    def test_has_evenly_sampled_channel(self):
+        self.assertTrue(api900_pb2.MICROPHONE in self.synthetic_microphone_channel.evenly_sampled_channel.channel_types)
+        self.assertTrue(api900_pb2.MICROPHONE in self.example_microphone_channel.evenly_sampled_channel.channel_types)
+
+    def test_payload_values(self):
+        self.assertArraysEqual(self.synthetic_microphone_channel.payload_values(),
+                               self.as_array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+        self.assertSampledArray(self.example_microphone_channel.payload_values(),
+                                4096,
+                                [0, 2048, 4095],
+                                [201, -4666, -1867])
+
+    def test_payload_mean(self):
+        self.assertEqual(self.synthetic_microphone_channel.payload_mean(), 5.5)
+        self.assertAlmostEqual(self.example_microphone_channel.payload_mean(), -127.91796875, 1)
+
+    def test_payload_std(self):
+        self.assertEqual(self.synthetic_microphone_channel.payload_std(), 3.0277)
+        self.assertAlmostEqual(self.example_microphone_channel.payload_std(), 2455.820326625975, 3)
 
 
-class TestBarometerSensor(unittest.TestCase):
-    pass
+class TestBarometerSensor(ArraysTestCase):
+    def setUp(self):
+        self.base_packet: api900_pb2.RedvoxPacket = tests.mock_packets.simple_bar_packet()
+        self.wrapped_synthetic_packet = reader.wrap(self.base_packet)
+        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.synthetic_barometer_channel = self.wrapped_synthetic_packet.barometer_channel()
+        self.example_barometer_channel = self.wrapped_example_packet.barometer_channel()
+
+    def test_payload_values(self):
+        self.assertArraysEqual(self.synthetic_barometer_channel.payload_values(),
+                               self.as_array([1.0, 2.0, 3.0, 4.0, 5.0]))
+        self.assertSampledArray(self.example_barometer_channel.payload_values(),
+                                257,
+                                [0, 128, 256],
+                                [100.8185043334961, 100.81900787353516, 100.81495666503906])
+
+    def test_payload_mean(self):
+        self.assertEqual(self.synthetic_barometer_channel.payload_mean(), 1.0)
+        self.assertAlmostEqual(self.example_barometer_channel.payload_mean(), 100.8182933228489, 2)
+
+    def test_payload_median(self):
+        self.assertEqual(self.synthetic_barometer_channel.payload_median(), 3.0)
+        self.assertAlmostEqual(self.example_barometer_channel.payload_median(), 100.8177719116211, 2)
+
+    def test_payload_std(self):
+        self.assertEqual(self.synthetic_barometer_channel.payload_std(), 2.0)
+        self.assertAlmostEqual(self.example_barometer_channel.payload_std(), 0.0025966670622000025, 2)
 
 
-class TestLocationSensor(unittest.TestCase):
-    pass
+class TestLocationSensor(ArraysTestCase):
+    def setUp(self):
+        self.synthetic_packet = tests.mock_packets.simple_gps_packet()
+        self.wrapped_synthetic_packet = reader.wrap(self.synthetic_packet)
+        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+
+        self.synthetic_location_channel = self.wrapped_synthetic_packet.location_channel()
+        self.example_location_channel = self.wrapped_example_packet.location_channel()
+
+    def test_payload_values(self):
+        self.assertArraysEqual(self.synthetic_location_channel.payload_values(),
+                               self.as_array([19.0, 155.0, 25.0, 1.0, 10.0,
+                                              20.0, 156.0, 26.0, 2.0, 11.0,
+                                              21.0, 157.0, 27.0, 3.0, 12.0,
+                                              22.0, 158.0, 28.0, 4.0, 13.0,
+                                              23.0, 159.0, 29.0, 5.0, 14.0]))
+        self.assertArraysEqual(self.example_location_channel.payload_values(),
+                               self.as_array(
+                                   [21.3046576, -157.8476141, 64.5, 0.0, 37.560001373291016, 21.3047039, -157.84776,
+                                    64.5, 0.0, 52.61000061035156]))
+
+    def test_payload_values_latitude(self):
+        self.assertArraysEqual(self.synthetic_location_channel.payload_values_latitude(),
+                               self.as_array([19.0, 20.0, 21.0, 22.0, 23.0]))
+        self.assertArraysEqual(self.example_location_channel.payload_values_latitude(),
+                               self.as_array([21.3046576, 21.3047039]))
+
+    def test_payload_values_longitude(self):
+        self.assertArraysEqual(self.synthetic_location_channel.payload_values_longitude(),
+                               self.as_array([155.0, 156.0, 157.0, 158.0, 159.0]))
+        self.assertArraysEqual(self.example_location_channel.payload_values_longitude(),
+                               self.as_array([-157.8476141, -157.84776]))
+
+    def test_payload_values_altitude(self):
+        self.assertArraysEqual(self.synthetic_location_channel.payload_values_altitude(),
+                               self.as_array([25.0, 26.0, 27.0, 28.0, 29.0]))
+        self.assertArraysEqual(self.example_location_channel.payload_values_altitude(),
+                               self.as_array([64.5, 64.5]))
+
+    def test_payload_values_speed(self):
+        self.assertArraysEqual(self.synthetic_location_channel.payload_values_speed(),
+                               self.as_array([1.0, 2.0, 3.0, 4.0, 5.0]))
+        self.assertArraysEqual(self.example_location_channel.payload_values_speed(),
+                               self.as_array([0.0, 0.0]))
+
+    def test_payload_values_accuracy(self):
+        self.assertArraysEqual(self.synthetic_location_channel.payload_values_accuracy(),
+                               self.as_array([10.0, 11.0, 12.0, 13.0, 14.0]))
+        self.assertArraysEqual(self.example_location_channel.payload_values_accuracy(),
+                               self.as_array([37.560001373291016, 52.61000061035156]))
+
+    def test_payload_values_latitude_mean(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_latitude_mean(), 1.0)
+        self.assertAlmostEqual(self.example_location_channel.payload_values_latitude_mean(), 21.30468075, 2)
+
+    def test_payload_values_latitude_median(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_latitude_median(), 1.0)
+        self.assertAlmostEqual(self.example_location_channel.payload_values_latitude_median(), 21.30468075, 2)
+
+    def test_payload_values_latitude_std(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_latitude_std(), 1.0)
+        self.assertAlmostEqual(self.example_location_channel.payload_values_latitude_std(), 2.3150000000526916e-05, 2)
+
+    def test_payload_values_longitude_mean(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_longitude_mean(), 2.0)
+        self.assertAlmostEqual(self.example_location_channel.payload_values_longitude_mean(), -157.84768705, 2)
+
+    def test_payload_values_longitude_median(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_longitude_median(), 2.0)
+        self.assertAlmostEqual(self.example_location_channel.payload_values_longitude_median(), -157.84768705, 2)
+
+    def test_payload_values_longitude_std(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_longitude_std(), 2.0)
+        self.assertAlmostEqual(self.example_location_channel.payload_values_longitude_std(), 7.295000000340224e-05, 2)
+
+    def test_payload_values_altitude_mean(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_altitude_mean(), 4.0)
+        self.assertAlmostEqual(self.example_location_channel.payload_values_altitude_mean(), 64.5, 2)
+
+    def test_payload_values_altitude_median(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_altitude_median(), 4.0)
+        self.assertAlmostEqual(self.example_location_channel.payload_values_altitude_median(), 64.5, 2)
+
+    def test_payload_values_altitude_std(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_altitude_std(), 4.0)
+        self.assertAlmostEqual(self.example_location_channel.payload_values_altitude_std(), 0.0, 2)
+
+    def test_payload_values_speed_mean(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_speed_mean(), 3.0)
+        self.assertAlmostEqual(self.example_location_channel.payload_values_speed_mean(), 0.0, 2)
+
+    def test_payload_values_speed_median(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_speed_median(), 3.0)
+        self.assertAlmostEqual(self.example_location_channel.payload_values_speed_median(), 0.0, 2)
+
+    def test_payload_values_speed_std(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_speed_std(), 3.0)
+        self.assertAlmostEqual(self.example_location_channel.payload_values_speed_std(), 0.0, 2)
+
+    def test_payload_values_accuracy_mean(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_accuracy_mean(), 5.0)
+        # self.assertAlmostEqual(self.example_location_channel.payload_values_accuracy_mean(), 45.08500099182129, 2)
+
+    def test_payload_values_accuracy_median(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_accuracy_median(), 5.0)
+        # self.assertAlmostEqual(self.example_location_channel.payload_values_accuracy_median(), 45.08500099182129, 2)
+
+    def test_payload_values_accuracy_std(self):
+        self.assertEqual(self.synthetic_location_channel.payload_values_accuracy_std(), 5.0)
+        # self.assertAlmostEqual(self.example_location_channel.payload_values_accuracy_std(), 7.524999618530273, 2)
 
 
-class TestTimeSynchronizationSensor(unittest.TestCase):
-    pass
+class TestTimeSynchronizationSensor(ArraysTestCase):
+    def setUp(self):
+        self.synthetic_packet = tests.mock_packets.synthetic_time_synch_packet()
+        self.wrapped_synthetic_packet = reader.wrap(self.synthetic_packet)
+        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+
+        self.synthetic_time_sync = self.wrapped_synthetic_packet.time_synchronization_channel()
+        self.example_time_sync = self.wrapped_example_packet.time_synchronization_channel()
+
+    def test_payload_values(self):
+        self.assertArraysEqual(self.synthetic_time_sync.payload_values(), self.as_array([1, 2, 3, 4, 5]))
+        self.assertArraysEqual(self.example_time_sync.payload_values(),
+                               self.as_array([1532656866631784, 1532656866724117, 1532656866724118, 1532656849464929,
+                                              1532656849464951, 1532656849558637, 1532656872546531, 1532656872647114,
+                                              1532656872647114, 1532656855386743, 1532656855386763, 1532656855483085,
+                                              1532656878633248, 1532656878726577, 1532656878726577, 1532656861468319,
+                                              1532656861468341, 1532656861559844, 1532656884629545, 1532656884722508,
+                                              1532656884722508, 1532656867464215, 1532656867464235, 1532656867557907,
+                                              1532656890548327, 1532656890637788, 1532656890637789, 1532656873382622,
+                                              1532656873382645, 1532656873471183, 1532656896631076, 1532656896724942,
+                                              1532656896724943, 1532656879464030, 1532656879464051, 1532656879559295,
+                                              1532656902632941, 1532656902727534, 1532656902727534, 1532656885467717,
+                                              1532656885467737, 1532656885560994, 1532656908634482, 1532656908726106,
+                                              1532656908726106, 1532656891468100, 1532656891468121, 1532656891559835,
+                                              1532656914631613, 1532656914727450, 1532656914727451, 1532656897467377,
+                                              1532656897467397, 1532656897560456]))
 
 
 class TestAccelerometerSensor(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.wrapped_synthetic_packet = reader.wrap(tests.mock_packets.synthetic_accelerometer_packet())
+        self.synthetic_channel = self.wrapped_synthetic_packet.accelerometer_channel()
+        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.channel = self.wrapped_example_packet.accelerometer_channel()
+
+    def test_x_channel(self):
+        self.assertEqual(self.synthetic_channel.x_type, api900_pb2.ACCELEROMETER_X)
+        self.assertEqual(self.channel.x_type, api900_pb2.ACCELEROMETER_X)
+
+    def test_y_channel(self):
+        self.assertEqual(self.synthetic_channel.y_type, api900_pb2.ACCELEROMETER_Y)
+        self.assertEqual(self.channel.y_type, api900_pb2.ACCELEROMETER_Y)
+
+    def test_z_channel(self):
+        self.assertEqual(self.synthetic_channel.z_type, api900_pb2.ACCELEROMETER_Z)
+        self.assertEqual(self.channel.z_type, api900_pb2.ACCELEROMETER_Z)
 
 
 class TestMagnetometerSensor(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.wrapped_synthetic_packet = reader.wrap(tests.mock_packets.synthetic_magnetometer_packet())
+        self.synthetic_channel = self.wrapped_synthetic_packet.magnetometer_channel()
+        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.channel = self.wrapped_example_packet.magnetometer_channel()
+
+    def test_x_channel(self):
+        self.assertEqual(self.synthetic_channel.x_type, api900_pb2.MAGNETOMETER_X)
+        self.assertEqual(self.channel.x_type, api900_pb2.MAGNETOMETER_X)
+
+    def test_y_channel(self):
+        self.assertEqual(self.synthetic_channel.y_type, api900_pb2.MAGNETOMETER_Y)
+        self.assertEqual(self.channel.y_type, api900_pb2.MAGNETOMETER_Y)
+
+    def test_z_channel(self):
+        self.assertEqual(self.synthetic_channel.z_type, api900_pb2.MAGNETOMETER_Z)
+        self.assertEqual(self.channel.z_type, api900_pb2.MAGNETOMETER_Z)
 
 
 class TestGyroscopeSensor(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.wrapped_synthetic_packet = reader.wrap(tests.mock_packets.synthetic_gyroscope_packet())
+        self.synthetic_channel = self.wrapped_synthetic_packet.gyroscope_channel()
+        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+        self.channel = self.wrapped_example_packet.gyroscope_channel()
+
+    def test_x_channel(self):
+        self.assertEqual(self.synthetic_channel.x_type, api900_pb2.GYROSCOPE_X)
+        self.assertEqual(self.channel.x_type, api900_pb2.GYROSCOPE_X)
+
+    def test_y_channel(self):
+        self.assertEqual(self.synthetic_channel.y_type, api900_pb2.GYROSCOPE_Y)
+        self.assertEqual(self.channel.y_type, api900_pb2.GYROSCOPE_Y)
+
+    def test_z_channel(self):
+        self.assertEqual(self.synthetic_channel.z_type, api900_pb2.GYROSCOPE_Z)
+        self.assertEqual(self.channel.z_type, api900_pb2.GYROSCOPE_Z)
 
 
-class TestLightSensor(unittest.TestCase):
-    pass
+class TestLightSensor(ArraysTestCase):
+    def setUp(self):
+        self.synthetic_packet = tests.mock_packets.synthetic_light_packet()
+        self.wrapped_synthetic_packet = reader.wrap(self.synthetic_packet)
+        self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+
+        self.synthetic_light_channel = self.wrapped_synthetic_packet.light_channel()
+        self.example_light_channel = self.wrapped_example_packet.light_channel()
+
+    def test_payload_values(self):
+        self.assertArraysEqual(self.synthetic_light_channel.payload_values(),
+                               self.as_array([1.0, 2.0, 3.0, 4.0, 5.0]))
+        self.assertSampledArray(self.example_light_channel.payload_values(),
+                                152,
+                                [0, 76, 151],
+                                [28.590438842773438, 28.987159729003906, 29.147724151611328])
+
+    def test_payload_mean(self):
+        self.assertEqual(self.synthetic_light_channel.payload_mean(), 1.0)
+        self.assertAlmostEqual(self.example_light_channel.payload_mean(), 29.055856780001992, 2)
+
+    def test_payload_median(self):
+        self.assertEqual(self.synthetic_light_channel.payload_median(), 3.0)
+        self.assertAlmostEqual(self.example_light_channel.payload_median(), 28.987159729003906, 2)
+
+    def test_payload_std(self):
+        self.assertEqual(self.synthetic_light_channel.payload_std(), 2.0)
+        self.assertAlmostEqual(self.example_light_channel.payload_std(), 0.19822725073340672, 2)

@@ -9,7 +9,7 @@ class ArraysTestCase(unittest.TestCase):
         self.empty_array = numpy.array([])
 
     def assertArraysEqual(self, a1: numpy.ndarray, a2: numpy.ndarray):
-        self.assertTrue(numpy.array_equal(a1, a2), msg="{} != {}".format(a1, a2))
+        self.assertTrue(numpy.array_equal(a1, a2), msg="\n{} \n!=\n {}".format(a1, a2))
 
     def assertSampledArray(self, array: numpy.ndarray, expected_size: int, samples: typing.List, values: typing.List):
         if len(array) != expected_size:
