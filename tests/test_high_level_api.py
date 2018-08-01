@@ -11,6 +11,14 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
     def setUp(self):
         self.base_packet: api900_pb2.RedvoxPacket = tests.mock_packets.base_packet()
         self.wrapped_synthetic_packet = reader.wrap(self.base_packet)
+        self.wrapped_synthetic_mic_packet = reader.wrap(tests.mock_packets.simple_mic_packet())
+        self.wrapped_synthetic_bar_packet = reader.wrap(tests.mock_packets.simple_bar_packet())
+        self.wrapped_synthetic_location_packet = reader.wrap(tests.mock_packets.simple_gps_packet())
+        self.wrapped_synthetic_time_synch_packet = reader.wrap(tests.mock_packets.synthetic_time_synch_packet())
+        self.wrapped_synthetic_accelerometer_packet = reader.wrap(tests.mock_packets.synthetic_accelerometer_packet())
+        self.wrapped_synthetic_gyroscope_packet = reader.wrap(tests.mock_packets.synthetic_gyroscope_packet())
+        self.wrapped_synthetic_magnetometer_packet = reader.wrap(tests.mock_packets.synthetic_magnetometer_packet())
+        self.wrapped_synthetic_light_packet = reader.wrap(tests.mock_packets.synthetic_light_packet())
         self.wrapped_example_packet = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
 
     def test_api(self):
@@ -110,6 +118,87 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
     def test_metadata(self):
         self.assertTrue("foo" in self.wrapped_synthetic_packet.metadata_as_dict())
         self.assertEqual(self.wrapped_synthetic_packet.metadata_as_dict()["foo"], "bar")
+
+    # Test sensor access
+    def test_microphone_sensor_access(self):
+        self.assertTrue(self.wrapped_example_packet.has_microphone_channel())
+        self.assertIsNotNone(self.wrapped_example_packet.microphone_channel())
+
+        self.assertTrue(self.wrapped_synthetic_mic_packet.has_microphone_channel())
+        self.assertIsNotNone(self.wrapped_synthetic_mic_packet.microphone_channel())
+
+        self.assertFalse(self.wrapped_synthetic_bar_packet.has_microphone_channel())
+        self.assertIsNone(self.wrapped_synthetic_bar_packet.microphone_channel())
+
+    def test_barometer_sensor_access(self):
+        self.assertTrue(self.wrapped_example_packet.has_barometer_channel())
+        self.assertIsNotNone(self.wrapped_example_packet.barometer_channel())
+
+        self.assertTrue(self.wrapped_synthetic_bar_packet.has_barometer_channel())
+        self.assertIsNotNone(self.wrapped_synthetic_bar_packet.barometer_channel())
+
+        self.assertFalse(self.wrapped_synthetic_mic_packet.has_barometer_channel())
+        self.assertIsNone(self.wrapped_synthetic_mic_packet.barometer_channel())
+
+    def test_location_sensor_access(self):
+        self.assertTrue(self.wrapped_example_packet.has_location_channel())
+        self.assertIsNotNone(self.wrapped_example_packet.location_channel())
+
+        self.assertTrue(self.wrapped_synthetic_location_packet.has_location_channel())
+        self.assertIsNotNone(self.wrapped_synthetic_location_packet.location_channel())
+
+        self.assertFalse(self.wrapped_synthetic_mic_packet.has_location_channel())
+        self.assertIsNone(self.wrapped_synthetic_mic_packet.location_channel())
+
+    def test_time_sync_sensor_access(self):
+        self.assertTrue(self.wrapped_example_packet.has_time_synchronization_channel())
+        self.assertIsNotNone(self.wrapped_example_packet.time_synchronization_channel())
+
+        self.assertTrue(self.wrapped_synthetic_time_synch_packet.has_time_synchronization_channel())
+        self.assertIsNotNone(self.wrapped_synthetic_time_synch_packet.time_synchronization_channel())
+
+        self.assertFalse(self.wrapped_synthetic_mic_packet.has_time_synchronization_channel())
+        self.assertIsNone(self.wrapped_synthetic_mic_packet.time_synchronization_channel())
+
+    def test_accelerometer_sensor_access(self):
+        self.assertTrue(self.wrapped_example_packet.has_accelerometer_channel())
+        self.assertIsNotNone(self.wrapped_example_packet.accelerometer_channel())
+
+        self.assertTrue(self.wrapped_synthetic_accelerometer_packet.has_accelerometer_channel())
+        self.assertIsNotNone(self.wrapped_synthetic_accelerometer_packet.accelerometer_channel())
+
+        self.assertFalse(self.wrapped_synthetic_mic_packet.has_accelerometer_channel())
+        self.assertIsNone(self.wrapped_synthetic_mic_packet.accelerometer_channel())
+
+    def test_gyroscope_sensor_access(self):
+        self.assertTrue(self.wrapped_example_packet.has_gyroscope_channel())
+        self.assertIsNotNone(self.wrapped_example_packet.gyroscope_channel())
+
+        self.assertTrue(self.wrapped_synthetic_gyroscope_packet.has_gyroscope_channel())
+        self.assertIsNotNone(self.wrapped_synthetic_gyroscope_packet.gyroscope_channel())
+
+        self.assertFalse(self.wrapped_synthetic_mic_packet.has_gyroscope_channel())
+        self.assertIsNone(self.wrapped_synthetic_mic_packet.gyroscope_channel())
+
+    def test_magnetometer_sensor_access(self):
+        self.assertTrue(self.wrapped_example_packet.has_magnetometer_channel())
+        self.assertIsNotNone(self.wrapped_example_packet.magnetometer_channel())
+
+        self.assertTrue(self.wrapped_synthetic_magnetometer_packet.has_magnetometer_channel())
+        self.assertIsNotNone(self.wrapped_synthetic_magnetometer_packet.magnetometer_channel())
+
+        self.assertFalse(self.wrapped_synthetic_mic_packet.has_magnetometer_channel())
+        self.assertIsNone(self.wrapped_synthetic_mic_packet.magnetometer_channel())
+
+    def test_light_sensor_access(self):
+        self.assertTrue(self.wrapped_example_packet.has_light_channel())
+        self.assertIsNotNone(self.wrapped_example_packet.light_channel())
+
+        self.assertTrue(self.wrapped_synthetic_light_packet.has_light_channel())
+        self.assertIsNotNone(self.wrapped_synthetic_light_packet.light_channel())
+
+        self.assertFalse(self.wrapped_synthetic_mic_packet.has_light_channel())
+        self.assertIsNone(self.wrapped_synthetic_mic_packet.light_channel())
 
 
 class TestEvenlySampledSensor(unittest.TestCase):
