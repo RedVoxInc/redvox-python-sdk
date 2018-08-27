@@ -969,6 +969,13 @@ class TimeSynchronizationSensor:
         """
         return self.unevenly_sampled_channel.get_payload(api900_pb2.TIME_SYNCHRONIZATION)
 
+    def metadata_as_dict(self) -> typing.Dict[str, str]:
+        """
+        Returns this channel's metadata (if there is any) as a Python dictionary.
+        :return: This channel's metadata (if there is any) as a Python dictionary.
+        """
+        return get_metadata_as_dict(self.unevenly_sampled_channel.metadata)
+
 
 class AccelerometerSensor(XyzUnevenlySampledSensor):
     """High-level wrapper around accelerometer channels."""
