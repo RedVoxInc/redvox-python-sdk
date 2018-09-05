@@ -6,6 +6,7 @@ This module provides functions and classes for working with RedVox API 900 data.
 import struct
 import typing
 
+# noinspection PyPackageRequirements
 import google.protobuf.internal.containers as containers
 import lz4.block
 import numpy
@@ -439,13 +440,16 @@ class InterleavedChannel:
         Returns a string representation of this interleaved channel.
         :return: A string representation of this interleaved chanel.
         """
-        return "sensor_name: {}\nchannel_types: {}\nlen(payload): {}\npayload_type: {}".format(self.sensor_name,
-                                                                                               list(map(
-                                                                                                   channel_type_name_from_enum,
-                                                                                                   self.channel_types)),
-                                                                                               len(self.payload),
-                                                                                               payload_type(
-                                                                                                   self.protobuf_channel))
+        return "sensor_name: {}\n" \
+               "channel_types: {}\n" \
+               "len(payload): {}\n" \
+               "payload_type: {}".format(self.sensor_name,
+                                         list(map(
+                                             channel_type_name_from_enum,
+                                             self.channel_types)),
+                                         len(self.payload),
+                                         payload_type(
+                                             self.protobuf_channel))
 
 
 class EvenlySampledChannel(InterleavedChannel):
@@ -1460,8 +1464,10 @@ class WrappedRedvoxPacket:
 
     def time_synchronization_channel(self) -> typing.Optional[TimeSynchronizationSensor]:
         """
-        Returns the high-level time synchronization channel API or None if this packet doesn't contain a channel of this type.
-        :return: the high-level time synchronization channel API or None if this packet doesn't contain a channel of this type.
+        Returns the high-level time synchronization channel API or None if this packet doesn't contain a channel of
+        this type.
+        :return: the high-level time synchronization channel API or None if this packet doesn't contain a channel of
+        this type.
         """
         if self.has_time_synchronization_channel():
             return TimeSynchronizationSensor(self.get_channel(api900_pb2.TIME_SYNCHRONIZATION))
