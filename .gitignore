@@ -4,3 +4,4 @@ dist/
 redvox.egg-info/
 *.pyc
 *.iml
+scrap.py

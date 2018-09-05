@@ -114,9 +114,6 @@ class ModuleFunctionTests(ArraysTestCase):
     # deinterleave_array
     def test_deinterleave_array_empty(self):
         self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.deinterleave_array,
-                          self.empty_array, 0,
-                          0)
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader.deinterleave_array,
                           self.empty_array,
                           -1, 2)
 

@@ -1,6 +1,6 @@
 [redvox]
-ignore = redvox/api900/api900_pb2.py, tests/**
-files = **.py
+ignore = redvox/api900/lib/api900_pb2.py
+files = redvox/**.py
 
 [redvox.spacing]
 bears = SpaceConsistencyBear
@@ -12,7 +12,7 @@ max_line_length = 120
 
 [redvox.pylint]
 bears = PyLintBear
-pylint_disable = C0301, C1801, R
+pylint_disable = C0301, C1801, R, W0105
 
 [redvox.pyflakes]
 bears = PyFlakesBear
