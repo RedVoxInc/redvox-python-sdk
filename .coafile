@@ -12,7 +12,7 @@ max_line_length = 120
 
 [redvox.pylint]
 bears = PyLintBear
-pylint_disable = C0301, C1801, R, W0105
+pylint_disable = C0301, W0105
 
 [redvox.pyflakes]
 bears = PyFlakesBear

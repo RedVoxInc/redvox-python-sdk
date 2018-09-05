@@ -169,6 +169,7 @@ def deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.
     if len(ndarray) % step != 0:
         raise ReaderException("step {} is not a multiple of {}".format(step, len(ndarray)))
 
+    # pylint: disable=C1801
     if len(ndarray) == 0:
         return empty_array()
 
@@ -238,8 +239,8 @@ def get_metadata(metadata: typing.List[str], k: str) -> str:
     idx = safe_index_of(metadata, k)
     if idx < 0:
         return ""
-    else:
-        return metadata[idx + 1]
+
+    return metadata[idx + 1]
 
 
 def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
@@ -248,7 +249,7 @@ def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
     :param metadata: The metadata list.
     :return: Metadata as a python dictionary.
     """
-    if len(metadata) == 0:
+    if not metadata:
         return {}
 
     if len(metadata) % 2 != 0:
@@ -264,6 +265,7 @@ def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
     return metadata_dict
 
 
+# pylint: disable=R0902
 class InterleavedChannel:
     """
     This class represents an interleaved channel.
@@ -364,8 +366,8 @@ class InterleavedChannel:
         idx = self.channel_index(channel_type)
         if idx < 0:
             return empty_array()
-        else:
-            return deinterleave_array(self.payload, idx, len(self.channel_types))
+
+        return deinterleave_array(self.payload, idx, len(self.channel_types))
 
     def get_payload_type(self) -> str:
         """
@@ -385,9 +387,9 @@ class InterleavedChannel:
             return empty_array()
         elif channel_types_len == 1:
             return self.get_payload(channel_types[0])
-        else:
-            payloads = list(map(self.get_payload, channel_types))
-            return interleave_arrays(payloads)
+
+        payloads = list(map(self.get_payload, channel_types))
+        return interleave_arrays(payloads)
 
     def get_value_mean(self, channel_type: int) -> float:
         """
@@ -398,8 +400,8 @@ class InterleavedChannel:
         idx = self.channel_index(channel_type)
         if idx < 0:
             return 0.0
-        else:
-            return self.value_means[idx]
+
+        return self.value_means[idx]
 
     def get_value_std(self, channel_type: int) -> float:
         """
@@ -410,8 +412,8 @@ class InterleavedChannel:
         idx = self.channel_index(channel_type)
         if idx < 0:
             return 0.0
-        else:
-            return self.value_stds[idx]
+
+        return self.value_stds[idx]
 
     def get_value_median(self, channel_type: int) -> float:
         """
@@ -422,8 +424,8 @@ class InterleavedChannel:
         idx = self.channel_index(channel_type)
         if idx < 0:
             return 0.0
-        else:
-            return self.value_medians[idx]
+
+        return self.value_medians[idx]
 
     def get_metadata_as_dict(self) -> typing.Dict[str, str]:
         """
@@ -847,6 +849,7 @@ class BarometerSensor(UnevenlySampledSensor):
         return self.unevenly_sampled_channel.get_value_std(api900_pb2.BAROMETER)
 
 
+# pylint: disable=R0904
 class LocationSensor(UnevenlySampledSensor):
     """
     High-level wrapper around location channels.
@@ -1130,6 +1133,7 @@ class LightSensor(UnevenlySampledSensor):
         return self.unevenly_sampled_channel.get_value_std(api900_pb2.LIGHT)
 
 
+# pylint: disable=R0904
 class WrappedRedvoxPacket:
     """
     This class provides convenience methods for accessing API 900 protobuf redvox packets.
@@ -1205,8 +1209,8 @@ class WrappedRedvoxPacket:
         """
         if channel_type in self._channel_cache:
             return self._channel_cache[channel_type]
-        else:
-            return None
+
+        return None
 
     def has_channel(self, channel_type: int) -> bool:
         """
@@ -1408,8 +1412,8 @@ class WrappedRedvoxPacket:
         """
         if self.has_microphone_channel():
             return MicrophoneSensor(self.get_channel(api900_pb2.MICROPHONE))
-        else:
-            return None
+
+        return None
 
     def has_barometer_channel(self) -> bool:
         """
@@ -1425,8 +1429,8 @@ class WrappedRedvoxPacket:
         """
         if self.has_barometer_channel():
             return BarometerSensor(self.get_channel(api900_pb2.BAROMETER))
-        else:
-            return None
+
+        return None
 
     def has_location_channel(self) -> bool:
         """
@@ -1443,8 +1447,8 @@ class WrappedRedvoxPacket:
         """
         if self.has_location_channel():
             return LocationSensor(self.get_channel(api900_pb2.LATITUDE))
-        else:
-            return None
+
+        return None
 
     # pylint: disable=invalid-name
     def has_time_synchronization_channel(self) -> bool:
@@ -1461,8 +1465,8 @@ class WrappedRedvoxPacket:
         """
         if self.has_time_synchronization_channel():
             return TimeSynchronizationSensor(self.get_channel(api900_pb2.TIME_SYNCHRONIZATION))
-        else:
-            return None
+
+        return None
 
     def has_accelerometer_channel(self) -> bool:
         """
@@ -1478,8 +1482,8 @@ class WrappedRedvoxPacket:
         """
         if self.has_accelerometer_channel():
             return AccelerometerSensor(self.get_channel(api900_pb2.ACCELEROMETER_X))
-        else:
-            return None
+
+        return None
 
     def has_magnetometer_channel(self) -> bool:
         """
@@ -1495,8 +1499,8 @@ class WrappedRedvoxPacket:
         """
         if self.has_magnetometer_channel():
             return MagnetometerSensor(self.get_channel(api900_pb2.MAGNETOMETER_X))
-        else:
-            return None
+
+        return None
 
     def has_gyroscope_channel(self) -> bool:
         """
@@ -1512,8 +1516,8 @@ class WrappedRedvoxPacket:
         """
         if self.has_gyroscope_channel():
             return GyroscopeSensor(self.get_channel(api900_pb2.GYROSCOPE_X))
-        else:
-            return None
+
+        return None
 
     def has_light_channel(self) -> bool:
         """
@@ -1529,8 +1533,8 @@ class WrappedRedvoxPacket:
         """
         if self.has_light_channel():
             return LightSensor(self.get_channel(api900_pb2.LIGHT))
-        else:
-            return None
+
+        return None
 
     def __str__(self):
         """
