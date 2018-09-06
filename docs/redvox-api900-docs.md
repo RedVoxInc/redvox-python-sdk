@@ -185,8 +185,11 @@ The `MicrophoneSensor` class contains methods for directly accessing the fields 
 | sensor_name() | str | Returns the name of the sensor for this microphone sensor channel |
 | payload_values() | numpy.ndarray[int] | A numpy array of integers representing the data payload from this packet's microphone channel |
 | payload_mean() | float | The mean value of this packet's microphone data payload |
+| payload_median() | float | The median value of this packet's microphone data payload |
 | payload_std() | float | The standard deviation of this packet's microphone data payload |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
+| metadata() | List[str] | Returns this channel's metadata |
+| payload_type() | str | Return this channel's internal protobuf type as a string |
 
 ##### Example microphone sensor reading
 
@@ -224,6 +227,8 @@ The `BarometerSensor` class contains methods for directly accessing the fields a
 | sample_interval_mean() | float | The median of the sample interval for samples in this packet |
 | sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
+| metadata() | List[str] | Returns this channel's metadata |
+| payload_type() | str | Return this channel's internal protobuf type as a string |
 
 ##### Example barometer sensor reading
 
@@ -281,6 +286,8 @@ The `LocationSensor` class contains methods for directly accessing the fields an
 | sample_interval_mean() | float | The median of the sample interval for samples in this packet |
 | sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
+| metadata() | List[str] | Returns this channel's metadata |
+| payload_type() | str | Return this channel's internal protobuf type as a string |
 
 ##### Example locations sensor reading
 
@@ -332,6 +339,9 @@ The `TimeSynchronizationSensor` class contains methods for directly accessing th
 | Name | Type | Description | 
 |------|------|-------------|
 | payload_values() | numpy.ndarray[float] | Time synchronization exchange parameters |
+| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
+| metadata() | List[str] | Returns this channel's metadata |
+| payload_type() | str | Return this channel's internal protobuf type as a string |
 
 
 ##### Example time synchronization sensor reading
@@ -371,6 +381,8 @@ The `AccelerationSensor` class contains methods for directly accessing the field
 | sample_interval_mean() | float | The median of the sample interval for samples in this packet |
 | sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
+| metadata() | List[str] | Returns this channel's metadata |
+| payload_type() | str | Return this channel's internal protobuf type as a string |
 
 
 ##### Example accelerometer sensor reading
@@ -435,7 +447,8 @@ The `MagnetometerSensor` class contains methods for directly accessing the field
 | sample_interval_mean() | float | The median of the sample interval for samples in this packet |
 | sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
-
+| metadata() | List[str] | Returns this channel's metadata |
+| payload_type() | str | Return this channel's internal protobuf type as a string |
 
 ##### Example magnetometer sensor reading
 
@@ -500,7 +513,8 @@ The `GyroscopeSensor` class contains methods for directly accessing the fields a
 | sample_interval_mean() | float | The median of the sample interval for samples in this packet |
 | sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
-
+| metadata() | List[str] | Returns this channel's metadata |
+| payload_type() | str | Return this channel's internal protobuf type as a string |
 
 ##### Example gyroscope sensor reading
 
@@ -555,6 +569,8 @@ The `LightSensor` class contains methods for directly accessing the fields and p
 | sample_interval_mean() | float | The median of the sample interval for samples in this packet |
 | sample_interval_mean() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
+| metadata() | List[str] | Returns this channel's metadata |
+| payload_type() | str | Return this channel's internal protobuf type as a string |
 
 ##### Example barometer sensor reading
 
