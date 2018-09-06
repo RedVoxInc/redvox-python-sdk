@@ -8,7 +8,7 @@
 <td valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>reader</strong></big></big></font></td
 ><td align=right valign=bottom
-><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/redvox/Development/redvox/redvox/api900/reader.py">/home/redvox/Development/redvox/redvox/api900/reader.py</a></font></td></tr></table>
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/redvox/Development/readvox-api900-python-reader/redvox/api900/reader.py">/home/redvox/Development/readvox-api900-python-reader/redvox/api900/reader.py</a></font></td></tr></table>
     <p><tt>This&nbsp;module&nbsp;provides&nbsp;functions&nbsp;and&nbsp;classes&nbsp;for&nbsp;working&nbsp;with&nbsp;RedVox&nbsp;API&nbsp;900&nbsp;data.</tt></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -139,8 +139,16 @@ Methods inherited from <a href="reader.html#XyzUnevenlySampledSensor">XyzUnevenl
 
 <hr>
 Methods inherited from <a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>:<br>
+<dl><dt><a name="AccelerometerSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="AccelerometerSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
 <dl><dt><a name="AccelerometerSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
 :return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="AccelerometerSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="AccelerometerSensor-sample_interval_mean"><strong>sample_interval_mean</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
 :return:&nbsp;The&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
@@ -181,9 +189,6 @@ Data descriptors inherited from <a href="reader.html#UnevenlySampledSensor">Unev
 </dl>
 <hr>
 Methods defined here:<br>
-<dl><dt><a name="BarometerSensor-__init__"><strong>__init__</strong></a>(self, unevenly_sampled_channel:reader.UnevenlySampledChannel)</dt><dd><tt>Initializes&nbsp;this&nbsp;class.<br>
-:param&nbsp;unevenly_sampled_channel:&nbsp;An&nbsp;instance&nbsp;of&nbsp;an&nbsp;<a href="#UnevenlySampledChannel">UnevenlySampledChannel</a>&nbsp;with&nbsp;barometer&nbsp;data.</tt></dd></dl>
-
 <dl><dt><a name="BarometerSensor-payload_mean"><strong>payload_mean</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.<br>
 :return:&nbsp;The&nbsp;mean&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.</tt></dd></dl>
 
@@ -198,8 +203,19 @@ Methods defined here:<br>
 
 <hr>
 Methods inherited from <a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>:<br>
+<dl><dt><a name="BarometerSensor-__init__"><strong>__init__</strong></a>(self, unevenly_sampled_channel:reader.UnevenlySampledChannel)</dt><dd><tt>Initializes&nbsp;this&nbsp;class.<br>
+:param&nbsp;unevenly_sampled_channel:&nbsp;an&nbsp;instance&nbsp;of&nbsp;a&nbsp;<a href="#UnevenlySampledChannel">UnevenlySampledChannel</a></tt></dd></dl>
+
+<dl><dt><a name="BarometerSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="BarometerSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
 <dl><dt><a name="BarometerSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
 :return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="BarometerSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="BarometerSensor-sample_interval_mean"><strong>sample_interval_mean</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
 :return:&nbsp;The&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
@@ -255,7 +271,8 @@ Methods inherited from <a href="reader.html#InterleavedChannel">InterleavedChann
 <dl><dt><a name="EvenlySampledChannel-get_channel_type_names"><strong>get_channel_type_names</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;the&nbsp;list&nbsp;of&nbsp;channel_types&nbsp;as&nbsp;a&nbsp;list&nbsp;of&nbsp;names&nbsp;instead&nbsp;of&nbsp;enumeration&nbsp;constants.<br>
 :return:&nbsp;The&nbsp;list&nbsp;of&nbsp;channel_types&nbsp;as&nbsp;a&nbsp;list&nbsp;of&nbsp;names&nbsp;instead&nbsp;of&nbsp;enumeration&nbsp;constants.</tt></dd></dl>
 
-<dl><dt><a name="EvenlySampledChannel-get_metadata_as_dict"><strong>get_metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt></dl>
+<dl><dt><a name="EvenlySampledChannel-get_metadata_as_dict"><strong>get_metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;any&nbsp;metadata&nbsp;as&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;key-pair&nbsp;values.<br>
+:return:&nbsp;Any&nbsp;metadata&nbsp;as&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;key-pair&nbsp;values.</tt></dd></dl>
 
 <dl><dt><a name="EvenlySampledChannel-get_multi_payload"><strong>get_multi_payload</strong></a>(self, channel_types:List[int]) -&gt; numpy.ndarray</dt><dd><tt>Returns&nbsp;an&nbsp;interleaved&nbsp;payload&nbsp;with&nbsp;the&nbsp;given&nbsp;channel&nbsp;types.<br>
 :param&nbsp;channel_types:&nbsp;Channel&nbsp;types&nbsp;to&nbsp;interleave&nbsp;into&nbsp;a&nbsp;single&nbsp;payload.<br>
@@ -264,6 +281,9 @@ Methods inherited from <a href="reader.html#InterleavedChannel">InterleavedChann
 <dl><dt><a name="EvenlySampledChannel-get_payload"><strong>get_payload</strong></a>(self, channel_type:int) -&gt; numpy.ndarray</dt><dd><tt>Returns&nbsp;a&nbsp;deinterleaved&nbsp;payload&nbsp;of&nbsp;a&nbsp;given&nbsp;channel&nbsp;type&nbsp;or&nbsp;an&nbsp;empty&nbsp;array.<br>
 :param&nbsp;channel_type:&nbsp;The&nbsp;channel&nbsp;type&nbsp;to&nbsp;extract/deinterleave&nbsp;from&nbsp;the&nbsp;payload.<br>
 :return:&nbsp;A&nbsp;numpy&nbsp;array&nbsp;of&nbsp;floats&nbsp;or&nbsp;ints&nbsp;of&nbsp;a&nbsp;single&nbsp;channel&nbsp;type.</tt></dd></dl>
+
+<dl><dt><a name="EvenlySampledChannel-get_payload_type"><strong>get_payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="EvenlySampledChannel-get_value_mean"><strong>get_value_mean</strong></a>(self, channel_type:int) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;value&nbsp;for&nbsp;a&nbsp;single&nbsp;channel&nbsp;type.<br>
 :param&nbsp;channel_type:&nbsp;The&nbsp;channel&nbsp;type&nbsp;to&nbsp;extract&nbsp;the&nbsp;mean&nbsp;from.<br>
@@ -309,11 +329,19 @@ Composition&nbsp;is&nbsp;used&nbsp;instead&nbsp;of&nbsp;inheritance&nbsp;to&nbsp
 <dl><dt><a name="EvenlySampledSensor-__init__"><strong>__init__</strong></a>(self, evenly_sampled_channel:reader.EvenlySampledChannel)</dt><dd><tt>Initializes&nbsp;this&nbsp;class.<br>
 :param&nbsp;evenly_sampled_channel:&nbsp;an&nbsp;instance&nbsp;of&nbsp;an&nbsp;<a href="#EvenlySampledChannel">EvenlySampledChannel</a></tt></dd></dl>
 
+<dl><dt><a name="EvenlySampledSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
 <dl><dt><a name="EvenlySampledSensor-first_sample_timestamp_epoch_microseconds_utc"><strong>first_sample_timestamp_epoch_microseconds_utc</strong></a>(self) -&gt; int</dt><dd><tt>Return&nbsp;the&nbsp;first&nbsp;sample&nbsp;timestamp&nbsp;in&nbsp;microseconds&nbsp;since&nbsp;the&nbsp;epoch&nbsp;UTC.<br>
 :return:&nbsp;The&nbsp;first&nbsp;sample&nbsp;timestamp&nbsp;in&nbsp;microseconds&nbsp;since&nbsp;the&nbsp;epoch&nbsp;UTC.</tt></dd></dl>
 
+<dl><dt><a name="EvenlySampledSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
 <dl><dt><a name="EvenlySampledSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
 :return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="EvenlySampledSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="EvenlySampledSensor-sample_rate_hz"><strong>sample_rate_hz</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;sample&nbsp;rate&nbsp;in&nbsp;Hz&nbsp;of&nbsp;this&nbsp;evenly&nbsp;sampled&nbsp;channel.<br>
 :return:&nbsp;The&nbsp;sample&nbsp;rate&nbsp;in&nbsp;Hz&nbsp;of&nbsp;this&nbsp;evenly&nbsp;sampled&nbsp;channel.</tt></dd></dl>
@@ -398,8 +426,16 @@ Methods inherited from <a href="reader.html#XyzUnevenlySampledSensor">XyzUnevenl
 
 <hr>
 Methods inherited from <a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>:<br>
+<dl><dt><a name="GyroscopeSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="GyroscopeSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
 <dl><dt><a name="GyroscopeSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
 :return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="GyroscopeSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="GyroscopeSensor-sample_interval_mean"><strong>sample_interval_mean</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
 :return:&nbsp;The&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
@@ -461,7 +497,8 @@ This&nbsp;class&nbsp;provides&nbsp;methods&nbsp;for&nbsp;working&nbsp;with&nbsp;
 <dl><dt><a name="InterleavedChannel-get_channel_type_names"><strong>get_channel_type_names</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;the&nbsp;list&nbsp;of&nbsp;channel_types&nbsp;as&nbsp;a&nbsp;list&nbsp;of&nbsp;names&nbsp;instead&nbsp;of&nbsp;enumeration&nbsp;constants.<br>
 :return:&nbsp;The&nbsp;list&nbsp;of&nbsp;channel_types&nbsp;as&nbsp;a&nbsp;list&nbsp;of&nbsp;names&nbsp;instead&nbsp;of&nbsp;enumeration&nbsp;constants.</tt></dd></dl>
 
-<dl><dt><a name="InterleavedChannel-get_metadata_as_dict"><strong>get_metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt></dl>
+<dl><dt><a name="InterleavedChannel-get_metadata_as_dict"><strong>get_metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;any&nbsp;metadata&nbsp;as&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;key-pair&nbsp;values.<br>
+:return:&nbsp;Any&nbsp;metadata&nbsp;as&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;key-pair&nbsp;values.</tt></dd></dl>
 
 <dl><dt><a name="InterleavedChannel-get_multi_payload"><strong>get_multi_payload</strong></a>(self, channel_types:List[int]) -&gt; numpy.ndarray</dt><dd><tt>Returns&nbsp;an&nbsp;interleaved&nbsp;payload&nbsp;with&nbsp;the&nbsp;given&nbsp;channel&nbsp;types.<br>
 :param&nbsp;channel_types:&nbsp;Channel&nbsp;types&nbsp;to&nbsp;interleave&nbsp;into&nbsp;a&nbsp;single&nbsp;payload.<br>
@@ -470,6 +507,9 @@ This&nbsp;class&nbsp;provides&nbsp;methods&nbsp;for&nbsp;working&nbsp;with&nbsp;
 <dl><dt><a name="InterleavedChannel-get_payload"><strong>get_payload</strong></a>(self, channel_type:int) -&gt; numpy.ndarray</dt><dd><tt>Returns&nbsp;a&nbsp;deinterleaved&nbsp;payload&nbsp;of&nbsp;a&nbsp;given&nbsp;channel&nbsp;type&nbsp;or&nbsp;an&nbsp;empty&nbsp;array.<br>
 :param&nbsp;channel_type:&nbsp;The&nbsp;channel&nbsp;type&nbsp;to&nbsp;extract/deinterleave&nbsp;from&nbsp;the&nbsp;payload.<br>
 :return:&nbsp;A&nbsp;numpy&nbsp;array&nbsp;of&nbsp;floats&nbsp;or&nbsp;ints&nbsp;of&nbsp;a&nbsp;single&nbsp;channel&nbsp;type.</tt></dd></dl>
+
+<dl><dt><a name="InterleavedChannel-get_payload_type"><strong>get_payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="InterleavedChannel-get_value_mean"><strong>get_value_mean</strong></a>(self, channel_type:int) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;value&nbsp;for&nbsp;a&nbsp;single&nbsp;channel&nbsp;type.<br>
 :param&nbsp;channel_type:&nbsp;The&nbsp;channel&nbsp;type&nbsp;to&nbsp;extract&nbsp;the&nbsp;mean&nbsp;from.<br>
@@ -515,9 +555,6 @@ Data descriptors defined here:<br>
 </dl>
 <hr>
 Methods defined here:<br>
-<dl><dt><a name="LightSensor-__init__"><strong>__init__</strong></a>(self, unevenly_sampled_channel:reader.UnevenlySampledChannel)</dt><dd><tt>Initialized&nbsp;this&nbsp;channel.<br>
-:param&nbsp;unevenly_sampled_channel:&nbsp;An&nbsp;instance&nbsp;of&nbsp;an&nbsp;UnevelySampledChannel&nbsp;that&nbsp;contains&nbsp;light&nbsp;payload&nbsp;values.</tt></dd></dl>
-
 <dl><dt><a name="LightSensor-payload_mean"><strong>payload_mean</strong></a>(self) -&gt; float</dt><dd><tt>The&nbsp;mean&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.<br>
 :return:&nbsp;Mean&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.</tt></dd></dl>
 
@@ -532,8 +569,19 @@ Methods defined here:<br>
 
 <hr>
 Methods inherited from <a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>:<br>
+<dl><dt><a name="LightSensor-__init__"><strong>__init__</strong></a>(self, unevenly_sampled_channel:reader.UnevenlySampledChannel)</dt><dd><tt>Initializes&nbsp;this&nbsp;class.<br>
+:param&nbsp;unevenly_sampled_channel:&nbsp;an&nbsp;instance&nbsp;of&nbsp;a&nbsp;<a href="#UnevenlySampledChannel">UnevenlySampledChannel</a></tt></dd></dl>
+
+<dl><dt><a name="LightSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="LightSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
 <dl><dt><a name="LightSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
 :return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="LightSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="LightSensor-sample_interval_mean"><strong>sample_interval_mean</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
 :return:&nbsp;The&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
@@ -574,10 +622,6 @@ Data descriptors inherited from <a href="reader.html#UnevenlySampledSensor">Unev
 </dl>
 <hr>
 Methods defined here:<br>
-<dl><dt><a name="LocationSensor-__init__"><strong>__init__</strong></a>(self, unevenly_sampled_channel:reader.UnevenlySampledChannel)</dt><dd><tt>Initializes&nbsp;this&nbsp;class.<br>
-:param&nbsp;unevenly_sampled_channel:&nbsp;An&nbsp;instance&nbsp;of&nbsp;an&nbsp;<a href="#UnevenlySampledChannel">UnevenlySampledChannel</a>&nbsp;that&nbsp;contains&nbsp;latitude,&nbsp;longitude,<br>
-speed,&nbsp;altitude,&nbsp;and&nbsp;accuracy&nbsp;payload&nbsp;values.</tt></dd></dl>
-
 <dl><dt><a name="LocationSensor-payload_values"><strong>payload_values</strong></a>(self)</dt><dd><tt>Return&nbsp;the&nbsp;location&nbsp;payload&nbsp;as&nbsp;an&nbsp;interleaved&nbsp;payload&nbsp;with&nbsp;the&nbsp;following&nbsp;format:<br>
 [[latitude_0,&nbsp;longitude_0,&nbsp;altitude_0,&nbsp;speed_0,&nbsp;accuracy_0],<br>
 &nbsp;[latitude_1,&nbsp;longitude_1,&nbsp;altitude_1,&nbsp;speed_1,&nbsp;accuracy_1],<br>
@@ -647,8 +691,19 @@ speed,&nbsp;altitude,&nbsp;and&nbsp;accuracy&nbsp;payload&nbsp;values.</tt></dd>
 
 <hr>
 Methods inherited from <a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>:<br>
+<dl><dt><a name="LocationSensor-__init__"><strong>__init__</strong></a>(self, unevenly_sampled_channel:reader.UnevenlySampledChannel)</dt><dd><tt>Initializes&nbsp;this&nbsp;class.<br>
+:param&nbsp;unevenly_sampled_channel:&nbsp;an&nbsp;instance&nbsp;of&nbsp;a&nbsp;<a href="#UnevenlySampledChannel">UnevenlySampledChannel</a></tt></dd></dl>
+
+<dl><dt><a name="LocationSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="LocationSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
 <dl><dt><a name="LocationSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
 :return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="LocationSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="LocationSensor-sample_interval_mean"><strong>sample_interval_mean</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
 :return:&nbsp;The&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
@@ -742,8 +797,16 @@ Methods inherited from <a href="reader.html#XyzUnevenlySampledSensor">XyzUnevenl
 
 <hr>
 Methods inherited from <a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>:<br>
+<dl><dt><a name="MagnetometerSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="MagnetometerSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
 <dl><dt><a name="MagnetometerSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
 :return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="MagnetometerSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="MagnetometerSensor-sample_interval_mean"><strong>sample_interval_mean</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
 :return:&nbsp;The&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
@@ -790,6 +853,9 @@ Methods defined here:<br>
 <dl><dt><a name="MicrophoneSensor-payload_mean"><strong>payload_mean</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.<br>
 :return:&nbsp;The&nbsp;mean&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.</tt></dd></dl>
 
+<dl><dt><a name="MicrophoneSensor-payload_median"><strong>payload_median</strong></a>(self) -&gt; numpy.float64</dt><dd><tt>Returns&nbsp;the&nbsp;median&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.<br>
+:return:&nbsp;The&nbsp;median&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.</tt></dd></dl>
+
 <dl><dt><a name="MicrophoneSensor-payload_std"><strong>payload_std</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;standard&nbsp;deviation&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.<br>
 :return:&nbsp;The&nbsp;standard&nbsp;deviation&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.</tt></dd></dl>
 
@@ -798,11 +864,19 @@ Methods defined here:<br>
 
 <hr>
 Methods inherited from <a href="reader.html#EvenlySampledSensor">EvenlySampledSensor</a>:<br>
+<dl><dt><a name="MicrophoneSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
 <dl><dt><a name="MicrophoneSensor-first_sample_timestamp_epoch_microseconds_utc"><strong>first_sample_timestamp_epoch_microseconds_utc</strong></a>(self) -&gt; int</dt><dd><tt>Return&nbsp;the&nbsp;first&nbsp;sample&nbsp;timestamp&nbsp;in&nbsp;microseconds&nbsp;since&nbsp;the&nbsp;epoch&nbsp;UTC.<br>
 :return:&nbsp;The&nbsp;first&nbsp;sample&nbsp;timestamp&nbsp;in&nbsp;microseconds&nbsp;since&nbsp;the&nbsp;epoch&nbsp;UTC.</tt></dd></dl>
 
+<dl><dt><a name="MicrophoneSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
 <dl><dt><a name="MicrophoneSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
 :return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="MicrophoneSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="MicrophoneSensor-sample_rate_hz"><strong>sample_rate_hz</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;sample&nbsp;rate&nbsp;in&nbsp;Hz&nbsp;of&nbsp;this&nbsp;evenly&nbsp;sampled&nbsp;channel.<br>
 :return:&nbsp;The&nbsp;sample&nbsp;rate&nbsp;in&nbsp;Hz&nbsp;of&nbsp;this&nbsp;evenly&nbsp;sampled&nbsp;channel.</tt></dd></dl>
@@ -825,7 +899,7 @@ Data descriptors inherited from <a href="reader.html#EvenlySampledSensor">Evenly
 <font color="#000000" face="helvetica, arial"><a name="ReaderException">class <strong>ReaderException</strong></a>(<a href="builtins.html#Exception">builtins.Exception</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
-<td colspan=2><tt>Custom&nbsp;exception&nbsp;type&nbsp;for&nbsp;API900&nbsp;reader&nbsp;errors.<br>&nbsp;</tt></td></tr>
+<td colspan=2><tt>Custom&nbsp;reader&nbsp;exception<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%"><dl><dt>Method resolution order:</dt>
 <dd><a href="reader.html#ReaderException">ReaderException</a></dd>
@@ -834,16 +908,14 @@ Data descriptors inherited from <a href="reader.html#EvenlySampledSensor">Evenly
 <dd><a href="builtins.html#object">builtins.object</a></dd>
 </dl>
 <hr>
-Methods defined here:<br>
-<dl><dt><a name="ReaderException-__init__"><strong>__init__</strong></a>(self, msg:str='ReaderException')</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
-
-<hr>
 Data descriptors defined here:<br>
 <dl><dt><strong>__weakref__</strong></dt>
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
 <hr>
 Methods inherited from <a href="builtins.html#Exception">builtins.Exception</a>:<br>
+<dl><dt><a name="ReaderException-__init__"><strong>__init__</strong></a>(self, /, *args, **kwargs)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
 <dl><dt><a name="ReaderException-__new__"><strong>__new__</strong></a>(*args, **kwargs)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;<a href="builtins.html#object">object</a>.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
 
 <hr>
@@ -896,6 +968,17 @@ It&nbsp;should&nbsp;be&nbsp;noted&nbsp;that&nbsp;this&nbsp;class&nbsp;only&nbsp;
 <dl><dt><a name="TimeSynchronizationSensor-__init__"><strong>__init__</strong></a>(self, unevenly_sampled_channel:reader.UnevenlySampledChannel)</dt><dd><tt>Initialized&nbsp;this&nbsp;class.<br>
 :param&nbsp;unevenly_sampled_channel:&nbsp;An&nbsp;unevenly&nbsp;sampled&nbsp;channel&nbsp;with&nbsp;time&nbsp;synchronization&nbsp;payload.</tt></dd></dl>
 
+<dl><dt><a name="TimeSynchronizationSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="TimeSynchronizationSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
+<dl><dt><a name="TimeSynchronizationSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="TimeSynchronizationSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
+
 <dl><dt><a name="TimeSynchronizationSensor-payload_values"><strong>payload_values</strong></a>(self) -&gt; numpy.ndarray</dt><dd><tt>Returns&nbsp;the&nbsp;time&nbsp;synchronization&nbsp;exchanges&nbsp;as&nbsp;a&nbsp;numpy&nbsp;ndarray&nbsp;of&nbsp;integers.<br>
 :return:&nbsp;The&nbsp;time&nbsp;synchronization&nbsp;exchanges&nbsp;as&nbsp;a&nbsp;numpy&nbsp;ndarray&nbsp;of&nbsp;integers.</tt></dd></dl>
 
@@ -941,7 +1024,8 @@ Methods inherited from <a href="reader.html#InterleavedChannel">InterleavedChann
 <dl><dt><a name="UnevenlySampledChannel-get_channel_type_names"><strong>get_channel_type_names</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;the&nbsp;list&nbsp;of&nbsp;channel_types&nbsp;as&nbsp;a&nbsp;list&nbsp;of&nbsp;names&nbsp;instead&nbsp;of&nbsp;enumeration&nbsp;constants.<br>
 :return:&nbsp;The&nbsp;list&nbsp;of&nbsp;channel_types&nbsp;as&nbsp;a&nbsp;list&nbsp;of&nbsp;names&nbsp;instead&nbsp;of&nbsp;enumeration&nbsp;constants.</tt></dd></dl>
 
-<dl><dt><a name="UnevenlySampledChannel-get_metadata_as_dict"><strong>get_metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt></dl>
+<dl><dt><a name="UnevenlySampledChannel-get_metadata_as_dict"><strong>get_metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;any&nbsp;metadata&nbsp;as&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;key-pair&nbsp;values.<br>
+:return:&nbsp;Any&nbsp;metadata&nbsp;as&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;key-pair&nbsp;values.</tt></dd></dl>
 
 <dl><dt><a name="UnevenlySampledChannel-get_multi_payload"><strong>get_multi_payload</strong></a>(self, channel_types:List[int]) -&gt; numpy.ndarray</dt><dd><tt>Returns&nbsp;an&nbsp;interleaved&nbsp;payload&nbsp;with&nbsp;the&nbsp;given&nbsp;channel&nbsp;types.<br>
 :param&nbsp;channel_types:&nbsp;Channel&nbsp;types&nbsp;to&nbsp;interleave&nbsp;into&nbsp;a&nbsp;single&nbsp;payload.<br>
@@ -950,6 +1034,9 @@ Methods inherited from <a href="reader.html#InterleavedChannel">InterleavedChann
 <dl><dt><a name="UnevenlySampledChannel-get_payload"><strong>get_payload</strong></a>(self, channel_type:int) -&gt; numpy.ndarray</dt><dd><tt>Returns&nbsp;a&nbsp;deinterleaved&nbsp;payload&nbsp;of&nbsp;a&nbsp;given&nbsp;channel&nbsp;type&nbsp;or&nbsp;an&nbsp;empty&nbsp;array.<br>
 :param&nbsp;channel_type:&nbsp;The&nbsp;channel&nbsp;type&nbsp;to&nbsp;extract/deinterleave&nbsp;from&nbsp;the&nbsp;payload.<br>
 :return:&nbsp;A&nbsp;numpy&nbsp;array&nbsp;of&nbsp;floats&nbsp;or&nbsp;ints&nbsp;of&nbsp;a&nbsp;single&nbsp;channel&nbsp;type.</tt></dd></dl>
+
+<dl><dt><a name="UnevenlySampledChannel-get_payload_type"><strong>get_payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="UnevenlySampledChannel-get_value_mean"><strong>get_value_mean</strong></a>(self, channel_type:int) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;value&nbsp;for&nbsp;a&nbsp;single&nbsp;channel&nbsp;type.<br>
 :param&nbsp;channel_type:&nbsp;The&nbsp;channel&nbsp;type&nbsp;to&nbsp;extract&nbsp;the&nbsp;mean&nbsp;from.<br>
@@ -995,8 +1082,16 @@ Composition&nbsp;is&nbsp;used&nbsp;instead&nbsp;of&nbsp;inheritance&nbsp;to&nbsp
 <dl><dt><a name="UnevenlySampledSensor-__init__"><strong>__init__</strong></a>(self, unevenly_sampled_channel:reader.UnevenlySampledChannel)</dt><dd><tt>Initializes&nbsp;this&nbsp;class.<br>
 :param&nbsp;unevenly_sampled_channel:&nbsp;an&nbsp;instance&nbsp;of&nbsp;a&nbsp;<a href="#UnevenlySampledChannel">UnevenlySampledChannel</a></tt></dd></dl>
 
+<dl><dt><a name="UnevenlySampledSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="UnevenlySampledSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
 <dl><dt><a name="UnevenlySampledSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
 :return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="UnevenlySampledSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="UnevenlySampledSensor-sample_interval_mean"><strong>sample_interval_mean</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
 :return:&nbsp;The&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
@@ -1170,8 +1265,10 @@ description&nbsp;of&nbsp;this&nbsp;field.</tt></dd></dl>
 <dl><dt><a name="WrappedRedvoxPacket-server_timestamp_epoch_microseconds_utc"><strong>server_timestamp_epoch_microseconds_utc</strong></a>(self) -&gt; int</dt><dd><tt>See&nbsp;https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master&nbsp;for&nbsp;a<br>
 description&nbsp;of&nbsp;this&nbsp;field.</tt></dd></dl>
 
-<dl><dt><a name="WrappedRedvoxPacket-time_synchronization_channel"><strong>time_synchronization_channel</strong></a>(self) -&gt; Union[reader.TimeSynchronizationSensor, NoneType]</dt><dd><tt>Returns&nbsp;the&nbsp;high-level&nbsp;time&nbsp;synchronization&nbsp;channel&nbsp;API&nbsp;or&nbsp;None&nbsp;if&nbsp;this&nbsp;packet&nbsp;doesn't&nbsp;contain&nbsp;a&nbsp;channel&nbsp;of&nbsp;this&nbsp;type.<br>
-:return:&nbsp;the&nbsp;high-level&nbsp;time&nbsp;synchronization&nbsp;channel&nbsp;API&nbsp;or&nbsp;None&nbsp;if&nbsp;this&nbsp;packet&nbsp;doesn't&nbsp;contain&nbsp;a&nbsp;channel&nbsp;of&nbsp;this&nbsp;type.</tt></dd></dl>
+<dl><dt><a name="WrappedRedvoxPacket-time_synchronization_channel"><strong>time_synchronization_channel</strong></a>(self) -&gt; Union[reader.TimeSynchronizationSensor, NoneType]</dt><dd><tt>Returns&nbsp;the&nbsp;high-level&nbsp;time&nbsp;synchronization&nbsp;channel&nbsp;API&nbsp;or&nbsp;None&nbsp;if&nbsp;this&nbsp;packet&nbsp;doesn't&nbsp;contain&nbsp;a&nbsp;channel&nbsp;of<br>
+this&nbsp;type.<br>
+:return:&nbsp;the&nbsp;high-level&nbsp;time&nbsp;synchronization&nbsp;channel&nbsp;API&nbsp;or&nbsp;None&nbsp;if&nbsp;this&nbsp;packet&nbsp;doesn't&nbsp;contain&nbsp;a&nbsp;channel&nbsp;of<br>
+this&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="WrappedRedvoxPacket-time_synchronization_server"><strong>time_synchronization_server</strong></a>(self) -&gt; str</dt><dd><tt>See&nbsp;https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master&nbsp;for&nbsp;a<br>
 description&nbsp;of&nbsp;this&nbsp;field.</tt></dd></dl>
@@ -1252,8 +1349,16 @@ Methods defined here:<br>
 
 <hr>
 Methods inherited from <a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>:<br>
+<dl><dt><a name="XyzUnevenlySampledSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="XyzUnevenlySampledSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
 <dl><dt><a name="XyzUnevenlySampledSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
 :return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="XyzUnevenlySampledSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="XyzUnevenlySampledSensor-sample_interval_mean"><strong>sample_interval_mean</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
 :return:&nbsp;The&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
@@ -1332,6 +1437,9 @@ protobuf&nbsp;type.<br>
  <dl><dt><a name="-lz4_decompress"><strong>lz4_decompress</strong></a>(buf:bytes) -&gt; bytes</dt><dd><tt>Decompresses&nbsp;an&nbsp;API&nbsp;900&nbsp;compressed&nbsp;buffer.<br>
 :param&nbsp;buf:&nbsp;The&nbsp;buffer&nbsp;to&nbsp;decompress.<br>
 :return:&nbsp;The&nbsp;uncompressed&nbsp;buffer.</tt></dd></dl>
+ <dl><dt><a name="-payload_type"><strong>payload_type</strong></a>(channel:Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel]) -&gt; str</dt><dd><tt>Given&nbsp;a&nbsp;channel,&nbsp;return&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;payload's&nbsp;data&nbsp;type.<br>
+:param&nbsp;channel:&nbsp;The&nbsp;channel&nbsp;to&nbsp;check&nbsp;the&nbsp;data&nbsp;type&nbsp;of.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;payload's&nbsp;data&nbsp;type.</tt></dd></dl>
  <dl><dt><a name="-read_buffer"><strong>read_buffer</strong></a>(buf:bytes, is_compressed:bool=True) -&gt; api900_pb2.RedvoxPacket</dt><dd><tt>Deserializes&nbsp;a&nbsp;serialized&nbsp;protobuf&nbsp;RedvoxPacket&nbsp;buffer.<br>
 :param&nbsp;buf:&nbsp;Buffer&nbsp;to&nbsp;deserialize.<br>
 :param&nbsp;is_compressed:&nbsp;Whether&nbsp;or&nbsp;not&nbsp;the&nbsp;buffer&nbsp;is&nbsp;compressed&nbsp;or&nbsp;decompressed.<br>
