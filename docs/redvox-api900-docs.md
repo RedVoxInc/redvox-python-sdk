@@ -200,12 +200,19 @@ redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvx
 if redvox_api900_file.has_microphone_channel():
     # Most of the time, if a device has a sensor, it only has one of them...
     microphone_sensor_channel = redvox_api900_file.microphone_channel()
+
+    # Access to sensor fields
     print(microphone_sensor_channel.sensor_name())
     print(microphone_sensor_channel.sample_rate_hz())
     print(microphone_sensor_channel.first_sample_timestamp_epoch_microseconds_utc())
     print(microphone_sensor_channel.payload_mean())
-    print(microphone_sensor_channel.payload_median())
     print(microphone_sensor_channel.payload_std())
+    print(microphone_sensor_channel.payload_median())
+    print(microphone_sensor_channel.metadata_as_dict())
+    print(microphone_sensor_channel.metadata())
+    print(microphone_sensor_channel.payload_type())
+
+    # Access to sensor values
     print(microphone_sensor_channel.payload_values())
 ```
 
@@ -240,12 +247,16 @@ if redvox_api900_file.has_barometer_channel():
 
     # Access to sensor fields
     print(barometer_sensor_channel.sensor_name())
+    print(barometer_sensor_channel.timestamps_microseconds_utc())
     print(barometer_sensor_channel.sample_interval_mean())
     print(barometer_sensor_channel.sample_interval_median())
     print(barometer_sensor_channel.sample_interval_std())
     print(barometer_sensor_channel.payload_mean())
     print(barometer_sensor_channel.payload_median())
     print(barometer_sensor_channel.payload_std())
+    print(barometer_sensor_channel.metadata_as_dict())
+    print(barometer_sensor_channel.metadata())
+    print(barometer_sensor_channel.payload_type())
 
     # Access to sensor values
     print(barometer_sensor_channel.payload_values())
@@ -297,10 +308,15 @@ redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvx
 if redvox_api900_file.has_location_channel():
     location_channel = redvox_api900_file.location_channel()
 
+    # Access to sensor fields
     print(location_channel.sensor_name())
+    print(location_channel.timestamps_microseconds_utc())
     print(location_channel.sample_interval_mean())
     print(location_channel.sample_interval_median())
     print(location_channel.sample_interval_std())
+    print(location_channel.payload_values_accuracy_mean())
+    print(location_channel.payload_values_accuracy_median())
+    print(location_channel.payload_values_accuracy_std())
 
     # The statistics for the location channels must be accessed individually
     print(location_channel.payload_values_latitude_mean())
@@ -315,9 +331,6 @@ if redvox_api900_file.has_location_channel():
     print(location_channel.payload_values_speed_mean())
     print(location_channel.payload_values_speed_median())
     print(location_channel.payload_values_speed_std())
-    print(location_channel.payload_values_accuracy_mean())
-    print(location_channel.payload_values_accuracy_median())
-    print(location_channel.payload_values_accuracy_std())
 
     # The payload can either be accessed as an interleaved payload
     print(location_channel.payload_values())
@@ -328,6 +341,10 @@ if redvox_api900_file.has_location_channel():
     print(location_channel.payload_values_altitude())
     print(location_channel.payload_values_speed())
     print(location_channel.payload_values_accuracy())
+
+    print(location_channel.metadata_as_dict())
+    print(location_channel.metadata())
+    print(location_channel.payload_type())
 ```
 
 ### Working with time synchronization sensor channels
@@ -352,6 +369,9 @@ redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvx
 if redvox_api900_file.has_time_synchronization_channel():
     time_synchronization_channel = redvox_api900_file.time_synchronization_channel()
     print(time_synchronization_channel.payload_values())
+    print(time_synchronization_channel.metadata_as_dict())
+    print(time_synchronization_channel.metadata())
+    print(time_synchronization_channel.payload_type())
 ```
 
 ### Working with accelerometer sensor channels
@@ -395,6 +415,7 @@ if redvox_api900_file.has_accelerometer_channel():
 
     # Access to sensor fields
     print(accelerometer_channel.sensor_name())
+    print(accelerometer_channel.timestamps_microseconds_utc())
     print(accelerometer_channel.sample_interval_mean())
     print(accelerometer_channel.sample_interval_median())
     print(accelerometer_channel.sample_interval_std())
@@ -418,6 +439,9 @@ if redvox_api900_file.has_accelerometer_channel():
     print(accelerometer_channel.payload_values_y())
     print(accelerometer_channel.payload_values_z())
 
+    print(accelerometer_channel.metadata_as_dict())
+    print(accelerometer_channel.metadata())
+    print(accelerometer_channel.payload_type())
 ```
 
 ### Working with magnetometer sensor channels
@@ -461,6 +485,7 @@ if redvox_api900_file.has_magnetometer_channel():
 
     # Access to sensor fields
     print(magnetometer_channel.sensor_name())
+    print(magnetometer_channel.timestamps_microseconds_utc())
     print(magnetometer_channel.sample_interval_mean())
     print(magnetometer_channel.sample_interval_median())
     print(magnetometer_channel.sample_interval_std())
@@ -484,6 +509,9 @@ if redvox_api900_file.has_magnetometer_channel():
     print(magnetometer_channel.payload_values_y())
     print(magnetometer_channel.payload_values_z())
 
+    print(magnetometer_channel.metadata_as_dict())
+    print(magnetometer_channel.metadata())
+    print(magnetometer_channel.payload_type())
 ```
 
 ### Working with gyroscope sensor channels
@@ -526,6 +554,7 @@ if redvox_api900_file.has_magnetometer_channel():
 
     # Access to sensor fields
     print(gyroscope_channel.sensor_name())
+    print(gyroscope_channel.timestamps_microseconds_utc())
     print(gyroscope_channel.sample_interval_mean())
     print(gyroscope_channel.sample_interval_median())
     print(gyroscope_channel.sample_interval_std())
@@ -548,6 +577,10 @@ if redvox_api900_file.has_magnetometer_channel():
     print(gyroscope_channel.payload_values_x())
     print(gyroscope_channel.payload_values_y())
     print(gyroscope_channel.payload_values_z())
+
+    print(gyroscope_channel.metadata_as_dict())
+    print(gyroscope_channel.metadata())
+    print(gyroscope_channel.payload_type())
 
 ```
 
@@ -577,12 +610,12 @@ The `LightSensor` class contains methods for directly accessing the fields and p
 ```
 redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
 
-# The light channel
 if redvox_api900_file.has_light_channel():
     light_sensor_channel = redvox_api900_file.light_channel()
 
     # Access to sensor fields
     print(light_sensor_channel.sensor_name())
+    print(light_sensor_channel.timestamps_microseconds_utc())
     print(light_sensor_channel.sample_interval_mean())
     print(light_sensor_channel.sample_interval_median())
     print(light_sensor_channel.sample_interval_std())
@@ -593,4 +626,7 @@ if redvox_api900_file.has_light_channel():
     # Access to sensor values
     print(light_sensor_channel.payload_values())
 
+    print(light_sensor_channel.metadata_as_dict())
+    print(light_sensor_channel.metadata())
+    print(light_sensor_channel.payload_type())
 ```
