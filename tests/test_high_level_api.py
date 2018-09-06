@@ -239,6 +239,19 @@ class TestEvenlySampledSensor(unittest.TestCase):
         self.assertEqual(synthetic_dict["c"], "d")
         self.assertEqual(len(self.example_microphone_channel.metadata_as_dict()), 0)
 
+    def test_metadata(self):
+        synthetic_list = self.synthetic_microphone_channel.metadata()
+        self.assertEqual(len(synthetic_list), 4)
+        self.assertListEqual(synthetic_list, ["a", "b", "c", "d"])
+
+    def test_str(self):
+        self.assertTrue("I/INTERNAL MIC" in str(self.example_microphone_channel))
+        self.assertTrue("test microphone sensor name" in str(self.synthetic_microphone_channel))
+
+    def test_payload_type(self):
+        self.assertEqual(self.synthetic_microphone_channel.payload_type(), "int32_payload")
+        self.assertEqual(self.example_microphone_channel.payload_type(), "int32_payload")
+
 
 class TestUnevenlySampledSensor(ArraysTestCase):
     def setUp(self):
@@ -364,6 +377,19 @@ class TestUnevenlySampledSensor(ArraysTestCase):
         self.assertEqual(synthetic_dict["foo"], "baz")
         self.assertEqual(len(self.example_barometer_channel.metadata_as_dict()), 0)
 
+    def test_metadata(self):
+        synthetic_list = self.synthetic_barometer_channel.metadata()
+        self.assertEqual(len(synthetic_list), 2)
+        self.assertListEqual(synthetic_list, ["foo", "baz"])
+
+    def test_str(self):
+        self.assertTrue("sensor_name: BMP285 pressure" in str(self.example_barometer_channel))
+        self.assertTrue("sensor_name: test barometer sensor name" in str(self.synthetic_barometer_channel))
+
+    def test_payload_type(self):
+        self.assertEqual(self.synthetic_barometer_channel.payload_type(), "float64_payload")
+        self.assertEqual(self.example_barometer_channel.payload_type(), "float64_payload")
+
 
 class TestUnevenlyXyzSampledSensor(ArraysTestCase):
     def setUp(self):
@@ -488,6 +514,8 @@ class TestMicrophoneSensor(ArraysTestCase):
         self.assertEqual(self.synthetic_microphone_channel.payload_std(), 3.0277)
         self.assertAlmostEqual(self.example_microphone_channel.payload_std(), 2455.820326625975, 3)
 
+    def test_payload_median(self):
+        self.assertEqual(self.synthetic_microphone_channel.payload_median(), 5.5)
 
 class TestBarometerSensor(ArraysTestCase):
     def setUp(self):
@@ -656,6 +684,28 @@ class TestTimeSynchronizationSensor(ArraysTestCase):
                                               1532656908726106, 1532656891468100, 1532656891468121, 1532656891559835,
                                               1532656914631613, 1532656914727450, 1532656914727451, 1532656897467377,
                                               1532656897467397, 1532656897560456]))
+
+    def test_metadata_as_dict(self):
+        synthetic_dict = self.synthetic_time_sync.metadata_as_dict()
+        self.assertEqual(len(synthetic_dict), 2)
+        self.assertTrue("a" in synthetic_dict and "c" in synthetic_dict)
+        self.assertEqual(synthetic_dict["a"], "b")
+        self.assertEqual(synthetic_dict["c"], "d")
+        self.assertEqual(len(self.example_time_sync.metadata_as_dict()), 0)
+
+    def test_metadata(self):
+        synthetic_list = self.synthetic_time_sync.metadata()
+        self.assertEqual(len(synthetic_list), 4)
+        self.assertListEqual(synthetic_list, ["a", "b", "c", "d"])
+
+    def test_str(self):
+        self.assertTrue("sensor_name: " in str(self.example_time_sync))
+        self.assertTrue("sensor_name: " in str(self.synthetic_time_sync))
+
+    def test_payload_type(self):
+        print(self.synthetic_time_sync.payload_type())
+        self.assertEqual(self.synthetic_time_sync.payload_type(), "int64_payload")
+        self.assertEqual(self.example_time_sync.payload_type(), "int64_payload")
 
 
 class TestAccelerometerSensor(unittest.TestCase):

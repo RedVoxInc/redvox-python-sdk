@@ -91,7 +91,8 @@ def with_unevenly_sampled_channel(redvox_packet: api900_pb2.RedvoxPacket,
                                   channel_types: typing.List[int],
                                   sensor_name: str,
                                   timestamps: typing.List[int],
-                                  payload: typing.List[float],
+                                  payload_float64: typing.Optional[typing.List[float]],
+                                  payload_int64: typing.Optional[typing.List[int]],
                                   value_means: typing.List[float],
                                   value_stds: typing.List[float],
                                   value_medians: typing.List[float],
@@ -103,7 +104,10 @@ def with_unevenly_sampled_channel(redvox_packet: api900_pb2.RedvoxPacket,
     unevenly_sampled_channel.channel_types.extend(channel_types)
     unevenly_sampled_channel.sensor_name = sensor_name
     unevenly_sampled_channel.timestamps_microseconds_utc.extend(timestamps)
-    unevenly_sampled_channel.float32_payload.payload.extend(payload)
+    if payload_float64 is not None:
+        unevenly_sampled_channel.float64_payload.payload.extend(payload_float64)
+    if payload_int64 is not None:
+        unevenly_sampled_channel.int64_payload.payload.extend(payload_int64)
     unevenly_sampled_channel.value_means.extend(value_means)
     unevenly_sampled_channel.value_stds.extend(value_stds)
     unevenly_sampled_channel.value_medians.extend(value_medians)
@@ -138,6 +142,7 @@ def synthetic_time_synch_packet():
                                          [api900_pb2.TIME_SYNCHRONIZATION],
                                          "",
                                          [],
+                                         None,
                                          [1, 2, 3, 4, 5],
                                          [],
                                          [],
@@ -145,7 +150,7 @@ def synthetic_time_synch_packet():
                                          0.0,
                                          0.0,
                                          0.0,
-                                         [])
+                                         ["a", "b", "c", "d"])
 
 
 def simple_unevenly_sampled_packet():
@@ -154,6 +159,7 @@ def simple_unevenly_sampled_packet():
                                          "test other sensor name",
                                          [1, 2, 3, 4, 5],
                                          [1.0, 2.0, 3.0, 4.0, 5.0],
+                                         None,
                                          [1.0],
                                          [2.0],
                                          [3.0],
@@ -169,6 +175,7 @@ def simple_bar_packet():
                                          "test barometer sensor name",
                                          [1, 2, 3, 4, 5],
                                          [1.0, 2.0, 3.0, 4.0, 5.0],
+                                         None,
                                          [1.0],
                                          [2.0],
                                          [3.0],
@@ -184,6 +191,7 @@ def synthetic_light_packet():
                                          "test light sensor name",
                                          [1, 2, 3, 4, 5],
                                          [1.0, 2.0, 3.0, 4.0, 5.0],
+                                         None,
                                          [1.0],
                                          [2.0],
                                          [3.0],
@@ -207,6 +215,7 @@ def simple_gps_packet():
                                           21.0, 157.0, 3.0, 27.0, 12.0,
                                           22.0, 158.0, 4.0, 28.0, 13.0,
                                           23.0, 159.0, 5.0, 29.0, 14.0],
+                                         None,
                                          [1, 2, 3, 4, 5],
                                          [1, 2, 3, 4, 5],
                                          [1, 2, 3, 4, 5],
@@ -228,6 +237,7 @@ def synthetic_accelerometer_packet():
                                           21.0, 157.0, 3.0,
                                           22.0, 158.0, 4.0,
                                           23.0, 159.0, 5.0],
+                                         None,
                                          [1, 2, 3],
                                          [1, 2, 3],
                                          [1, 2, 3],
@@ -249,6 +259,7 @@ def synthetic_magnetometer_packet():
                                           21.0, 157.0, 3.0,
                                           22.0, 158.0, 4.0,
                                           23.0, 159.0, 5.0],
+                                         None,
                                          [1, 2, 3],
                                          [1, 2, 3],
                                          [1, 2, 3],
@@ -270,6 +281,7 @@ def synthetic_gyroscope_packet():
                                           21.0, 157.0, 3.0,
                                           22.0, 158.0, 4.0,
                                           23.0, 159.0, 5.0],
+                                         None,
                                          [1, 2, 3],
                                          [1, 2, 3],
                                          [1, 2, 3],
@@ -296,6 +308,7 @@ def multi_channel_packet():
                                            "test other sensor name",
                                            [1, 2, 3, 4, 5],
                                            [1.0, 2.0, 3.0, 4.0, 5.0],
+                                           None,
                                            [1.0],
                                            [2.0],
                                            [3.0],
