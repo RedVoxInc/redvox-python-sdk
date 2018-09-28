@@ -4,7 +4,7 @@ with open("requirements.txt", "r") as requirements_file:
     requirements = list(map(lambda line: line.strip(), requirements_file.readlines()))
 
 setup(name='redvox',
-    version='1.2.0',
+    version='1.2.1',
     url='https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/',
     license='Apache',
     author='RedVox',
