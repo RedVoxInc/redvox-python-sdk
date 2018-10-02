@@ -1137,6 +1137,38 @@ class LightSensor(UnevenlySampledSensor):
         return self.unevenly_sampled_channel.get_value_std(api900_pb2.LIGHT)
 
 
+class InfraredSensor(UnevenlySampledSensor):
+    """High-level wrapper around light channels."""
+
+    def payload_values(self) -> numpy.ndarray:
+        """
+        Returns a numpy ndarray of floats representing this sensor's payload.
+        :return: A numpy ndarray of floats representing this sensor's payload.
+        """
+        return self.unevenly_sampled_channel.get_payload(api900_pb2.INFRARED)
+
+    def payload_mean(self) -> float:
+        """
+        The mean of this channel's payload.
+        :return: Mean of this channel's payload.
+        """
+        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.INFRARED)
+
+    def payload_median(self) -> float:
+        """
+        The median of this channel's payload.
+        :return: Median of this channel's payload.
+        """
+        return self.unevenly_sampled_channel.get_value_median(api900_pb2.INFRARED)
+
+    def payload_std(self) -> float:
+        """
+        The standard deviation of this channel's payload.
+        :return: Standard deviation of this channel's payload.
+        """
+        return self.unevenly_sampled_channel.get_value_std(api900_pb2.INFRARED)
+
+
 # pylint: disable=R0904
 class WrappedRedvoxPacket:
     """
