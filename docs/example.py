@@ -153,7 +153,7 @@ if redvox_api900_file.has_accelerometer_channel():
 
 # Magnetometer channel
 if redvox_api900_file.has_magnetometer_channel():
-    magnetometer_channel = redvox_api900_file.accelerometer_channel()
+    magnetometer_channel = redvox_api900_file.magnetometer_channel()
 
     # Access to sensor fields
     print(magnetometer_channel.sensor_name())
@@ -187,7 +187,7 @@ if redvox_api900_file.has_magnetometer_channel():
 
 # Gyroscope channel
 if redvox_api900_file.has_magnetometer_channel():
-    gyroscope_channel = redvox_api900_file.accelerometer_channel()
+    gyroscope_channel = redvox_api900_file.gyroscope_channel()
 
     # Access to sensor fields
     print(gyroscope_channel.sensor_name())

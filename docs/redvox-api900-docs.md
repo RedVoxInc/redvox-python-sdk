@@ -481,7 +481,7 @@ redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvx
 
 # Magnetometer channel
 if redvox_api900_file.has_magnetometer_channel():
-    magnetometer_channel = redvox_api900_file.accelerometer_channel()
+    magnetometer_channel = redvox_api900_file.magnetometer_channel()
 
     # Access to sensor fields
     print(magnetometer_channel.sensor_name())
@@ -550,7 +550,7 @@ The `GyroscopeSensor` class contains methods for directly accessing the fields a
 redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
 
 if redvox_api900_file.has_magnetometer_channel():
-    gyroscope_channel = redvox_api900_file.accelerometer_channel()
+    gyroscope_channel = redvox_api900_file.gyroscope_channel()
 
     # Access to sensor fields
     print(gyroscope_channel.sensor_name())
@@ -605,7 +605,7 @@ The `LightSensor` class contains methods for directly accessing the fields and p
 | metadata() | List[str] | Returns this channel's metadata |
 | payload_type() | str | Return this channel's internal protobuf type as a string |
 
-##### Example barometer sensor reading
+##### Example light sensor reading
 
 ```
 redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
