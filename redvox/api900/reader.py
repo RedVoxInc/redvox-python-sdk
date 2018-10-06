@@ -1473,8 +1473,10 @@ class WrappedRedvoxPacket:
         Returns if this packet has a location channel.
         :return: If this packet has a location channel.
         """
-        return self.has_channels(
-            [api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED, api900_pb2.ACCURACY])
+        return (self.has_channels(
+            [api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED, api900_pb2.ACCURACY]) or
+                self.has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE]))
+
 
     def location_channel(self) -> typing.Optional[LocationSensor]:
         """
