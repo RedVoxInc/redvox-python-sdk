@@ -1477,7 +1477,6 @@ class WrappedRedvoxPacket:
             [api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED, api900_pb2.ACCURACY]) or
                 self.has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE]))
 
-
     def location_channel(self) -> typing.Optional[LocationSensor]:
         """
         Returns the high-level location channel API or None if this packet doesn't contain a channel of this type.
