@@ -1226,8 +1226,8 @@ class ImageSensor(UnevenlySampledSensor):
 
         if idx == self.num_images() - 1:
             return self.payload_values()[self.image_offsets[idx]:]
-        else:
-            return self.payload_values()[self.image_offsets[idx]:self.image_offsets[idx + 1]]
+
+        return self.payload_values()[self.image_offsets[idx]:self.image_offsets[idx + 1]]
 
     def write_image_to_file(self, idx: int, path: str):
         """
@@ -1667,18 +1667,34 @@ class WrappedRedvoxPacket:
         return None
 
     def has_infrared_channel(self) -> bool:
+        """
+        Returns if this packet has an infrared channel.
+        :return: If this packlet has an infrared channel.
+        """
         return self.has_channel(api900_pb2.INFRARED)
 
     def infrared_channel(self) -> typing.Optional[InfraredSensor]:
+        """
+        Returns the high-level infrared channel API or None if this packet doesn't contain a channel of this type.
+        :return: the high-level infrared channel API or None if this packet doesn't contain a channel of this type.
+        """
         if self.has_infrared_channel():
             return InfraredSensor(self.get_channel(api900_pb2.INFRARED))
 
         return None
 
     def has_image_channel(self) -> bool:
+        """
+        Returns if this packet has an image channel.
+        :return: If this packlet has an image channel.
+        """
         return self.has_channel(api900_pb2.IMAGE)
 
     def image_channel(self) -> typing.Optional[ImageSensor]:
+        """
+        Returns the high-level image channel API or None if this packet doesn't contain a channel of this type.
+        :return: the high-level image channel API or None if this packet doesn't contain a channel of this type.
+        """
         if self.has_image_channel():
             return ImageSensor(self.get_channel(api900_pb2.IMAGE))
 
