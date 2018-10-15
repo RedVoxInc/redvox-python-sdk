@@ -1370,9 +1370,11 @@ interleaved&nbsp;channels.<br>
 <dl><dt><a name="WrappedRedvoxPacket-has_gyroscope_channel"><strong>has_gyroscope_channel</strong></a>(self) -&gt; bool</dt><dd><tt>Returns&nbsp;if&nbsp;this&nbsp;packet&nbsp;has&nbsp;a&nbsp;gyroscope&nbsp;channel.<br>
 :return:&nbsp;If&nbsp;this&nbsp;packet&nbsp;has&nbsp;a&nbsp;gyroscope&nbsp;channel.</tt></dd></dl>
 
-<dl><dt><a name="WrappedRedvoxPacket-has_image_channel"><strong>has_image_channel</strong></a>(self) -&gt; bool</dt></dl>
+<dl><dt><a name="WrappedRedvoxPacket-has_image_channel"><strong>has_image_channel</strong></a>(self) -&gt; bool</dt><dd><tt>Returns&nbsp;if&nbsp;this&nbsp;packet&nbsp;has&nbsp;an&nbsp;image&nbsp;channel.<br>
+:return:&nbsp;If&nbsp;this&nbsp;packlet&nbsp;has&nbsp;an&nbsp;image&nbsp;channel.</tt></dd></dl>
 
-<dl><dt><a name="WrappedRedvoxPacket-has_infrared_channel"><strong>has_infrared_channel</strong></a>(self) -&gt; bool</dt></dl>
+<dl><dt><a name="WrappedRedvoxPacket-has_infrared_channel"><strong>has_infrared_channel</strong></a>(self) -&gt; bool</dt><dd><tt>Returns&nbsp;if&nbsp;this&nbsp;packet&nbsp;has&nbsp;an&nbsp;infrared&nbsp;channel.<br>
+:return:&nbsp;If&nbsp;this&nbsp;packlet&nbsp;has&nbsp;an&nbsp;infrared&nbsp;channel.</tt></dd></dl>
 
 <dl><dt><a name="WrappedRedvoxPacket-has_light_channel"><strong>has_light_channel</strong></a>(self) -&gt; bool</dt><dd><tt>Returns&nbsp;if&nbsp;this&nbsp;packet&nbsp;has&nbsp;a&nbsp;light&nbsp;channel.<br>
 :return:&nbsp;If&nbsp;this&nbsp;packet&nbsp;has&nbsp;a&nbsp;light&nbsp;channel.</tt></dd></dl>
@@ -1389,9 +1391,11 @@ interleaved&nbsp;channels.<br>
 <dl><dt><a name="WrappedRedvoxPacket-has_time_synchronization_channel"><strong>has_time_synchronization_channel</strong></a>(self) -&gt; bool</dt><dd><tt>Returns&nbsp;if&nbsp;this&nbsp;packet&nbsp;has&nbsp;a&nbsp;time&nbsp;synchronization&nbsp;channel.<br>
 :return:&nbsp;If&nbsp;this&nbsp;packet&nbsp;has&nbsp;a&nbsp;time&nbsp;synchronization&nbsp;channel.</tt></dd></dl>
 
-<dl><dt><a name="WrappedRedvoxPacket-image_channel"><strong>image_channel</strong></a>(self) -&gt; Union[reader.ImageSensor, NoneType]</dt></dl>
+<dl><dt><a name="WrappedRedvoxPacket-image_channel"><strong>image_channel</strong></a>(self) -&gt; Union[reader.ImageSensor, NoneType]</dt><dd><tt>Returns&nbsp;the&nbsp;high-level&nbsp;image&nbsp;channel&nbsp;API&nbsp;or&nbsp;None&nbsp;if&nbsp;this&nbsp;packet&nbsp;doesn't&nbsp;contain&nbsp;a&nbsp;channel&nbsp;of&nbsp;this&nbsp;type.<br>
+:return:&nbsp;the&nbsp;high-level&nbsp;image&nbsp;channel&nbsp;API&nbsp;or&nbsp;None&nbsp;if&nbsp;this&nbsp;packet&nbsp;doesn't&nbsp;contain&nbsp;a&nbsp;channel&nbsp;of&nbsp;this&nbsp;type.</tt></dd></dl>
 
-<dl><dt><a name="WrappedRedvoxPacket-infrared_channel"><strong>infrared_channel</strong></a>(self) -&gt; Union[reader.InfraredSensor, NoneType]</dt></dl>
+<dl><dt><a name="WrappedRedvoxPacket-infrared_channel"><strong>infrared_channel</strong></a>(self) -&gt; Union[reader.InfraredSensor, NoneType]</dt><dd><tt>Returns&nbsp;the&nbsp;high-level&nbsp;infrared&nbsp;channel&nbsp;API&nbsp;or&nbsp;None&nbsp;if&nbsp;this&nbsp;packet&nbsp;doesn't&nbsp;contain&nbsp;a&nbsp;channel&nbsp;of&nbsp;this&nbsp;type.<br>
+:return:&nbsp;the&nbsp;high-level&nbsp;infrared&nbsp;channel&nbsp;API&nbsp;or&nbsp;None&nbsp;if&nbsp;this&nbsp;packet&nbsp;doesn't&nbsp;contain&nbsp;a&nbsp;channel&nbsp;of&nbsp;this&nbsp;type.</tt></dd></dl>
 
 <dl><dt><a name="WrappedRedvoxPacket-is_backfilled"><strong>is_backfilled</strong></a>(self) -&gt; bool</dt><dd><tt>See&nbsp;https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master&nbsp;for&nbsp;a<br>
 description&nbsp;of&nbsp;this&nbsp;field.</tt></dd></dl>
