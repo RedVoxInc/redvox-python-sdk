@@ -58,6 +58,8 @@
 </font></dt><dd>
 <dl>
 <dt><font face="helvetica, arial"><a href="reader.html#BarometerSensor">BarometerSensor</a>
+</font></dt><dt><font face="helvetica, arial"><a href="reader.html#ImageSensor">ImageSensor</a>
+</font></dt><dt><font face="helvetica, arial"><a href="reader.html#InfraredSensor">InfraredSensor</a>
 </font></dt><dt><font face="helvetica, arial"><a href="reader.html#LightSensor">LightSensor</a>
 </font></dt><dt><font face="helvetica, arial"><a href="reader.html#LocationSensor">LocationSensor</a>
 </font></dt><dt><font face="helvetica, arial"><a href="reader.html#XyzUnevenlySampledSensor">XyzUnevenlySampledSensor</a>
@@ -450,6 +452,154 @@ Methods inherited from <a href="reader.html#UnevenlySampledSensor">UnevenlySampl
 :return:&nbsp;The&nbsp;sensor&nbsp;name&nbsp;associated&nbsp;with&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;channel.</tt></dd></dl>
 
 <dl><dt><a name="GyroscopeSensor-timestamps_microseconds_utc"><strong>timestamps_microseconds_utc</strong></a>(self) -&gt; numpy.ndarray</dt><dd><tt>Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;ascending&nbsp;timestamps&nbsp;that&nbsp;associate&nbsp;with&nbsp;each&nbsp;sample&nbsp;value<br>
+:return:&nbsp;A&nbsp;list&nbsp;of&nbsp;ascending&nbsp;timestamps&nbsp;that&nbsp;associate&nbsp;with&nbsp;each&nbsp;sample&nbsp;value</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ImageSensor">class <strong>ImageSensor</strong></a>(<a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>High-level&nbsp;wrapper&nbsp;around&nbsp;image&nbsp;channels.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="reader.html#ImageSensor">ImageSensor</a></dd>
+<dd><a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="ImageSensor-__init__"><strong>__init__</strong></a>(self, unevenly_sampled_channel:reader.UnevenlySampledChannel)</dt><dd><tt>Initializes&nbsp;this&nbsp;<a href="#ImageSensor">ImageSensor</a>.<br>
+:param&nbsp;unevenly_sampled_channel:&nbsp;The&nbsp;image&nbsp;channel.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Provide&nbsp;image&nbsp;information&nbsp;in&nbsp;str&nbsp;of&nbsp;this&nbsp;instance</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-default_filename"><strong>default_filename</strong></a>(self, idx:int) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;a&nbsp;default&nbsp;file&nbsp;name&nbsp;for&nbsp;the&nbsp;image&nbsp;at&nbsp;the&nbsp;given&nbsp;index&nbsp;by&nbsp;using&nbsp;the&nbsp;timestamp&nbsp;of&nbsp;the&nbsp;image.<br>
+:param&nbsp;idx:&nbsp;The&nbsp;index&nbsp;of&nbsp;the&nbsp;image&nbsp;in&nbsp;this&nbsp;channel&nbsp;(starting&nbsp;at&nbsp;0).<br>
+:return:&nbsp;A&nbsp;default&nbsp;filename&nbsp;of&nbsp;the&nbsp;format&nbsp;timestamp.jpg.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-get_image_bytes"><strong>get_image_bytes</strong></a>(self, idx:int) -&gt; numpy.ndarray</dt><dd><tt>Return&nbsp;the&nbsp;bytes&nbsp;associated&nbsp;with&nbsp;an&nbsp;image&nbsp;at&nbsp;this&nbsp;channel's&nbsp;given&nbsp;image&nbsp;index.<br>
+:param&nbsp;idx:&nbsp;The&nbsp;image&nbsp;from&nbsp;this&nbsp;channel&nbsp;to&nbsp;retrieve&nbsp;(starting&nbsp;from&nbsp;0).<br>
+:return:&nbsp;A&nbsp;numpy&nbsp;array&nbsp;of&nbsp;uint8s&nbsp;representing&nbsp;the&nbsp;bytes&nbsp;of&nbsp;a&nbsp;selected&nbsp;image.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-num_images"><strong>num_images</strong></a>(self) -&gt; int</dt><dd><tt>Returns&nbsp;the&nbsp;number&nbsp;of&nbsp;images&nbsp;in&nbsp;this&nbsp;packet's&nbsp;image&nbsp;channel.<br>
+:return:&nbsp;The&nbsp;number&nbsp;of&nbsp;images&nbsp;in&nbsp;this&nbsp;packet's&nbsp;image&nbsp;channel.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-parse_offsets"><strong>parse_offsets</strong></a>(self) -&gt; List[int]</dt><dd><tt>Parses&nbsp;the&nbsp;metadata&nbsp;of&nbsp;this&nbsp;channel&nbsp;to&nbsp;extract&nbsp;the&nbsp;image&nbsp;byte&nbsp;offsets&nbsp;into&nbsp;the&nbsp;payload.<br>
+:return:&nbsp;A&nbsp;list&nbsp;of&nbsp;image&nbsp;byte&nbsp;offsets.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-payload_values"><strong>payload_values</strong></a>(self) -&gt; numpy.ndarray</dt><dd><tt>Returns&nbsp;a&nbsp;numpy&nbsp;ndarray&nbsp;of&nbsp;uint8s&nbsp;representing&nbsp;this&nbsp;sensor's&nbsp;payload.&nbsp;This&nbsp;byte&nbsp;blob&nbsp;may&nbsp;contain&nbsp;multiple<br>
+images.&nbsp;The&nbsp;byte&nbsp;offset&nbsp;of&nbsp;each&nbsp;image&nbsp;should&nbsp;be&nbsp;stored&nbsp;in&nbsp;this&nbsp;channels&nbsp;metadata&nbsp;as&nbsp;images="[offset_0,<br>
+offset_1,&nbsp;...,&nbsp;offset_n]".<br>
+:return:&nbsp;A&nbsp;numpy&nbsp;ndarray&nbsp;of&nbsp;floats&nbsp;representing&nbsp;this&nbsp;sensor's&nbsp;payload.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-write_all_images_to_directory"><strong>write_all_images_to_directory</strong></a>(self, directory:str='.')</dt><dd><tt>Write&nbsp;all&nbsp;images&nbsp;in&nbsp;this&nbsp;packet&nbsp;to&nbsp;the&nbsp;provided&nbsp;directory&nbsp;using&nbsp;default&nbsp;filenames.<br>
+:param&nbsp;directory:&nbsp;The&nbsp;directory&nbsp;to&nbsp;write&nbsp;the&nbsp;images&nbsp;to.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-write_image_to_file"><strong>write_image_to_file</strong></a>(self, idx:int, path:str)</dt><dd><tt>Writes&nbsp;an&nbsp;image&nbsp;to&nbsp;a&nbsp;file&nbsp;with&nbsp;a&nbsp;given&nbsp;file&nbsp;name.<br>
+:param&nbsp;idx:&nbsp;The&nbsp;index&nbsp;of&nbsp;the&nbsp;image&nbsp;in&nbsp;this&nbsp;channel&nbsp;(starting&nbsp;at&nbsp;0).<br>
+:param&nbsp;path:&nbsp;The&nbsp;full&nbsp;path&nbsp;and&nbsp;file&nbsp;name&nbsp;to&nbsp;save&nbsp;this&nbsp;image&nbsp;as.</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>:<br>
+<dl><dt><a name="ImageSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-sample_interval_mean"><strong>sample_interval_mean</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
+:return:&nbsp;The&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-sample_interval_median"><strong>sample_interval_median</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;median&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
+:return:&nbsp;The&nbsp;median&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-sample_interval_std"><strong>sample_interval_std</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;standard&nbsp;deviation&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
+:return:&nbsp;The&nbsp;standard&nbsp;deviation&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-sensor_name"><strong>sensor_name</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;sensor&nbsp;name&nbsp;associated&nbsp;with&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;channel.<br>
+:return:&nbsp;The&nbsp;sensor&nbsp;name&nbsp;associated&nbsp;with&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;channel.</tt></dd></dl>
+
+<dl><dt><a name="ImageSensor-timestamps_microseconds_utc"><strong>timestamps_microseconds_utc</strong></a>(self) -&gt; numpy.ndarray</dt><dd><tt>Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;ascending&nbsp;timestamps&nbsp;that&nbsp;associate&nbsp;with&nbsp;each&nbsp;sample&nbsp;value<br>
+:return:&nbsp;A&nbsp;list&nbsp;of&nbsp;ascending&nbsp;timestamps&nbsp;that&nbsp;associate&nbsp;with&nbsp;each&nbsp;sample&nbsp;value</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="InfraredSensor">class <strong>InfraredSensor</strong></a>(<a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>High-level&nbsp;wrapper&nbsp;around&nbsp;light&nbsp;channels.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="reader.html#InfraredSensor">InfraredSensor</a></dd>
+<dd><a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="InfraredSensor-payload_mean"><strong>payload_mean</strong></a>(self) -&gt; float</dt><dd><tt>The&nbsp;mean&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.<br>
+:return:&nbsp;Mean&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.</tt></dd></dl>
+
+<dl><dt><a name="InfraredSensor-payload_median"><strong>payload_median</strong></a>(self) -&gt; float</dt><dd><tt>The&nbsp;median&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.<br>
+:return:&nbsp;Median&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.</tt></dd></dl>
+
+<dl><dt><a name="InfraredSensor-payload_std"><strong>payload_std</strong></a>(self) -&gt; float</dt><dd><tt>The&nbsp;standard&nbsp;deviation&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.<br>
+:return:&nbsp;Standard&nbsp;deviation&nbsp;of&nbsp;this&nbsp;channel's&nbsp;payload.</tt></dd></dl>
+
+<dl><dt><a name="InfraredSensor-payload_values"><strong>payload_values</strong></a>(self) -&gt; numpy.ndarray</dt><dd><tt>Returns&nbsp;a&nbsp;numpy&nbsp;ndarray&nbsp;of&nbsp;floats&nbsp;representing&nbsp;this&nbsp;sensor's&nbsp;payload.<br>
+:return:&nbsp;A&nbsp;numpy&nbsp;ndarray&nbsp;of&nbsp;floats&nbsp;representing&nbsp;this&nbsp;sensor's&nbsp;payload.</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="reader.html#UnevenlySampledSensor">UnevenlySampledSensor</a>:<br>
+<dl><dt><a name="InfraredSensor-__init__"><strong>__init__</strong></a>(self, unevenly_sampled_channel:reader.UnevenlySampledChannel)</dt><dd><tt>Initializes&nbsp;this&nbsp;class.<br>
+:param&nbsp;unevenly_sampled_channel:&nbsp;an&nbsp;instance&nbsp;of&nbsp;a&nbsp;<a href="#UnevenlySampledChannel">UnevenlySampledChannel</a></tt></dd></dl>
+
+<dl><dt><a name="InfraredSensor-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="InfraredSensor-metadata"><strong>metadata</strong></a>(self) -&gt; List[str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;list.</tt></dd></dl>
+
+<dl><dt><a name="InfraredSensor-metadata_as_dict"><strong>metadata_as_dict</strong></a>(self) -&gt; Dict[str, str]</dt><dd><tt>Returns&nbsp;this&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.<br>
+:return:&nbsp;This&nbsp;channel's&nbsp;metadata&nbsp;(if&nbsp;there&nbsp;is&nbsp;any)&nbsp;as&nbsp;a&nbsp;Python&nbsp;dictionary.</tt></dd></dl>
+
+<dl><dt><a name="InfraredSensor-payload_type"><strong>payload_type</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.<br>
+:return:&nbsp;The&nbsp;internal&nbsp;protobuf&nbsp;payload&nbsp;type.</tt></dd></dl>
+
+<dl><dt><a name="InfraredSensor-sample_interval_mean"><strong>sample_interval_mean</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
+:return:&nbsp;The&nbsp;mean&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
+
+<dl><dt><a name="InfraredSensor-sample_interval_median"><strong>sample_interval_median</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;median&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
+:return:&nbsp;The&nbsp;median&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
+
+<dl><dt><a name="InfraredSensor-sample_interval_std"><strong>sample_interval_std</strong></a>(self) -&gt; float</dt><dd><tt>Returns&nbsp;the&nbsp;standard&nbsp;deviation&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.<br>
+:return:&nbsp;The&nbsp;standard&nbsp;deviation&nbsp;sample&nbsp;interval&nbsp;for&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;sensor&nbsp;channel.</tt></dd></dl>
+
+<dl><dt><a name="InfraredSensor-sensor_name"><strong>sensor_name</strong></a>(self) -&gt; str</dt><dd><tt>Returns&nbsp;the&nbsp;sensor&nbsp;name&nbsp;associated&nbsp;with&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;channel.<br>
+:return:&nbsp;The&nbsp;sensor&nbsp;name&nbsp;associated&nbsp;with&nbsp;this&nbsp;unevenly&nbsp;sampled&nbsp;channel.</tt></dd></dl>
+
+<dl><dt><a name="InfraredSensor-timestamps_microseconds_utc"><strong>timestamps_microseconds_utc</strong></a>(self) -&gt; numpy.ndarray</dt><dd><tt>Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;ascending&nbsp;timestamps&nbsp;that&nbsp;associate&nbsp;with&nbsp;each&nbsp;sample&nbsp;value<br>
 :return:&nbsp;A&nbsp;list&nbsp;of&nbsp;ascending&nbsp;timestamps&nbsp;that&nbsp;associate&nbsp;with&nbsp;each&nbsp;sample&nbsp;value</tt></dd></dl>
 
 <hr>
@@ -1220,6 +1370,10 @@ interleaved&nbsp;channels.<br>
 <dl><dt><a name="WrappedRedvoxPacket-has_gyroscope_channel"><strong>has_gyroscope_channel</strong></a>(self) -&gt; bool</dt><dd><tt>Returns&nbsp;if&nbsp;this&nbsp;packet&nbsp;has&nbsp;a&nbsp;gyroscope&nbsp;channel.<br>
 :return:&nbsp;If&nbsp;this&nbsp;packet&nbsp;has&nbsp;a&nbsp;gyroscope&nbsp;channel.</tt></dd></dl>
 
+<dl><dt><a name="WrappedRedvoxPacket-has_image_channel"><strong>has_image_channel</strong></a>(self) -&gt; bool</dt></dl>
+
+<dl><dt><a name="WrappedRedvoxPacket-has_infrared_channel"><strong>has_infrared_channel</strong></a>(self) -&gt; bool</dt></dl>
+
 <dl><dt><a name="WrappedRedvoxPacket-has_light_channel"><strong>has_light_channel</strong></a>(self) -&gt; bool</dt><dd><tt>Returns&nbsp;if&nbsp;this&nbsp;packet&nbsp;has&nbsp;a&nbsp;light&nbsp;channel.<br>
 :return:&nbsp;If&nbsp;this&nbsp;packet&nbsp;has&nbsp;a&nbsp;light&nbsp;channel.</tt></dd></dl>
 
@@ -1234,6 +1388,10 @@ interleaved&nbsp;channels.<br>
 
 <dl><dt><a name="WrappedRedvoxPacket-has_time_synchronization_channel"><strong>has_time_synchronization_channel</strong></a>(self) -&gt; bool</dt><dd><tt>Returns&nbsp;if&nbsp;this&nbsp;packet&nbsp;has&nbsp;a&nbsp;time&nbsp;synchronization&nbsp;channel.<br>
 :return:&nbsp;If&nbsp;this&nbsp;packet&nbsp;has&nbsp;a&nbsp;time&nbsp;synchronization&nbsp;channel.</tt></dd></dl>
+
+<dl><dt><a name="WrappedRedvoxPacket-image_channel"><strong>image_channel</strong></a>(self) -&gt; Union[reader.ImageSensor, NoneType]</dt></dl>
+
+<dl><dt><a name="WrappedRedvoxPacket-infrared_channel"><strong>infrared_channel</strong></a>(self) -&gt; Union[reader.InfraredSensor, NoneType]</dt></dl>
 
 <dl><dt><a name="WrappedRedvoxPacket-is_backfilled"><strong>is_backfilled</strong></a>(self) -&gt; bool</dt><dd><tt>See&nbsp;https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master&nbsp;for&nbsp;a<br>
 description&nbsp;of&nbsp;this&nbsp;field.</tt></dd></dl>
