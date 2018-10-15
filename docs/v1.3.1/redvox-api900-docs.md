@@ -698,7 +698,7 @@ The `ImageSensor` class contains methods for directly accessing the fields and p
 ```
 redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
 
-if redvox_api900_file.has_light_channel():
+if redvox_api900_file.has_image_channel():
 image_sensor_channel = redvox_api900_file.image_channel()
 
     # Access to sensor fields
