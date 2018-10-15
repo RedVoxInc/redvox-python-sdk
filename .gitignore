@@ -6,3 +6,5 @@ redvox.egg-info/
 *.iml
 scrap.py
 *.orig
+*.jpg
+*.jpeg

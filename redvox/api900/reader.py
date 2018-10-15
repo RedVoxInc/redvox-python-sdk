@@ -1253,6 +1253,13 @@ class ImageSensor(UnevenlySampledSensor):
         for i in range(self.num_images()):
             self.write_image_to_file(i, "{}/{}".format(directory, self.default_filename(i)))
 
+    def get_image_offsets(self) -> typing.List[int]:
+        """
+        Returns the byte offsets for each image in the payload.
+        :return: The byte offsets for each image in the payload.
+        """
+        return self.image_offsets
+
     def __str__(self):
         """Provide image information in str of this instance"""
         return "{}\nnum images: {}\nbyte offsets: {}".format(self.unevenly_sampled_channel,

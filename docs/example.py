@@ -1,7 +1,7 @@
 from redvox.api900 import reader
 
 # First, let's read and wrap the file in our high-level wrapper
-redvox_api900_file = reader.wrap(reader.read_file("0000001314_1532656864354.rdvxz"))
+redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
 
 # Now let's access all fields at the top level of the packet
 print(redvox_api900_file.api())
@@ -239,3 +239,62 @@ if redvox_api900_file.has_light_channel():
     print(light_sensor_channel.metadata_as_dict())
     print(light_sensor_channel.metadata())
     print(light_sensor_channel.payload_type())
+
+
+# The infrared channel
+if redvox_api900_file.has_infrared_channel():
+    infrared_sensor_channel = redvox_api900_file.infrared_channel()
+
+    # Access to sensor fields
+    print(infrared_sensor_channel.sensor_name())
+    print(infrared_sensor_channel.timestamps_microseconds_utc())
+    print(infrared_sensor_channel.sample_interval_mean())
+    print(infrared_sensor_channel.sample_interval_median())
+    print(infrared_sensor_channel.sample_interval_std())
+    print(infrared_sensor_channel.payload_mean())
+    print(infrared_sensor_channel.payload_median())
+    print(infrared_sensor_channel.payload_std())
+
+    # Access to sensor values
+    print(infrared_sensor_channel.payload_values())
+
+    print(infrared_sensor_channel.metadata_as_dict())
+    print(infrared_sensor_channel.metadata())
+    print(infrared_sensor_channel.payload_type())
+
+
+# The image channel
+if redvox_api900_file.has_image_channel():
+    image_sensor_channel = redvox_api900_file.image_channel()
+
+    # Access to sensor fields
+    print(image_sensor_channel.sensor_name())
+    print(image_sensor_channel.timestamps_microseconds_utc())
+    print(image_sensor_channel.sample_interval_mean())
+    print(image_sensor_channel.sample_interval_median())
+    print(image_sensor_channel.sample_interval_std())
+
+    # Raw byte payload of all images
+    print(len(image_sensor_channel.payload_values()))
+
+    # Number of images in packet payload
+    print(image_sensor_channel.num_images())
+
+    # Byte offsets of each image in payload
+    print(image_sensor_channel.get_image_offsets())
+
+    # Loop through and retrieve the bytes for each image
+    for i in range(image_sensor_channel.num_images()):
+        print(len(image_sensor_channel.get_image_bytes(i)))
+
+    # Write the image files to disk individually and provide a
+    # custom filename
+    for i in range(image_sensor_channel.num_images()):
+        image_sensor_channel.write_image_to_file(i, "{}.jpg".format(i))
+
+    # Write all available images to disk using default filenames
+    image_sensor_channel.write_all_images_to_directory(".")
+
+    print(image_sensor_channel.metadata_as_dict())
+    print(image_sensor_channel.metadata())
+    print(image_sensor_channel.payload_type())
