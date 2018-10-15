@@ -96,6 +96,7 @@ def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
 
     if payload_type_str == "byte_payload":
         payload = channel.byte_payload.payload
+        return numpy.frombuffer(payload, numpy.uint8)
     elif payload_type_str == "uint32_payload":
         payload = channel.uint32_payload.payload
     elif payload_type_str == "uint64_payload":
@@ -1169,6 +1170,96 @@ class InfraredSensor(UnevenlySampledSensor):
         return self.unevenly_sampled_channel.get_value_std(api900_pb2.INFRARED)
 
 
+class ImageSensor(UnevenlySampledSensor):
+    """High-level wrapper around image channels."""
+
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        """
+        Initializes this ImageSensor.
+        :param unevenly_sampled_channel: The image channel.
+        """
+        super().__init__(unevenly_sampled_channel)
+
+        self.image_offsets: typing.List[int] = self.parse_offsets()
+        """A list of image byte offsets into the payload of this sensor channel."""
+
+    def parse_offsets(self) -> typing.List[int]:
+        """
+        Parses the metadata of this channel to extract the image byte offsets into the payload.
+        :return: A list of image byte offsets.
+        """
+        meta = self.metadata_as_dict()
+        if "images" in meta:
+            offsets_line = meta["images"].replace("[", "").replace("]", "")
+            try:
+                return list(map(int, offsets_line.split(",")))
+            except ValueError:
+                return []
+        else:
+            return []
+
+    def payload_values(self) -> numpy.ndarray:
+        """
+        Returns a numpy ndarray of uint8s representing this sensor's payload. This byte blob may contain multiple
+        images. The byte offset of each image should be stored in this channels metadata as images="[offset_0,
+        offset_1, ..., offset_n]".
+        :return: A numpy ndarray of floats representing this sensor's payload.
+        """
+        return self.unevenly_sampled_channel.get_payload(api900_pb2.IMAGE)
+
+    def num_images(self) -> int:
+        """
+        Returns the number of images in this packet's image channel.
+        :return: The number of images in this packet's image channel.
+        """
+        return len(self.image_offsets)
+
+    def get_image_bytes(self, idx: int) -> numpy.ndarray:
+        """
+        Return the bytes associated with an image at this channel's given image index.
+        :param idx: The image from this channel to retrieve (starting from 0).
+        :return: A numpy array of uint8s representing the bytes of a selected image.
+        """
+        if idx < 0 or idx >= self.num_images():
+            raise RuntimeError("idx must be between 0 and the total number of images available in this packet %s" %
+                               str(self.num_images()))
+
+        if idx == self.num_images() - 1:
+            return self.payload_values()[self.image_offsets[idx]:]
+        else:
+            return self.payload_values()[self.image_offsets[idx]:self.image_offsets[idx + 1]]
+
+    def write_image_to_file(self, idx: int, path: str):
+        """
+        Writes an image to a file with a given file name.
+        :param idx: The index of the image in this channel (starting at 0).
+        :param path: The full path and file name to save this image as.
+        """
+        self.get_image_bytes(idx).tofile(path)
+
+    def default_filename(self, idx: int) -> str:
+        """
+        Returns the a default file name for the image at the given index by using the timestamp of the image.
+        :param idx: The index of the image in this channel (starting at 0).
+        :return: A default filename of the format timestamp.jpg.
+        """
+        return "{}.jpg".format(self.timestamps_microseconds_utc()[idx])
+
+    def write_all_images_to_directory(self, directory: str = "."):
+        """
+        Write all images in this packet to the provided directory using default filenames.
+        :param directory: The directory to write the images to.
+        """
+        for i in range(self.num_images()):
+            self.write_image_to_file(i, "{}/{}".format(directory, self.default_filename(i)))
+
+    def __str__(self):
+        """Provide image information in str of this instance"""
+        return "{}\nnum images: {}\nbyte offsets: {}".format(self.unevenly_sampled_channel,
+                                                             self.num_images(),
+                                                             self.image_offsets)
+
+
 # pylint: disable=R0904
 class WrappedRedvoxPacket:
     """
@@ -1572,6 +1663,24 @@ class WrappedRedvoxPacket:
         """
         if self.has_light_channel():
             return LightSensor(self.get_channel(api900_pb2.LIGHT))
+
+        return None
+
+    def has_infrared_channel(self) -> bool:
+        return self.has_channel(api900_pb2.INFRARED)
+
+    def infrared_channel(self) -> typing.Optional[InfraredSensor]:
+        if self.has_infrared_channel():
+            return InfraredSensor(self.get_channel(api900_pb2.INFRARED))
+
+        return None
+
+    def has_image_channel(self) -> bool:
+        return self.has_channel(api900_pb2.IMAGE)
+
+    def image_channel(self) -> typing.Optional[ImageSensor]:
+        if self.has_image_channel():
+            return ImageSensor(self.get_channel(api900_pb2.IMAGE))
 
         return None
 
