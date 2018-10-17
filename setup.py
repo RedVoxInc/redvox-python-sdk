@@ -1,10 +1,12 @@
 from setuptools import setup, find_packages
 
+import redvox
+
 with open("requirements.txt", "r") as requirements_file:
     requirements = list(map(lambda line: line.strip(), requirements_file.readlines()))
 
-setup(name='redvox',
-    version='1.3.2',
+setup(name=redvox.NAME,
+    version=redvox.VERSION,
     url='https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/',
     license='Apache',
     author='RedVox',
