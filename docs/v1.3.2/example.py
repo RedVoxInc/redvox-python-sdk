@@ -3,7 +3,6 @@ import redvox
 
 # First, let's check to make sure redvox is installed correctly by printing out the version info
 print(redvox.version())
-redvox.print_version()
 
 # Next, let's read and wrap the file in our high-level wrapper
 redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
