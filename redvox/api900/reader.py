@@ -8,6 +8,8 @@ import typing
 
 # noinspection PyPackageRequirements
 import google.protobuf.internal.containers as containers
+# noinspection PyPackageRequirements
+import google.protobuf.json_format as json_format
 import lz4.block
 import numpy
 
@@ -70,6 +72,24 @@ def read_file(file: str, is_compressed: bool = None) -> api900_pb2.RedvoxPacket:
         _is_compressed = is_compressed
     with open(file, "rb") as fin:
         return read_buffer(fin.read(), _is_compressed)
+
+
+def to_json(redvox_packet: api900_pb2.RedvoxPacket) -> str:
+    """
+    Converts a protobuf encoded API 900 RedVox packet into JSON.
+    :param redvox_packet: The protobuf encoded packet.
+    :return: A string containing JSON of this packet.
+    """
+    return json_format.MessageToJson(redvox_packet)
+
+
+def from_json(redvox_packet_json: str) -> api900_pb2.RedvoxPacket:
+    """
+    Converts a JSON packet representing an API 900 packet into a protobuf encoded RedVox API 900 packet.
+    :param redvox_packet_json: A string containing the json representing the packet.
+    :return: A Python instance of an encoded API 900 packet.
+    """
+    return json_format.Parse(redvox_packet_json, api900_pb2.RedvoxPacket())
 
 
 def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
@@ -369,7 +389,10 @@ class InterleavedChannel:
         if idx < 0:
             return empty_array()
 
-        return deinterleave_array(self.payload, idx, len(self.channel_types))
+        try:
+            return deinterleave_array(self.payload, idx, len(self.channel_types))
+        except ReaderException:
+            return empty_array()
 
     def get_payload_type(self) -> str:
         """
@@ -1366,6 +1389,13 @@ class WrappedRedvoxPacket:
                 return False
         return True
 
+    def to_json(self) -> str:
+        """
+        Concerts the protobuf packet stored in this wrapped packet to JSON.
+        :return: The JSON representation of the protobuf encoded packet.
+        """
+        return to_json(self.redvox_packet)
+
     def api(self) -> int:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
@@ -1585,13 +1615,17 @@ class WrappedRedvoxPacket:
 
         return None
 
-    # pylint: disable=invalid-name
+    # pylint: disable=invalid-name,C1801
     def has_time_synchronization_channel(self) -> bool:
         """
         Returns if this packet has a time synchronization channel.
         :return: If this packet has a time synchronization channel.
         """
-        return self.has_channel(api900_pb2.TIME_SYNCHRONIZATION)
+        if self.has_channel(api900_pb2.TIME_SYNCHRONIZATION):
+            ch = TimeSynchronizationSensor(self.get_channel(api900_pb2.TIME_SYNCHRONIZATION))
+            return len(ch.payload_values()) > 0
+
+        return False
 
     def time_synchronization_channel(self) -> typing.Optional[TimeSynchronizationSensor]:
         """

@@ -164,6 +164,8 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         self.assertFalse(self.wrapped_synthetic_mic_packet.has_time_synchronization_channel())
         self.assertIsNone(self.wrapped_synthetic_mic_packet.time_synchronization_channel())
 
+        # self.assertFalse(wrapped_example_packet_broken_time_synch.has_time_synchronization_channel())
+
     def test_accelerometer_sensor_access(self):
         self.assertTrue(self.wrapped_example_packet.has_accelerometer_channel())
         self.assertIsNotNone(self.wrapped_example_packet.accelerometer_channel())
