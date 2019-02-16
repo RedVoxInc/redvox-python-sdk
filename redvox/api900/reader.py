@@ -30,6 +30,15 @@ def calculate_uncompressed_size(buf: bytes) -> int:
     return struct.unpack(">I", buf[:4])[0]
 
 
+def uncompressed_size_bytes(size: int) -> bytes:
+    """
+    Given the size of the original uncompressed file, return the size as an array of 4 bytes.
+    :param size: The size to convert.
+    :return: The 4 bytes representing the size.
+    """
+    return struct.pack(">I", size)
+
+
 def lz4_decompress(buf: bytes) -> bytes:
     """
     Decompresses an API 900 compressed buffer.
@@ -42,6 +51,18 @@ def lz4_decompress(buf: bytes) -> bytes:
         raise ReaderException("uncompressed size [{}] must be > 0".format(uncompressed_size))
 
     return lz4.block.decompress(buf[4:], uncompressed_size=calculate_uncompressed_size(buf))
+
+
+def lz4_compress(buf: bytes) -> bytes:
+    """
+    Compresses a buffer using LZ4. The compressed buffer is then prepended with the 4 bytes indicating the original
+    size of uncompressed buffer.
+    :param buf: The buffer to compress.
+    :return: The compressed buffer with 4 bytes prepended indicated the original size of the uncompressed buffer.
+    """
+    uncompressed_size = uncompressed_size_bytes(len(buf))
+    compressed = lz4.block.compress(buf, store_size=False)
+    return uncompressed_size + compressed
 
 
 def read_buffer(buf: bytes, is_compressed: bool = True) -> api900_pb2.RedvoxPacket:
@@ -344,8 +365,8 @@ class InterleavedChannel:
         self.channel_type_index: typing.Dict[api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
                                                                              i in
                                                                              range(
-                                                                                 len(
-                                                                                     self.channel_types))}
+                                                                                     len(
+                                                                                             self.channel_types))}
         """Contains a mapping of channel type to index in channel_types array"""
 
     def get_channel_type_names(self) -> typing.List[str]:
@@ -469,11 +490,11 @@ class InterleavedChannel:
                "len(payload): {}\n" \
                "payload_type: {}".format(self.sensor_name,
                                          list(map(
-                                             channel_type_name_from_enum,
-                                             self.channel_types)),
+                                                 channel_type_name_from_enum,
+                                                 self.channel_types)),
                                          len(self.payload),
                                          payload_type(
-                                             self.protobuf_channel))
+                                                 self.protobuf_channel))
 
 
 class EvenlySampledChannel(InterleavedChannel):
@@ -500,9 +521,9 @@ class EvenlySampledChannel(InterleavedChannel):
         :return: A string representation of this evenly sampled channel.
         """
         return "{}\nsample_rate_hz: {}\nfirst_sample_timestamp_epoch_microseconds_utc: {}".format(
-            super(EvenlySampledChannel, self).__str__(),
-            self.sample_rate_hz,
-            self.first_sample_timestamp_epoch_microseconds_utc)
+                super(EvenlySampledChannel, self).__str__(),
+                self.sample_rate_hz,
+                self.first_sample_timestamp_epoch_microseconds_utc)
 
 
 class UnevenlySampledChannel(InterleavedChannel):
@@ -1308,11 +1329,11 @@ class WrappedRedvoxPacket:
         self.redvox_packet: api900_pb2.RedvoxPacket = redvox_packet
         """Protobuf api 900 redvox packet"""
         self.evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
-            map(EvenlySampledChannel, repeated_to_array(redvox_packet.evenly_sampled_channels)))
+                map(EvenlySampledChannel, repeated_to_array(redvox_packet.evenly_sampled_channels)))
         """List of evenly sampled channels"""
 
         self.unevenly_sampled_channels: typing.List[UnevenlySampledChannel] = list(
-            map(UnevenlySampledChannel, repeated_to_array(redvox_packet.unevenly_sampled_channels)))
+                map(UnevenlySampledChannel, repeated_to_array(redvox_packet.unevenly_sampled_channels)))
         """List of unevenly sampled channels"""
 
         self.metadata: typing.List[str] = repeated_to_list(redvox_packet.metadata)
@@ -1395,6 +1416,13 @@ class WrappedRedvoxPacket:
         :return: The JSON representation of the protobuf encoded packet.
         """
         return to_json(self.redvox_packet)
+
+    def compressed_buffer(self) -> bytes:
+        """
+        Returns the compressed buffer associated with this packet.
+        :return: The compressed buffer associated with this packet.
+        """
+        return lz4_compress(self.redvox_packet.SerializeToString())
 
     def api(self) -> int:
         """
@@ -1602,7 +1630,8 @@ class WrappedRedvoxPacket:
         :return: If this packet has a location channel.
         """
         return (self.has_channels(
-            [api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED, api900_pb2.ACCURACY]) or
+                [api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED,
+                 api900_pb2.ACCURACY]) or
                 self.has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE]))
 
     def location_channel(self) -> typing.Optional[LocationSensor]:
