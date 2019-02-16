@@ -649,3 +649,14 @@ class WrappedRedvoxPacketTests(ArraysTestCase):
         self.assertTrue(self.multi_packet.has_channel(api900_pb2.SPEED))
         self.assertTrue(self.multi_packet.has_channel(api900_pb2.ALTITUDE))
         self.assertTrue(self.multi_packet.has_channel(api900_pb2.OTHER))
+
+    def test_compression(self):
+        with open("0000001314_1532656864354.rdvxz", "rb") as fin:
+            as_bytes = fin.read()
+
+        original_uncompressed_size = redvox.api900.reader.calculate_uncompressed_size(as_bytes)
+        wrapped = redvox.api900.reader.wrap(redvox.api900.reader.read_buffer(as_bytes))
+        out_buf = wrapped.compressed_buffer()
+        self.assertEqual(original_uncompressed_size, redvox.api900.reader.calculate_uncompressed_size(out_buf))
+        self.assertEqual("0000001314", redvox.api900.reader.wrap(redvox.api900.reader.read_buffer(out_buf)).redvox_id())
+
