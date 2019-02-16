@@ -6,6 +6,12 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+#### 1.4.1 (2019-2-15)
+
+* Update required libraries
+* Add ability to get original compressed buffer from WrappedRedvoxPacket
+* Add utility functions for LZ4 compression
+
 ##### v1.4.0 (2018-12-5)
 
 * Added support for serializing to/from JSON
