@@ -3,6 +3,8 @@
 This module provides functions and classes for working with RedVox API 900 data.
 """
 
+import collections
+import glob
 import struct
 import typing
 
@@ -1788,3 +1790,27 @@ def wrap(redvox_packet: api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:
         A wrapper redvox packet.
     """
     return WrappedRedvoxPacket(redvox_packet)
+
+
+def read_directory(directory_path: str) -> typing.Dict[str, typing.List[WrappedRedvoxPacket]]:
+    """
+    Reads .rdvxz files from a directory and returns a dictionary from redvox_id -> a list of sorted wrapped redvox
+    packets that belong to that device.
+    :param directory_path: The path to the directory containing .rdvxz files.
+    :return: A dictionary representing a mapping from redvox_id to its packets.
+    """
+
+    # Make sure the directory ends with a trailing slash "/"
+    if directory_path[-1] != "/":
+        directory_path = directory_path + "/"
+
+    file_paths = sorted(glob.glob(directory_path + "*.rdvxz"))
+    protobuf_packets = map(read_file, file_paths)
+    wrapped_packets = list(map(wrap, protobuf_packets))
+    grouped = collections.defaultdict(list)
+
+    for wrapped_packet in wrapped_packets:
+        grouped[wrapped_packet.redvox_id()].append(wrapped_packet)
+
+    return grouped
+
