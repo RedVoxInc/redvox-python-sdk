@@ -161,7 +161,7 @@ message UnevenlySampledChannel {
     Float32Payload float32_payload = 9;
     Float64Payload float64_payload = 10;
   }
-  double sample_interval_mean = 11;               // Mean of sample internval as determined from timestamps
+  double sample_interval_mean = 11;               // Mean of sample interval as determined from timestamps
   double sample_interval_std = 12;                // Standard deviation of sample interval from timestamps
   double sample_interval_median = 13;             // Median of sample interval from timestamps
   repeated double value_means = 14;               // Mean values in payload, one mean per channel

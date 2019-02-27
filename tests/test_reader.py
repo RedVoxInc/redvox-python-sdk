@@ -383,31 +383,31 @@ class InterleavedChannelTests(ArraysTestCase):
 
     def test_get_payload_dne(self):
         self.assertArraysEqual(
-                self.mic_channel.get_payload(api900_pb2.BAROMETER),
+                self.mic_channel.get_channel_payload(api900_pb2.BAROMETER),
                 self.empty_array)
 
     def test_get_payload_single(self):
         self.assertArraysEqual(
-                self.mic_channel.get_payload(api900_pb2.MICROPHONE),
+                self.mic_channel.get_channel_payload(api900_pb2.MICROPHONE),
                 numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
 
     def test_get_payload_interleaved(self):
         self.assertArraysEqual(
-                self.gps_channel.get_payload(api900_pb2.LATITUDE),
+                self.gps_channel.get_channel_payload(api900_pb2.LATITUDE),
                 numpy.array([19.0, 20.0, 21.0, 22.0, 23.0]))
         self.assertArraysEqual(
-                self.gps_channel.get_payload(api900_pb2.LONGITUDE),
+                self.gps_channel.get_channel_payload(api900_pb2.LONGITUDE),
                 numpy.array([155.0, 156.0, 157.0, 158.0, 159.0]))
         self.assertArraysEqual(
-                self.gps_channel.get_payload(api900_pb2.SPEED),
+                self.gps_channel.get_channel_payload(api900_pb2.SPEED),
                 numpy.array([1.0, 2.0, 3.0, 4.0, 5.0]))
         self.assertArraysEqual(
-                self.gps_channel.get_payload(api900_pb2.ALTITUDE),
+                self.gps_channel.get_channel_payload(api900_pb2.ALTITUDE),
                 numpy.array([25.0, 26.0, 27.0, 28.0, 29.0]))
 
     def test_get_payload_interleaved_dne(self):
         self.assertArraysEqual(
-                self.gps_channel.get_payload(api900_pb2.BAROMETER),
+                self.gps_channel.get_channel_payload(api900_pb2.BAROMETER),
                 self.empty_array)
 
     def test_get_multi_payload_dne(self):

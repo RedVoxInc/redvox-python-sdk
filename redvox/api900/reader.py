@@ -14,6 +14,7 @@ import google.protobuf.internal.containers as containers
 import google.protobuf.json_format as json_format
 import lz4.block
 import numpy
+import redvox.api900.stat_utils
 
 from redvox.api900.lib import api900_pb2
 
@@ -55,6 +56,7 @@ def lz4_decompress(buf: bytes) -> bytes:
     return lz4.block.decompress(buf[4:], uncompressed_size=calculate_uncompressed_size(buf))
 
 
+# noinspection PyArgumentList
 def lz4_compress(buf: bytes) -> bytes:
     """
     Compresses a buffer using LZ4. The compressed buffer is then prepended with the 4 bytes indicating the original
@@ -97,6 +99,18 @@ def read_file(file: str, is_compressed: bool = None) -> api900_pb2.RedvoxPacket:
         return read_buffer(fin.read(), _is_compressed)
 
 
+def write_file(file: str, redvox_packet: api900_pb2.RedvoxPacket):
+    """
+    :param file: str, File to write
+    :param redvox_packet: protobuf packet to write
+    :return: Nothing, compressed file is written to disk
+    """
+    buffer = lz4_compress(redvox_packet.SerializeToString())
+    f = open(file, "wb")
+    f.write(buffer)
+    f.close()
+
+
 def to_json(redvox_packet: api900_pb2.RedvoxPacket) -> str:
     """
     Converts a protobuf encoded API 900 RedVox packet into JSON.
@@ -122,13 +136,16 @@ def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     :param channel: The channel to check the data type of.
     :return: The internal protobuf string representation of the payload's data type.
     """
-    return channel.WhichOneof("payload")
+    if channel is None:
+        return "No channel to hold payload"
+    else:
+        return channel.WhichOneof("payload")
 
 
 def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
                                           api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
     """
-    Given an evenly on unevenly sampled channel, extracts the entire payload.
+    Given an evenly or unevenly sampled channel, extracts the entire payload.
 
     This will return a payload of either ints or floats and is type agnostic when it comes to the underlying
     protobuf type.
@@ -244,7 +261,7 @@ def interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
 
 def safe_index_of(lst: typing.List, val: typing.Any) -> int:
     """
-    Finds the index of an item in a list and instead of throwing an exception returns -1 when the  item DNE.
+    Finds the index of an item in a list and instead of throwing an exception returns -1 when the item DNE.
     :param lst: List to search through.
     :param val: The value to find the index of.
     :return: The index of the first value v found or -1.
@@ -331,52 +348,87 @@ class InterleavedChannel:
     """
 
     def __init__(self, channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                             api900_pb2.UnevenlySampledChannel]):
+                                             api900_pb2.UnevenlySampledChannel] = None):
         """
         Initializes this interleaved channel object.
         :param channel: Either a protobuf evenly or unevenly sampled channel.
+        note: _value_means, _value_medians, _value_stds, and _channel_type_index are completely private and should only
+            be accessed via other methods.
         """
-        self.protobuf_channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                            api900_pb2.UnevenlySampledChannel] = channel
-        """Reference to the original protobuf channel"""
+        if channel is None:
+            self._protobuf_channel = None
+            self._sensor_name = None
+            self._channel_types = list()
+            self._payload = empty_array()
+            self._metadata = list()
+            self._value_means = empty_array()
+            self._value_medians = empty_array()
+            self._value_stds = empty_array()
+            self._channel_type_index = dict()
+        else:
+            self._protobuf_channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                                api900_pb2.UnevenlySampledChannel] = channel
+            """Reference to the original protobuf channel"""
 
-        self.sensor_name: str = channel.sensor_name
-        """Provided sensor name"""
+            self._sensor_name: str = channel.sensor_name
+            """Provided sensor name"""
 
-        self.channel_types: typing.List[
-            typing.Union[
-                api900_pb2.EvenlySampledChannel,
-                api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
-        """List of channel type constant enumerations"""
+            self._channel_types: typing.List[
+                typing.Union[
+                    api900_pb2.EvenlySampledChannel,
+                    api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
+            """List of channel type constant enumerations"""
 
-        self.payload: numpy.ndarray = extract_payload(channel)
-        """This channels payload as a numpy array of either floats or ints"""
+            self._payload: numpy.ndarray = extract_payload(channel)
+            """This channels payload as a numpy array of either floats or ints"""
 
-        self.metadata: typing.List[str] = repeated_to_list(channel.metadata)
-        """This channels list of metadata"""
+            self._metadata: typing.List[str] = repeated_to_list(channel.metadata)
+            """This channels list of metadata"""
 
-        self.value_means: numpy.ndarray = repeated_to_array(channel.value_means)
-        """Interleaved array of mean values"""
+            self._value_means: numpy.ndarray = repeated_to_array(channel.value_means)
+            """Interleaved array of mean values"""
 
-        self.value_stds: numpy.ndarray = repeated_to_array(channel.value_stds)
-        """Interleaved array of standard deviations of values"""
+            self._value_stds: numpy.ndarray = repeated_to_array(channel.value_stds)
+            """Interleaved array of standard deviations of values"""
 
-        self.value_medians: numpy.ndarray = repeated_to_array(channel.value_medians)
-        """Interleaves array of median values"""
+            self._value_medians: numpy.ndarray = repeated_to_array(channel.value_medians)
+            """Interleaved array of median values"""
 
-        self.channel_type_index: typing.Dict[api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
-                                                                             i in
-                                                                             range(
-                                                                                     len(
-                                                                                             self.channel_types))}
-        """Contains a mapping of channel type to index in channel_types array"""
+            self._channel_type_index: typing.Dict[api900_pb2.ChannelType, int] = {self._channel_types[i]: i for
+                                                                                  i in
+                                                                                  range(
+                                                                                         len(
+                                                                                                 self._channel_types))}
+            """Contains a mapping of channel type to index in channel_types array"""
+
+    @property
+    def channel_types(self)-> typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                       api900_pb2.UnevenlySampledChannel]]:
+        return self._channel_types
+
+    @channel_types.setter
+    def channel_types(self, channel_types: list, index: int = None):
+        """
+        Adds the types of the channel to the list  if index is not specified, the channel_types are appended
+        rebuilds the type index after successful add/edit
+        :param channel_types: list of channel types to add or change to
+        :param index: optional, index to change
+        """
+        if index is None:
+            self._channel_types.append(channel_types)
+            self._channel_type_index = {self._channel_types[i]: i for i in range(len(self._channel_types))}
+        elif index not in range(len(self.channel_types)):
+            raise IndexError("Attempting to set value of non-existing index in Channel types")
+        else:
+            self._channel_types[index] = channel_types
+            self._channel_type_index = {self._channel_types[i]: i for i in range(len(self._channel_types))}
 
     def get_channel_type_names(self) -> typing.List[str]:
         """
         Returns the list of channel_types as a list of names instead of enumeration constants.
         :return: The list of channel_types as a list of names instead of enumeration constants.
         """
-        return list(map(channel_type_name_from_enum, self.channel_types))
+        return list(map(channel_type_name_from_enum, self._channel_types))
 
     def channel_index(self, channel_type: int) -> int:
         """
@@ -384,7 +436,7 @@ class InterleavedChannel:
         :param channel_type: The channel type to search for.
         :return: The index of the channel or -1 if it DNE.
         """
-        return self.channel_type_index[channel_type] if channel_type in self.channel_type_index else -1
+        return self._channel_type_index[channel_type] if channel_type in self._channel_type_index else -1
 
     def has_channel(self, channel_type: int) -> bool:
         """
@@ -392,17 +444,106 @@ class InterleavedChannel:
         :param channel_type: The channel type to search for.
         :return: True if it exist, False otherwise.
         """
-        return channel_type in self.channel_type_index
+        return channel_type in self._channel_type_index
 
-    def has_payload(self, channel_type: int) -> bool:
+    @property
+    def protobuf_channel(self) -> typing.Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel]:
+        """
+        the original protobuf channel
+        :return: original protobuf channel
+        """
+        return self._protobuf_channel
+
+    @protobuf_channel.setter
+    def protobuf_channel(self, channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                                     api900_pb2.UnevenlySampledChannel]):
+        """
+        Sets this object to a new channel
+        :param channel: another channel
+        """
+        self._protobuf_channel = channel
+        self._sensor_name = channel.sensor_name
+        self._channel_types = repeated_to_list(channel.channel_types)
+        self._payload = extract_payload(channel)
+        self._metadata = repeated_to_list(channel.metadata)
+        self._value_means = repeated_to_array(channel.value_means)
+        self._value_stds = repeated_to_array(channel.value_stds)
+        self._value_medians = repeated_to_array(channel.value_medians)
+        self._channel_type_index = {self._channel_types[i]: i for i in range(len(self._channel_types))}
+
+    @property
+    def sensor_name(self) -> str:
+        """
+        sensor name
+        :return: sensor name
+        """
+        return self._sensor_name
+
+    @sensor_name.setter
+    def sensor_name(self, name: str):
+        """
+        Sets the sensor name
+        :param name: new sensor name
+        """
+        self._sensor_name = name
+
+    def channel_has_payload(self, channel_type: int) -> bool:
         """
         Returns if channel contains a non-empty specified payload.
         :param channel_type: The channel to check for a payload for.
         :return: Whether this channel contains the specified payload.
         """
-        return self.has_channel(channel_type) and len(self.payload) > 0
+        return self.has_channel(channel_type) and len(self._payload) > 0
 
-    def get_payload(self, channel_type: int) -> numpy.ndarray:
+    @property
+    def payload(self) -> numpy.ndarray:
+        """
+        returns the entire interleaved payload
+        :return: the payload as an array
+        """
+        return self._payload
+
+    @payload.setter
+    def payload(self, channels: typing.List[numpy.ndarray]):
+        """
+        Interleaves the channels given to form a new payload
+        :param channels: channels to interleave
+        """
+        self._payload = interleave_arrays(channels)
+        new_stds = empty_array()
+        new_means = empty_array()
+        new_medians = empty_array()
+        for i in range(0, len(channels)):
+            std, mean, median = redvox.api900.stat_utils.calc_utils(channels[i])
+            new_stds = numpy.append(new_stds, std)
+            new_means = numpy.append(new_means, mean)
+            new_medians = numpy.append(new_medians, median)
+        self._value_stds = new_stds
+        self._value_means = new_means
+        self._value_medians = new_medians
+
+    def set_interleaved_payload(self, payload: numpy.ndarray, step: int):
+        """
+        sets the payload to the new value; assumes it is an interleaved array.  also sets std, mean and means.
+        :param payload: an array of values
+        :param step: the amount of interleaved arrays, payload length must be a multiple of step
+
+        """
+        if len(payload) % step != 0:
+            raise IndexError("Cannot deinterleave payload: Step size is not a multiple of array length!")
+        else:
+            self._value_stds = empty_array()
+            self._value_means = empty_array()
+            self._value_medians = empty_array()
+            for i in range(0, step):
+                channel = deinterleave_array(payload, i, step)
+                std, mean, median = redvox.api900.stat_utils.calc_utils(channel)
+                self._value_stds = numpy.append(self._value_stds, std)
+                self._value_means = numpy.append(self._value_means, mean)
+                self._value_medians = numpy.append(self._value_medians, median)
+            self._payload = payload
+
+    def get_channel_payload(self, channel_type: int) -> numpy.ndarray:
         """
         Returns a deinterleaved payload of a given channel type or an empty array.
         :param channel_type: The channel type to extract/deinterleave from the payload.
@@ -411,9 +552,8 @@ class InterleavedChannel:
         idx = self.channel_index(channel_type)
         if idx < 0:
             return empty_array()
-
         try:
-            return deinterleave_array(self.payload, idx, len(self.channel_types))
+            return deinterleave_array(self._payload, idx, len(self._channel_types))
         except ReaderException:
             return empty_array()
 
@@ -422,7 +562,7 @@ class InterleavedChannel:
         Returns the internal protobuf payload type.
         :return: The internal protobuf payload type.
         """
-        return payload_type(self.protobuf_channel)
+        return payload_type(self._protobuf_channel)
 
     def get_multi_payload(self, channel_types: typing.List[int]) -> numpy.ndarray:
         """
@@ -434,9 +574,9 @@ class InterleavedChannel:
         if channel_types_len == 0:
             return empty_array()
         elif channel_types_len == 1:
-            return self.get_payload(channel_types[0])
+            return self.get_channel_payload(channel_types[0])
 
-        payloads = list(map(self.get_payload, channel_types))
+        payloads = list(map(self.get_channel_payload, channel_types))
         return interleave_arrays(payloads)
 
     def get_value_mean(self, channel_type: int) -> float:
@@ -449,7 +589,7 @@ class InterleavedChannel:
         if idx < 0:
             return 0.0
 
-        return self.value_means[idx]
+        return self._value_means[idx]
 
     def get_value_std(self, channel_type: int) -> float:
         """
@@ -461,7 +601,7 @@ class InterleavedChannel:
         if idx < 0:
             return 0.0
 
-        return self.value_stds[idx]
+        return self._value_stds[idx]
 
     def get_value_median(self, channel_type: int) -> float:
         """
@@ -473,14 +613,22 @@ class InterleavedChannel:
         if idx < 0:
             return 0.0
 
-        return self.value_medians[idx]
+        return self._value_medians[idx]
 
-    def get_metadata_as_dict(self) -> typing.Dict[str, str]:
+    @property
+    def metadata(self) -> typing.List[str]:
         """
         Returns any metadata as a dictionary of key-pair values.
         :return: Any metadata as a dictionary of key-pair values.
         """
-        return get_metadata_as_dict(self.metadata)
+        return self._metadata
+
+    def metadata_as_dict(self) -> typing.Dict[str, str]:
+        """
+        Returns any metadata as a dictionary of key-pair values.
+        :return: Any metadata as a dictionary of key-pair values.
+        """
+        return get_metadata_as_dict(self._metadata)
 
     def __str__(self) -> str:
         """
@@ -490,13 +638,13 @@ class InterleavedChannel:
         return "sensor_name: {}\n" \
                "channel_types: {}\n" \
                "len(payload): {}\n" \
-               "payload_type: {}".format(self.sensor_name,
+               "payload_type: {}".format(self._sensor_name,
                                          list(map(
                                                  channel_type_name_from_enum,
-                                                 self.channel_types)),
-                                         len(self.payload),
+                                                 self._channel_types)),
+                                         len(self._payload),
                                          payload_type(
-                                                 self.protobuf_channel))
+                                                 self._protobuf_channel))
 
 
 class EvenlySampledChannel(InterleavedChannel):
@@ -504,18 +652,56 @@ class EvenlySampledChannel(InterleavedChannel):
     An evenly sampled channel is an interleaved channel that also has a channel with an even sampling rate.
     """
 
-    def __init__(self, channel: api900_pb2.EvenlySampledChannel):
+    def __init__(self, channel: api900_pb2.EvenlySampledChannel = None):
         """
         Initializes this evenly sampled channel.
         :param channel: A protobuf evenly sampled channel.
         """
-        InterleavedChannel.__init__(self, channel)
-        self.sample_rate_hz: float = channel.sample_rate_hz
-        """The sample rate in hz of this evenly sampled channel"""
+        if channel is None:
+            InterleavedChannel.__init__(self)
+            self._sample_rate_hz = None
+            self._first_sample_timestamp_epoch_microseconds_utc = None
+        else:
+            InterleavedChannel.__init__(self, channel)
+            self._sample_rate_hz: float = channel.sample_rate_hz
+            """The sample rate in hz of this evenly sampled channel"""
 
-        # pylint: disable=invalid-name
-        self.first_sample_timestamp_epoch_microseconds_utc: int = channel.first_sample_timestamp_epoch_microseconds_utc
-        """The timestamp of the first sample"""
+            # pylint: disable=invalid-name
+            self._first_sample_timestamp_epoch_microseconds_utc: int = \
+                channel.first_sample_timestamp_epoch_microseconds_utc
+            """The timestamp of the first sample"""
+
+    @property
+    def sample_rate_hz(self) -> float:
+        """
+        returns the sample rate in hz
+        :return: sample rate in hz
+        """
+        return self._sample_rate_hz
+
+    @sample_rate_hz.setter
+    def sample_rate_hz(self, rate: float):
+        """
+        sets the sample rate
+        :param rate: sample rate in hz
+        """
+        self._sample_rate_hz = rate
+
+    @property
+    def first_sample_timestamp_epoch_microseconds_utc(self) -> int:
+        """
+        returns the first timestamp in microseconds since epoch in utc
+        :return: first timestamp in microseconds since epoch in utc
+        """
+        return self._first_sample_timestamp_epoch_microseconds_utc
+
+    @first_sample_timestamp_epoch_microseconds_utc.setter
+    def first_sample_timestamp_epoch_microseconds_utc(self, time: int):
+        """
+        set the epoch in microseconds
+        :param time: time in microseconds since epoch utc
+        """
+        self._first_sample_timestamp_epoch_microseconds_utc = time
 
     def __str__(self) -> str:
         """
@@ -524,8 +710,8 @@ class EvenlySampledChannel(InterleavedChannel):
         """
         return "{}\nsample_rate_hz: {}\nfirst_sample_timestamp_epoch_microseconds_utc: {}".format(
                 super(EvenlySampledChannel, self).__str__(),
-                self.sample_rate_hz,
-                self.first_sample_timestamp_epoch_microseconds_utc)
+                self._sample_rate_hz,
+                self._first_sample_timestamp_epoch_microseconds_utc)
 
 
 class UnevenlySampledChannel(InterleavedChannel):
@@ -536,23 +722,73 @@ class UnevenlySampledChannel(InterleavedChannel):
     This class also adds easy access to statistics for timestamps.
     """
 
-    def __init__(self, channel: api900_pb2.UnevenlySampledChannel):
+    def __init__(self, channel: api900_pb2.UnevenlySampledChannel = None):
         """
         Initializes this unevenly sampled channel.
         :param channel: A protobuf unevenly sampled channel.
         """
-        InterleavedChannel.__init__(self, channel)
-        self.timestamps_microseconds_utc: numpy.ndarray = repeated_to_array(channel.timestamps_microseconds_utc)
-        """Numpy array of timestamps epoch microseconds utc for each sample"""
+        if channel is None:
+            InterleavedChannel.__init__(self)
+            self._timestamps_microseconds_utc = empty_array()
+            self._sample_interval_mean = None
+            self._sample_interval_std = None
+            self._sample_interval_median = None
+        else:
+            InterleavedChannel.__init__(self, channel)
+            self._timestamps_microseconds_utc: numpy.ndarray = repeated_to_array(channel.timestamps_microseconds_utc)
+            """Numpy array of timestamps epoch microseconds utc for each sample"""
 
-        self.sample_interval_mean: float = channel.sample_interval_mean
-        """The mean sample interval"""
+            self._sample_interval_mean: float = channel.sample_interval_mean
+            """The mean sample interval"""
 
-        self.sample_interval_std: float = channel.sample_interval_std
-        """The standard deviation of the sample interval"""
+            self._sample_interval_std: float = channel.sample_interval_std
+            """The standard deviation of the sample interval"""
 
-        self.sample_interval_median: float = channel.sample_interval_median
-        """The median sample interval"""
+            self._sample_interval_median: float = channel.sample_interval_median
+            """The median sample interval"""
+
+    @property
+    def timestamps_microseconds_utc(self) -> numpy.ndarray:
+        """
+        return the timestamps in microseconds from utc
+        :return: array of timestamps
+        """
+        return self._timestamps_microseconds_utc
+
+    @timestamps_microseconds_utc.setter
+    def timestamps_microseconds_utc(self, timestamps: numpy.ndarray):
+        """
+        set the timestamps in microseconds from utc
+        :param timestamps: array of timestamps
+
+        """
+        self._timestamps_microseconds_utc = timestamps
+        self._sample_interval_std, self._sample_interval_mean, self._sample_interval_median = \
+            redvox.api900.stat_utils.calc_utils(timestamps)
+
+    @property
+    def get_sample_interval_mean(self) -> float:
+        """
+        returns mean of the sample interval
+        :return: mean of the sample interval
+        """
+        return self._sample_interval_mean
+
+    @property
+    def sample_interval_std(self) -> float:
+        """
+        returns std dev of the sample interval
+        :return: std dev of the sample interval
+        """
+        return self._sample_interval_std
+
+    @property
+    def sample_interval_median(self) -> float:
+        """
+        returns median of the sample interval
+        :return: median of the sample interval
+        """
+        return self._sample_interval_median
 
     def __str__(self) -> str:
         """
@@ -560,7 +796,7 @@ class UnevenlySampledChannel(InterleavedChannel):
         :return: A string representation of this unevenly sampled channel.
         """
         return "{}\nlen(timestamps_microseconds_utc): {}".format(super().__str__(),
-                                                                 len(self.timestamps_microseconds_utc))
+                                                                 len(self._timestamps_microseconds_utc))
 
 
 class EvenlySampledSensor:
@@ -571,59 +807,91 @@ class EvenlySampledSensor:
     Composition is used instead of inheritance to hide the complexities of the underlying class.
     """
 
-    def __init__(self, evenly_sampled_channel: EvenlySampledChannel):
+    def __init__(self, evenly_sampled_channel: EvenlySampledChannel = None):
         """
         Initializes this class.
         :param evenly_sampled_channel: an instance of an EvenlySampledChannel
         """
-        self.evenly_sampled_channel: EvenlySampledChannel = evenly_sampled_channel
-        """A reference to the original unevenly sampled channel"""
+        if evenly_sampled_channel is None:
+            self._evenly_sampled_channel = EvenlySampledChannel()
+        else:
+            self._evenly_sampled_channel: EvenlySampledChannel = evenly_sampled_channel
+            """A reference to the original unevenly sampled channel"""
 
+    @property
     def sample_rate_hz(self) -> float:
         """
         Returns the sample rate in Hz of this evenly sampled channel.
         :return: The sample rate in Hz of this evenly sampled channel.
         """
-        return self.evenly_sampled_channel.sample_rate_hz
+        return self._evenly_sampled_channel.sample_rate_hz
+
+    @sample_rate_hz.setter
+    def sample_rate_hz(self, rate: float):
+        """
+        sets the sample rate
+        :param rate: sample rate in hz
+        """
+        self._evenly_sampled_channel.sample_rate_hz = rate
 
     # pylint: disable=invalid-name
+    @property
     def first_sample_timestamp_epoch_microseconds_utc(self) -> int:
         """
         Return the first sample timestamp in microseconds since the epoch UTC.
         :return: The first sample timestamp in microseconds since the epoch UTC.
         """
-        return self.evenly_sampled_channel.first_sample_timestamp_epoch_microseconds_utc
+        return self._evenly_sampled_channel.first_sample_timestamp_epoch_microseconds_utc
 
+    @first_sample_timestamp_epoch_microseconds_utc.setter
+    def first_sample_timestamp_epoch_microseconds_utc(self, time: int):
+        """
+        sets the sample timestamp in microseconds since utc
+        :param time: microseconds since utc
+        """
+        self._evenly_sampled_channel.first_sample_timestamp_epoch_microseconds_utc = time
+
+    @property
     def sensor_name(self) -> str:
         """
         Returns the sensor name associated with this evenly sampled chanel
         :return: The sensor name associated with this evenly sampled chanel
         """
-        return self.evenly_sampled_channel.sensor_name
+        return self._evenly_sampled_channel.sensor_name
 
+    @sensor_name.setter
+    def sensor_name(self, name: str):
+        """
+        sets the sensor name
+        :param name: name of sensor
+        """
+        self._evenly_sampled_channel.sensor_name = name
+
+    @property
     def payload_type(self) -> str:
         """
         Returns the internal protobuf payload type.
         :return: The internal protobuf payload type.
         """
-        return self.evenly_sampled_channel.get_payload_type()
+        return self._evenly_sampled_channel.get_payload_type()
 
+    @property
     def metadata(self) -> typing.List[str]:
         """
         Returns this channel's metadata (if there is any) as a Python list.
         :return: This channel's metadata (if there is any) as a Python list.
         """
-        return self.evenly_sampled_channel.metadata
+        return self._evenly_sampled_channel.metadata
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
         Returns this channel's metadata (if there is any) as a Python dictionary.
         :return: This channel's metadata (if there is any) as a Python dictionary.
         """
-        return get_metadata_as_dict(self.evenly_sampled_channel.metadata)
+        return self._evenly_sampled_channel.metadata_as_dict()
 
     def __str__(self):
-        return str(self.evenly_sampled_channel)
+        return str(self._evenly_sampled_channel)
 
 
 class UnevenlySampledSensor:
@@ -634,71 +902,71 @@ class UnevenlySampledSensor:
     Composition is used instead of inheritance to hide the complexities of the underlying class.
     """
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
         """
         Initializes this class.
         :param unevenly_sampled_channel: an instance of a UnevenlySampledChannel
         """
-        self.unevenly_sampled_channel: UnevenlySampledChannel = unevenly_sampled_channel
+        self._unevenly_sampled_channel: UnevenlySampledChannel = unevenly_sampled_channel
 
     def sensor_name(self) -> str:
         """
         Returns the sensor name associated with this unevenly sampled channel.
         :return: The sensor name associated with this unevenly sampled channel.
         """
-        return self.unevenly_sampled_channel.sensor_name
+        return self._unevenly_sampled_channel.sensor_name
 
     def payload_type(self) -> str:
         """
         Returns the internal protobuf payload type.
         :return: The internal protobuf payload type.
         """
-        return self.unevenly_sampled_channel.get_payload_type()
+        return self._unevenly_sampled_channel.get_payload_type()
 
     def timestamps_microseconds_utc(self) -> numpy.ndarray:
         """
         Returns a list of ascending timestamps that associate with each sample value
         :return: A list of ascending timestamps that associate with each sample value
         """
-        return self.unevenly_sampled_channel.timestamps_microseconds_utc
+        return self._unevenly_sampled_channel.timestamps_microseconds_utc
 
     def sample_interval_mean(self) -> float:
         """
         Returns the mean sample interval for this unevenly sampled sensor channel.
         :return: The mean sample interval for this unevenly sampled sensor channel.
         """
-        return self.unevenly_sampled_channel.sample_interval_mean
+        return self._unevenly_sampled_channel.sample_interval_mean
 
     def sample_interval_median(self) -> float:
         """
         Returns the median sample interval for this unevenly sampled sensor channel.
         :return: The median sample interval for this unevenly sampled sensor channel.
         """
-        return self.unevenly_sampled_channel.sample_interval_median
+        return self._unevenly_sampled_channel.sample_interval_median
 
     def sample_interval_std(self) -> float:
         """
         Returns the standard deviation sample interval for this unevenly sampled sensor channel.
         :return: The standard deviation sample interval for this unevenly sampled sensor channel.
         """
-        return self.unevenly_sampled_channel.sample_interval_std
+        return self._unevenly_sampled_channel.sample_interval_std
 
     def metadata(self) -> typing.List[str]:
         """
         Returns this channel's metadata (if there is any) as a Python list.
         :return: This channel's metadata (if there is any) as a Python list.
         """
-        return self.unevenly_sampled_channel.metadata
+        return self._unevenly_sampled_channel.metadata
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
         Returns this channel's metadata (if there is any) as a Python dictionary.
         :return: This channel's metadata (if there is any) as a Python dictionary.
         """
-        return get_metadata_as_dict(self.unevenly_sampled_channel.metadata)
+        return get_metadata_as_dict(self._unevenly_sampled_channel.metadata)
 
     def __str__(self):
-        return str(self.unevenly_sampled_channel)
+        return str(self._unevenly_sampled_channel)
 
 
 class XyzUnevenlySampledSensor(UnevenlySampledSensor):
@@ -737,21 +1005,21 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         Returns the x-component of this channel's payload.
         :return: The x-component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(self.x_type)
+        return self.unevenly_sampled_channel.get_channel_payload(self.x_type)
 
     def payload_values_y(self) -> numpy.ndarray:
         """
         Returns the y-component of this channel's payload.
         :return: The y-component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(self.y_type)
+        return self.unevenly_sampled_channel.get_channel_payload(self.y_type)
 
     def payload_values_z(self) -> numpy.ndarray:
         """
         Returns the z-component of this channel's payload.
         :return: The z-component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(self.z_type)
+        return self.unevenly_sampled_channel.get_channel_payload(self.z_type)
 
     def payload_values_x_mean(self) -> float:
         """
@@ -835,7 +1103,7 @@ class MicrophoneSensor(EvenlySampledSensor):
         Returns the microphone payload as a numpy ndarray of integers.
         :return: The microphone payload as a numpy ndarray of integers.
         """
-        return self.evenly_sampled_channel.get_payload(api900_pb2.MICROPHONE)
+        return self.evenly_sampled_channel.get_channel_payload(api900_pb2.MICROPHONE)
 
     def payload_mean(self) -> float:
         """Returns the mean of this channel's payload.
@@ -879,7 +1147,7 @@ class BarometerSensor(UnevenlySampledSensor):
         Returns this channels payload as a numpy ndarray of floats.
         :return: This channels payload as a numpy ndarray of floats.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.BAROMETER)
+        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.BAROMETER)
 
     def payload_mean(self) -> float:
         """Returns the mean of this channel's payload.
@@ -928,35 +1196,35 @@ class LocationSensor(UnevenlySampledSensor):
         Returns the latitude component of this channel's payload.
         :return: The latitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.LATITUDE)
+        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.LATITUDE)
 
     def payload_values_longitude(self):
         """
         Returns the longitude component of this channel's payload.
         :return: The longitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.LONGITUDE)
+        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.LONGITUDE)
 
     def payload_values_altitude(self):
         """
         Returns the altitude component of this channel's payload.
         :return: The altitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.ALTITUDE)
+        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.ALTITUDE)
 
     def payload_values_speed(self):
         """
         Returns the speed component of this channel's payload.
         :return: The speed component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.SPEED)
+        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.SPEED)
 
     def payload_values_accuracy(self):
         """
         Returns the accuracy component of this channel's payload.
         :return: The accuracy component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.ACCURACY)
+        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.ACCURACY)
 
     def payload_values_latitude_mean(self) -> float:
         """
@@ -1089,7 +1357,7 @@ class TimeSynchronizationSensor:
         Returns the time synchronization exchanges as a numpy ndarray of integers.
         :return: The time synchronization exchanges as a numpy ndarray of integers.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.TIME_SYNCHRONIZATION)
+        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.TIME_SYNCHRONIZATION)
 
     def metadata(self) -> typing.List[str]:
         """
@@ -1160,7 +1428,7 @@ class LightSensor(UnevenlySampledSensor):
         Returns a numpy ndarray of floats representing this light sensor's payload.
         :return: A numpy ndarray of floats representing this light sensor's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.LIGHT)
+        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.LIGHT)
 
     def payload_mean(self) -> float:
         """
@@ -1192,7 +1460,7 @@ class InfraredSensor(UnevenlySampledSensor):
         Returns a numpy ndarray of floats representing this sensor's payload.
         :return: A numpy ndarray of floats representing this sensor's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.INFRARED)
+        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.INFRARED)
 
     def payload_mean(self) -> float:
         """
@@ -1251,7 +1519,7 @@ class ImageSensor(UnevenlySampledSensor):
         offset_1, ..., offset_n]".
         :return: A numpy ndarray of floats representing this sensor's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.IMAGE)
+        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.IMAGE)
 
     def num_images(self) -> int:
         """
@@ -1285,7 +1553,7 @@ class ImageSensor(UnevenlySampledSensor):
 
     def default_filename(self, idx: int) -> str:
         """
-        Returns the a default file name for the image at the given index by using the timestamp of the image.
+        Returns the default file name for the image at the given index by using the timestamp of the image.
         :param idx: The index of the image in this channel (starting at 0).
         :return: A default filename of the format timestamp.jpg.
         """
@@ -1352,6 +1620,23 @@ class WrappedRedvoxPacket:
         for unevenly_sampled_channel in self.unevenly_sampled_channels:
             for channel_type in unevenly_sampled_channel.channel_types:
                 self._channel_cache[channel_type] = unevenly_sampled_channel
+
+    def add_channel(self, channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                                api900_pb2.UnevenlySampledChannel]):
+        """
+        Add a channel
+        :param channel: channel to add
+
+        """
+        if type(channel) == api900_pb2.EvenlySampledChannel:
+            self.evenly_sampled_channels.append(channel)
+        elif type(channel) == api900_pb2.UnevenlySampledChannel:
+            self.unevenly_sampled_channels.append(channel)
+        else:
+            raise TypeError("Channel type to add must be even or uneven.")
+
+        for channel_type in channel.channel_types:
+            self._channel_cache[channel_type] = channel
 
     def get_channel_types(self) -> typing.List[typing.List[int]]:
         """
