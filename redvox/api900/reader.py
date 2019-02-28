@@ -367,7 +367,7 @@ class InterleavedChannel:
             self._channel_type_index = dict()
         else:
             self._protobuf_channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                                api900_pb2.UnevenlySampledChannel] = channel
+                                                 api900_pb2.UnevenlySampledChannel] = channel
             """Reference to the original protobuf channel"""
 
             self._sensor_name: str = channel.sensor_name
@@ -458,8 +458,8 @@ class InterleavedChannel:
     def protobuf_channel(self, channel: typing.Union[api900_pb2.EvenlySampledChannel,
                                                      api900_pb2.UnevenlySampledChannel]):
         """
-        Sets this object to a new channel
-        :param channel: another channel
+        Sets this object to a new channel; also sets all other values to match new protobuf channel
+        :param channel: a protobuf channel
         """
         self._protobuf_channel = channel
         self._sensor_name = channel.sensor_name
@@ -506,10 +506,15 @@ class InterleavedChannel:
     @payload.setter
     def payload(self, channels: typing.List[numpy.ndarray]):
         """
-        Interleaves the channels given to form a new payload
+        Interleaves the channels given to form a new payload; if only one channel, no interleave
         :param channels: channels to interleave
         """
-        self._payload = interleave_arrays(channels)
+        if len(channels) > 1:
+            self._payload = interleave_arrays(channels)
+        elif len(channels) < 1:
+            raise ReaderException("Payloads cannot be set to empty!")
+        else:
+            self._payload = channels[0]
         new_stds = empty_array()
         new_means = empty_array()
         new_medians = empty_array()
@@ -524,10 +529,9 @@ class InterleavedChannel:
 
     def set_interleaved_payload(self, payload: numpy.ndarray, step: int):
         """
-        sets the payload to the new value; assumes it is an interleaved array.  also sets std, mean and means.
-        :param payload: an array of values
+        sets the payload to the new value; assumes it is an interleaved array.  also sets std, mean and median.
+        :param payload: an array of values representing interleaved arrays
         :param step: the amount of interleaved arrays, payload length must be a multiple of step
-
         """
         if len(payload) % step != 0:
             raise IndexError("Cannot deinterleave payload: Step size is not a multiple of array length!")
@@ -671,6 +675,15 @@ class EvenlySampledChannel(InterleavedChannel):
                 channel.first_sample_timestamp_epoch_microseconds_utc
             """The timestamp of the first sample"""
 
+    def set_channel(self, channel: api900_pb2.EvenlySampledChannel):
+        """
+        sets the channel to an evenly sampled channel
+        :param channel: evenly sampled channel
+        """
+        self._protobuf_channel = channel
+        self._sample_rate_hz = channel.sample_rate_hz
+        self._first_sample_timestamp_epoch_microseconds_utc = channel.first_sample_timestamp_epoch_microseconds_utc
+
     @property
     def sample_rate_hz(self) -> float:
         """
@@ -767,7 +780,7 @@ class UnevenlySampledChannel(InterleavedChannel):
             redvox.api900.stat_utils.calc_utils(timestamps)
 
     @property
-    def get_sample_interval_mean(self) -> float:
+    def sample_interval_mean(self) -> float:
         """
         returns mean of the sample interval
         :return: mean of the sample interval
@@ -818,6 +831,13 @@ class EvenlySampledSensor:
             self._evenly_sampled_channel: EvenlySampledChannel = evenly_sampled_channel
             """A reference to the original unevenly sampled channel"""
 
+    def set_channel(self, channel: EvenlySampledChannel):
+        """
+        sets the evenly sampled channel of the sensor
+        :param channel: an evenly sampled channel
+        """
+        self._evenly_sampled_channel = channel
+
     @property
     def sample_rate_hz(self) -> float:
         """
@@ -867,7 +887,6 @@ class EvenlySampledSensor:
         """
         self._evenly_sampled_channel.sensor_name = name
 
-    @property
     def payload_type(self) -> str:
         """
         Returns the internal protobuf payload type.
@@ -888,7 +907,7 @@ class EvenlySampledSensor:
         Returns this channel's metadata (if there is any) as a Python dictionary.
         :return: This channel's metadata (if there is any) as a Python dictionary.
         """
-        return self._evenly_sampled_channel.metadata_as_dict()
+        return get_metadata_as_dict(self.metadata)
 
     def __str__(self):
         return str(self._evenly_sampled_channel)
@@ -907,14 +926,33 @@ class UnevenlySampledSensor:
         Initializes this class.
         :param unevenly_sampled_channel: an instance of a UnevenlySampledChannel
         """
-        self._unevenly_sampled_channel: UnevenlySampledChannel = unevenly_sampled_channel
+        if unevenly_sampled_channel is None:
+            self._unevenly_sampled_channel = UnevenlySampledChannel()
+        else:
+            self._unevenly_sampled_channel: UnevenlySampledChannel = unevenly_sampled_channel
 
+    def set_channel(self, channel: UnevenlySampledChannel):
+        """
+        sets the unevenly sampled channel of the sensor
+        :param channel: an unevenly sampled channel
+        """
+        self._unevenly_sampled_channel = channel
+
+    @property
     def sensor_name(self) -> str:
         """
         Returns the sensor name associated with this unevenly sampled channel.
         :return: The sensor name associated with this unevenly sampled channel.
         """
         return self._unevenly_sampled_channel.sensor_name
+
+    @sensor_name.setter
+    def sensor_name(self, name: str):
+        """
+        Sets the sensor name
+        :param name: name of the sensor
+        """
+        self._unevenly_sampled_channel.sensor_name = name
 
     def payload_type(self) -> str:
         """
@@ -923,6 +961,7 @@ class UnevenlySampledSensor:
         """
         return self._unevenly_sampled_channel.get_payload_type()
 
+    @property
     def timestamps_microseconds_utc(self) -> numpy.ndarray:
         """
         Returns a list of ascending timestamps that associate with each sample value
@@ -930,6 +969,15 @@ class UnevenlySampledSensor:
         """
         return self._unevenly_sampled_channel.timestamps_microseconds_utc
 
+    @timestamps_microseconds_utc.setter
+    def timestamps_microseconds_utc(self, timestamps: numpy.ndarray):
+        """
+        set the time stamps
+        :param timestamps: a list of ascending timestamps that associate with each sample value
+        """
+        self._unevenly_sampled_channel.timestamps_microseconds_utc = timestamps
+
+    @property
     def sample_interval_mean(self) -> float:
         """
         Returns the mean sample interval for this unevenly sampled sensor channel.
@@ -937,6 +985,7 @@ class UnevenlySampledSensor:
         """
         return self._unevenly_sampled_channel.sample_interval_mean
 
+    @property
     def sample_interval_median(self) -> float:
         """
         Returns the median sample interval for this unevenly sampled sensor channel.
@@ -944,6 +993,7 @@ class UnevenlySampledSensor:
         """
         return self._unevenly_sampled_channel.sample_interval_median
 
+    @property
     def sample_interval_std(self) -> float:
         """
         Returns the standard deviation sample interval for this unevenly sampled sensor channel.
@@ -951,6 +1001,7 @@ class UnevenlySampledSensor:
         """
         return self._unevenly_sampled_channel.sample_interval_std
 
+    @property
     def metadata(self) -> typing.List[str]:
         """
         Returns this channel's metadata (if there is any) as a Python list.
@@ -963,7 +1014,7 @@ class UnevenlySampledSensor:
         Returns this channel's metadata (if there is any) as a Python dictionary.
         :return: This channel's metadata (if there is any) as a Python dictionary.
         """
-        return get_metadata_as_dict(self._unevenly_sampled_channel.metadata)
+        return get_metadata_as_dict(self.metadata)
 
     def __str__(self):
         return str(self._unevenly_sampled_channel)
@@ -978,15 +1029,97 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
     def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel, x_type: int, y_type: int, z_type: int):
         """
         Initializes this class.
-        :param unevenly_sampled_channel: An instant of an UnevenlySampledChannel.
+        :param unevenly_sampled_channel: An instance of an UnevenlySampledChannel.
         :param x_type: The X channel type enum.
         :param y_type: The Y channel type enum.
         :param z_type: The Z channel type enum.
         """
         super().__init__(unevenly_sampled_channel)
-        self.x_type = x_type
-        self.y_type = y_type
-        self.z_type = z_type
+        self._x_type = x_type
+        self._y_type = y_type
+        self._z_type = z_type
+
+    def set_xyz_channel(self, channel: UnevenlySampledChannel, x_type: int, y_type: int, z_type: int):
+        """
+        sets the channel to an instance of an unevenly sampled sensor
+        :param channel: An instance of an UnevenlySampledChannel.
+        :param x_type: The X channel type enum.
+        :param y_type: The Y channel type enum.
+        :param z_type: The Z channel type enum.
+        """
+        super().set_channel(channel)
+        self._x_type = x_type
+        self._y_type = y_type
+        self._z_type = z_type
+
+    @property
+    def x_type(self) -> int:
+        """
+        returns the x type enumerator
+        :return: This sensor's x type enum value
+        """
+        return self._x_type
+
+    @x_type.setter
+    def x_type(self, chan_type: int):
+        """
+        sets the x type
+        :param chan_type: channel type enumeration
+        """
+        self._x_type = chan_type
+
+    def x_type_name(self) -> str:
+        """
+        returns the x type enum as a string
+        :return: x type name as string
+        """
+        return channel_type_name_from_enum(self._x_type)
+
+    @property
+    def y_type(self) -> int:
+        """
+        returns the y type enumerator
+        :return: This sensor's y type enum value
+        """
+        return self._y_type
+
+    @y_type.setter
+    def y_type(self, chan_type: int):
+        """
+        sets the y type
+        :param chan_type: channel type enumeration
+        """
+        self._y_type = chan_type
+
+    def y_type_name(self) -> str:
+        """
+        returns the y type enum as a string
+        :return: y type name as string
+        """
+        return channel_type_name_from_enum(self._y_type)
+
+    @property
+    def z_type(self) -> int:
+        """
+        returns the z type enumerator
+        :return: This sensor's z type enum value
+        """
+        return self._z_type
+
+    @z_type.setter
+    def z_type(self, chan_type: int):
+        """
+        sets the z type
+        :param chan_type: channel type enumeration
+        """
+        self._z_type = chan_type
+
+    def z_type_name(self) -> str:
+        """
+        returns the z type enum as a string
+        :return: z type name as string
+        """
+        return channel_type_name_from_enum(self._z_type)
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -994,10 +1127,10 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]].
         :return: This channel's payload as an interleaved payload.
         """
-        return self.unevenly_sampled_channel.get_multi_payload([
-            self.x_type,
-            self.y_type,
-            self.z_type
+        return self._unevenly_sampled_channel.get_multi_payload([
+            self._x_type,
+            self._y_type,
+            self._z_type
         ])
 
     def payload_values_x(self) -> numpy.ndarray:
@@ -1005,84 +1138,84 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         Returns the x-component of this channel's payload.
         :return: The x-component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(self.x_type)
+        return self._unevenly_sampled_channel.get_channel_payload(self._x_type)
 
     def payload_values_y(self) -> numpy.ndarray:
         """
         Returns the y-component of this channel's payload.
         :return: The y-component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(self.y_type)
+        return self._unevenly_sampled_channel.get_channel_payload(self._y_type)
 
     def payload_values_z(self) -> numpy.ndarray:
         """
         Returns the z-component of this channel's payload.
         :return: The z-component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(self.z_type)
+        return self._unevenly_sampled_channel.get_channel_payload(self._z_type)
 
     def payload_values_x_mean(self) -> float:
         """
         Returns the x-component mean of this channel's payload.
         :return: The x-component mean of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(self.x_type)
+        return self._unevenly_sampled_channel.get_value_mean(self._x_type)
 
     def payload_values_y_mean(self) -> float:
         """
         Returns the y-component mean of this channel's payload.
         :return: The y-component mean of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(self.y_type)
+        return self._unevenly_sampled_channel.get_value_mean(self._y_type)
 
     def payload_values_z_mean(self) -> float:
         """
         Returns the z-component mean of this channel's payload.
         :return: The z-component mean of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(self.z_type)
+        return self._unevenly_sampled_channel.get_value_mean(self._z_type)
 
     def payload_values_x_median(self) -> float:
         """
         Returns the x-component median of this channel's payload.
         :return: The x-component median of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(self.x_type)
+        return self._unevenly_sampled_channel.get_value_median(self._x_type)
 
     def payload_values_y_median(self) -> float:
         """
         Returns the y-component median of this channel's payload.
         :return: The y-component median of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(self.y_type)
+        return self._unevenly_sampled_channel.get_value_median(self._y_type)
 
     def payload_values_z_median(self) -> float:
         """
         Returns the z-component median of this channel's payload.
         :return: The z-component median of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(self.z_type)
+        return self._unevenly_sampled_channel.get_value_median(self._z_type)
 
     def payload_values_x_std(self) -> float:
         """
         Returns the x-component standard deviation of this channel's payload.
         :return: The x-component standard deviation of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(self.x_type)
+        return self._unevenly_sampled_channel.get_value_std(self._x_type)
 
     def payload_values_y_std(self) -> float:
         """
         Returns the y-component standard deviation of this channel's payload.
         :return: The y-component standard deviation of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(self.y_type)
+        return self._unevenly_sampled_channel.get_value_std(self._y_type)
 
     def payload_values_z_std(self) -> float:
         """
         Returns the z-component standard deviation of this channel's payload.
         :return: The z-component standard deviation of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(self.z_type)
+        return self._unevenly_sampled_channel.get_value_std(self._z_type)
 
 
 class MicrophoneSensor(EvenlySampledSensor):
@@ -1090,26 +1223,26 @@ class MicrophoneSensor(EvenlySampledSensor):
     High-level wrapper around microphone channels.
     """
 
-    def __init__(self, evenly_sampled_channel: EvenlySampledChannel):
+    def __init__(self, evenly_sampled_channel: EvenlySampledChannel = None):
         """
         Initialized this channel.
         :param evenly_sampled_channel: An instance of an EvenlySampledChannel with microphone data.
         """
         super().__init__(evenly_sampled_channel)
-        self.evenly_sampled_channel = evenly_sampled_channel
+        # self._evenly_sampled_channel = evenly_sampled_channel
 
     def payload_values(self) -> numpy.ndarray:
         """
         Returns the microphone payload as a numpy ndarray of integers.
         :return: The microphone payload as a numpy ndarray of integers.
         """
-        return self.evenly_sampled_channel.get_channel_payload(api900_pb2.MICROPHONE)
+        return self._evenly_sampled_channel.get_channel_payload(api900_pb2.MICROPHONE)
 
     def payload_mean(self) -> float:
         """Returns the mean of this channel's payload.
         :return: The mean of this channel's payload.
         """
-        return self.evenly_sampled_channel.get_value_mean(api900_pb2.MICROPHONE)
+        return self._evenly_sampled_channel.get_value_mean(api900_pb2.MICROPHONE)
 
     # Currently, our Android and iOS devices don't calculate a median value, so we calculate it here
     def payload_median(self) -> numpy.float64:
@@ -1134,7 +1267,7 @@ class MicrophoneSensor(EvenlySampledSensor):
         """Returns the standard deviation of this channel's payload.
         :return: The standard deviation of this channel's payload.
         """
-        return self.evenly_sampled_channel.get_value_std(api900_pb2.MICROPHONE)
+        return self._evenly_sampled_channel.get_value_std(api900_pb2.MICROPHONE)
 
 
 class BarometerSensor(UnevenlySampledSensor):
@@ -1142,30 +1275,37 @@ class BarometerSensor(UnevenlySampledSensor):
     High-level wrapper around barometer channels.
     """
 
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+        """
+        Initialize this channel
+        :param unevenly_sampled_channel: Instance of UnevenlySampledChannel with barometer data
+        """
+        super().__init__(unevenly_sampled_channel)
+
     def payload_values(self) -> numpy.ndarray:
         """
         Returns this channels payload as a numpy ndarray of floats.
         :return: This channels payload as a numpy ndarray of floats.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.BAROMETER)
+        return self._unevenly_sampled_channel.get_channel_payload(api900_pb2.BAROMETER)
 
     def payload_mean(self) -> float:
         """Returns the mean of this channel's payload.
         :return: The mean of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.BAROMETER)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.BAROMETER)
 
     def payload_median(self) -> float:
         """Returns the median of this channel's payload.
         :return: The median of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.BAROMETER)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.BAROMETER)
 
     def payload_std(self) -> float:
         """Returns the standard deviation of this channel's payload.
         :return: The standard deviation of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.BAROMETER)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.BAROMETER)
 
 
 # pylint: disable=R0904
@@ -1173,6 +1313,13 @@ class LocationSensor(UnevenlySampledSensor):
     """
     High-level wrapper around location channels.
     """
+
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+        """
+        Initialize this channel
+        :param unevenly_sampled_channel: Instance of UnevenlySampledChannel containing location data
+        """
+        super().__init__(unevenly_sampled_channel)
 
     def payload_values(self):
         """
@@ -1183,7 +1330,7 @@ class LocationSensor(UnevenlySampledSensor):
          [latitude_n, longitude_n, altitude_n, speed_n, accuracy_n],]
         :return:
         """
-        return self.unevenly_sampled_channel.get_multi_payload([
+        return self._unevenly_sampled_channel.get_multi_payload([
             api900_pb2.LATITUDE,
             api900_pb2.LONGITUDE,
             api900_pb2.ALTITUDE,
@@ -1196,191 +1343,167 @@ class LocationSensor(UnevenlySampledSensor):
         Returns the latitude component of this channel's payload.
         :return: The latitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.LATITUDE)
+        return self._unevenly_sampled_channel.get_channel_payload(api900_pb2.LATITUDE)
 
     def payload_values_longitude(self):
         """
         Returns the longitude component of this channel's payload.
         :return: The longitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.LONGITUDE)
+        return self._unevenly_sampled_channel.get_channel_payload(api900_pb2.LONGITUDE)
 
     def payload_values_altitude(self):
         """
         Returns the altitude component of this channel's payload.
         :return: The altitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.ALTITUDE)
+        return self._unevenly_sampled_channel.get_channel_payload(api900_pb2.ALTITUDE)
 
     def payload_values_speed(self):
         """
         Returns the speed component of this channel's payload.
         :return: The speed component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.SPEED)
+        return self._unevenly_sampled_channel.get_channel_payload(api900_pb2.SPEED)
 
     def payload_values_accuracy(self):
         """
         Returns the accuracy component of this channel's payload.
         :return: The accuracy component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.ACCURACY)
+        return self._unevenly_sampled_channel.get_channel_payload(api900_pb2.ACCURACY)
 
     def payload_values_latitude_mean(self) -> float:
         """
         Returns the mean latitude component of this channel's payload.
         :return: The mean latitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.LATITUDE)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.LATITUDE)
 
     def payload_values_longitude_mean(self) -> float:
         """
         Returns the mean longitude component of this channel's payload.
         :return: The mean longitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.LONGITUDE)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.LONGITUDE)
 
     def payload_values_altitude_mean(self) -> float:
         """
         Returns the mean altitude component of this channel's payload.
         :return: The mean altitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.ALTITUDE)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.ALTITUDE)
 
     def payload_values_speed_mean(self) -> float:
         """
         Returns the mean speed component of this channel's payload.
         :return: The mean speed component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.SPEED)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.SPEED)
 
     def payload_values_accuracy_mean(self) -> float:
         """
         Returns the mean accuracy component of this channel's payload.
         :return: The mean accuracy component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.ACCURACY)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.ACCURACY)
 
     def payload_values_latitude_median(self) -> float:
         """
         Returns the median latitude component of this channel's payload.
         :return: The median latitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.LATITUDE)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.LATITUDE)
 
     def payload_values_longitude_median(self) -> float:
         """
         Returns the median longitude component of this channel's payload.
         :return: The median longitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.LONGITUDE)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.LONGITUDE)
 
     def payload_values_altitude_median(self) -> float:
         """
         Returns the median altitude component of this channel's payload.
         :return: The median altitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.ALTITUDE)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.ALTITUDE)
 
     def payload_values_speed_median(self) -> float:
         """
         Returns the median speed component of this channel's payload.
         :return: The median speed component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.SPEED)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.SPEED)
 
     def payload_values_accuracy_median(self) -> float:
         """
         Returns the median accuracy component of this channel's payload.
         :return: The median accuracy component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.ACCURACY)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.ACCURACY)
 
     def payload_values_latitude_std(self) -> float:
         """
         Returns the standard deviation latitude component of this channel's payload.
         :return: The standard deviation latitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.LATITUDE)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.LATITUDE)
 
     def payload_values_longitude_std(self) -> float:
         """
         Returns the standard deviation longitude component of this channel's payload.
         :return: The standard deviation longitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.LONGITUDE)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.LONGITUDE)
 
     def payload_values_altitude_std(self) -> float:
         """
         Returns the standard deviation altitude component of this channel's payload.
         :return: The standard deviation altitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.ALTITUDE)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.ALTITUDE)
 
     def payload_values_speed_std(self) -> float:
         """
         Returns the standard deviation speed component of this channel's payload.
         :return: The standard deviation speed component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.SPEED)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.SPEED)
 
     def payload_values_accuracy_std(self) -> float:
         """
         Returns the standard deviation accuracy component of this channel's payload.
         :return: The standard deviation accuracy component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.ACCURACY)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.ACCURACY)
 
 
-class TimeSynchronizationSensor:
+class TimeSynchronizationSensor(UnevenlySampledSensor):
     """High-level wrapper around time synchronization exchange.
 
     It should be noted that this class only exposes a single method, payload values.
     """
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
         """
         Initialized this class.
         :param unevenly_sampled_channel: An unevenly sampled channel with time synchronization payload.
         """
-        self.unevenly_sampled_channel = unevenly_sampled_channel
-
-    def payload_type(self) -> str:
-        """
-        Returns the internal protobuf payload type.
-        :return: The internal protobuf payload type.
-        """
-        return self.unevenly_sampled_channel.get_payload_type()
+        super().__init__(unevenly_sampled_channel)
 
     def payload_values(self) -> numpy.ndarray:
         """
         Returns the time synchronization exchanges as a numpy ndarray of integers.
         :return: The time synchronization exchanges as a numpy ndarray of integers.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.TIME_SYNCHRONIZATION)
-
-    def metadata(self) -> typing.List[str]:
-        """
-        Returns this channel's metadata (if there is any) as a Python list.
-        :return: This channel's metadata (if there is any) as a Python list.
-        """
-        return self.unevenly_sampled_channel.metadata
-
-    def metadata_as_dict(self) -> typing.Dict[str, str]:
-        """
-        Returns this channel's metadata (if there is any) as a Python dictionary.
-        :return: This channel's metadata (if there is any) as a Python dictionary.
-        """
-        return get_metadata_as_dict(self.unevenly_sampled_channel.metadata)
-
-    def __str__(self):
-        return str(self.unevenly_sampled_channel)
+        return self._unevenly_sampled_channel.get_channel_payload(api900_pb2.TIME_SYNCHRONIZATION)
 
 
 class AccelerometerSensor(XyzUnevenlySampledSensor):
     """High-level wrapper around accelerometer channels."""
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
         """
         Initializes this class.
         :param unevenly_sampled_channel: An instance of an UnevenlySampledChanel which contains accelerometer
@@ -1391,6 +1514,17 @@ class AccelerometerSensor(XyzUnevenlySampledSensor):
                          api900_pb2.ACCELEROMETER_Y,
                          api900_pb2.ACCELEROMETER_Z)
 
+    def payload_values(self) -> numpy.ndarray:
+        """
+        returns the sensor payload as a numpy ndarray
+        :return: accelerometer payload as a numpy ndarray
+        """
+        return self._unevenly_sampled_channel.get_multi_payload([
+            api900_pb2.ACCELEROMETER_X,
+            api900_pb2.ACCELEROMETER_Y,
+            api900_pb2.ACCELEROMETER_Z
+        ])
+
 
 class MagnetometerSensor(XyzUnevenlySampledSensor):
     """
@@ -1399,11 +1533,22 @@ class MagnetometerSensor(XyzUnevenlySampledSensor):
     X, Y, and Z payload components.
     """
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
         super().__init__(unevenly_sampled_channel,
                          api900_pb2.MAGNETOMETER_X,
                          api900_pb2.MAGNETOMETER_Y,
                          api900_pb2.MAGNETOMETER_Z)
+
+    def payload_values(self) -> numpy.ndarray:
+        """
+        returns the sensor payload as a numpy ndarray
+        :return: magnetometer payload as a numpy ndarray
+        """
+        return self._unevenly_sampled_channel.get_multi_payload([
+            api900_pb2.MAGNETOMETER_X,
+            api900_pb2.MAGNETOMETER_Y,
+            api900_pb2.MAGNETOMETER_Z
+        ])
 
 
 class GyroscopeSensor(XyzUnevenlySampledSensor):
@@ -1413,89 +1558,122 @@ class GyroscopeSensor(XyzUnevenlySampledSensor):
     X, Y, and Z payload components.
     """
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
         super().__init__(unevenly_sampled_channel,
                          api900_pb2.GYROSCOPE_X,
                          api900_pb2.GYROSCOPE_Y,
                          api900_pb2.GYROSCOPE_Z)
 
+    def payload_values(self) -> numpy.ndarray:
+        """
+        returns the sensor payload as a numpy ndarray
+        :return: gyroscope payload as a numpy ndarray
+        """
+        return self._unevenly_sampled_channel.get_multi_payload([
+            api900_pb2.GYROSCOPE_X,
+            api900_pb2.GYROSCOPE_Y,
+            api900_pb2.GYROSCOPE_Z
+        ])
+
 
 class LightSensor(UnevenlySampledSensor):
     """High-level wrapper around light channels."""
+
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+        """
+        Initializes this class
+        :param unevenly_sampled_channel: Instance of UnevenlySampledChannel with light sensor payload
+        """
+        super().__init__(unevenly_sampled_channel)
 
     def payload_values(self) -> numpy.ndarray:
         """
         Returns a numpy ndarray of floats representing this light sensor's payload.
         :return: A numpy ndarray of floats representing this light sensor's payload.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.LIGHT)
+        return self._unevenly_sampled_channel.get_channel_payload(api900_pb2.LIGHT)
 
     def payload_mean(self) -> float:
         """
         The mean of this channel's payload.
         :return: Mean of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.LIGHT)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.LIGHT)
 
     def payload_median(self) -> float:
         """
         The median of this channel's payload.
         :return: Median of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.LIGHT)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.LIGHT)
 
     def payload_std(self) -> float:
         """
         The standard deviation of this channel's payload.
         :return: Standard deviation of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.LIGHT)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.LIGHT)
 
 
 class InfraredSensor(UnevenlySampledSensor):
     """High-level wrapper around light channels."""
+
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+        """
+        Initializes this class
+        :param unevenly_sampled_channel: UnevenlySampledChannel with infrared sensor payload
+        """
+        super().__init__(unevenly_sampled_channel)
 
     def payload_values(self) -> numpy.ndarray:
         """
         Returns a numpy ndarray of floats representing this sensor's payload.
         :return: A numpy ndarray of floats representing this sensor's payload.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.INFRARED)
+        return self._unevenly_sampled_channel.get_channel_payload(api900_pb2.INFRARED)
 
     def payload_mean(self) -> float:
         """
         The mean of this channel's payload.
         :return: Mean of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.INFRARED)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.INFRARED)
 
     def payload_median(self) -> float:
         """
         The median of this channel's payload.
         :return: Median of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.INFRARED)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.INFRARED)
 
     def payload_std(self) -> float:
         """
         The standard deviation of this channel's payload.
         :return: Standard deviation of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.INFRARED)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.INFRARED)
 
 
 class ImageSensor(UnevenlySampledSensor):
     """High-level wrapper around image channels."""
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
         """
         Initializes this ImageSensor.
         :param unevenly_sampled_channel: The image channel.
         """
         super().__init__(unevenly_sampled_channel)
 
-        self.image_offsets: typing.List[int] = self.parse_offsets()
+        self._image_offsets: typing.List[int] = self.parse_offsets()
         """A list of image byte offsets into the payload of this sensor channel."""
+
+    def set_channel(self, channel: UnevenlySampledChannel):
+        """
+        Sets the channel to an unevenly sampled channel
+        :param channel: Unevenly sampled channel with image payload
+        """
+        super().set_channel(channel)
+        self._image_offsets = self.parse_offsets()
 
     def parse_offsets(self) -> typing.List[int]:
         """
@@ -1512,6 +1690,14 @@ class ImageSensor(UnevenlySampledSensor):
         else:
             return []
 
+    @property
+    def image_offsets(self) -> typing.List[int]:
+        """
+        Returns the byte offsets for each image in the payload.
+        :return: The byte offsets for each image in the payload.
+        """
+        return self._image_offsets
+
     def payload_values(self) -> numpy.ndarray:
         """
         Returns a numpy ndarray of uint8s representing this sensor's payload. This byte blob may contain multiple
@@ -1519,14 +1705,14 @@ class ImageSensor(UnevenlySampledSensor):
         offset_1, ..., offset_n]".
         :return: A numpy ndarray of floats representing this sensor's payload.
         """
-        return self.unevenly_sampled_channel.get_channel_payload(api900_pb2.IMAGE)
+        return self._unevenly_sampled_channel.get_channel_payload(api900_pb2.IMAGE)
 
     def num_images(self) -> int:
         """
         Returns the number of images in this packet's image channel.
         :return: The number of images in this packet's image channel.
         """
-        return len(self.image_offsets)
+        return len(self._image_offsets)
 
     def get_image_bytes(self, idx: int) -> numpy.ndarray:
         """
@@ -1539,9 +1725,9 @@ class ImageSensor(UnevenlySampledSensor):
                                str(self.num_images()))
 
         if idx == self.num_images() - 1:
-            return self.payload_values()[self.image_offsets[idx]:]
+            return self.payload_values()[self._image_offsets[idx]:]
 
-        return self.payload_values()[self.image_offsets[idx]:self.image_offsets[idx + 1]]
+        return self.payload_values()[self._image_offsets[idx]:self._image_offsets[idx + 1]]
 
     def write_image_to_file(self, idx: int, path: str):
         """
@@ -1557,7 +1743,7 @@ class ImageSensor(UnevenlySampledSensor):
         :param idx: The index of the image in this channel (starting at 0).
         :return: A default filename of the format timestamp.jpg.
         """
-        return "{}.jpg".format(self.timestamps_microseconds_utc()[idx])
+        return "{}.jpg".format(self.timestamps_microseconds_utc[idx])
 
     def write_all_images_to_directory(self, directory: str = "."):
         """
@@ -1567,18 +1753,11 @@ class ImageSensor(UnevenlySampledSensor):
         for i in range(self.num_images()):
             self.write_image_to_file(i, "{}/{}".format(directory, self.default_filename(i)))
 
-    def get_image_offsets(self) -> typing.List[int]:
-        """
-        Returns the byte offsets for each image in the payload.
-        :return: The byte offsets for each image in the payload.
-        """
-        return self.image_offsets
-
     def __str__(self):
         """Provide image information in str of this instance"""
-        return "{}\nnum images: {}\nbyte offsets: {}".format(self.unevenly_sampled_channel,
+        return "{}\nnum images: {}\nbyte offsets: {}".format(self._unevenly_sampled_channel,
                                                              self.num_images(),
-                                                             self.image_offsets)
+                                                             self._image_offsets)
 
 
 # pylint: disable=R0904
@@ -1598,6 +1777,7 @@ class WrappedRedvoxPacket:
         """
         self.redvox_packet: api900_pb2.RedvoxPacket = redvox_packet
         """Protobuf api 900 redvox packet"""
+
         self.evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
                 map(EvenlySampledChannel, repeated_to_array(redvox_packet.evenly_sampled_channels)))
         """List of evenly sampled channels"""
@@ -1626,7 +1806,6 @@ class WrappedRedvoxPacket:
         """
         Add a channel
         :param channel: channel to add
-
         """
         if type(channel) == api900_pb2.EvenlySampledChannel:
             self.evenly_sampled_channels.append(channel)
