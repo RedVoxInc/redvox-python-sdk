@@ -583,6 +583,14 @@ class InterleavedChannel:
         payloads = list(map(self.get_channel_payload, channel_types))
         return interleave_arrays(payloads)
 
+    @property
+    def value_means(self) -> numpy.ndarray:
+        """
+        return the means of the payload
+        :return: interleaved means of the payload
+        """
+        return self._value_means
+
     def get_value_mean(self, channel_type: int) -> float:
         """
         Returns the mean value for a single channel type.
@@ -595,6 +603,14 @@ class InterleavedChannel:
 
         return self._value_means[idx]
 
+    @property
+    def value_stds(self) -> numpy.ndarray:
+        """
+        return the std deviations of the payload
+        :return: interleaved std deviations of the payload
+        """
+        return self._value_stds
+
     def get_value_std(self, channel_type: int) -> float:
         """
         Returns the standard deviation value for a single channel type.
@@ -606,6 +622,14 @@ class InterleavedChannel:
             return 0.0
 
         return self._value_stds[idx]
+
+    @property
+    def value_medians(self) -> numpy.ndarray:
+        """
+        return the medians of the payload
+        :return: interleaved medians of the payload
+        """
+        return self._value_medians
 
     def get_value_median(self, channel_type: int) -> float:
         """
@@ -1770,52 +1794,165 @@ class WrappedRedvoxPacket:
     directly.
     """
 
-    def __init__(self, redvox_packet: api900_pb2.RedvoxPacket):
+    def __init__(self, redvox_packet: api900_pb2.RedvoxPacket = None):
         """
         Initializes this wrapped redvox packet.
         :param redvox_packet: A protobuf redvox packet.
         """
-        self.redvox_packet: api900_pb2.RedvoxPacket = redvox_packet
-        """Protobuf api 900 redvox packet"""
+        if redvox_packet is None:
+            self._redvox_packet = api900_pb2.RedvoxPacket()
+            self._evenly_sampled_channels = list()
+            self._unevenly_sampled_channels = list()
+            self._metadata = list()
+            self._channel_cache = {}
 
-        self.evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
-                map(EvenlySampledChannel, repeated_to_array(redvox_packet.evenly_sampled_channels)))
-        """List of evenly sampled channels"""
+        else:
+            self._redvox_packet: api900_pb2.RedvoxPacket = redvox_packet
+            """Protobuf api 900 redvox packet"""
 
-        self.unevenly_sampled_channels: typing.List[UnevenlySampledChannel] = list(
-                map(UnevenlySampledChannel, repeated_to_array(redvox_packet.unevenly_sampled_channels)))
-        """List of unevenly sampled channels"""
+            self._evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
+                    map(EvenlySampledChannel, repeated_to_array(redvox_packet.evenly_sampled_channels)))
+            """List of evenly sampled channels"""
 
-        self.metadata: typing.List[str] = repeated_to_list(redvox_packet.metadata)
-        """List of metadata"""
+            self._unevenly_sampled_channels: typing.List[UnevenlySampledChannel] = list(
+                    map(UnevenlySampledChannel, repeated_to_array(redvox_packet.unevenly_sampled_channels)))
+            """List of unevenly sampled channels"""
 
-        self._channel_cache: typing.Dict[int, typing.Union[EvenlySampledChannel, UnevenlySampledChannel]] = {}
-        """Holds a mapping of channel type to channel for O(1) access."""
+            self._metadata: typing.List[str] = repeated_to_list(redvox_packet.metadata)
+            """List of metadata"""
 
-        # Initialize channel cache
-        for evenly_sampled_channel in self.evenly_sampled_channels:
+            self._channel_cache: typing.Dict[int, typing.Union[EvenlySampledChannel, UnevenlySampledChannel]] = {}
+            """Holds a mapping of channel type to channel for O(1) access."""
+
+            # Initialize channel cache
+            for evenly_sampled_channel in self._evenly_sampled_channels:
+                for channel_type in evenly_sampled_channel.channel_types:
+                    self._channel_cache[channel_type] = evenly_sampled_channel
+
+            for unevenly_sampled_channel in self._unevenly_sampled_channels:
+                for channel_type in unevenly_sampled_channel.channel_types:
+                    self._channel_cache[channel_type] = unevenly_sampled_channel
+
+    @property
+    def evenly_sampled_channels(self) -> typing.List[EvenlySampledChannel]:
+        """
+        returns the evenly sampled channels as a list
+        :return: list of evenly sampled channels
+        """
+        return self._evenly_sampled_channels
+
+    @property
+    def unevenly_sampled_channels(self) -> typing.List[UnevenlySampledChannel]:
+        """
+        returns the unevenly sampled channels as a list
+        :return: list of unevenly sampled channels
+        """
+        return self._unevenly_sampled_channels
+
+    def clear_even_channels(self):
+        """
+        removes all elements in even channels
+        """
+        del self._redvox_packet.evenly_sampled_channels[:]
+        self._refresh_even_channels()
+
+    def clear_uneven_channels(self):
+        """
+        removes all elements in uneven channels
+        """
+        del self._redvox_packet.unevenly_sampled_channels[:]
+        self._refresh_uneven_channels()
+
+    def _refresh_even_channels(self):
+        """
+        takes the redvox packet and rebuilds the evenly sampled channels from it
+        """
+        self._evenly_sampled_channels = list(map(EvenlySampledChannel,
+                                                 repeated_to_array(self._redvox_packet.evenly_sampled_channels)))
+        self._channel_cache = {}
+        for evenly_sampled_channel in self._evenly_sampled_channels:
             for channel_type in evenly_sampled_channel.channel_types:
                 self._channel_cache[channel_type] = evenly_sampled_channel
 
-        for unevenly_sampled_channel in self.unevenly_sampled_channels:
+    def _refresh_uneven_channels(self):
+        """
+        takes the redvox packet and rebuilds the unevenly sampled channels from it
+        """
+        self._unevenly_sampled_channels = list(map(UnevenlySampledChannel,
+                                                   repeated_to_array(self._redvox_packet.unevenly_sampled_channels)))
+        self._channel_cache = {}
+        for unevenly_sampled_channel in self._unevenly_sampled_channels:
             for channel_type in unevenly_sampled_channel.channel_types:
                 self._channel_cache[channel_type] = unevenly_sampled_channel
 
-    def add_channel(self, channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                                api900_pb2.UnevenlySampledChannel]):
+    def add_channel(self, channel: typing.Union[EvenlySampledChannel, UnevenlySampledChannel]):
         """
         Add a channel
         :param channel: channel to add
         """
-        if type(channel) == api900_pb2.EvenlySampledChannel:
-            self.evenly_sampled_channels.append(channel)
-        elif type(channel) == api900_pb2.UnevenlySampledChannel:
-            self.unevenly_sampled_channels.append(channel)
+        self._add_channel_redvox_packet(channel)
+        if type(channel) == EvenlySampledChannel:
+            self._refresh_even_channels()
+        elif type(channel) == UnevenlySampledChannel:
+            self._refresh_uneven_channels()
         else:
             raise TypeError("Channel type to add must be even or uneven.")
 
-        for channel_type in channel.channel_types:
-            self._channel_cache[channel_type] = channel
+    def _add_channel_redvox_packet(self, channel: typing.Union[EvenlySampledChannel, UnevenlySampledChannel]):
+        """
+        adds the channel to the redvox_packet
+        :param channel: channel to add
+        """
+        if type(channel) == EvenlySampledChannel:
+            newchan = self._redvox_packet.evenly_sampled_channels.add()
+            newchan.sample_rate_hz = channel.sample_rate_hz
+            newchan.first_sample_timestamp_epoch_microseconds_utc = \
+                channel.first_sample_timestamp_epoch_microseconds_utc
+        elif type(channel) == UnevenlySampledChannel:
+            newchan = self._redvox_packet.unevenly_sampled_channels.add()
+            for time in channel.timestamps_microseconds_utc:
+                newchan.timestamps_microseconds_utc.append(time)
+            newchan.sample_interval_mean = channel.sample_interval_mean
+            newchan.sample_interval_std = channel.sample_interval_std
+            newchan.sample_interval_median = channel.sample_interval_median
+        else:
+            raise TypeError("Channel type to add to redvox packet is unknown!")
+
+        pl_type = channel.get_payload_type()
+        if pl_type == "byte_payload":
+            for value in channel.payload:
+                newchan.byte_payload.payload.append(value)
+        elif pl_type == "uint32_payload":
+            for value in channel.payload:
+                newchan.uint32_payload.payload.append(value)
+        elif pl_type == "uint64_payload":
+            for value in channel.payload:
+                newchan.uint64_payload.payload.append(value)
+        elif pl_type == "int32_payload":
+            for value in channel.payload:
+                newchan.int32_payload.payload.append(value)
+        elif pl_type == "int64_payload":
+            for value in channel.payload:
+                newchan.int64_payload.payload.append(value)
+        elif pl_type == "float32_payload":
+            for value in channel.payload:
+                newchan.float32_payload.payload.append(value)
+        elif pl_type == "float64_payload":
+            for value in channel.payload:
+                newchan.float64_payload.payload.append(value)
+        else:
+            raise TypeError("Unknown payload type in channel to add.")
+        for chan_type in channel.channel_types:
+            newchan.channel_types.append(chan_type)
+        newchan.sensor_name = channel.sensor_name
+        for mean in channel.value_means:
+            newchan.value_means.append(mean)
+        for stds in channel.value_stds:
+            newchan.value_stds.append(stds)
+        for median in channel.value_medians:
+            newchan.value_medians.append(median)
+        for meta in channel.metadata:
+            newchan.metadata.append(meta)
 
     def get_channel_types(self) -> typing.List[typing.List[int]]:
         """
@@ -1824,10 +1961,10 @@ class WrappedRedvoxPacket:
         :return: A list of channel type enumerations.
         """
         channel_types = []
-        for evenly_sampled_channel in self.evenly_sampled_channels:
+        for evenly_sampled_channel in self._evenly_sampled_channels:
             channel_types.append(evenly_sampled_channel.channel_types)
 
-        for unevenly_sampled_channel in self.unevenly_sampled_channels:
+        for unevenly_sampled_channel in self._unevenly_sampled_channels:
             channel_types.append(unevenly_sampled_channel.channel_types)
 
         return channel_types
@@ -1858,7 +1995,7 @@ class WrappedRedvoxPacket:
 
     def has_channel(self, channel_type: int) -> bool:
         """
-        Returns True is this packet contains a channel with this type otherwise False.
+        Returns True if this packet contains a channel with this type otherwise False.
         :param channel_type: Channel type to search for.
         :return: True is this packet contains a channel with this type otherwise False.
         """
@@ -1878,182 +2015,388 @@ class WrappedRedvoxPacket:
 
     def to_json(self) -> str:
         """
-        Concerts the protobuf packet stored in this wrapped packet to JSON.
+        Converts the protobuf packet stored in this wrapped packet to JSON.
         :return: The JSON representation of the protobuf encoded packet.
         """
-        return to_json(self.redvox_packet)
+        return to_json(self._redvox_packet)
 
     def compressed_buffer(self) -> bytes:
         """
         Returns the compressed buffer associated with this packet.
         :return: The compressed buffer associated with this packet.
         """
-        return lz4_compress(self.redvox_packet.SerializeToString())
+        return lz4_compress(self._redvox_packet.SerializeToString())
 
+    @property
     def api(self) -> int:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.api
+        return self._redvox_packet.api
 
+    @api.setter
+    def api(self, version: int):
+        """
+        sets the api version number
+        :param version: version number
+        """
+        self._redvox_packet.api = version
+
+    @property
     def uuid(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.uuid
+        return self._redvox_packet.uuid
 
+    @uuid.setter
+    def uuid(self, uid: str):
+        """
+        sets the uuid
+        :param uid: uuid string
+        """
+        self._redvox_packet.uuid = uid
+
+    @property
     def redvox_id(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.redvox_id
+        return self._redvox_packet.redvox_id
 
+    @redvox_id.setter
+    def redvox_id(self, rid: str):
+        """
+        sets the redvox id
+        :param rid: redvox id string
+        """
+        self._redvox_packet.redvox_id = rid
+
+    @property
     def authenticated_email(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.authenticated_email
+        return self._redvox_packet.authenticated_email
 
+    @authenticated_email.setter
+    def authenticated_email(self, email: str):
+        """
+        sets the authenticated email
+        :param email: authenticated email string
+        """
+        self._redvox_packet.authenticated_email = email
+
+    @property
     def authentication_token(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.authentication_token
+        return self._redvox_packet.authentication_token
 
+    @authentication_token.setter
+    def authentication_token(self, token: str):
+        """
+        sets the authentication token
+        :param token: authentication token string
+        """
+        self._redvox_packet.authentication_token = token
+
+    @property
     def firebase_token(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.firebase_token
+        return self._redvox_packet.firebase_token
 
+    @firebase_token.setter
+    def firebase_token(self, token: str):
+        """
+        sets the firebase token
+        :param token: firebase token string
+        """
+        self._redvox_packet.firebase_token = token
+
+    @property
     def is_backfilled(self) -> bool:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.is_backfilled
+        return self._redvox_packet.is_backfilled
 
+    @is_backfilled.setter
+    def is_backfilled(self, tof: bool):
+        """
+        sets the is_backfilled flag
+        :param tof: true or false
+        """
+        self._redvox_packet.is_backfilled = tof
+
+    @property
     def is_private(self) -> bool:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.is_private
+        return self._redvox_packet.is_private
 
+    @is_private.setter
+    def is_private(self, tof: bool):
+        """
+        sets the is_private flag
+        :param tof: true or false
+        """
+        self._redvox_packet.is_private = tof
+
+    @property
     def is_scrambled(self) -> bool:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.is_scrambled
+        return self._redvox_packet.is_scrambled
 
+    @is_scrambled.setter
+    def is_scrambled(self, tof: bool):
+        """
+        sets the is_scrambled flag
+        :param tof: true or false
+        """
+        self._redvox_packet.is_scrambled = tof
+
+    @property
     def device_make(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.device_make
+        return self._redvox_packet.device_make
 
+    @device_make.setter
+    def device_make(self, make: str):
+        """
+        sets the make of the device
+        :param make: make of the device string
+        """
+        self._redvox_packet.device_make = make
+
+    @property
     def device_model(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.device_model
+        return self._redvox_packet.device_model
 
+    @device_model.setter
+    def device_model(self, model: str):
+        """
+        sets the model of the device
+        :param model: model of the device string
+        """
+        self._redvox_packet.device_model = model
+
+    @property
     def device_os(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.device_os
+        return self._redvox_packet.device_os
 
+    @device_os.setter
+    def device_os(self, os: str):
+        """
+        sets the device operating system
+        :param os: operating system string
+        """
+        self._redvox_packet.device_os = os
+
+    @property
     def device_os_version(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.device_os_version
+        return self._redvox_packet.device_os_version
 
+    @device_os_version.setter
+    def device_os_version(self, version: str):
+        """
+        sets the device OS version
+        :param version: device OS version string
+        """
+        self._redvox_packet.device_os_version = version
+
+    @property
     def app_version(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.app_version
+        return self._redvox_packet.app_version
 
+    @app_version.setter
+    def app_version(self, version: str):
+        """
+        sets the app version number
+        :param version: app version string
+        """
+        self._redvox_packet.app_version = version
+
+    @property
     def battery_level_percent(self) -> float:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.battery_level_percent
+        return self._redvox_packet.battery_level_percent
 
+    @battery_level_percent.setter
+    def battery_level_percent(self, percent: float):
+        """
+        sets the percentage of battery left
+        :param percent: percentage of battery left
+        """
+        self._redvox_packet.battery_level_percent = percent
+
+    @property
     def device_temperature_c(self) -> float:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.device_temperature_c
+        return self._redvox_packet.device_temperature_c
 
+    @device_temperature_c.setter
+    def device_temperature_c(self, temp: float):
+        """
+        sets the device temperature in degrees Celsius
+        :param temp: temperature in degrees Celsius
+        """
+        self._redvox_packet.device_temperature_c = temp
+
+    @property
     def acquisition_server(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.acquisition_server
+        return self._redvox_packet.acquisition_server
+
+    @acquisition_server.setter
+    def acquisition_server(self, server: str):
+        """
+        sets the acquisition server url
+        :param server: url to acquisition server
+        """
+        self._redvox_packet.acquisition_server = server
 
     # pylint: disable=invalid-name
+    @property
     def time_synchronization_server(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.time_synchronization_server
+        return self._redvox_packet.time_synchronization_server
 
+    @time_synchronization_server.setter
+    def time_synchronization_server(self, server: str):
+        """
+        sets the time synchronization server url
+        :param server: url to time synchronization server
+        """
+        self._redvox_packet.time_synchronization_server = server
+
+    @property
     def authentication_server(self) -> str:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.authentication_server
+        return self._redvox_packet.authentication_server
+
+    @authentication_server.setter
+    def authentication_server(self, server: str):
+        """
+        sets the authentication server url
+        :param server: url to authentication server
+        """
+        self._redvox_packet.authentication_server = server
 
     # pylint: disable=invalid-name
+    @property
     def app_file_start_timestamp_epoch_microseconds_utc(self) -> int:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.app_file_start_timestamp_epoch_microseconds_utc
+        return self._redvox_packet.app_file_start_timestamp_epoch_microseconds_utc
+
+    @app_file_start_timestamp_epoch_microseconds_utc.setter
+    def app_file_start_timestamp_epoch_microseconds_utc(self, time: int):
+        """
+        sets the timestamp of packet creation
+        :param time: time when packet was created in microseconds since utc epoch
+        """
+        self._redvox_packet.app_file_start_timestamp_epoch_microseconds_utc = time
 
     # pylint: disable=invalid-name
+    @property
     def app_file_start_timestamp_machine(self) -> int:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.app_file_start_timestamp_machine
+        return self._redvox_packet.app_file_start_timestamp_machine
+
+    @app_file_start_timestamp_machine.setter
+    def app_file_start_timestamp_machine(self, time: int):
+        """
+        sets the internal machine timestamp of packet creation
+        :param time: time when packet was created on local machine
+        """
+        self._redvox_packet.app_file_start_timestamp_machine = time
 
     # pylint: disable=invalid-name
+    @property
     def server_timestamp_epoch_microseconds_utc(self) -> int:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.server_timestamp_epoch_microseconds_utc
+        return self._redvox_packet.server_timestamp_epoch_microseconds_utc
+
+    @server_timestamp_epoch_microseconds_utc.setter
+    def server_timestamp_epoch_microseconds_utc(self, time: int):
+        """
+        sets the server timestamp when the packet was received
+        :param time: time when packet was received by server
+        """
+        self._redvox_packet.server_timestamp_epoch_microseconds_utc = time
+
+    @property
+    def metadata(self) -> typing.List[str]:
+        """
+        See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
+        description of this field.
+        """
+        return self._metadata
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
-        Return this packet's metadat as a key-value Python dictionary.
-        :return: This packet's metadat as a key-value Python dictionary.
+        Return this packet's metadata as a key-value Python dictionary.
+        :return: This packet's metadata as a key-value Python dictionary.
         """
-        return get_metadata_as_dict(self.metadata)
+        return get_metadata_as_dict(self._metadata)
 
     # Sensor channels
     def has_microphone_channel(self) -> bool:
@@ -2241,7 +2584,7 @@ class WrappedRedvoxPacket:
         Returns protobuf's String representation of this packet.
         :return: Protobuf's String representation of this packet.
         """
-        return str(self.redvox_packet)
+        return str(self._redvox_packet)
 
 
 def wrap(redvox_packet: api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:
@@ -2274,7 +2617,7 @@ def read_directory(directory_path: str) -> typing.Dict[str, typing.List[WrappedR
     grouped = collections.defaultdict(list)
 
     for wrapped_packet in wrapped_packets:
-        grouped[wrapped_packet.redvox_id()].append(wrapped_packet)
+        grouped[wrapped_packet.redvox_id].append(wrapped_packet)
 
     return grouped
 
