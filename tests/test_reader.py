@@ -658,5 +658,5 @@ class WrappedRedvoxPacketTests(ArraysTestCase):
         wrapped = redvox.api900.reader.wrap(redvox.api900.reader.read_buffer(as_bytes))
         out_buf = wrapped.compressed_buffer()
         self.assertEqual(original_uncompressed_size, redvox.api900.reader.calculate_uncompressed_size(out_buf))
-        self.assertEqual("0000001314", redvox.api900.reader.wrap(redvox.api900.reader.read_buffer(out_buf)).redvox_id())
+        self.assertEqual("0000001314", redvox.api900.reader.wrap(redvox.api900.reader.read_buffer(out_buf)).redvox_id)
 

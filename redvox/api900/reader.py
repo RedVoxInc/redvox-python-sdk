@@ -279,6 +279,26 @@ def empty_array() -> numpy.ndarray:
     return numpy.array([])
 
 
+def empty_evenly_sampled_channel() -> api900_pb2.EvenlySampledChannel:
+    """
+    Returns an empty protobuf EvenlySampledChannel
+    :return: empty EvenlySampledChannel
+    """
+    obj = api900_pb2.EvenlySampledChannel()
+    obj.byte_payload.payload = b''
+    return obj
+
+
+def empty_unevenly_sampled_channel() -> api900_pb2.UnevenlySampledChannel:
+    """
+    Returns an empty protobuf UnevenlySampledChannel
+    :return: empty UnevenlySampledChannel
+    """
+    obj = api900_pb2.UnevenlySampledChannel()
+    obj.byte_payload.payload = b''
+    return obj
+
+
 def channel_type_name_from_enum(enum_constant: int) -> str:
     """
     Returns the name of a channel type given its enumeration constant.
@@ -348,58 +368,49 @@ class InterleavedChannel:
     """
 
     def __init__(self, channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                             api900_pb2.UnevenlySampledChannel] = None):
+                                             api900_pb2.UnevenlySampledChannel]):
         """
         Initializes this interleaved channel object.
         :param channel: Either a protobuf evenly or unevenly sampled channel.
-        note: _value_means, _value_medians, _value_stds, and _channel_type_index are completely private and should only
-            be accessed via other methods.
+        note: _value_means, _value_medians, _value_stds, and _channel_type_index are only set during initialization or
+            when _payload is altered
+        _payload can only be altered by _set_payload or set_deinterleaved_payload due to the extra data values that are
+            required to correctly set the _protobuf_channel
         """
-        if channel is None:
-            self._protobuf_channel = None
-            self._sensor_name = None
-            self._channel_types = list()
-            self._payload = empty_array()
-            self._metadata = list()
-            self._value_means = empty_array()
-            self._value_medians = empty_array()
-            self._value_stds = empty_array()
-            self._channel_type_index = dict()
-        else:
-            self._protobuf_channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                                 api900_pb2.UnevenlySampledChannel] = channel
-            """Reference to the original protobuf channel"""
+        self._protobuf_channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                             api900_pb2.UnevenlySampledChannel] = channel
+        """Reference to the original protobuf channel"""
 
-            self._sensor_name: str = channel.sensor_name
-            """Provided sensor name"""
+        self._sensor_name: str = channel.sensor_name
+        """Provided sensor name"""
 
-            self._channel_types: typing.List[
-                typing.Union[
-                    api900_pb2.EvenlySampledChannel,
-                    api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
-            """List of channel type constant enumerations"""
+        self._channel_types: typing.List[
+            typing.Union[
+                api900_pb2.EvenlySampledChannel,
+                api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
+        """List of channel type constant enumerations"""
 
-            self._payload: numpy.ndarray = extract_payload(channel)
-            """This channels payload as a numpy array of either floats or ints"""
+        self._payload: numpy.ndarray = extract_payload(channel)
+        """This channels payload as a numpy array of either floats or ints"""
 
-            self._metadata: typing.List[str] = repeated_to_list(channel.metadata)
-            """This channels list of metadata"""
+        self._metadata: typing.List[str] = repeated_to_list(channel.metadata)
+        """This channels list of metadata"""
 
-            self._value_means: numpy.ndarray = repeated_to_array(channel.value_means)
-            """Interleaved array of mean values"""
+        self._value_means: numpy.ndarray = repeated_to_array(channel.value_means)
+        """Interleaved array of mean values"""
 
-            self._value_stds: numpy.ndarray = repeated_to_array(channel.value_stds)
-            """Interleaved array of standard deviations of values"""
+        self._value_stds: numpy.ndarray = repeated_to_array(channel.value_stds)
+        """Interleaved array of standard deviations of values"""
 
-            self._value_medians: numpy.ndarray = repeated_to_array(channel.value_medians)
-            """Interleaved array of median values"""
+        self._value_medians: numpy.ndarray = repeated_to_array(channel.value_medians)
+        """Interleaved array of median values"""
 
-            self._channel_type_index: typing.Dict[api900_pb2.ChannelType, int] = {self._channel_types[i]: i for
-                                                                                  i in
-                                                                                  range(
-                                                                                         len(
-                                                                                                 self._channel_types))}
-            """Contains a mapping of channel type to index in channel_types array"""
+        self._channel_type_index: typing.Dict[api900_pb2.ChannelType, int] = {self._channel_types[i]: i for
+                                                                              i in
+                                                                              range(
+                                                                                     len(
+                                                                                             self._channel_types))}
+        """Contains a mapping of channel type to index in channel_types array"""
 
     @property
     def channel_types(self)-> typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
@@ -407,21 +418,17 @@ class InterleavedChannel:
         return self._channel_types
 
     @channel_types.setter
-    def channel_types(self, channel_types: list, index: int = None):
+    def channel_types(self, types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                            api900_pb2.UnevenlySampledChannel]]):
         """
-        Adds the types of the channel to the list  if index is not specified, the channel_types are appended
-        rebuilds the type index after successful add/edit
-        :param channel_types: list of channel types to add or change to
-        :param index: optional, index to change
+        sets the channel_types to the list given
+        :param types: a list of channel types
         """
-        if index is None:
-            self._channel_types.append(channel_types)
-            self._channel_type_index = {self._channel_types[i]: i for i in range(len(self._channel_types))}
-        elif index not in range(len(self.channel_types)):
-            raise IndexError("Attempting to set value of non-existing index in Channel types")
-        else:
-            self._channel_types[index] = channel_types
-            self._channel_type_index = {self._channel_types[i]: i for i in range(len(self._channel_types))}
+        del self._protobuf_channel.channel_types[:]
+        for ctype in types:
+            self._protobuf_channel.channel_types.append(ctype)
+        self._channel_types = repeated_to_list(self._protobuf_channel.channel_types)
+        self._channel_type_index = {self._channel_types[i]: i for i in range(len(self._channel_types))}
 
     def get_channel_type_names(self) -> typing.List[str]:
         """
@@ -486,6 +493,7 @@ class InterleavedChannel:
         :param name: new sensor name
         """
         self._sensor_name = name
+        self._protobuf_channel.sensor_name = name
 
     def channel_has_payload(self, channel_type: int) -> bool:
         """
@@ -503,49 +511,69 @@ class InterleavedChannel:
         """
         return self._payload
 
-    @payload.setter
-    def payload(self, channels: typing.List[numpy.ndarray]):
+    def set_payload(self, channel: numpy.array, step: int, pl_type: str):
         """
-        Interleaves the channels given to form a new payload; if only one channel, no interleave
-        :param channels: channels to interleave
+        sets the payload to an interleaved channel with step number of arrays interleaved together
+        :param channel: interleaved channel
+        :param step: number of arrays inside interleaved channel
+        :param pl_type: payload type as string
         """
-        if len(channels) > 1:
-            self._payload = interleave_arrays(channels)
-        elif len(channels) < 1:
-            raise ReaderException("Payloads cannot be set to empty!")
+        if len(channel) < 1 or step < 1:
+            raise ValueError("Channel must not be empty and number of arrays must not be less than 1.")
+        elif step > len(channel):
+            raise ValueError("Channel size must be greater than or equal to number of arrays.")
+        elif len(channel) % step != 0:
+            raise ValueError("Channel size must be a multiple of the number of arrays.")
+        # clear all other payloads
+        self._protobuf_channel.byte_payload.ClearField("payload")
+        self._protobuf_channel.uint32_payload.ClearField("payload")
+        self._protobuf_channel.uint64_payload.ClearField("payload")
+        self._protobuf_channel.int32_payload.ClearField("payload")
+        self._protobuf_channel.int64_payload.ClearField("payload")
+        self._protobuf_channel.float32_payload.ClearField("payload")
+        self._protobuf_channel.float64_payload.ClearField("payload")
+        # set the payload based on the type of data
+        if pl_type == "byte_payload":
+            self._protobuf_channel.byte_payload.payload = channel
+        elif pl_type == "uint32_payload":
+            self._protobuf_channel.uint32_payload.payload.extend(channel)
+        elif pl_type == "uint64_payload":
+            self._protobuf_channel.uint64_payload.payload.extend(channel)
+        elif pl_type == "int32_payload":
+            self._protobuf_channel.int32_payload.payload.extend(channel)
+        elif pl_type == "int64_payload":
+            self._protobuf_channel.int64_payload.payload.extend(channel)
+        elif pl_type == "float32_payload":
+            self._protobuf_channel.float32_payload.payload.extend(channel)
+        elif pl_type == "float64_payload":
+            self._protobuf_channel.float64_payload.payload.extend(channel)
         else:
-            self._payload = channels[0]
-        new_stds = empty_array()
-        new_means = empty_array()
-        new_medians = empty_array()
-        for i in range(0, len(channels)):
-            std, mean, median = redvox.api900.stat_utils.calc_utils(channels[i])
-            new_stds = numpy.append(new_stds, std)
-            new_means = numpy.append(new_means, mean)
-            new_medians = numpy.append(new_medians, median)
-        self._value_stds = new_stds
-        self._value_means = new_means
-        self._value_medians = new_medians
+            raise TypeError("Unknown payload type to set.")
+        # calculate the means, std devs, and medians
+        del self._protobuf_channel.value_means[:]
+        del self._protobuf_channel.value_stds[:]
+        del self._protobuf_channel.value_medians[:]
+        for i in range(0, step):
+            std, mean, median = redvox.api900.stat_utils.calc_utils(deinterleave_array(channel, i, step))
+            self._protobuf_channel.value_means.append(mean)
+            self._protobuf_channel.value_stds.append(std)
+            self._protobuf_channel.value_medians.append(median)
+        self._value_stds = repeated_to_array(self._protobuf_channel.value_stds)
+        self._value_means = repeated_to_array(self._protobuf_channel.value_means)
+        self._value_medians = repeated_to_array(self._protobuf_channel.value_medians)
+        self._payload = extract_payload(self._protobuf_channel)
 
-    def set_interleaved_payload(self, payload: numpy.ndarray, step: int):
+    def set_deinterleaved_payload(self, channels: typing.List[numpy.array], pl_type: str):
         """
-        sets the payload to the new value; assumes it is an interleaved array.  also sets std, mean and median.
-        :param payload: an array of values representing interleaved arrays
-        :param step: the amount of interleaved arrays, payload length must be a multiple of step
+        interleaves the channels and sets the payload to the combined array
+        :param channels: a list of arrays with the same length
+        :param pl_type: payload type as string
         """
-        if len(payload) % step != 0:
-            raise IndexError("Cannot deinterleave payload: Step size is not a multiple of array length!")
+        if len(channels) == 1:
+            self.set_payload(channels[0], 1, pl_type)
         else:
-            self._value_stds = empty_array()
-            self._value_means = empty_array()
-            self._value_medians = empty_array()
-            for i in range(0, step):
-                channel = deinterleave_array(payload, i, step)
-                std, mean, median = redvox.api900.stat_utils.calc_utils(channel)
-                self._value_stds = numpy.append(self._value_stds, std)
-                self._value_means = numpy.append(self._value_means, mean)
-                self._value_medians = numpy.append(self._value_medians, median)
-            self._payload = payload
+            channel = interleave_arrays(channels)
+            self.set_payload(channel, len(channels), pl_type)
 
     def get_channel_payload(self, channel_type: int) -> numpy.ndarray:
         """
@@ -646,10 +674,18 @@ class InterleavedChannel:
     @property
     def metadata(self) -> typing.List[str]:
         """
-        Returns any metadata as a dictionary of key-pair values.
-        :return: Any metadata as a dictionary of key-pair values.
+        Returns any metadata as a list of strings.
+        :return: Any metadata as a list of strings.
         """
         return self._metadata
+
+    @metadata.setter
+    def metadata(self, data: typing.List[str]):
+        """
+        sets the metadata
+        :param data: metadata as list of strings
+        """
+        self._metadata = data
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
@@ -686,7 +722,7 @@ class EvenlySampledChannel(InterleavedChannel):
         :param channel: A protobuf evenly sampled channel.
         """
         if channel is None:
-            InterleavedChannel.__init__(self)
+            InterleavedChannel.__init__(self, empty_evenly_sampled_channel())
             self._sample_rate_hz = None
             self._first_sample_timestamp_epoch_microseconds_utc = None
         else:
@@ -704,7 +740,7 @@ class EvenlySampledChannel(InterleavedChannel):
         sets the channel to an evenly sampled channel
         :param channel: evenly sampled channel
         """
-        self._protobuf_channel = channel
+        super().protobuf_channel = channel
         self._sample_rate_hz = channel.sample_rate_hz
         self._first_sample_timestamp_epoch_microseconds_utc = channel.first_sample_timestamp_epoch_microseconds_utc
 
@@ -765,7 +801,7 @@ class UnevenlySampledChannel(InterleavedChannel):
         :param channel: A protobuf unevenly sampled channel.
         """
         if channel is None:
-            InterleavedChannel.__init__(self)
+            InterleavedChannel.__init__(self, empty_unevenly_sampled_channel())
             self._timestamps_microseconds_utc = empty_array()
             self._sample_interval_mean = None
             self._sample_interval_std = None
@@ -783,6 +819,16 @@ class UnevenlySampledChannel(InterleavedChannel):
 
             self._sample_interval_median: float = channel.sample_interval_median
             """The median sample interval"""
+
+    def set_channel(self, channel: api900_pb2.UnevenlySampledChannel):
+        """
+        sets the channel to an unevenly sampled channel
+        :param channel: unevenly sampled channel
+        """
+        super().protobuf_channel = channel
+        self._timestamps_microseconds_utc = channel.timestamps_microseconds_utc
+        self._sample_interval_std, self._sample_interval_mean, self._sample_interval_median = \
+            redvox.api900.stat_utils.calc_utils(channel.timestamps_microseconds_utc)
 
     @property
     def timestamps_microseconds_utc(self) -> numpy.ndarray:
@@ -863,6 +909,14 @@ class EvenlySampledSensor:
         self._evenly_sampled_channel = channel
 
     @property
+    def evenly_sampled_channel(self) -> EvenlySampledChannel:
+        """
+        gets the evenly sampled channel of the sensor
+        :return: evenly sampled channel
+        """
+        return self._evenly_sampled_channel
+
+    @property
     def sample_rate_hz(self) -> float:
         """
         Returns the sample rate in Hz of this evenly sampled channel.
@@ -926,6 +980,14 @@ class EvenlySampledSensor:
         """
         return self._evenly_sampled_channel.metadata
 
+    @metadata.setter
+    def metadata(self, data: typing.List[str]):
+        """
+        sets the metadata
+        :param data: metadata as list of strings
+        """
+        self._evenly_sampled_channel.metadata = data
+
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
         Returns this channel's metadata (if there is any) as a Python dictionary.
@@ -961,6 +1023,14 @@ class UnevenlySampledSensor:
         :param channel: an unevenly sampled channel
         """
         self._unevenly_sampled_channel = channel
+
+    @property
+    def unevenly_sampled_channel(self) -> UnevenlySampledChannel:
+        """
+        gets the unevenly sampled channel of the sensor
+        :return: unevenly sampled channel
+        """
+        return self._unevenly_sampled_channel
 
     @property
     def sensor_name(self) -> str:
@@ -1032,6 +1102,14 @@ class UnevenlySampledSensor:
         :return: This channel's metadata (if there is any) as a Python list.
         """
         return self._unevenly_sampled_channel.metadata
+
+    @metadata.setter
+    def metadata(self, data: typing.List[str]):
+        """
+        sets the metadata
+        :param data: metadata as list of strings
+        """
+        self._unevenly_sampled_channel.metadata = data
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
@@ -1834,53 +1912,41 @@ class WrappedRedvoxPacket:
                     self._channel_cache[channel_type] = unevenly_sampled_channel
 
     @property
+    def redvox_packet(self) -> api900_pb2.RedvoxPacket:
+        """
+        returns the protobuf redvox packet
+        :return: protobuf redvox packet
+        """
+        return self._redvox_packet
+
+    @property
     def evenly_sampled_channels(self) -> typing.List[EvenlySampledChannel]:
         """
-        returns the evenly sampled channels as a list
+        returns the evenly sampled channels as a copied list to avoid built in functions making untracked changes
         :return: list of evenly sampled channels
         """
-        return self._evenly_sampled_channels
+        return self._evenly_sampled_channels.copy()
 
     @property
     def unevenly_sampled_channels(self) -> typing.List[UnevenlySampledChannel]:
         """
-        returns the unevenly sampled channels as a list
+        returns the unevenly sampled channels as a copied list to avoid built in functions making untracked changes
         :return: list of unevenly sampled channels
         """
-        return self._unevenly_sampled_channels
+        return self._unevenly_sampled_channels.copy()
 
-    def clear_even_channels(self):
+    def _refresh_channels(self):
         """
-        removes all elements in even channels
-        """
-        del self._redvox_packet.evenly_sampled_channels[:]
-        self._refresh_even_channels()
-
-    def clear_uneven_channels(self):
-        """
-        removes all elements in uneven channels
-        """
-        del self._redvox_packet.unevenly_sampled_channels[:]
-        self._refresh_uneven_channels()
-
-    def _refresh_even_channels(self):
-        """
-        takes the redvox packet and rebuilds the evenly sampled channels from it
+        takes the redvox packet and rebuilds the channel cache from it
         """
         self._evenly_sampled_channels = list(map(EvenlySampledChannel,
                                                  repeated_to_array(self._redvox_packet.evenly_sampled_channels)))
+        self._unevenly_sampled_channels = list(map(UnevenlySampledChannel,
+                                                   repeated_to_array(self._redvox_packet.unevenly_sampled_channels)))
         self._channel_cache = {}
         for evenly_sampled_channel in self._evenly_sampled_channels:
             for channel_type in evenly_sampled_channel.channel_types:
                 self._channel_cache[channel_type] = evenly_sampled_channel
-
-    def _refresh_uneven_channels(self):
-        """
-        takes the redvox packet and rebuilds the unevenly sampled channels from it
-        """
-        self._unevenly_sampled_channels = list(map(UnevenlySampledChannel,
-                                                   repeated_to_array(self._redvox_packet.unevenly_sampled_channels)))
-        self._channel_cache = {}
         for unevenly_sampled_channel in self._unevenly_sampled_channels:
             for channel_type in unevenly_sampled_channel.channel_types:
                 self._channel_cache[channel_type] = unevenly_sampled_channel
@@ -1890,13 +1956,67 @@ class WrappedRedvoxPacket:
         Add a channel
         :param channel: channel to add
         """
-        self._add_channel_redvox_packet(channel)
-        if type(channel) == EvenlySampledChannel:
-            self._refresh_even_channels()
-        elif type(channel) == UnevenlySampledChannel:
-            self._refresh_uneven_channels()
+        index, sample = self._find_channel(channel.channel_types[0])
+        if index is None and sample is None:
+            if type(channel) not in [EvenlySampledChannel, UnevenlySampledChannel]:
+                raise TypeError("Channel type to add must be even or uneven.")
+            else:
+                self._add_channel_redvox_packet(channel)
+                self._refresh_channels()
         else:
-            raise TypeError("Channel type to add must be even or uneven.")
+            raise ValueError("Cannot add a channel with a type that already exists in this packet.")
+
+    def edit_channel(self, channel_type: int, channel: typing.Union[EvenlySampledChannel, UnevenlySampledChannel]):
+        """
+        removes the channel with the given type and adds the channel supplied
+        :param channel_type: type of channel to remove
+        :param channel: the channel to add
+        """
+        index, sampling = self._find_channel(channel_type)
+        if index is not None and sampling is not None:
+            if type(channel) == EvenlySampledChannel:
+                del self._redvox_packet.evenly_sampled_channels[index]
+                self._add_channel_redvox_packet(channel)
+            elif type(channel) == UnevenlySampledChannel:
+                del self._redvox_packet.unevenly_sampled_channels[index]
+                self._add_channel_redvox_packet(channel)
+            else:
+                raise TypeError("Channel type to edit is unknown!")
+            self._refresh_channels()
+        else:
+            raise TypeError("Unknown channel type specified for edit.")
+
+    def delete_channel(self, channel_type: int):
+        """
+        deletes the channel type specified
+        :param channel_type: a channel to remove
+        """
+        index, sampling = self._find_channel(channel_type)
+        if index is not None and sampling is not None:
+            if sampling == EvenlySampledChannel:
+                del self._redvox_packet.evenly_sampled_channels[index]
+            else:
+                del self._redvox_packet.unevenly_sampled_channels[index]
+            self._refresh_channels()
+        else:
+            raise TypeError("Unknown channel type to remove from packet.")
+
+    def _find_channel(self, channel_type: int) -> (int, typing.Union[EvenlySampledChannel, UnevenlySampledChannel]):
+        """
+        returns the index of the channel and the kind of sampled array its in
+        :return: the index in the even or uneven array and the name of the array
+        """
+        if self.has_channel(channel_type):
+            for idx in range(len(self._evenly_sampled_channels)):
+                if channel_type in self._evenly_sampled_channels[idx].channel_types:
+                    return idx, EvenlySampledChannel
+            for idx in range(len(self._unevenly_sampled_channels)):
+                if channel_type in self._unevenly_sampled_channels[idx].channel_types:
+                    return idx, UnevenlySampledChannel
+            else:
+                return None, None
+        else:
+            return None, None
 
     def _add_channel_redvox_packet(self, channel: typing.Union[EvenlySampledChannel, UnevenlySampledChannel]):
         """
@@ -1920,28 +2040,22 @@ class WrappedRedvoxPacket:
 
         pl_type = channel.get_payload_type()
         if pl_type == "byte_payload":
-            for value in channel.payload:
-                newchan.byte_payload.payload.append(value)
+            newchan.byte_payload.payload.extend(channel.payload)
         elif pl_type == "uint32_payload":
-            for value in channel.payload:
-                newchan.uint32_payload.payload.append(value)
+            newchan.uint32_payload.payload.extend(channel.payload)
         elif pl_type == "uint64_payload":
-            for value in channel.payload:
-                newchan.uint64_payload.payload.append(value)
+            newchan.uint64_payload.payload.extend(channel.payload)
         elif pl_type == "int32_payload":
-            for value in channel.payload:
-                newchan.int32_payload.payload.append(value)
+            newchan.int32_payload.payload.extend(channel.payload)
         elif pl_type == "int64_payload":
-            for value in channel.payload:
-                newchan.int64_payload.payload.append(value)
+            newchan.int64_payload.payload.extend(channel.payload)
         elif pl_type == "float32_payload":
-            for value in channel.payload:
-                newchan.float32_payload.payload.append(value)
+            newchan.float32_payload.payload.extend(channel.payload)
         elif pl_type == "float64_payload":
-            for value in channel.payload:
-                newchan.float64_payload.payload.append(value)
+            newchan.float64_payload.payload.extend(channel.payload)
         else:
             raise TypeError("Unknown payload type in channel to add.")
+
         for chan_type in channel.channel_types:
             newchan.channel_types.append(chan_type)
         newchan.sensor_name = channel.sensor_name
@@ -1953,6 +2067,14 @@ class WrappedRedvoxPacket:
             newchan.value_medians.append(median)
         for meta in channel.metadata:
             newchan.metadata.append(meta)
+
+    def _edit_channel_redvox_packet(self, idx: int, channel: typing.Union[EvenlySampledChannel,
+                                                                          UnevenlySampledChannel]):
+        """
+        removes the channel at index and adds the channel given.  Both channels have the same type
+        :param idx: index of channel to remove
+        :param channel: channel to add
+        """
 
     def get_channel_types(self) -> typing.List[typing.List[int]]:
         """
@@ -1981,8 +2103,7 @@ class WrappedRedvoxPacket:
             names.append(list(map(channel_type_name_from_enum, channel_types)))
         return names
 
-    def get_channel(self, channel_type: int) -> typing.Union[api900_pb2.EvenlySampledChannel,
-                                                             api900_pb2.UnevenlySampledChannel]:
+    def get_channel(self, channel_type: int) -> typing.Union[EvenlySampledChannel, UnevenlySampledChannel, None]:
         """
         Returns a channel from this packet according to the channel type.
         :param channel_type: The channel type to search for.
@@ -2390,6 +2511,29 @@ class WrappedRedvoxPacket:
         description of this field.
         """
         return self._metadata
+
+    @metadata.setter
+    def metadata(self, data: typing.List[str]):
+        """
+        sets the metadata
+        :param data: metadata as list of strings
+        """
+        self._metadata = data
+
+    def add_metadata(self, data: str):
+        """
+        add metadata to the packet
+        :param data: metadata to add
+        """
+        self._redvox_packet.metadata.append(data)
+        self._metadata = repeated_to_list(self._redvox_packet.metadata)
+
+    def clear_metadata(self):
+        """
+        removes all of the packet level metadata from packet
+        """
+        del self._redvox_packet.metadata[:]
+        self._metadata.clear()
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
