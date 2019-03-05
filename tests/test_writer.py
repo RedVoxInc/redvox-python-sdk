@@ -1,15 +1,11 @@
-import numpy
-
 from redvox.api900.lib import api900_pb2
+from tests.utils import ArraysTestCase
 import redvox.api900.reader as rar
-import tests.test_high_level_api
 import unittest
-import os
 
 
-class WriteAndSetModules(unittest.TestCase):
+class WriteAndSetModules(ArraysTestCase):
     def test_write(self):
-        self.interleavedchanneltest()
         with open("0000001314_1532656864354.rdvxz", "rb") as fin:
             as_bytes = fin.read()
 
@@ -28,81 +24,84 @@ class WriteAndSetModules(unittest.TestCase):
 
         newpacket = rar.WrappedRedvoxPacket()
 
-        mic = rar.MicrophoneSensor()
-        micchan = rar.EvenlySampledChannel()
-        micchan.protobuf_channel = wrapped_packet.evenly_sampled_channels[0].protobuf_channel
-        micchan.sample_rate_hz = wrapped_packet.evenly_sampled_channels[0].sample_rate_hz
-        micchan.first_sample_timestamp_epoch_microseconds_utc = \
-            wrapped_packet.evenly_sampled_channels[0].first_sample_timestamp_epoch_microseconds_utc
-        mic.set_channel(micchan)
+        # Create channels, sensors, or packets empty or with existing data
+        mic_chan = rar.EvenlySampledChannel()
+        mic_sen = rar.MicrophoneSensor(wrapped_packet.get_channel(api900_pb2.MICROPHONE))
+        time_sen = rar.TimeSynchronizationSensor(wrapped_packet.get_channel(api900_pb2.TIME_SYNCHRONIZATION))
+        mag_sen = rar.MagnetometerSensor(wrapped_packet.unevenly_sampled_channels[1])
+        gyro_sen = rar.GyroscopeSensor(wrapped_packet.unevenly_sampled_channels[-5])
+        light_sen = rar.LightSensor(wrapped_packet.get_channel(api900_pb2.LIGHT))
+        bar_sen = rar.BarometerSensor(wrapped_packet.get_channel(api900_pb2.BAROMETER))
+        accel_sen = rar.AccelerometerSensor(wrapped_packet.unevenly_sampled_channels[-2])
+        loc_sen = rar.LocationSensor(wrapped_packet.unevenly_sampled_channels[6])
+        othr_sen = rar.InfraredSensor()
+        img_sen = rar.ImageSensor()
 
-        protoboy = rar.EvenlySampledChannel()
-        mic_data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        protoboy.set_deinterleaved_payload([mic_data], micchan.get_payload_type())
-        protoboy.channel_types = [api900_pb2.MICROPHONE]
-        protoboy.sensor_name = "I/INTERNAL mic"
-        protoboy.first_sample_timestamp_epoch_microseconds_utc = 1532656864354001
-        protoboy.sample_rate_hz = 80.0
+        # Set properties on creation or individually.  Not all values can be directly set.
+        mic_chan.sensor_name = "Test Microphone"
+        mic_chan.sample_rate_hz = 42.0
+        mic_chan.first_sample_timestamp_epoch_microseconds_utc = 1
 
-        protoboy2 = rar.UnevenlySampledChannel()
-        protoboy2.set_payload([19.0, 155.0, 1.0, 25.0, 10.0,
-                               20.0, 156.0, 2.0, 26.0, 11.0,
-                               21.0, 157.0, 3.0, 27.0, 12.0,
-                               22.0, 158.0, 4.0, 28.0, 13.0,
-                               23.0, 159.0, 5.0, 29.0, 14.0], 5, "float64_payload")
-        protoboy2.channel_types = [api900_pb2.LATITUDE,
-                                   api900_pb2.LONGITUDE,
-                                   api900_pb2.SPEED,
-                                   api900_pb2.ALTITUDE,
-                                   api900_pb2.ACCURACY]
-        protoboy2.sensor_name = "LOCATORATOR"
-        protoboy2.timestamps_microseconds_utc = [1, 2, 3, 4, 5]
+        # Set payloads and channels; Setting payloads will update the means, std devs and medians of the individual
+        # data arrays that form the entire payload.  You can set payloads using an interleaved array or with a list of
+        # equally sized arrays.  Setting channels will update all properties.
+        mic_chan.set_payload(wrapped_packet.evenly_sampled_channels[0].payload, 1,
+                             wrapped_packet.evenly_sampled_channels[0].get_payload_type())
+        # This does the same as above
+        # mic_chan.set_deinterleaved_payload([wrapped_packet.get_channel(api900_pb2.MICROPHONE)],
+        #                                    wrapped_packet.evenly_sampled_channels[0].get_payload_type())
 
-        newpacket.add_channel(micchan)
-        newpacket.add_channel(wrapped_packet.unevenly_sampled_channels[4])
-        newpacket.add_channel(wrapped_packet.unevenly_sampled_channels[5])
-        newpacket.edit_channel(api900_pb2.BAROMETER, wrapped_packet.unevenly_sampled_channels[-1])
-        newpacket.delete_channel(api900_pb2.ACCELEROMETER_Y)
-        newpacket.add_channel(wrapped_packet.get_channel(api900_pb2.BAROMETER))
+        mic_chan.set_channel(wrapped_packet.evenly_sampled_channels[0].protobuf_channel)
+        mic_chan.metadata = ["This", "is a Test Sensor Packet", "Don't", "Take this data too seriously"]
+        mic_chan.update_stats()
 
-        self.assertRaises(rar.ReaderException, protoboy.set_deinterleaved_payload, [], "byte_payload")
-        self.assertRaises(rar.ReaderException, protoboy.set_deinterleaved_payload, [[1, 2, 3], [4, 5], [6]],
-                          "byte_payload")
-        # add a channel type that already exists
-        self.assertRaises(ValueError, newpacket.add_channel, protoboy2)
-        # delete a channel that doesn't exist
-        self.assertRaises(TypeError, newpacket.delete_channel, api900_pb2.INFRARED)
-        # edit a channel that doesn't exist
-        self.assertRaises(TypeError, newpacket.edit_channel, api900_pb2.INFRARED,
-                          wrapped_packet.unevenly_sampled_channels[3])
+        # Access functions.  Asserts used to ensure values set correctly:
+        self.assertSampledArray(mic_chan.get_channel_payload(api900_pb2.MICROPHONE),
+                                4096,
+                                [0, 2048, 4095],
+                                [201, -4666, -1867])
+        self.assertEqual("int32_payload", mic_chan.get_payload_type())
+        self.assertSampledArray(mic_chan.get_multi_payload([api900_pb2.MICROPHONE]),
+                                4096,
+                                [0, 2048, 4095],
+                                [201, -4666, -1867])
+        self.assertAlmostEqual(mic_chan.get_value_mean(api900_pb2.MICROPHONE), -127.91796875, 1)
+        self.assertAlmostEqual(mic_chan.get_value_std(api900_pb2.MICROPHONE), 2455.820326625975, 3)
+        self.assertAlmostEqual(mic_chan.get_value_median(api900_pb2.MICROPHONE), -123.0, 1)
+        self.assertTrue("MICROPHONE" in mic_chan.get_channel_type_names())
+        self.assertEqual(mic_chan.sensor_name, "I/INTERNAL MIC")
+        self.assertAlmostEqual(mic_chan.sample_rate_hz, 80.0, 1)
+        self.assertEqual(mic_chan.first_sample_timestamp_epoch_microseconds_utc, 1532656864354000)
+        self.assertTrue(api900_pb2.MICROPHONE in mic_chan.channel_types)
+        self.assertAlmostEqual(mic_chan.value_means[0], -127.91796875, 1)
+        self.assertAlmostEqual(mic_chan.value_stds[0], 2455.820326625975, 3)
+        self.assertAlmostEqual(mic_chan.value_medians[0], -123.0, 1)
+        self.assertEqual(mic_chan.channel_index(api900_pb2.MICROPHONE), 0)
+        self.assertTrue(mic_chan.has_channel(api900_pb2.MICROPHONE))
+        self.assertFalse(mic_chan.has_channel(api900_pb2.BAROMETER))
+        self.assertEqual(len(mic_chan.metadata), 4)
+        self.assertListEqual(mic_chan.metadata,
+                             ["This", "is a Test Sensor Packet", "Don't", "Take this data too seriously"])
+        synthetic_dict = mic_chan.metadata_as_dict()
+        self.assertEqual(len(synthetic_dict), 2)
+        self.assertTrue("This" in synthetic_dict and "Don't" in synthetic_dict)
+        self.assertEqual(synthetic_dict["This"], "is a Test Sensor Packet")
+        self.assertEqual(synthetic_dict["Don't"], "Take this data too seriously")
+        self.assertTrue(mic_chan.payload is not None)
+        self.assertTrue(mic_chan.protobuf_channel is not None)
 
-        # rar.write_file("write_test.rdvxz", newpacket.redvox_packet)
+        # add channels to a packet
+        newpacket.add_channel(mic_sen.evenly_sampled_channel)
+        newpacket.add_channel(time_sen.unevenly_sampled_channel)
+        newpacket.add_channel(mag_sen.unevenly_sampled_channel)
+        newpacket.add_channel(gyro_sen.unevenly_sampled_channel)
+        newpacket.add_channel(light_sen.unevenly_sampled_channel)
+        newpacket.add_channel(bar_sen.unevenly_sampled_channel)
+        newpacket.add_channel(accel_sen.unevenly_sampled_channel)
+        newpacket.add_channel(loc_sen.unevenly_sampled_channel)
 
-        # with open("write_test.rdvxz", "rb") as fin2:
-        #    new_bytes = fin2.read()
-        # wrapped = rar.wrap(rar.read_buffer(new_bytes))
-        # write_buf = wrapped.compressed_buffer()
-
-    def interleavedchanneltest(self):
-        ilc = rar.EvenlySampledChannel()
-        ilc.sensor_name = "test Mic"
-        ilc.channel_types = [api900_pb2.MICROPHONE]
-        mic_data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        ilc.set_deinterleaved_payload([mic_data], "int32_payload")
-        ilc.first_sample_timestamp_epoch_microseconds_utc = 1532656864354001
-        ilc.sample_rate_hz = 80.0
-        ilc.metadata = ["a", "b", "c", "d"]
-
-        print(ilc.channel_types)
-        print(ilc.get_channel_type_names())
-        print(ilc.sensor_name)
-        print(ilc.payload)
-        print(ilc.value_means)
-        print(ilc.value_stds)
-        print(ilc.value_medians)
-        print(ilc.metadata)
-        print(ilc.metadata_as_dict())
-        print(ilc.protobuf_channel)
+        # write to a file
+        rar.write_file("write_test.rdvxz", newpacket.redvox_packet)
 
 
 if __name__ == '__main__':

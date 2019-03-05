@@ -18,8 +18,6 @@ class ArraysTestCase(unittest.TestCase):
         sampled_array = array.take(samples)
         self.assertArraysEqual(sampled_array, numpy.array(values))
 
-
-
     @staticmethod
     def as_array(lst: typing.List) -> numpy.ndarray:
         return numpy.array(lst)

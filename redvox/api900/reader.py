@@ -460,12 +460,11 @@ class InterleavedChannel:
         """
         return self._protobuf_channel
 
-    @protobuf_channel.setter
-    def protobuf_channel(self, channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                                     api900_pb2.UnevenlySampledChannel]):
+    def set_channel(self, channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                                api900_pb2.UnevenlySampledChannel]):
         """
-        Sets this object to a new channel; also sets all other values to match new protobuf channel
-        :param channel: a protobuf channel
+        Sets the protobuf channel
+        :param channel: protobuf channel
         """
         self._protobuf_channel = channel
         self._sensor_name = channel.sensor_name
@@ -670,6 +669,21 @@ class InterleavedChannel:
 
         return self._value_medians[idx]
 
+    def update_stats(self):
+        """
+        updates mean, std and median for all values
+        """
+        channel= self.payload
+        step = len(self.channel_types)
+        for i in range(step):
+            std, mean, median = redvox.api900.stat_utils.calc_utils(deinterleave_array(channel, i, step))
+            self._protobuf_channel.value_means.append(mean)
+            self._protobuf_channel.value_stds.append(std)
+            self._protobuf_channel.value_medians.append(median)
+        self._value_stds = repeated_to_array(self._protobuf_channel.value_stds)
+        self._value_means = repeated_to_array(self._protobuf_channel.value_means)
+        self._value_medians = repeated_to_array(self._protobuf_channel.value_medians)
+
     @property
     def metadata(self) -> typing.List[str]:
         """
@@ -739,7 +753,7 @@ class EvenlySampledChannel(InterleavedChannel):
         sets the channel to an evenly sampled channel
         :param channel: evenly sampled channel
         """
-        super().protobuf_channel = channel
+        super().set_channel(channel)
         self._sample_rate_hz = channel.sample_rate_hz
         self._first_sample_timestamp_epoch_microseconds_utc = channel.first_sample_timestamp_epoch_microseconds_utc
 
@@ -824,10 +838,10 @@ class UnevenlySampledChannel(InterleavedChannel):
         sets the channel to an unevenly sampled channel
         :param channel: unevenly sampled channel
         """
-        super().protobuf_channel = channel
-        self._timestamps_microseconds_utc = channel.timestamps_microseconds_utc
+        super().set_channel(channel)
+        self._timestamps_microseconds_utc = repeated_to_array(channel.timestamps_microseconds_utc)
         self._sample_interval_std, self._sample_interval_mean, self._sample_interval_median = \
-            redvox.api900.stat_utils.calc_utils_timeseries(channel.timestamps_microseconds_utc)
+            redvox.api900.stat_utils.calc_utils_timeseries(self._timestamps_microseconds_utc)
 
     @property
     def timestamps_microseconds_utc(self) -> numpy.ndarray:
@@ -850,7 +864,7 @@ class UnevenlySampledChannel(InterleavedChannel):
     @property
     def sample_interval_mean(self) -> float:
         """
-        returns mean of the sample interval
+        returns mean of the sample interval.
         :return: mean of the sample interval
         """
         return self._sample_interval_mean
@@ -904,7 +918,7 @@ class EvenlySampledSensor:
         sets the evenly sampled channel of the sensor
         :param channel: an evenly sampled channel
         """
-        self._evenly_sampled_channel = channel
+        self._evenly_sampled_channel.set_channel(channel.protobuf_channel)
 
     @property
     def evenly_sampled_channel(self) -> EvenlySampledChannel:
@@ -1020,7 +1034,7 @@ class UnevenlySampledSensor:
         sets the unevenly sampled channel of the sensor
         :param channel: an unevenly sampled channel
         """
-        self._unevenly_sampled_channel = channel
+        self._unevenly_sampled_channel.set_channel(channel.protobuf_channel)
 
     @property
     def unevenly_sampled_channel(self) -> UnevenlySampledChannel:
@@ -1135,6 +1149,7 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         :param z_type: The Z channel type enum.
         """
         super().__init__(unevenly_sampled_channel)
+        self._unevenly_sampled_channel.channel_types = [x_type, y_type, z_type]
         self._x_type = x_type
         self._y_type = y_type
         self._z_type = z_type
@@ -1148,6 +1163,7 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         :param z_type: The Z channel type enum.
         """
         super().set_channel(channel)
+        self._unevenly_sampled_channel.channel_types = [x_type, y_type, z_type]
         self._x_type = x_type
         self._y_type = y_type
         self._z_type = z_type
@@ -1167,6 +1183,7 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         :param chan_type: channel type enumeration
         """
         self._x_type = chan_type
+        self._unevenly_sampled_channel.channel_types = [self._x_type, self._y_type, self._z_type]
 
     def x_type_name(self) -> str:
         """
@@ -1190,6 +1207,7 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         :param chan_type: channel type enumeration
         """
         self._y_type = chan_type
+        self._unevenly_sampled_channel.channel_types = [self._x_type, self._y_type, self._z_type]
 
     def y_type_name(self) -> str:
         """
@@ -1213,6 +1231,7 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         :param chan_type: channel type enumeration
         """
         self._z_type = chan_type
+        self._unevenly_sampled_channel.channel_types = [self._x_type, self._y_type, self._z_type]
 
     def z_type_name(self) -> str:
         """
@@ -1329,6 +1348,7 @@ class MicrophoneSensor(EvenlySampledSensor):
         :param evenly_sampled_channel: An instance of an EvenlySampledChannel with microphone data.
         """
         super().__init__(evenly_sampled_channel)
+        self._evenly_sampled_channel.channel_types = [api900_pb2.MICROPHONE]
         # self._evenly_sampled_channel = evenly_sampled_channel
 
     def payload_values(self) -> numpy.ndarray:
@@ -1345,6 +1365,7 @@ class MicrophoneSensor(EvenlySampledSensor):
         return self._evenly_sampled_channel.get_value_mean(api900_pb2.MICROPHONE)
 
     # Currently, our Android and iOS devices don't calculate a median value, so we calculate it here
+    # If the payload is set manually, the median value is calculated by the API
     def payload_median(self) -> numpy.float64:
         """Returns the median of this channel's payload.
         :return: The median of this channel's payload.
@@ -1381,6 +1402,7 @@ class BarometerSensor(UnevenlySampledSensor):
         :param unevenly_sampled_channel: Instance of UnevenlySampledChannel with barometer data
         """
         super().__init__(unevenly_sampled_channel)
+        self._unevenly_sampled_channel.channel_types = [api900_pb2.BAROMETER]
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -1420,6 +1442,13 @@ class LocationSensor(UnevenlySampledSensor):
         :param unevenly_sampled_channel: Instance of UnevenlySampledChannel containing location data
         """
         super().__init__(unevenly_sampled_channel)
+        self._unevenly_sampled_channel.channel_types = [
+            api900_pb2.LATITUDE,
+            api900_pb2.LONGITUDE,
+            api900_pb2.ALTITUDE,
+            api900_pb2.SPEED,
+            api900_pb2.ACCURACY
+        ]
 
     def payload_values(self):
         """
@@ -1591,6 +1620,7 @@ class TimeSynchronizationSensor(UnevenlySampledSensor):
         :param unevenly_sampled_channel: An unevenly sampled channel with time synchronization payload.
         """
         super().__init__(unevenly_sampled_channel)
+        self._unevenly_sampled_channel.channel_types = [api900_pb2.TIME_SYNCHRONIZATION]
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -1718,7 +1748,7 @@ class LightSensor(UnevenlySampledSensor):
 class InfraredSensor(UnevenlySampledSensor):
     """High-level wrapper around light channels."""
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel):
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
         """
         Initializes this class
         :param unevenly_sampled_channel: UnevenlySampledChannel with infrared sensor payload
