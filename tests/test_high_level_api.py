@@ -24,6 +24,14 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         self.wrapped_synthetic_magnetometer_packet = reader.wrap(tests.mock_packets.synthetic_magnetometer_packet())
         self.wrapped_synthetic_light_packet = reader.wrap(tests.mock_packets.synthetic_light_packet())
         self.wrapped_example_packet = wrapped_example_packet
+        self.created_microphone_sensor: reader.MicrophoneSensor = reader.MicrophoneSensor()
+        self.created_barometer_sensor: reader.BarometerSensor = reader.BarometerSensor()
+        self.created_location_sensor: reader.LocationSensor = reader.LocationSensor()
+        self.created_time_synch_sensor: reader.TimeSynchronizationSensor = reader.TimeSynchronizationSensor()
+        self.created_accelerometer_sensor: reader.AccelerometerSensor = reader.AccelerometerSensor()
+        self.created_gyroscope_sensor: reader.GyroscopeSensor = reader.GyroscopeSensor()
+        self.created_magnetometer_sensor: reader.MagnetometerSensor = reader.MagnetometerSensor()
+        self.created_light_sensor: reader.LightSensor = reader.LightSensor()
 
     def test_api(self):
         self.assertEqual(self.wrapped_synthetic_packet.api, 900)
@@ -214,25 +222,44 @@ class TestEvenlySampledSensor(unittest.TestCase):
         self.wrapped_example_packet = wrapped_example_packet
         self.synthetic_microphone_channel = self.wrapped_synthetic_packet.microphone_channel()
         self.example_microphone_channel = self.wrapped_example_packet.microphone_channel()
+        self.even_sensor: reader.EvenlySampledSensor = reader.EvenlySampledSensor()
 
     def test_contains_evenly_sampled_channel(self):
         self.assertTrue(api900_pb2.MICROPHONE in
                         self.synthetic_microphone_channel.evenly_sampled_channel.channel_types)
         self.assertTrue(api900_pb2.MICROPHONE in self.example_microphone_channel.evenly_sampled_channel.channel_types)
+        self.even_sensor.evenly_sampled_channel.channel_types = \
+            self.example_microphone_channel.evenly_sampled_channel.channel_types
+        self.assertTrue(api900_pb2.MICROPHONE in self.even_sensor.evenly_sampled_channel.channel_types)
+        self.even_sensor.evenly_sampled_channel.channel_types = [api900_pb2.MICROPHONE]
+        self.assertTrue(api900_pb2.MICROPHONE in self.even_sensor.evenly_sampled_channel.channel_types)
 
     def test_sensor_name(self):
         self.assertEqual(self.synthetic_microphone_channel.sensor_name, "test microphone sensor name")
         self.assertEqual(self.example_microphone_channel.sensor_name, "I/INTERNAL MIC")
+        self.even_sensor.sensor_name = self.example_microphone_channel.sensor_name
+        self.assertEqual(self.even_sensor.sensor_name, "I/INTERNAL MIC")
+        self.even_sensor.sensor_name = "I/INTERNAL MIC"
+        self.assertEqual(self.even_sensor.sensor_name, "I/INTERNAL MIC")
 
     def test_sample_rate_hz(self):
         self.assertEqual(self.synthetic_microphone_channel.sample_rate_hz, 80.0)
         self.assertEqual(self.example_microphone_channel.sample_rate_hz, 80.0)
+        self.even_sensor.sample_rate_hz = self.example_microphone_channel.sample_rate_hz
+        self.assertEqual(self.even_sensor.sample_rate_hz, 80.0)
+        self.even_sensor.sample_rate_hz = 80.0
+        self.assertEqual(self.even_sensor.sample_rate_hz, 80.0)
 
     def test_first_sample_timestamp_epoch_microseconds_utc(self):
         self.assertEqual(self.synthetic_microphone_channel.first_sample_timestamp_epoch_microseconds_utc,
                          1519166348000000)
         self.assertEqual(self.example_microphone_channel.first_sample_timestamp_epoch_microseconds_utc,
                          1532656864354000)
+        self.even_sensor.first_sample_timestamp_epoch_microseconds_utc = \
+            self.example_microphone_channel.first_sample_timestamp_epoch_microseconds_utc
+        self.assertEqual(self.even_sensor.first_sample_timestamp_epoch_microseconds_utc, 1532656864354000)
+        self.even_sensor.first_sample_timestamp_epoch_microseconds_utc = 1532656864354000
+        self.assertEqual(self.even_sensor.first_sample_timestamp_epoch_microseconds_utc, 1532656864354000)
 
     def test_metadata_as_dict(self):
         synthetic_dict = self.synthetic_microphone_channel.metadata_as_dict()
@@ -246,6 +273,14 @@ class TestEvenlySampledSensor(unittest.TestCase):
         synthetic_list = self.synthetic_microphone_channel.metadata
         self.assertEqual(len(synthetic_list), 4)
         self.assertListEqual(synthetic_list, ["a", "b", "c", "d"])
+        self.even_sensor.metadata = self.synthetic_microphone_channel.metadata
+        synthetic_list = self.even_sensor.metadata
+        self.assertEqual(len(synthetic_list), 4)
+        self.assertListEqual(synthetic_list, ["a", "b", "c", "d"])
+        self.even_sensor.metadata = ["a", "b", "c", "d"]
+        synthetic_list = self.even_sensor.metadata
+        self.assertEqual(len(synthetic_list), 4)
+        self.assertListEqual(synthetic_list, ["a", "b", "c", "d"])
 
     def test_str(self):
         self.assertTrue("I/INTERNAL MIC" in str(self.example_microphone_channel))
@@ -254,6 +289,14 @@ class TestEvenlySampledSensor(unittest.TestCase):
     def test_payload_type(self):
         self.assertEqual(self.synthetic_microphone_channel.payload_type(), "int32_payload")
         self.assertEqual(self.example_microphone_channel.payload_type(), "int32_payload")
+        self.even_sensor.evenly_sampled_channel.set_deinterleaved_payload(
+            [self.example_microphone_channel.evenly_sampled_channel.payload],
+            self.example_microphone_channel.payload_type())
+        self.assertEqual(self.even_sensor.payload_type(), "int32_payload")
+        self.even_sensor.evenly_sampled_channel.set_payload(
+            self.example_microphone_channel.evenly_sampled_channel.payload, 1,
+            self.example_microphone_channel.payload_type())
+        self.assertEqual(self.even_sensor.payload_type(), "int32_payload")
 
 
 class TestUnevenlySampledSensor(ArraysTestCase):
@@ -263,16 +306,20 @@ class TestUnevenlySampledSensor(ArraysTestCase):
         self.wrapped_example_packet = wrapped_example_packet
         self.synthetic_barometer_channel = self.wrapped_synthetic_packet.barometer_channel()
         self.example_barometer_channel = self.wrapped_example_packet.barometer_channel()
+        self.uneven_sensor: reader.UnevenlySampledSensor = reader.UnevenlySampledSensor()
 
     def test_sensor_name(self):
         self.assertEqual(self.synthetic_barometer_channel.sensor_name, "test barometer sensor name")
         self.assertEqual(self.example_barometer_channel.sensor_name, "BMP285 pressure")
+        self.uneven_sensor.sensor_name = self.example_barometer_channel.sensor_name
+        self.assertEqual(self.uneven_sensor.sensor_name, "BMP285 pressure")
 
     def test_timestamps_microseconds_utc(self):
         self.assertArraysEqual(
             self.synthetic_barometer_channel.timestamps_microseconds_utc,
             self.as_array([1, 2, 3, 4, 5]))
-
+        self.uneven_sensor.timestamps_microseconds_utc = self.synthetic_barometer_channel.timestamps_microseconds_utc
+        self.assertArraysEqual(self.uneven_sensor.timestamps_microseconds_utc, self.as_array([1, 2, 3, 4, 5]))
         self.assertArraysEqual(
             self.example_barometer_channel.timestamps_microseconds_utc,
             self.as_array([1532656848120309, 1532656848318700, 1532656848517192, 1532656848717325, 1532656848916732,
@@ -364,14 +411,20 @@ class TestUnevenlySampledSensor(ArraysTestCase):
     def test_sample_interval_mean(self):
         self.assertEqual(self.synthetic_barometer_channel.sample_interval_mean, 1.0)
         self.assertAlmostEqual(self.example_barometer_channel.sample_interval_mean, 199308.7890625, 2)
+        self.uneven_sensor.timestamps_microseconds_utc = self.example_barometer_channel.timestamps_microseconds_utc
+        self.assertAlmostEqual(self.uneven_sensor.sample_interval_mean, 199308.7890625, 2)
 
     def test_sample_interval_std(self):
         self.assertEqual(self.synthetic_barometer_channel.sample_interval_std, 2.0)
         self.assertAlmostEqual(self.example_barometer_channel.sample_interval_std, 1546.7734115750022, 2)
+        self.uneven_sensor.timestamps_microseconds_utc = self.example_barometer_channel.timestamps_microseconds_utc
+        self.assertAlmostEqual(self.uneven_sensor.sample_interval_std, 1546.7734115750022, 2)
 
     def test_sample_interval_median(self):
         self.assertEqual(self.synthetic_barometer_channel.sample_interval_median, 3.0)
         self.assertEqual(self.example_barometer_channel.sample_interval_median, 199267.0)
+        self.uneven_sensor.timestamps_microseconds_utc = self.example_barometer_channel.timestamps_microseconds_utc
+        self.assertEqual(self.uneven_sensor.sample_interval_median, 199267.0)
 
     def test_metadata_as_dict(self):
         synthetic_dict = self.synthetic_barometer_channel.metadata_as_dict()
@@ -384,6 +437,10 @@ class TestUnevenlySampledSensor(ArraysTestCase):
         synthetic_list = self.synthetic_barometer_channel.metadata
         self.assertEqual(len(synthetic_list), 2)
         self.assertListEqual(synthetic_list, ["foo", "baz"])
+        self.uneven_sensor.metadata = self.synthetic_barometer_channel.metadata
+        synthetic_list = self.uneven_sensor.metadata
+        self.assertEqual(len(synthetic_list), 2)
+        self.assertListEqual(synthetic_list, ["foo", "baz"])
 
     def test_str(self):
         self.assertTrue("sensor_name: BMP285 pressure" in str(self.example_barometer_channel))
@@ -392,6 +449,10 @@ class TestUnevenlySampledSensor(ArraysTestCase):
     def test_payload_type(self):
         self.assertEqual(self.synthetic_barometer_channel.payload_type(), "float64_payload")
         self.assertEqual(self.example_barometer_channel.payload_type(), "float64_payload")
+        self.uneven_sensor.unevenly_sampled_channel.set_deinterleaved_payload(
+            [self.example_barometer_channel.unevenly_sampled_channel.payload],
+            self.example_barometer_channel.payload_type())
+        self.assertEqual(self.uneven_sensor.payload_type(), "float64_payload")
 
 
 class TestUnevenlyXyzSampledSensor(ArraysTestCase):

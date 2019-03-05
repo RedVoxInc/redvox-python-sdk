@@ -106,9 +106,8 @@ def write_file(file: str, redvox_packet: api900_pb2.RedvoxPacket):
     :return: Nothing, compressed file is written to disk
     """
     buffer = lz4_compress(redvox_packet.SerializeToString())
-    f = open(file, "wb")
-    f.write(buffer)
-    f.close()
+    with open(file, "wb") as f:
+        f.write(buffer)
 
 
 def to_json(redvox_packet: api900_pb2.RedvoxPacket) -> str:
@@ -828,7 +827,7 @@ class UnevenlySampledChannel(InterleavedChannel):
         super().protobuf_channel = channel
         self._timestamps_microseconds_utc = channel.timestamps_microseconds_utc
         self._sample_interval_std, self._sample_interval_mean, self._sample_interval_median = \
-            redvox.api900.stat_utils.calc_utils(channel.timestamps_microseconds_utc)
+            redvox.api900.stat_utils.calc_utils_timeseries(channel.timestamps_microseconds_utc)
 
     @property
     def timestamps_microseconds_utc(self) -> numpy.ndarray:
@@ -843,11 +842,10 @@ class UnevenlySampledChannel(InterleavedChannel):
         """
         set the timestamps in microseconds from utc
         :param timestamps: array of timestamps
-
         """
         self._timestamps_microseconds_utc = timestamps
         self._sample_interval_std, self._sample_interval_mean, self._sample_interval_median = \
-            redvox.api900.stat_utils.calc_utils(timestamps)
+            redvox.api900.stat_utils.calc_utils_timeseries(timestamps)
 
     @property
     def sample_interval_mean(self) -> float:
