@@ -340,11 +340,11 @@ class InterleavedChannelTests(ArraysTestCase):
 
         self.assertArraysEqual(
                 self.gps_channel.payload,
-                numpy.array([19.0, 155.0, 1.0, 25.0, 10.0,
-                             20.0, 156.0, 2.0, 26.0, 11.0,
-                             21.0, 157.0, 3.0, 27.0, 12.0,
-                             22.0, 158.0, 4.0, 28.0, 13.0,
-                             23.0, 159.0, 5.0, 29.0, 14.0]))
+                numpy.array([19.0, 155.0, 25.0, 1.0, 10.0,
+                             20.0, 156.0, 26.0, 2.0, 11.0,
+                             21.0, 157.0, 27.0, 3.0, 12.0,
+                             22.0, 158.0, 28.0, 4.0, 13.0,
+                             23.0, 159.0, 29.0, 5.0, 14.0]))
         self.assertEqual(self.gps_channel.metadata, [])
         self.assertArraysEqual(self.gps_channel.value_means, numpy.array([1, 2, 3, 4, 5]))
         self.assertArraysEqual(self.gps_channel.value_stds, numpy.array([1, 2, 3, 4, 5]))
@@ -354,7 +354,7 @@ class InterleavedChannelTests(ArraysTestCase):
         self.assertEqual(self.mic_channel.get_channel_type_names(),
                          ["MICROPHONE"])
         self.assertEqual(self.gps_channel.get_channel_type_names(),
-                         ["LATITUDE", "LONGITUDE", "SPEED", "ALTITUDE", "ACCURACY"])
+                         ["LATITUDE", "LONGITUDE", "ALTITUDE", "SPEED", "ACCURACY"])
         self.assertArraysEqual(
                 self.mic_channel.payload,
                 numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
@@ -368,8 +368,8 @@ class InterleavedChannelTests(ArraysTestCase):
         self.assertEqual(self.mic_channel.channel_index(api900_pb2.BAROMETER), -1)
         self.assertEqual(self.gps_channel.channel_index(api900_pb2.LATITUDE), 0)
         self.assertEqual(self.gps_channel.channel_index(api900_pb2.LONGITUDE), 1)
-        self.assertEqual(self.gps_channel.channel_index(api900_pb2.SPEED), 2)
-        self.assertEqual(self.gps_channel.channel_index(api900_pb2.ALTITUDE), 3)
+        self.assertEqual(self.gps_channel.channel_index(api900_pb2.ALTITUDE), 2)
+        self.assertEqual(self.gps_channel.channel_index(api900_pb2.SPEED), 3)
         self.assertEqual(self.gps_channel.channel_index(api900_pb2.MICROPHONE), -1)
 
     def test_has_channel(self):
@@ -500,9 +500,9 @@ class InterleavedChannelTests(ArraysTestCase):
                          1)
         self.assertEqual(self.gps_channel.get_value_mean(api900_pb2.LONGITUDE),
                          2)
-        self.assertEqual(self.gps_channel.get_value_mean(api900_pb2.SPEED),
-                         3)
         self.assertEqual(self.gps_channel.get_value_mean(api900_pb2.ALTITUDE),
+                         3)
+        self.assertEqual(self.gps_channel.get_value_mean(api900_pb2.SPEED),
                          4)
 
     def test_get_value_std_dne(self):
@@ -518,9 +518,9 @@ class InterleavedChannelTests(ArraysTestCase):
                          1)
         self.assertEqual(self.gps_channel.get_value_std(api900_pb2.LONGITUDE),
                          2)
-        self.assertEqual(self.gps_channel.get_value_std(api900_pb2.SPEED),
-                         3)
         self.assertEqual(self.gps_channel.get_value_std(api900_pb2.ALTITUDE),
+                         3)
+        self.assertEqual(self.gps_channel.get_value_std(api900_pb2.SPEED),
                          4)
 
     def test_get_value_median_dne(self):
@@ -536,9 +536,9 @@ class InterleavedChannelTests(ArraysTestCase):
                          1)
         self.assertEqual(self.gps_channel.get_value_median(api900_pb2.LONGITUDE),
                          2)
-        self.assertEqual(self.gps_channel.get_value_median(api900_pb2.SPEED),
-                         3)
         self.assertEqual(self.gps_channel.get_value_median(api900_pb2.ALTITUDE),
+                         3)
+        self.assertEqual(self.gps_channel.get_value_median(api900_pb2.SPEED),
                          4)
 
     def test_str(self):
