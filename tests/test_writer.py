@@ -38,9 +38,9 @@ class WriteAndSetModules(ArraysTestCase):
         img_sen = rar.ImageSensor()
 
         # Set properties on creation or individually.  Not all values can be directly set.
-        mic_chan.sensor_name = "Test Microphone"
-        mic_chan.sample_rate_hz = 42.0
-        mic_chan.first_sample_timestamp_epoch_microseconds_utc = 1
+        mic_chan.set_sensor_name("Test Microphone")
+        mic_chan.set_sample_rate_hz(42.0)
+        mic_chan.set_first_sample_timestamp_epoch_microseconds_utc(1)
 
         # Set payloads and channels; Setting payloads will update the means, std devs and medians of the individual
         # data arrays that form the entire payload.  You can set payloads using an interleaved array or with a list of
@@ -52,11 +52,11 @@ class WriteAndSetModules(ArraysTestCase):
         #                                    wrapped_packet.evenly_sampled_channels[0].get_payload_type())
 
         mic_chan.set_channel(wrapped_packet.evenly_sampled_channels[0].protobuf_channel)
-        mic_chan.metadata = ["This", "is a Test Sensor Packet", "Don't", "Take this data too seriously"]
+        mic_chan.set_metadata(["This", "is a Test Sensor Packet", "Don't", "Take this data too seriously"])
         mic_chan.update_stats()
 
         # Access functions.  Asserts used to ensure values set correctly:
-        self.assertSampledArray(mic_chan.get_channel_payload(api900_pb2.MICROPHONE),
+        self.assertSampledArray(mic_chan.get_payload(api900_pb2.MICROPHONE),
                                 4096,
                                 [0, 2048, 4095],
                                 [201, -4666, -1867])

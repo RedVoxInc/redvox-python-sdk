@@ -34,98 +34,98 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         self.created_light_sensor: reader.LightSensor = reader.LightSensor()
 
     def test_api(self):
-        self.assertEqual(self.wrapped_synthetic_packet.api, 900)
-        self.assertEqual(self.wrapped_example_packet.api, 900)
+        self.assertEqual(self.wrapped_synthetic_packet.api(), 900)
+        self.assertEqual(self.wrapped_example_packet.api(), 900)
 
     def test_redvox_id(self):
-        self.assertEqual(self.wrapped_synthetic_packet.redvox_id, "1")
-        self.assertEqual(self.wrapped_example_packet.redvox_id, "0000001314")
+        self.assertEqual(self.wrapped_synthetic_packet.redvox_id(), "1")
+        self.assertEqual(self.wrapped_example_packet.redvox_id(), "0000001314")
 
     def test_uuid(self):
-        self.assertEqual(self.wrapped_synthetic_packet.uuid, "2")
-        self.assertEqual(self.wrapped_example_packet.uuid, "317985785")
+        self.assertEqual(self.wrapped_synthetic_packet.uuid(), "2")
+        self.assertEqual(self.wrapped_example_packet.uuid(), "317985785")
 
     def test_authenticated_email(self):
-        self.assertEqual(self.wrapped_synthetic_packet.authenticated_email, "foo@bar.baz")
-        self.assertEqual(self.wrapped_example_packet.authenticated_email, "anthony.christe@gmail.com")
+        self.assertEqual(self.wrapped_synthetic_packet.authenticated_email(), "foo@bar.baz")
+        self.assertEqual(self.wrapped_example_packet.authenticated_email(), "anthony.christe@gmail.com")
 
     def test_authentication_token(self):
-        self.assertEqual(self.wrapped_synthetic_packet.authentication_token, "test_authentication_token")
-        self.assertEqual(self.wrapped_example_packet.authentication_token, "redacted-1005665114")
+        self.assertEqual(self.wrapped_synthetic_packet.authentication_token(), "test_authentication_token")
+        self.assertEqual(self.wrapped_example_packet.authentication_token(), "redacted-1005665114")
 
     def test_firebase_token(self):
-        self.assertEqual(self.wrapped_synthetic_packet.firebase_token, "test_firebase_token")
-        self.assertEqual(self.wrapped_example_packet.firebase_token,
+        self.assertEqual(self.wrapped_synthetic_packet.firebase_token(), "test_firebase_token")
+        self.assertEqual(self.wrapped_example_packet.firebase_token(),
                          "eCCYsQxSRCE:APA91bG_RPDPvr-ALh8taZp6sBYVM1ehORnXrhG5PTOVR-KuYIf1dygYgaXEWNMKtXtqzQCyP0tkBwNmTjyvCCZSKwy-hVjWm3NKwgE-DtJdvMOMaw5Jb0DS3_NXnVnuVXrzjixMjAnvecFFagXYSBwKv5LUtMWpBw")
 
     def test_is_backfilled(self):
-        self.assertFalse(self.wrapped_synthetic_packet.is_backfilled)
-        self.assertTrue(self.wrapped_example_packet.is_backfilled)
+        self.assertFalse(self.wrapped_synthetic_packet.is_backfilled())
+        self.assertTrue(self.wrapped_example_packet.is_backfilled())
 
     def test_is_private(self):
-        self.assertTrue(self.wrapped_synthetic_packet.is_private)
-        self.assertFalse(self.wrapped_example_packet.is_private)
+        self.assertTrue(self.wrapped_synthetic_packet.is_private())
+        self.assertFalse(self.wrapped_example_packet.is_private())
 
     def test_is_scrambled(self):
-        self.assertTrue(self.wrapped_synthetic_packet.is_scrambled)
-        self.assertFalse(self.wrapped_example_packet.is_scrambled)
+        self.assertTrue(self.wrapped_synthetic_packet.is_scrambled())
+        self.assertFalse(self.wrapped_example_packet.is_scrambled())
 
     def test_device_make(self):
-        self.assertEqual(self.wrapped_synthetic_packet.device_make, "test device make")
-        self.assertEqual(self.wrapped_example_packet.device_make, "Google")
+        self.assertEqual(self.wrapped_synthetic_packet.device_make(), "test device make")
+        self.assertEqual(self.wrapped_example_packet.device_make(), "Google")
 
     def test_device_model(self):
-        self.assertEqual(self.wrapped_synthetic_packet.device_model, "test device model")
-        self.assertEqual(self.wrapped_example_packet.device_model, "Pixel XL")
+        self.assertEqual(self.wrapped_synthetic_packet.device_model(), "test device model")
+        self.assertEqual(self.wrapped_example_packet.device_model(), "Pixel XL")
 
     def test_device_os(self):
-        self.assertEqual(self.wrapped_synthetic_packet.device_os, "test device os")
-        self.assertEqual(self.wrapped_example_packet.device_os, "Android")
+        self.assertEqual(self.wrapped_synthetic_packet.device_os(), "test device os")
+        self.assertEqual(self.wrapped_example_packet.device_os(), "Android")
 
     def test_device_os_version(self):
-        self.assertEqual(self.wrapped_synthetic_packet.device_os_version, "test device os version")
-        self.assertEqual(self.wrapped_example_packet.device_os_version, "8.1.0")
+        self.assertEqual(self.wrapped_synthetic_packet.device_os_version(), "test device os version")
+        self.assertEqual(self.wrapped_example_packet.device_os_version(), "8.1.0")
 
     def test_app_version(self):
-        self.assertEqual(self.wrapped_synthetic_packet.app_version, "test app version")
-        self.assertEqual(self.wrapped_example_packet.app_version, "2.3.4")
+        self.assertEqual(self.wrapped_synthetic_packet.app_version(), "test app version")
+        self.assertEqual(self.wrapped_example_packet.app_version(), "2.3.4")
 
     def test_battery_level_percent(self):
-        self.assertEqual(self.wrapped_synthetic_packet.battery_level_percent, 99.0)
-        self.assertEqual(self.wrapped_example_packet.battery_level_percent, 25.0)
+        self.assertEqual(self.wrapped_synthetic_packet.battery_level_percent(), 99.0)
+        self.assertEqual(self.wrapped_example_packet.battery_level_percent(), 25.0)
 
     def test_device_temperature_c(self):
-        self.assertEqual(self.wrapped_synthetic_packet.device_temperature_c, 25.0)
-        self.assertEqual(self.wrapped_example_packet.device_temperature_c, 32.0)
+        self.assertEqual(self.wrapped_synthetic_packet.device_temperature_c(), 25.0)
+        self.assertEqual(self.wrapped_example_packet.device_temperature_c(), 32.0)
 
     def test_acquisition_server(self):
-        self.assertEqual(self.wrapped_synthetic_packet.acquisition_server, "test acquisition server")
-        self.assertEqual(self.wrapped_example_packet.acquisition_server,
+        self.assertEqual(self.wrapped_synthetic_packet.acquisition_server(), "test acquisition server")
+        self.assertEqual(self.wrapped_example_packet.acquisition_server(),
                          "wss://milton.soest.hawaii.edu:8000/acquisition/v900")
 
     def test_time_synchronization_server(self):
-        self.assertEqual(self.wrapped_synthetic_packet.time_synchronization_server,
+        self.assertEqual(self.wrapped_synthetic_packet.time_synchronization_server(),
                          "test time synchronization server")
-        self.assertEqual(self.wrapped_example_packet.time_synchronization_server, "wss://redvox.io/synch/v2")
+        self.assertEqual(self.wrapped_example_packet.time_synchronization_server(), "wss://redvox.io/synch/v2")
 
     def test_authentication_server(self):
-        self.assertEqual(self.wrapped_synthetic_packet.authentication_server, "test authentication server")
-        self.assertEqual(self.wrapped_example_packet.authentication_server, "https://redvox.io/login/mobile")
+        self.assertEqual(self.wrapped_synthetic_packet.authentication_server(), "test authentication server")
+        self.assertEqual(self.wrapped_example_packet.authentication_server(), "https://redvox.io/login/mobile")
 
     def test_app_file_start_timestamp_epoch_microseconds_utc(self):
-        self.assertEqual(self.wrapped_synthetic_packet.app_file_start_timestamp_epoch_microseconds_utc,
+        self.assertEqual(self.wrapped_synthetic_packet.app_file_start_timestamp_epoch_microseconds_utc(),
                          1519166348000000)
-        self.assertEqual(self.wrapped_example_packet.app_file_start_timestamp_epoch_microseconds_utc,
+        self.assertEqual(self.wrapped_example_packet.app_file_start_timestamp_epoch_microseconds_utc(),
                          1532656864354000)
 
     def test_app_file_start_timestamp_machine(self):
-        self.assertEqual(self.wrapped_synthetic_packet.app_file_start_timestamp_machine, 42)
-        self.assertEqual(self.wrapped_example_packet.app_file_start_timestamp_machine, 1532656848035001)
+        self.assertEqual(self.wrapped_synthetic_packet.app_file_start_timestamp_machine(), 42)
+        self.assertEqual(self.wrapped_example_packet.app_file_start_timestamp_machine(), 1532656848035001)
 
     def test_server_timestamp_epoch_microseconds_utc(self):
-        self.assertEqual(self.wrapped_synthetic_packet.server_timestamp_epoch_microseconds_utc,
+        self.assertEqual(self.wrapped_synthetic_packet.server_timestamp_epoch_microseconds_utc(),
                          1519166348000000 + 10000)
-        self.assertEqual(self.wrapped_example_packet.server_timestamp_epoch_microseconds_utc, 1532656543460000)
+        self.assertEqual(self.wrapped_example_packet.server_timestamp_epoch_microseconds_utc(), 1532656543460000)
 
     def test_metadata(self):
         self.assertTrue("foo" in self.wrapped_synthetic_packet.metadata_as_dict())
@@ -225,41 +225,40 @@ class TestEvenlySampledSensor(unittest.TestCase):
         self.even_sensor: reader.EvenlySampledSensor = reader.EvenlySampledSensor()
 
     def test_contains_evenly_sampled_channel(self):
-        self.assertTrue(api900_pb2.MICROPHONE in
-                        self.synthetic_microphone_channel.evenly_sampled_channel.channel_types)
+        self.assertTrue(api900_pb2.MICROPHONE in self.synthetic_microphone_channel.evenly_sampled_channel.channel_types)
         self.assertTrue(api900_pb2.MICROPHONE in self.example_microphone_channel.evenly_sampled_channel.channel_types)
-        self.even_sensor.evenly_sampled_channel.channel_types = \
-            self.example_microphone_channel.evenly_sampled_channel.channel_types
+        self.even_sensor.evenly_sampled_channel.set_channel_types(
+            self.example_microphone_channel.evenly_sampled_channel.channel_types)
         self.assertTrue(api900_pb2.MICROPHONE in self.even_sensor.evenly_sampled_channel.channel_types)
-        self.even_sensor.evenly_sampled_channel.channel_types = [api900_pb2.MICROPHONE]
+        self.even_sensor.evenly_sampled_channel.set_channel_types([api900_pb2.MICROPHONE])
         self.assertTrue(api900_pb2.MICROPHONE in self.even_sensor.evenly_sampled_channel.channel_types)
 
     def test_sensor_name(self):
-        self.assertEqual(self.synthetic_microphone_channel.sensor_name, "test microphone sensor name")
-        self.assertEqual(self.example_microphone_channel.sensor_name, "I/INTERNAL MIC")
-        self.even_sensor.sensor_name = self.example_microphone_channel.sensor_name
-        self.assertEqual(self.even_sensor.sensor_name, "I/INTERNAL MIC")
-        self.even_sensor.sensor_name = "I/INTERNAL MIC"
-        self.assertEqual(self.even_sensor.sensor_name, "I/INTERNAL MIC")
+        self.assertEqual(self.synthetic_microphone_channel.sensor_name(), "test microphone sensor name")
+        self.assertEqual(self.example_microphone_channel.sensor_name(), "I/INTERNAL MIC")
+        self.even_sensor.set_sensor_name(self.example_microphone_channel.sensor_name())
+        self.assertEqual(self.even_sensor.sensor_name(), "I/INTERNAL MIC")
+        self.even_sensor.set_sensor_name("I/INTERNAL MIC")
+        self.assertEqual(self.even_sensor.sensor_name(), "I/INTERNAL MIC")
 
     def test_sample_rate_hz(self):
-        self.assertEqual(self.synthetic_microphone_channel.sample_rate_hz, 80.0)
-        self.assertEqual(self.example_microphone_channel.sample_rate_hz, 80.0)
-        self.even_sensor.sample_rate_hz = self.example_microphone_channel.sample_rate_hz
-        self.assertEqual(self.even_sensor.sample_rate_hz, 80.0)
-        self.even_sensor.sample_rate_hz = 80.0
-        self.assertEqual(self.even_sensor.sample_rate_hz, 80.0)
+        self.assertEqual(self.synthetic_microphone_channel.sample_rate_hz(), 80.0)
+        self.assertEqual(self.example_microphone_channel.sample_rate_hz(), 80.0)
+        self.even_sensor.set_sample_rate_hz(self.example_microphone_channel.sample_rate_hz())
+        self.assertEqual(self.even_sensor.sample_rate_hz(), 80.0)
+        self.even_sensor.set_sample_rate_hz(80.0)
+        self.assertEqual(self.even_sensor.sample_rate_hz(), 80.0)
 
     def test_first_sample_timestamp_epoch_microseconds_utc(self):
-        self.assertEqual(self.synthetic_microphone_channel.first_sample_timestamp_epoch_microseconds_utc,
+        self.assertEqual(self.synthetic_microphone_channel.first_sample_timestamp_epoch_microseconds_utc(),
                          1519166348000000)
-        self.assertEqual(self.example_microphone_channel.first_sample_timestamp_epoch_microseconds_utc,
+        self.assertEqual(self.example_microphone_channel.first_sample_timestamp_epoch_microseconds_utc(),
                          1532656864354000)
-        self.even_sensor.first_sample_timestamp_epoch_microseconds_utc = \
-            self.example_microphone_channel.first_sample_timestamp_epoch_microseconds_utc
-        self.assertEqual(self.even_sensor.first_sample_timestamp_epoch_microseconds_utc, 1532656864354000)
-        self.even_sensor.first_sample_timestamp_epoch_microseconds_utc = 1532656864354000
-        self.assertEqual(self.even_sensor.first_sample_timestamp_epoch_microseconds_utc, 1532656864354000)
+        self.even_sensor.set_first_sample_timestamp_epoch_microseconds_utc(
+            self.example_microphone_channel.first_sample_timestamp_epoch_microseconds_utc())
+        self.assertEqual(self.even_sensor.first_sample_timestamp_epoch_microseconds_utc(), 1532656864354000)
+        self.even_sensor.set_first_sample_timestamp_epoch_microseconds_utc(1532656864354000)
+        self.assertEqual(self.even_sensor.first_sample_timestamp_epoch_microseconds_utc(), 1532656864354000)
 
     def test_metadata_as_dict(self):
         synthetic_dict = self.synthetic_microphone_channel.metadata_as_dict()
@@ -270,15 +269,15 @@ class TestEvenlySampledSensor(unittest.TestCase):
         self.assertEqual(len(self.example_microphone_channel.metadata_as_dict()), 0)
 
     def test_metadata(self):
-        synthetic_list = self.synthetic_microphone_channel.metadata
+        synthetic_list = self.synthetic_microphone_channel.metadata()
         self.assertEqual(len(synthetic_list), 4)
         self.assertListEqual(synthetic_list, ["a", "b", "c", "d"])
-        self.even_sensor.metadata = self.synthetic_microphone_channel.metadata
-        synthetic_list = self.even_sensor.metadata
+        self.even_sensor.set_metadata(self.synthetic_microphone_channel.metadata())
+        synthetic_list = self.even_sensor.metadata()
         self.assertEqual(len(synthetic_list), 4)
         self.assertListEqual(synthetic_list, ["a", "b", "c", "d"])
-        self.even_sensor.metadata = ["a", "b", "c", "d"]
-        synthetic_list = self.even_sensor.metadata
+        self.even_sensor.set_metadata(["a", "b", "c", "d"])
+        synthetic_list = self.even_sensor.metadata()
         self.assertEqual(len(synthetic_list), 4)
         self.assertListEqual(synthetic_list, ["a", "b", "c", "d"])
 
@@ -309,23 +308,24 @@ class TestUnevenlySampledSensor(ArraysTestCase):
         self.uneven_sensor: reader.UnevenlySampledSensor = reader.UnevenlySampledSensor()
 
     def test_sensor_name(self):
-        self.assertEqual(self.synthetic_barometer_channel.sensor_name, "test barometer sensor name")
-        self.assertEqual(self.example_barometer_channel.sensor_name, "BMP285 pressure")
-        self.uneven_sensor.sensor_name = self.example_barometer_channel.sensor_name
-        self.assertEqual(self.uneven_sensor.sensor_name, "BMP285 pressure")
-        self.uneven_sensor.sensor_name = "BMP285 pressure"
-        self.assertEqual(self.uneven_sensor.sensor_name, "BMP285 pressure")
+        self.assertEqual(self.synthetic_barometer_channel.sensor_name(), "test barometer sensor name")
+        self.assertEqual(self.example_barometer_channel.sensor_name(), "BMP285 pressure")
+        self.uneven_sensor.set_sensor_name(self.example_barometer_channel.sensor_name())
+        self.assertEqual(self.uneven_sensor.sensor_name(), "BMP285 pressure")
+        self.uneven_sensor.set_sensor_name("BMP285 pressure")
+        self.assertEqual(self.uneven_sensor.sensor_name(), "BMP285 pressure")
 
     def test_timestamps_microseconds_utc(self):
         self.assertArraysEqual(
-            self.synthetic_barometer_channel.timestamps_microseconds_utc,
+            self.synthetic_barometer_channel.timestamps_microseconds_utc(),
             self.as_array([1, 2, 3, 4, 5]))
-        self.uneven_sensor.timestamps_microseconds_utc = self.synthetic_barometer_channel.timestamps_microseconds_utc
-        self.assertArraysEqual(self.uneven_sensor.timestamps_microseconds_utc, self.as_array([1, 2, 3, 4, 5]))
-        self.uneven_sensor.timestamps_microseconds_utc = self.as_array([1, 2, 3, 4, 5])
-        self.assertArraysEqual(self.uneven_sensor.timestamps_microseconds_utc, self.as_array([1, 2, 3, 4, 5]))
+        self.uneven_sensor.set_timestamps_microseconds_utc(
+            self.synthetic_barometer_channel.timestamps_microseconds_utc())
+        self.assertArraysEqual(self.uneven_sensor.timestamps_microseconds_utc(), self.as_array([1, 2, 3, 4, 5]))
+        self.uneven_sensor.set_timestamps_microseconds_utc(self.as_array([1, 2, 3, 4, 5]))
+        self.assertArraysEqual(self.uneven_sensor.timestamps_microseconds_utc(), self.as_array([1, 2, 3, 4, 5]))
         self.assertArraysEqual(
-            self.example_barometer_channel.timestamps_microseconds_utc,
+            self.example_barometer_channel.timestamps_microseconds_utc(),
             self.as_array([1532656848120309, 1532656848318700, 1532656848517192, 1532656848717325, 1532656848916732,
                            1532656849116496,
                            1532656849313872, 1532656849515699, 1532656849713610, 1532656849913589, 1532656850112718,
@@ -413,22 +413,22 @@ class TestUnevenlySampledSensor(ArraysTestCase):
                            1532656898343897, 1532656898543902, 1532656898746456, 1532656898942597, 1532656899143359]))
 
     def test_sample_interval_mean(self):
-        self.assertEqual(self.synthetic_barometer_channel.sample_interval_mean, 1.0)
-        self.assertAlmostEqual(self.example_barometer_channel.sample_interval_mean, 199308.7890625, 2)
-        self.uneven_sensor.timestamps_microseconds_utc = self.example_barometer_channel.timestamps_microseconds_utc
-        self.assertAlmostEqual(self.uneven_sensor.sample_interval_mean, 199308.7890625, 2)
+        self.assertEqual(self.synthetic_barometer_channel.sample_interval_mean(), 1.0)
+        self.assertAlmostEqual(self.example_barometer_channel.sample_interval_mean(), 199308.7890625, 2)
+        self.uneven_sensor.set_timestamps_microseconds_utc(self.example_barometer_channel.timestamps_microseconds_utc())
+        self.assertAlmostEqual(self.uneven_sensor.sample_interval_mean(), 199308.7890625, 2)
 
     def test_sample_interval_std(self):
-        self.assertEqual(self.synthetic_barometer_channel.sample_interval_std, 2.0)
-        self.assertAlmostEqual(self.example_barometer_channel.sample_interval_std, 1546.7734115750022, 2)
-        self.uneven_sensor.timestamps_microseconds_utc = self.example_barometer_channel.timestamps_microseconds_utc
-        self.assertAlmostEqual(self.uneven_sensor.sample_interval_std, 1546.7734115750022, 2)
+        self.assertEqual(self.synthetic_barometer_channel.sample_interval_std(), 2.0)
+        self.assertAlmostEqual(self.example_barometer_channel.sample_interval_std(), 1546.7734115750022, 2)
+        self.uneven_sensor.set_timestamps_microseconds_utc(self.example_barometer_channel.timestamps_microseconds_utc())
+        self.assertAlmostEqual(self.uneven_sensor.sample_interval_std(), 1546.7734115750022, 2)
 
     def test_sample_interval_median(self):
-        self.assertEqual(self.synthetic_barometer_channel.sample_interval_median, 3.0)
-        self.assertEqual(self.example_barometer_channel.sample_interval_median, 199267.0)
-        self.uneven_sensor.timestamps_microseconds_utc = self.example_barometer_channel.timestamps_microseconds_utc
-        self.assertEqual(self.uneven_sensor.sample_interval_median, 199267.0)
+        self.assertEqual(self.synthetic_barometer_channel.sample_interval_median(), 3.0)
+        self.assertEqual(self.example_barometer_channel.sample_interval_median(), 199267.0)
+        self.uneven_sensor.set_timestamps_microseconds_utc(self.example_barometer_channel.timestamps_microseconds_utc())
+        self.assertEqual(self.uneven_sensor.sample_interval_median(), 199267.0)
 
     def test_metadata_as_dict(self):
         synthetic_dict = self.synthetic_barometer_channel.metadata_as_dict()
@@ -438,15 +438,15 @@ class TestUnevenlySampledSensor(ArraysTestCase):
         self.assertEqual(len(self.example_barometer_channel.metadata_as_dict()), 0)
 
     def test_metadata(self):
-        synthetic_list = self.synthetic_barometer_channel.metadata
+        synthetic_list = self.synthetic_barometer_channel.metadata()
         self.assertEqual(len(synthetic_list), 2)
         self.assertListEqual(synthetic_list, ["foo", "baz"])
-        self.uneven_sensor.metadata = self.synthetic_barometer_channel.metadata
-        synthetic_list = self.uneven_sensor.metadata
+        self.uneven_sensor.set_metadata(self.synthetic_barometer_channel.metadata())
+        synthetic_list = self.uneven_sensor.metadata()
         self.assertEqual(len(synthetic_list), 2)
         self.assertListEqual(synthetic_list, ["foo", "baz"])
-        self.uneven_sensor.metadata = ["foo", "baz"]
-        synthetic_list = self.uneven_sensor.metadata
+        self.uneven_sensor.set_metadata(["foo", "baz"])
+        synthetic_list = self.uneven_sensor.metadata()
         self.assertEqual(len(synthetic_list), 2)
         self.assertListEqual(synthetic_list, ["foo", "baz"])
 
@@ -482,27 +482,27 @@ class TestUnevenlyXyzSampledSensor(ArraysTestCase):
         self.assertEqual(self.synthetic_accelerometer_channel.x_type, api900_pb2.ACCELEROMETER_X)
         self.assertEqual(self.example_accelerometer_channel.x_type, api900_pb2.ACCELEROMETER_X)
         self.assertEqual(self.xyz_sensor.x_type, api900_pb2.ACCELEROMETER_X)
-        self.xyz_sensor.x_type = api900_pb2.ACCELEROMETER_X
+        self.xyz_sensor.set_x_type(api900_pb2.ACCELEROMETER_X)
         self.assertEqual(self.xyz_sensor.x_type, api900_pb2.ACCELEROMETER_X)
-        self.xyz_sensor.x_type = self.synthetic_accelerometer_channel.x_type
+        self.xyz_sensor.set_x_type(self.synthetic_accelerometer_channel.x_type)
         self.assertEqual(self.xyz_sensor.x_type, api900_pb2.ACCELEROMETER_X)
 
     def test_y_type(self):
         self.assertEqual(self.synthetic_accelerometer_channel.y_type, api900_pb2.ACCELEROMETER_Y)
         self.assertEqual(self.example_accelerometer_channel.y_type, api900_pb2.ACCELEROMETER_Y)
         self.assertEqual(self.xyz_sensor.y_type, api900_pb2.ACCELEROMETER_Y)
-        self.xyz_sensor.y_type = api900_pb2.ACCELEROMETER_Y
+        self.xyz_sensor.set_y_type(api900_pb2.ACCELEROMETER_Y)
         self.assertEqual(self.xyz_sensor.y_type, api900_pb2.ACCELEROMETER_Y)
-        self.xyz_sensor.x_type = self.synthetic_accelerometer_channel.y_type
+        self.xyz_sensor.set_y_type(self.synthetic_accelerometer_channel.y_type)
         self.assertEqual(self.xyz_sensor.y_type, api900_pb2.ACCELEROMETER_Y)
 
     def test_z_type(self):
         self.assertEqual(self.synthetic_accelerometer_channel.z_type, api900_pb2.ACCELEROMETER_Z)
         self.assertEqual(self.example_accelerometer_channel.z_type, api900_pb2.ACCELEROMETER_Z)
         self.assertEqual(self.xyz_sensor.z_type, api900_pb2.ACCELEROMETER_Z)
-        self.xyz_sensor.z_type = api900_pb2.ACCELEROMETER_Z
+        self.xyz_sensor.set_z_type(api900_pb2.ACCELEROMETER_Z)
         self.assertEqual(self.xyz_sensor.z_type, api900_pb2.ACCELEROMETER_Z)
-        self.xyz_sensor.z_type = self.synthetic_accelerometer_channel.z_type
+        self.xyz_sensor.set_z_type(self.synthetic_accelerometer_channel.z_type)
         self.assertEqual(self.xyz_sensor.z_type, api900_pb2.ACCELEROMETER_Z)
 
     def test_payload_values(self):
@@ -513,11 +513,11 @@ class TestUnevenlyXyzSampledSensor(ArraysTestCase):
                                               22.0, 158.0, 4.0,
                                               23.0, 159.0, 5.0]))
         self.xyz_sensor.set_channel(self.synthetic_accelerometer_channel.unevenly_sampled_channel)
-        self.assertArraysEqual(self.xyz_sensor.payload_values(),self.as_array([19.0, 155.0, 1.0,
-                                                                               20.0, 156.0, 2.0,
-                                                                               21.0, 157.0, 3.0,
-                                                                               22.0, 158.0, 4.0,
-                                                                               23.0, 159.0, 5.0]))
+        self.assertArraysEqual(self.xyz_sensor.payload_values(), self.as_array([19.0, 155.0, 1.0,
+                                                                                20.0, 156.0, 2.0,
+                                                                                21.0, 157.0, 3.0,
+                                                                                22.0, 158.0, 4.0,
+                                                                                23.0, 159.0, 5.0]))
         self.assertSampledArray(self.example_accelerometer_channel.payload_values(),
                                 1923,
                                 [0, 1000, 1922],
@@ -843,7 +843,7 @@ class TestTimeSynchronizationSensor(ArraysTestCase):
         self.assertEqual(len(self.example_time_sync.metadata_as_dict()), 0)
 
     def test_metadata(self):
-        synthetic_list = self.synthetic_time_sync.metadata
+        synthetic_list = self.synthetic_time_sync.metadata()
         self.assertEqual(len(synthetic_list), 4)
         self.assertListEqual(synthetic_list, ["a", "b", "c", "d"])
 
@@ -852,7 +852,7 @@ class TestTimeSynchronizationSensor(ArraysTestCase):
         self.assertTrue("sensor_name: " in str(self.synthetic_time_sync))
 
     def test_payload_type(self):
-        print(self.synthetic_time_sync.payload_type())
+        # print(self.synthetic_time_sync.payload_type())
         self.assertEqual(self.synthetic_time_sync.payload_type(), "int64_payload")
         self.assertEqual(self.example_time_sync.payload_type(), "int64_payload")
 
