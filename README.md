@@ -2,9 +2,14 @@
 
 This repository contains code for reading and working with the RedVox API 900 data format.
 
-See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.4.1/redvox-api900-docs.md for SDK documentation.
+See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/redvox-api900-docs.md for SDK documentation.
 
 ### Changelog
+
+#### 1.5.0 (2019-3-?)
+
+* Add setters for all fields
+* Add the ability to easily create sensor channels and RedVox packets
 
 #### 1.4.1 (2019-2-15)
 
