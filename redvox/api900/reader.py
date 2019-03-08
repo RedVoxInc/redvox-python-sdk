@@ -101,6 +101,7 @@ def read_file(file: str, is_compressed: bool = None) -> api900_pb2.RedvoxPacket:
 
 def write_file(file: str, redvox_packet: api900_pb2.RedvoxPacket):
     """
+    Writes a redvox file.  Specify the correct file type in the file string.
     :param file: str, File to write
     :param redvox_packet: protobuf packet to write
     :return: Nothing, compressed file is written to disk
@@ -353,8 +354,8 @@ class InterleavedChannel:
 
     An interleaved channel contains multiple channel types in a single payload. This is useful for situations where
     a sensor produces several values for a single timestamp. For example, a GPS will produce a LATITUDE, LONGITUDE,
-    ALTITUDE, and SPEED values with every update. An interleaved channel is an encoding that encodes multiple channel
-    types into a single payload.
+    ALTITUDE, and SPEED values with every update. An interleaved channel encodes all four of those channel types
+    into a single payload.
 
     Every channel has a field channel_types that list the channel types contained within the payload. For a GPS sensor,
     the channel_types array would look like [LATITUDE, LONGITUDE, ALTITUDE, SPEED]. The location of the channel type
@@ -371,45 +372,92 @@ class InterleavedChannel:
         """
         Initializes this interleaved channel object.
         :param channel: Either a protobuf evenly or unevenly sampled channel.
-        note: _value_means, _value_medians, _value_stds, and _channel_type_index are only set during initialization or
-            when _payload is altered
-        _payload can only be altered by _set_payload or set_deinterleaved_payload due to the extra data values that are
-            required to correctly set the _protobuf_channel
+        note: value_means, value_medians, value_stds, and channel_type_index are only set during initialization or
+            when payload is altered
+        payload should only be altered by set_payload or set_deinterleaved_payload due to the extra data values that are
+            required to correctly set the protobuf_channel
         """
-        self.protobuf_channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                            api900_pb2.UnevenlySampledChannel] = channel
-        """Reference to the original protobuf channel"""
+        if channel is None:
+            self.protobuf_channel = empty_evenly_sampled_channel()
+            self.sensor_name = None
+            self.channel_types = [0]
+            self.payload = [0]
+            self.metadata = []
+            self.value_means = []
+            self.value_stds = []
+            self.value_medians = []
+            self.channel_type_index = []
+        else:
+            self.protobuf_channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                                api900_pb2.UnevenlySampledChannel] = channel
+            """Reference to the original protobuf channel"""
 
-        self.sensor_name: str = channel.sensor_name
-        """Provided sensor name"""
+            self.sensor_name: str = channel.sensor_name
+            """Provided sensor name"""
 
-        self.channel_types: typing.List[
-            typing.Union[
-                api900_pb2.EvenlySampledChannel,
-                api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
-        """List of channel type constant enumerations"""
+            self.channel_types: typing.List[
+                typing.Union[
+                    api900_pb2.EvenlySampledChannel,
+                    api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
+            """List of channel type constant enumerations"""
 
-        self.payload: numpy.ndarray = extract_payload(channel)
-        """This channels payload as a numpy array of either floats or ints"""
+            self.payload: numpy.ndarray = extract_payload(channel)
+            """This channels payload as a numpy array of either floats or ints"""
 
-        self.metadata: typing.List[str] = repeated_to_list(channel.metadata)
-        """This channels list of metadata"""
+            self.metadata: typing.List[str] = repeated_to_list(channel.metadata)
+            """This channels list of metadata"""
 
-        self.value_means: numpy.ndarray = repeated_to_array(channel.value_means)
-        """Interleaved array of mean values"""
+            self.value_means: numpy.ndarray = repeated_to_array(channel.value_means)
+            """Interleaved array of mean values"""
 
-        self.value_stds: numpy.ndarray = repeated_to_array(channel.value_stds)
-        """Interleaved array of standard deviations of values"""
+            self.value_stds: numpy.ndarray = repeated_to_array(channel.value_stds)
+            """Interleaved array of standard deviations of values"""
 
-        self.value_medians: numpy.ndarray = repeated_to_array(channel.value_medians)
-        """Interleaves array of median values"""
+            self.value_medians: numpy.ndarray = repeated_to_array(channel.value_medians)
+            """Interleaves array of median values"""
 
-        self.channel_type_index: typing.Dict[api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
-                                                                             i in
-                                                                             range(
-                                                                                     len(
-                                                                                             self.channel_types))}
-        """Contains a mapping of channel type to index in channel_types array"""
+            self.channel_type_index: typing.Dict[api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
+                                                                                 i in
+                                                                                 range(
+                                                                                         len(
+                                                                                                 self.channel_types))}
+            """Contains a mapping of channel type to index in channel_types array"""
+
+    def create(self, sensor_name: str, metadata: typing.List[str],
+               channel_types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                       api900_pb2.UnevenlySampledChannel]],
+               pyld_type: str, payload: numpy.array, payload_steps: int = None):
+        """
+        Create an interleaved channel using native components
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param payload_steps: number of arrays interleaved
+        :param pyld_type: payload type
+        :param channel_types: list of payload types
+        :param metadata: metadata
+        :return self: the interleaved channel with all values set
+        """
+        self.sensor_name = sensor_name
+        self.set_channel_types(channel_types)
+        self.set_metadata(metadata)
+        self.set_payload(payload, payload_steps, pyld_type)
+        return self
+
+    def create_from_deinterleaved_arrays(self, sensor_name: str, metadata: typing.List[str],
+                                         channel_types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                                                 api900_pb2.UnevenlySampledChannel]],
+                                         pyld_type: str, payload: typing.List[numpy.array]):
+        """
+        Create an interleaved channel using native components
+        :param sensor_name: the sensor name
+        :param payload: list of numpy arrays to interleave
+        :param pyld_type: payload type
+        :param channel_types: list of payload types
+        :param metadata: metadata
+        :return self: the interleaved channel with all values set
+        """
+        self.create(sensor_name, metadata, channel_types, pyld_type, interleave_arrays(payload), len(payload))
+        return self
 
     def set_channel_types(self, types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
                                                                 api900_pb2.UnevenlySampledChannel]]):
@@ -472,7 +520,8 @@ class InterleavedChannel:
 
     def set_payload(self, channel: numpy.array, step: int, pl_type: str):
         """
-        sets the payload to an interleaved channel with step number of arrays interleaved together
+        sets the payload to an interleaved channel with step number of arrays interleaved together.  The step value is
+        only used for error checking before saving the array
         :param channel: interleaved channel
         :param step: number of arrays inside interleaved channel
         :param pl_type: payload type as string
@@ -508,19 +557,9 @@ class InterleavedChannel:
             self.protobuf_channel.float64_payload.payload.extend(channel)
         else:
             raise TypeError("Unknown payload type to set.")
-        # calculate the means, std devs, and medians
-        del self.protobuf_channel.value_means[:]
-        del self.protobuf_channel.value_stds[:]
-        del self.protobuf_channel.value_medians[:]
-        for i in range(0, step):
-            std, mean, median = redvox.api900.stat_utils.calc_utils(deinterleave_array(channel, i, step))
-            self.protobuf_channel.value_means.append(mean)
-            self.protobuf_channel.value_stds.append(std)
-            self.protobuf_channel.value_medians.append(median)
-        self.value_stds = repeated_to_array(self.protobuf_channel.value_stds)
-        self.value_means = repeated_to_array(self.protobuf_channel.value_means)
-        self.value_medians = repeated_to_array(self.protobuf_channel.value_medians)
         self.payload = extract_payload(self.protobuf_channel)
+        # calculate the means, std devs, and medians
+        self.update_stats()
 
     def set_deinterleaved_payload(self, channels: typing.List[numpy.array], pl_type: str):
         """
@@ -612,6 +651,9 @@ class InterleavedChannel:
         """
         channel = self.payload
         step = len(self.channel_types)
+        del self.protobuf_channel.value_means[:]
+        del self.protobuf_channel.value_stds[:]
+        del self.protobuf_channel.value_medians[:]
         for i in range(step):
             std, mean, median = redvox.api900.stat_utils.calc_utils(deinterleave_array(channel, i, step))
             self.protobuf_channel.value_means.append(mean)
@@ -686,6 +728,47 @@ class EvenlySampledChannel(InterleavedChannel):
                 channel.first_sample_timestamp_epoch_microseconds_utc
             """The timestamp of the first sample"""
 
+    def even_create(self, sensor_name: str, metadata: typing.List[str],
+                    channel_types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                            api900_pb2.UnevenlySampledChannel]],
+                    pyld_type: str, payload: numpy.array, payload_steps: int, rate: float, time: int):
+        """
+        Create an evenly sampled channel using native components
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param payload_steps: number of arrays interleaved
+        :param pyld_type: payload type
+        :param channel_types: list of payload types
+        :param metadata: metadata
+        :param rate: sample rate in hz
+        :param time: timestamp of first sample in microsecond since epoch utc
+        :return self: the evenly sampled channel with all values set
+        """
+        super().create(sensor_name, metadata, channel_types, pyld_type, payload, payload_steps)
+        self.sample_rate_hz = rate
+        self.first_sample_timestamp_epoch_microseconds_utc = time
+        return self
+
+    def even_create_from_deinterleaved_arrays(
+            self, sensor_name: str, metadata: typing.List[str],
+            channel_types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                    api900_pb2.UnevenlySampledChannel]],
+            pyld_type: str, payload: typing.List[numpy.array], rate: float, time: int):
+        """
+        Create an evenly sampled channel using native components
+        :param sensor_name: the sensor name
+        :param payload: list of numpy arrays to interleave
+        :param pyld_type: payload type
+        :param channel_types: list of payload types
+        :param metadata: metadata
+        :param rate: sample rate in hz
+        :param time: timestamp of first sample in microsecond since epoch utc
+        :return self: the evenly sampled channel with all values set
+        """
+        self.even_create(sensor_name, metadata, channel_types, pyld_type, interleave_arrays(payload),
+                         len(payload), rate, time)
+        return self
+
     def set_channel(self, channel: api900_pb2.EvenlySampledChannel):
         """
         sets the channel to an evenly sampled channel
@@ -753,6 +836,44 @@ class UnevenlySampledChannel(InterleavedChannel):
             self.sample_interval_median: float = channel.sample_interval_median
             """The median sample interval"""
 
+    def uneven_create(self, sensor_name: str, metadata: typing.List[str],
+                      channel_types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                              api900_pb2.UnevenlySampledChannel]],
+                      pyld_type: str, payload: numpy.array, payload_steps: int, timestamps: numpy.ndarray):
+        """
+        Create an unevenly sampled channel using native components
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param payload_steps: number of arrays interleaved
+        :param pyld_type: payload type
+        :param channel_types: list of payload types
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the unevenly sampled channel with all values set
+        """
+        super().create(sensor_name, metadata, channel_types, pyld_type, payload, payload_steps)
+        self.set_timestamps_microseconds_utc(timestamps)
+        return self
+
+    def uneven_create_from_deinterleaved_arrays(
+            self, sensor_name: str, metadata: typing.List[str],
+            channel_types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                    api900_pb2.UnevenlySampledChannel]],
+            pyld_type: str, payload: typing.List[numpy.array], timestamps: numpy.ndarray):
+        """
+        Create an unevenly sampled channel using native components
+        :param sensor_name: the sensor name
+        :param payload: list of numpy arrays to interleave
+        :param pyld_type: payload type
+        :param channel_types: list of payload types
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the unevenly sampled channel with all values set
+        """
+        self.uneven_create(sensor_name, metadata, channel_types, pyld_type, interleave_arrays(payload),
+                           len(payload), timestamps)
+        return self
+
     def set_channel(self, channel: api900_pb2.UnevenlySampledChannel):
         """
         sets the channel to an unevenly sampled channel
@@ -799,6 +920,45 @@ class EvenlySampledSensor:
         else:
             self.evenly_sampled_channel: EvenlySampledChannel = evenly_sampled_channel
             """A reference to the original unevenly sampled channel"""
+
+    def create(self, sensor_name: str, metadata: typing.List[str],
+               channel_types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                       api900_pb2.UnevenlySampledChannel]],
+               pyld_type: str, payload: numpy.array, payload_steps: int, rate: float, time: int):
+        """
+        Create an evenly sampled sensor using native components
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param payload_steps: number of arrays interleaved
+        :param pyld_type: payload type
+        :param channel_types: list of payload types
+        :param metadata: metadata
+        :param rate: sample rate in hz
+        :param time: timestamp of first sample in microsecond since epoch utc
+        :return self: the evenly sampled sensor with all values set
+        """
+        self.evenly_sampled_channel.even_create(sensor_name, metadata, channel_types, pyld_type, payload,
+                                                payload_steps, rate, time)
+        return self
+
+    def create_from_deinterleaved_arrays(self, sensor_name: str, metadata: typing.List[str],
+                                         channel_types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                                                 api900_pb2.UnevenlySampledChannel]],
+                                         pyld_type: str, payload: typing.List[numpy.array], rate: float, time: int):
+        """
+        Create an evenly sampled sensor using native components
+        :param sensor_name: the sensor name
+        :param payload: list of numpy arrays to interleave
+        :param pyld_type: payload type
+        :param channel_types: list of payload types
+        :param metadata: metadata
+        :param rate: sample rate in hz
+        :param time: timestamp of first sample in microsecond since epoch utc
+        :return self: the evenly sampled sensor with all values set
+        """
+        self.create(sensor_name, metadata, channel_types, pyld_type, interleave_arrays(payload), len(payload),
+                    rate, time)
+        return self
 
     def set_channel(self, channel: EvenlySampledChannel):
         """
@@ -906,6 +1066,43 @@ class UnevenlySampledSensor:
             self.unevenly_sampled_channel = UnevenlySampledChannel()
         else:
             self.unevenly_sampled_channel: UnevenlySampledChannel = unevenly_sampled_channel
+
+    def create(self, sensor_name: str, metadata: typing.List[str],
+               channel_types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                       api900_pb2.UnevenlySampledChannel]],
+               pyld_type: str, payload: numpy.array, payload_steps: int, timestamps: numpy.ndarray):
+        """
+        Create an unevenly sampled channel using native components
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param payload_steps: number of arrays interleaved
+        :param pyld_type: payload type
+        :param channel_types: list of payload types
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the unevenly sampled sensor with all values set
+        """
+        self.unevenly_sampled_channel.uneven_create(sensor_name, metadata, channel_types, pyld_type, payload,
+                                                    payload_steps, timestamps)
+        return self
+
+    def create_from_deinterleaved_arrays(self, sensor_name: str, metadata: typing.List[str],
+                                         channel_types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                                                 api900_pb2.UnevenlySampledChannel]],
+                                         pyld_type: str, payload: typing.List[numpy.array], timestamps: numpy.ndarray):
+        """
+        Create an unevenly sampled channel using native components
+        :param sensor_name: the sensor name
+        :param payload: list of numpy arrays to interleave
+        :param pyld_type: payload type
+        :param channel_types: list of payload types
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the unevenly sampled sensor with all values set
+        """
+        self.create(sensor_name, metadata, channel_types, pyld_type, interleave_arrays(payload),
+                    len(payload), timestamps)
+        return self
 
     def set_channel(self, channel: UnevenlySampledChannel):
         """
@@ -1017,10 +1214,46 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         :param z_type: The Z channel type enum.
         """
         super().__init__(unevenly_sampled_channel)
-        self.unevenly_sampled_channel.channel_types = [x_type, y_type, z_type]
+        self.unevenly_sampled_channel.set_channel_types([x_type, y_type, z_type])
         self.x_type = x_type
         self.y_type = y_type
         self.z_type = z_type
+
+    def xyz_create(self, sensor_name: str, metadata: typing.List[str], x_type: int, y_type: int, z_type: int,
+                   pyld_type: str, payload: numpy.array, timestamps: numpy.ndarray):
+        """
+        Create an unevenly sampled sensor using native components
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param pyld_type: payload type
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :param x_type: The X channel type enum.
+        :param y_type: The Y channel type enum.
+        :param z_type: The Z channel type enum.
+        :return self: the xyz unevenly sampled sensor with all values set
+        """
+        super().create(sensor_name, metadata, [x_type, y_type, z_type], pyld_type, payload, 3, timestamps)
+        return self
+
+    def xyz_create_from_deinterleaved_arrays(self, sensor_name: str, metadata: typing.List[str],
+                                             x_type: int, y_type: int, z_type: int, pyld_type: str,
+                                             payload: typing.List[numpy.array], timestamps: numpy.ndarray):
+        """
+        Create an unevenly sampled sensor using native components
+        :param sensor_name: the sensor name
+        :param payload: list of numpy arrays to interleave
+        :param pyld_type: payload type
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :param x_type: The X channel type enum.
+        :param y_type: The Y channel type enum.
+        :param z_type: The Z channel type enum.
+        :return self: the xyz unevenly sampled sensor with all values set
+        """
+        self.xyz_create(sensor_name, metadata, x_type, y_type, z_type, pyld_type, interleave_arrays(payload),
+                        timestamps)
+        return self
 
     def set_xyz_channel(self, channel: UnevenlySampledChannel, x_type: int, y_type: int, z_type: int):
         """
@@ -1212,6 +1445,20 @@ class MicrophoneSensor(EvenlySampledSensor):
         super().__init__(evenly_sampled_channel)
         self.evenly_sampled_channel.set_channel_types([api900_pb2.MICROPHONE])
 
+    def create_microphone(self, sensor_name: str, metadata: typing.List[str], payload: numpy.array,
+                          rate: float, time: int):
+        """
+        Create a microphone sensor, using int32 as payload type
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param metadata: metadata
+        :param rate: sample rate in hz
+        :param time: timestamp of first sample in microsecond since epoch utc
+        :return self: the microphone sensor with all values set
+        """
+        super().create(sensor_name, metadata, [api900_pb2.MICROPHONE], "int32_payload", payload, 1, rate, time)
+        return self
+
     def payload_values(self) -> numpy.ndarray:
         """
         Returns the microphone payload as a numpy ndarray of integers.
@@ -1265,6 +1512,19 @@ class BarometerSensor(UnevenlySampledSensor):
         super().__init__(unevenly_sampled_channel)
         self.unevenly_sampled_channel.set_channel_types([api900_pb2.BAROMETER])
 
+    def create_barometer(self, sensor_name: str, metadata: typing.List[str], payload: numpy.array,
+                         timestamps: numpy.ndarray):
+        """
+        Create a barometer sensor using float64 as payload type
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the barometer sensor with all values set
+        """
+        super().create(sensor_name, metadata, [api900_pb2.BAROMETER], "float64_payload", payload, 1, timestamps)
+        return self
+
     def payload_values(self) -> numpy.ndarray:
         """
         Returns this channels payload as a numpy ndarray of floats.
@@ -1310,6 +1570,44 @@ class LocationSensor(UnevenlySampledSensor):
             api900_pb2.SPEED,
             api900_pb2.ACCURACY
         ])
+
+    def create_location(self, sensor_name: str, metadata: typing.List[str], payload: numpy.array,
+                        timestamps: numpy.ndarray):
+        """
+        Create a location sensor using float64 as payload type
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the location sensor with all values set
+        """
+        super().create(sensor_name, metadata,
+                       [api900_pb2.LATITUDE,
+                        api900_pb2.LONGITUDE,
+                        api900_pb2.ALTITUDE,
+                        api900_pb2.SPEED,
+                        api900_pb2.ACCURACY],
+                       "float64_payload", payload, 5, timestamps)
+        return self
+
+    def create_location_from_deinterleaved_arrays(self, sensor_name: str, metadata: typing.List[str],
+                                                  payload: typing.List[numpy.array], timestamps: numpy.ndarray):
+        """
+        Create a location sensor using float64 as payload type
+        :param sensor_name: the sensor name
+        :param payload: list of numpy arrays to interleave
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the location sensor with all values set
+        """
+        super().create_from_deinterleaved_arrays(sensor_name, metadata,
+                                                 [api900_pb2.LATITUDE,
+                                                  api900_pb2.LONGITUDE,
+                                                  api900_pb2.ALTITUDE,
+                                                  api900_pb2.SPEED,
+                                                  api900_pb2.ACCURACY],
+                                                 "float64_payload", payload, timestamps)
+        return self
 
     def payload_values(self):
         """
@@ -1469,7 +1767,7 @@ class LocationSensor(UnevenlySampledSensor):
         return self.unevenly_sampled_channel.get_value_std(api900_pb2.ACCURACY)
 
 
-class TimeSynchronizationSensor(UnevenlySampledSensor):
+class TimeSynchronizationSensor():
     """High-level wrapper around time synchronization exchange.
 
     It should be noted that this class only exposes a single method, payload values.
@@ -1480,8 +1778,23 @@ class TimeSynchronizationSensor(UnevenlySampledSensor):
         Initialized this class.
         :param unevenly_sampled_channel: An unevenly sampled channel with time synchronization payload.
         """
-        super().__init__(unevenly_sampled_channel)
+        if unevenly_sampled_channel is None:
+            self.unevenly_sampled_channel = UnevenlySampledChannel()
+        else:
+            self.unevenly_sampled_channel = UnevenlySampledChannel(unevenly_sampled_channel.protobuf_channel)
         self.unevenly_sampled_channel.set_channel_types([api900_pb2.TIME_SYNCHRONIZATION])
+
+    def create_time(self, sensor_name: str, metadata: typing.List[str], payload: numpy.array):
+        """
+        Create a time synchronization sensor using int64 as payload type
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param metadata: metadata
+        :return self: the time synchronization sensor with all values set
+        """
+        self.unevenly_sampled_channel.uneven_create(sensor_name, metadata, [api900_pb2.TIME_SYNCHRONIZATION],
+                                                    "int64_payload", payload, 1, empty_array())
+        return self
 
     def payload_type(self) -> str:
         """
@@ -1503,6 +1816,13 @@ class TimeSynchronizationSensor(UnevenlySampledSensor):
         :return: This channel's metadata (if there is any) as a Python list.
         """
         return self.unevenly_sampled_channel.metadata
+
+    def set_metadata(self, data: typing.List[str]):
+        """
+        sets the metadata
+        :param data: metadata as list of strings
+        """
+        self.unevenly_sampled_channel.set_metadata(data)
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
@@ -1529,6 +1849,35 @@ class AccelerometerSensor(XyzUnevenlySampledSensor):
                          api900_pb2.ACCELEROMETER_Y,
                          api900_pb2.ACCELEROMETER_Z)
 
+    def create_accelerometer(self, sensor_name: str, metadata: typing.List[str], payload: numpy.array,
+                             timestamps: numpy.ndarray):
+        """
+        Create an accelerometer sensor using float64 as datatype
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the accelerometer sensor with all values set
+        """
+        super().xyz_create(sensor_name, metadata, api900_pb2.ACCELEROMETER_X, api900_pb2.ACCELEROMETER_Y,
+                           api900_pb2.ACCELEROMETER_Z, "float64_payload", payload, timestamps)
+        return self
+
+    def create_accelerometer_from_deinterleaved_arrays(self, sensor_name: str, metadata: typing.List[str],
+                                                       payload: typing.List[numpy.array], timestamps: numpy.ndarray):
+        """
+        Create an accelerometer sensor using float64 as datatype
+        :param sensor_name: the sensor name
+        :param payload: list of numpy arrays to interleave
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the accelerometer sensor with all values set
+        """
+        super().xyz_create_from_deinterleaved_arrays(sensor_name, metadata, api900_pb2.ACCELEROMETER_X,
+                                                     api900_pb2.ACCELEROMETER_Y, api900_pb2.ACCELEROMETER_Z,
+                                                     "float64_payload", payload, timestamps)
+        return self
+
     def payload_values(self) -> numpy.ndarray:
         """
         returns the sensor payload as a numpy ndarray
@@ -1553,6 +1902,35 @@ class MagnetometerSensor(XyzUnevenlySampledSensor):
                          api900_pb2.MAGNETOMETER_X,
                          api900_pb2.MAGNETOMETER_Y,
                          api900_pb2.MAGNETOMETER_Z)
+
+    def create_magnetometer(self, sensor_name: str, metadata: typing.List[str], payload: numpy.array,
+                             timestamps: numpy.ndarray):
+        """
+        Create a magnetometer sensor using float64 as datatype
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the magnetometer sensor with all values set
+        """
+        super().xyz_create(sensor_name, metadata, api900_pb2.MAGNETOMETER_X, api900_pb2.MAGNETOMETER_Y,
+                           api900_pb2.MAGNETOMETER_Z, "float64_payload", payload, timestamps)
+        return self
+
+    def create_magnetometer_from_deinterleaved_arrays(self, sensor_name: str, metadata: typing.List[str],
+                                                      payload: typing.List[numpy.array], timestamps: numpy.ndarray):
+        """
+        Create a magnetometer sensor using float64 as datatype
+        :param sensor_name: the sensor name
+        :param payload: list of numpy arrays to interleave
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the magnetometer sensor with all values set
+        """
+        super().xyz_create_from_deinterleaved_arrays(sensor_name, metadata, api900_pb2.MAGNETOMETER_X,
+                                                     api900_pb2.MAGNETOMETER_Y, api900_pb2.MAGNETOMETER_Z,
+                                                     "float64_payload", payload, timestamps)
+        return self
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -1579,6 +1957,35 @@ class GyroscopeSensor(XyzUnevenlySampledSensor):
                          api900_pb2.GYROSCOPE_Y,
                          api900_pb2.GYROSCOPE_Z)
 
+    def create_gyroscope(self, sensor_name: str, metadata: typing.List[str], payload: numpy.array,
+                         timestamps: numpy.ndarray):
+        """
+        Create a gyroscope sensor using float64 as datatype
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the gyrocope sensor with all values set
+        """
+        super().xyz_create(sensor_name, metadata, api900_pb2.GYROSCOPE_X, api900_pb2.GYROSCOPE_Y,
+                           api900_pb2.GYROSCOPE_Z, "float64_payload", payload, timestamps)
+        return self
+
+    def create_gyroscope_from_deinterleaved_arrays(self, sensor_name: str, metadata: typing.List[str],
+                                                   payload: typing.List[numpy.array], timestamps: numpy.ndarray):
+        """
+        Create a gyroscope sensor using float64 as datatype
+        :param sensor_name: the sensor name
+        :param payload: list of numpy arrays to interleave
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the gyroscope sensor with all values set
+        """
+        super().xyz_create_from_deinterleaved_arrays(sensor_name, metadata, api900_pb2.GYROSCOPE_X,
+                                                     api900_pb2.GYROSCOPE_Y, api900_pb2.GYROSCOPE_Z,
+                                                     "float64_payload", payload, timestamps)
+        return self
+
     def payload_values(self) -> numpy.ndarray:
         """
         returns the sensor payload as a numpy ndarray
@@ -1600,6 +2007,20 @@ class LightSensor(UnevenlySampledSensor):
         :param unevenly_sampled_channel: Instance of UnevenlySampledChannel with light sensor payload
         """
         super().__init__(unevenly_sampled_channel)
+        self.unevenly_sampled_channel.set_channel_types([api900_pb2.LIGHT])
+
+    def create_light(self, sensor_name: str, metadata: typing.List[str], payload: numpy.array,
+                     timestamps: numpy.ndarray):
+        """
+        Create a light sensor using float64 as payload type
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the light sensor with all values set
+        """
+        super().create(sensor_name, metadata, [api900_pb2.LIGHT], "float64_payload", payload, 1, timestamps)
+        return self
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -1639,6 +2060,20 @@ class InfraredSensor(UnevenlySampledSensor):
         :param unevenly_sampled_channel: UnevenlySampledChannel with infrared sensor payload
         """
         super().__init__(unevenly_sampled_channel)
+        self.unevenly_sampled_channel.set_channel_types([api900_pb2.INFRARED])
+
+    def create_infrared(self, sensor_name: str, metadata: typing.List[str], payload: numpy.array,
+                        timestamps: numpy.ndarray):
+        """
+        Create an infrared sensor using float64 as payload type
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the infrared sensor with all values set
+        """
+        super().create(sensor_name, metadata, [api900_pb2.INFRARED], "float64_payload", payload, 1, timestamps)
+        return self
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -1678,9 +2113,24 @@ class ImageSensor(UnevenlySampledSensor):
         :param unevenly_sampled_channel: The image channel.
         """
         super().__init__(unevenly_sampled_channel)
+        self.unevenly_sampled_channel.set_channel_types([api900_pb2.IMAGE])
 
         self.image_offsets: typing.List[int] = self.parse_offsets()
         """A list of image byte offsets into the payload of this sensor channel."""
+
+    def create_image(self, sensor_name: str, metadata: typing.List[str], payload: numpy.array,
+                     timestamps: numpy.ndarray):
+        """
+        Create an image sensor using float64 as payload type
+        :param sensor_name: the sensor name
+        :param payload: interleaved numpy array or deinterleaved list of numpy arrays
+        :param metadata: metadata
+        :param timestamps: list of sample timestamps in microseconds since epoch utc
+        :return self: the image sensor with all values set
+        """
+        super().create(sensor_name, metadata, [api900_pb2.IMAGE], "float64_payload", payload, 1, timestamps)
+        self.image_offsets = self.parse_offsets()
+        return self
 
     def set_channel(self, channel: UnevenlySampledChannel):
         """
@@ -1855,10 +2305,10 @@ class WrappedRedvoxPacket:
         """
         takes the redvox packet and rebuilds the channel cache from it
         """
-        self._evenly_sampled_channels = list(map(EvenlySampledChannel,
-                                                 repeated_to_array(self.redvox_packet.evenly_sampled_channels)))
-        self._unevenly_sampled_channels = list(map(UnevenlySampledChannel,
-                                                   repeated_to_array(self.redvox_packet.unevenly_sampled_channels)))
+        self.evenly_sampled_channels = list(map(EvenlySampledChannel,
+                                                repeated_to_array(self.redvox_packet.evenly_sampled_channels)))
+        self.unevenly_sampled_channels = list(map(UnevenlySampledChannel,
+                                                  repeated_to_array(self.redvox_packet.unevenly_sampled_channels)))
         self._channel_cache = {}
         for evenly_sampled_channel in self.evenly_sampled_channels:
             for channel_type in evenly_sampled_channel.channel_types:
@@ -2382,14 +2832,6 @@ class WrappedRedvoxPacket:
         """
         self.metadata = data
         self.redvox_packet.metadata = data
-
-    def add_metadata(self, data: str):
-        """
-        add metadata to the packet
-        :param data: metadata to add
-        """
-        self.redvox_packet.metadata.append(data)
-        self.metadata = repeated_to_list(self.redvox_packet.metadata)
 
     def clear_metadata(self):
         """

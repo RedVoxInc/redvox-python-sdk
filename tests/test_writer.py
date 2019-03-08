@@ -90,6 +90,46 @@ class WriteAndSetModules(ArraysTestCase):
         self.assertTrue(mic_chan.payload is not None)
         self.assertTrue(mic_chan.protobuf_channel is not None)
 
+        mic_chan = rar.EvenlySampledChannel().even_create(
+            "Created Microphone", ["This", "is a Test Sensor Packet", "Don't", "Take this data too seriously"],
+            [api900_pb2.MICROPHONE], "int32_payload", wrapped_packet.evenly_sampled_channels[0].payload, 1, 80.0,
+            1532656864354000)
+
+        # Access functions.  Asserts used to ensure values set correctly:
+        self.assertSampledArray(mic_chan.get_payload(api900_pb2.MICROPHONE),
+                                4096,
+                                [0, 2048, 4095],
+                                [201, -4666, -1867])
+        self.assertEqual("int32_payload", mic_chan.get_payload_type())
+        self.assertSampledArray(mic_chan.get_multi_payload([api900_pb2.MICROPHONE]),
+                                4096,
+                                [0, 2048, 4095],
+                                [201, -4666, -1867])
+        self.assertAlmostEqual(mic_chan.get_value_mean(api900_pb2.MICROPHONE), -127.91796875, 1)
+        self.assertAlmostEqual(mic_chan.get_value_std(api900_pb2.MICROPHONE), 2455.820326625975, 3)
+        self.assertAlmostEqual(mic_chan.get_value_median(api900_pb2.MICROPHONE), -123.0, 1)
+        self.assertTrue("MICROPHONE" in mic_chan.get_channel_type_names())
+        self.assertEqual(mic_chan.sensor_name, "Created Microphone")
+        self.assertAlmostEqual(mic_chan.sample_rate_hz, 80.0, 1)
+        self.assertEqual(mic_chan.first_sample_timestamp_epoch_microseconds_utc, 1532656864354000)
+        self.assertTrue(api900_pb2.MICROPHONE in mic_chan.channel_types)
+        self.assertAlmostEqual(mic_chan.value_means[0], -127.91796875, 1)
+        self.assertAlmostEqual(mic_chan.value_stds[0], 2455.820326625975, 3)
+        self.assertAlmostEqual(mic_chan.value_medians[0], -123.0, 1)
+        self.assertEqual(mic_chan.channel_index(api900_pb2.MICROPHONE), 0)
+        self.assertTrue(mic_chan.has_channel(api900_pb2.MICROPHONE))
+        self.assertFalse(mic_chan.has_channel(api900_pb2.BAROMETER))
+        self.assertEqual(len(mic_chan.metadata), 4)
+        self.assertListEqual(mic_chan.metadata,
+                             ["This", "is a Test Sensor Packet", "Don't", "Take this data too seriously"])
+        synthetic_dict = mic_chan.metadata_as_dict()
+        self.assertEqual(len(synthetic_dict), 2)
+        self.assertTrue("This" in synthetic_dict and "Don't" in synthetic_dict)
+        self.assertEqual(synthetic_dict["This"], "is a Test Sensor Packet")
+        self.assertEqual(synthetic_dict["Don't"], "Take this data too seriously")
+        self.assertTrue(mic_chan.payload is not None)
+        self.assertTrue(mic_chan.protobuf_channel is not None)
+
         # add channels to a packet
         newpacket.add_channel(mic_sen.evenly_sampled_channel)
         newpacket.add_channel(time_sen.unevenly_sampled_channel)

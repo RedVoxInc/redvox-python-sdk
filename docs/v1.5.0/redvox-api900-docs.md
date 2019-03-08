@@ -53,8 +53,8 @@ redvox.print_version()
 which, when ran produces the following output:
 
 ```
-1.3.2
-1.3.2
+1.5.0
+1.5.0
 ```
 
 ### Loading RedVox API 900 Files
@@ -105,8 +105,36 @@ The following methods retrieve fields which are described in detail at: https://
 | app_file_start_timestamp_epoch_microseconds_utc() | int |
 | app_file_start_timestamp_machine() | int |
 | server_timestamp_epoch_microseconds_utc() | int |
+| metadata() | List[str] |
 | metadata_as_dict() | Dict[str, str] |
 | to_json() | str |
+
+The following methods allow you to set the values of high-level API methods.  Give the method a value that matches the type within the parenthesis and it will change the redvox packet's corresponding data to the value.
+| Name |
+| -----|
+| set_api(int) |
+| set_redvox_id(str) |
+| set_uuid(str) |
+| set_authenticated_email(str) |
+| set_authentication_token(str) |
+| set_firebase_token(str) |
+| set_is_backfilled(bool) |
+| set_is_private(bool) |
+| set_is_scrambled(bool) |
+| set_device_make(str) |
+| set_device_model(str) |
+| set_device_os(str) |
+| set_device_os_version(str) |
+| set_app_version(str) |
+| set_battery_level_percent(float) |
+| set_device_temperature_c(float) |
+| set_acquisition_server(str) |
+| set_time_synchronization_server(str) |
+| set_authentication_server(str) |
+| set_app_file_start_timestamp_epoch_microseconds_utc(int) |
+| set_app_file_start_timestamp_machine(int) |
+| set_server_timestamp_epoch_microseconds_utc(int) |
+| set_metadata(List[str]) |
 
 The following methods provide easy access to high-level sensor channel implementations. Each sensor has a method to test for existence and a method for retrieving the sensor data itself. Sensor data is returned in a list since its possible to have more than one of the same sensor type on a single device. 
 
@@ -133,7 +161,7 @@ The following methods provide easy access to high-level sensor channel implement
 | has_image_channel() | bool |
 | image_channel() | Optional[ImageChannel] |
 
-It's also possible to convert a WrappedRedvoxPacker into a compressed array of bytes. This can be achieved by calling the compressed_buffer method on a WrappedRedvoxPacket.
+It's also possible to convert a WrappedRedvoxPacket into a compressed array of bytes. This can be achieved by calling the compressed_buffer method on a WrappedRedvoxPacket.
 
 | Name | Type |
 | compressed_buffer() | bytes |
@@ -168,6 +196,26 @@ print(redvox_api900_file.app_file_start_timestamp_machine())
 print(redvox_api900_file.server_timestamp_epoch_microseconds_utc())
 ```
 
+### Writing RedVox API 900 Files
+The module now contains a function to write rdvxz files: `write_file`.  It takes a redvox packet and writes its information to a file.  The table below summarizes the function.
+| Name | Type | Description |
+|------|------|-------------|
+| write_file(file: str, redvox_packet: api900_pb2.RedvoxPacket) | No return type: writes a rdvxz file | Writes a redvox file.  Specify the correct file type in the file string. |
+
+Also provided are methods to create a redvox file.  This requires a little knowledge of underlying objects in a sensor.  You may find more information related to these objects in the section "Low Level Access".
+
+Channels can be evenly sampled or unevenly sampled.  Evenly sampled channels have a constant sampling rate, while unevenly sampled channels need a list of timestamps for each sample.  Empty channels can be created and filled with data later.
+
+Sensors contain either a single evenly sampled or unevenly sampled channel.  Each sensor contain has access to the channel's functions through its property named evenly_sampled_channel for unevenly_sampled_channel.  The kind of sampling the sensor does determines which one of the two properties it has.  Sensors are explained starting with the section "Working with microphone sensor channels".  All sensors can be created empty; you can fill in the data later.
+
+Lastly, a redvox packet consists of one or more evenly sampled and/or unevenly sampled sensor channels.  The necessary functions for managing a redvox packet's channels are:
+|    Name    | Description |
+|------------|-------------|
+| add_channel(channel: EvenlySampledChannel or UnevenlySampledChannel) | Adds a channel to the packet |
+| edit_channel(channel_type: int, channel: EvenlySampledChannel or UnevenlySampledChannel) | Removes the channel of type channel_type and adds the passed channel to the packet.  Refer to the section "Low Level Access" for more information about channel types |
+| delete_channel(channel_type: int) | Removes the channel of type channel_type.  Refer to the section "Low Level Access" for more information about channel types |
+| has_channel(channel_type: int) | Checks if the packet has a channel of type channel_type.  Returns True if found, False if not.  Refer to the section "Low Level Access" for more information about channel types |
+| get_channel(channel_type: int) | Gets the channel of type channel_type or None if the channel_type is not in the packet.  Refer to the section "Low Level Access" for more information about channel types |
 
 ### Working with microphone sensor channels
 It's possible to test for the availability of this sensor in a data packet by calling the method `has_microphone_channel` on an instance of a `WrappedRedvoxPacket`.
@@ -179,15 +227,27 @@ The `MicrophoneSensor` class contains methods for directly accessing the fields 
 | Name | Type | Description | 
 |------|------|-------------|
 | sample_rate_hz() | float | Returns the sample rate in Hz of this microphone sensor channel |
+| set_sample_rate_hz(float) | | Sets the sample rate in Hz of this microphone sensor channel |
 | first_sample_timestamp_epoch_microseconds_utc() | int | The timestamp of the first microphone sample in this packet as the number of microseconds since the epoch UTC |
+| set_first_sample_timestamp_epoch_microseconds_utc(int) | | Sets the timestamp of the first microphone sample in this packet as the number of microseconds since the epoch UTC |
 | sensor_name() | str | Returns the name of the sensor for this microphone sensor channel |
+| set_sensor_name(str) | | Sets the name of the sensor for this microphone sensor channel |
 | payload_values() | numpy.ndarray[int] | A numpy array of integers representing the data payload from this packet's microphone channel |
 | payload_mean() | float | The mean value of this packet's microphone data payload |
 | payload_median() | float | The median value of this packet's microphone data payload |
 | payload_std() | float | The standard deviation of this packet's microphone data payload |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 | metadata() | List[str] | Returns this channel's metadata |
+| set_metadata(List[str]) | | Sets this channel's metadata |
 | payload_type() | str | Return this channel's internal protobuf type as a string |
+
+##### Creating a microphone sensor
+This function creates a microphone sensor:
+
+```
+create_microphone(sensor_name: str, metadata: typing.List[str], payload: numpy.array, rate: float, time: int)
+```
+Give it a sensor name (sensor_name), metadata (metadata), the data (payload), the sampling rate in Hz (rate), the first timestamp in microseconds since epoch utc (time).
 
 ##### Example microphone sensor reading
 
@@ -212,6 +272,14 @@ if redvox_api900_file.has_microphone_channel():
 
     # Access to sensor values
     print(microphone_sensor_channel.payload_values())
+
+    # Changing values
+    microphone_sensor_channel.set_sensor_name("Example Microphone")
+    microphone_sensor_channel.set_sample_rate_hz(42.0)
+
+    # Setting values
+    microphone_sensor_channel.create_microphone("Example Microphone", ["Meta", "data"], [1, 2, 3, 4, 5], 42.0, 0)
+    microphone_sensor_channel = MicrophoneSensor().create_microphone("Example Microphone", ["Meta", "data"], [1, 2, 3, 4, 5], 42.0, 0)
 ```
 
 ### Working with barometer sensor channels
@@ -225,7 +293,9 @@ The `BarometerSensor` class contains methods for directly accessing the fields a
 | Name | Type | Description | 
 |------|------|-------------|
 | timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
 | sensor_name() | str | Returns the name of the sensor for this sensor channel |
+| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
 | payload_values() | numpy.ndarray[float] | A numpy array of floats representing the data payload from this packet's barometer channel |
 | payload_mean() | float | The mean value of this packet's barometer data payload |
 | payload_median() | float | The median value of this packet's barometer data payload |
@@ -235,7 +305,16 @@ The `BarometerSensor` class contains methods for directly accessing the fields a
 | sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 | metadata() | List[str] | Returns this channel's metadata |
+| set_metadata(List[str]) | | Sets this channel's metadata |
 | payload_type() | str | Return this channel's internal protobuf type as a string |
+
+##### Creating a barometer sensor
+This function creates a barometer sensor:
+
+```
+create_barometer(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
+```
+Give it a sensor name (sensor_name), metadata (metadata), the data (payload), the timestamps in microseconds since epoch utc (timestamps)
 
 ##### Example barometer sensor reading
 
@@ -260,6 +339,14 @@ if redvox_api900_file.has_barometer_channel():
 
     # Access to sensor values
     print(barometer_sensor_channel.payload_values())
+
+    # Changing values
+    barometer_sensor_channel.set_sensor_name("Example Barometer")
+    barometer_sensor_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
+
+    # Setting values
+    barometer_sensor_channel.create_barometer("Example Barometer", ["Meta", "data"], [1, 2, 3, 4, 5], [1, 3, 42, 8492, 9001])
+    barometer_sensor_channel = BarometerSensor().create_barometer("Example Barometer", ["Meta", "data"], [1, 2, 3, 4, 5], [1, 3, 42, 8492, 9001])
 ```
 
 ### Working with location sensor channels
@@ -273,7 +360,9 @@ The `LocationSensor` class contains methods for directly accessing the fields an
 | Name | Type | Description | 
 |------|------|-------------|
 | timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
 | sensor_name() | str | Returns the name of the sensor for this sensor channel |
+| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
 | payload_values() | numpy.ndarray[float] | A numpy array of interleaved location values [[latitude_0, longitude_0, altitude_0, speed_0, accuracy_0], [latitude_1, longitude_1, altitude_1, speed_1, accuracy_1], ..., [latitude_n, longitude_n, altitude_n, speed_n, accuracy_n]] |
 | payload_values_latitude() | numpy.ndarray[float] | A numpy array contains the latitude values for each sample |
 | payload_values_longitude() | numpy.ndarray[float] | A numpy array contains the longitude values for each sample |
@@ -300,7 +389,18 @@ The `LocationSensor` class contains methods for directly accessing the fields an
 | sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 | metadata() | List[str] | Returns this channel's metadata |
+| set_metadata(List[str]) | | Sets this channel's metadata |
 | payload_type() | str | Return this channel's internal protobuf type as a string |
+
+##### Creating a location sensor
+These functions create a location sensor:
+
+```
+create_location(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
+create_location_from_deinterleaved_arrays(sensor_name: str, metadata: typing.List[str], payload: typing.List[numpy.array], timestamps: numpy.ndarray)
+```
+Give the first function a sensor name (sensor_name), metadata (metadata), the data as an interleaved array (payload), the timestamps in microseconds since epoch utc (timestamps).  The data should look like : [lat0, lon0, alt0, spd0, acc0, lat1, lon1, ... altn, spdn, accn] where 0-n is the index of the samples.
+Give the second function a sensor name (sensor_name), metadata (metadata), the list of arrays that make up the data (payload), the timestamps in microseconds since epoch utc (timestamps).  There are usually 5 channels in a location sensor, so you should give this function 5 arrays.  For consistency, put the arrays in order of: latitude, longitude, altitude, speed, accuracy.
 
 ##### Example locations sensor reading
 
@@ -347,6 +447,16 @@ if redvox_api900_file.has_location_channel():
     print(location_channel.metadata_as_dict())
     print(location_channel.metadata())
     print(location_channel.payload_type())
+
+    # Changing values
+    location_channel.set_sensor_name("Example Location")
+    location_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
+
+    # Setting values
+    location_channel.create_location("Example Location", ["meta", "data"], [1, 2, 3, 4, 5, 1.1, 2.2, 3.3, 4.4, 5.5, 1.11, 2.22, 3.33, 4.44, 5.55], [1, 10, 100])
+    location_channel.create_location_from_deinterleaved_arrays("Example Location", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33], [4, 4.4, 4.44], [5, 5.5, 5.55]], [1, 10, 100])
+    location_channel = LocationSensor().create_location("Example Location", ["meta", "data"], [1, 2, 3, 4, 5, 1.1, 2.2, 3.3, 4.4, 5.5, 1.11, 2.22, 3.33, 4.44, 5.55], [1, 10, 100])
+    location_channel = LocationSensor().create_location_from_deinterleaved_arrays("Example Location", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33], [4, 4.4, 4.44], [5, 5.5, 5.55]], [1, 10, 100])
 ```
 
 ### Working with time synchronization sensor channels
@@ -362,8 +472,16 @@ The `TimeSynchronizationSensor` class contains methods for directly accessing th
 | payload_values() | numpy.ndarray[float] | Time synchronization exchange parameters |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 | metadata() | List[str] | Returns this channel's metadata |
+| set_metadata(List[str]) | | Sets this channel's metadata |
 | payload_type() | str | Return this channel's internal protobuf type as a string |
 
+##### Creating a time synchronization sensor
+This function creates a time synchronization sensor:
+
+```
+create_time(sensor_name: str, metadata: typing.List[str], payload: numpy.array)
+```
+Give it a sensor name (sensor_name), metadata (metadata), the data (payload).  The timestamps are in the payload for this sensor.
 
 ##### Example time synchronization sensor reading
 
@@ -376,6 +494,9 @@ if redvox_api900_file.has_time_synchronization_channel():
     print(time_synchronization_channel.metadata_as_dict())
     print(time_synchronization_channel.metadata())
     print(time_synchronization_channel.payload_type())
+
+# Setting the channel
+time_synchronization_channel.create_time("Example Time Synchronization", ["meta", "data"], [1, 10, 11, 100])
 ```
 
 ### Working with accelerometer sensor channels
@@ -389,7 +510,9 @@ The `AccelerationSensor` class contains methods for directly accessing the field
 | Name | Type | Description | 
 |------|------|-------------|
 | timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
 | sensor_name() | str | Returns the name of the sensor for this sensor channel |
+| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
 | payload_values() | numpy.ndarray[float] | A numpy array of floats representing the X, Y, and Z components of this channel [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]] |
 | payload_values_x() | numpy.ndarray[float] | A numpy array of floats representing the X component of this channel. |
 | payload_values_y() | numpy.ndarray[float] | A numpy array of floats representing the Y component of this channel. |
@@ -408,8 +531,18 @@ The `AccelerationSensor` class contains methods for directly accessing the field
 | sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 | metadata() | List[str] | Returns this channel's metadata |
+| set_metadata(List[str]) | | Sets this channel's metadata |
 | payload_type() | str | Return this channel's internal protobuf type as a string |
 
+##### Creating an accelerometer sensor
+These functions create an accelerometer sensor:
+
+```
+create_accelerometer(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
+create_accelerometer_from_deinterleaved_arrays(sensor_name: str, metadata: typing.List[str], payload: typing.List[numpy.array], timestamps: numpy.ndarray)
+```
+Give the first function a sensor name (sensor_name), metadata (metadata), the data as an interleaved array (payload), the timestamps in microseconds since epoch utc (timestamps).  The data should look like : [x_0, y_0, z_0, x_1, y_1, z_1, ... , x_n, y_n, z_n] where 0-n is the index of the samples.
+Give the second function a sensor name (sensor_name), metadata (metadata), the list of arrays that make up the data (payload), the timestamps in microseconds since epoch utc (timestamps).  There are usually 3 channels in an accelerometer sensor, so you should give this function 3 arrays.  For consistency, put the arrays in order of: x-axis, y-axis, z-axis.
 
 ##### Example accelerometer sensor reading
 
@@ -448,6 +581,16 @@ if redvox_api900_file.has_accelerometer_channel():
     print(accelerometer_channel.metadata_as_dict())
     print(accelerometer_channel.metadata())
     print(accelerometer_channel.payload_type())
+
+    # Changing values
+    accelerometer_channel.set_sensor_name("Example Accelerometer")
+    accelerometer_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
+
+    # Setting values
+    accelerometer_channel.create_accelerometer("Example Accelerometer", ["meta", "data"], [1, 2, 3, 1.1, 2.2, 3.3, 1.11, 2.22, 3.33], [1, 10, 100])
+    accelerometer_channel.create_accelerometer_from_deinterleaved_arrays("Example Accelerometer", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33]], [1, 10, 100])
+    accelerometer_channel = AccelerometerSensor().create_accelerometer("Example Accelerometer", ["meta", "data"], [1, 2, 3, 1.1, 2.2, 3.3, 1.11, 2.22, 3.33], [1, 10, 100])
+    accelerometer_channel = AccelerometerSensor().create_accelerometer_from_deinterleaved_arrays("Example Accelerometer", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33]], [1, 10, 100])
 ```
 
 ### Working with magnetometer sensor channels
@@ -461,7 +604,9 @@ The `MagnetometerSensor` class contains methods for directly accessing the field
 | Name | Type | Description | 
 |------|------|-------------|
 | timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
 | sensor_name() | str | Returns the name of the sensor for this sensor channel |
+| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
 | payload_values() | numpy.ndarray[float] | A numpy array of floats representing the X, Y, and Z components of this channel [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]] |
 | payload_values_x() | numpy.ndarray[float] | A numpy array of floats representing the X component of this channel. |
 | payload_values_y() | numpy.ndarray[float] | A numpy array of floats representing the Y component of this channel. |
@@ -480,7 +625,18 @@ The `MagnetometerSensor` class contains methods for directly accessing the field
 | sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 | metadata() | List[str] | Returns this channel's metadata |
+| set_metadata(List[str]) | | Sets this channel's metadata |
 | payload_type() | str | Return this channel's internal protobuf type as a string |
+
+##### Creating a magnetometer sensor
+These functions create an magnetometer sensor:
+
+```
+create_magnetometer(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
+create_magnetometer_from_deinterleaved_arrays(sensor_name: str, metadata: typing.List[str], payload: typing.List[numpy.array], timestamps: numpy.ndarray)
+```
+Give the first function a sensor name (sensor_name), metadata (metadata), the data as an interleaved array (payload), the timestamps in microseconds since epoch utc (timestamps).  The data should look like : [x_0, y_0, z_0, x_1, y_1, z_1, ... , x_n, y_n, z_n] where 0-n is the index of the samples.
+Give the second function a sensor name (sensor_name), metadata (metadata), the list of arrays that make up the data (payload), the timestamps in microseconds since epoch utc (timestamps).  There are usually 3 channels in an magnetometer sensor, so you should give this function 3 arrays.  For consistency, put the arrays in order of: x-axis, y-axis, z-axis.
 
 ##### Example magnetometer sensor reading
 
@@ -520,6 +676,16 @@ if redvox_api900_file.has_magnetometer_channel():
     print(magnetometer_channel.metadata_as_dict())
     print(magnetometer_channel.metadata())
     print(magnetometer_channel.payload_type())
+
+    # Changing values
+    magnetometer_channel.set_sensor_name("Example Magnetometer")
+    magnetometer_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
+
+    # Setting values
+    magnetometer_channel.create_magnetometer("Example Magnetometer", ["meta", "data"], [1, 2, 3, 1.1, 2.2, 3.3, 1.11, 2.22, 3.33], [1, 10, 100])
+    magnetometer_channel.create_magnetometer_from_deinterleaved_arrays("Example Magnetometer", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33]], [1, 10, 100])
+    magnetometer_channel = MagnetometerSensor().create_magnetometer("Example Magnetometer", ["meta", "data"], [1, 2, 3, 1.1, 2.2, 3.3, 1.11, 2.22, 3.33], [1, 10, 100])
+    magnetometer_channel = MagnetometerSensor().create_magnetometer_from_deinterleaved_arrays("Example Magnetometer", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33]], [1, 10, 100])
 ```
 
 ### Working with gyroscope sensor channels
@@ -533,7 +699,9 @@ The `GyroscopeSensor` class contains methods for directly accessing the fields a
 | Name | Type | Description | 
 |------|------|-------------|
 | timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
 | sensor_name() | str | Returns the name of the sensor for this sensor channel |
+| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
 | payload_values() | numpy.ndarray[float] | A numpy array of floats representing the X, Y, and Z components of this channel [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]] |
 | payload_values_x() | numpy.ndarray[float] | A numpy array of floats representing the X component of this channel. |
 | payload_values_y() | numpy.ndarray[float] | A numpy array of floats representing the Y component of this channel. |
@@ -552,7 +720,18 @@ The `GyroscopeSensor` class contains methods for directly accessing the fields a
 | sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 | metadata() | List[str] | Returns this channel's metadata |
+| set_metadata(List[str]) | | Sets this channel's metadata |
 | payload_type() | str | Return this channel's internal protobuf type as a string |
+
+##### Creating a gyroscope sensor
+These functions create an gyroscope sensor:
+
+```
+create_gyroscope(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
+create_gyroscope_from_deinterleaved_arrays(sensor_name: str, metadata: typing.List[str], payload: typing.List[numpy.array], timestamps: numpy.ndarray)
+```
+Give the first function a sensor name (sensor_name), metadata (metadata), the data as an interleaved array (payload), the timestamps in microseconds since epoch utc (timestamps).  The data should look like : [x_0, y_0, z_0, x_1, y_1, z_1, ... , x_n, y_n, z_n] where 0-n is the index of the samples.
+Give the second function a sensor name (sensor_name), metadata (metadata), the list of arrays that make up the data (payload), the timestamps in microseconds since epoch utc (timestamps).  There are usually 3 channels in an gyroscope sensor, so you should give this function 3 arrays.  For consistency, put the arrays in order of: x-axis, y-axis, z-axis.
 
 ##### Example gyroscope sensor reading
 
@@ -592,6 +771,16 @@ if redvox_api900_file.has_magnetometer_channel():
     print(gyroscope_channel.metadata())
     print(gyroscope_channel.payload_type())
 
+    # Changing values
+    gyroscope_channel.set_sensor_name("Example Gyroscope")
+    gyroscope_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
+
+    # Setting values
+    gyroscope_channel.create_gyroscope("Example Gyroscope", ["meta", "data"], [1, 2, 3, 1.1, 2.2, 3.3, 1.11, 2.22, 3.33], [1, 10, 100])
+    gyroscope_channel.create_gyroscope_from_deinterleaved_arrays("Example Gyroscope", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33]], [1, 10, 100])
+    gyroscope_channel = GyroscopeSensor().create_gyroscope("Example Gyroscope", ["meta", "data"], [1, 2, 3, 1.1, 2.2, 3.3, 1.11, 2.22, 3.33], [1, 10, 100])
+    gyroscope_channel = GyroscopeSensor().create_gyroscope_from_deinterleaved_arrays("Example Gyroscope", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33]], [1, 10, 100])
+
 ```
 
 ### Working with light sensor channels
@@ -605,7 +794,9 @@ The `LightSensor` class contains methods for directly accessing the fields and p
 | Name | Type | Description | 
 |------|------|-------------|
 | timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
 | sensor_name() | str | Returns the name of the sensor for this sensor channel |
+| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
 | payload_values() | numpy.ndarray[float] | A numpy array of floats representing the data payload from this packet's light channel |
 | payload_mean() | float | The mean value of this packet's light data payload |
 | payload_median() | float | The median value of this packet's light data payload |
@@ -615,7 +806,16 @@ The `LightSensor` class contains methods for directly accessing the fields and p
 | sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 | metadata() | List[str] | Returns this channel's metadata |
+| set_metadata(List[str]) | | Sets this channel's metadata |
 | payload_type() | str | Return this channel's internal protobuf type as a string |
+
+##### Creating a light sensor
+This function creates a light sensor:
+
+```
+create_light(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
+```
+Give it a sensor name (sensor_name), metadata (metadata), the data (payload), the timestamps in microseconds since epoch utc (timestamps)
 
 ##### Example light sensor reading
 
@@ -641,8 +841,15 @@ if redvox_api900_file.has_light_channel():
     print(light_sensor_channel.metadata_as_dict())
     print(light_sensor_channel.metadata())
     print(light_sensor_channel.payload_type())
-```
 
+    # Changing values
+    light_sensor_channel.set_sensor_name("Example Light")
+    light_sensor_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
+
+    # Setting_values
+    light_sensor_channel.create_light("Example Light", ["meta", "data"], [1, 2, 3, 4, 5], [1, 10, 100, 1000, 10000])
+    light_sensor_channel = LightSensor().create_light("Example Light", ["meta", "data"], [1, 2, 3, 4, 5], [1, 10, 100, 1000, 10000])
+```
 
 ### Working with infrared sensor channels
 
@@ -655,7 +862,9 @@ The `InfraredSensor` class contains methods for directly accessing the fields an
 | Name | Type | Description | 
 |------|------|-------------|
 | timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
 | sensor_name() | str | Returns the name of the sensor for this sensor channel |
+| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
 | payload_values() | numpy.ndarray[float] | A numpy array of floats representing the data payload from this packet's infrared channel |
 | payload_mean() | float | The mean value of this packet's light data payload |
 | payload_median() | float | The median value of this packet's light data payload |
@@ -665,7 +874,16 @@ The `InfraredSensor` class contains methods for directly accessing the fields an
 | sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 | metadata() | List[str] | Returns this channel's metadata |
+| set_metadata(List[str]) | | Sets this channel's metadata |
 | payload_type() | str | Return this channel's internal protobuf type as a string |
+
+##### Creating an infrared sensor
+This function creates an infrared sensor:
+
+```
+create_infrared(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
+```
+Give it a sensor name (sensor_name), metadata (metadata), the data (payload), the timestamps in microseconds since epoch utc (timestamps)
 
 ##### Example infrared sensor reading
 
@@ -692,6 +910,13 @@ if redvox_api900_file.has_light_channel():
     print(infrared_sensor_channel.metadata())
     print(infrared_sensor_channel.payload_type())
 
+    # Changing values
+    infrared_sensor_channel.set_sensor_name("Example Infrared")
+    infrared_sensor_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
+
+    # Setting values
+    infrared_sensor_channel.create_infrared("Example Infrared", ["meta", "data"], [1, 2, 3], [1, 10, 100])
+    infrared_sensor_channel = InfraredSensor().create_infrared("Example Infrared", ["meta", "data"], [1, 2, 3], [1, 10, 100])
 ```
 
 ### Working with image sensor channels
@@ -705,19 +930,30 @@ The `ImageSensor` class contains methods for directly accessing the fields and p
 | Name | Type | Description | 
 |------|------|-------------|
 | timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
+| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
 | sensor_name() | str | Returns the name of the sensor for this sensor channel |
+| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
 | payload_values() | numpy.ndarray[float] | A numpy array of floats representing the data payload from this packet's image channel |
 | sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
 | sample_interval_median() | float | The median of the sample interval for samples in this packet |
 | sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
 | metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
 | metadata() | List[str] | Returns this channel's metadata |
+| set_metadata(List[str]) | | Sets this channel's metadata |
 | payload_type() | str | Return this channel's internal protobuf type as a string |
 | num_images() | img | Return the number of images in this channel |
 | get_image_offsets() | List[int] | Return a list of byte offsets into this channel's payload where each byte offset represents the starting byte of an image |
 | get_image_bytes(idx: int) | numpy.ndarray (uint8) | Returns the bytes associated with the image at this given index (0 indexed) |
 | write_image_to_file(idx: int, path: str) | | Writes the image stored at the given index to the given path on disk |
 | write_all_images_to_directory(directory: str) | | Writes all available images in this packet to the given directory using a default name for each image |
+
+##### Creating an image sensor
+This function creates an image sensor:
+
+```
+create_image(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
+```
+Give it a sensor name (sensor_name), metadata (metadata), the data (payload), the timestamps in microseconds since epoch utc (timestamps)
 
 ##### Example image sensor reading
 
@@ -758,4 +994,96 @@ image_sensor_channel = redvox_api900_file.image_channel()
     print(image_sensor_channel.metadata_as_dict())
     print(image_sensor_channel.metadata())
     print(image_sensor_channel.payload_type())
+
+    # Changing values
+    image_sensor_channel.set_sensor_name("Example Image")
+    image_sensor_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
+
+    # Setting values
+    image_sensor_channel.create_image("Example Image", ["images", "0"], [1, 2, 3], [1, 10, 100])
+    image_sensor_channel = ImageSensor().create_image("Example Image", ["images", "0"], [1, 2, 3], [1, 10, 100])
 ```
+
+### Low Level Access
+There are many small parts that come together to form a redvox packet.  Many of these are related to the protobuf format.
+
+##### Protobuf
+A protobuf is a data container.  A redvox protobuf contains several fields that are replicated in python for easy access.  The python fields are:
+
+| Name | Type | Description |
+|------|------|-------------|
+| sensor_name | str | The name of the sensor. |
+| payload | numpy.ndarray | The payload as a numpy array. The payload type is one of many number types. |
+| channel_types | List[api900_pb2.EvenlySampledChannel or api900_pb2.UnevenlySampledChannel] | The types of channels in the payload. |
+| value_means | numpy.ndarray | The means of each channel in the payload. |
+| value_stds | numpy.ndarray | The standard deviations of each channel in the payload. |
+| value_medians | numpy.ndarray | The medians of each channel in the payload. |
+| metadata | List[str] | Metadata of payload. |
+
+##### Payloads
+A protobuf payload is an array of numbers.  All numbers in the array have the same type, and payloads are stored in protobuf.TYPE.payload where TYPE is one of the following:
+
+| Name | Description |
+|------|-------------|
+| byte_payload | Bytes |
+| uint32_payload | Unsigned integer, 32 bits (0 - 4,294,967,295) |
+| uint64_payload | Unsigned integer, 64 bits (0 - 18,446,744,073,709,551,615) |
+| int32_payload | Signed integer, 32 bits (-2,147,483,648 - 2,147,483,647) |
+| int64_payload | Signed integer, 64 bits (-9,223,372,036,854,775,808 - 9,223,372,036,854,775,807) |
+| float32_payload | Signed float, 32 bits (-3.4E+38 to 3.4E+38) |
+| float64_payload | Signed float, 64 bits (-1.8E+308 to 1.8E+308 |
+
+Redvox uses int32 for microphone data, int64 for timestamps, and float64 for all other payload data.  Payloads are easy to manipulate when converted into python arrays.  Writing to the protobuf object is not as simple, and requires knowledge of the data type to correctly store them.  We recommend using set_payload() or set_deinterleaved_payload() to store payloads.
+
+##### Channel Types
+Channel types are defined in api900.proto and signify where the data is coming from.  The table below lists the supported channel types and their internal integer values:
+
+| Protobuf Name | Integer Value | Description |
+|---------------|---------------|-------------|
+| MICROPHONE | 0 | Microphone |
+| BAROMETER | 1 | Barometer |
+| LATITUDE | 2 | Latitude |
+| LONGITUDE | 3 | Longitude |
+| SPEED | 4 | Speed |
+| ALTITUDE | 5 | Altitude
+| TIME_SYNCHRONIZATION | 9 | Time Synchronization |
+| ACCURACY | 10 | Accuracy |
+| ACCELEROMETER_X | 11 | Accelerometer X axis |
+| ACCELEROMETER_Y | 12 | Accelerometer Y axis |
+| ACCELEROMETER_Z | 13 | Accelerometer Z axis |
+| MAGNETOMETER_X | 14 | Magnetometer X axis |
+| MAGNETOMETER_Y | 15 | Magnetometer Y axis |
+| MAGNETOMETER_Z | 16 | Magnetometer Z axis |
+| GYROSCOPE_X | 17 | Gyroscope X axis |
+| GYROSCOPE_Y | 18 | Gyroscope Y axis |
+| GYROSCOPE_Z | 19 | Gyroscope Z axis |
+| OTHER | 20 | Other |
+| LIGHT | 21 | Light |
+| IMAGE | 22 | Image |
+| INFRARED | 23 | Infrared |
+
+When working with channel types, redvox uses the integer value to save space.  A protobuf may contain more than one channel type.  They can be alternately represented by importing the api900_pb2 module from the redvox.api900 library.  Once imported, you can refer to a channel using api900_pb2.CHANNEL_NAME where CHANNEL_NAME is one of the values in all capital letters in the above table.  EX: api900_pb2.MICROPHONE refers to a microphone channel.
+
+##### Interleaving
+Payloads may contain more than one channel, and each channel has its own data array, however the actual payload is only one array.  This requires the payload to be interleaved.  For example, a GPS will produce a LATITUDE, LONGITUDE, ALTITUDE, and SPEED values with every update.  For this GPS sensor, the channel_types array would look like [LATITUDE, LONGITUDE, ALTITUDE, SPEED]. The location of the channel type in channel_types determines the offset into the payload and the length of channel_types determines the step size. As such, this hypothetical GPS channel payload is encoded as:
+[LAT0, LNG0, ALT0, SPD0, LAT1, LNG1, ALT1, SPD1, ..., LATn, LNGn, ALTn, SPDn] where 0-n is the index of a timestamp.
+
+##### Building a Sensor
+A sensor contains one or more channels.  All channels must be either evenly or unevenly sampled; no mixing of the types allowed.  Sensors have access to high level properties of channels, but generally do not have the ability to set or alter those properties.  In order to set or alter the properties of a channel, you must access it directly.  I.E. MicSensor.evenly_sampled_channel.set_payload(...)
+To set all the sensor's data at once, you may use its set_channel function, create it using another sensor as an argument or by calling its create_SENSOR statement.  I.E. MicSensor.set_channel(MainMicSensor.evenly_sampled_channel) and MicSensor = MicrophoneSensor(MainMicSensor) both do the same thing: set MicSensor's properties to be a copy of MainMicSensor's.  MicSensor.create_microphone(...) will set MicSensor's properties to the values passed into the function.  new_mic_sensor = MicSensor().create_microphone(...) will also set new_mic_sensor's properties to the values passed into the function.  Refer to the relevant sensor's section for more information about what values to give the function.
+
+##### Functions
+These functions allow you to work with the protobuf and its payload.
+| Name | Requirements | Description |
+|------|--------------|-------------|
+| set_payload(channel, step, pl_type) | Interleaved array (channel: numpy.array), the number of arrays interleaved (step: int), the payload type (pl_type: str) | Sets the payload. |
+| set_deinterleaved_payload(channels, pl_type) | A list of arrays, all the same size, to interleave (channels: List[numpy.array]), the payload type (pl_type: str) | Sets the payload. |
+| set_channel_types(types) | A list of channel types (types: List[Channel Types]) | Sets the channel types. |
+| update_stats() | Payload and channel types have been set | Updates the value_means, value_stds and value_medians of the payload. |
+| set_sensor_name(name) | Sensor name (name: str) | Sets the name of the sensor. |
+| set_metadata(data) | A list of metadata (data: list[str]) | Sets the metadata. |
+| set_sample_rate_hz(rate) | A sample rate in Hz (rate: float) | Evenly sampled channels only.  Sets the constant sample rate of an evenly sampled channel. |
+| set_first_sample_timestamp_epoch_microseconds_utc(time) | The first timestamp of the data in microseconds since epoch utc (time: int) | Evenly sampled channels only.  Sets the starting timestamp of an evenly sampled channel. |
+| set_timestamps_microseconds_utc(timestamps) | A list of timestamps in microseconds since epoch utc (timestamps: numpy.ndarray) | Unevenly sampled channels only.  Sets the list of timestamps of the samples for this channel. |
+| set_channel(channel) | Another protobuf channel (channel: varies) | Sets the current channel to be a copy of the argument. Refer to notes below. |
+set_channel may be called at different levels; if called from a sensor, it requires the channel of another sensor.  I.E. MicSensor.set_channel(MainMicSensor.evenly_sampled_channel).  If called from a channel, it requires a protobuf channel.  I.E. BarChannel.set_channel(MainBarChannel.protobuf_channel).  Furthermore, evenly sampled channels should only be set to other evenly sampled channels and unevenly sampled channels should only be set to other unevenly sampled channels.
