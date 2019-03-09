@@ -2250,7 +2250,7 @@ class WrappedRedvoxPacket:
             self.redvox_packet = api900_pb2.RedvoxPacket()
             self.evenly_sampled_channels = list()
             self.unevenly_sampled_channels = list()
-            self.metadata = list()
+            self.metadata_list = list()
             self._channel_cache = {}
 
         else:
@@ -2265,7 +2265,7 @@ class WrappedRedvoxPacket:
                     map(UnevenlySampledChannel, repeated_to_array(redvox_packet.unevenly_sampled_channels)))
             """List of unevenly sampled channels"""
 
-            self.metadata: typing.List[str] = repeated_to_list(redvox_packet.metadata)
+            self.metadata_list: typing.List[str] = repeated_to_list(redvox_packet.metadata)
             """List of metadata"""
 
             self._channel_cache: typing.Dict[int, typing.Union[EvenlySampledChannel, UnevenlySampledChannel]] = {}
@@ -2823,29 +2823,29 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.metadata
+        return self.metadata_list
 
     def set_metadata(self, data: typing.List[str]):
         """
         sets the metadata
         :param data: metadata as list of strings
         """
-        self.metadata = data
-        self.redvox_packet.metadata = data
+        self.metadata_list = data
+        self.redvox_packet.metadata[:] = data
 
     def clear_metadata(self):
         """
         removes all of the packet level metadata from packet
         """
         del self.redvox_packet.metadata[:]
-        self.metadata.clear()
+        self.metadata_list.clear()
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
         Return this packet's metadata as a key-value Python dictionary.
         :return: This packet's metadata as a key-value Python dictionary.
         """
-        return get_metadata_as_dict(self.metadata)
+        return get_metadata_as_dict(self.metadata_list)
 
     # Sensor channels
     def has_microphone_channel(self) -> bool:
