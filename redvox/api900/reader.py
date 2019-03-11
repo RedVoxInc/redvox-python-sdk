@@ -241,6 +241,11 @@ def deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.
 
 
 def to_array(values: typing.Union[typing.List, numpy.ndarray]) -> numpy.ndarray:
+    """
+    Takes either a list or a numpy array and returns a numpy array if the parameter was a list.
+    :param values: Values to convert into numpy array if values are in a list.
+    :return: A numpy array of the passed in values.
+    """
     if isinstance(values, typing.List):
         return numpy.array(values)
     return values
@@ -493,8 +498,7 @@ class InterleavedChannel:
                     pl_type: constants.PayloadType,
                     should_compute_stats=True):
         """
-        sets the payload to an interleaved channel with step number of arrays interleaved together.  The step value is
-        only used for error checking before saving the array
+        sets the payload to an interleaved channel with step number of arrays interleaved together.
         :param should_compute_stats: Whether the statistics should be computed or not (optional default to True)
         :param payload_values: Interleaved payload values
         :param pl_type: payload type
@@ -503,8 +507,7 @@ class InterleavedChannel:
             raise ValueError("Channel must not be empty and number of arrays must not be less than 1.")
 
         # Convert to numpy array is necessary
-        if isinstance(payload_values, typing.List):
-            payload_values = numpy.array(payload_values)
+        payload_values = to_array(payload_values)
 
         # clear all other payloads
         self.protobuf_channel.byte_payload.ClearField("payload")
@@ -514,6 +517,7 @@ class InterleavedChannel:
         self.protobuf_channel.int64_payload.ClearField("payload")
         self.protobuf_channel.float32_payload.ClearField("payload")
         self.protobuf_channel.float64_payload.ClearField("payload")
+
         # set the payload based on the type of data
         if pl_type == constants.PayloadType.BYTE_PAYLOAD:
             self.protobuf_channel.byte_payload.payload = payload_values
@@ -542,6 +546,12 @@ class InterleavedChannel:
                                 payloads: typing.List[typing.Union[typing.List, numpy.ndarray]],
                                 pl_type: constants.PayloadType,
                                 should_compute_stats: bool = True):
+        """
+        Interleaves multiple payloads together and sets the interleaved payload.
+        :param payloads: Payloads of the same length to be interleaved.
+        :param pl_type: The payload type
+        :param should_compute_stats: Whether or not payload stats should be calculated.
+        """
         interleaved = list(map(to_array, payloads))
         self.set_payload(interleaved, pl_type, should_compute_stats)
 
@@ -771,11 +781,12 @@ class UnevenlySampledChannel(InterleavedChannel):
         self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
             redvox.api900.stat_utils.calc_utils_timeseries(self.timestamps_microseconds_utc)
 
-    def set_timestamps_microseconds_utc(self, timestamps: numpy.ndarray):
+    def set_timestamps_microseconds_utc(self, timestamps: typing.Union[typing.List[int], numpy.ndarray]):
         """
         set the timestamps in microseconds from utc
         :param timestamps: array of timestamps
         """
+        timestamps = to_array(timestamps)
         self.timestamps_microseconds_utc = timestamps
         self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
             redvox.api900.stat_utils.calc_utils_timeseries(timestamps)
@@ -1130,6 +1141,13 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
                                y_values: typing.Union[typing.List, numpy.ndarray],
                                z_values: typing.Union[typing.List, numpy.ndarray],
                                pl_type: constants.PayloadType):
+        """
+        Sets the interleaved payload of this XYZ channel given the X, Y, Z values and payload type.
+        :param x_values: The x values.
+        :param y_values: The y values.
+        :param z_values: The z values.
+        :param pl_type: Payload type.
+        """
         self.unevenly_sampled_channel.set_interleaved_payload([
             x_values,
             y_values,
@@ -1239,6 +1257,10 @@ class MicrophoneSensor(EvenlySampledSensor):
         self.evenly_sampled_channel.set_channel_types([api900_pb2.MICROPHONE])
 
     def set_payload_values(self, microphone_payload: typing.Union[typing.List[int], numpy.ndarray]):
+        """
+        Sets the microphone channels payload values.
+        :param microphone_payload: Payload values.
+        """
         self.evenly_sampled_channel.set_payload(microphone_payload, constants.PayloadType.INT32_PAYLOAD)
 
     def payload_values(self) -> numpy.ndarray:
@@ -1302,6 +1324,10 @@ class BarometerSensor(UnevenlySampledSensor):
         return self.unevenly_sampled_channel.get_payload(api900_pb2.BAROMETER)
 
     def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]):
+        """
+        Sets the barometer sensor's payload.
+        :param values:  Payload values.
+        """
         self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
 
     def payload_mean(self) -> float:
@@ -1366,6 +1392,15 @@ class LocationSensor(UnevenlySampledSensor):
                            altitude_payload: typing.Union[typing.List[float], numpy.ndarray],
                            speed_payload: typing.Union[typing.List[float], numpy.ndarray],
                            accuracy_payload: typing.Union[typing.List[float], numpy.ndarray]):
+        """
+        Sets the location sensor's payload. Note that if one of the below channels don't exist, you must still provide
+        a zero-filled payload that is the same length as all other paylods.
+        :param latitude_payload: The latitude payload.
+        :param longitude_payload: The longitude payload.
+        :param altitude_payload: The altitude payload.
+        :param speed_payload: The speed payload
+        :param accuracy_payload: The accuracy payload.
+        """
         self.unevenly_sampled_channel.set_interleaved_payload([latitude_payload,
                                                                longitude_payload,
                                                                altitude_payload,
@@ -1546,6 +1581,10 @@ class TimeSynchronizationSensor:
         return self.unevenly_sampled_channel.get_payload(api900_pb2.TIME_SYNCHRONIZATION)
 
     def set_payload_values(self, payload: typing.Union[typing.List[int], numpy.ndarray]):
+        """
+        Sets the time synch channel's payload.
+        :param payload: The payload.
+        """
         self.unevenly_sampled_channel.set_payload(payload, constants.PayloadType.INT64_PAYLOAD)
 
     def metadata(self) -> typing.List[str]:
@@ -1602,6 +1641,12 @@ class AccelerometerSensor(XyzUnevenlySampledSensor):
                            x_values: typing.Union[typing.List[float], numpy.ndarray],
                            y_values: typing.Union[typing.List[float], numpy.ndarray],
                            z_values: typing.Union[typing.List[float], numpy.ndarray]):
+        """
+        Sets this channel's payload with the provided equal length x, y, and z payload values.
+        :param x_values: The x values.
+        :param y_values: The y values.
+        :param z_values: The z values.
+        """
         self.set_xyz_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
 
 
@@ -1633,6 +1678,12 @@ class MagnetometerSensor(XyzUnevenlySampledSensor):
                            x_values: typing.Union[typing.List[float], numpy.ndarray],
                            y_values: typing.Union[typing.List[float], numpy.ndarray],
                            z_values: typing.Union[typing.List[float], numpy.ndarray]):
+        """
+        Sets this channel's payload with the provided equal length x, y, and z payload values.
+        :param x_values: The x values.
+        :param y_values: The y values.
+        :param z_values: The z values.
+        """
         self.set_xyz_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
 
 
@@ -1664,6 +1715,12 @@ class GyroscopeSensor(XyzUnevenlySampledSensor):
                            x_values: typing.Union[typing.List[float], numpy.ndarray],
                            y_values: typing.Union[typing.List[float], numpy.ndarray],
                            z_values: typing.Union[typing.List[float], numpy.ndarray]):
+        """
+        Sets this channel's payload with the provided equal length x, y, and z payload values.
+        :param x_values: The x values.
+        :param y_values: The y values.
+        :param z_values: The z values.
+        """
         self.set_xyz_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
 
 
@@ -1686,6 +1743,10 @@ class LightSensor(UnevenlySampledSensor):
         return self.unevenly_sampled_channel.get_payload(api900_pb2.LIGHT)
 
     def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]):
+        """
+        Sets this channel's payload values.
+        :param values: Payload values.
+        """
         self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
 
     def payload_mean(self) -> float:
@@ -1729,6 +1790,10 @@ class InfraredSensor(UnevenlySampledSensor):
         return self.unevenly_sampled_channel.get_payload(api900_pb2.INFRARED)
 
     def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]):
+        """
+        Sets this channel's payload values.
+        :param values: Payload values.
+        """
         self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
 
     def payload_mean(self) -> float:
@@ -2503,6 +2568,10 @@ class WrappedRedvoxPacket:
         return None
 
     def set_microphone_channel(self, microphone_sensor: typing.Optional[MicrophoneSensor]):
+        """
+        Sets this packets microphone sensor. A channel can be removed by passing in None.
+        :param microphone_sensor: An optional instance of a microphone sensor.
+        """
         if self.has_microphone_channel():
             self.delete_channel(api900_pb2.MICROPHONE)
 
@@ -2527,6 +2596,10 @@ class WrappedRedvoxPacket:
         return None
 
     def set_barometer_channel(self, barometer_sensor: typing.Optional[BarometerSensor]):
+        """
+        Sets this packets barometer sensor. A channel can be removed by passing in None.
+        :param barometer_sensor: An optional instance of a barometer sensor.
+        """
         if self.has_barometer_channel():
             self.delete_channel(api900_pb2.BAROMETER)
 
@@ -2554,6 +2627,10 @@ class WrappedRedvoxPacket:
         return None
 
     def set_location_channel(self, location_sensor: typing.Optional[LocationSensor]):
+        """
+        Sets this packet's location sensor. A channel can be removed by passing in None.
+        :param location_sensor: An optional instance of a location sensor.
+        """
         if self.has_location_channel():
             self.delete_channel(api900_pb2.LATITUDE)
 
@@ -2585,6 +2662,10 @@ class WrappedRedvoxPacket:
         return None
 
     def set_time_synchronization_channel(self, time_synchronization_sensor: typing.Optional[TimeSynchronizationSensor]):
+        """
+        Sets this packet's time sync sensor. A channel can be removed by passing in None.
+        :param time_synchronization_sensor: An optional instance of a time sync sensor.
+        """
         if self.has_time_synchronization_channel():
             self.delete_channel(api900_pb2.TIME_SYNCHRONIZATION)
 
@@ -2609,6 +2690,10 @@ class WrappedRedvoxPacket:
         return None
 
     def set_accelerometer_channel(self, accelerometer_sensor: typing.Optional[AccelerometerSensor]):
+        """
+        Sets this packet's accelerometer sensor. A channel can be removed by passing in None.
+        :param accelerometer_sensor: An optional instance of a accelerometer sensor.
+        """
         if self.has_accelerometer_channel():
             self.delete_channel(api900_pb2.ACCELEROMETER_X)
 
@@ -2633,6 +2718,10 @@ class WrappedRedvoxPacket:
         return None
 
     def set_magnetometer_channel(self, magnetometer_sensor: typing.Optional[MagnetometerSensor]):
+        """
+        Sets this packet's magnetomer sensor. A channel can be removed by passing in None.
+        :param magnetometer_sensor: An optional instance of a magnetometer sensor.
+        """
         if self.has_magnetometer_channel():
             self.delete_channel(api900_pb2.MAGNETOMETER_X)
 
@@ -2657,6 +2746,10 @@ class WrappedRedvoxPacket:
         return None
 
     def set_gyroscope_channel(self, gyroscope_sensor: typing.Optional[GyroscopeSensor]):
+        """
+        Sets this packet's gyroscope sensor. A channel can be removed by passing in None.
+        :param gyroscope_sensor: An optional instance of a gyroscope sensor.
+        """
         if self.has_gyroscope_channel():
             self.delete_channel(api900_pb2.GYROSCOPE_X)
 
@@ -2680,6 +2773,10 @@ class WrappedRedvoxPacket:
         return None
 
     def set_light_channel(self, light_sensor: typing.Optional[LightSensor]):
+        """
+        Sets this packet's light sensor. A channel can be removed by passing in None.
+        :param light_sensor: An optional instance of a light sensor.
+        """
         if self.has_light_channel():
             self.delete_channel(api900_pb2.LIGHT)
 
@@ -2704,6 +2801,10 @@ class WrappedRedvoxPacket:
         return None
 
     def set_infrared_channel(self, infrared_sensor: typing.Optional[InfraredSensor]):
+        """
+        Sets this packet's infrared sensor. A channel can be removed by passing in None.
+        :param infrared_sensor: An optional instance of a infrared sensor.
+        """
         if self.has_infrared_channel():
             self.delete_channel(api900_pb2.INFRARED)
 
