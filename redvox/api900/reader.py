@@ -16,6 +16,7 @@ import lz4.block
 import numpy
 import redvox.api900.stat_utils
 
+import redvox.api900.constants as constants
 from redvox.api900.lib import api900_pb2
 
 
@@ -170,7 +171,8 @@ def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     elif payload_type_str == "float64_payload":
         payload = channel.float64_payload.payload
     else:
-        raise ReaderException("unsupported payload type {}".format(payload_type_str))
+        return numpy.array([])
+        # raise ReaderException("unsupported payload type {}".format(payload_type_str))
 
     return numpy.array(payload)
 
@@ -285,7 +287,6 @@ def empty_evenly_sampled_channel() -> api900_pb2.EvenlySampledChannel:
     :return: empty EvenlySampledChannel
     """
     obj = api900_pb2.EvenlySampledChannel()
-    obj.byte_payload.payload = b''
     return obj
 
 
@@ -295,7 +296,6 @@ def empty_unevenly_sampled_channel() -> api900_pb2.UnevenlySampledChannel:
     :return: empty UnevenlySampledChannel
     """
     obj = api900_pb2.UnevenlySampledChannel()
-    obj.byte_payload.payload = b''
     return obj
 
 
@@ -378,7 +378,7 @@ class InterleavedChannel:
             required to correctly set the protobuf_channel
         """
         if channel is None:
-            self.protobuf_channel = empty_evenly_sampled_channel()
+            self.protobuf_channel = None
             self.sensor_name = None
             self.channel_types = [0]
             self.payload = [0]
@@ -518,20 +518,25 @@ class InterleavedChannel:
         """
         return self.has_channel(channel_type) and len(self.payload) > 0
 
-    def set_payload(self, channel: numpy.array, step: int, pl_type: str):
+    def set_payload(self,
+                    payload_values: typing.Union[numpy.array, typing.List],
+                    pl_type: constants.PayloadType,
+                    should_compute_stats = True):
         """
         sets the payload to an interleaved channel with step number of arrays interleaved together.  The step value is
         only used for error checking before saving the array
-        :param channel: interleaved channel
+        :param should_compute_stats: Whether the statistics should be computed or not (optional default to True)
+        :param payload_values: Interleaved payload values
         :param step: number of arrays inside interleaved channel
-        :param pl_type: payload type as string
+        :param pl_type: payload type
         """
-        if len(channel) < 1 or step < 1:
+        if len(payload_values) < 1:
             raise ValueError("Channel must not be empty and number of arrays must not be less than 1.")
-        elif step > len(channel):
-            raise ValueError("Channel size must be greater than or equal to number of arrays.")
-        elif len(channel) % step != 0:
-            raise ValueError("Channel size must be a multiple of the number of arrays.")
+
+        # Convert to numpy array is necessary
+        if isinstance(payload_values, typing.List):
+            payload_values = numpy.array(payload_values)
+
         # clear all other payloads
         self.protobuf_channel.byte_payload.ClearField("payload")
         self.protobuf_channel.uint32_payload.ClearField("payload")
@@ -541,25 +546,34 @@ class InterleavedChannel:
         self.protobuf_channel.float32_payload.ClearField("payload")
         self.protobuf_channel.float64_payload.ClearField("payload")
         # set the payload based on the type of data
-        if pl_type == "byte_payload":
-            self.protobuf_channel.byte_payload.payload = channel
-        elif pl_type == "uint32_payload":
-            self.protobuf_channel.uint32_payload.payload.extend(channel)
-        elif pl_type == "uint64_payload":
-            self.protobuf_channel.uint64_payload.payload.extend(channel)
-        elif pl_type == "int32_payload":
-            self.protobuf_channel.int32_payload.payload.extend(channel)
-        elif pl_type == "int64_payload":
-            self.protobuf_channel.int64_payload.payload.extend(channel)
-        elif pl_type == "float32_payload":
-            self.protobuf_channel.float32_payload.payload.extend(channel)
-        elif pl_type == "float64_payload":
-            self.protobuf_channel.float64_payload.payload.extend(channel)
+        if pl_type == constants.PayloadType.BYTE_PAYLOAD:
+            self.protobuf_channel.byte_payload.payload = payload_values
+        elif pl_type == constants.PayloadType.UINT32_PAYLOAD:
+            self.protobuf_channel.uint32_payload.payload.extend(payload_values)
+        elif pl_type == constants.PayloadType.UINT64_PAYLOAD:
+            self.protobuf_channel.uint64_payload.payload.extend(payload_values)
+        elif pl_type == constants.PayloadType.INT32_PAYLOAD:
+            self.protobuf_channel.int32_payload.payload.extend(payload_values)
+        elif pl_type == constants.PayloadType.INT64_PAYLOAD:
+            self.protobuf_channel.int64_payload.payload.extend(payload_values)
+        elif pl_type == constants.PayloadType.FLOAT32_PAYLOAD:
+            self.protobuf_channel.float32_payload.payload.extend(payload_values)
+        elif pl_type == constants.PayloadType.FLOAT64_PAYLOAD:
+            self.protobuf_channel.float64_payload.payload.extend(payload_values)
         else:
             raise TypeError("Unknown payload type to set.")
+
         self.payload = extract_payload(self.protobuf_channel)
+
         # calculate the means, std devs, and medians
-        self.update_stats()
+        if should_compute_stats:
+            self.update_stats()
+
+    def set_interleaved_payload(self,
+                                payloads: typing.List[numpy.ndarray],
+                                pl_type: constants.PayloadType,
+                                should_compute_stats: bool = True):
+        self.set_payload(interleave_arrays(payloads), pl_type, should_compute_stats)
 
     def set_deinterleaved_payload(self, channels: typing.List[numpy.array], pl_type: str):
         """
@@ -715,18 +729,16 @@ class EvenlySampledChannel(InterleavedChannel):
         :param channel: A protobuf evenly sampled channel.
         """
         if channel is None:
-            InterleavedChannel.__init__(self, empty_evenly_sampled_channel())
-            self.sample_rate_hz = None
-            self.first_sample_timestamp_epoch_microseconds_utc = None
-        else:
-            InterleavedChannel.__init__(self, channel)
-            self.sample_rate_hz: float = channel.sample_rate_hz
-            """The sample rate in hz of this evenly sampled channel"""
+            channel = empty_evenly_sampled_channel()
 
-            # pylint: disable=invalid-name
-            self.first_sample_timestamp_epoch_microseconds_utc: int = \
-                channel.first_sample_timestamp_epoch_microseconds_utc
-            """The timestamp of the first sample"""
+        InterleavedChannel.__init__(self, channel)
+        self.sample_rate_hz: float = channel.sample_rate_hz
+        """The sample rate in hz of this evenly sampled channel"""
+
+        # pylint: disable=invalid-name
+        self.first_sample_timestamp_epoch_microseconds_utc: int = \
+            channel.first_sample_timestamp_epoch_microseconds_utc
+        """The timestamp of the first sample"""
 
     def even_create(self, sensor_name: str, metadata: typing.List[str],
                     channel_types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
@@ -817,24 +829,20 @@ class UnevenlySampledChannel(InterleavedChannel):
         :param channel: A protobuf unevenly sampled channel.
         """
         if channel is None:
-            InterleavedChannel.__init__(self, empty_unevenly_sampled_channel())
-            self.timestamps_microseconds_utc = empty_array()
-            self.sample_interval_mean = None
-            self.sample_interval_std = None
-            self.sample_interval_median = None
-        else:
-            InterleavedChannel.__init__(self, channel)
-            self.timestamps_microseconds_utc: numpy.ndarray = repeated_to_array(channel.timestamps_microseconds_utc)
-            """Numpy array of timestamps epoch microseconds utc for each sample"""
+            channel = empty_unevenly_sampled_channel()
 
-            self.sample_interval_mean: float = channel.sample_interval_mean
-            """The mean sample interval"""
+        InterleavedChannel.__init__(self, channel)
+        self.timestamps_microseconds_utc: numpy.ndarray = repeated_to_array(channel.timestamps_microseconds_utc)
+        """Numpy array of timestamps epoch microseconds utc for each sample"""
 
-            self.sample_interval_std: float = channel.sample_interval_std
-            """The standard deviation of the sample interval"""
+        self.sample_interval_mean: float = channel.sample_interval_mean
+        """The mean sample interval"""
 
-            self.sample_interval_median: float = channel.sample_interval_median
-            """The median sample interval"""
+        self.sample_interval_std: float = channel.sample_interval_std
+        """The standard deviation of the sample interval"""
+
+        self.sample_interval_median: float = channel.sample_interval_median
+        """The median sample interval"""
 
     def uneven_create(self, sensor_name: str, metadata: typing.List[str],
                       channel_types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
@@ -1146,11 +1154,14 @@ class UnevenlySampledSensor:
         """
         return self.unevenly_sampled_channel.timestamps_microseconds_utc
 
-    def set_timestamps_microseconds_utc(self, timestamps: numpy.ndarray):
+    def set_timestamps_microseconds_utc(self, timestamps: typing.Union[numpy.ndarray, typing.List[int]]):
         """
         set the time stamps
         :param timestamps: a list of ascending timestamps that associate with each sample value
         """
+        if isinstance(timestamps, typing.List):
+            timestamps = numpy.array(timestamps)
+
         self.unevenly_sampled_channel.set_timestamps_microseconds_utc(timestamps)
 
     def sample_interval_mean(self) -> float:
@@ -1442,6 +1453,9 @@ class MicrophoneSensor(EvenlySampledSensor):
         Initialized this channel.
         :param evenly_sampled_channel: An instance of an EvenlySampledChannel with microphone data.
         """
+        if evenly_sampled_channel is None:
+            evenly_sampled_channel = EvenlySampledChannel()
+
         super().__init__(evenly_sampled_channel)
         self.evenly_sampled_channel.set_channel_types([api900_pb2.MICROPHONE])
 
@@ -1458,6 +1472,9 @@ class MicrophoneSensor(EvenlySampledSensor):
         """
         super().create(sensor_name, metadata, [api900_pb2.MICROPHONE], "int32_payload", payload, 1, rate, time)
         return self
+
+    def set_payload_values(self, microphone_payload: typing.Union[typing.List[int], numpy.ndarray]):
+        self.evenly_sampled_channel.set_payload(microphone_payload, constants.PayloadType.INT32_PAYLOAD)
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -1531,6 +1548,9 @@ class BarometerSensor(UnevenlySampledSensor):
         :return: This channels payload as a numpy ndarray of floats.
         """
         return self.unevenly_sampled_channel.get_payload(api900_pb2.BAROMETER)
+
+    def set_payload_values(self, values: typing.Union[typing.List, numpy.ndarray]):
+        self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
 
     def payload_mean(self) -> float:
         """Returns the mean of this channel's payload.
@@ -1625,6 +1645,20 @@ class LocationSensor(UnevenlySampledSensor):
             api900_pb2.SPEED,
             api900_pb2.ACCURACY
         ])
+
+    def set_payload_values(self,
+                           latitude_payload: numpy.ndarray,
+                           longitude_payload: numpy.ndarray,
+                           altitude_payload: numpy.ndarray,
+                           speed_payload: numpy.ndarray,
+                           accuracy_payload: numpy.ndarray):
+
+        self.unevenly_sampled_channel.set_interleaved_payload([latitude_payload,
+                                                               longitude_payload,
+                                                               altitude_payload,
+                                                               speed_payload,
+                                                               accuracy_payload],
+                                                              constants.PayloadType.FLOAT64_PAYLOAD)
 
     def payload_values_latitude(self):
         """
@@ -2419,6 +2453,8 @@ class WrappedRedvoxPacket:
             newchan.float32_payload.payload.extend(channel.payload)
         elif pl_type == "float64_payload":
             newchan.float64_payload.payload.extend(channel.payload)
+        elif pl_type is None:
+            pass
         else:
             raise TypeError("Unknown payload type in channel to add.")
 
@@ -2865,6 +2901,13 @@ class WrappedRedvoxPacket:
 
         return None
 
+    def set_microphone_channel(self, microphone_sensor: typing.Optional[MicrophoneSensor]):
+        if self.has_microphone_channel():
+            self.delete_channel(api900_pb2.MICROPHONE)
+
+        if microphone_sensor is not None:
+            self.add_channel(microphone_sensor.evenly_sampled_channel)
+
     def has_barometer_channel(self) -> bool:
         """
         Returns if this packet has a barometer channel.
@@ -2881,6 +2924,14 @@ class WrappedRedvoxPacket:
             return BarometerSensor(self.get_channel(api900_pb2.BAROMETER))
 
         return None
+
+    def set_barometer_channel(self, barometer_sensor: typing.Optional[BarometerSensor]):
+        if self.has_barometer_channel():
+            self.delete_channel(api900_pb2.BAROMETER)
+
+        if barometer_sensor is not None:
+            self.add_channel(barometer_sensor.unevenly_sampled_channel)
+
 
     def has_location_channel(self) -> bool:
         """
@@ -2901,6 +2952,13 @@ class WrappedRedvoxPacket:
             return LocationSensor(self.get_channel(api900_pb2.LATITUDE))
 
         return None
+
+    def set_location_channel(self, location_sensor: typing.Optional[LocationSensor]):
+        if self.has_location_channel():
+            self.delete_channel(api900_pb2.LATITUDE)
+
+        if location_sensor is not None:
+            self.add_channel(location_sensor.unevenly_sampled_channel)
 
     # pylint: disable=invalid-name,C1801
     def has_time_synchronization_channel(self) -> bool:
@@ -2926,6 +2984,13 @@ class WrappedRedvoxPacket:
 
         return None
 
+    def set_time_synchronization_channel(self, time_synchronization_sensor: typing.Optional[TimeSynchronizationSensor]):
+        if self.has_time_synchronization_channel():
+            self.delete_channel(api900_pb2.TIME_SYNCHRONIZATION)
+
+        if time_synchronization_sensor is not None:
+            self.add_channel(time_synchronization_sensor.unevenly_sampled_channel)
+
     def has_accelerometer_channel(self) -> bool:
         """
         Returns if this packet has an accelerometer channel.
@@ -2942,6 +3007,13 @@ class WrappedRedvoxPacket:
             return AccelerometerSensor(self.get_channel(api900_pb2.ACCELEROMETER_X))
 
         return None
+
+    def set_accelerometer_channel(self, accelerometer_sensor: typing.Optional[AccelerometerSensor]):
+        if self.has_accelerometer_channel():
+            self.delete_channel(api900_pb2.ACCELEROMETER_X)
+
+        if accelerometer_sensor is not None:
+            self.add_channel(accelerometer_sensor.unevenly_sampled_channel)
 
     def has_magnetometer_channel(self) -> bool:
         """
@@ -2960,6 +3032,13 @@ class WrappedRedvoxPacket:
 
         return None
 
+    def set_magnetometer_channel(self, magnetometer_sensor: typing.Optional[MagnetometerSensor]):
+        if self.has_magnetometer_channel():
+            self.delete_channel(api900_pb2.MAGNETOMETER_X)
+
+        if magnetometer_sensor is not None:
+            self.add_channel(magnetometer_sensor.unevenly_sampled_channel)
+
     def has_gyroscope_channel(self) -> bool:
         """
         Returns if this packet has a gyroscope channel.
@@ -2976,6 +3055,12 @@ class WrappedRedvoxPacket:
             return GyroscopeSensor(self.get_channel(api900_pb2.GYROSCOPE_X))
 
         return None
+
+    def set_gyroscope_channel(self, gyroscope_sensor: typing.Optional[GyroscopeSensor]):
+        if self.has_gyroscope_channel():
+            self.delete_channel(api900_pb2.GYROSCOPE_X)
+
+        self.add_channel(gyroscope_sensor.unevenly_sampled_channel)
 
     def has_light_channel(self) -> bool:
         """
@@ -2994,6 +3079,13 @@ class WrappedRedvoxPacket:
 
         return None
 
+    def set_light_channel(self, light_sensor: typing.Optional[LightSensor]):
+        if self.has_light_channel():
+            self.delete_channel(api900_pb2.LIGHT)
+
+        if light_sensor is not None:
+            self.add_channel(light_sensor.unevenly_sampled_channel)
+
     def has_infrared_channel(self) -> bool:
         """
         Returns if this packet has an infrared channel.
@@ -3011,6 +3103,13 @@ class WrappedRedvoxPacket:
 
         return None
 
+    def set_infrared_channel(self, infrared_sensor: typing.Optional[InfraredSensor]):
+        if self.has_infrared_channel():
+            self.delete_channel(api900_pb2.INFRARED)
+
+        if infrared_sensor is not None:
+            self.add_channel(infrared_sensor.unevenly_sampled_channel)
+
     def has_image_channel(self) -> bool:
         """
         Returns if this packet has an image channel.
@@ -3027,6 +3126,14 @@ class WrappedRedvoxPacket:
             return ImageSensor(self.get_channel(api900_pb2.IMAGE))
 
         return None
+
+    def set_image_channel(self, image_sensor: typing.Optional[ImageSensor]):
+        if self.has_image_channel():
+            self.delete_channel(api900_pb2.IMAGE)
+
+        if image_sensor is not None:
+            self.add_channel(image_sensor.unevenly_sampled_channel)
+
 
     def __str__(self):
         """
