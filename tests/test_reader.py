@@ -600,9 +600,9 @@ class WrappedRedvoxPacketTests(ArraysTestCase):
         self.assertEqual(len(self.gps_packet.unevenly_sampled_channels), 1)
         self.assertEqual(len(self.multi_packet.unevenly_sampled_channels), 2)
 
-        self.assertEqual(self.mic_packet.metadata, ["foo", "bar", "a", "b", "c", "d"])
-        self.assertEqual(self.gps_packet.metadata, ["foo", "bar"])
-        self.assertEqual(self.multi_packet.metadata, ["foo", "bar"])
+        self.assertEqual(self.mic_packet.metadata(), ["foo", "bar", "a", "b", "c", "d"])
+        self.assertEqual(self.gps_packet.metadata(), ["foo", "bar"])
+        self.assertEqual(self.multi_packet.metadata(), ["foo", "bar"])
 
     def test_get_channel(self):
         self.assertEqual(self.mic_packet.get_channel(api900_pb2.MICROPHONE).sensor_name,

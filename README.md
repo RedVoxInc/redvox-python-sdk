@@ -6,10 +6,13 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
-#### 1.5.0 (2019-3-?)
+#### 1.5.0 (2019-3-11)
 
 * Add setters for all fields
 * Add the ability to easily create sensor channels and RedVox packets
+* Add CLI that
+  * Converts .rdvxz files to .json files
+  * Displays the contents of .rdvxz files
 
 #### 1.4.1 (2019-2-15)
 
