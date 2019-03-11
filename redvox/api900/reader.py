@@ -240,6 +240,12 @@ def deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.
     return ndarray[offset::step]
 
 
+def to_array(values: typing.Union[typing.List, numpy.ndarray]) -> numpy.ndarray:
+    if isinstance(values, typing.List):
+        return numpy.array(values)
+    return values
+
+
 def interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
     """
     Interleaves multiple arrays together.
@@ -485,13 +491,12 @@ class InterleavedChannel:
     def set_payload(self,
                     payload_values: typing.Union[numpy.array, typing.List],
                     pl_type: constants.PayloadType,
-                    should_compute_stats = True):
+                    should_compute_stats=True):
         """
         sets the payload to an interleaved channel with step number of arrays interleaved together.  The step value is
         only used for error checking before saving the array
         :param should_compute_stats: Whether the statistics should be computed or not (optional default to True)
         :param payload_values: Interleaved payload values
-        :param step: number of arrays inside interleaved channel
         :param pl_type: payload type
         """
         if len(payload_values) < 1:
@@ -534,22 +539,11 @@ class InterleavedChannel:
             self.update_stats()
 
     def set_interleaved_payload(self,
-                                payloads: typing.List[numpy.ndarray],
+                                payloads: typing.List[typing.Union[typing.List, numpy.ndarray]],
                                 pl_type: constants.PayloadType,
                                 should_compute_stats: bool = True):
-        self.set_payload(interleave_arrays(payloads), pl_type, should_compute_stats)
-
-    def set_deinterleaved_payload(self, channels: typing.List[numpy.array], pl_type: str):
-        """
-        interleaves the channels and sets the payload to the combined array
-        :param channels: a list of arrays with the same length
-        :param pl_type: payload type as string
-        """
-        if len(channels) == 1:
-            self.set_payload(channels[0], 1, pl_type)
-        else:
-            channel = interleave_arrays(channels)
-            self.set_payload(channel, len(channels), pl_type)
+        interleaved = list(map(to_array, payloads))
+        self.set_payload(interleaved, pl_type, should_compute_stats)
 
     def get_payload(self, channel_type: int) -> numpy.ndarray:
         """
@@ -1131,6 +1125,18 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
             self.z_type
         ])
 
+    def set_xyz_payload_values(self,
+                               x_values: typing.Union[typing.List, numpy.ndarray],
+                               y_values: typing.Union[typing.List, numpy.ndarray],
+                               z_values: typing.Union[typing.List, numpy.ndarray],
+                               pl_type: constants.PayloadType):
+        self.unevenly_sampled_channel.set_interleaved_payload([
+            x_values,
+            y_values,
+            z_values
+        ],
+                pl_type)
+
     def payload_values_x(self) -> numpy.ndarray:
         """
         Returns the x-component of this channel's payload.
@@ -1295,7 +1301,7 @@ class BarometerSensor(UnevenlySampledSensor):
         """
         return self.unevenly_sampled_channel.get_payload(api900_pb2.BAROMETER)
 
-    def set_payload_values(self, values: typing.Union[typing.List, numpy.ndarray]):
+    def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]):
         self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
 
     def payload_mean(self) -> float:
@@ -1355,12 +1361,11 @@ class LocationSensor(UnevenlySampledSensor):
         ])
 
     def set_payload_values(self,
-                           latitude_payload: numpy.ndarray,
-                           longitude_payload: numpy.ndarray,
-                           altitude_payload: numpy.ndarray,
-                           speed_payload: numpy.ndarray,
-                           accuracy_payload: numpy.ndarray):
-
+                           latitude_payload: typing.Union[typing.List[float], numpy.ndarray],
+                           longitude_payload: typing.Union[typing.List[float], numpy.ndarray],
+                           altitude_payload: typing.Union[typing.List[float], numpy.ndarray],
+                           speed_payload: typing.Union[typing.List[float], numpy.ndarray],
+                           accuracy_payload: typing.Union[typing.List[float], numpy.ndarray]):
         self.unevenly_sampled_channel.set_interleaved_payload([latitude_payload,
                                                                longitude_payload,
                                                                altitude_payload,
@@ -1509,7 +1514,7 @@ class LocationSensor(UnevenlySampledSensor):
         return self.unevenly_sampled_channel.get_value_std(api900_pb2.ACCURACY)
 
 
-class TimeSynchronizationSensor():
+class TimeSynchronizationSensor:
     """High-level wrapper around time synchronization exchange.
 
     It should be noted that this class only exposes a single method, payload values.
@@ -1539,6 +1544,9 @@ class TimeSynchronizationSensor():
         :return: The time synchronization exchanges as a numpy ndarray of integers.
         """
         return self.unevenly_sampled_channel.get_payload(api900_pb2.TIME_SYNCHRONIZATION)
+
+    def set_payload_values(self, payload: typing.Union[typing.List[int], numpy.ndarray]):
+        self.unevenly_sampled_channel.set_payload(payload, constants.PayloadType.INT64_PAYLOAD)
 
     def metadata(self) -> typing.List[str]:
         """
@@ -1590,6 +1598,12 @@ class AccelerometerSensor(XyzUnevenlySampledSensor):
             api900_pb2.ACCELEROMETER_Z
         ])
 
+    def set_payload_values(self,
+                           x_values: typing.Union[typing.List[float], numpy.ndarray],
+                           y_values: typing.Union[typing.List[float], numpy.ndarray],
+                           z_values: typing.Union[typing.List[float], numpy.ndarray]):
+        self.set_xyz_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
+
 
 class MagnetometerSensor(XyzUnevenlySampledSensor):
     """
@@ -1614,6 +1628,12 @@ class MagnetometerSensor(XyzUnevenlySampledSensor):
             api900_pb2.MAGNETOMETER_Y,
             api900_pb2.MAGNETOMETER_Z
         ])
+
+    def set_payload_values(self,
+                           x_values: typing.Union[typing.List[float], numpy.ndarray],
+                           y_values: typing.Union[typing.List[float], numpy.ndarray],
+                           z_values: typing.Union[typing.List[float], numpy.ndarray]):
+        self.set_xyz_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
 
 
 class GyroscopeSensor(XyzUnevenlySampledSensor):
@@ -1640,6 +1660,12 @@ class GyroscopeSensor(XyzUnevenlySampledSensor):
             api900_pb2.GYROSCOPE_Z
         ])
 
+    def set_payload_values(self,
+                           x_values: typing.Union[typing.List[float], numpy.ndarray],
+                           y_values: typing.Union[typing.List[float], numpy.ndarray],
+                           z_values: typing.Union[typing.List[float], numpy.ndarray]):
+        self.set_xyz_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
+
 
 class LightSensor(UnevenlySampledSensor):
     """High-level wrapper around light channels."""
@@ -1658,6 +1684,9 @@ class LightSensor(UnevenlySampledSensor):
         :return: A numpy ndarray of floats representing this light sensor's payload.
         """
         return self.unevenly_sampled_channel.get_payload(api900_pb2.LIGHT)
+
+    def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]):
+        self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
 
     def payload_mean(self) -> float:
         """
@@ -1698,6 +1727,9 @@ class InfraredSensor(UnevenlySampledSensor):
         :return: A numpy ndarray of floats representing this sensor's payload.
         """
         return self.unevenly_sampled_channel.get_payload(api900_pb2.INFRARED)
+
+    def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]):
+        self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
 
     def payload_mean(self) -> float:
         """
@@ -2501,7 +2533,6 @@ class WrappedRedvoxPacket:
         if barometer_sensor is not None:
             self.add_channel(barometer_sensor.unevenly_sampled_channel)
 
-
     def has_location_channel(self) -> bool:
         """
         Returns if this packet has a location channel.
@@ -2703,7 +2734,6 @@ class WrappedRedvoxPacket:
         if image_sensor is not None:
             self.add_channel(image_sensor.unevenly_sampled_channel)
 
-
     def __str__(self):
         """
         Returns protobuf's String representation of this packet.
@@ -2745,4 +2775,3 @@ def read_directory(directory_path: str) -> typing.Dict[str, typing.List[WrappedR
         grouped[wrapped_packet.redvox_id()].append(wrapped_packet)
 
     return grouped
-
