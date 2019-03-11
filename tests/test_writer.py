@@ -6,7 +6,7 @@ import unittest
 
 class WriteAndSetModules(ArraysTestCase):
     def test_write(self):
-        with open("0000001314_1532656864354.rdvxz", "rb") as fin:
+        with open("tests/0000001314_1532656864354.rdvxz", "rb") as fin:
             as_bytes = fin.read()
 
         redvox_packet = rar.read_buffer(as_bytes)
