@@ -362,32 +362,41 @@ The following methods allow you to set the values of high-level API methods.  Gi
 | set_server_timestamp_epoch_microseconds_utc(int) |
 | set_metadata(List[str]) |
 
-The following methods provide easy access to high-level sensor channel implementations. Each sensor has a method to test for existence and a method for retrieving the sensor data itself. Sensor data is returned in a list since its possible to have more than one of the same sensor type on a single device. 
+The following methods provide easy access to high-level sensor channel implementations. Each sensor has a method to test for existence, a method for retrieving the sensor, and a method for setting sensor. Please note that `None` can be passed to the set_sensor methods to clear a sensor.
 
-| Name | Type |
+| Name | Return Type |
 |------|------|
 | has_microphone_channel() | bool |
 | microphone_channel() | Optional[MicrophoneSensor] |
+| set_microphone_channel(Optional[MicrophoneSensor]) | |
 | has_barometer_channel() | bool |
 | barometer_channel() | Optional[BarometerSensor] |
+| set_barometer_chanel(Optional[BarometerSensor] | |
 | has_location_channel() | bool |
 | location_channel() | Optional[LocationSensor] |
+| set_location_channel(Optional[LocationSensor] | |
 | has_time_synchronization_channel() | bool |
 | time_synchronization_channel() | Optional[TimeSynchronizationChannel] |
+| set_time_synchronization_channel(Optional[TimeSynchronizationChannel] | |
 | has_accelerometer_channel() | bool |
 | accelerometer_channel() | Optional[AccelerometerSensor] |
+| set_accelerometer_channel(Optional[AccelerometerSensor] | |
 | has_magnetometer_channel() | bool |
 | magnetometer_channel() | Optional[MagnetometerSensor] |
+| set_magnetometer_channel(Optional[MagnetometerSensor] | |
 | has_gyroscope_channel() | bool |
 | gyroscope_channel() | Optional[GyroscopeSensor] |
+| set_gyroscope_channel(Optional[GyroscopeSensor] | |
 | has_light_channel() | bool |
-| light_channel() | Optional[ListSensor] |
+| light_channel() | Optional[LightSensor] |
+| set_light_channel(Optional[LightSensor] | |
 | has_infrared_channel() | bool |
 | infrared_channel() | Optional[InfraredSensor] |
+| set_infrared_channel(Optional[InfraredChannel] | |
 | has_image_channel() | bool |
 | image_channel() | Optional[ImageChannel] |
 
-It's also possible to convert a WrappedRedvoxPacket into a compressed array of bytes. This can be achieved by calling the compressed_buffer method on a WrappedRedvoxPacket.
+It's also possible to convert a WrappedRedvoxPacket into a compressed array of bytes. This can be achieved by calling the compressed_buffer method on a WrappedRedvoxPacket. These compressed buffers can be written to disk as .rdvxz files.
 
 | Name | Type |
 | compressed_buffer() | bytes |
