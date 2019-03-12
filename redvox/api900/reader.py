@@ -819,12 +819,14 @@ class EvenlySampledSensor:
             self.evenly_sampled_channel: EvenlySampledChannel = evenly_sampled_channel
             """A reference to the original unevenly sampled channel"""
 
-    def set_channel(self, channel: EvenlySampledChannel):
+    def set_channel(self, channel: EvenlySampledChannel) -> 'EvenlySampledSensor':
         """
         sets the evenly sampled channel of the sensor
         :param channel: an evenly sampled channel
+        :return: An instance of the sensor.
         """
         self.evenly_sampled_channel.set_channel(channel.protobuf_channel)
+        return self
 
     def get_channel_type_names(self) -> typing.List[str]:
         """
@@ -840,12 +842,14 @@ class EvenlySampledSensor:
         """
         return self.evenly_sampled_channel.sample_rate_hz
 
-    def set_sample_rate_hz(self, rate: float):
+    def set_sample_rate_hz(self, rate: float) -> 'EvenlySampledSensor':
         """
         sets the sample rate
         :param rate: sample rate in hz
+        :return: An instance of the sensor.
         """
         self.evenly_sampled_channel.set_sample_rate_hz(rate)
+        return self
 
     # pylint: disable=invalid-name
     def first_sample_timestamp_epoch_microseconds_utc(self) -> int:
@@ -855,12 +859,14 @@ class EvenlySampledSensor:
         """
         return self.evenly_sampled_channel.first_sample_timestamp_epoch_microseconds_utc
 
-    def set_first_sample_timestamp_epoch_microseconds_utc(self, time: int):
+    def set_first_sample_timestamp_epoch_microseconds_utc(self, time: int) -> 'EvenlySampledSensor':
         """
         sets the sample timestamp in microseconds since utc
         :param time: microseconds since utc
+        :return: An instance of the sensor.
         """
         self.evenly_sampled_channel.set_first_sample_timestamp_epoch_microseconds_utc(time)
+        return self
 
     def sensor_name(self) -> str:
         """
@@ -869,12 +875,14 @@ class EvenlySampledSensor:
         """
         return self.evenly_sampled_channel.sensor_name
 
-    def set_sensor_name(self, name: str):
+    def set_sensor_name(self, name: str) -> 'EvenlySampledSensor':
         """
         sets the sensor name
         :param name: name of sensor
+        :return: An instance of the sensor.
         """
         self.evenly_sampled_channel.set_sensor_name(name)
+        return self
 
     def payload_type(self) -> str:
         """
@@ -890,12 +898,14 @@ class EvenlySampledSensor:
         """
         return self.evenly_sampled_channel.metadata
 
-    def set_metadata(self, data: typing.List[str]):
+    def set_metadata(self, data: typing.List[str]) -> 'EvenlySampledSensor':
         """
         sets the metadata
         :param data: metadata as list of strings
+        :return: An instance of the sensor.
         """
         self.evenly_sampled_channel.set_metadata(data)
+        return self
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
@@ -926,12 +936,14 @@ class UnevenlySampledSensor:
         else:
             self.unevenly_sampled_channel: UnevenlySampledChannel = unevenly_sampled_channel
 
-    def set_channel(self, channel: UnevenlySampledChannel):
+    def set_channel(self, channel: UnevenlySampledChannel) -> 'UnevenlySampledSensor':
         """
         sets the unevenly sampled channel of the sensor
         :param channel: an unevenly sampled channel
+        :return: An instance of the sensor.
         """
         self.unevenly_sampled_channel.set_channel(channel.protobuf_channel)
+        return self
 
     def get_channel_type_names(self) -> typing.List[str]:
         """
@@ -947,12 +959,14 @@ class UnevenlySampledSensor:
         """
         return self.unevenly_sampled_channel.sensor_name
 
-    def set_sensor_name(self, name: str):
+    def set_sensor_name(self, name: str) -> 'UnevenlySampledSensor':
         """
         Sets the sensor name
         :param name: name of the sensor
+        :return: An instance of the sensor.
         """
         self.unevenly_sampled_channel.set_sensor_name(name)
+        return self
 
     def payload_type(self) -> str:
         """
@@ -968,15 +982,17 @@ class UnevenlySampledSensor:
         """
         return self.unevenly_sampled_channel.timestamps_microseconds_utc
 
-    def set_timestamps_microseconds_utc(self, timestamps: typing.Union[numpy.ndarray, typing.List[int]]):
+    def set_timestamps_microseconds_utc(self, timestamps: typing.Union[numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
         """
         set the time stamps
         :param timestamps: a list of ascending timestamps that associate with each sample value
+        :return: An instance of the sensor.
         """
         if isinstance(timestamps, typing.List):
             timestamps = numpy.array(timestamps)
 
         self.unevenly_sampled_channel.set_timestamps_microseconds_utc(timestamps)
+        return self
 
     def sample_interval_mean(self) -> float:
         """
@@ -1006,12 +1022,14 @@ class UnevenlySampledSensor:
         """
         return self.unevenly_sampled_channel.metadata
 
-    def set_metadata(self, data: typing.List[str]):
+    def set_metadata(self, data: typing.List[str]) -> 'UnevenlySampledSensor':
         """
         sets the metadata
         :param data: metadata as list of strings
+        :return: An instance of the sensor.
         """
         self.unevenly_sampled_channel.set_metadata(data)
+        return self
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
@@ -1044,19 +1062,21 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         self.y_type = y_type
         self.z_type = z_type
 
-    def set_xyz_channel(self, channel: UnevenlySampledChannel, x_type: int, y_type: int, z_type: int):
+    def set_xyz_channel(self, channel: UnevenlySampledChannel, x_type: int, y_type: int, z_type: int) -> 'XyzUnevenlySampledSensor':
         """
         sets the channel to an instance of an unevenly sampled sensor
         :param channel: An instance of an UnevenlySampledChannel.
         :param x_type: The X channel type enum.
         :param y_type: The Y channel type enum.
         :param z_type: The Z channel type enum.
+        :return: An instance of the sensor.
         """
         super().set_channel(channel)
         self.unevenly_sampled_channel.channel_types = [x_type, y_type, z_type]
         self.x_type = x_type
         self.y_type = y_type
         self.z_type = z_type
+        return self
 
     def x_type(self) -> int:
         """
@@ -1065,13 +1085,15 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         """
         return self.x_type
 
-    def set_x_type(self, chan_type: int):
+    def set_x_type(self, chan_type: int) -> 'UnevenlySampledSensor':
         """
         sets the x type
         :param chan_type: channel type enumeration
+        :return: An instance of the sensor.
         """
         self.x_type = chan_type
         self.unevenly_sampled_channel.channel_types = [self.x_type, self.y_type, self.z_type]
+        return self
 
     def x_type_name(self) -> str:
         """
@@ -1087,13 +1109,15 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         """
         return self.y_type
 
-    def set_y_type(self, chan_type: int):
+    def set_y_type(self, chan_type: int) -> 'XyzUnevenlySampledSensor':
         """
         sets the y type
         :param chan_type: channel type enumeration
+        :return: An instance of the sensor.
         """
         self.y_type = chan_type
         self.unevenly_sampled_channel.channel_types = [self.x_type, self.y_type, self.z_type]
+        return self
 
     def y_type_name(self) -> str:
         """
@@ -1109,13 +1133,15 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         """
         return self.z_type
 
-    def set_z_type(self, chan_type: int):
+    def set_z_type(self, chan_type: int) -> 'XyzUnevenlySampledSensor':
         """
         sets the z type
         :param chan_type: channel type enumeration
+        :return: An instance of the sensor.
         """
         self.z_type = chan_type
         self.unevenly_sampled_channel.channel_types = [self.x_type, self.y_type, self.z_type]
+        return self
 
     def z_type_name(self) -> str:
         """
@@ -1140,13 +1166,14 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
                                x_values: typing.Union[typing.List, numpy.ndarray],
                                y_values: typing.Union[typing.List, numpy.ndarray],
                                z_values: typing.Union[typing.List, numpy.ndarray],
-                               pl_type: constants.PayloadType):
+                               pl_type: constants.PayloadType) -> 'XyzUnevenlySampledSensor':
         """
         Sets the interleaved payload of this XYZ channel given the X, Y, Z values and payload type.
         :param x_values: The x values.
         :param y_values: The y values.
         :param z_values: The z values.
         :param pl_type: Payload type.
+        :return: An instance of the sensor.
         """
         self.unevenly_sampled_channel.set_interleaved_payload([
             x_values,
@@ -1154,6 +1181,7 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
             z_values
         ],
                 pl_type)
+        return self
 
     def payload_values_x(self) -> numpy.ndarray:
         """
