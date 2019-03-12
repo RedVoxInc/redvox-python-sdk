@@ -1256,12 +1256,14 @@ class MicrophoneSensor(EvenlySampledSensor):
         super().__init__(evenly_sampled_channel)
         self.evenly_sampled_channel.set_channel_types([api900_pb2.MICROPHONE])
 
-    def set_payload_values(self, microphone_payload: typing.Union[typing.List[int], numpy.ndarray]):
+    def set_payload_values(self, microphone_payload: typing.Union[typing.List[int], numpy.ndarray]) -> 'MicrophoneSensor':
         """
         Sets the microphone channels payload values.
         :param microphone_payload: Payload values.
+        :return: An instance of the sensor.
         """
         self.evenly_sampled_channel.set_payload(microphone_payload, constants.PayloadType.INT32_PAYLOAD)
+        return self
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -1323,12 +1325,14 @@ class BarometerSensor(UnevenlySampledSensor):
         """
         return self.unevenly_sampled_channel.get_payload(api900_pb2.BAROMETER)
 
-    def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]):
+    def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]) -> 'BarometerSensor':
         """
         Sets the barometer sensor's payload.
         :param values:  Payload values.
+        :return: An instance of the sensor.
         """
         self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
+        return self
 
     def payload_mean(self) -> float:
         """Returns the mean of this channel's payload.
@@ -1391,7 +1395,7 @@ class LocationSensor(UnevenlySampledSensor):
                            longitude_payload: typing.Union[typing.List[float], numpy.ndarray],
                            altitude_payload: typing.Union[typing.List[float], numpy.ndarray],
                            speed_payload: typing.Union[typing.List[float], numpy.ndarray],
-                           accuracy_payload: typing.Union[typing.List[float], numpy.ndarray]):
+                           accuracy_payload: typing.Union[typing.List[float], numpy.ndarray]) -> 'LocationSensor':
         """
         Sets the location sensor's payload. Note that if one of the below channels don't exist, you must still provide
         a zero-filled payload that is the same length as all other paylods.
@@ -1400,6 +1404,7 @@ class LocationSensor(UnevenlySampledSensor):
         :param altitude_payload: The altitude payload.
         :param speed_payload: The speed payload
         :param accuracy_payload: The accuracy payload.
+        :return: An instance of the sensor.
         """
         self.unevenly_sampled_channel.set_interleaved_payload([latitude_payload,
                                                                longitude_payload,
@@ -1407,6 +1412,7 @@ class LocationSensor(UnevenlySampledSensor):
                                                                speed_payload,
                                                                accuracy_payload],
                                                               constants.PayloadType.FLOAT64_PAYLOAD)
+        return self
 
     def payload_values_latitude(self):
         """
@@ -1580,12 +1586,14 @@ class TimeSynchronizationSensor:
         """
         return self.unevenly_sampled_channel.get_payload(api900_pb2.TIME_SYNCHRONIZATION)
 
-    def set_payload_values(self, payload: typing.Union[typing.List[int], numpy.ndarray]):
+    def set_payload_values(self, payload: typing.Union[typing.List[int], numpy.ndarray]) -> 'TimeSynchronizationSensor':
         """
         Sets the time synch channel's payload.
         :param payload: The payload.
+        :return: An instance of the sensor.
         """
         self.unevenly_sampled_channel.set_payload(payload, constants.PayloadType.INT64_PAYLOAD)
+        return self
 
     def metadata(self) -> typing.List[str]:
         """
@@ -1640,14 +1648,16 @@ class AccelerometerSensor(XyzUnevenlySampledSensor):
     def set_payload_values(self,
                            x_values: typing.Union[typing.List[float], numpy.ndarray],
                            y_values: typing.Union[typing.List[float], numpy.ndarray],
-                           z_values: typing.Union[typing.List[float], numpy.ndarray]):
+                           z_values: typing.Union[typing.List[float], numpy.ndarray]) -> 'AccelerometerSensor':
         """
         Sets this channel's payload with the provided equal length x, y, and z payload values.
         :param x_values: The x values.
         :param y_values: The y values.
         :param z_values: The z values.
+        :return: An instance of the sensor.
         """
         self.set_xyz_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
+        return self
 
 
 class MagnetometerSensor(XyzUnevenlySampledSensor):
@@ -1677,14 +1687,16 @@ class MagnetometerSensor(XyzUnevenlySampledSensor):
     def set_payload_values(self,
                            x_values: typing.Union[typing.List[float], numpy.ndarray],
                            y_values: typing.Union[typing.List[float], numpy.ndarray],
-                           z_values: typing.Union[typing.List[float], numpy.ndarray]):
+                           z_values: typing.Union[typing.List[float], numpy.ndarray]) -> 'MagnetometerSensor':
         """
         Sets this channel's payload with the provided equal length x, y, and z payload values.
         :param x_values: The x values.
         :param y_values: The y values.
         :param z_values: The z values.
+        :return: An instance of the sensor.
         """
         self.set_xyz_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
+        return self
 
 
 class GyroscopeSensor(XyzUnevenlySampledSensor):
@@ -1714,14 +1726,16 @@ class GyroscopeSensor(XyzUnevenlySampledSensor):
     def set_payload_values(self,
                            x_values: typing.Union[typing.List[float], numpy.ndarray],
                            y_values: typing.Union[typing.List[float], numpy.ndarray],
-                           z_values: typing.Union[typing.List[float], numpy.ndarray]):
+                           z_values: typing.Union[typing.List[float], numpy.ndarray]) -> 'GyroscopeSensor':
         """
         Sets this channel's payload with the provided equal length x, y, and z payload values.
         :param x_values: The x values.
         :param y_values: The y values.
         :param z_values: The z values.
+        :return: An instance of the sensor.
         """
         self.set_xyz_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
+        return self
 
 
 class LightSensor(UnevenlySampledSensor):
@@ -1742,12 +1756,14 @@ class LightSensor(UnevenlySampledSensor):
         """
         return self.unevenly_sampled_channel.get_payload(api900_pb2.LIGHT)
 
-    def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]):
+    def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]) -> 'LightSensor':
         """
         Sets this channel's payload values.
         :param values: Payload values.
+        :return: An instance of the sensor.
         """
         self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
+        return self
 
     def payload_mean(self) -> float:
         """
@@ -1789,12 +1805,14 @@ class InfraredSensor(UnevenlySampledSensor):
         """
         return self.unevenly_sampled_channel.get_payload(api900_pb2.INFRARED)
 
-    def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]):
+    def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]) -> 'InfraredSensor':
         """
         Sets this channel's payload values.
         :param values: Payload values.
+        :return: An instance of the sensor.
         """
         self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
+        return self
 
     def payload_mean(self) -> float:
         """
