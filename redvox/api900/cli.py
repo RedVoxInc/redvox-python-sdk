@@ -59,9 +59,9 @@ def string(paths: typing.List[str]):
 
 # Entry point to CLI.
 if __name__ == "__main__":
-    import ARGPARSE
+    import argparse
 
-    ARGPARSE = ARGPARSE.ArgumentParser("api900-cli")
+    ARGPARSE = argparse.ArgumentParser("api900-cli")
 
     ARGPARSE.add_argument("cmd",
                           choices=[

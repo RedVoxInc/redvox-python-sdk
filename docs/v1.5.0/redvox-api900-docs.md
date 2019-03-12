@@ -37,7 +37,7 @@ To install run `pip install redvox`.
 
 ### Installing from source
 
-pip is the recomended way of obtaining this library. However, if you are looking for the source distribution, it can be found at https://bitbucket.org/redvoxhi/redvox-api900-python-reader/downloads/
+pip is the recommended way of obtaining this library. However, if you are looking for the source distribution, it can be found at https://bitbucket.org/redvoxhi/redvox-api900-python-reader/downloads/
 
 ### Verifying installation
 
@@ -47,15 +47,119 @@ It is possible to verify installation of the library by printing out the version
 import redvox
 
 print(redvox.version())
-redvox.print_version()
 ``` 
 
 which, when ran produces the following output:
 
 ```
 1.5.0
-1.5.0
 ```
+
+### Working with the SDK CLI
+
+The Python SDK provides a small command line interface (CLI) that has the following features:
+
+* Convert .rdvxz files to RedVox API 900 compliant .json files
+* Convert RedVox API 900 compliant .json files to .rdvxz files
+* Display the contents of .rdvxz files
+
+Once the redvox library has been installed from pip, the CLI can be accessed by running:
+
+`python3 -m redvox.api900.cli [CMD] [FILES]` where [CMD] is one of `to_json`, `to_rdvxz`, or `print` and [FILES] is a list of paths to either *.rdvxz files or *.json files.
+
+**Example: Converting .rdvxz files to a RedVox API 900 .json files**
+
+Given the following files in `/data` (or a directory of your choice)
+
+```
+> ls -l /data
+total 616
+-rwxr-xr-x@ 1 anthony  wheel  25205 Mar 11 14:46 1637660007_1552350841586.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel  25133 Mar 11 14:46 1637660007_1552350892787.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel  25200 Mar 11 14:46 1637660007_1552350943987.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel  25156 Mar 11 14:46 1637660007_1552350995187.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel  25147 Mar 11 14:46 1637660007_1552351046386.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel  25211 Mar 11 14:46 1637660007_1552351097587.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel  25117 Mar 11 14:46 1637660007_1552351148787.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel  25264 Mar 11 14:46 1637660007_1552351199987.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel  25093 Mar 11 14:46 1637660007_1552351251185.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel  25262 Mar 11 14:46 1637660007_1552351302387.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel  25240 Mar 11 14:46 1637660007_1552351353587.rdvxz
+```
+
+Let's first convert a single file to .json.
+
+```
+> python3 -m redvox.api900.cli to_json /data/1637660007_1552350841586.rdvxz
+Converting /data/1637660007_1552350841586.rdvxz -> /data/1637660007_1552350841586.json
+```
+
+And now if we look at the directory listing we see the .json file.
+
+```
+> ls -l /data
+total 952
+-rw-r--r--  1 anthony  wheel  169519 Mar 11 14:50 1637660007_1552350841586.json
+-rwxr-xr-x@ 1 anthony  wheel   25205 Mar 11 14:46 1637660007_1552350841586.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel   25133 Mar 11 14:46 1637660007_1552350892787.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel   25200 Mar 11 14:46 1637660007_1552350943987.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel   25156 Mar 11 14:46 1637660007_1552350995187.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel   25147 Mar 11 14:46 1637660007_1552351046386.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel   25211 Mar 11 14:46 1637660007_1552351097587.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel   25117 Mar 11 14:46 1637660007_1552351148787.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel   25264 Mar 11 14:46 1637660007_1552351199987.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel   25093 Mar 11 14:46 1637660007_1552351251185.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel   25262 Mar 11 14:46 1637660007_1552351302387.rdvxz
+-rwxr-xr-x@ 1 anthony  wheel   25240 Mar 11 14:46 1637660007_1552351353587.rdvxz
+```
+
+We can convert multiple files at once with:
+
+```
+> python3 -m redvox.api900.cli to_json /data/*.rdvxz
+Converting /data/1637660007_1552350841586.rdvxz -> /data/1637660007_1552350841586.json
+Converting /data/1637660007_1552350892787.rdvxz -> /data/1637660007_1552350892787.json
+Converting /data/1637660007_1552350943987.rdvxz -> /data/1637660007_1552350943987.json
+Converting /data/1637660007_1552350995187.rdvxz -> /data/1637660007_1552350995187.json
+Converting /data/1637660007_1552351046386.rdvxz -> /data/1637660007_1552351046386.json
+Converting /data/1637660007_1552351097587.rdvxz -> /data/1637660007_1552351097587.json
+Converting /data/1637660007_1552351148787.rdvxz -> /data/1637660007_1552351148787.json
+Converting /data/1637660007_1552351199987.rdvxz -> /data/1637660007_1552351199987.json
+Converting /data/1637660007_1552351251185.rdvxz -> /data/1637660007_1552351251185.json
+Converting /data/1637660007_1552351302387.rdvxz -> /data/1637660007_1552351302387.json
+Converting /data/1637660007_1552351353587.rdvxz -> /data/1637660007_1552351353587.json
+```
+
+and the contents of the directory contains:
+
+```
+> ls -l /data
+total 4312
+-rw-r--r--  1 anthony  wheel  169519 Mar 11 14:51 1637660007_1552350841586.json
+-rwxr-xr-x@ 1 anthony  wheel   25205 Mar 11 14:46 1637660007_1552350841586.rdvxz
+-rw-r--r--  1 anthony  wheel  169337 Mar 11 14:51 1637660007_1552350892787.json
+-rwxr-xr-x@ 1 anthony  wheel   25133 Mar 11 14:46 1637660007_1552350892787.rdvxz
+-rw-r--r--  1 anthony  wheel  169650 Mar 11 14:51 1637660007_1552350943987.json
+-rwxr-xr-x@ 1 anthony  wheel   25200 Mar 11 14:46 1637660007_1552350943987.rdvxz
+-rw-r--r--  1 anthony  wheel  169327 Mar 11 14:51 1637660007_1552350995187.json
+-rwxr-xr-x@ 1 anthony  wheel   25156 Mar 11 14:46 1637660007_1552350995187.rdvxz
+-rw-r--r--  1 anthony  wheel  168937 Mar 11 14:51 1637660007_1552351046386.json
+-rwxr-xr-x@ 1 anthony  wheel   25147 Mar 11 14:46 1637660007_1552351046386.rdvxz
+-rw-r--r--  1 anthony  wheel  169511 Mar 11 14:51 1637660007_1552351097587.json
+-rwxr-xr-x@ 1 anthony  wheel   25211 Mar 11 14:46 1637660007_1552351097587.rdvxz
+-rw-r--r--  1 anthony  wheel  169474 Mar 11 14:51 1637660007_1552351148787.json
+-rwxr-xr-x@ 1 anthony  wheel   25117 Mar 11 14:46 1637660007_1552351148787.rdvxz
+-rw-r--r--  1 anthony  wheel  169343 Mar 11 14:51 1637660007_1552351199987.json
+-rwxr-xr-x@ 1 anthony  wheel   25264 Mar 11 14:46 1637660007_1552351199987.rdvxz
+-rw-r--r--  1 anthony  wheel  169316 Mar 11 14:51 1637660007_1552351251185.json
+-rwxr-xr-x@ 1 anthony  wheel   25093 Mar 11 14:46 1637660007_1552351251185.rdvxz
+-rw-r--r--  1 anthony  wheel  169456 Mar 11 14:51 1637660007_1552351302387.json
+-rwxr-xr-x@ 1 anthony  wheel   25262 Mar 11 14:46 1637660007_1552351302387.rdvxz
+-rw-r--r--  1 anthony  wheel  169449 Mar 11 14:51 1637660007_1552351353587.json
+-rwxr-xr-x@ 1 anthony  wheel   25240 Mar 11 14:46 1637660007_1552351353587.rdvxz
+```
+
+
 
 ### Loading RedVox API 900 Files
 
