@@ -67,7 +67,7 @@ Once the redvox library has been installed from pip, the CLI can be accessed by 
 
 `python3 -m redvox.api900.cli [CMD] [FILES]` where [CMD] is one of `to_json`, `to_rdvxz`, or `print` and [FILES] is a list of paths to either *.rdvxz files or *.json files.
 
-**Example: Converting .rdvxz files to a RedVox API 900 .json files**
+**Example: Converting .rdvxz files to RedVox API 900 .json files**
 
 Given the following files in `/data` (or a directory of your choice)
 
@@ -159,7 +159,129 @@ total 4312
 -rwxr-xr-x@ 1 anthony  wheel   25240 Mar 11 14:46 1637660007_1552351353587.rdvxz
 ```
 
+**Example: Converting RedVox compliant API 900 .json files to .rdvxz files**
 
+We can also convert from .json files to .rdvxz files using the `to_rdvxz command`.
+
+Let's start with a directory of .json files.
+
+```
+> ls -l /data
+total 3696
+-rw-r--r--  1 anthony  wheel  169519 Mar 11 14:51 1637660007_1552350841586.json
+-rw-r--r--  1 anthony  wheel  169337 Mar 11 14:51 1637660007_1552350892787.json
+-rw-r--r--  1 anthony  wheel  169650 Mar 11 14:51 1637660007_1552350943987.json
+-rw-r--r--  1 anthony  wheel  169327 Mar 11 14:51 1637660007_1552350995187.json
+-rw-r--r--  1 anthony  wheel  168937 Mar 11 14:51 1637660007_1552351046386.json
+-rw-r--r--  1 anthony  wheel  169511 Mar 11 14:51 1637660007_1552351097587.json
+-rw-r--r--  1 anthony  wheel  169474 Mar 11 14:51 1637660007_1552351148787.json
+-rw-r--r--  1 anthony  wheel  169343 Mar 11 14:51 1637660007_1552351199987.json
+-rw-r--r--  1 anthony  wheel  169316 Mar 11 14:51 1637660007_1552351251185.json
+-rw-r--r--  1 anthony  wheel  169456 Mar 11 14:51 1637660007_1552351302387.json
+-rw-r--r--  1 anthony  wheel  169449 Mar 11 14:51 1637660007_1552351353587.json
+```
+
+We can convert a single file:
+
+```
+> python3 -m redvox.api900.cli to_rdvxz /data/1637660007_1552350841586.json
+Converting /data/1637660007_1552350841586.json -> /data/1637660007_1552350841586.rdvxz
+```
+
+and the contents are now:
+
+```
+> ls -l /data
+total 3752
+-rw-r--r--  1 anthony  wheel  169519 Mar 11 14:51 1637660007_1552350841586.json
+-rw-r--r--  1 anthony  wheel   26963 Mar 11 14:59 1637660007_1552350841586.rdvxz
+-rw-r--r--  1 anthony  wheel  169337 Mar 11 14:51 1637660007_1552350892787.json
+-rw-r--r--  1 anthony  wheel  169650 Mar 11 14:51 1637660007_1552350943987.json
+-rw-r--r--  1 anthony  wheel  169327 Mar 11 14:51 1637660007_1552350995187.json
+-rw-r--r--  1 anthony  wheel  168937 Mar 11 14:51 1637660007_1552351046386.json
+-rw-r--r--  1 anthony  wheel  169511 Mar 11 14:51 1637660007_1552351097587.json
+-rw-r--r--  1 anthony  wheel  169474 Mar 11 14:51 1637660007_1552351148787.json
+-rw-r--r--  1 anthony  wheel  169343 Mar 11 14:51 1637660007_1552351199987.json
+-rw-r--r--  1 anthony  wheel  169316 Mar 11 14:51 1637660007_1552351251185.json
+-rw-r--r--  1 anthony  wheel  169456 Mar 11 14:51 1637660007_1552351302387.json
+-rw-r--r--  1 anthony  wheel  169449 Mar 11 14:51 1637660007_1552351353587.json
+```
+
+or we can convert all the .json files at once
+
+```
+> python3 -m redvox.api900.cli to_rdvxz /data/*.json
+Converting /data/1637660007_1552350841586.json -> /data/1637660007_1552350841586.rdvxz
+Converting /data/1637660007_1552350892787.json -> /data/1637660007_1552350892787.rdvxz
+Converting /data/1637660007_1552350943987.json -> /data/1637660007_1552350943987.rdvxz
+Converting /data/1637660007_1552350995187.json -> /data/1637660007_1552350995187.rdvxz
+Converting /data/1637660007_1552351046386.json -> /data/1637660007_1552351046386.rdvxz
+Converting /data/1637660007_1552351097587.json -> /data/1637660007_1552351097587.rdvxz
+Converting /data/1637660007_1552351148787.json -> /data/1637660007_1552351148787.rdvxz
+Converting /data/1637660007_1552351199987.json -> /data/1637660007_1552351199987.rdvxz
+Converting /data/1637660007_1552351251185.json -> /data/1637660007_1552351251185.rdvxz
+Converting /data/1637660007_1552351302387.json -> /data/1637660007_1552351302387.rdvxz
+Converting /data/1637660007_1552351353587.json -> /data/1637660007_1552351353587.rdvxz
+(redvox-analysis) 
+```
+
+which changes the directory contents to:
+
+```
+> ls -l /data
+total 4312
+-rw-r--r--  1 anthony  wheel  169519 Mar 11 14:51 1637660007_1552350841586.json
+-rw-r--r--  1 anthony  wheel   26963 Mar 11 15:00 1637660007_1552350841586.rdvxz
+-rw-r--r--  1 anthony  wheel  169337 Mar 11 14:51 1637660007_1552350892787.json
+-rw-r--r--  1 anthony  wheel   26907 Mar 11 15:00 1637660007_1552350892787.rdvxz
+-rw-r--r--  1 anthony  wheel  169650 Mar 11 14:51 1637660007_1552350943987.json
+-rw-r--r--  1 anthony  wheel   27091 Mar 11 15:00 1637660007_1552350943987.rdvxz
+-rw-r--r--  1 anthony  wheel  169327 Mar 11 14:51 1637660007_1552350995187.json
+-rw-r--r--  1 anthony  wheel   27057 Mar 11 15:00 1637660007_1552350995187.rdvxz
+-rw-r--r--  1 anthony  wheel  168937 Mar 11 14:51 1637660007_1552351046386.json
+-rw-r--r--  1 anthony  wheel   27035 Mar 11 15:00 1637660007_1552351046386.rdvxz
+-rw-r--r--  1 anthony  wheel  169511 Mar 11 14:51 1637660007_1552351097587.json
+-rw-r--r--  1 anthony  wheel   27119 Mar 11 15:00 1637660007_1552351097587.rdvxz
+-rw-r--r--  1 anthony  wheel  169474 Mar 11 14:51 1637660007_1552351148787.json
+-rw-r--r--  1 anthony  wheel   26967 Mar 11 15:00 1637660007_1552351148787.rdvxz
+-rw-r--r--  1 anthony  wheel  169343 Mar 11 14:51 1637660007_1552351199987.json
+-rw-r--r--  1 anthony  wheel   27069 Mar 11 15:00 1637660007_1552351199987.rdvxz
+-rw-r--r--  1 anthony  wheel  169316 Mar 11 14:51 1637660007_1552351251185.json
+-rw-r--r--  1 anthony  wheel   27022 Mar 11 15:00 1637660007_1552351251185.rdvxz
+-rw-r--r--  1 anthony  wheel  169456 Mar 11 14:51 1637660007_1552351302387.json
+-rw-r--r--  1 anthony  wheel   27162 Mar 11 15:00 1637660007_1552351302387.rdvxz
+-rw-r--r--  1 anthony  wheel  169449 Mar 11 14:51 1637660007_1552351353587.json
+-rw-r--r--  1 anthony  wheel   27145 Mar 11 15:00 1637660007_1552351353587.rdvxz
+```
+
+**Example: Displaying the contents of .rdvxz files**
+
+It's possible to display the contents of a single or multiple .rdvxz files with the `print` command.
+
+To display the contents of a single file:
+
+```
+python3 -m redvox.api900.cli print /data/1637660007_1552351353587.rdvxz
+
+ ------------- Contents of /data/1637660007_1552351353587.rdvxz
+api: 900
+uuid: "522630568"
+redvox_id: "1637660007"
+authenticated_email: "redvoxcore@gmail.com"
+authentication_token: "redacted-1113962610"
+device_make: "Huawei"
+device_model: "Nexus 6P"
+device_os: "Android"
+device_os_version: "8.1.0"
+app_version: "2.4.2"
+...
+```
+
+Multiple files can be displayed at once as well with:
+
+```
+python3 -m redvox.api900.cli print /data/*.rdvxz
+```
 
 ### Loading RedVox API 900 Files
 
