@@ -2965,6 +2965,41 @@ class WrappedRedvoxPacket:
         """
         return str(self.redvox_packet)
 
+    def __eq__(self, other):
+        return (isinstance(other, WrappedRedvoxPacket) and
+                self.api() == other.api() and
+                self.redvox_id() == other.redvox_id() and
+                self.uuid() == other.uuid() and
+                self.authenticated_email() == other.authenticated_email() and
+                self.authentication_token() == other.authentication_token() and
+                self.firebase_token() == other.firebase_token() and
+                self.is_backfilled() == other.is_backfilled() and
+                self.is_private() == other.is_private() and
+                self.is_scrambled() == other.is_scrambled() and
+                self.device_make() == other.device_make() and
+                self.device_model() == other.device_model() and
+                self.device_os() == other.device_os() and
+                self.device_os_version() == other.device_os_version() and
+                self.app_version() == other.app_version() and
+                self.battery_level_percent() == other.battery_level_percent() and
+                self.device_temperature_c() == other.device_temperature_c() and
+                self.acquisition_server() == other.acquisition_server() and
+                self.time_synchronization_server() == other.time_synchronization_server() and
+                self.authentication_server() == other.authentication_server() and
+                self.app_file_start_timestamp_epoch_microseconds_utc() == other.set_app_file_start_timestamp_epoch_microseconds_utc() and
+                self.app_file_start_timestamp_machine() == other.app_file_start_timestamp_machine() and
+                self.server_timestamp_epoch_microseconds_utc() == other.server_timestamp_epoch_microseconds_utc() and
+                self.metadata() == other.metadata() and
+                self.microphone_channel() == other.microphone_channel() and
+                self.barometer_channel() == other.barometer_channel() and
+                self.location_channel() == other.location_channel() and
+                self.time_synchronization_channel() == other.time_synchronization_channel() and
+                self.accelerometer_channel() == other.accelerometer_channel() and
+                self.magnetometer_channel() == other.magnetometer_channel() and
+                self.gyroscope_channel() == other.gyroscope_channel() and
+                self.light_channel() == other.light_channel() and
+                self.infrared_channel() == other.infrared_channel())
+
 
 def wrap(redvox_packet: api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:
     """Shortcut for wrapping a protobuf packet with our higher level wrapper.
