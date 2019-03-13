@@ -358,6 +358,18 @@ def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
     return metadata_dict
 
 
+def metadata_dict_to_list(metadata_dict: typing.Dict[str, str]) -> typing.List[str]:
+    """
+    Converts a dictionary containing metadata into a list of metadata.
+    :param metadata_dict: The dictionary of metadata.
+    :return: A list of metadata.
+    """
+    metadata_list = []
+    for key, value in metadata_dict.items():
+        metadata_list.extend([key, value])
+    return metadata_list
+
+
 # pylint: disable=R0902
 class InterleavedChannel:
     """
@@ -2261,12 +2273,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.api
 
-    def set_api(self, version: int):
+    def set_api(self, version: int) -> 'WrappedRedvoxPacket':
         """
         sets the api version number
         :param version: version number
         """
         self.redvox_packet.api = version
+        return self
 
     def uuid(self) -> str:
         """
@@ -2275,12 +2288,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.uuid
 
-    def set_uuid(self, uid: str):
+    def set_uuid(self, uid: str) -> 'WrappedRedvoxPacket':
         """
         sets the uuid
         :param uid: uuid string
         """
         self.redvox_packet.uuid = uid
+        return self
 
     def redvox_id(self) -> str:
         """
@@ -2289,12 +2303,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.redvox_id
 
-    def set_redvox_id(self, rid: str):
+    def set_redvox_id(self, rid: str) -> 'WrappedRedvoxPacket':
         """
         sets the redvox id
         :param rid: redvox id string
         """
         self.redvox_packet.redvox_id = rid
+        return self
 
     def authenticated_email(self) -> str:
         """
@@ -2303,12 +2318,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.authenticated_email
 
-    def set_authenticated_email(self, email: str):
+    def set_authenticated_email(self, email: str) -> 'WrappedRedvoxPacket':
         """
         sets the authenticated email
         :param email: authenticated email string
         """
         self.redvox_packet.authenticated_email = email
+        return self
 
     def authentication_token(self) -> str:
         """
@@ -2317,12 +2333,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.authentication_token
 
-    def set_authentication_token(self, token: str):
+    def set_authentication_token(self, token: str) -> 'WrappedRedvoxPacket':
         """
         sets the authentication token
         :param token: authentication token string
         """
         self.redvox_packet.authentication_token = token
+        return self
 
     def firebase_token(self) -> str:
         """
@@ -2331,12 +2348,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.firebase_token
 
-    def set_firebase_token(self, token: str):
+    def set_firebase_token(self, token: str) -> 'WrappedRedvoxPacket':
         """
         sets the firebase token
         :param token: firebase token string
         """
         self.redvox_packet.firebase_token = token
+        return self
 
     def is_backfilled(self) -> bool:
         """
@@ -2345,12 +2363,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.is_backfilled
 
-    def set_is_backfilled(self, tof: bool):
+    def set_is_backfilled(self, tof: bool) -> 'WrappedRedvoxPacket':
         """
         sets the is_backfilled flag
         :param tof: true or false
         """
         self.redvox_packet.is_backfilled = tof
+        return self
 
     def is_private(self) -> bool:
         """
@@ -2359,12 +2378,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.is_private
 
-    def set_is_private(self, tof: bool):
+    def set_is_private(self, tof: bool) -> 'WrappedRedvoxPacket':
         """
         sets the is_private flag
         :param tof: true or false
         """
         self.redvox_packet.is_private = tof
+        return self
 
     def is_scrambled(self) -> bool:
         """
@@ -2373,12 +2393,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.is_scrambled
 
-    def set_is_scrambled(self, tof: bool):
+    def set_is_scrambled(self, tof: bool) -> 'WrappedRedvoxPacket':
         """
         sets the is_scrambled flag
         :param tof: true or false
         """
         self.redvox_packet.is_scrambled = tof
+        return self
 
     def device_make(self) -> str:
         """
@@ -2387,12 +2408,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.device_make
 
-    def set_device_make(self, make: str):
+    def set_device_make(self, make: str) -> 'WrappedRedvoxPacket':
         """
         sets the make of the device
         :param make: make of the device string
         """
         self.redvox_packet.device_make = make
+        return self
 
     def device_model(self) -> str:
         """
@@ -2401,12 +2423,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.device_model
 
-    def set_device_model(self, model: str):
+    def set_device_model(self, model: str) -> 'WrappedRedvoxPacket':
         """
         sets the model of the device
         :param model: model of the device string
         """
         self.redvox_packet.device_model = model
+        return self
 
     def device_os(self) -> str:
         """
@@ -2415,12 +2438,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.device_os
 
-    def set_device_os(self, os: str):
+    def set_device_os(self, os: str) -> 'WrappedRedvoxPacket':
         """
         sets the device operating system
         :param os: operating system string
         """
         self.redvox_packet.device_os = os
+        return self
 
     def device_os_version(self) -> str:
         """
@@ -2429,12 +2453,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.device_os_version
 
-    def set_device_os_version(self, version: str):
+    def set_device_os_version(self, version: str) -> 'WrappedRedvoxPacket':
         """
         sets the device OS version
         :param version: device OS version string
         """
         self.redvox_packet.device_os_version = version
+        return self
 
     def app_version(self) -> str:
         """
@@ -2443,12 +2468,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.app_version
 
-    def set_app_version(self, version: str):
+    def set_app_version(self, version: str) -> 'WrappedRedvoxPacket':
         """
         sets the app version number
         :param version: app version string
         """
         self.redvox_packet.app_version = version
+        return self
 
     def battery_level_percent(self) -> float:
         """
@@ -2457,12 +2483,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.battery_level_percent
 
-    def set_battery_level_percent(self, percent: float):
+    def set_battery_level_percent(self, percent: float) -> 'WrappedRedvoxPacket':
         """
         sets the percentage of battery left
         :param percent: percentage of battery left
         """
         self.redvox_packet.battery_level_percent = percent
+        return self
 
     def device_temperature_c(self) -> float:
         """
@@ -2471,12 +2498,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.device_temperature_c
 
-    def set_device_temperature_c(self, temp: float):
+    def set_device_temperature_c(self, temp: float) -> 'WrappedRedvoxPacket':
         """
         sets the device temperature in degrees Celsius
         :param temp: temperature in degrees Celsius
         """
         self.redvox_packet.device_temperature_c = temp
+        return self
 
     def acquisition_server(self) -> str:
         """
@@ -2485,12 +2513,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.acquisition_server
 
-    def set_acquisition_server(self, server: str):
+    def set_acquisition_server(self, server: str) -> 'WrappedRedvoxPacket':
         """
         sets the acquisition server url
         :param server: url to acquisition server
         """
         self.redvox_packet.acquisition_server = server
+        return self
 
     # pylint: disable=invalid-name
     def time_synchronization_server(self) -> str:
@@ -2500,12 +2529,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.time_synchronization_server
 
-    def set_time_synchronization_server(self, server: str):
+    def set_time_synchronization_server(self, server: str) -> 'WrappedRedvoxPacket':
         """
         sets the time synchronization server url
         :param server: url to time synchronization server
         """
         self.redvox_packet.time_synchronization_server = server
+        return self
 
     def authentication_server(self) -> str:
         """
@@ -2514,12 +2544,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.authentication_server
 
-    def set_authentication_server(self, server: str):
+    def set_authentication_server(self, server: str) -> 'WrappedRedvoxPacket':
         """
         sets the authentication server url
         :param server: url to authentication server
         """
         self.redvox_packet.authentication_server = server
+        return self
 
     # pylint: disable=invalid-name
     def app_file_start_timestamp_epoch_microseconds_utc(self) -> int:
@@ -2529,12 +2560,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.app_file_start_timestamp_epoch_microseconds_utc
 
-    def set_app_file_start_timestamp_epoch_microseconds_utc(self, time: int):
+    def set_app_file_start_timestamp_epoch_microseconds_utc(self, time: int) -> 'WrappedRedvoxPacket':
         """
         sets the timestamp of packet creation
         :param time: time when packet was created in microseconds since utc epoch
         """
         self.redvox_packet.app_file_start_timestamp_epoch_microseconds_utc = time
+        return self
 
     # pylint: disable=invalid-name
     def app_file_start_timestamp_machine(self) -> int:
@@ -2544,12 +2576,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.app_file_start_timestamp_machine
 
-    def set_app_file_start_timestamp_machine(self, time: int):
+    def set_app_file_start_timestamp_machine(self, time: int) -> 'WrappedRedvoxPacket':
         """
         sets the internal machine timestamp of packet creation
         :param time: time when packet was created on local machine
         """
         self.redvox_packet.app_file_start_timestamp_machine = time
+        return self
 
     # pylint: disable=invalid-name
     def server_timestamp_epoch_microseconds_utc(self) -> int:
@@ -2559,12 +2592,13 @@ class WrappedRedvoxPacket:
         """
         return self.redvox_packet.server_timestamp_epoch_microseconds_utc
 
-    def set_server_timestamp_epoch_microseconds_utc(self, time: int):
+    def set_server_timestamp_epoch_microseconds_utc(self, time: int) -> 'WrappedRedvoxPacket':
         """
         sets the server timestamp when the packet was received
         :param time: time when packet was received by server
         """
         self.redvox_packet.server_timestamp_epoch_microseconds_utc = time
+        return self
 
     def metadata(self) -> typing.List[str]:
         """
@@ -2573,13 +2607,14 @@ class WrappedRedvoxPacket:
         """
         return self.metadata_list
 
-    def set_metadata(self, data: typing.List[str]):
+    def set_metadata(self, data: typing.List[str]) -> 'WrappedRedvoxPacket':
         """
         sets the metadata
         :param data: metadata as list of strings
         """
         self.metadata_list = data
         self.redvox_packet.metadata[:] = data
+        return self
 
     def clear_metadata(self):
         """
@@ -2594,6 +2629,10 @@ class WrappedRedvoxPacket:
         :return: This packet's metadata as a key-value Python dictionary.
         """
         return get_metadata_as_dict(self.metadata_list)
+
+    def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'WrappedRedvoxPacket':
+        self.set_metadata(metadata_dict_to_list(metadata_dict))
+        return self
 
     # Sensor channels
     def has_microphone_channel(self) -> bool:
