@@ -2897,7 +2897,7 @@ class WrappedRedvoxPacket:
                 self.acquisition_server() == other.acquisition_server() and
                 self.time_synchronization_server() == other.time_synchronization_server() and
                 self.authentication_server() == other.authentication_server() and
-                self.app_file_start_timestamp_epoch_microseconds_utc() == other.set_app_file_start_timestamp_epoch_microseconds_utc() and
+                self.app_file_start_timestamp_epoch_microseconds_utc() == other.app_file_start_timestamp_epoch_microseconds_utc() and
                 self.app_file_start_timestamp_machine() == other.app_file_start_timestamp_machine() and
                 self.server_timestamp_epoch_microseconds_utc() == other.server_timestamp_epoch_microseconds_utc() and
                 self.metadata() == other.metadata() and
