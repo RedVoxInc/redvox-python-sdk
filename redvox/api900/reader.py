@@ -831,15 +831,6 @@ class EvenlySampledSensor:
             self.evenly_sampled_channel: EvenlySampledChannel = evenly_sampled_channel
             """A reference to the original unevenly sampled channel"""
 
-    def set_channel(self, channel: EvenlySampledChannel) -> 'EvenlySampledSensor':
-        """
-        sets the evenly sampled channel of the sensor
-        :param channel: an evenly sampled channel
-        :return: An instance of the sensor.
-        """
-        self.evenly_sampled_channel.set_channel(channel.protobuf_channel)
-        return self
-
     def get_channel_type_names(self) -> typing.List[str]:
         """
         Returns the list of channel_types as a list of names instead of enumeration constants.
@@ -926,8 +917,23 @@ class EvenlySampledSensor:
         """
         return get_metadata_as_dict(self.evenly_sampled_channel.metadata)
 
+    def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'EvenlySampledSensor':
+        self.set_metadata(metadata_dict_to_list(metadata_dict))
+        return self
+
     def __str__(self):
         return str(self.evenly_sampled_channel)
+
+    def __eq__(self, other):
+        return (isinstance(other, EvenlySampledSensor) and
+                self.get_channel_type_names() == other.get_channel_type_names() and
+                self.sensor_name() == other.sensor_name() and
+                self.sample_rate_hz() == other.sample_rate_hz() and
+                self.first_sample_timestamp_epoch_microseconds_utc() ==
+                other.first_sample_timestamp_epoch_microseconds_utc() and
+                self.payload_type() == other.payload_type() and
+                self.metadata() == other.metadata() and
+                numpy.array_equal(self.evenly_sampled_channel.payload, other.evenly_sampled_channel.payload))
 
 
 class UnevenlySampledSensor:
@@ -947,15 +953,6 @@ class UnevenlySampledSensor:
             self.unevenly_sampled_channel = UnevenlySampledChannel()
         else:
             self.unevenly_sampled_channel: UnevenlySampledChannel = unevenly_sampled_channel
-
-    def set_channel(self, channel: UnevenlySampledChannel) -> 'UnevenlySampledSensor':
-        """
-        sets the unevenly sampled channel of the sensor
-        :param channel: an unevenly sampled channel
-        :return: An instance of the sensor.
-        """
-        self.unevenly_sampled_channel.set_channel(channel.protobuf_channel)
-        return self
 
     def get_channel_type_names(self) -> typing.List[str]:
         """
@@ -994,7 +991,8 @@ class UnevenlySampledSensor:
         """
         return self.unevenly_sampled_channel.timestamps_microseconds_utc
 
-    def set_timestamps_microseconds_utc(self, timestamps: typing.Union[numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
+    def set_timestamps_microseconds_utc(self, timestamps: typing.Union[
+        numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
         """
         set the time stamps
         :param timestamps: a list of ascending timestamps that associate with each sample value
@@ -1050,8 +1048,17 @@ class UnevenlySampledSensor:
         """
         return get_metadata_as_dict(self.unevenly_sampled_channel.metadata)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.unevenly_sampled_channel)
+
+    def __eq__(self, other) -> bool:
+        return (isinstance(other, UnevenlySampledSensor) and
+                self.get_channel_type_names() == other.get_channel_type_names() and
+                self.sensor_name() == other.sensor_name() and
+                numpy.array_equal(self.timestamps_microseconds_utc(), other.timestamps_microseconds_utc()) and
+                self.payload_type() == other.payload_type() and
+                self.metadata() == other.metadata() and
+                numpy.array_equal(self.unevenly_sampled_channel.payload, other.unevenly_sampled_channel.payload))
 
 
 class XyzUnevenlySampledSensor(UnevenlySampledSensor):
@@ -1074,7 +1081,8 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         self.y_type = y_type
         self.z_type = z_type
 
-    def set_xyz_channel(self, channel: UnevenlySampledChannel, x_type: int, y_type: int, z_type: int) -> 'XyzUnevenlySampledSensor':
+    def set_xyz_channel(self, channel: UnevenlySampledChannel, x_type: int, y_type: int,
+                        z_type: int) -> 'XyzUnevenlySampledSensor':
         """
         sets the channel to an instance of an unevenly sampled sensor
         :param channel: An instance of an UnevenlySampledChannel.
@@ -1296,7 +1304,8 @@ class MicrophoneSensor(EvenlySampledSensor):
         super().__init__(evenly_sampled_channel)
         self.evenly_sampled_channel.set_channel_types([api900_pb2.MICROPHONE])
 
-    def set_payload_values(self, microphone_payload: typing.Union[typing.List[int], numpy.ndarray]) -> 'MicrophoneSensor':
+    def set_payload_values(self,
+                           microphone_payload: typing.Union[typing.List[int], numpy.ndarray]) -> 'MicrophoneSensor':
         """
         Sets the microphone channels payload values.
         :param microphone_payload: Payload values.
@@ -2755,7 +2764,8 @@ class WrappedRedvoxPacket:
 
         return None
 
-    def set_time_synchronization_channel(self, time_synchronization_sensor: typing.Optional[TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
+    def set_time_synchronization_channel(self, time_synchronization_sensor: typing.Optional[
+        TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's time sync sensor. A channel can be removed by passing in None.
         :param time_synchronization_sensor: An optional instance of a time sync sensor.
@@ -2786,7 +2796,8 @@ class WrappedRedvoxPacket:
 
         return None
 
-    def set_accelerometer_channel(self, accelerometer_sensor: typing.Optional[AccelerometerSensor]) -> 'WrappedRedvoxPacket':
+    def set_accelerometer_channel(self,
+                                  accelerometer_sensor: typing.Optional[AccelerometerSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's accelerometer sensor. A channel can be removed by passing in None.
         :param accelerometer_sensor: An optional instance of a accelerometer sensor.
@@ -2816,7 +2827,8 @@ class WrappedRedvoxPacket:
 
         return None
 
-    def set_magnetometer_channel(self, magnetometer_sensor: typing.Optional[MagnetometerSensor]) -> 'WrappedRedvoxPacket':
+    def set_magnetometer_channel(self,
+                                 magnetometer_sensor: typing.Optional[MagnetometerSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's magnetomer sensor. A channel can be removed by passing in None.
         :param magnetometer_sensor: An optional instance of a magnetometer sensor.
