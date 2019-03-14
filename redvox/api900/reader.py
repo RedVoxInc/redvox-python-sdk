@@ -1993,11 +1993,11 @@ class WrappedRedvoxPacket:
             """Protobuf api 900 redvox packet"""
 
             self._evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
-                    map(EvenlySampledChannel, _repeated_to_array(redvox_packet._evenly_sampled_channels)))
+                    map(EvenlySampledChannel, _repeated_to_array(redvox_packet.evenly_sampled_channels)))
             """List of evenly sampled channels"""
 
             self._unevenly_sampled_channels: typing.List[UnevenlySampledChannel] = list(
-                    map(UnevenlySampledChannel, _repeated_to_array(redvox_packet._unevenly_sampled_channels)))
+                    map(UnevenlySampledChannel, _repeated_to_array(redvox_packet.unevenly_sampled_channels)))
             """List of unevenly sampled channels"""
 
             self._metadata_list: typing.List[str] = _repeated_to_list(redvox_packet.metadata)
