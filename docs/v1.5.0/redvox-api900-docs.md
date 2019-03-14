@@ -21,7 +21,6 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Working with light sensor channels](#markdown-header-working-with-light-sensor-channels)
 * [Working with infrafred sensor channels](#markdown-header-working-with-infrared-sensor-channels)
 * [Working with image sensor channels](#markdown-header-working-with-image-sensor-channels)
-* [Full Example](https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/example.py)
 * [Generated API Documentation](https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/)
 
 ### Prerequisites
@@ -71,7 +70,7 @@ Once the redvox library has been installed from pip, the CLI can be accessed by 
 
 ##### Example: Converting .rdvxz files to RedVox API 900 .json files
 
-Given the following files in `/data` (or a directory of your choice)
+Given the following files in `/docs/v1.5.0` (or a directory of your choice)
 
 ```
 > ls -l /data
