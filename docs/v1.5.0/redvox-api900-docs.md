@@ -12,6 +12,7 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Updating the RedVox Python SDK](#markdown-header-updating-the-redvox-python-sdk)
 * [Working with the SDK CLI](#markdown-header-working-with-the-sdk-cli)
 * [Loading RedVox API 900 files](#markdown-header-loading-redvox-api-900-files)
+* [Working with WrappedRedvoxPackets](#markdown-header-working-with-wrappedredvoxpackets)
 * [Working with microphone sensor channels](#markdown-header-working-with-microphone-sensor-channels)
 * [Working with barometer sensor channels](#markdown-header-working-with-barometer-sensor-channels)
 * [Working with location sensor channels](#markdown-header-working-with-location-sensor-channels)
@@ -175,6 +176,10 @@ The following table summarizes the available top-level function of reader.py.
 | wrap(redvox_packet: api900_pb2.RedvoxPacket) | WrappedRedvoxPacket | Wraps a low-level RedVox packet in our high-level API |
 | from_json(json: str) | api900_pb2.RedvoxPacket | Accepts a string containing JSON and converts it into an instance of an api900_pb2.RedvoxPacket |
 | to_json(redvox_packet: api900_pb2.RedvoxPacket | str | Converts an instance of an api900_pb2.RedvoxPacket into a string containing json |
+
+### Working with WrappedRedvoxPackets
+
+Once a file is loaded, we can now access its top level metadata and sensor fields.
 
 The following is a table that summarizes the convenience methods provided by the WrappedRedvoxPacket class. For brevity, we only list the new, high-level API methods. If you wish to use or dig into the low-level protobuf API, please see the section titled "Low Level Access".
 
