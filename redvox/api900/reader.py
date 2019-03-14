@@ -272,9 +272,24 @@ def _interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
     return interleaved_array
 
 
+def _implements_diff(val) -> bool:
+    diff_atr = getattr(val, "diff", None)
+    if callable(diff_atr):
+        return True
+
+    return False
+
+
 def _diff(val1, val2) -> typing.Tuple[bool, typing.Optional[str]]:
     if type(val1) != type(val2):
         return True, "type {} != type {}".format(type(val1), type(val2))
+
+    if _implements_diff(val1) and _implements_diff(val2):
+        diffs = val1.diff(val2)
+        if len(diffs) == 0:
+            return False, None
+        else:
+            return True, "%s" % list(diffs)
 
     if isinstance(val1, numpy.ndarray) and isinstance(val2, numpy.ndarray):
         if numpy.array_equal(val1, val2):
@@ -1628,7 +1643,6 @@ class TimeSynchronizationSensor:
         # Extract the difference string
         diffs = map(lambda tuple2: tuple2[1], diffs)
         return list(diffs)
-
 
 
 class AccelerometerSensor(XyzUnevenlySampledSensor):
