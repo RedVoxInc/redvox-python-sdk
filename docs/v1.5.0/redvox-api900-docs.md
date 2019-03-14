@@ -9,7 +9,7 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Prerequisites](#markdown-header-prerequisites)
 * [Installing from pip](#markdown-header-installing-from-pip)
 * [Installing from source](#markdown-header-installing-from-source)
-* [Updating the RedVox Python SDK](#markdown-header-updating-the-redvox-sdk)
+* [Updating the RedVox Python SDK](#markdown-header-updating-the-redvox-python-sdk)
 * [Working with the SDK CLI](#markdown-header-working-with-the-sdk-cli)
 * [Loading RedVox API 900 files](#markdown-header-loading-redvox-api-900-files)
 * [Working with microphone sensor channels](#markdown-header-working-with-microphone-sensor-channels)
@@ -22,8 +22,8 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Working with light sensor channels](#markdown-header-working-with-light-sensor-channels)
 * [Working with infrafred sensor channels](#markdown-header-working-with-infrared-sensor-channels)
 * [Working with image sensor channels](#markdown-header-working-with-image-sensor-channels)
-* [Example files](https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/)
-* [Generated API Documentation](https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/)
+* [Example files](#markdown-header-example-files)
+* [Generated API Documentation](#markdown-header-generated-api-documentation)
 
 ### Prerequisites
 
