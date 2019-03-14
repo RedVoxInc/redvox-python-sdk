@@ -22,7 +22,7 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Working with light sensor channels](#markdown-header-working-with-light-sensor-channels)
 * [Working with infrafred sensor channels](#markdown-header-working-with-infrared-sensor-channels)
 * [Working with image sensor channels](#markdown-header-working-with-image-sensor-channels)
-* [Example files]()
+* [Example files](https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/)
 * [Generated API Documentation](https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/)
 
 ### Prerequisites
@@ -1038,4 +1038,10 @@ image_sensor_channel = redvox_api900_file.image_channel()
     image_sensor_channel = ImageSensor().create_image("Example Image", ["images", "0"], [1, 2, 3], [1, 10, 100])
 ```
 
+### Example files
 
+A set of example files can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/
+
+### Generated API documentation
+
+API documentation for this library can be found at: https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/
