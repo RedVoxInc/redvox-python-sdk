@@ -2214,7 +2214,7 @@ class WrappedRedvoxPacket:
         """
         return _lz4_compress(self._redvox_packet.SerializeToString())
 
-    def default_filename(self, extension: str = ".rdvxz") -> str:
+    def default_filename(self, extension: str = "rdvxz") -> str:
         return "%s_%d.%s" % (self.redvox_id(), int(round(self.app_file_start_timestamp_machine() / 1000.0)), extension)
 
     def write_rdvxz(self, directory: str, filename: typing.Optional[str] = None):
@@ -2224,7 +2224,7 @@ class WrappedRedvoxPacket:
             rdvxz_out.write(self.compressed_buffer())
 
     def write_json(self, directory: str, filename: typing.Optional[str] = None):
-        filename = self.default_filename(extension=".json") if filename is None else filename
+        filename = self.default_filename(extension="json") if filename is None else filename
         path = os.path.join(directory, filename)
         with open(path, "w") as json_out:
             json_out.write(self.to_json())
