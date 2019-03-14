@@ -141,7 +141,7 @@ class WriteAndSetModules(ArraysTestCase):
         newpacket._add_channel(loc_sen.__unevenly_sampled_channel)
 
         # write to a file
-        rar.write_file("write_test.rdvxz", newpacket._redvox_packet)
+        rar._write_file("write_test.rdvxz", newpacket._redvox_packet)
 
 
 if __name__ == '__main__':

@@ -22,7 +22,7 @@ def to_json(paths: typing.List[str]):
         new_path = path.replace(".rdvxz", ".json")
         print("Converting %s -> %s" % (path, new_path))
         with open(new_path, "w") as fout:
-            fout.write(reader.to_json(pb_packet))
+            fout.write(reader._to_json(pb_packet))
 
     list(map(_to_json, paths))
 
@@ -42,7 +42,7 @@ def to_rdvxz(paths: typing.List[str]):
 
         new_path = path.replace(".json", ".rdvxz")
         print("Converting %s -> %s" % (path, new_path))
-        reader.write_file(new_path, reader.from_json(json))
+        reader._write_file(new_path, reader._from_json(json))
 
     list(map(_to_rdvxz, paths))
 

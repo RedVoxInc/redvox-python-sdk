@@ -4,7 +4,6 @@ dist/
 redvox.egg-info/
 *.pyc
 *.iml
-example_packet_creation.py
 *.orig
 *.jpg
 *.jpeg

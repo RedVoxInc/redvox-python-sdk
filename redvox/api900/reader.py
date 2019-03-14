@@ -43,7 +43,7 @@ def _uncompressed_size_bytes(size: int) -> bytes:
     return struct.pack(">I", size)
 
 
-def lz4_decompress(buf: bytes) -> bytes:
+def _lz4_decompress(buf: bytes) -> bytes:
     """
     Decompresses an API 900 compressed buffer.
     :param buf: The buffer to decompress.
@@ -58,7 +58,7 @@ def lz4_decompress(buf: bytes) -> bytes:
 
 
 # noinspection PyArgumentList
-def lz4_compress(buf: bytes) -> bytes:
+def _lz4_compress(buf: bytes) -> bytes:
     """
     Compresses a buffer using LZ4. The compressed buffer is then prepended with the 4 bytes indicating the original
     size of uncompressed buffer.
@@ -70,49 +70,19 @@ def lz4_compress(buf: bytes) -> bytes:
     return uncompressed_size + compressed
 
 
-def read_buffer(buf: bytes, is_compressed: bool = True) -> api900_pb2.RedvoxPacket:
-    """
-    Deserializes a serialized protobuf RedvoxPacket buffer.
-    :param buf: Buffer to deserialize.
-    :param is_compressed: Whether or not the buffer is compressed or decompressed.
-    :return: Deserialized protobuf redvox packet.
-    """
-    buffer = lz4_decompress(buf) if is_compressed else buf
-    redvox_packet = api900_pb2.RedvoxPacket()
-    redvox_packet.ParseFromString(buffer)
-    return redvox_packet
-
-
-def read_file(file: str, is_compressed: bool = None) -> api900_pb2.RedvoxPacket:
-    """
-    Deserializes a serialized protobuf RedvoxPacket file.
-    :param file: File to deserialize.
-    :param is_compressed: Whether or not the file is compressed or decompressed.
-    :return: Deserialized protobuf redvox packet.
-    """
-    file_ext = file.split(".")[-1]
-
-    if is_compressed is None:
-        _is_compressed = True if file_ext == "rdvxz" else False
-    else:
-        _is_compressed = is_compressed
-    with open(file, "rb") as fin:
-        return read_buffer(fin.read(), _is_compressed)
-
-
-def write_file(file: str, redvox_packet: api900_pb2.RedvoxPacket):
+def _write_file(file: str, redvox_packet: api900_pb2.RedvoxPacket):
     """
     Writes a redvox file.  Specify the correct file type in the file string.
     :param file: str, File to write
     :param redvox_packet: protobuf packet to write
     :return: Nothing, compressed file is written to disk
     """
-    buffer = lz4_compress(redvox_packet.SerializeToString())
+    buffer = _lz4_compress(redvox_packet.SerializeToString())
     with open(file, "wb") as f:
         f.write(buffer)
 
 
-def to_json(redvox_packet: api900_pb2.RedvoxPacket) -> str:
+def _to_json(redvox_packet: api900_pb2.RedvoxPacket) -> str:
     """
     Converts a protobuf encoded API 900 RedVox packet into JSON.
     :param redvox_packet: The protobuf encoded packet.
@@ -121,7 +91,7 @@ def to_json(redvox_packet: api900_pb2.RedvoxPacket) -> str:
     return json_format.MessageToJson(redvox_packet)
 
 
-def from_json(redvox_packet_json: str) -> api900_pb2.RedvoxPacket:
+def _from_json(redvox_packet_json: str) -> api900_pb2.RedvoxPacket:
     """
     Converts a JSON packet representing an API 900 packet into a protobuf encoded RedVox API 900 packet.
     :param redvox_packet_json: A string containing the json representing the packet.
@@ -2234,14 +2204,22 @@ class WrappedRedvoxPacket:
         Converts the protobuf packet stored in this wrapped packet to JSON.
         :return: The JSON representation of the protobuf encoded packet.
         """
-        return to_json(self._redvox_packet)
+        return _to_json(self._redvox_packet)
 
     def compressed_buffer(self) -> bytes:
         """
         Returns the compressed buffer associated with this packet.
         :return: The compressed buffer associated with this packet.
         """
-        return lz4_compress(self._redvox_packet.SerializeToString())
+        return _lz4_compress(self._redvox_packet.SerializeToString())
+
+    def write_rdvxz(self, path: str):
+        with open(path, "wb") as rdvxz_out:
+            rdvxz_out.write(self.compressed_buffer())
+
+    def write_json(self, path: str):
+        with open(path, "w") as json_out:
+            json_out.write(self.to_json())
 
     def api(self) -> int:
         """
@@ -2990,6 +2968,53 @@ def wrap(redvox_packet: api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:
         A wrapper redvox packet.
     """
     return WrappedRedvoxPacket(redvox_packet)
+
+
+def read_buffer(buf: bytes, is_compressed: bool = True) -> api900_pb2.RedvoxPacket:
+    """
+    Deserializes a serialized protobuf RedvoxPacket buffer.
+    :param buf: Buffer to deserialize.
+    :param is_compressed: Whether or not the buffer is compressed or decompressed.
+    :return: Deserialized protobuf redvox packet.
+    """
+    buffer = _lz4_decompress(buf) if is_compressed else buf
+    redvox_packet = api900_pb2.RedvoxPacket()
+    redvox_packet.ParseFromString(buffer)
+    return redvox_packet
+
+
+def read_file(file: str, is_compressed: bool = None) -> api900_pb2.RedvoxPacket:
+    """
+    Deserializes a serialized protobuf RedvoxPacket file.
+    :param file: File to deserialize.
+    :param is_compressed: Whether or not the file is compressed or decompressed.
+    :return: Deserialized protobuf redvox packet.
+    """
+    file_ext = file.split(".")[-1]
+
+    if is_compressed is None:
+        _is_compressed = True if file_ext == "rdvxz" else False
+    else:
+        _is_compressed = is_compressed
+    with open(file, "rb") as fin:
+        return read_buffer(fin.read(), _is_compressed)
+
+
+def read_rdvxz_file(path: str) -> WrappedRedvoxPacket:
+    return read_file(path)
+
+
+def read_rdvxz_buffer(buf: bytes) -> WrappedRedvoxPacket:
+    return read_buffer(buf)
+
+
+def read_json_file(path: str) -> WrappedRedvoxPacket:
+    with open(path, "r") as json_in:
+        return _from_json(json_in.read())
+
+
+def read_json_string(json: str) -> WrappedRedvoxPacket:
+    return _from_json(json)
 
 
 def read_directory(directory_path: str) -> typing.Dict[str, typing.List[WrappedRedvoxPacket]]:
