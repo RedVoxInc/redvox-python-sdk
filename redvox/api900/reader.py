@@ -2442,12 +2442,12 @@ class WrappedRedvoxPacket:
         """
         return self._redvox_packet.device_os
 
-    def set_device_os(self, os: str) -> 'WrappedRedvoxPacket':
+    def set_device_os(self, device_os: str) -> 'WrappedRedvoxPacket':
         """
         sets the device operating system
-        :param os: operating system string
+        :param device_os: operating system string
         """
-        self._redvox_packet.device_os = os
+        self._redvox_packet.device_os = device_os
         return self
 
     def device_os_version(self) -> str:
