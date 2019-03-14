@@ -79,91 +79,31 @@ Once the redvox library has been installed from pip, the CLI can be accessed by 
 Given the following files in `/docs/v1.5.0/examples/example_data` (or a directory of your choice)
 
 ```
-> ls -l /data
-total 616
--rwxr-xr-x@ 1 anthony  wheel  25205 Mar 11 14:46 1637660007_1552350841586.rdvxz
--rwxr-xr-x@ 1 anthony  wheel  25133 Mar 11 14:46 1637660007_1552350892787.rdvxz
--rwxr-xr-x@ 1 anthony  wheel  25200 Mar 11 14:46 1637660007_1552350943987.rdvxz
--rwxr-xr-x@ 1 anthony  wheel  25156 Mar 11 14:46 1637660007_1552350995187.rdvxz
--rwxr-xr-x@ 1 anthony  wheel  25147 Mar 11 14:46 1637660007_1552351046386.rdvxz
--rwxr-xr-x@ 1 anthony  wheel  25211 Mar 11 14:46 1637660007_1552351097587.rdvxz
--rwxr-xr-x@ 1 anthony  wheel  25117 Mar 11 14:46 1637660007_1552351148787.rdvxz
--rwxr-xr-x@ 1 anthony  wheel  25264 Mar 11 14:46 1637660007_1552351199987.rdvxz
--rwxr-xr-x@ 1 anthony  wheel  25093 Mar 11 14:46 1637660007_1552351251185.rdvxz
--rwxr-xr-x@ 1 anthony  wheel  25262 Mar 11 14:46 1637660007_1552351302387.rdvxz
--rwxr-xr-x@ 1 anthony  wheel  25240 Mar 11 14:46 1637660007_1552351353587.rdvxz
+
 ```
 
 Let's first convert a single file to .json.
 
 ```
-> python3 -m redvox.api900.cli to_json /data/1637660007_1552350841586.rdvxz
-Converting /data/1637660007_1552350841586.rdvxz -> /data/1637660007_1552350841586.json
+
 ```
 
 And now if we look at the directory listing we see the .json file.
 
 ```
-> ls -l /data
-total 952
--rw-r--r--  1 anthony  wheel  169519 Mar 11 14:50 1637660007_1552350841586.json
--rwxr-xr-x@ 1 anthony  wheel   25205 Mar 11 14:46 1637660007_1552350841586.rdvxz
--rwxr-xr-x@ 1 anthony  wheel   25133 Mar 11 14:46 1637660007_1552350892787.rdvxz
--rwxr-xr-x@ 1 anthony  wheel   25200 Mar 11 14:46 1637660007_1552350943987.rdvxz
--rwxr-xr-x@ 1 anthony  wheel   25156 Mar 11 14:46 1637660007_1552350995187.rdvxz
--rwxr-xr-x@ 1 anthony  wheel   25147 Mar 11 14:46 1637660007_1552351046386.rdvxz
--rwxr-xr-x@ 1 anthony  wheel   25211 Mar 11 14:46 1637660007_1552351097587.rdvxz
--rwxr-xr-x@ 1 anthony  wheel   25117 Mar 11 14:46 1637660007_1552351148787.rdvxz
--rwxr-xr-x@ 1 anthony  wheel   25264 Mar 11 14:46 1637660007_1552351199987.rdvxz
--rwxr-xr-x@ 1 anthony  wheel   25093 Mar 11 14:46 1637660007_1552351251185.rdvxz
--rwxr-xr-x@ 1 anthony  wheel   25262 Mar 11 14:46 1637660007_1552351302387.rdvxz
--rwxr-xr-x@ 1 anthony  wheel   25240 Mar 11 14:46 1637660007_1552351353587.rdvxz
+
 ```
 
 We can convert multiple files at once with:
 
 ```
-> python3 -m redvox.api900.cli to_json /data/*.rdvxz
-Converting /data/1637660007_1552350841586.rdvxz -> /data/1637660007_1552350841586.json
-Converting /data/1637660007_1552350892787.rdvxz -> /data/1637660007_1552350892787.json
-Converting /data/1637660007_1552350943987.rdvxz -> /data/1637660007_1552350943987.json
-Converting /data/1637660007_1552350995187.rdvxz -> /data/1637660007_1552350995187.json
-Converting /data/1637660007_1552351046386.rdvxz -> /data/1637660007_1552351046386.json
-Converting /data/1637660007_1552351097587.rdvxz -> /data/1637660007_1552351097587.json
-Converting /data/1637660007_1552351148787.rdvxz -> /data/1637660007_1552351148787.json
-Converting /data/1637660007_1552351199987.rdvxz -> /data/1637660007_1552351199987.json
-Converting /data/1637660007_1552351251185.rdvxz -> /data/1637660007_1552351251185.json
-Converting /data/1637660007_1552351302387.rdvxz -> /data/1637660007_1552351302387.json
-Converting /data/1637660007_1552351353587.rdvxz -> /data/1637660007_1552351353587.json
+
 ```
 
 and the contents of the directory contains:
 
 ```
-> ls -l /data
-total 4312
--rw-r--r--  1 anthony  wheel  169519 Mar 11 14:51 1637660007_1552350841586.json
--rwxr-xr-x@ 1 anthony  wheel   25205 Mar 11 14:46 1637660007_1552350841586.rdvxz
--rw-r--r--  1 anthony  wheel  169337 Mar 11 14:51 1637660007_1552350892787.json
--rwxr-xr-x@ 1 anthony  wheel   25133 Mar 11 14:46 1637660007_1552350892787.rdvxz
--rw-r--r--  1 anthony  wheel  169650 Mar 11 14:51 1637660007_1552350943987.json
--rwxr-xr-x@ 1 anthony  wheel   25200 Mar 11 14:46 1637660007_1552350943987.rdvxz
--rw-r--r--  1 anthony  wheel  169327 Mar 11 14:51 1637660007_1552350995187.json
--rwxr-xr-x@ 1 anthony  wheel   25156 Mar 11 14:46 1637660007_1552350995187.rdvxz
--rw-r--r--  1 anthony  wheel  168937 Mar 11 14:51 1637660007_1552351046386.json
--rwxr-xr-x@ 1 anthony  wheel   25147 Mar 11 14:46 1637660007_1552351046386.rdvxz
--rw-r--r--  1 anthony  wheel  169511 Mar 11 14:51 1637660007_1552351097587.json
--rwxr-xr-x@ 1 anthony  wheel   25211 Mar 11 14:46 1637660007_1552351097587.rdvxz
--rw-r--r--  1 anthony  wheel  169474 Mar 11 14:51 1637660007_1552351148787.json
--rwxr-xr-x@ 1 anthony  wheel   25117 Mar 11 14:46 1637660007_1552351148787.rdvxz
--rw-r--r--  1 anthony  wheel  169343 Mar 11 14:51 1637660007_1552351199987.json
--rwxr-xr-x@ 1 anthony  wheel   25264 Mar 11 14:46 1637660007_1552351199987.rdvxz
--rw-r--r--  1 anthony  wheel  169316 Mar 11 14:51 1637660007_1552351251185.json
--rwxr-xr-x@ 1 anthony  wheel   25093 Mar 11 14:46 1637660007_1552351251185.rdvxz
--rw-r--r--  1 anthony  wheel  169456 Mar 11 14:51 1637660007_1552351302387.json
--rwxr-xr-x@ 1 anthony  wheel   25262 Mar 11 14:46 1637660007_1552351302387.rdvxz
--rw-r--r--  1 anthony  wheel  169449 Mar 11 14:51 1637660007_1552351353587.json
--rwxr-xr-x@ 1 anthony  wheel   25240 Mar 11 14:46 1637660007_1552351353587.rdvxz
+
 ```
 
 ##### Example: Converting RedVox compliant API 900 .json files to .rdvxz files
@@ -173,92 +113,31 @@ We can also convert from .json files to .rdvxz files using the `to_rdvxz command
 Let's start with a directory of .json files.
 
 ```
-> ls -l /data
-total 3696
--rw-r--r--  1 anthony  wheel  169519 Mar 11 14:51 1637660007_1552350841586.json
--rw-r--r--  1 anthony  wheel  169337 Mar 11 14:51 1637660007_1552350892787.json
--rw-r--r--  1 anthony  wheel  169650 Mar 11 14:51 1637660007_1552350943987.json
--rw-r--r--  1 anthony  wheel  169327 Mar 11 14:51 1637660007_1552350995187.json
--rw-r--r--  1 anthony  wheel  168937 Mar 11 14:51 1637660007_1552351046386.json
--rw-r--r--  1 anthony  wheel  169511 Mar 11 14:51 1637660007_1552351097587.json
--rw-r--r--  1 anthony  wheel  169474 Mar 11 14:51 1637660007_1552351148787.json
--rw-r--r--  1 anthony  wheel  169343 Mar 11 14:51 1637660007_1552351199987.json
--rw-r--r--  1 anthony  wheel  169316 Mar 11 14:51 1637660007_1552351251185.json
--rw-r--r--  1 anthony  wheel  169456 Mar 11 14:51 1637660007_1552351302387.json
--rw-r--r--  1 anthony  wheel  169449 Mar 11 14:51 1637660007_1552351353587.json
+
 ```
 
 We can convert a single file:
 
 ```
-> python3 -m redvox.api900.cli to_rdvxz /data/1637660007_1552350841586.json
-Converting /data/1637660007_1552350841586.json -> /data/1637660007_1552350841586.rdvxz
+
 ```
 
 and the contents are now:
 
 ```
-> ls -l /data
-total 3752
--rw-r--r--  1 anthony  wheel  169519 Mar 11 14:51 1637660007_1552350841586.json
--rw-r--r--  1 anthony  wheel   26963 Mar 11 14:59 1637660007_1552350841586.rdvxz
--rw-r--r--  1 anthony  wheel  169337 Mar 11 14:51 1637660007_1552350892787.json
--rw-r--r--  1 anthony  wheel  169650 Mar 11 14:51 1637660007_1552350943987.json
--rw-r--r--  1 anthony  wheel  169327 Mar 11 14:51 1637660007_1552350995187.json
--rw-r--r--  1 anthony  wheel  168937 Mar 11 14:51 1637660007_1552351046386.json
--rw-r--r--  1 anthony  wheel  169511 Mar 11 14:51 1637660007_1552351097587.json
--rw-r--r--  1 anthony  wheel  169474 Mar 11 14:51 1637660007_1552351148787.json
--rw-r--r--  1 anthony  wheel  169343 Mar 11 14:51 1637660007_1552351199987.json
--rw-r--r--  1 anthony  wheel  169316 Mar 11 14:51 1637660007_1552351251185.json
--rw-r--r--  1 anthony  wheel  169456 Mar 11 14:51 1637660007_1552351302387.json
--rw-r--r--  1 anthony  wheel  169449 Mar 11 14:51 1637660007_1552351353587.json
+
 ```
 
 or we can convert all the .json files at once
 
 ```
-> python3 -m redvox.api900.cli to_rdvxz /data/*.json
-Converting /data/1637660007_1552350841586.json -> /data/1637660007_1552350841586.rdvxz
-Converting /data/1637660007_1552350892787.json -> /data/1637660007_1552350892787.rdvxz
-Converting /data/1637660007_1552350943987.json -> /data/1637660007_1552350943987.rdvxz
-Converting /data/1637660007_1552350995187.json -> /data/1637660007_1552350995187.rdvxz
-Converting /data/1637660007_1552351046386.json -> /data/1637660007_1552351046386.rdvxz
-Converting /data/1637660007_1552351097587.json -> /data/1637660007_1552351097587.rdvxz
-Converting /data/1637660007_1552351148787.json -> /data/1637660007_1552351148787.rdvxz
-Converting /data/1637660007_1552351199987.json -> /data/1637660007_1552351199987.rdvxz
-Converting /data/1637660007_1552351251185.json -> /data/1637660007_1552351251185.rdvxz
-Converting /data/1637660007_1552351302387.json -> /data/1637660007_1552351302387.rdvxz
-Converting /data/1637660007_1552351353587.json -> /data/1637660007_1552351353587.rdvxz
-(redvox-analysis) 
+
 ```
 
 which changes the directory contents to:
 
 ```
-> ls -l /data
-total 4312
--rw-r--r--  1 anthony  wheel  169519 Mar 11 14:51 1637660007_1552350841586.json
--rw-r--r--  1 anthony  wheel   26963 Mar 11 15:00 1637660007_1552350841586.rdvxz
--rw-r--r--  1 anthony  wheel  169337 Mar 11 14:51 1637660007_1552350892787.json
--rw-r--r--  1 anthony  wheel   26907 Mar 11 15:00 1637660007_1552350892787.rdvxz
--rw-r--r--  1 anthony  wheel  169650 Mar 11 14:51 1637660007_1552350943987.json
--rw-r--r--  1 anthony  wheel   27091 Mar 11 15:00 1637660007_1552350943987.rdvxz
--rw-r--r--  1 anthony  wheel  169327 Mar 11 14:51 1637660007_1552350995187.json
--rw-r--r--  1 anthony  wheel   27057 Mar 11 15:00 1637660007_1552350995187.rdvxz
--rw-r--r--  1 anthony  wheel  168937 Mar 11 14:51 1637660007_1552351046386.json
--rw-r--r--  1 anthony  wheel   27035 Mar 11 15:00 1637660007_1552351046386.rdvxz
--rw-r--r--  1 anthony  wheel  169511 Mar 11 14:51 1637660007_1552351097587.json
--rw-r--r--  1 anthony  wheel   27119 Mar 11 15:00 1637660007_1552351097587.rdvxz
--rw-r--r--  1 anthony  wheel  169474 Mar 11 14:51 1637660007_1552351148787.json
--rw-r--r--  1 anthony  wheel   26967 Mar 11 15:00 1637660007_1552351148787.rdvxz
--rw-r--r--  1 anthony  wheel  169343 Mar 11 14:51 1637660007_1552351199987.json
--rw-r--r--  1 anthony  wheel   27069 Mar 11 15:00 1637660007_1552351199987.rdvxz
--rw-r--r--  1 anthony  wheel  169316 Mar 11 14:51 1637660007_1552351251185.json
--rw-r--r--  1 anthony  wheel   27022 Mar 11 15:00 1637660007_1552351251185.rdvxz
--rw-r--r--  1 anthony  wheel  169456 Mar 11 14:51 1637660007_1552351302387.json
--rw-r--r--  1 anthony  wheel   27162 Mar 11 15:00 1637660007_1552351302387.rdvxz
--rw-r--r--  1 anthony  wheel  169449 Mar 11 14:51 1637660007_1552351353587.json
--rw-r--r--  1 anthony  wheel   27145 Mar 11 15:00 1637660007_1552351353587.rdvxz
+
 ```
 
 ##### Example: Displaying the contents of .rdvxz files
@@ -268,26 +147,13 @@ It's possible to display the contents of a single or multiple .rdvxz files with 
 To display the contents of a single file:
 
 ```
-python3 -m redvox.api900.cli print /data/1637660007_1552351353587.rdvxz
 
- ------------- Contents of /data/1637660007_1552351353587.rdvxz
-api: 900
-uuid: "522630568"
-redvox_id: "1637660007"
-authenticated_email: "redvoxcore@gmail.com"
-authentication_token: "redacted-1113962610"
-device_make: "Huawei"
-device_model: "Nexus 6P"
-device_os: "Android"
-device_os_version: "8.1.0"
-app_version: "2.4.2"
-...
 ```
 
 Multiple files can be displayed at once as well with:
 
 ```
-python3 -m redvox.api900.cli print /data/*.rdvxz
+
 ```
 
 ### Loading RedVox API 900 Files
@@ -665,61 +531,16 @@ The `MagnetometerSensor` class contains methods for directly accessing the field
 ##### Creating a magnetometer sensor
 These functions create an magnetometer sensor:
 
-```
-create_magnetometer(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
-create_magnetometer_from_deinterleaved_arrays(sensor_name: str, metadata: typing.List[str], payload: typing.List[numpy.array], timestamps: numpy.ndarray)
+```python
+
 ```
 Give the first function a sensor name (sensor_name), metadata (metadata), the data as an interleaved array (payload), the timestamps in microseconds since epoch utc (timestamps).  The data should look like : [x_0, y_0, z_0, x_1, y_1, z_1, ... , x_n, y_n, z_n] where 0-n is the index of the samples.
 Give the second function a sensor name (sensor_name), metadata (metadata), the list of arrays that make up the data (payload), the timestamps in microseconds since epoch utc (timestamps).  There are usually 3 channels in an magnetometer sensor, so you should give this function 3 arrays.  For consistency, put the arrays in order of: x-axis, y-axis, z-axis.
 
 ##### Example magnetometer sensor reading
 
-```
-redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
+```python
 
-# Magnetometer channel
-if redvox_api900_file.has_magnetometer_channel():
-    magnetometer_channel = redvox_api900_file.magnetometer_channel()
-
-    # Access to sensor fields
-    print(magnetometer_channel.sensor_name())
-    print(magnetometer_channel.timestamps_microseconds_utc())
-    print(magnetometer_channel.sample_interval_mean())
-    print(magnetometer_channel.sample_interval_median())
-    print(magnetometer_channel.sample_interval_std())
-
-    # The statistics can be accessed for each sensor channel individually
-    print(magnetometer_channel.payload_values_x_mean())
-    print(magnetometer_channel.payload_values_x_median())
-    print(magnetometer_channel.payload_values_x_std())
-    print(magnetometer_channel.payload_values_y_mean())
-    print(magnetometer_channel.payload_values_y_median())
-    print(magnetometer_channel.payload_values_y_std())
-    print(magnetometer_channel.payload_values_z_mean())
-    print(magnetometer_channel.payload_values_z_median())
-    print(magnetometer_channel.payload_values_z_std())
-
-    # The payload can be accessed as a single interleaved channel
-    print(magnetometer_channel.payload_values())
-
-    # Or individual components
-    print(magnetometer_channel.payload_values_x())
-    print(magnetometer_channel.payload_values_y())
-    print(magnetometer_channel.payload_values_z())
-
-    print(magnetometer_channel.metadata_as_dict())
-    print(magnetometer_channel.metadata())
-    print(magnetometer_channel.payload_type())
-
-    # Changing values
-    magnetometer_channel.set_sensor_name("Example Magnetometer")
-    magnetometer_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
-
-    # Setting values
-    magnetometer_channel.create_magnetometer("Example Magnetometer", ["meta", "data"], [1, 2, 3, 1.1, 2.2, 3.3, 1.11, 2.22, 3.33], [1, 10, 100])
-    magnetometer_channel.create_magnetometer_from_deinterleaved_arrays("Example Magnetometer", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33]], [1, 10, 100])
-    magnetometer_channel = MagnetometerSensor().create_magnetometer("Example Magnetometer", ["meta", "data"], [1, 2, 3, 1.1, 2.2, 3.3, 1.11, 2.22, 3.33], [1, 10, 100])
-    magnetometer_channel = MagnetometerSensor().create_magnetometer_from_deinterleaved_arrays("Example Magnetometer", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33]], [1, 10, 100])
 ```
 
 ### Working with gyroscope sensor channels
@@ -760,60 +581,15 @@ The `GyroscopeSensor` class contains methods for directly accessing the fields a
 ##### Creating a gyroscope sensor
 These functions create an gyroscope sensor:
 
-```
-create_gyroscope(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
-create_gyroscope_from_deinterleaved_arrays(sensor_name: str, metadata: typing.List[str], payload: typing.List[numpy.array], timestamps: numpy.ndarray)
+```python
+
 ```
 Give the first function a sensor name (sensor_name), metadata (metadata), the data as an interleaved array (payload), the timestamps in microseconds since epoch utc (timestamps).  The data should look like : [x_0, y_0, z_0, x_1, y_1, z_1, ... , x_n, y_n, z_n] where 0-n is the index of the samples.
 Give the second function a sensor name (sensor_name), metadata (metadata), the list of arrays that make up the data (payload), the timestamps in microseconds since epoch utc (timestamps).  There are usually 3 channels in an gyroscope sensor, so you should give this function 3 arrays.  For consistency, put the arrays in order of: x-axis, y-axis, z-axis.
 
 ##### Example gyroscope sensor reading
 
-```
-redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
-
-if redvox_api900_file.has_magnetometer_channel():
-    gyroscope_channel = redvox_api900_file.gyroscope_channel()
-
-    # Access to sensor fields
-    print(gyroscope_channel.sensor_name())
-    print(gyroscope_channel.timestamps_microseconds_utc())
-    print(gyroscope_channel.sample_interval_mean())
-    print(gyroscope_channel.sample_interval_median())
-    print(gyroscope_channel.sample_interval_std())
-
-    # The statistics can be accessed for each sensor channel individually
-    print(gyroscope_channel.payload_values_x_mean())
-    print(gyroscope_channel.payload_values_x_median())
-    print(gyroscope_channel.payload_values_x_std())
-    print(gyroscope_channel.payload_values_y_mean())
-    print(gyroscope_channel.payload_values_y_median())
-    print(gyroscope_channel.payload_values_y_std())
-    print(gyroscope_channel.payload_values_z_mean())
-    print(gyroscope_channel.payload_values_z_median())
-    print(gyroscope_channel.payload_values_z_std())
-
-    # The payload can be accessed as a single interleaved channel
-    print(gyroscope_channel.payload_values())
-
-    # Or individual components
-    print(gyroscope_channel.payload_values_x())
-    print(gyroscope_channel.payload_values_y())
-    print(gyroscope_channel.payload_values_z())
-
-    print(gyroscope_channel.metadata_as_dict())
-    print(gyroscope_channel.metadata())
-    print(gyroscope_channel.payload_type())
-
-    # Changing values
-    gyroscope_channel.set_sensor_name("Example Gyroscope")
-    gyroscope_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
-
-    # Setting values
-    gyroscope_channel.create_gyroscope("Example Gyroscope", ["meta", "data"], [1, 2, 3, 1.1, 2.2, 3.3, 1.11, 2.22, 3.33], [1, 10, 100])
-    gyroscope_channel.create_gyroscope_from_deinterleaved_arrays("Example Gyroscope", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33]], [1, 10, 100])
-    gyroscope_channel = GyroscopeSensor().create_gyroscope("Example Gyroscope", ["meta", "data"], [1, 2, 3, 1.1, 2.2, 3.3, 1.11, 2.22, 3.33], [1, 10, 100])
-    gyroscope_channel = GyroscopeSensor().create_gyroscope_from_deinterleaved_arrays("Example Gyroscope", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33]], [1, 10, 100])
+```python
 
 ```
 
@@ -846,43 +622,15 @@ The `LightSensor` class contains methods for directly accessing the fields and p
 ##### Creating a light sensor
 This function creates a light sensor:
 
-```
-create_light(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
+```python
+
 ```
 Give it a sensor name (sensor_name), metadata (metadata), the data (payload), the timestamps in microseconds since epoch utc (timestamps)
 
 ##### Example light sensor reading
 
-```
-redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
+```print
 
-if redvox_api900_file.has_light_channel():
-    light_sensor_channel = redvox_api900_file.light_channel()
-
-    # Access to sensor fields
-    print(light_sensor_channel.sensor_name())
-    print(light_sensor_channel.timestamps_microseconds_utc())
-    print(light_sensor_channel.sample_interval_mean())
-    print(light_sensor_channel.sample_interval_median())
-    print(light_sensor_channel.sample_interval_std())
-    print(light_sensor_channel.payload_mean())
-    print(light_sensor_channel.payload_median())
-    print(light_sensor_channel.payload_std())
-
-    # Access to sensor values
-    print(light_sensor_channel.payload_values())
-
-    print(light_sensor_channel.metadata_as_dict())
-    print(light_sensor_channel.metadata())
-    print(light_sensor_channel.payload_type())
-
-    # Changing values
-    light_sensor_channel.set_sensor_name("Example Light")
-    light_sensor_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
-
-    # Setting_values
-    light_sensor_channel.create_light("Example Light", ["meta", "data"], [1, 2, 3, 4, 5], [1, 10, 100, 1000, 10000])
-    light_sensor_channel = LightSensor().create_light("Example Light", ["meta", "data"], [1, 2, 3, 4, 5], [1, 10, 100, 1000, 10000])
 ```
 
 ### Working with infrared sensor channels
@@ -914,128 +662,15 @@ The `InfraredSensor` class contains methods for directly accessing the fields an
 ##### Creating an infrared sensor
 This function creates an infrared sensor:
 
-```
-create_infrared(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
+```python
+
 ```
 Give it a sensor name (sensor_name), metadata (metadata), the data (payload), the timestamps in microseconds since epoch utc (timestamps)
 
 ##### Example infrared sensor reading
 
-```
-redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
+```python
 
-if redvox_api900_file.has_light_channel():
-    infrared_sensor_channel = redvox_api900_file.infrared_channel()
-
-    # Access to sensor fields
-    print(infrared_sensor_channel.sensor_name())
-    print(infrared_sensor_channel.timestamps_microseconds_utc())
-    print(infrared_sensor_channel.sample_interval_mean())
-    print(infrared_sensor_channel.sample_interval_median())
-    print(infrared_sensor_channel.sample_interval_std())
-    print(infrared_sensor_channel.payload_mean())
-    print(infrared_sensor_channel.payload_median())
-    print(infrared_sensor_channel.payload_std())
-
-    # Access to sensor values
-    print(infrared_sensor_channel.payload_values())
-
-    print(infrared_sensor_channel.metadata_as_dict())
-    print(infrared_sensor_channel.metadata())
-    print(infrared_sensor_channel.payload_type())
-
-    # Changing values
-    infrared_sensor_channel.set_sensor_name("Example Infrared")
-    infrared_sensor_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
-
-    # Setting values
-    infrared_sensor_channel.create_infrared("Example Infrared", ["meta", "data"], [1, 2, 3], [1, 10, 100])
-    infrared_sensor_channel = InfraredSensor().create_infrared("Example Infrared", ["meta", "data"], [1, 2, 3], [1, 10, 100])
-```
-
-### Working with image sensor channels
-
-It's possible to test for the availability of this sensor in a data packet by calling the method `has_image_channel` on an instance of a `WrappedRedvoxPacket`.
-
-The sensor can be accessed from an instance of a `WrappedRedvoxPacket` by calling the method `image_channel`. `None` is returned if the data packet does not have a channel of this sensor type.
-
-The `ImageSensor` class contains methods for directly accessing the fields and payloads of image channels. The following table briefly describes the available methods for infrared sensor channels.
-
-| Name | Type | Description | 
-|------|------|-------------|
-| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
-| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
-| sensor_name() | str | Returns the name of the sensor for this sensor channel |
-| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
-| payload_values() | numpy.ndarray[float] | A numpy array of floats representing the data payload from this packet's image channel |
-| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
-| sample_interval_median() | float | The median of the sample interval for samples in this packet |
-| sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
-| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
-| metadata() | List[str] | Returns this channel's metadata |
-| set_metadata(List[str]) | | Sets this channel's metadata |
-| payload_type() | str | Return this channel's internal protobuf type as a string |
-| num_images() | img | Return the number of images in this channel |
-| get_image_offsets() | List[int] | Return a list of byte offsets into this channel's payload where each byte offset represents the starting byte of an image |
-| get_image_bytes(idx: int) | numpy.ndarray (uint8) | Returns the bytes associated with the image at this given index (0 indexed) |
-| write_image_to_file(idx: int, path: str) | | Writes the image stored at the given index to the given path on disk |
-| write_all_images_to_directory(directory: str) | | Writes all available images in this packet to the given directory using a default name for each image |
-
-##### Creating an image sensor
-This function creates an image sensor:
-
-```
-create_image(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
-```
-Give it a sensor name (sensor_name), metadata (metadata), the data (payload), the timestamps in microseconds since epoch utc (timestamps)
-
-##### Example image sensor reading
-
-```
-redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
-
-if redvox_api900_file.has_image_channel():
-image_sensor_channel = redvox_api900_file.image_channel()
-
-    # Access to sensor fields
-    print(image_sensor_channel.sensor_name())
-    print(image_sensor_channel.timestamps_microseconds_utc())
-    print(image_sensor_channel.sample_interval_mean())
-    print(image_sensor_channel.sample_interval_median())
-    print(image_sensor_channel.sample_interval_std())
-
-    # Raw byte payload of all images
-    print(len(image_sensor_channel.payload_values()))
-
-    # Number of images in packet payload
-    print(image_sensor_channel.num_images())
-
-    # Byte offsets of each image in payload
-    print(image_sensor_channel.get_image_offsets())
-
-    # Loop through and retrieve the bytes for each image
-    for i in range(image_sensor_channel.num_images()):
-        print(len(image_sensor_channel.get_image_bytes(i)))
-
-    # Write the image files to disk individually and provide a
-    # custom filename
-    for i in range(image_sensor_channel.num_images()):
-        image_sensor_channel.write_image_to_file(i, "{}.jpg".format(i))
-
-    # Write all available images to disk using default filenames
-    image_sensor_channel.write_all_images_to_directory(".")
-
-    print(image_sensor_channel.metadata_as_dict())
-    print(image_sensor_channel.metadata())
-    print(image_sensor_channel.payload_type())
-
-    # Changing values
-    image_sensor_channel.set_sensor_name("Example Image")
-    image_sensor_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
-
-    # Setting values
-    image_sensor_channel.create_image("Example Image", ["images", "0"], [1, 2, 3], [1, 10, 100])
-    image_sensor_channel = ImageSensor().create_image("Example Image", ["images", "0"], [1, 2, 3], [1, 10, 100])
 ```
 
 ### Example files
