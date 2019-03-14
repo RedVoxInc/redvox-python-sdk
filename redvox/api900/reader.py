@@ -244,6 +244,11 @@ def _interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
 
 
 def _implements_diff(val) -> bool:
+    """
+    Checks if a value implements the diff method.
+    :param val: Value to check
+    :return: True is the value implements diff, False otherwise.
+    """
     diff_atr = getattr(val, "diff", None)
     if callable(diff_atr):
         return True
@@ -252,6 +257,12 @@ def _implements_diff(val) -> bool:
 
 
 def _diff(val1, val2) -> typing.Tuple[bool, typing.Optional[str]]:
+    """
+    Determines if the two values are different.
+    :param val1: The first value to check.
+    :param val2: The second value to check.
+    :return: False, None if the values are the same or True, and a string displaying the differences when different.
+    """
     if type(val1) != type(val2):
         return True, "type {} != type {}".format(type(val1), type(val2))
 
@@ -930,6 +941,11 @@ class EvenlySampledSensor:
         return isinstance(other, EvenlySampledSensor) and len(self.diff(other)) == 0
 
     def diff(self, other: 'EvenlySampledSensor') -> typing.List[str]:
+        """
+        Compares two evenly sampled sensors for differences.
+        :param other: The other sensor to compare with.
+        :return: A list of differences or an empty list if there are none.
+        """
         diffs = map(lambda tuple2: _diff(tuple2[0], tuple2[1]), [
             (self.get_channel_type_names(), other.get_channel_type_names()),
             (self.sensor_name(), other.sensor_name()),
@@ -1066,6 +1082,11 @@ class UnevenlySampledSensor:
         return isinstance(other, UnevenlySampledSensor) and len(self.diff(other)) == 0
 
     def diff(self, other: 'UnevenlySampledSensor') -> typing.List[str]:
+        """
+        Compares two unevenly sampled sensors for differences.
+        :param other: The other sensor to compare with.
+        :return: A list odifferences or an empty list if there are none.
+        """
         diffs = map(lambda tuple2: _diff(tuple2[0], tuple2[1]), [
             (self.get_channel_type_names(), other.get_channel_type_names()),
             (self.sensor_name(), other.sensor_name()),
@@ -1603,6 +1624,11 @@ class TimeSynchronizationSensor:
         return isinstance(other, TimeSynchronizationSensor) and len(self.diff(other)) == 0
 
     def diff(self, other: 'TimeSynchronizationSensor') -> typing.List[str]:
+        """
+        Compares two time synchronization sensors for differences.
+        :param other: The other sensor to compare with.
+        :return: A list of differences or an empty list if there are none.
+        """
         diffs = map(lambda tuple2: _diff(tuple2[0], tuple2[1]), [
             (self._unevenly_sampled_channel.channel_types, other._unevenly_sampled_channel.channel_types),
             (self.payload_type(), other.payload_type()),
@@ -2215,15 +2241,30 @@ class WrappedRedvoxPacket:
         return _lz4_compress(self._redvox_packet.SerializeToString())
 
     def default_filename(self, extension: str = "rdvxz") -> str:
+        """
+        Constructs a default filename from the packet's metadata.
+        :param extension: An optional extension to use.
+        :return: A default filename from the packet's metadata.
+        """
         return "%s_%d.%s" % (self.redvox_id(), int(round(self.app_file_start_timestamp_machine() / 1000.0)), extension)
 
     def write_rdvxz(self, directory: str, filename: typing.Optional[str] = None):
+        """
+        Writes a compressed .rdvxz file to the specified directory.
+        :param directory: The directory to write the file to.
+        :param filename: An optional filename (the default filename will be used if one is not provided).
+        """
         filename = self.default_filename() if filename is None else filename
         path = os.path.join(directory, filename)
         with open(path, "wb") as rdvxz_out:
             rdvxz_out.write(self.compressed_buffer())
 
     def write_json(self, directory: str, filename: typing.Optional[str] = None):
+        """
+        Writes a RedVox compliant .json file to the specified directory.
+        :param directory: The directory to write the file to.
+        :param filename: An optional filename (the default filename will be used if one is not provided).
+        """
         filename = self.default_filename(extension="json") if filename is None else filename
         path = os.path.join(directory, filename)
         with open(path, "w") as json_out:
@@ -2906,6 +2947,10 @@ class WrappedRedvoxPacket:
         return None
 
     def set_image_channel(self, image_sensor: typing.Optional[ImageSensor]):
+        """
+        Set's the image channel.
+        :param image_sensor: Image sensor.
+        """
         if self.has_image_channel():
             self._delete_channel(api900_pb2.IMAGE)
 
@@ -2923,6 +2968,11 @@ class WrappedRedvoxPacket:
         return isinstance(other, WrappedRedvoxPacket) and len(self.diff(other)) == 0
 
     def diff(self, other: 'WrappedRedvoxPacket') -> typing.List[str]:
+        """
+        Finds the differences (if any) between two WrappedRedvoxPackets.
+        :param other: The other wrapped redvox packet to compare to.
+        :return: A list of differences or an empty list if there are none.
+        """
         diffs = map(lambda tuple2: _diff(tuple2[0], tuple2[1]), [
             (self.api(), other.api()),
             (self.redvox_id(), other.redvox_id()),
@@ -3009,20 +3059,40 @@ def read_file(file: str, is_compressed: bool = None) -> api900_pb2.RedvoxPacket:
 
 
 def read_rdvxz_file(path: str) -> WrappedRedvoxPacket:
-    return read_file(path)
+    """
+    Reads a .rdvxz file from the specified path and returns a WrappedRedvoxPacket.
+    :param path: The path of the file.
+    :return: A WrappedRedvoxPacket.
+    """
+    return wrap(read_file(path))
 
 
 def read_rdvxz_buffer(buf: bytes) -> WrappedRedvoxPacket:
-    return read_buffer(buf)
+    """
+    Reads a .rdvxz file from the provided buffer and returns a WrappedRedvoxPacket.
+    :param buf: The buffer of bytes consisting of a compressed .rdvxz file.
+    :return: A WrappedRedvoxPacket.
+    """
+    return wrap(read_buffer(buf))
 
 
 def read_json_file(path: str) -> WrappedRedvoxPacket:
+    """
+    Reads a RedVox compliant API 900 .json file from the provided path and returns a WrappedRedvoxPacket.
+    :param path: Path to the RedVox compliant API 900 .json file.
+    :return: A WrappedRedvoxPacket.
+    """
     with open(path, "r") as json_in:
-        return _from_json(json_in.read())
+        return wrap(_from_json(json_in.read()))
 
 
 def read_json_string(json: str) -> WrappedRedvoxPacket:
-    return _from_json(json)
+    """
+    Reads a RedVox compliant API 900 json string and returns a WrappedRedvoxPacket.
+    :param json: RedVox API 900 compliant json string.
+    :return: A WrappedRedvoxPacket.
+    """
+    return wrap(_from_json(json))
 
 
 def read_directory(directory_path: str) -> typing.Dict[str, typing.List[WrappedRedvoxPacket]]:
