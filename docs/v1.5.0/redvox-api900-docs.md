@@ -8,6 +8,8 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 
 * [Prerequisites](#markdown-header-prerequisites)
 * [Installing from pip](#markdown-header-installing-from-pip)
+* [Install from source](#markdown-header-install-from-source)
+* [Working with the SDK CLI](#markdown-header-working-with-the-sdk-cli)
 * [Loading RedVox API 900 files](#markdown-header-loading-redvox-api-900-files)
 * [Working with microphone sensor channels](#markdown-header-working-with-microphone-sensor-channels)
 * [Working with barometer sensor channels](#markdown-header-working-with-barometer-sensor-channels)
@@ -19,8 +21,8 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Working with light sensor channels](#markdown-header-working-with-light-sensor-channels)
 * [Working with infrafred sensor channels](#markdown-header-working-with-infrared-sensor-channels)
 * [Working with image sensor channels](#markdown-header-working-with-image-sensor-channels)
-* [Full Example](https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.4.1/example.py)
-* [Generated API Documentation](https://redvoxhi.bitbucket.io/redvox-sdk/v1.4.1/)
+* [Full Example](https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/example.py)
+* [Generated API Documentation](https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/)
 
 ### Prerequisites
 
@@ -67,7 +69,7 @@ Once the redvox library has been installed from pip, the CLI can be accessed by 
 
 `python3 -m redvox.api900.cli [CMD] [FILES]` where [CMD] is one of `to_json`, `to_rdvxz`, or `print` and [FILES] is a list of paths to either *.rdvxz files or *.json files.
 
-**Example: Converting .rdvxz files to RedVox API 900 .json files**
+##### Example: Converting .rdvxz files to RedVox API 900 .json files
 
 Given the following files in `/data` (or a directory of your choice)
 
@@ -159,7 +161,7 @@ total 4312
 -rwxr-xr-x@ 1 anthony  wheel   25240 Mar 11 14:46 1637660007_1552351353587.rdvxz
 ```
 
-**Example: Converting RedVox compliant API 900 .json files to .rdvxz files**
+##### Example: Converting RedVox compliant API 900 .json files to .rdvxz files
 
 We can also convert from .json files to .rdvxz files using the `to_rdvxz command`.
 
@@ -254,7 +256,7 @@ total 4312
 -rw-r--r--  1 anthony  wheel   27145 Mar 11 15:00 1637660007_1552351353587.rdvxz
 ```
 
-**Example: Displaying the contents of .rdvxz files**
+##### Example: Displaying the contents of .rdvxz files
 
 It's possible to display the contents of a single or multiple .rdvxz files with the `print` command.
 
@@ -405,52 +407,9 @@ It's also possible to convert a WrappedRedvoxPacket into a compressed array of b
 
 Let's look at accessing some of top level fields. 
 
+```python
+
 ```
-# Now let's access all fields at the top level of the packet
-print(redvox_api900_file.api())
-print(redvox_api900_file.redvox_id())
-print(redvox_api900_file.uuid())
-print(redvox_api900_file.authenticated_email())
-print(redvox_api900_file.authentication_token())
-print(redvox_api900_file.firebase_token())
-print(redvox_api900_file.is_backfilled())
-print(redvox_api900_file.is_private())
-print(redvox_api900_file.is_scrambled())
-print(redvox_api900_file.device_make())
-print(redvox_api900_file.device_model())
-print(redvox_api900_file.device_os())
-print(redvox_api900_file.device_os_version())
-print(redvox_api900_file.app_version())
-print(redvox_api900_file.battery_level_percent())
-print(redvox_api900_file.device_temperature_c())
-print(redvox_api900_file.acquisition_server())
-print(redvox_api900_file.time_synchronization_server())
-print(redvox_api900_file.authentication_server())
-print(redvox_api900_file.app_file_start_timestamp_epoch_microseconds_utc())
-print(redvox_api900_file.app_file_start_timestamp_machine())
-print(redvox_api900_file.server_timestamp_epoch_microseconds_utc())
-```
-
-### Writing RedVox API 900 Files
-The module now contains a function to write rdvxz files: `write_file`.  It takes a redvox packet and writes its information to a file.  The table below summarizes the function.
-| Name | Type | Description |
-|------|------|-------------|
-| write_file(file: str, redvox_packet: api900_pb2.RedvoxPacket) | No return type: writes a rdvxz file | Writes a redvox file.  Specify the correct file type in the file string. |
-
-Also provided are methods to create a redvox file.  This requires a little knowledge of underlying objects in a sensor.  You may find more information related to these objects in the section "Low Level Access".
-
-Channels can be evenly sampled or unevenly sampled.  Evenly sampled channels have a constant sampling rate, while unevenly sampled channels need a list of timestamps for each sample.  Empty channels can be created and filled with data later.
-
-Sensors contain either a single evenly sampled or unevenly sampled channel.  Each sensor contain has access to the channel's functions through its property named evenly_sampled_channel for unevenly_sampled_channel.  The kind of sampling the sensor does determines which one of the two properties it has.  Sensors are explained starting with the section "Working with microphone sensor channels".  All sensors can be created empty; you can fill in the data later.
-
-Lastly, a redvox packet consists of one or more evenly sampled and/or unevenly sampled sensor channels.  The necessary functions for managing a redvox packet's channels are:
-|    Name    | Description |
-|------------|-------------|
-| add_channel(channel: EvenlySampledChannel or UnevenlySampledChannel) | Adds a channel to the packet |
-| edit_channel(channel_type: int, channel: EvenlySampledChannel or UnevenlySampledChannel) | Removes the channel of type channel_type and adds the passed channel to the packet.  Refer to the section "Low Level Access" for more information about channel types |
-| delete_channel(channel_type: int) | Removes the channel of type channel_type.  Refer to the section "Low Level Access" for more information about channel types |
-| has_channel(channel_type: int) | Checks if the packet has a channel of type channel_type.  Returns True if found, False if not.  Refer to the section "Low Level Access" for more information about channel types |
-| get_channel(channel_type: int) | Gets the channel of type channel_type or None if the channel_type is not in the packet.  Refer to the section "Low Level Access" for more information about channel types |
 
 ### Working with microphone sensor channels
 It's possible to test for the availability of this sensor in a data packet by calling the method `has_microphone_channel` on an instance of a `WrappedRedvoxPacket`.
@@ -479,42 +438,15 @@ The `MicrophoneSensor` class contains methods for directly accessing the fields 
 ##### Creating a microphone sensor
 This function creates a microphone sensor:
 
+```python
+
 ```
-create_microphone(sensor_name: str, metadata: typing.List[str], payload: numpy.array, rate: float, time: int)
-```
-Give it a sensor name (sensor_name), metadata (metadata), the data (payload), the sampling rate in Hz (rate), the first timestamp in microseconds since epoch utc (time).
+
 
 ##### Example microphone sensor reading
 
-```
-redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
+```python
 
-# First we check to make sure the device has a microphone channel
-if redvox_api900_file.has_microphone_channel():
-    # Most of the time, if a device has a sensor, it only has one of them...
-    microphone_sensor_channel = redvox_api900_file.microphone_channel()
-
-    # Access to sensor fields
-    print(microphone_sensor_channel.sensor_name())
-    print(microphone_sensor_channel.sample_rate_hz())
-    print(microphone_sensor_channel.first_sample_timestamp_epoch_microseconds_utc())
-    print(microphone_sensor_channel.payload_mean())
-    print(microphone_sensor_channel.payload_std())
-    print(microphone_sensor_channel.payload_median())
-    print(microphone_sensor_channel.metadata_as_dict())
-    print(microphone_sensor_channel.metadata())
-    print(microphone_sensor_channel.payload_type())
-
-    # Access to sensor values
-    print(microphone_sensor_channel.payload_values())
-
-    # Changing values
-    microphone_sensor_channel.set_sensor_name("Example Microphone")
-    microphone_sensor_channel.set_sample_rate_hz(42.0)
-
-    # Setting values
-    microphone_sensor_channel.create_microphone("Example Microphone", ["Meta", "data"], [1, 2, 3, 4, 5], 42.0, 0)
-    microphone_sensor_channel = MicrophoneSensor().create_microphone("Example Microphone", ["Meta", "data"], [1, 2, 3, 4, 5], 42.0, 0)
 ```
 
 ### Working with barometer sensor channels
@@ -546,42 +478,14 @@ The `BarometerSensor` class contains methods for directly accessing the fields a
 ##### Creating a barometer sensor
 This function creates a barometer sensor:
 
+```python
+
 ```
-create_barometer(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
-```
-Give it a sensor name (sensor_name), metadata (metadata), the data (payload), the timestamps in microseconds since epoch utc (timestamps)
 
 ##### Example barometer sensor reading
 
-```
-redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
+```python
 
-if redvox_api900_file.has_barometer_channel():
-    barometer_sensor_channel = redvox_api900_file.barometer_channel()
-
-    # Access to sensor fields
-    print(barometer_sensor_channel.sensor_name())
-    print(barometer_sensor_channel.timestamps_microseconds_utc())
-    print(barometer_sensor_channel.sample_interval_mean())
-    print(barometer_sensor_channel.sample_interval_median())
-    print(barometer_sensor_channel.sample_interval_std())
-    print(barometer_sensor_channel.payload_mean())
-    print(barometer_sensor_channel.payload_median())
-    print(barometer_sensor_channel.payload_std())
-    print(barometer_sensor_channel.metadata_as_dict())
-    print(barometer_sensor_channel.metadata())
-    print(barometer_sensor_channel.payload_type())
-
-    # Access to sensor values
-    print(barometer_sensor_channel.payload_values())
-
-    # Changing values
-    barometer_sensor_channel.set_sensor_name("Example Barometer")
-    barometer_sensor_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
-
-    # Setting values
-    barometer_sensor_channel.create_barometer("Example Barometer", ["Meta", "data"], [1, 2, 3, 4, 5], [1, 3, 42, 8492, 9001])
-    barometer_sensor_channel = BarometerSensor().create_barometer("Example Barometer", ["Meta", "data"], [1, 2, 3, 4, 5], [1, 3, 42, 8492, 9001])
 ```
 
 ### Working with location sensor channels
@@ -630,68 +534,14 @@ The `LocationSensor` class contains methods for directly accessing the fields an
 ##### Creating a location sensor
 These functions create a location sensor:
 
+```python
+
 ```
-create_location(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
-create_location_from_deinterleaved_arrays(sensor_name: str, metadata: typing.List[str], payload: typing.List[numpy.array], timestamps: numpy.ndarray)
-```
-Give the first function a sensor name (sensor_name), metadata (metadata), the data as an interleaved array (payload), the timestamps in microseconds since epoch utc (timestamps).  The data should look like : [lat0, lon0, alt0, spd0, acc0, lat1, lon1, ... altn, spdn, accn] where 0-n is the index of the samples.
-Give the second function a sensor name (sensor_name), metadata (metadata), the list of arrays that make up the data (payload), the timestamps in microseconds since epoch utc (timestamps).  There are usually 5 channels in a location sensor, so you should give this function 5 arrays.  For consistency, put the arrays in order of: latitude, longitude, altitude, speed, accuracy.
 
 ##### Example locations sensor reading
 
-```
-redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
+```python
 
-if redvox_api900_file.has_location_channel():
-    location_channel = redvox_api900_file.location_channel()
-
-    # Access to sensor fields
-    print(location_channel.sensor_name())
-    print(location_channel.timestamps_microseconds_utc())
-    print(location_channel.sample_interval_mean())
-    print(location_channel.sample_interval_median())
-    print(location_channel.sample_interval_std())
-    print(location_channel.payload_values_accuracy_mean())
-    print(location_channel.payload_values_accuracy_median())
-    print(location_channel.payload_values_accuracy_std())
-
-    # The statistics for the location channels must be accessed individually
-    print(location_channel.payload_values_latitude_mean())
-    print(location_channel.payload_values_latitude_median())
-    print(location_channel.payload_values_latitude_std())
-    print(location_channel.payload_values_longitude_mean())
-    print(location_channel.payload_values_longitude_median())
-    print(location_channel.payload_values_longitude_std())
-    print(location_channel.payload_values_altitude_mean())
-    print(location_channel.payload_values_altitude_median())
-    print(location_channel.payload_values_altitude_std())
-    print(location_channel.payload_values_speed_mean())
-    print(location_channel.payload_values_speed_median())
-    print(location_channel.payload_values_speed_std())
-
-    # The payload can either be accessed as an interleaved payload
-    print(location_channel.payload_values())
-
-    # Or individual components can be extracted
-    print(location_channel.payload_values_latitude())
-    print(location_channel.payload_values_longitude())
-    print(location_channel.payload_values_altitude())
-    print(location_channel.payload_values_speed())
-    print(location_channel.payload_values_accuracy())
-
-    print(location_channel.metadata_as_dict())
-    print(location_channel.metadata())
-    print(location_channel.payload_type())
-
-    # Changing values
-    location_channel.set_sensor_name("Example Location")
-    location_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
-
-    # Setting values
-    location_channel.create_location("Example Location", ["meta", "data"], [1, 2, 3, 4, 5, 1.1, 2.2, 3.3, 4.4, 5.5, 1.11, 2.22, 3.33, 4.44, 5.55], [1, 10, 100])
-    location_channel.create_location_from_deinterleaved_arrays("Example Location", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33], [4, 4.4, 4.44], [5, 5.5, 5.55]], [1, 10, 100])
-    location_channel = LocationSensor().create_location("Example Location", ["meta", "data"], [1, 2, 3, 4, 5, 1.1, 2.2, 3.3, 4.4, 5.5, 1.11, 2.22, 3.33, 4.44, 5.55], [1, 10, 100])
-    location_channel = LocationSensor().create_location_from_deinterleaved_arrays("Example Location", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33], [4, 4.4, 4.44], [5, 5.5, 5.55]], [1, 10, 100])
 ```
 
 ### Working with time synchronization sensor channels
@@ -713,25 +563,14 @@ The `TimeSynchronizationSensor` class contains methods for directly accessing th
 ##### Creating a time synchronization sensor
 This function creates a time synchronization sensor:
 
+```python
+
 ```
-create_time(sensor_name: str, metadata: typing.List[str], payload: numpy.array)
-```
-Give it a sensor name (sensor_name), metadata (metadata), the data (payload).  The timestamps are in the payload for this sensor.
 
 ##### Example time synchronization sensor reading
 
-```
-redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
+```python
 
-if redvox_api900_file.has_time_synchronization_channel():
-    time_synchronization_channel = redvox_api900_file.time_synchronization_channel()
-    print(time_synchronization_channel.payload_values())
-    print(time_synchronization_channel.metadata_as_dict())
-    print(time_synchronization_channel.metadata())
-    print(time_synchronization_channel.payload_type())
-
-# Setting the channel
-time_synchronization_channel.create_time("Example Time Synchronization", ["meta", "data"], [1, 10, 11, 100])
 ```
 
 ### Working with accelerometer sensor channels
@@ -772,60 +611,15 @@ The `AccelerationSensor` class contains methods for directly accessing the field
 ##### Creating an accelerometer sensor
 These functions create an accelerometer sensor:
 
+```python
+
 ```
-create_accelerometer(sensor_name: str, metadata: typing.List[str], payload: numpy.array, timestamps: numpy.ndarray)
-create_accelerometer_from_deinterleaved_arrays(sensor_name: str, metadata: typing.List[str], payload: typing.List[numpy.array], timestamps: numpy.ndarray)
-```
-Give the first function a sensor name (sensor_name), metadata (metadata), the data as an interleaved array (payload), the timestamps in microseconds since epoch utc (timestamps).  The data should look like : [x_0, y_0, z_0, x_1, y_1, z_1, ... , x_n, y_n, z_n] where 0-n is the index of the samples.
-Give the second function a sensor name (sensor_name), metadata (metadata), the list of arrays that make up the data (payload), the timestamps in microseconds since epoch utc (timestamps).  There are usually 3 channels in an accelerometer sensor, so you should give this function 3 arrays.  For consistency, put the arrays in order of: x-axis, y-axis, z-axis.
+
 
 ##### Example accelerometer sensor reading
 
-```
-redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
+```python
 
-if redvox_api900_file.has_accelerometer_channel():
-    accelerometer_channel = redvox_api900_file.accelerometer_channel()
-
-    # Access to sensor fields
-    print(accelerometer_channel.sensor_name())
-    print(accelerometer_channel.timestamps_microseconds_utc())
-    print(accelerometer_channel.sample_interval_mean())
-    print(accelerometer_channel.sample_interval_median())
-    print(accelerometer_channel.sample_interval_std())
-
-    # The statistics can be accessed for each sensor channel individually
-    print(accelerometer_channel.payload_values_x_mean())
-    print(accelerometer_channel.payload_values_x_median())
-    print(accelerometer_channel.payload_values_x_std())
-    print(accelerometer_channel.payload_values_y_mean())
-    print(accelerometer_channel.payload_values_y_median())
-    print(accelerometer_channel.payload_values_y_std())
-    print(accelerometer_channel.payload_values_z_mean())
-    print(accelerometer_channel.payload_values_z_median())
-    print(accelerometer_channel.payload_values_z_std())
-
-    # The payload can be accessed as a single interleaved channel
-    print(accelerometer_channel.payload_values())
-
-    # Or individual components
-    print(accelerometer_channel.payload_values_x())
-    print(accelerometer_channel.payload_values_y())
-    print(accelerometer_channel.payload_values_z())
-
-    print(accelerometer_channel.metadata_as_dict())
-    print(accelerometer_channel.metadata())
-    print(accelerometer_channel.payload_type())
-
-    # Changing values
-    accelerometer_channel.set_sensor_name("Example Accelerometer")
-    accelerometer_channel.timestamps_microseconds_utc([1, 3, 42, 8492, 9001])
-
-    # Setting values
-    accelerometer_channel.create_accelerometer("Example Accelerometer", ["meta", "data"], [1, 2, 3, 1.1, 2.2, 3.3, 1.11, 2.22, 3.33], [1, 10, 100])
-    accelerometer_channel.create_accelerometer_from_deinterleaved_arrays("Example Accelerometer", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33]], [1, 10, 100])
-    accelerometer_channel = AccelerometerSensor().create_accelerometer("Example Accelerometer", ["meta", "data"], [1, 2, 3, 1.1, 2.2, 3.3, 1.11, 2.22, 3.33], [1, 10, 100])
-    accelerometer_channel = AccelerometerSensor().create_accelerometer_from_deinterleaved_arrays("Example Accelerometer", ["meta", "data"], [[1, 1.1, 1.11], [2, 2.2, 2.22], [3, 3.3, 3.33]], [1, 10, 100])
 ```
 
 ### Working with magnetometer sensor channels
@@ -1239,86 +1033,4 @@ image_sensor_channel = redvox_api900_file.image_channel()
     image_sensor_channel = ImageSensor().create_image("Example Image", ["images", "0"], [1, 2, 3], [1, 10, 100])
 ```
 
-### Low Level Access
-There are many small parts that come together to form a redvox packet.  Many of these are related to the protobuf format.
 
-##### Protobuf
-A protobuf is a data container.  A redvox protobuf contains several fields that are replicated in python for easy access.  The python fields are:
-
-| Name | Type | Description |
-|------|------|-------------|
-| sensor_name | str | The name of the sensor. |
-| payload | numpy.ndarray | The payload as a numpy array. The payload type is one of many number types. |
-| channel_types | List[api900_pb2.EvenlySampledChannel or api900_pb2.UnevenlySampledChannel] | The types of channels in the payload. |
-| value_means | numpy.ndarray | The means of each channel in the payload. |
-| value_stds | numpy.ndarray | The standard deviations of each channel in the payload. |
-| value_medians | numpy.ndarray | The medians of each channel in the payload. |
-| metadata | List[str] | Metadata of payload. |
-
-##### Payloads
-A protobuf payload is an array of numbers.  All numbers in the array have the same type, and payloads are stored in protobuf.TYPE.payload where TYPE is one of the following:
-
-| Name | Description |
-|------|-------------|
-| byte_payload | Bytes |
-| uint32_payload | Unsigned integer, 32 bits (0 - 4,294,967,295) |
-| uint64_payload | Unsigned integer, 64 bits (0 - 18,446,744,073,709,551,615) |
-| int32_payload | Signed integer, 32 bits (-2,147,483,648 - 2,147,483,647) |
-| int64_payload | Signed integer, 64 bits (-9,223,372,036,854,775,808 - 9,223,372,036,854,775,807) |
-| float32_payload | Signed float, 32 bits (-3.4E+38 to 3.4E+38) |
-| float64_payload | Signed float, 64 bits (-1.8E+308 to 1.8E+308 |
-
-Redvox uses int32 for microphone data, int64 for timestamps, and float64 for all other payload data.  Payloads are easy to manipulate when converted into python arrays.  Writing to the protobuf object is not as simple, and requires knowledge of the data type to correctly store them.  We recommend using set_payload() or set_deinterleaved_payload() to store payloads.
-
-##### Channel Types
-Channel types are defined in api900.proto and signify where the data is coming from.  The table below lists the supported channel types and their internal integer values:
-
-| Protobuf Name | Integer Value | Description |
-|---------------|---------------|-------------|
-| MICROPHONE | 0 | Microphone |
-| BAROMETER | 1 | Barometer |
-| LATITUDE | 2 | Latitude |
-| LONGITUDE | 3 | Longitude |
-| SPEED | 4 | Speed |
-| ALTITUDE | 5 | Altitude
-| TIME_SYNCHRONIZATION | 9 | Time Synchronization |
-| ACCURACY | 10 | Accuracy |
-| ACCELEROMETER_X | 11 | Accelerometer X axis |
-| ACCELEROMETER_Y | 12 | Accelerometer Y axis |
-| ACCELEROMETER_Z | 13 | Accelerometer Z axis |
-| MAGNETOMETER_X | 14 | Magnetometer X axis |
-| MAGNETOMETER_Y | 15 | Magnetometer Y axis |
-| MAGNETOMETER_Z | 16 | Magnetometer Z axis |
-| GYROSCOPE_X | 17 | Gyroscope X axis |
-| GYROSCOPE_Y | 18 | Gyroscope Y axis |
-| GYROSCOPE_Z | 19 | Gyroscope Z axis |
-| OTHER | 20 | Other |
-| LIGHT | 21 | Light |
-| IMAGE | 22 | Image |
-| INFRARED | 23 | Infrared |
-
-When working with channel types, redvox uses the integer value to save space.  A protobuf may contain more than one channel type.  They can be alternately represented by importing the api900_pb2 module from the redvox.api900 library.  Once imported, you can refer to a channel using api900_pb2.CHANNEL_NAME where CHANNEL_NAME is one of the values in all capital letters in the above table.  EX: api900_pb2.MICROPHONE refers to a microphone channel.
-
-##### Interleaving
-Payloads may contain more than one channel, and each channel has its own data array, however the actual payload is only one array.  This requires the payload to be interleaved.  For example, a GPS will produce a LATITUDE, LONGITUDE, ALTITUDE, and SPEED values with every update.  For this GPS sensor, the channel_types array would look like [LATITUDE, LONGITUDE, ALTITUDE, SPEED]. The location of the channel type in channel_types determines the offset into the payload and the length of channel_types determines the step size. As such, this hypothetical GPS channel payload is encoded as:
-[LAT0, LNG0, ALT0, SPD0, LAT1, LNG1, ALT1, SPD1, ..., LATn, LNGn, ALTn, SPDn] where 0-n is the index of a timestamp.
-
-##### Building a Sensor
-A sensor contains one or more channels.  All channels must be either evenly or unevenly sampled; no mixing of the types allowed.  Sensors have access to high level properties of channels, but generally do not have the ability to set or alter those properties.  In order to set or alter the properties of a channel, you must access it directly.  I.E. MicSensor.evenly_sampled_channel.set_payload(...)
-To set all the sensor's data at once, you may use its set_channel function, create it using another sensor as an argument or by calling its create_SENSOR statement.  I.E. MicSensor.set_channel(MainMicSensor.evenly_sampled_channel) and MicSensor = MicrophoneSensor(MainMicSensor) both do the same thing: set MicSensor's properties to be a copy of MainMicSensor's.  MicSensor.create_microphone(...) will set MicSensor's properties to the values passed into the function.  new_mic_sensor = MicSensor().create_microphone(...) will also set new_mic_sensor's properties to the values passed into the function.  Refer to the relevant sensor's section for more information about what values to give the function.
-
-##### Functions
-These functions allow you to work with the protobuf and its payload.
-| Name | Requirements | Description |
-|------|--------------|-------------|
-| set_payload(channel, step, pl_type) | Interleaved array (channel: numpy.array), the number of arrays interleaved (step: int), the payload type (pl_type: str) | Sets the payload. |
-| set_deinterleaved_payload(channels, pl_type) | A list of arrays, all the same size, to interleave (channels: List[numpy.array]), the payload type (pl_type: str) | Sets the payload. |
-| set_channel_types(types) | A list of channel types (types: List[Channel Types]) | Sets the channel types. |
-| update_stats() | Payload and channel types have been set | Updates the value_means, value_stds and value_medians of the payload. |
-| set_sensor_name(name) | Sensor name (name: str) | Sets the name of the sensor. |
-| set_metadata(data) | A list of metadata (data: list[str]) | Sets the metadata. |
-| set_sample_rate_hz(rate) | A sample rate in Hz (rate: float) | Evenly sampled channels only.  Sets the constant sample rate of an evenly sampled channel. |
-| set_first_sample_timestamp_epoch_microseconds_utc(time) | The first timestamp of the data in microseconds since epoch utc (time: int) | Evenly sampled channels only.  Sets the starting timestamp of an evenly sampled channel. |
-| set_timestamps_microseconds_utc(timestamps) | A list of timestamps in microseconds since epoch utc (timestamps: numpy.ndarray) | Unevenly sampled channels only.  Sets the list of timestamps of the samples for this channel. |
-| set_channel(channel) | Another protobuf channel (channel: varies) | Sets the current channel to be a copy of the argument. Refer to notes below. |
-set_channel may be called at different levels; if called from a sensor, it requires the channel of another sensor.  I.E. MicSensor.set_channel(MainMicSensor.evenly_sampled_channel).  If called from a channel, it requires a protobuf channel.  I.E. BarChannel.set_channel(MainBarChannel.protobuf_channel).  Furthermore, evenly sampled channels should only be set to other evenly sampled channels and unevenly sampled channels should only be set to other unevenly sampled channels.

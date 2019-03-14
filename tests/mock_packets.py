@@ -82,7 +82,7 @@ def with_evenly_sampled_channel(redvox_packet: api900_pb2.RedvoxPacket,
     evenly_sampled_channel.value_medians.extend(value_medians)
     evenly_sampled_channel.metadata.extend(metadata)
 
-    redvox_packet.evenly_sampled_channels.extend([evenly_sampled_channel])
+    redvox_packet._evenly_sampled_channels.extend([evenly_sampled_channel])
 
     return redvox_packet
 
@@ -116,7 +116,7 @@ def with_unevenly_sampled_channel(redvox_packet: api900_pb2.RedvoxPacket,
     unevenly_sampled_channel.sample_interval_median = sample_interval_median
     unevenly_sampled_channel.metadata.extend(metadata)
 
-    redvox_packet.unevenly_sampled_channels.extend([unevenly_sampled_channel])
+    redvox_packet._unevenly_sampled_channels.extend([unevenly_sampled_channel])
 
     return redvox_packet
 

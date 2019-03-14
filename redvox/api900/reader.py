@@ -14,9 +14,9 @@ import google.protobuf.internal.containers as containers
 import google.protobuf.json_format as json_format
 import lz4.block
 import numpy
-import redvox.api900.stat_utils
 
 import redvox.api900.constants as constants
+import redvox.api900.stat_utils
 from redvox.api900.lib import api900_pb2
 
 
@@ -25,7 +25,7 @@ class ReaderException(Exception):
     pass
 
 
-def calculate_uncompressed_size(buf: bytes) -> int:
+def _calculate_uncompressed_size(buf: bytes) -> int:
     """
     Given a buffer, calculate the original size of the uncompressed packet by looking at the first four bytes.
     :param buf: Buffer where first 4 big endian bytes contain the size of the original uncompressed packet.
@@ -34,7 +34,7 @@ def calculate_uncompressed_size(buf: bytes) -> int:
     return struct.unpack(">I", buf[:4])[0]
 
 
-def uncompressed_size_bytes(size: int) -> bytes:
+def _uncompressed_size_bytes(size: int) -> bytes:
     """
     Given the size of the original uncompressed file, return the size as an array of 4 bytes.
     :param size: The size to convert.
@@ -49,12 +49,12 @@ def lz4_decompress(buf: bytes) -> bytes:
     :param buf: The buffer to decompress.
     :return: The uncompressed buffer.
     """
-    uncompressed_size = calculate_uncompressed_size(buf)
+    uncompressed_size = _calculate_uncompressed_size(buf)
 
     if uncompressed_size <= 0:
         raise ReaderException("uncompressed size [{}] must be > 0".format(uncompressed_size))
 
-    return lz4.block.decompress(buf[4:], uncompressed_size=calculate_uncompressed_size(buf))
+    return lz4.block.decompress(buf[4:], uncompressed_size=_calculate_uncompressed_size(buf))
 
 
 # noinspection PyArgumentList
@@ -65,7 +65,7 @@ def lz4_compress(buf: bytes) -> bytes:
     :param buf: The buffer to compress.
     :return: The compressed buffer with 4 bytes prepended indicated the original size of the uncompressed buffer.
     """
-    uncompressed_size = uncompressed_size_bytes(len(buf))
+    uncompressed_size = _uncompressed_size_bytes(len(buf))
     compressed = lz4.block.compress(buf, store_size=False)
     return uncompressed_size + compressed
 
@@ -130,8 +130,8 @@ def from_json(redvox_packet_json: str) -> api900_pb2.RedvoxPacket:
     return json_format.Parse(redvox_packet_json, api900_pb2.RedvoxPacket())
 
 
-def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                       api900_pb2.UnevenlySampledChannel]) -> str:
+def _payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                        api900_pb2.UnevenlySampledChannel]) -> str:
     """
     Given a channel, return the internal protobuf string representation of the payload's data type.
     :param channel: The channel to check the data type of.
@@ -143,8 +143,8 @@ def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
         return channel.WhichOneof("payload")
 
 
-def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                          api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
+def _extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                           api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
     """
     Given an evenly or unevenly sampled channel, extracts the entire payload.
 
@@ -153,7 +153,7 @@ def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     :param channel: The protobuf channel to extract the payload from.
     :return: A numpy array of either floats or ints.
     """
-    payload_type_str = payload_type(channel)
+    payload_type_str = _payload_type(channel)
 
     if payload_type_str == "byte_payload":
         payload = channel.byte_payload.payload
@@ -177,8 +177,8 @@ def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     return numpy.array(payload)
 
 
-def repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
-                                            containers.RepeatedScalarFieldContainer]) -> typing.List:
+def _repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
+                                             containers.RepeatedScalarFieldContainer]) -> typing.List:
     """
     Transforms a repeated protobuf field into a list.
     :param repeated: The repeated field to transform.
@@ -187,17 +187,17 @@ def repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldCon
     return repeated[0:len(repeated)]
 
 
-def repeated_to_array(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
-                                             containers.RepeatedScalarFieldContainer]) -> numpy.ndarray:
+def _repeated_to_array(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
+                                              containers.RepeatedScalarFieldContainer]) -> numpy.ndarray:
     """
     Transforms a repeated protobuf field into a numpy array.
     :param repeated: The repeated field to transform.
     :return: A numpy array of the repeated items.
     """
-    return numpy.array(repeated_to_list(repeated))
+    return numpy.array(_repeated_to_list(repeated))
 
 
-def deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.ndarray:
+def _deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.ndarray:
     """
     Extracts a single channel type from an interleaved array.
 
@@ -235,12 +235,12 @@ def deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.
 
     # pylint: disable=C1801
     if len(ndarray) == 0:
-        return empty_array()
+        return _empty_array()
 
     return ndarray[offset::step]
 
 
-def to_array(values: typing.Union[typing.List, numpy.ndarray]) -> numpy.ndarray:
+def _to_array(values: typing.Union[typing.List, numpy.ndarray]) -> numpy.ndarray:
     """
     Takes either a list or a numpy array and returns a numpy array if the parameter was a list.
     :param values: Values to convert into numpy array if values are in a list.
@@ -251,7 +251,7 @@ def to_array(values: typing.Union[typing.List, numpy.ndarray]) -> numpy.ndarray:
     return values
 
 
-def interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
+def _interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
     """
     Interleaves multiple arrays together.
     :param arrays: Arrays to interleave.
@@ -272,7 +272,23 @@ def interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
     return interleaved_array
 
 
-def safe_index_of(lst: typing.List, val: typing.Any) -> int:
+def _diff(val1, val2) -> typing.Tuple[bool, typing.Optional[str]]:
+    if type(val1) != type(val2):
+        return True, "type {} != type {}".format(type(val1), type(val2))
+
+    if isinstance(val1, numpy.ndarray) and isinstance(val2, numpy.ndarray):
+        if numpy.array_equal(val1, val2):
+            return False, None
+        else:
+            return True, "{} != {}".format(val1, val2)
+
+    if val1 != val2:
+        return True, "{} != {}".format(val1, val2)
+
+    return False, None
+
+
+def _safe_index_of(lst: typing.List, val: typing.Any) -> int:
     """
     Finds the index of an item in a list and instead of throwing an exception returns -1 when the item DNE.
     :param lst: List to search through.
@@ -285,14 +301,14 @@ def safe_index_of(lst: typing.List, val: typing.Any) -> int:
         return -1
 
 
-def empty_array() -> numpy.ndarray:
+def _empty_array() -> numpy.ndarray:
     """Returns an empty numpy array.
     :return: An empty numpy array.
     """
     return numpy.array([])
 
 
-def empty_evenly_sampled_channel() -> api900_pb2.EvenlySampledChannel:
+def _empty_evenly_sampled_channel() -> api900_pb2.EvenlySampledChannel:
     """
     Returns an empty protobuf EvenlySampledChannel
     :return: empty EvenlySampledChannel
@@ -301,7 +317,7 @@ def empty_evenly_sampled_channel() -> api900_pb2.EvenlySampledChannel:
     return obj
 
 
-def empty_unevenly_sampled_channel() -> api900_pb2.UnevenlySampledChannel:
+def _empty_unevenly_sampled_channel() -> api900_pb2.UnevenlySampledChannel:
     """
     Returns an empty protobuf UnevenlySampledChannel
     :return: empty UnevenlySampledChannel
@@ -310,7 +326,7 @@ def empty_unevenly_sampled_channel() -> api900_pb2.UnevenlySampledChannel:
     return obj
 
 
-def channel_type_name_from_enum(enum_constant: int) -> str:
+def _channel_type_name_from_enum(enum_constant: int) -> str:
     """
     Returns the name of a channel type given its enumeration constant.
     :param enum_constant: The constant to turn into a name.
@@ -319,7 +335,7 @@ def channel_type_name_from_enum(enum_constant: int) -> str:
     return api900_pb2.ChannelType.Name(enum_constant)
 
 
-def get_metadata(metadata: typing.List[str], k: str) -> str:
+def _get_metadata(metadata: typing.List[str], k: str) -> str:
     """
     Given a meta-data key, extract the value.
     :param metadata: List of metadata to extract value from.
@@ -329,14 +345,14 @@ def get_metadata(metadata: typing.List[str], k: str) -> str:
     if len(metadata) % 2 != 0:
         raise ReaderException("metadata list must contain an even number of items")
 
-    idx = safe_index_of(metadata, k)
+    idx = _safe_index_of(metadata, k)
     if idx < 0:
         return ""
 
     return metadata[idx + 1]
 
 
-def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
+def _get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
     """
     Since the metadata is inherently key-value, it may be useful to turn the metadata list into a python dictionary.
     :param metadata: The metadata list.
@@ -358,7 +374,7 @@ def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
     return metadata_dict
 
 
-def metadata_dict_to_list(metadata_dict: typing.Dict[str, str]) -> typing.List[str]:
+def _metadata_dict_to_list(metadata_dict: typing.Dict[str, str]) -> typing.List[str]:
     """
     Converts a dictionary containing metadata into a list of metadata.
     :param metadata_dict: The dictionary of metadata.
@@ -390,8 +406,8 @@ class InterleavedChannel:
     This class provides methods for working with interleaved channels as well as accessing interleaved statistic values.
     """
 
-    def __init__(self, channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                             api900_pb2.UnevenlySampledChannel] = None):
+    def __init__(self, channel: typing.Optional[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                             api900_pb2.UnevenlySampledChannel]] = None):
         """
         Initializes this interleaved channel object.
         :param channel: Either a protobuf evenly or unevenly sampled channel.
@@ -421,22 +437,22 @@ class InterleavedChannel:
             self.channel_types: typing.List[
                 typing.Union[
                     api900_pb2.EvenlySampledChannel,
-                    api900_pb2.UnevenlySampledChannel]] = repeated_to_list(channel.channel_types)
+                    api900_pb2.UnevenlySampledChannel]] = _repeated_to_list(channel.channel_types)
             """List of channel type constant enumerations"""
 
-            self.payload: numpy.ndarray = extract_payload(channel)
+            self.payload: numpy.ndarray = _extract_payload(channel)
             """This channels payload as a numpy array of either floats or ints"""
 
-            self.metadata: typing.List[str] = repeated_to_list(channel.metadata)
+            self.metadata: typing.List[str] = _repeated_to_list(channel.metadata)
             """This channels list of metadata"""
 
-            self.value_means: numpy.ndarray = repeated_to_array(channel.value_means)
+            self.value_means: numpy.ndarray = _repeated_to_array(channel.value_means)
             """Interleaved array of mean values"""
 
-            self.value_stds: numpy.ndarray = repeated_to_array(channel.value_stds)
+            self.value_stds: numpy.ndarray = _repeated_to_array(channel.value_stds)
             """Interleaved array of standard deviations of values"""
 
-            self.value_medians: numpy.ndarray = repeated_to_array(channel.value_medians)
+            self.value_medians: numpy.ndarray = _repeated_to_array(channel.value_medians)
             """Interleaves array of median values"""
 
             self.channel_type_index: typing.Dict[api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
@@ -455,7 +471,7 @@ class InterleavedChannel:
         del self.protobuf_channel.channel_types[:]
         for ctype in types:
             self.protobuf_channel.channel_types.append(ctype)
-        self.channel_types = repeated_to_list(self.protobuf_channel.channel_types)
+        self.channel_types = _repeated_to_list(self.protobuf_channel.channel_types)
         self.channel_type_index = {self.channel_types[i]: i for i in range(len(self.channel_types))}
 
     def get_channel_type_names(self) -> typing.List[str]:
@@ -463,7 +479,7 @@ class InterleavedChannel:
         Returns the list of channel_types as a list of names instead of enumeration constants.
         :return: The list of channel_types as a list of names instead of enumeration constants.
         """
-        return list(map(channel_type_name_from_enum, self.channel_types))
+        return list(map(_channel_type_name_from_enum, self.channel_types))
 
     def channel_index(self, channel_type: int) -> int:
         """
@@ -489,12 +505,12 @@ class InterleavedChannel:
         """
         self.protobuf_channel = channel
         self.sensor_name = channel.sensor_name
-        self.channel_types = repeated_to_list(channel.channel_types)
-        self.payload = extract_payload(channel)
-        self.metadata = repeated_to_list(channel.metadata)
-        self.value_means = repeated_to_array(channel.value_means)
-        self.value_stds = repeated_to_array(channel.value_stds)
-        self.value_medians = repeated_to_array(channel.value_medians)
+        self.channel_types = _repeated_to_list(channel.channel_types)
+        self.payload = _extract_payload(channel)
+        self.metadata = _repeated_to_list(channel.metadata)
+        self.value_means = _repeated_to_array(channel.value_means)
+        self.value_stds = _repeated_to_array(channel.value_stds)
+        self.value_medians = _repeated_to_array(channel.value_medians)
         self.channel_type_index = {self.channel_types[i]: i for i in range(len(self.channel_types))}
 
     def has_payload(self, channel_type: int) -> bool:
@@ -506,7 +522,7 @@ class InterleavedChannel:
         return self.has_channel(channel_type) and len(self.payload) > 0
 
     def set_payload(self,
-                    payload_values: typing.Union[numpy.array, typing.List],
+                    payload_values: typing.Union[numpy.ndarray, typing.List],
                     pl_type: constants.PayloadType,
                     should_compute_stats=True):
         """
@@ -519,7 +535,7 @@ class InterleavedChannel:
             raise ValueError("Channel must not be empty and number of arrays must not be less than 1.")
 
         # Convert to numpy array is necessary
-        payload_values = to_array(payload_values)
+        payload_values = _to_array(payload_values)
 
         # clear all other payloads
         self.protobuf_channel.byte_payload.ClearField("payload")
@@ -548,7 +564,7 @@ class InterleavedChannel:
         else:
             raise TypeError("Unknown payload type to set.")
 
-        self.payload = extract_payload(self.protobuf_channel)
+        self.payload = _extract_payload(self.protobuf_channel)
 
         # calculate the means, std devs, and medians
         if should_compute_stats:
@@ -564,7 +580,7 @@ class InterleavedChannel:
         :param pl_type: The payload type
         :param should_compute_stats: Whether or not payload stats should be calculated.
         """
-        interleaved = list(map(to_array, payloads))
+        interleaved = _interleave_arrays(list(map(_to_array, payloads)))
         self.set_payload(interleaved, pl_type, should_compute_stats)
 
     def get_payload(self, channel_type: int) -> numpy.ndarray:
@@ -575,18 +591,18 @@ class InterleavedChannel:
         """
         idx = self.channel_index(channel_type)
         if idx < 0:
-            return empty_array()
+            return _empty_array()
         try:
-            return deinterleave_array(self.payload, idx, len(self.channel_types))
+            return _deinterleave_array(self.payload, idx, len(self.channel_types))
         except ReaderException:
-            return empty_array()
+            return _empty_array()
 
     def get_payload_type(self) -> str:
         """
         Returns the internal protobuf payload type.
         :return: The internal protobuf payload type.
         """
-        return payload_type(self.protobuf_channel)
+        return _payload_type(self.protobuf_channel)
 
     def get_multi_payload(self, channel_types: typing.List[int]) -> numpy.ndarray:
         """
@@ -596,12 +612,12 @@ class InterleavedChannel:
         """
         channel_types_len = len(channel_types)
         if channel_types_len == 0:
-            return empty_array()
+            return _empty_array()
         elif channel_types_len == 1:
             return self.get_payload(channel_types[0])
 
         payloads = list(map(self.get_payload, channel_types))
-        return interleave_arrays(payloads)
+        return _interleave_arrays(payloads)
 
     def get_value_mean(self, channel_type: int) -> float:
         """
@@ -649,13 +665,13 @@ class InterleavedChannel:
         del self.protobuf_channel.value_stds[:]
         del self.protobuf_channel.value_medians[:]
         for i in range(step):
-            std, mean, median = redvox.api900.stat_utils.calc_utils(deinterleave_array(channel, i, step))
+            std, mean, median = redvox.api900.stat_utils.calc_utils(_deinterleave_array(channel, i, step))
             self.protobuf_channel.value_means.append(mean)
             self.protobuf_channel.value_stds.append(std)
             self.protobuf_channel.value_medians.append(median)
-        self.value_stds = repeated_to_array(self.protobuf_channel.value_stds)
-        self.value_means = repeated_to_array(self.protobuf_channel.value_means)
-        self.value_medians = repeated_to_array(self.protobuf_channel.value_medians)
+        self.value_stds = _repeated_to_array(self.protobuf_channel.value_stds)
+        self.value_means = _repeated_to_array(self.protobuf_channel.value_means)
+        self.value_medians = _repeated_to_array(self.protobuf_channel.value_medians)
 
     def set_sensor_name(self, name: str):
         """
@@ -672,14 +688,14 @@ class InterleavedChannel:
         del self.protobuf_channel.metadata[:]
         for meta in data:
             self.protobuf_channel.metadata.append(meta)
-        self.metadata = repeated_to_list(self.protobuf_channel.metadata)
+        self.metadata = _repeated_to_list(self.protobuf_channel.metadata)
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
         Returns any metadata as a dictionary of key-pair values.
         :return: Any metadata as a dictionary of key-pair values.
         """
-        return get_metadata_as_dict(self.metadata)
+        return _get_metadata_as_dict(self.metadata)
 
     def __str__(self) -> str:
         """
@@ -691,10 +707,10 @@ class InterleavedChannel:
                "len(payload): {}\n" \
                "payload_type: {}".format(self.sensor_name,
                                          list(map(
-                                                 channel_type_name_from_enum,
+                                                 _channel_type_name_from_enum,
                                                  self.channel_types)),
                                          len(self.payload),
-                                         payload_type(
+                                         _payload_type(
                                                  self.protobuf_channel))
 
 
@@ -703,13 +719,13 @@ class EvenlySampledChannel(InterleavedChannel):
     An evenly sampled channel is an interleaved channel that also has a channel with an even sampling rate.
     """
 
-    def __init__(self, channel: api900_pb2.EvenlySampledChannel = None):
+    def __init__(self, channel: typing.Optional[api900_pb2.EvenlySampledChannel] = None):
         """
         Initializes this evenly sampled channel.
         :param channel: A protobuf evenly sampled channel.
         """
         if channel is None:
-            channel = empty_evenly_sampled_channel()
+            channel = _empty_evenly_sampled_channel()
 
         InterleavedChannel.__init__(self, channel)
         self.sample_rate_hz: float = channel.sample_rate_hz
@@ -762,16 +778,16 @@ class UnevenlySampledChannel(InterleavedChannel):
     This class also adds easy access to statistics for timestamps.
     """
 
-    def __init__(self, channel: api900_pb2.UnevenlySampledChannel = None):
+    def __init__(self, channel: typing.Optional[api900_pb2.UnevenlySampledChannel] = None):
         """
         Initializes this unevenly sampled channel.
         :param channel: A protobuf unevenly sampled channel.
         """
         if channel is None:
-            channel = empty_unevenly_sampled_channel()
+            channel = _empty_unevenly_sampled_channel()
 
         InterleavedChannel.__init__(self, channel)
-        self.timestamps_microseconds_utc: numpy.ndarray = repeated_to_array(channel.timestamps_microseconds_utc)
+        self.timestamps_microseconds_utc: numpy.ndarray = _repeated_to_array(channel.timestamps_microseconds_utc)
         """Numpy array of timestamps epoch microseconds utc for each sample"""
 
         self.sample_interval_mean: float = channel.sample_interval_mean
@@ -789,7 +805,7 @@ class UnevenlySampledChannel(InterleavedChannel):
         :param channel: unevenly sampled channel
         """
         super().set_channel(channel)
-        self.timestamps_microseconds_utc = repeated_to_array(channel.timestamps_microseconds_utc)
+        self.timestamps_microseconds_utc = _repeated_to_array(channel.timestamps_microseconds_utc)
         self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
             redvox.api900.stat_utils.calc_utils_timeseries(self.timestamps_microseconds_utc)
 
@@ -798,7 +814,7 @@ class UnevenlySampledChannel(InterleavedChannel):
         set the timestamps in microseconds from utc
         :param timestamps: array of timestamps
         """
-        timestamps = to_array(timestamps)
+        timestamps = _to_array(timestamps)
         self.timestamps_microseconds_utc = timestamps
         self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
             redvox.api900.stat_utils.calc_utils_timeseries(timestamps)
@@ -820,15 +836,15 @@ class EvenlySampledSensor:
     Composition is used instead of inheritance to hide the complexities of the underlying class.
     """
 
-    def __init__(self, evenly_sampled_channel: EvenlySampledChannel = None):
+    def __init__(self, evenly_sampled_channel: typing.Optional[EvenlySampledChannel] = None):
         """
         Initializes this class.
         :param evenly_sampled_channel: an instance of an EvenlySampledChannel
         """
         if evenly_sampled_channel is None:
-            self.evenly_sampled_channel = EvenlySampledChannel()
+            self._evenly_sampled_channel = EvenlySampledChannel()
         else:
-            self.evenly_sampled_channel: EvenlySampledChannel = evenly_sampled_channel
+            self._evenly_sampled_channel: EvenlySampledChannel = evenly_sampled_channel
             """A reference to the original unevenly sampled channel"""
 
     def get_channel_type_names(self) -> typing.List[str]:
@@ -836,14 +852,14 @@ class EvenlySampledSensor:
         Returns the list of channel_types as a list of names instead of enumeration constants.
         :return: The list of channel_types as a list of names instead of enumeration constants.
         """
-        return list(map(channel_type_name_from_enum, self.evenly_sampled_channel.channel_types))
+        return list(map(_channel_type_name_from_enum, self._evenly_sampled_channel.channel_types))
 
     def sample_rate_hz(self) -> float:
         """
         Returns the sample rate in Hz of this evenly sampled channel.
         :return: The sample rate in Hz of this evenly sampled channel.
         """
-        return self.evenly_sampled_channel.sample_rate_hz
+        return self._evenly_sampled_channel.sample_rate_hz
 
     def set_sample_rate_hz(self, rate: float) -> 'EvenlySampledSensor':
         """
@@ -851,7 +867,7 @@ class EvenlySampledSensor:
         :param rate: sample rate in hz
         :return: An instance of the sensor.
         """
-        self.evenly_sampled_channel.set_sample_rate_hz(rate)
+        self._evenly_sampled_channel.set_sample_rate_hz(rate)
         return self
 
     # pylint: disable=invalid-name
@@ -860,7 +876,7 @@ class EvenlySampledSensor:
         Return the first sample timestamp in microseconds since the epoch UTC.
         :return: The first sample timestamp in microseconds since the epoch UTC.
         """
-        return self.evenly_sampled_channel.first_sample_timestamp_epoch_microseconds_utc
+        return self._evenly_sampled_channel.first_sample_timestamp_epoch_microseconds_utc
 
     def set_first_sample_timestamp_epoch_microseconds_utc(self, time: int) -> 'EvenlySampledSensor':
         """
@@ -868,7 +884,7 @@ class EvenlySampledSensor:
         :param time: microseconds since utc
         :return: An instance of the sensor.
         """
-        self.evenly_sampled_channel.set_first_sample_timestamp_epoch_microseconds_utc(time)
+        self._evenly_sampled_channel.set_first_sample_timestamp_epoch_microseconds_utc(time)
         return self
 
     def sensor_name(self) -> str:
@@ -876,7 +892,7 @@ class EvenlySampledSensor:
         Returns the sensor name associated with this evenly sampled chanel
         :return: The sensor name associated with this evenly sampled chanel
         """
-        return self.evenly_sampled_channel.sensor_name
+        return self._evenly_sampled_channel.sensor_name
 
     def set_sensor_name(self, name: str) -> 'EvenlySampledSensor':
         """
@@ -884,7 +900,7 @@ class EvenlySampledSensor:
         :param name: name of sensor
         :return: An instance of the sensor.
         """
-        self.evenly_sampled_channel.set_sensor_name(name)
+        self._evenly_sampled_channel.set_sensor_name(name)
         return self
 
     def payload_type(self) -> str:
@@ -892,14 +908,14 @@ class EvenlySampledSensor:
         Returns the internal protobuf payload type.
         :return: The internal protobuf payload type.
         """
-        return self.evenly_sampled_channel.get_payload_type()
+        return self._evenly_sampled_channel.get_payload_type()
 
     def metadata(self) -> typing.List[str]:
         """
         Returns this channel's metadata (if there is any) as a Python list.
         :return: This channel's metadata (if there is any) as a Python list.
         """
-        return self.evenly_sampled_channel.metadata
+        return self._evenly_sampled_channel.metadata
 
     def set_metadata(self, data: typing.List[str]) -> 'EvenlySampledSensor':
         """
@@ -907,7 +923,7 @@ class EvenlySampledSensor:
         :param data: metadata as list of strings
         :return: An instance of the sensor.
         """
-        self.evenly_sampled_channel.set_metadata(data)
+        self._evenly_sampled_channel.set_metadata(data)
         return self
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
@@ -915,25 +931,34 @@ class EvenlySampledSensor:
         Returns this channel's metadata (if there is any) as a Python dictionary.
         :return: This channel's metadata (if there is any) as a Python dictionary.
         """
-        return get_metadata_as_dict(self.evenly_sampled_channel.metadata)
+        return _get_metadata_as_dict(self._evenly_sampled_channel.metadata)
 
     def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'EvenlySampledSensor':
-        self.set_metadata(metadata_dict_to_list(metadata_dict))
+        self.set_metadata(_metadata_dict_to_list(metadata_dict))
         return self
 
     def __str__(self):
-        return str(self.evenly_sampled_channel)
+        return str(self._evenly_sampled_channel)
 
     def __eq__(self, other):
-        return (isinstance(other, EvenlySampledSensor) and
-                self.get_channel_type_names() == other.get_channel_type_names() and
-                self.sensor_name() == other.sensor_name() and
-                self.sample_rate_hz() == other.sample_rate_hz() and
-                self.first_sample_timestamp_epoch_microseconds_utc() ==
-                other.first_sample_timestamp_epoch_microseconds_utc() and
-                self.payload_type() == other.payload_type() and
-                self.metadata() == other.metadata() and
-                numpy.array_equal(self.evenly_sampled_channel.payload, other.evenly_sampled_channel.payload))
+        return isinstance(other, EvenlySampledSensor) and len(self.diff(other)) == 0
+
+    def diff(self, other: 'EvenlySampledSensor') -> typing.List[str]:
+        diffs = map(lambda tuple2: _diff(tuple2[0], tuple2[1]), [
+            (self.get_channel_type_names(), other.get_channel_type_names()),
+            (self.sensor_name(), other.sensor_name()),
+            (self.sample_rate_hz(), other.sample_rate_hz()),
+            (self.first_sample_timestamp_epoch_microseconds_utc(),
+             other.first_sample_timestamp_epoch_microseconds_utc()),
+            (self.payload_type(), other.payload_type()),
+            (self.metadata(), other.metadata()),
+            (self._evenly_sampled_channel.payload, other._evenly_sampled_channel.payload)
+        ])
+        # Filter only out only the differences
+        diffs = filter(lambda tuple2: tuple2[0], diffs)
+        # Extract the difference string
+        diffs = map(lambda tuple2: tuple2[1], diffs)
+        return list(diffs)
 
 
 class UnevenlySampledSensor:
@@ -944,29 +969,29 @@ class UnevenlySampledSensor:
     Composition is used instead of inheritance to hide the complexities of the underlying class.
     """
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+    def __init__(self, unevenly_sampled_channel: typing.Optional[UnevenlySampledChannel] = None):
         """
         Initializes this class.
         :param unevenly_sampled_channel: an instance of a UnevenlySampledChannel
         """
         if unevenly_sampled_channel is None:
-            self.unevenly_sampled_channel = UnevenlySampledChannel()
+            self._unevenly_sampled_channel = UnevenlySampledChannel()
         else:
-            self.unevenly_sampled_channel: UnevenlySampledChannel = unevenly_sampled_channel
+            self._unevenly_sampled_channel: UnevenlySampledChannel = unevenly_sampled_channel
 
     def get_channel_type_names(self) -> typing.List[str]:
         """
         Returns the list of channel_types as a list of names instead of enumeration constants.
         :return: The list of channel_types as a list of names instead of enumeration constants.
         """
-        return list(map(channel_type_name_from_enum, self.unevenly_sampled_channel.channel_types))
+        return list(map(_channel_type_name_from_enum, self._unevenly_sampled_channel.channel_types))
 
     def sensor_name(self) -> str:
         """
         Returns the sensor name associated with this unevenly sampled channel.
         :return: The sensor name associated with this unevenly sampled channel.
         """
-        return self.unevenly_sampled_channel.sensor_name
+        return self._unevenly_sampled_channel.sensor_name
 
     def set_sensor_name(self, name: str) -> 'UnevenlySampledSensor':
         """
@@ -974,7 +999,7 @@ class UnevenlySampledSensor:
         :param name: name of the sensor
         :return: An instance of the sensor.
         """
-        self.unevenly_sampled_channel.set_sensor_name(name)
+        self._unevenly_sampled_channel.set_sensor_name(name)
         return self
 
     def payload_type(self) -> str:
@@ -982,14 +1007,14 @@ class UnevenlySampledSensor:
         Returns the internal protobuf payload type.
         :return: The internal protobuf payload type.
         """
-        return self.unevenly_sampled_channel.get_payload_type()
+        return self._unevenly_sampled_channel.get_payload_type()
 
     def timestamps_microseconds_utc(self) -> numpy.ndarray:
         """
         Returns a list of ascending timestamps that associate with each sample value
         :return: A list of ascending timestamps that associate with each sample value
         """
-        return self.unevenly_sampled_channel.timestamps_microseconds_utc
+        return self._unevenly_sampled_channel.timestamps_microseconds_utc
 
     def set_timestamps_microseconds_utc(self, timestamps: typing.Union[
         numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
@@ -1001,7 +1026,7 @@ class UnevenlySampledSensor:
         if isinstance(timestamps, typing.List):
             timestamps = numpy.array(timestamps)
 
-        self.unevenly_sampled_channel.set_timestamps_microseconds_utc(timestamps)
+        self._unevenly_sampled_channel.set_timestamps_microseconds_utc(timestamps)
         return self
 
     def sample_interval_mean(self) -> float:
@@ -1009,28 +1034,28 @@ class UnevenlySampledSensor:
         Returns the mean sample interval for this unevenly sampled sensor channel.
         :return: The mean sample interval for this unevenly sampled sensor channel.
         """
-        return self.unevenly_sampled_channel.sample_interval_mean
+        return self._unevenly_sampled_channel.sample_interval_mean
 
     def sample_interval_median(self) -> float:
         """
         Returns the median sample interval for this unevenly sampled sensor channel.
         :return: The median sample interval for this unevenly sampled sensor channel.
         """
-        return self.unevenly_sampled_channel.sample_interval_median
+        return self._unevenly_sampled_channel.sample_interval_median
 
     def sample_interval_std(self) -> float:
         """
         Returns the standard deviation sample interval for this unevenly sampled sensor channel.
         :return: The standard deviation sample interval for this unevenly sampled sensor channel.
         """
-        return self.unevenly_sampled_channel.sample_interval_std
+        return self._unevenly_sampled_channel.sample_interval_std
 
     def metadata(self) -> typing.List[str]:
         """
         Returns this channel's metadata (if there is any) as a Python list.
         :return: This channel's metadata (if there is any) as a Python list.
         """
-        return self.unevenly_sampled_channel.metadata
+        return self._unevenly_sampled_channel.metadata
 
     def set_metadata(self, data: typing.List[str]) -> 'UnevenlySampledSensor':
         """
@@ -1038,7 +1063,7 @@ class UnevenlySampledSensor:
         :param data: metadata as list of strings
         :return: An instance of the sensor.
         """
-        self.unevenly_sampled_channel.set_metadata(data)
+        self._unevenly_sampled_channel.set_metadata(data)
         return self
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
@@ -1046,19 +1071,28 @@ class UnevenlySampledSensor:
         Returns this channel's metadata (if there is any) as a Python dictionary.
         :return: This channel's metadata (if there is any) as a Python dictionary.
         """
-        return get_metadata_as_dict(self.unevenly_sampled_channel.metadata)
+        return _get_metadata_as_dict(self._unevenly_sampled_channel.metadata)
 
     def __str__(self) -> str:
-        return str(self.unevenly_sampled_channel)
+        return str(self._unevenly_sampled_channel)
 
     def __eq__(self, other) -> bool:
-        return (isinstance(other, UnevenlySampledSensor) and
-                self.get_channel_type_names() == other.get_channel_type_names() and
-                self.sensor_name() == other.sensor_name() and
-                numpy.array_equal(self.timestamps_microseconds_utc(), other.timestamps_microseconds_utc()) and
-                self.payload_type() == other.payload_type() and
-                self.metadata() == other.metadata() and
-                numpy.array_equal(self.unevenly_sampled_channel.payload, other.unevenly_sampled_channel.payload))
+        return isinstance(other, UnevenlySampledSensor) and len(self.diff(other)) == 0
+
+    def diff(self, other: 'UnevenlySampledSensor') -> typing.List[str]:
+        diffs = map(lambda tuple2: _diff(tuple2[0], tuple2[1]), [
+            (self.get_channel_type_names(), other.get_channel_type_names()),
+            (self.sensor_name(), other.sensor_name()),
+            (self.timestamps_microseconds_utc(), other.timestamps_microseconds_utc()),
+            (self.payload_type(), other.payload_type()),
+            (self.metadata(), other.metadata()),
+            (self._unevenly_sampled_channel.payload, other._unevenly_sampled_channel.payload)
+        ])
+        # Filter only out only the differences
+        diffs = filter(lambda tuple2: tuple2[0], diffs)
+        # Extract the difference string
+        diffs = map(lambda tuple2: tuple2[1], diffs)
+        return list(diffs)
 
 
 class XyzUnevenlySampledSensor(UnevenlySampledSensor):
@@ -1076,10 +1110,10 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         :param z_type: The Z channel type enum.
         """
         super().__init__(unevenly_sampled_channel)
-        self.unevenly_sampled_channel.set_channel_types([x_type, y_type, z_type])
-        self.x_type = x_type
-        self.y_type = y_type
-        self.z_type = z_type
+        self._unevenly_sampled_channel.set_channel_types([x_type, y_type, z_type])
+        self._x_type = x_type
+        self._y_type = y_type
+        self._z_type = z_type
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -1087,17 +1121,17 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]].
         :return: This channel's payload as an interleaved payload.
         """
-        return self.unevenly_sampled_channel.get_multi_payload([
-            self.x_type,
-            self.y_type,
-            self.z_type
+        return self._unevenly_sampled_channel.get_multi_payload([
+            self._x_type,
+            self._y_type,
+            self._z_type
         ])
 
-    def set_xyz_payload_values(self,
-                               x_values: typing.Union[typing.List, numpy.ndarray],
-                               y_values: typing.Union[typing.List, numpy.ndarray],
-                               z_values: typing.Union[typing.List, numpy.ndarray],
-                               pl_type: constants.PayloadType) -> 'XyzUnevenlySampledSensor':
+    def _set_payload_values(self,
+                            x_values: typing.Union[typing.List, numpy.ndarray],
+                            y_values: typing.Union[typing.List, numpy.ndarray],
+                            z_values: typing.Union[typing.List, numpy.ndarray],
+                            pl_type: constants.PayloadType) -> 'XyzUnevenlySampledSensor':
         """
         Sets the interleaved payload of this XYZ channel given the X, Y, Z values and payload type.
         :param x_values: The x values.
@@ -1106,7 +1140,7 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         :param pl_type: Payload type.
         :return: An instance of the sensor.
         """
-        self.unevenly_sampled_channel.set_interleaved_payload([
+        self._unevenly_sampled_channel.set_interleaved_payload([
             x_values,
             y_values,
             z_values
@@ -1119,84 +1153,84 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         Returns the x-component of this channel's payload.
         :return: The x-component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(self.x_type)
+        return self._unevenly_sampled_channel.get_payload(self._x_type)
 
     def payload_values_y(self) -> numpy.ndarray:
         """
         Returns the y-component of this channel's payload.
         :return: The y-component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(self.y_type)
+        return self._unevenly_sampled_channel.get_payload(self._y_type)
 
     def payload_values_z(self) -> numpy.ndarray:
         """
         Returns the z-component of this channel's payload.
         :return: The z-component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(self.z_type)
+        return self._unevenly_sampled_channel.get_payload(self._z_type)
 
     def payload_values_x_mean(self) -> float:
         """
         Returns the x-component mean of this channel's payload.
         :return: The x-component mean of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(self.x_type)
+        return self._unevenly_sampled_channel.get_value_mean(self._x_type)
 
     def payload_values_y_mean(self) -> float:
         """
         Returns the y-component mean of this channel's payload.
         :return: The y-component mean of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(self.y_type)
+        return self._unevenly_sampled_channel.get_value_mean(self._y_type)
 
     def payload_values_z_mean(self) -> float:
         """
         Returns the z-component mean of this channel's payload.
         :return: The z-component mean of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(self.z_type)
+        return self._unevenly_sampled_channel.get_value_mean(self._z_type)
 
     def payload_values_x_median(self) -> float:
         """
         Returns the x-component median of this channel's payload.
         :return: The x-component median of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(self.x_type)
+        return self._unevenly_sampled_channel.get_value_median(self._x_type)
 
     def payload_values_y_median(self) -> float:
         """
         Returns the y-component median of this channel's payload.
         :return: The y-component median of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(self.y_type)
+        return self._unevenly_sampled_channel.get_value_median(self._y_type)
 
     def payload_values_z_median(self) -> float:
         """
         Returns the z-component median of this channel's payload.
         :return: The z-component median of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(self.z_type)
+        return self._unevenly_sampled_channel.get_value_median(self._z_type)
 
     def payload_values_x_std(self) -> float:
         """
         Returns the x-component standard deviation of this channel's payload.
         :return: The x-component standard deviation of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(self.x_type)
+        return self._unevenly_sampled_channel.get_value_std(self._x_type)
 
     def payload_values_y_std(self) -> float:
         """
         Returns the y-component standard deviation of this channel's payload.
         :return: The y-component standard deviation of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(self.y_type)
+        return self._unevenly_sampled_channel.get_value_std(self._y_type)
 
     def payload_values_z_std(self) -> float:
         """
         Returns the z-component standard deviation of this channel's payload.
         :return: The z-component standard deviation of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(self.z_type)
+        return self._unevenly_sampled_channel.get_value_std(self._z_type)
 
 
 class MicrophoneSensor(EvenlySampledSensor):
@@ -1204,7 +1238,7 @@ class MicrophoneSensor(EvenlySampledSensor):
     High-level wrapper around microphone channels.
     """
 
-    def __init__(self, evenly_sampled_channel: EvenlySampledChannel = None):
+    def __init__(self, evenly_sampled_channel: typing.Optional[EvenlySampledChannel] = None):
         """
         Initialized this channel.
         :param evenly_sampled_channel: An instance of an EvenlySampledChannel with microphone data.
@@ -1213,7 +1247,7 @@ class MicrophoneSensor(EvenlySampledSensor):
             evenly_sampled_channel = EvenlySampledChannel()
 
         super().__init__(evenly_sampled_channel)
-        self.evenly_sampled_channel.set_channel_types([api900_pb2.MICROPHONE])
+        self._evenly_sampled_channel.set_channel_types([api900_pb2.MICROPHONE])
 
     def set_payload_values(self,
                            microphone_payload: typing.Union[typing.List[int], numpy.ndarray]) -> 'MicrophoneSensor':
@@ -1222,7 +1256,7 @@ class MicrophoneSensor(EvenlySampledSensor):
         :param microphone_payload: Payload values.
         :return: An instance of the sensor.
         """
-        self.evenly_sampled_channel.set_payload(microphone_payload, constants.PayloadType.INT32_PAYLOAD)
+        self._evenly_sampled_channel.set_payload(microphone_payload, constants.PayloadType.INT32_PAYLOAD)
         return self
 
     def payload_values(self) -> numpy.ndarray:
@@ -1230,13 +1264,13 @@ class MicrophoneSensor(EvenlySampledSensor):
         Returns the microphone payload as a numpy ndarray of integers.
         :return: The microphone payload as a numpy ndarray of integers.
         """
-        return self.evenly_sampled_channel.get_payload(api900_pb2.MICROPHONE)
+        return self._evenly_sampled_channel.get_payload(api900_pb2.MICROPHONE)
 
     def payload_mean(self) -> float:
         """Returns the mean of this channel's payload.
         :return: The mean of this channel's payload.
         """
-        return self.evenly_sampled_channel.get_value_mean(api900_pb2.MICROPHONE)
+        return self._evenly_sampled_channel.get_value_mean(api900_pb2.MICROPHONE)
 
     # Currently, our Android and iOS devices don't calculate a median value, so we calculate it here
     # If the payload is set manually, the median value is calculated by the API
@@ -1262,7 +1296,7 @@ class MicrophoneSensor(EvenlySampledSensor):
         """Returns the standard deviation of this channel's payload.
         :return: The standard deviation of this channel's payload.
         """
-        return self.evenly_sampled_channel.get_value_std(api900_pb2.MICROPHONE)
+        return self._evenly_sampled_channel.get_value_std(api900_pb2.MICROPHONE)
 
 
 class BarometerSensor(UnevenlySampledSensor):
@@ -1270,20 +1304,20 @@ class BarometerSensor(UnevenlySampledSensor):
     High-level wrapper around barometer channels.
     """
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+    def __init__(self, unevenly_sampled_channel: typing.Optional[UnevenlySampledChannel] = None):
         """
         Initialize this channel
         :param unevenly_sampled_channel: Instance of UnevenlySampledChannel with barometer data
         """
         super().__init__(unevenly_sampled_channel)
-        self.unevenly_sampled_channel.set_channel_types([api900_pb2.BAROMETER])
+        self._unevenly_sampled_channel.set_channel_types([api900_pb2.BAROMETER])
 
     def payload_values(self) -> numpy.ndarray:
         """
         Returns this channels payload as a numpy ndarray of floats.
         :return: This channels payload as a numpy ndarray of floats.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.BAROMETER)
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.BAROMETER)
 
     def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]) -> 'BarometerSensor':
         """
@@ -1291,26 +1325,26 @@ class BarometerSensor(UnevenlySampledSensor):
         :param values:  Payload values.
         :return: An instance of the sensor.
         """
-        self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
+        self._unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
         return self
 
     def payload_mean(self) -> float:
         """Returns the mean of this channel's payload.
         :return: The mean of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.BAROMETER)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.BAROMETER)
 
     def payload_median(self) -> float:
         """Returns the median of this channel's payload.
         :return: The median of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.BAROMETER)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.BAROMETER)
 
     def payload_std(self) -> float:
         """Returns the standard deviation of this channel's payload.
         :return: The standard deviation of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.BAROMETER)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.BAROMETER)
 
 
 # pylint: disable=R0904
@@ -1319,13 +1353,13 @@ class LocationSensor(UnevenlySampledSensor):
     High-level wrapper around location channels.
     """
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+    def __init__(self, unevenly_sampled_channel: typing.Optional[UnevenlySampledChannel] = None):
         """
         Initialize this channel
         :param unevenly_sampled_channel: Instance of UnevenlySampledChannel containing location data
         """
         super().__init__(unevenly_sampled_channel)
-        self.unevenly_sampled_channel.set_channel_types([
+        self._unevenly_sampled_channel.set_channel_types([
             api900_pb2.LATITUDE,
             api900_pb2.LONGITUDE,
             api900_pb2.ALTITUDE,
@@ -1342,7 +1376,7 @@ class LocationSensor(UnevenlySampledSensor):
          [latitude_n, longitude_n, altitude_n, speed_n, accuracy_n],]
         :return: array containing interleaved values of the 5 channels
         """
-        return self.unevenly_sampled_channel.get_multi_payload([
+        return self._unevenly_sampled_channel.get_multi_payload([
             api900_pb2.LATITUDE,
             api900_pb2.LONGITUDE,
             api900_pb2.ALTITUDE,
@@ -1366,12 +1400,12 @@ class LocationSensor(UnevenlySampledSensor):
         :param accuracy_payload: The accuracy payload.
         :return: An instance of the sensor.
         """
-        self.unevenly_sampled_channel.set_interleaved_payload([latitude_payload,
-                                                               longitude_payload,
-                                                               altitude_payload,
-                                                               speed_payload,
-                                                               accuracy_payload],
-                                                              constants.PayloadType.FLOAT64_PAYLOAD)
+        self._unevenly_sampled_channel.set_interleaved_payload([latitude_payload,
+                                                                longitude_payload,
+                                                                altitude_payload,
+                                                                speed_payload,
+                                                                accuracy_payload],
+                                                               constants.PayloadType.FLOAT64_PAYLOAD)
         return self
 
     def payload_values_latitude(self):
@@ -1379,140 +1413,140 @@ class LocationSensor(UnevenlySampledSensor):
         Returns the latitude component of this channel's payload.
         :return: The latitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.LATITUDE)
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.LATITUDE)
 
     def payload_values_longitude(self):
         """
         Returns the longitude component of this channel's payload.
         :return: The longitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.LONGITUDE)
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.LONGITUDE)
 
     def payload_values_altitude(self):
         """
         Returns the altitude component of this channel's payload.
         :return: The altitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.ALTITUDE)
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.ALTITUDE)
 
     def payload_values_speed(self):
         """
         Returns the speed component of this channel's payload.
         :return: The speed component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.SPEED)
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.SPEED)
 
     def payload_values_accuracy(self):
         """
         Returns the accuracy component of this channel's payload.
         :return: The accuracy component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.ACCURACY)
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.ACCURACY)
 
     def payload_values_latitude_mean(self) -> float:
         """
         Returns the mean latitude component of this channel's payload.
         :return: The mean latitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.LATITUDE)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.LATITUDE)
 
     def payload_values_longitude_mean(self) -> float:
         """
         Returns the mean longitude component of this channel's payload.
         :return: The mean longitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.LONGITUDE)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.LONGITUDE)
 
     def payload_values_altitude_mean(self) -> float:
         """
         Returns the mean altitude component of this channel's payload.
         :return: The mean altitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.ALTITUDE)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.ALTITUDE)
 
     def payload_values_speed_mean(self) -> float:
         """
         Returns the mean speed component of this channel's payload.
         :return: The mean speed component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.SPEED)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.SPEED)
 
     def payload_values_accuracy_mean(self) -> float:
         """
         Returns the mean accuracy component of this channel's payload.
         :return: The mean accuracy component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.ACCURACY)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.ACCURACY)
 
     def payload_values_latitude_median(self) -> float:
         """
         Returns the median latitude component of this channel's payload.
         :return: The median latitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.LATITUDE)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.LATITUDE)
 
     def payload_values_longitude_median(self) -> float:
         """
         Returns the median longitude component of this channel's payload.
         :return: The median longitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.LONGITUDE)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.LONGITUDE)
 
     def payload_values_altitude_median(self) -> float:
         """
         Returns the median altitude component of this channel's payload.
         :return: The median altitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.ALTITUDE)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.ALTITUDE)
 
     def payload_values_speed_median(self) -> float:
         """
         Returns the median speed component of this channel's payload.
         :return: The median speed component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.SPEED)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.SPEED)
 
     def payload_values_accuracy_median(self) -> float:
         """
         Returns the median accuracy component of this channel's payload.
         :return: The median accuracy component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.ACCURACY)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.ACCURACY)
 
     def payload_values_latitude_std(self) -> float:
         """
         Returns the standard deviation latitude component of this channel's payload.
         :return: The standard deviation latitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.LATITUDE)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.LATITUDE)
 
     def payload_values_longitude_std(self) -> float:
         """
         Returns the standard deviation longitude component of this channel's payload.
         :return: The standard deviation longitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.LONGITUDE)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.LONGITUDE)
 
     def payload_values_altitude_std(self) -> float:
         """
         Returns the standard deviation altitude component of this channel's payload.
         :return: The standard deviation altitude component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.ALTITUDE)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.ALTITUDE)
 
     def payload_values_speed_std(self) -> float:
         """
         Returns the standard deviation speed component of this channel's payload.
         :return: The standard deviation speed component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.SPEED)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.SPEED)
 
     def payload_values_accuracy_std(self) -> float:
         """
         Returns the standard deviation accuracy component of this channel's payload.
         :return: The standard deviation accuracy component of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.ACCURACY)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.ACCURACY)
 
 
 class TimeSynchronizationSensor:
@@ -1521,30 +1555,30 @@ class TimeSynchronizationSensor:
     It should be noted that this class only exposes a single method, payload values.
     """
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+    def __init__(self, unevenly_sampled_channel: typing.Optional[UnevenlySampledChannel] = None):
         """
         Initialized this class.
         :param unevenly_sampled_channel: An unevenly sampled channel with time synchronization payload.
         """
         if unevenly_sampled_channel is None:
-            self.unevenly_sampled_channel = UnevenlySampledChannel()
+            self._unevenly_sampled_channel = UnevenlySampledChannel()
         else:
-            self.unevenly_sampled_channel = UnevenlySampledChannel(unevenly_sampled_channel.protobuf_channel)
-        self.unevenly_sampled_channel.set_channel_types([api900_pb2.TIME_SYNCHRONIZATION])
+            self._unevenly_sampled_channel = UnevenlySampledChannel(unevenly_sampled_channel.protobuf_channel)
+        self._unevenly_sampled_channel.set_channel_types([api900_pb2.TIME_SYNCHRONIZATION])
 
     def payload_type(self) -> str:
         """
         Returns the internal protobuf payload type.
         :return: The internal protobuf payload type.
         """
-        return self.unevenly_sampled_channel.get_payload_type()
+        return self._unevenly_sampled_channel.get_payload_type()
 
     def payload_values(self) -> numpy.ndarray:
         """
         Returns the time synchronization exchanges as a numpy ndarray of integers.
         :return: The time synchronization exchanges as a numpy ndarray of integers.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.TIME_SYNCHRONIZATION)
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.TIME_SYNCHRONIZATION)
 
     def set_payload_values(self, payload: typing.Union[typing.List[int], numpy.ndarray]) -> 'TimeSynchronizationSensor':
         """
@@ -1552,7 +1586,7 @@ class TimeSynchronizationSensor:
         :param payload: The payload.
         :return: An instance of the sensor.
         """
-        self.unevenly_sampled_channel.set_payload(payload, constants.PayloadType.INT64_PAYLOAD)
+        self._unevenly_sampled_channel.set_payload(payload, constants.PayloadType.INT64_PAYLOAD)
         return self
 
     def metadata(self) -> typing.List[str]:
@@ -1560,30 +1594,47 @@ class TimeSynchronizationSensor:
         Returns this channel's metadata (if there is any) as a Python list.
         :return: This channel's metadata (if there is any) as a Python list.
         """
-        return self.unevenly_sampled_channel.metadata
+        return self._unevenly_sampled_channel.metadata
 
     def set_metadata(self, data: typing.List[str]):
         """
         sets the metadata
         :param data: metadata as list of strings
         """
-        self.unevenly_sampled_channel.set_metadata(data)
+        self._unevenly_sampled_channel.set_metadata(data)
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
         Returns this channel's metadata (if there is any) as a Python dictionary.
         :return: This channel's metadata (if there is any) as a Python dictionary.
         """
-        return get_metadata_as_dict(self.unevenly_sampled_channel.metadata)
+        return _get_metadata_as_dict(self._unevenly_sampled_channel.metadata)
 
     def __str__(self):
-        return str(self.unevenly_sampled_channel)
+        return str(self._unevenly_sampled_channel)
+
+    def __eq__(self, other) -> bool:
+        return isinstance(other, TimeSynchronizationSensor) and len(self.diff(other)) == 0
+
+    def diff(self, other: 'TimeSynchronizationSensor') -> typing.List[str]:
+        diffs = map(lambda tuple2: _diff(tuple2[0], tuple2[1]), [
+            (self._unevenly_sampled_channel.channel_types, other._unevenly_sampled_channel.channel_types),
+            (self.payload_type(), other.payload_type()),
+            (self.metadata(), other.metadata()),
+            (self._unevenly_sampled_channel.payload, other._unevenly_sampled_channel.payload)
+        ])
+        # Filter only out only the differences
+        diffs = filter(lambda tuple2: tuple2[0], diffs)
+        # Extract the difference string
+        diffs = map(lambda tuple2: tuple2[1], diffs)
+        return list(diffs)
+
 
 
 class AccelerometerSensor(XyzUnevenlySampledSensor):
     """High-level wrapper around accelerometer channels."""
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+    def __init__(self, unevenly_sampled_channel: typing.Optional[UnevenlySampledChannel] = None):
         """
         Initializes this class.
         :param unevenly_sampled_channel: An instance of an UnevenlySampledChanel which contains accelerometer
@@ -1599,7 +1650,7 @@ class AccelerometerSensor(XyzUnevenlySampledSensor):
         returns the sensor payload as a numpy ndarray
         :return: accelerometer payload as a numpy ndarray
         """
-        return self.unevenly_sampled_channel.get_multi_payload([
+        return self._unevenly_sampled_channel.get_multi_payload([
             api900_pb2.ACCELEROMETER_X,
             api900_pb2.ACCELEROMETER_Y,
             api900_pb2.ACCELEROMETER_Z
@@ -1616,7 +1667,7 @@ class AccelerometerSensor(XyzUnevenlySampledSensor):
         :param z_values: The z values.
         :return: An instance of the sensor.
         """
-        self.set_xyz_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
+        self._set_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
         return self
 
 
@@ -1627,7 +1678,7 @@ class MagnetometerSensor(XyzUnevenlySampledSensor):
     X, Y, and Z payload components.
     """
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+    def __init__(self, unevenly_sampled_channel: typing.Optional[UnevenlySampledChannel] = None):
         super().__init__(unevenly_sampled_channel,
                          api900_pb2.MAGNETOMETER_X,
                          api900_pb2.MAGNETOMETER_Y,
@@ -1638,7 +1689,7 @@ class MagnetometerSensor(XyzUnevenlySampledSensor):
         returns the sensor payload as a numpy ndarray
         :return: magnetometer payload as a numpy ndarray
         """
-        return self.unevenly_sampled_channel.get_multi_payload([
+        return self._unevenly_sampled_channel.get_multi_payload([
             api900_pb2.MAGNETOMETER_X,
             api900_pb2.MAGNETOMETER_Y,
             api900_pb2.MAGNETOMETER_Z
@@ -1655,7 +1706,7 @@ class MagnetometerSensor(XyzUnevenlySampledSensor):
         :param z_values: The z values.
         :return: An instance of the sensor.
         """
-        self.set_xyz_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
+        self._set_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
         return self
 
 
@@ -1666,7 +1717,7 @@ class GyroscopeSensor(XyzUnevenlySampledSensor):
     X, Y, and Z payload components.
     """
 
-    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+    def __init__(self, unevenly_sampled_channel: typing.Optional[UnevenlySampledChannel] = None):
         super().__init__(unevenly_sampled_channel,
                          api900_pb2.GYROSCOPE_X,
                          api900_pb2.GYROSCOPE_Y,
@@ -1677,7 +1728,7 @@ class GyroscopeSensor(XyzUnevenlySampledSensor):
         returns the sensor payload as a numpy ndarray
         :return: gyroscope payload as a numpy ndarray
         """
-        return self.unevenly_sampled_channel.get_multi_payload([
+        return self._unevenly_sampled_channel.get_multi_payload([
             api900_pb2.GYROSCOPE_X,
             api900_pb2.GYROSCOPE_Y,
             api900_pb2.GYROSCOPE_Z
@@ -1694,7 +1745,7 @@ class GyroscopeSensor(XyzUnevenlySampledSensor):
         :param z_values: The z values.
         :return: An instance of the sensor.
         """
-        self.set_xyz_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
+        self._set_payload_values(x_values, y_values, z_values, constants.PayloadType.FLOAT64_PAYLOAD)
         return self
 
 
@@ -1707,14 +1758,14 @@ class LightSensor(UnevenlySampledSensor):
         :param unevenly_sampled_channel: Instance of UnevenlySampledChannel with light sensor payload
         """
         super().__init__(unevenly_sampled_channel)
-        self.unevenly_sampled_channel.set_channel_types([api900_pb2.LIGHT])
+        self._unevenly_sampled_channel.set_channel_types([api900_pb2.LIGHT])
 
     def payload_values(self) -> numpy.ndarray:
         """
         Returns a numpy ndarray of floats representing this light sensor's payload.
         :return: A numpy ndarray of floats representing this light sensor's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.LIGHT)
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.LIGHT)
 
     def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]) -> 'LightSensor':
         """
@@ -1722,7 +1773,7 @@ class LightSensor(UnevenlySampledSensor):
         :param values: Payload values.
         :return: An instance of the sensor.
         """
-        self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
+        self._unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
         return self
 
     def payload_mean(self) -> float:
@@ -1730,21 +1781,21 @@ class LightSensor(UnevenlySampledSensor):
         The mean of this channel's payload.
         :return: Mean of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.LIGHT)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.LIGHT)
 
     def payload_median(self) -> float:
         """
         The median of this channel's payload.
         :return: Median of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.LIGHT)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.LIGHT)
 
     def payload_std(self) -> float:
         """
         The standard deviation of this channel's payload.
         :return: Standard deviation of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.LIGHT)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.LIGHT)
 
 
 class InfraredSensor(UnevenlySampledSensor):
@@ -1756,14 +1807,14 @@ class InfraredSensor(UnevenlySampledSensor):
         :param unevenly_sampled_channel: UnevenlySampledChannel with infrared sensor payload
         """
         super().__init__(unevenly_sampled_channel)
-        self.unevenly_sampled_channel.set_channel_types([api900_pb2.INFRARED])
+        self._unevenly_sampled_channel.set_channel_types([api900_pb2.INFRARED])
 
     def payload_values(self) -> numpy.ndarray:
         """
         Returns a numpy ndarray of floats representing this sensor's payload.
         :return: A numpy ndarray of floats representing this sensor's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.INFRARED)
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.INFRARED)
 
     def set_payload_values(self, values: typing.Union[typing.List[float], numpy.ndarray]) -> 'InfraredSensor':
         """
@@ -1771,7 +1822,7 @@ class InfraredSensor(UnevenlySampledSensor):
         :param values: Payload values.
         :return: An instance of the sensor.
         """
-        self.unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
+        self._unevenly_sampled_channel.set_payload(values, constants.PayloadType.FLOAT64_PAYLOAD)
         return self
 
     def payload_mean(self) -> float:
@@ -1779,21 +1830,21 @@ class InfraredSensor(UnevenlySampledSensor):
         The mean of this channel's payload.
         :return: Mean of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_mean(api900_pb2.INFRARED)
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.INFRARED)
 
     def payload_median(self) -> float:
         """
         The median of this channel's payload.
         :return: Median of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_median(api900_pb2.INFRARED)
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.INFRARED)
 
     def payload_std(self) -> float:
         """
         The standard deviation of this channel's payload.
         :return: Standard deviation of this channel's payload.
         """
-        return self.unevenly_sampled_channel.get_value_std(api900_pb2.INFRARED)
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.INFRARED)
 
 
 class ImageSensor(UnevenlySampledSensor):
@@ -1805,18 +1856,10 @@ class ImageSensor(UnevenlySampledSensor):
         :param unevenly_sampled_channel: The image channel.
         """
         super().__init__(unevenly_sampled_channel)
-        self.unevenly_sampled_channel.set_channel_types([api900_pb2.IMAGE])
+        self._unevenly_sampled_channel.set_channel_types([api900_pb2.IMAGE])
 
         self.image_offsets: typing.List[int] = self.parse_offsets()
         """A list of image byte offsets into the payload of this sensor channel."""
-
-    def set_channel(self, channel: UnevenlySampledChannel):
-        """
-        Sets the channel to an unevenly sampled channel
-        :param channel: Unevenly sampled channel with image payload
-        """
-        super().set_channel(channel)
-        self.image_offsets = self.parse_offsets()
 
     def parse_offsets(self) -> typing.List[int]:
         """
@@ -1847,7 +1890,7 @@ class ImageSensor(UnevenlySampledSensor):
         offset_1, ..., offset_n]".
         :return: A numpy ndarray of floats representing this sensor's payload.
         """
-        return self.unevenly_sampled_channel.get_payload(api900_pb2.IMAGE)
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.IMAGE)
 
     def num_images(self) -> int:
         """
@@ -1904,7 +1947,7 @@ class ImageSensor(UnevenlySampledSensor):
 
     def __str__(self):
         """Provide image information in str of this instance"""
-        return "{}\nnum images: {}\nbyte offsets: {}".format(self.unevenly_sampled_channel,
+        return "{}\nnum images: {}\nbyte offsets: {}".format(self._unevenly_sampled_channel,
                                                              self.num_images(),
                                                              self.image_offsets)
 
@@ -1925,36 +1968,36 @@ class WrappedRedvoxPacket:
         :param redvox_packet: A protobuf redvox packet.
         """
         if redvox_packet is None:
-            self.redvox_packet = api900_pb2.RedvoxPacket()
-            self.evenly_sampled_channels = list()
-            self.unevenly_sampled_channels = list()
-            self.metadata_list = list()
+            self._redvox_packet = api900_pb2.RedvoxPacket()
+            self._evenly_sampled_channels = list()
+            self._unevenly_sampled_channels = list()
+            self._metadata_list = list()
             self._channel_cache = {}
 
         else:
-            self.redvox_packet: api900_pb2.RedvoxPacket = redvox_packet
+            self._redvox_packet: api900_pb2.RedvoxPacket = redvox_packet
             """Protobuf api 900 redvox packet"""
 
-            self.evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
-                    map(EvenlySampledChannel, repeated_to_array(redvox_packet.evenly_sampled_channels)))
+            self._evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
+                    map(EvenlySampledChannel, _repeated_to_array(redvox_packet._evenly_sampled_channels)))
             """List of evenly sampled channels"""
 
-            self.unevenly_sampled_channels: typing.List[UnevenlySampledChannel] = list(
-                    map(UnevenlySampledChannel, repeated_to_array(redvox_packet.unevenly_sampled_channels)))
+            self._unevenly_sampled_channels: typing.List[UnevenlySampledChannel] = list(
+                    map(UnevenlySampledChannel, _repeated_to_array(redvox_packet._unevenly_sampled_channels)))
             """List of unevenly sampled channels"""
 
-            self.metadata_list: typing.List[str] = repeated_to_list(redvox_packet.metadata)
+            self._metadata_list: typing.List[str] = _repeated_to_list(redvox_packet.metadata)
             """List of metadata"""
 
             self._channel_cache: typing.Dict[int, typing.Union[EvenlySampledChannel, UnevenlySampledChannel]] = {}
             """Holds a mapping of channel type to channel for O(1) access."""
 
             # Initialize channel cache
-            for evenly_sampled_channel in self.evenly_sampled_channels:
+            for evenly_sampled_channel in self._evenly_sampled_channels:
                 for channel_type in evenly_sampled_channel.channel_types:
                     self._channel_cache[channel_type] = evenly_sampled_channel
 
-            for unevenly_sampled_channel in self.unevenly_sampled_channels:
+            for unevenly_sampled_channel in self._unevenly_sampled_channels:
                 for channel_type in unevenly_sampled_channel.channel_types:
                     self._channel_cache[channel_type] = unevenly_sampled_channel
 
@@ -1963,39 +2006,39 @@ class WrappedRedvoxPacket:
         returns the protobuf redvox packet
         :return: protobuf redvox packet
         """
-        return self.redvox_packet
+        return self._redvox_packet
 
-    def evenly_sampled_channels(self) -> typing.List[EvenlySampledChannel]:
+    def _evenly_sampled_channels(self) -> typing.List[EvenlySampledChannel]:
         """
         returns the evenly sampled channels as a copied list to avoid built in functions making untracked changes
         :return: list of evenly sampled channels
         """
-        return self.evenly_sampled_channels.copy()
+        return self._evenly_sampled_channels.copy()
 
-    def unevenly_sampled_channels(self) -> typing.List[UnevenlySampledChannel]:
+    def _unevenly_sampled_channels(self) -> typing.List[UnevenlySampledChannel]:
         """
         returns the unevenly sampled channels as a copied list to avoid built in functions making untracked changes
         :return: list of unevenly sampled channels
         """
-        return self.unevenly_sampled_channels.copy()
+        return self._unevenly_sampled_channels.copy()
 
     def _refresh_channels(self):
         """
         takes the redvox packet and rebuilds the channel cache from it
         """
-        self.evenly_sampled_channels = list(map(EvenlySampledChannel,
-                                                repeated_to_array(self.redvox_packet.evenly_sampled_channels)))
-        self.unevenly_sampled_channels = list(map(UnevenlySampledChannel,
-                                                  repeated_to_array(self.redvox_packet.unevenly_sampled_channels)))
+        self._evenly_sampled_channels = list(map(EvenlySampledChannel,
+                                                 _repeated_to_array(self._redvox_packet.evenly_sampled_channels)))
+        self._unevenly_sampled_channels = list(map(UnevenlySampledChannel,
+                                                   _repeated_to_array(self._redvox_packet.unevenly_sampled_channels)))
         self._channel_cache = {}
-        for evenly_sampled_channel in self.evenly_sampled_channels:
+        for evenly_sampled_channel in self._evenly_sampled_channels:
             for channel_type in evenly_sampled_channel.channel_types:
                 self._channel_cache[channel_type] = evenly_sampled_channel
-        for unevenly_sampled_channel in self.unevenly_sampled_channels:
+        for unevenly_sampled_channel in self._unevenly_sampled_channels:
             for channel_type in unevenly_sampled_channel.channel_types:
                 self._channel_cache[channel_type] = unevenly_sampled_channel
 
-    def add_channel(self, channel: typing.Union[EvenlySampledChannel, UnevenlySampledChannel]):
+    def _add_channel(self, channel: typing.Union[EvenlySampledChannel, UnevenlySampledChannel]):
         """
         Add a channel
         :param channel: channel to add
@@ -2010,7 +2053,7 @@ class WrappedRedvoxPacket:
         else:
             raise ValueError("Cannot add a channel with a type that already exists in this packet.")
 
-    def edit_channel(self, channel_type: int, channel: typing.Union[EvenlySampledChannel, UnevenlySampledChannel]):
+    def _edit_channel(self, channel_type: int, channel: typing.Union[EvenlySampledChannel, UnevenlySampledChannel]):
         """
         removes the channel with the given type and adds the channel supplied
         :param channel_type: type of channel to remove
@@ -2019,10 +2062,10 @@ class WrappedRedvoxPacket:
         index, sampling = self._find_channel(channel_type)
         if index is not None and sampling is not None:
             if type(channel) == EvenlySampledChannel:
-                del self.redvox_packet.evenly_sampled_channels[index]
+                del self._redvox_packet.evenly_sampled_channels[index]
                 self._add_channel_redvox_packet(channel)
             elif type(channel) == UnevenlySampledChannel:
-                del self.redvox_packet.unevenly_sampled_channels[index]
+                del self._redvox_packet.unevenly_sampled_channels[index]
                 self._add_channel_redvox_packet(channel)
             else:
                 raise TypeError("Channel type to edit is unknown!")
@@ -2030,7 +2073,7 @@ class WrappedRedvoxPacket:
         else:
             raise TypeError("Unknown channel type specified for edit.")
 
-    def delete_channel(self, channel_type: int):
+    def _delete_channel(self, channel_type: int):
         """
         deletes the channel type specified
         :param channel_type: a channel to remove
@@ -2038,9 +2081,9 @@ class WrappedRedvoxPacket:
         index, sampling = self._find_channel(channel_type)
         if index is not None and sampling is not None:
             if sampling == EvenlySampledChannel:
-                del self.redvox_packet.evenly_sampled_channels[index]
+                del self._redvox_packet.evenly_sampled_channels[index]
             else:
-                del self.redvox_packet.unevenly_sampled_channels[index]
+                del self._redvox_packet.unevenly_sampled_channels[index]
             self._refresh_channels()
         else:
             raise TypeError("Unknown channel type to remove from packet.")
@@ -2050,12 +2093,12 @@ class WrappedRedvoxPacket:
         returns the index of the channel and the kind of sampled array its in
         :return: the index in the even or uneven array and the name of the array
         """
-        if self.has_channel(channel_type):
-            for idx in range(len(self.evenly_sampled_channels)):
-                if channel_type in self.evenly_sampled_channels[idx].channel_types:
+        if self._has_channel(channel_type):
+            for idx in range(len(self._evenly_sampled_channels)):
+                if channel_type in self._evenly_sampled_channels[idx].channel_types:
                     return idx, EvenlySampledChannel
-            for idx in range(len(self.unevenly_sampled_channels)):
-                if channel_type in self.unevenly_sampled_channels[idx].channel_types:
+            for idx in range(len(self._unevenly_sampled_channels)):
+                if channel_type in self._unevenly_sampled_channels[idx].channel_types:
                     return idx, UnevenlySampledChannel
             else:
                 return None, None
@@ -2068,12 +2111,12 @@ class WrappedRedvoxPacket:
         :param channel: channel to add
         """
         if type(channel) == EvenlySampledChannel:
-            newchan = self.redvox_packet.evenly_sampled_channels.add()
+            newchan = self._redvox_packet.evenly_sampled_channels.add()
             newchan.sample_rate_hz = channel.sample_rate_hz
             newchan.first_sample_timestamp_epoch_microseconds_utc = \
                 channel.first_sample_timestamp_epoch_microseconds_utc
         elif type(channel) == UnevenlySampledChannel:
-            newchan = self.redvox_packet.unevenly_sampled_channels.add()
+            newchan = self._redvox_packet.unevenly_sampled_channels.add()
             for time in channel.timestamps_microseconds_utc:
                 newchan.timestamps_microseconds_utc.append(time)
             newchan.sample_interval_mean = channel.sample_interval_mean
@@ -2114,22 +2157,22 @@ class WrappedRedvoxPacket:
         for meta in channel.metadata:
             newchan.metadata.append(meta)
 
-    def get_channel_types(self) -> typing.List[typing.List[int]]:
+    def _get_channel_types(self) -> typing.List[typing.List[int]]:
         """
         Returns a list of channel type enumerations. This is a list of lists, and allows us to easily view
         interleaved channels.
         :return: A list of channel type enumerations.
         """
         channel_types = []
-        for evenly_sampled_channel in self.evenly_sampled_channels:
+        for evenly_sampled_channel in self._evenly_sampled_channels:
             channel_types.append(evenly_sampled_channel.channel_types)
 
-        for unevenly_sampled_channel in self.unevenly_sampled_channels:
+        for unevenly_sampled_channel in self._unevenly_sampled_channels:
             channel_types.append(unevenly_sampled_channel.channel_types)
 
         return channel_types
 
-    def get_channel_type_names(self) -> typing.List[typing.List[str]]:
+    def _get_channel_type_names(self) -> typing.List[typing.List[str]]:
         """
         Returns a list of channel type names. This is a list of lists, and allows us to easily view
         interleaved channels.
@@ -2137,11 +2180,11 @@ class WrappedRedvoxPacket:
         interleaved channels.
         """
         names = []
-        for channel_types in self.get_channel_types():
-            names.append(list(map(channel_type_name_from_enum, channel_types)))
+        for channel_types in self._get_channel_types():
+            names.append(list(map(_channel_type_name_from_enum, channel_types)))
         return names
 
-    def get_channel(self, channel_type: int) -> typing.Union[EvenlySampledChannel, UnevenlySampledChannel, None]:
+    def _get_channel(self, channel_type: int) -> typing.Union[EvenlySampledChannel, UnevenlySampledChannel, None]:
         """
         Returns a channel from this packet according to the channel type.
         :param channel_type: The channel type to search for.
@@ -2152,7 +2195,7 @@ class WrappedRedvoxPacket:
 
         return None
 
-    def has_channel(self, channel_type: int) -> bool:
+    def _has_channel(self, channel_type: int) -> bool:
         """
         Returns True if this packet contains a channel with this type otherwise False.
         :param channel_type: Channel type to search for.
@@ -2160,13 +2203,13 @@ class WrappedRedvoxPacket:
         """
         return channel_type in self._channel_cache
 
-    def has_channels(self, channel_types: typing.List[int]) -> bool:
+    def _has_channels(self, channel_types: typing.List[int]) -> bool:
         """
         Checks that this packet contains all of the provided channels.
         :param channel_types: Channel types that this packet must contain.
         :return: True if this packet contains all provided channel types, False otherwise.
         """
-        has_channel_results = map(self.has_channel, channel_types)
+        has_channel_results = map(self._has_channel, channel_types)
         for has_channel_result in has_channel_results:
             if not has_channel_result:
                 return False
@@ -2177,28 +2220,28 @@ class WrappedRedvoxPacket:
         Converts the protobuf packet stored in this wrapped packet to JSON.
         :return: The JSON representation of the protobuf encoded packet.
         """
-        return to_json(self.redvox_packet)
+        return to_json(self._redvox_packet)
 
     def compressed_buffer(self) -> bytes:
         """
         Returns the compressed buffer associated with this packet.
         :return: The compressed buffer associated with this packet.
         """
-        return lz4_compress(self.redvox_packet.SerializeToString())
+        return lz4_compress(self._redvox_packet.SerializeToString())
 
     def api(self) -> int:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.api
+        return self._redvox_packet.api
 
     def set_api(self, version: int) -> 'WrappedRedvoxPacket':
         """
         sets the api version number
         :param version: version number
         """
-        self.redvox_packet.api = version
+        self._redvox_packet.api = version
         return self
 
     def uuid(self) -> str:
@@ -2206,14 +2249,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.uuid
+        return self._redvox_packet.uuid
 
     def set_uuid(self, uid: str) -> 'WrappedRedvoxPacket':
         """
         sets the uuid
         :param uid: uuid string
         """
-        self.redvox_packet.uuid = uid
+        self._redvox_packet.uuid = uid
         return self
 
     def redvox_id(self) -> str:
@@ -2221,14 +2264,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.redvox_id
+        return self._redvox_packet.redvox_id
 
     def set_redvox_id(self, rid: str) -> 'WrappedRedvoxPacket':
         """
         sets the redvox id
         :param rid: redvox id string
         """
-        self.redvox_packet.redvox_id = rid
+        self._redvox_packet.redvox_id = rid
         return self
 
     def authenticated_email(self) -> str:
@@ -2236,14 +2279,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.authenticated_email
+        return self._redvox_packet.authenticated_email
 
     def set_authenticated_email(self, email: str) -> 'WrappedRedvoxPacket':
         """
         sets the authenticated email
         :param email: authenticated email string
         """
-        self.redvox_packet.authenticated_email = email
+        self._redvox_packet.authenticated_email = email
         return self
 
     def authentication_token(self) -> str:
@@ -2251,14 +2294,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.authentication_token
+        return self._redvox_packet.authentication_token
 
     def set_authentication_token(self, token: str) -> 'WrappedRedvoxPacket':
         """
         sets the authentication token
         :param token: authentication token string
         """
-        self.redvox_packet.authentication_token = token
+        self._redvox_packet.authentication_token = token
         return self
 
     def firebase_token(self) -> str:
@@ -2266,14 +2309,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.firebase_token
+        return self._redvox_packet.firebase_token
 
     def set_firebase_token(self, token: str) -> 'WrappedRedvoxPacket':
         """
         sets the firebase token
         :param token: firebase token string
         """
-        self.redvox_packet.firebase_token = token
+        self._redvox_packet.firebase_token = token
         return self
 
     def is_backfilled(self) -> bool:
@@ -2281,14 +2324,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.is_backfilled
+        return self._redvox_packet.is_backfilled
 
     def set_is_backfilled(self, tof: bool) -> 'WrappedRedvoxPacket':
         """
         sets the is_backfilled flag
         :param tof: true or false
         """
-        self.redvox_packet.is_backfilled = tof
+        self._redvox_packet.is_backfilled = tof
         return self
 
     def is_private(self) -> bool:
@@ -2296,14 +2339,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.is_private
+        return self._redvox_packet.is_private
 
     def set_is_private(self, tof: bool) -> 'WrappedRedvoxPacket':
         """
         sets the is_private flag
         :param tof: true or false
         """
-        self.redvox_packet.is_private = tof
+        self._redvox_packet.is_private = tof
         return self
 
     def is_scrambled(self) -> bool:
@@ -2311,14 +2354,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.is_scrambled
+        return self._redvox_packet.is_scrambled
 
     def set_is_scrambled(self, tof: bool) -> 'WrappedRedvoxPacket':
         """
         sets the is_scrambled flag
         :param tof: true or false
         """
-        self.redvox_packet.is_scrambled = tof
+        self._redvox_packet.is_scrambled = tof
         return self
 
     def device_make(self) -> str:
@@ -2326,14 +2369,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.device_make
+        return self._redvox_packet.device_make
 
     def set_device_make(self, make: str) -> 'WrappedRedvoxPacket':
         """
         sets the make of the device
         :param make: make of the device string
         """
-        self.redvox_packet.device_make = make
+        self._redvox_packet.device_make = make
         return self
 
     def device_model(self) -> str:
@@ -2341,14 +2384,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.device_model
+        return self._redvox_packet.device_model
 
     def set_device_model(self, model: str) -> 'WrappedRedvoxPacket':
         """
         sets the model of the device
         :param model: model of the device string
         """
-        self.redvox_packet.device_model = model
+        self._redvox_packet.device_model = model
         return self
 
     def device_os(self) -> str:
@@ -2356,14 +2399,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.device_os
+        return self._redvox_packet.device_os
 
     def set_device_os(self, os: str) -> 'WrappedRedvoxPacket':
         """
         sets the device operating system
         :param os: operating system string
         """
-        self.redvox_packet.device_os = os
+        self._redvox_packet.device_os = os
         return self
 
     def device_os_version(self) -> str:
@@ -2371,14 +2414,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.device_os_version
+        return self._redvox_packet.device_os_version
 
     def set_device_os_version(self, version: str) -> 'WrappedRedvoxPacket':
         """
         sets the device OS version
         :param version: device OS version string
         """
-        self.redvox_packet.device_os_version = version
+        self._redvox_packet.device_os_version = version
         return self
 
     def app_version(self) -> str:
@@ -2386,14 +2429,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.app_version
+        return self._redvox_packet.app_version
 
     def set_app_version(self, version: str) -> 'WrappedRedvoxPacket':
         """
         sets the app version number
         :param version: app version string
         """
-        self.redvox_packet.app_version = version
+        self._redvox_packet.app_version = version
         return self
 
     def battery_level_percent(self) -> float:
@@ -2401,14 +2444,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.battery_level_percent
+        return self._redvox_packet.battery_level_percent
 
     def set_battery_level_percent(self, percent: float) -> 'WrappedRedvoxPacket':
         """
         sets the percentage of battery left
         :param percent: percentage of battery left
         """
-        self.redvox_packet.battery_level_percent = percent
+        self._redvox_packet.battery_level_percent = percent
         return self
 
     def device_temperature_c(self) -> float:
@@ -2416,14 +2459,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.device_temperature_c
+        return self._redvox_packet.device_temperature_c
 
     def set_device_temperature_c(self, temp: float) -> 'WrappedRedvoxPacket':
         """
         sets the device temperature in degrees Celsius
         :param temp: temperature in degrees Celsius
         """
-        self.redvox_packet.device_temperature_c = temp
+        self._redvox_packet.device_temperature_c = temp
         return self
 
     def acquisition_server(self) -> str:
@@ -2431,14 +2474,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.acquisition_server
+        return self._redvox_packet.acquisition_server
 
     def set_acquisition_server(self, server: str) -> 'WrappedRedvoxPacket':
         """
         sets the acquisition server url
         :param server: url to acquisition server
         """
-        self.redvox_packet.acquisition_server = server
+        self._redvox_packet.acquisition_server = server
         return self
 
     # pylint: disable=invalid-name
@@ -2447,14 +2490,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.time_synchronization_server
+        return self._redvox_packet.time_synchronization_server
 
     def set_time_synchronization_server(self, server: str) -> 'WrappedRedvoxPacket':
         """
         sets the time synchronization server url
         :param server: url to time synchronization server
         """
-        self.redvox_packet.time_synchronization_server = server
+        self._redvox_packet.time_synchronization_server = server
         return self
 
     def authentication_server(self) -> str:
@@ -2462,14 +2505,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.authentication_server
+        return self._redvox_packet.authentication_server
 
     def set_authentication_server(self, server: str) -> 'WrappedRedvoxPacket':
         """
         sets the authentication server url
         :param server: url to authentication server
         """
-        self.redvox_packet.authentication_server = server
+        self._redvox_packet.authentication_server = server
         return self
 
     # pylint: disable=invalid-name
@@ -2478,14 +2521,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.app_file_start_timestamp_epoch_microseconds_utc
+        return self._redvox_packet.app_file_start_timestamp_epoch_microseconds_utc
 
     def set_app_file_start_timestamp_epoch_microseconds_utc(self, time: int) -> 'WrappedRedvoxPacket':
         """
         sets the timestamp of packet creation
         :param time: time when packet was created in microseconds since utc epoch
         """
-        self.redvox_packet.app_file_start_timestamp_epoch_microseconds_utc = time
+        self._redvox_packet.app_file_start_timestamp_epoch_microseconds_utc = time
         return self
 
     # pylint: disable=invalid-name
@@ -2494,14 +2537,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.app_file_start_timestamp_machine
+        return self._redvox_packet.app_file_start_timestamp_machine
 
     def set_app_file_start_timestamp_machine(self, time: int) -> 'WrappedRedvoxPacket':
         """
         sets the internal machine timestamp of packet creation
         :param time: time when packet was created on local machine
         """
-        self.redvox_packet.app_file_start_timestamp_machine = time
+        self._redvox_packet.app_file_start_timestamp_machine = time
         return self
 
     # pylint: disable=invalid-name
@@ -2510,14 +2553,14 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.redvox_packet.server_timestamp_epoch_microseconds_utc
+        return self._redvox_packet.server_timestamp_epoch_microseconds_utc
 
     def set_server_timestamp_epoch_microseconds_utc(self, time: int) -> 'WrappedRedvoxPacket':
         """
         sets the server timestamp when the packet was received
         :param time: time when packet was received by server
         """
-        self.redvox_packet.server_timestamp_epoch_microseconds_utc = time
+        self._redvox_packet.server_timestamp_epoch_microseconds_utc = time
         return self
 
     def metadata(self) -> typing.List[str]:
@@ -2525,33 +2568,33 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return self.metadata_list
+        return self._metadata_list
 
     def set_metadata(self, data: typing.List[str]) -> 'WrappedRedvoxPacket':
         """
         sets the metadata
         :param data: metadata as list of strings
         """
-        self.metadata_list = data
-        self.redvox_packet.metadata[:] = data
+        self._metadata_list = data
+        self._redvox_packet.metadata[:] = data
         return self
 
     def clear_metadata(self):
         """
         removes all of the packet level metadata from packet
         """
-        del self.redvox_packet.metadata[:]
-        self.metadata_list.clear()
+        del self._redvox_packet.metadata[:]
+        self._metadata_list.clear()
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
         Return this packet's metadata as a key-value Python dictionary.
         :return: This packet's metadata as a key-value Python dictionary.
         """
-        return get_metadata_as_dict(self.metadata_list)
+        return _get_metadata_as_dict(self._metadata_list)
 
     def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'WrappedRedvoxPacket':
-        self.set_metadata(metadata_dict_to_list(metadata_dict))
+        self.set_metadata(_metadata_dict_to_list(metadata_dict))
         return self
 
     # Sensor channels
@@ -2560,7 +2603,7 @@ class WrappedRedvoxPacket:
         Returns if this packet has a microphone channel.
         :return: If this packet has a microphone channel.
         """
-        return self.has_channel(api900_pb2.MICROPHONE)
+        return self._has_channel(api900_pb2.MICROPHONE)
 
     def microphone_channel(self) -> typing.Optional[MicrophoneSensor]:
         """
@@ -2568,7 +2611,7 @@ class WrappedRedvoxPacket:
         :return: the high-level microphone channel API or None if this packet doesn't contain a channel of this type.
         """
         if self.has_microphone_channel():
-            return MicrophoneSensor(self.get_channel(api900_pb2.MICROPHONE))
+            return MicrophoneSensor(self._get_channel(api900_pb2.MICROPHONE))
 
         return None
 
@@ -2579,10 +2622,10 @@ class WrappedRedvoxPacket:
         :return: This instance of a wrapped redvox packet.
         """
         if self.has_microphone_channel():
-            self.delete_channel(api900_pb2.MICROPHONE)
+            self._delete_channel(api900_pb2.MICROPHONE)
 
         if microphone_sensor is not None:
-            self.add_channel(microphone_sensor.evenly_sampled_channel)
+            self._add_channel(microphone_sensor._evenly_sampled_channel)
 
         return self
 
@@ -2591,7 +2634,7 @@ class WrappedRedvoxPacket:
         Returns if this packet has a barometer channel.
         :return: If this packet has a barometer channel.
         """
-        return self.has_channel(api900_pb2.BAROMETER)
+        return self._has_channel(api900_pb2.BAROMETER)
 
     def barometer_channel(self) -> typing.Optional[BarometerSensor]:
         """
@@ -2599,7 +2642,7 @@ class WrappedRedvoxPacket:
         :return: the high-level barometer channel API or None if this packet doesn't contain a channel of this type.
         """
         if self.has_barometer_channel():
-            return BarometerSensor(self.get_channel(api900_pb2.BAROMETER))
+            return BarometerSensor(self._get_channel(api900_pb2.BAROMETER))
 
         return None
 
@@ -2610,10 +2653,10 @@ class WrappedRedvoxPacket:
         :return: This instance of a wrapped redvox packet.
         """
         if self.has_barometer_channel():
-            self.delete_channel(api900_pb2.BAROMETER)
+            self._delete_channel(api900_pb2.BAROMETER)
 
         if barometer_sensor is not None:
-            self.add_channel(barometer_sensor.unevenly_sampled_channel)
+            self._add_channel(barometer_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -2622,10 +2665,10 @@ class WrappedRedvoxPacket:
         Returns if this packet has a location channel.
         :return: If this packet has a location channel.
         """
-        return (self.has_channels(
+        return (self._has_channels(
                 [api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED,
                  api900_pb2.ACCURACY]) or
-                self.has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE]))
+                self._has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE]))
 
     def location_channel(self) -> typing.Optional[LocationSensor]:
         """
@@ -2633,7 +2676,7 @@ class WrappedRedvoxPacket:
         :return: the high-level location channel API or None if this packet doesn't contain a channel of this type.
         """
         if self.has_location_channel():
-            return LocationSensor(self.get_channel(api900_pb2.LATITUDE))
+            return LocationSensor(self._get_channel(api900_pb2.LATITUDE))
 
         return None
 
@@ -2644,10 +2687,10 @@ class WrappedRedvoxPacket:
         :return: This instance of a wrapped redvox packet.
         """
         if self.has_location_channel():
-            self.delete_channel(api900_pb2.LATITUDE)
+            self._delete_channel(api900_pb2.LATITUDE)
 
         if location_sensor is not None:
-            self.add_channel(location_sensor.unevenly_sampled_channel)
+            self._add_channel(location_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -2657,8 +2700,8 @@ class WrappedRedvoxPacket:
         Returns if this packet has a time synchronization channel.
         :return: If this packet has a time synchronization channel.
         """
-        if self.has_channel(api900_pb2.TIME_SYNCHRONIZATION):
-            ch = TimeSynchronizationSensor(self.get_channel(api900_pb2.TIME_SYNCHRONIZATION))
+        if self._has_channel(api900_pb2.TIME_SYNCHRONIZATION):
+            ch = TimeSynchronizationSensor(self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
             return len(ch.payload_values()) > 0
 
         return False
@@ -2671,7 +2714,7 @@ class WrappedRedvoxPacket:
         this type.
         """
         if self.has_time_synchronization_channel():
-            return TimeSynchronizationSensor(self.get_channel(api900_pb2.TIME_SYNCHRONIZATION))
+            return TimeSynchronizationSensor(self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
 
         return None
 
@@ -2683,10 +2726,10 @@ class WrappedRedvoxPacket:
         :return: This instance of a wrapped redvox packet.
         """
         if self.has_time_synchronization_channel():
-            self.delete_channel(api900_pb2.TIME_SYNCHRONIZATION)
+            self._delete_channel(api900_pb2.TIME_SYNCHRONIZATION)
 
         if time_synchronization_sensor is not None:
-            self.add_channel(time_synchronization_sensor.unevenly_sampled_channel)
+            self._add_channel(time_synchronization_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -2695,7 +2738,7 @@ class WrappedRedvoxPacket:
         Returns if this packet has an accelerometer channel.
         :return: If this packet has an accelerometer channel.
         """
-        return self.has_channels([api900_pb2.ACCELEROMETER_X, api900_pb2.ACCELEROMETER_Y, api900_pb2.ACCELEROMETER_Z])
+        return self._has_channels([api900_pb2.ACCELEROMETER_X, api900_pb2.ACCELEROMETER_Y, api900_pb2.ACCELEROMETER_Z])
 
     def accelerometer_channel(self) -> typing.Optional[AccelerometerSensor]:
         """
@@ -2703,7 +2746,7 @@ class WrappedRedvoxPacket:
         :return: the high-level accelerometer channel API or None if this packet doesn't contain a channel of this type.
         """
         if self.has_accelerometer_channel():
-            return AccelerometerSensor(self.get_channel(api900_pb2.ACCELEROMETER_X))
+            return AccelerometerSensor(self._get_channel(api900_pb2.ACCELEROMETER_X))
 
         return None
 
@@ -2714,10 +2757,10 @@ class WrappedRedvoxPacket:
         :param accelerometer_sensor: An optional instance of a accelerometer sensor.
         """
         if self.has_accelerometer_channel():
-            self.delete_channel(api900_pb2.ACCELEROMETER_X)
+            self._delete_channel(api900_pb2.ACCELEROMETER_X)
 
         if accelerometer_sensor is not None:
-            self.add_channel(accelerometer_sensor.unevenly_sampled_channel)
+            self._add_channel(accelerometer_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -2726,7 +2769,7 @@ class WrappedRedvoxPacket:
         Returns if this packet has a magnetometer channel.
         :return: If this packet has a magnetometer channel.
         """
-        return self.has_channels([api900_pb2.MAGNETOMETER_X, api900_pb2.MAGNETOMETER_Y, api900_pb2.MAGNETOMETER_Z])
+        return self._has_channels([api900_pb2.MAGNETOMETER_X, api900_pb2.MAGNETOMETER_Y, api900_pb2.MAGNETOMETER_Z])
 
     def magnetometer_channel(self) -> typing.Optional[MagnetometerSensor]:
         """
@@ -2734,7 +2777,7 @@ class WrappedRedvoxPacket:
         :return: the high-level magnetometer channel API or None if this packet doesn't contain a channel of this type.
         """
         if self.has_magnetometer_channel():
-            return MagnetometerSensor(self.get_channel(api900_pb2.MAGNETOMETER_X))
+            return MagnetometerSensor(self._get_channel(api900_pb2.MAGNETOMETER_X))
 
         return None
 
@@ -2746,10 +2789,10 @@ class WrappedRedvoxPacket:
         :return: This instance of a wrapped redvox packet.
         """
         if self.has_magnetometer_channel():
-            self.delete_channel(api900_pb2.MAGNETOMETER_X)
+            self._delete_channel(api900_pb2.MAGNETOMETER_X)
 
         if magnetometer_sensor is not None:
-            self.add_channel(magnetometer_sensor.unevenly_sampled_channel)
+            self._add_channel(magnetometer_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -2758,7 +2801,7 @@ class WrappedRedvoxPacket:
         Returns if this packet has a gyroscope channel.
         :return: If this packet has a gyroscope channel.
         """
-        return self.has_channels([api900_pb2.GYROSCOPE_X, api900_pb2.GYROSCOPE_Y, api900_pb2.GYROSCOPE_Z])
+        return self._has_channels([api900_pb2.GYROSCOPE_X, api900_pb2.GYROSCOPE_Y, api900_pb2.GYROSCOPE_Z])
 
     def gyroscope_channel(self) -> typing.Optional[GyroscopeSensor]:
         """
@@ -2766,7 +2809,7 @@ class WrappedRedvoxPacket:
         :return: the high-level gyroscope channel API or None if this packet doesn't contain a channel of this type.
         """
         if self.has_gyroscope_channel():
-            return GyroscopeSensor(self.get_channel(api900_pb2.GYROSCOPE_X))
+            return GyroscopeSensor(self._get_channel(api900_pb2.GYROSCOPE_X))
 
         return None
 
@@ -2777,10 +2820,10 @@ class WrappedRedvoxPacket:
         :return: This instance of a wrapped redvox packet.
         """
         if self.has_gyroscope_channel():
-            self.delete_channel(api900_pb2.GYROSCOPE_X)
+            self._delete_channel(api900_pb2.GYROSCOPE_X)
 
         if gyroscope_sensor is not None:
-            self.add_channel(gyroscope_sensor.unevenly_sampled_channel)
+            self._add_channel(gyroscope_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -2789,7 +2832,7 @@ class WrappedRedvoxPacket:
         Returns if this packet has a light channel.
         :return: If this packet has a light channel.
         """
-        return self.has_channel(api900_pb2.LIGHT)
+        return self._has_channel(api900_pb2.LIGHT)
 
     def light_channel(self) -> typing.Optional[LightSensor]:
         """
@@ -2797,7 +2840,7 @@ class WrappedRedvoxPacket:
         :return: the high-level light channel API or None if this packet doesn't contain a channel of this type.
         """
         if self.has_light_channel():
-            return LightSensor(self.get_channel(api900_pb2.LIGHT))
+            return LightSensor(self._get_channel(api900_pb2.LIGHT))
 
         return None
 
@@ -2808,10 +2851,10 @@ class WrappedRedvoxPacket:
         :return: This instance of a wrapped redvox packet.
         """
         if self.has_light_channel():
-            self.delete_channel(api900_pb2.LIGHT)
+            self._delete_channel(api900_pb2.LIGHT)
 
         if light_sensor is not None:
-            self.add_channel(light_sensor.unevenly_sampled_channel)
+            self._add_channel(light_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -2820,7 +2863,7 @@ class WrappedRedvoxPacket:
         Returns if this packet has an infrared channel.
         :return: If this packlet has an infrared channel.
         """
-        return self.has_channel(api900_pb2.INFRARED)
+        return self._has_channel(api900_pb2.INFRARED)
 
     def infrared_channel(self) -> typing.Optional[InfraredSensor]:
         """
@@ -2828,7 +2871,7 @@ class WrappedRedvoxPacket:
         :return: the high-level infrared channel API or None if this packet doesn't contain a channel of this type.
         """
         if self.has_infrared_channel():
-            return InfraredSensor(self.get_channel(api900_pb2.INFRARED))
+            return InfraredSensor(self._get_channel(api900_pb2.INFRARED))
 
         return None
 
@@ -2838,10 +2881,10 @@ class WrappedRedvoxPacket:
         :param infrared_sensor: An optional instance of a infrared sensor.
         """
         if self.has_infrared_channel():
-            self.delete_channel(api900_pb2.INFRARED)
+            self._delete_channel(api900_pb2.INFRARED)
 
         if infrared_sensor is not None:
-            self.add_channel(infrared_sensor.unevenly_sampled_channel)
+            self._add_channel(infrared_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -2850,7 +2893,7 @@ class WrappedRedvoxPacket:
         Returns if this packet has an image channel.
         :return: If this packlet has an image channel.
         """
-        return self.has_channel(api900_pb2.IMAGE)
+        return self._has_channel(api900_pb2.IMAGE)
 
     def image_channel(self) -> typing.Optional[ImageSensor]:
         """
@@ -2858,58 +2901,69 @@ class WrappedRedvoxPacket:
         :return: the high-level image channel API or None if this packet doesn't contain a channel of this type.
         """
         if self.has_image_channel():
-            return ImageSensor(self.get_channel(api900_pb2.IMAGE))
+            return ImageSensor(self._get_channel(api900_pb2.IMAGE))
 
         return None
 
     def set_image_channel(self, image_sensor: typing.Optional[ImageSensor]):
         if self.has_image_channel():
-            self.delete_channel(api900_pb2.IMAGE)
+            self._delete_channel(api900_pb2.IMAGE)
 
         if image_sensor is not None:
-            self.add_channel(image_sensor.unevenly_sampled_channel)
+            self._add_channel(image_sensor._unevenly_sampled_channel)
 
     def __str__(self):
         """
         Returns protobuf's String representation of this packet.
         :return: Protobuf's String representation of this packet.
         """
-        return str(self.redvox_packet)
+        return str(self._redvox_packet)
 
     def __eq__(self, other):
-        return (isinstance(other, WrappedRedvoxPacket) and
-                self.api() == other.api() and
-                self.redvox_id() == other.redvox_id() and
-                self.uuid() == other.uuid() and
-                self.authenticated_email() == other.authenticated_email() and
-                self.authentication_token() == other.authentication_token() and
-                self.firebase_token() == other.firebase_token() and
-                self.is_backfilled() == other.is_backfilled() and
-                self.is_private() == other.is_private() and
-                self.is_scrambled() == other.is_scrambled() and
-                self.device_make() == other.device_make() and
-                self.device_model() == other.device_model() and
-                self.device_os() == other.device_os() and
-                self.device_os_version() == other.device_os_version() and
-                self.app_version() == other.app_version() and
-                self.battery_level_percent() == other.battery_level_percent() and
-                self.device_temperature_c() == other.device_temperature_c() and
-                self.acquisition_server() == other.acquisition_server() and
-                self.time_synchronization_server() == other.time_synchronization_server() and
-                self.authentication_server() == other.authentication_server() and
-                self.app_file_start_timestamp_epoch_microseconds_utc() == other.app_file_start_timestamp_epoch_microseconds_utc() and
-                self.app_file_start_timestamp_machine() == other.app_file_start_timestamp_machine() and
-                self.server_timestamp_epoch_microseconds_utc() == other.server_timestamp_epoch_microseconds_utc() and
-                self.metadata() == other.metadata() and
-                self.microphone_channel() == other.microphone_channel() and
-                self.barometer_channel() == other.barometer_channel() and
-                self.location_channel() == other.location_channel() and
-                self.time_synchronization_channel() == other.time_synchronization_channel() and
-                self.accelerometer_channel() == other.accelerometer_channel() and
-                self.magnetometer_channel() == other.magnetometer_channel() and
-                self.gyroscope_channel() == other.gyroscope_channel() and
-                self.light_channel() == other.light_channel() and
-                self.infrared_channel() == other.infrared_channel())
+        return isinstance(other, WrappedRedvoxPacket) and len(self.diff(other)) == 0
+
+    def diff(self, other: 'WrappedRedvoxPacket') -> typing.List[str]:
+        diffs = map(lambda tuple2: _diff(tuple2[0], tuple2[1]), [
+            (self.api(), other.api()),
+            (self.redvox_id(), other.redvox_id()),
+            (self.uuid(), other.uuid()),
+            (self.authenticated_email(), other.authenticated_email()),
+            (self.authentication_token(), other.authentication_token()),
+            (self.firebase_token(), other.firebase_token()),
+            (self.is_backfilled(), other.is_backfilled()),
+            (self.is_private(), other.is_private()),
+            (self.is_scrambled(), other.is_scrambled()),
+            (self.device_make(), other.device_make()),
+            (self.device_model(), other.device_model()),
+            (self.device_os(), other.device_os()),
+            (self.device_os_version(), other.device_os_version()),
+            (self.app_version(), other.app_version()),
+            (self.battery_level_percent(), other.battery_level_percent()),
+            (self.device_temperature_c(), other.device_temperature_c()),
+            (self.acquisition_server(), other.acquisition_server()),
+            (self.time_synchronization_server(), other.time_synchronization_server()),
+            (self.authentication_server(), other.authentication_server()),
+            (self.app_file_start_timestamp_epoch_microseconds_utc(),
+             other.app_file_start_timestamp_epoch_microseconds_utc()),
+            (self.app_file_start_timestamp_machine(), other.app_file_start_timestamp_machine()),
+            (self.server_timestamp_epoch_microseconds_utc(),
+             other.server_timestamp_epoch_microseconds_utc()),
+            (self.metadata(), other.metadata()),
+            (self.microphone_channel(), other.microphone_channel()),
+            (self.barometer_channel(), other.barometer_channel()),
+            (self.location_channel(), other.location_channel()),
+            (self.time_synchronization_channel(), other.time_synchronization_channel()),
+            (self.accelerometer_channel(), other.accelerometer_channel()),
+            (self.magnetometer_channel(), other.magnetometer_channel()),
+            (self.gyroscope_channel(), other.gyroscope_channel()),
+            (self.light_channel(), other.light_channel()),
+            (self.infrared_channel(), other.infrared_channel())
+        ])
+        # Filter only out only the differences
+        diffs = filter(lambda tuple2: tuple2[0], diffs)
+        # Extract the difference string
+        diffs = map(lambda tuple2: tuple2[1], diffs)
+        return list(diffs)
 
 
 def wrap(redvox_packet: api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:

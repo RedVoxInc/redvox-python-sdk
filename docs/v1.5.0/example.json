@@ -1,0 +1,50 @@
+{
+  "api": 900,
+  "uuid": "123456789",
+  "redvoxId": "0000000000",
+  "authenticatedEmail": "foo@bar.com",
+  "authenticationToken": "redacted-1113962610",
+  "deviceMake": "Huawei",
+  "deviceModel": "Nexus 6P",
+  "deviceOs": "Android",
+  "deviceOsVersion": "8.1.0",
+  "appVersion": "2.4.2",
+  "acquisitionServer": "wss://redvox.io/acquisition/v900",
+  "timeSynchronizationServer": "wss://redvox.io/synch/v2",
+  "authenticationServer": "https://redvox.io/login/mobile",
+  "appFileStartTimestampEpochMicrosecondsUtc": "1552075743960257",
+  "appFileStartTimestampMachine": "1552075743960135",
+  "serverTimestampEpochMicrosecondsUtc": "1552075797714000",
+  "isBackfilled": true,
+  "isPrivate": true,
+  "isScrambled": true,
+  "evenlySampledChannels": [
+    {
+      "channelTypes": [
+        "MICROPHONE"
+      ],
+      "sensorName": "I/INTERNAL MIC",
+      "sampleRateHz": 80.0,
+      "firstSampleTimestampEpochMicrosecondsUtc": "1552075743960135",
+      "int32Payload": {
+        "payload": [
+          -10,
+          3,
+          45,
+          0,
+          -2
+        ]
+      },
+      "valueMeans": [
+        7.2
+      ],
+      "valueStds": [
+        21.67256
+      ]
+    }
+  ],
+  "metadata": ["a", "b"],
+  "firebaseToken": "example-firebaseToken",
+  "batteryLevelPercent": 100.0,
+  "deviceTemperatureC": 28.5
+}

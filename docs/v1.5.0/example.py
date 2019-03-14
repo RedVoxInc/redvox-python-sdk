@@ -5,7 +5,7 @@ import redvox
 print(redvox.version())
 
 # Next, let's read and wrap the file in our high-level wrapper
-redvox_api900_file = reader.wrap(reader.read_file("0000001314_1539627249223.rdvxz"))
+redvox_api900_file = reader.wrap(reader.read_file("example.rdvxz"))
 
 # Now let's access all fields at the top level of the packet
 print(redvox_api900_file.api())

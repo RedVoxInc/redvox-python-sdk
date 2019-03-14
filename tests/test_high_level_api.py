@@ -225,13 +225,13 @@ class TestEvenlySampledSensor(unittest.TestCase):
         self.even_sensor: reader.EvenlySampledSensor = reader.EvenlySampledSensor()
 
     def test_contains_evenly_sampled_channel(self):
-        self.assertTrue(api900_pb2.MICROPHONE in self.synthetic_microphone_channel.evenly_sampled_channel.channel_types)
-        self.assertTrue(api900_pb2.MICROPHONE in self.example_microphone_channel.evenly_sampled_channel.channel_types)
-        self.even_sensor.evenly_sampled_channel.set_channel_types(
-            self.example_microphone_channel.evenly_sampled_channel.channel_types)
-        self.assertTrue(api900_pb2.MICROPHONE in self.even_sensor.evenly_sampled_channel.channel_types)
-        self.even_sensor.evenly_sampled_channel.set_channel_types([api900_pb2.MICROPHONE])
-        self.assertTrue(api900_pb2.MICROPHONE in self.even_sensor.evenly_sampled_channel.channel_types)
+        self.assertTrue(api900_pb2.MICROPHONE in self.synthetic_microphone_channel._evenly_sampled_channel.__channel_types)
+        self.assertTrue(api900_pb2.MICROPHONE in self.example_microphone_channel._evenly_sampled_channel.__channel_types)
+        self.even_sensor.__evenly_sampled_channel.set_channel_types(
+            self.example_microphone_channel._evenly_sampled_channel.__channel_types)
+        self.assertTrue(api900_pb2.MICROPHONE in self.even_sensor.__evenly_sampled_channel.channel_types)
+        self.even_sensor.__evenly_sampled_channel.set_channel_types([api900_pb2.MICROPHONE])
+        self.assertTrue(api900_pb2.MICROPHONE in self.even_sensor.__evenly_sampled_channel.channel_types)
 
     def test_sensor_name(self):
         self.assertEqual(self.synthetic_microphone_channel.sensor_name(), "test microphone sensor name")
@@ -288,12 +288,12 @@ class TestEvenlySampledSensor(unittest.TestCase):
     def test_payload_type(self):
         self.assertEqual(self.synthetic_microphone_channel.payload_type(), "int32_payload")
         self.assertEqual(self.example_microphone_channel.payload_type(), "int32_payload")
-        self.even_sensor.evenly_sampled_channel.set_deinterleaved_payload(
-            [self.example_microphone_channel.evenly_sampled_channel.payload],
+        self.even_sensor.__evenly_sampled_channel.set_deinterleaved_payload(
+            [self.example_microphone_channel._evenly_sampled_channel.__payload],
             self.example_microphone_channel.payload_type())
         self.assertEqual(self.even_sensor.payload_type(), "int32_payload")
-        self.even_sensor.evenly_sampled_channel.set_payload(
-            self.example_microphone_channel.evenly_sampled_channel.payload, 1,
+        self.even_sensor.__evenly_sampled_channel.set_payload(
+            self.example_microphone_channel._evenly_sampled_channel.__payload, 1,
             self.example_microphone_channel.payload_type())
         self.assertEqual(self.even_sensor.payload_type(), "int32_payload")
 
@@ -457,12 +457,12 @@ class TestUnevenlySampledSensor(ArraysTestCase):
     def test_payload_type(self):
         self.assertEqual(self.synthetic_barometer_channel.payload_type(), "float64_payload")
         self.assertEqual(self.example_barometer_channel.payload_type(), "float64_payload")
-        self.uneven_sensor.unevenly_sampled_channel.set_deinterleaved_payload(
-            [self.example_barometer_channel.unevenly_sampled_channel.payload],
+        self.uneven_sensor.__unevenly_sampled_channel.set_deinterleaved_payload(
+            [self.example_barometer_channel._unevenly_sampled_channel.__payload],
             self.example_barometer_channel.payload_type())
         self.assertEqual(self.uneven_sensor.payload_type(), "float64_payload")
-        self.uneven_sensor.unevenly_sampled_channel.set_payload(
-            self.example_barometer_channel.unevenly_sampled_channel.payload, 1,
+        self.uneven_sensor.__unevenly_sampled_channel.set_payload(
+            self.example_barometer_channel._unevenly_sampled_channel.__payload, 1,
             self.example_barometer_channel.payload_type())
         self.assertEqual(self.uneven_sensor.payload_type(), "float64_payload")
 
@@ -479,31 +479,31 @@ class TestUnevenlyXyzSampledSensor(ArraysTestCase):
                                             api900_pb2.ACCELEROMETER_Y, api900_pb2.ACCELEROMETER_Z)
 
     def test_x_type(self):
-        self.assertEqual(self.synthetic_accelerometer_channel.x_type, api900_pb2.ACCELEROMETER_X)
-        self.assertEqual(self.example_accelerometer_channel.x_type, api900_pb2.ACCELEROMETER_X)
-        self.assertEqual(self.xyz_sensor.x_type, api900_pb2.ACCELEROMETER_X)
+        self.assertEqual(self.synthetic_accelerometer_channel._x_type, api900_pb2.ACCELEROMETER_X)
+        self.assertEqual(self.example_accelerometer_channel._x_type, api900_pb2.ACCELEROMETER_X)
+        self.assertEqual(self.xyz_sensor._x_type, api900_pb2.ACCELEROMETER_X)
         self.xyz_sensor.set_x_type(api900_pb2.ACCELEROMETER_X)
-        self.assertEqual(self.xyz_sensor.x_type, api900_pb2.ACCELEROMETER_X)
-        self.xyz_sensor.set_x_type(self.synthetic_accelerometer_channel.x_type)
-        self.assertEqual(self.xyz_sensor.x_type, api900_pb2.ACCELEROMETER_X)
+        self.assertEqual(self.xyz_sensor._x_type, api900_pb2.ACCELEROMETER_X)
+        self.xyz_sensor.set_x_type(self.synthetic_accelerometer_channel._x_type)
+        self.assertEqual(self.xyz_sensor._x_type, api900_pb2.ACCELEROMETER_X)
 
     def test_y_type(self):
-        self.assertEqual(self.synthetic_accelerometer_channel.y_type, api900_pb2.ACCELEROMETER_Y)
-        self.assertEqual(self.example_accelerometer_channel.y_type, api900_pb2.ACCELEROMETER_Y)
-        self.assertEqual(self.xyz_sensor.y_type, api900_pb2.ACCELEROMETER_Y)
+        self.assertEqual(self.synthetic_accelerometer_channel._y_type, api900_pb2.ACCELEROMETER_Y)
+        self.assertEqual(self.example_accelerometer_channel._y_type, api900_pb2.ACCELEROMETER_Y)
+        self.assertEqual(self.xyz_sensor._y_type, api900_pb2.ACCELEROMETER_Y)
         self.xyz_sensor.set_y_type(api900_pb2.ACCELEROMETER_Y)
-        self.assertEqual(self.xyz_sensor.y_type, api900_pb2.ACCELEROMETER_Y)
-        self.xyz_sensor.set_y_type(self.synthetic_accelerometer_channel.y_type)
-        self.assertEqual(self.xyz_sensor.y_type, api900_pb2.ACCELEROMETER_Y)
+        self.assertEqual(self.xyz_sensor._y_type, api900_pb2.ACCELEROMETER_Y)
+        self.xyz_sensor.set_y_type(self.synthetic_accelerometer_channel._y_type)
+        self.assertEqual(self.xyz_sensor._y_type, api900_pb2.ACCELEROMETER_Y)
 
     def test_z_type(self):
-        self.assertEqual(self.synthetic_accelerometer_channel.z_type, api900_pb2.ACCELEROMETER_Z)
-        self.assertEqual(self.example_accelerometer_channel.z_type, api900_pb2.ACCELEROMETER_Z)
-        self.assertEqual(self.xyz_sensor.z_type, api900_pb2.ACCELEROMETER_Z)
+        self.assertEqual(self.synthetic_accelerometer_channel._z_type, api900_pb2.ACCELEROMETER_Z)
+        self.assertEqual(self.example_accelerometer_channel._z_type, api900_pb2.ACCELEROMETER_Z)
+        self.assertEqual(self.xyz_sensor._z_type, api900_pb2.ACCELEROMETER_Z)
         self.xyz_sensor.set_z_type(api900_pb2.ACCELEROMETER_Z)
-        self.assertEqual(self.xyz_sensor.z_type, api900_pb2.ACCELEROMETER_Z)
-        self.xyz_sensor.set_z_type(self.synthetic_accelerometer_channel.z_type)
-        self.assertEqual(self.xyz_sensor.z_type, api900_pb2.ACCELEROMETER_Z)
+        self.assertEqual(self.xyz_sensor._z_type, api900_pb2.ACCELEROMETER_Z)
+        self.xyz_sensor.set_z_type(self.synthetic_accelerometer_channel._z_type)
+        self.assertEqual(self.xyz_sensor._z_type, api900_pb2.ACCELEROMETER_Z)
 
     def test_payload_values(self):
         self.assertArraysEqual(self.synthetic_accelerometer_channel.payload_values(),
@@ -512,7 +512,7 @@ class TestUnevenlyXyzSampledSensor(ArraysTestCase):
                                               21.0, 157.0, 3.0,
                                               22.0, 158.0, 4.0,
                                               23.0, 159.0, 5.0]))
-        self.xyz_sensor.set_channel(self.synthetic_accelerometer_channel.unevenly_sampled_channel)
+        self.xyz_sensor.set_channel(self.synthetic_accelerometer_channel._unevenly_sampled_channel)
         self.assertArraysEqual(self.xyz_sensor.payload_values(), self.as_array([19.0, 155.0, 1.0,
                                                                                 20.0, 156.0, 2.0,
                                                                                 21.0, 157.0, 3.0,
@@ -526,7 +526,7 @@ class TestUnevenlyXyzSampledSensor(ArraysTestCase):
     def test_payload_values_x(self):
         self.assertArraysEqual(self.synthetic_accelerometer_channel.payload_values_x(),
                                self.as_array([19.0, 20.0, 21.0, 22.0, 23.0]))
-        self.xyz_sensor.set_channel(self.synthetic_accelerometer_channel.unevenly_sampled_channel)
+        self.xyz_sensor.set_channel(self.synthetic_accelerometer_channel._unevenly_sampled_channel)
         self.assertArraysEqual(self.xyz_sensor.payload_values_x(), self.as_array([19.0, 20.0, 21.0, 22.0, 23.0]))
         self.assertSampledArray(self.example_accelerometer_channel.payload_values_x(),
                                 641,
@@ -536,7 +536,7 @@ class TestUnevenlyXyzSampledSensor(ArraysTestCase):
     def test_payload_values_y(self):
         self.assertArraysEqual(self.synthetic_accelerometer_channel.payload_values_y(),
                                self.as_array([155.0, 156.0, 157.0, 158.0, 159.0]))
-        self.xyz_sensor.set_channel(self.synthetic_accelerometer_channel.unevenly_sampled_channel)
+        self.xyz_sensor.set_channel(self.synthetic_accelerometer_channel._unevenly_sampled_channel)
         self.assertArraysEqual(self.xyz_sensor.payload_values_y(), self.as_array([155.0, 156.0, 157.0, 158.0, 159.0]))
         self.assertSampledArray(self.example_accelerometer_channel.payload_values_y(),
                                 641,
@@ -546,7 +546,7 @@ class TestUnevenlyXyzSampledSensor(ArraysTestCase):
     def test_payload_values_z(self):
         self.assertArraysEqual(self.synthetic_accelerometer_channel.payload_values_z(),
                                self.as_array([1.0, 2.0, 3.0, 4.0, 5.0]))
-        self.xyz_sensor.set_channel(self.synthetic_accelerometer_channel.unevenly_sampled_channel)
+        self.xyz_sensor.set_channel(self.synthetic_accelerometer_channel._unevenly_sampled_channel)
         self.assertArraysEqual(self.xyz_sensor.payload_values_z(), self.as_array([1.0, 2.0, 3.0, 4.0, 5.0]))
         self.assertSampledArray(self.example_accelerometer_channel.payload_values_z(),
                                 641,
@@ -556,25 +556,25 @@ class TestUnevenlyXyzSampledSensor(ArraysTestCase):
     def test_payload_values_x_mean(self):
         self.assertEqual(self.synthetic_accelerometer_channel.payload_values_x_mean(), 1)
         self.assertAlmostEqual(self.example_accelerometer_channel.payload_values_x_mean(), -0.0071045179466919265, 5)
-        self.xyz_sensor.set_channel(self.example_accelerometer_channel.unevenly_sampled_channel)
+        self.xyz_sensor.set_channel(self.example_accelerometer_channel._unevenly_sampled_channel)
         self.assertAlmostEqual(self.xyz_sensor.payload_values_x_mean(), -0.0071045179466919265, 5)
 
     def test_payload_values_y_mean(self):
         self.assertEqual(self.synthetic_accelerometer_channel.payload_values_y_mean(), 2)
         self.assertAlmostEqual(self.example_accelerometer_channel.payload_values_y_mean(), 0.00195356165569363, 5)
-        self.xyz_sensor.set_channel(self.example_accelerometer_channel.unevenly_sampled_channel)
+        self.xyz_sensor.set_channel(self.example_accelerometer_channel._unevenly_sampled_channel)
         self.assertAlmostEqual(self.xyz_sensor.payload_values_y_mean(), 0.00195356165569363, 5)
 
     def test_payload_values_z_mean(self):
         self.assertEqual(self.synthetic_accelerometer_channel.payload_values_z_mean(), 3)
         self.assertAlmostEqual(self.example_accelerometer_channel.payload_values_z_mean(), 0.13963747286207265, 5)
-        self.xyz_sensor.set_channel(self.example_accelerometer_channel.unevenly_sampled_channel)
+        self.xyz_sensor.set_channel(self.example_accelerometer_channel._unevenly_sampled_channel)
         self.assertAlmostEqual(self.xyz_sensor.payload_values_z_mean(), 0.13963747286207265, 5)
 
     def test_payload_values_x_median(self):
         self.assertEqual(self.synthetic_accelerometer_channel.payload_values_x_median(), 1)
         self.assertAlmostEqual(self.example_accelerometer_channel.payload_values_x_median(), -0.007555599324405193, 5)
-        self.xyz_sensor.set_channel(self.example_accelerometer_channel.unevenly_sampled_channel)
+        self.xyz_sensor.set_channel(self.example_accelerometer_channel._unevenly_sampled_channel)
         self.assertAlmostEqual(self.xyz_sensor.payload_values_x_median(), -0.007555599324405193, 5)
 
     def test_payload_values_y_median(self):
@@ -588,7 +588,7 @@ class TestUnevenlyXyzSampledSensor(ArraysTestCase):
     def test_payload_values_x_std(self):
         self.assertEqual(self.synthetic_accelerometer_channel.payload_values_x_std(), 1)
         self.assertAlmostEqual(self.example_accelerometer_channel.payload_values_x_std(), 0.02499872320189799, 5)
-        self.xyz_sensor.set_channel(self.example_accelerometer_channel.unevenly_sampled_channel)
+        self.xyz_sensor.set_channel(self.example_accelerometer_channel._unevenly_sampled_channel)
         self.assertAlmostEqual(self.xyz_sensor.payload_values_x_std(), 0.02499872320189799, 5)
 
     def test_payload_values_y_std(self):
@@ -610,15 +610,15 @@ class TestMicrophoneSensor(ArraysTestCase):
         self.mic_sensor: reader.MicrophoneSensor = reader.MicrophoneSensor()
 
     def test_has_evenly_sampled_channel(self):
-        self.assertTrue(api900_pb2.MICROPHONE in self.synthetic_microphone_channel.evenly_sampled_channel.channel_types)
-        self.assertTrue(api900_pb2.MICROPHONE in self.example_microphone_channel.evenly_sampled_channel.channel_types)
-        self.mic_sensor.set_channel(self.example_microphone_channel.evenly_sampled_channel)
-        self.assertTrue(api900_pb2.MICROPHONE in self.mic_sensor.evenly_sampled_channel.channel_types)
+        self.assertTrue(api900_pb2.MICROPHONE in self.synthetic_microphone_channel._evenly_sampled_channel.__channel_types)
+        self.assertTrue(api900_pb2.MICROPHONE in self.example_microphone_channel._evenly_sampled_channel.__channel_types)
+        self.mic_sensor.set_channel(self.example_microphone_channel._evenly_sampled_channel)
+        self.assertTrue(api900_pb2.MICROPHONE in self.mic_sensor.__evenly_sampled_channel.channel_types)
 
     def test_payload_values(self):
         self.assertArraysEqual(self.synthetic_microphone_channel.payload_values(),
                                self.as_array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
-        self.mic_sensor.evenly_sampled_channel.set_payload(
+        self.mic_sensor.__evenly_sampled_channel.set_payload(
             self.synthetic_microphone_channel.payload_values(), 1, self.synthetic_microphone_channel.payload_type())
         self.assertArraysEqual(self.mic_sensor.payload_values(), self.as_array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
         self.assertSampledArray(self.example_microphone_channel.payload_values(),
@@ -629,9 +629,9 @@ class TestMicrophoneSensor(ArraysTestCase):
     def test_payload_mean(self):
         self.assertEqual(self.synthetic_microphone_channel.payload_mean(), 5.5)
         self.assertAlmostEqual(self.example_microphone_channel.payload_mean(), -127.91796875, 1)
-        self.mic_sensor.evenly_sampled_channel.set_deinterleaved_payload(
+        self.mic_sensor.__evenly_sampled_channel.set_deinterleaved_payload(
             [self.example_microphone_channel.payload_values()], self.example_microphone_channel.payload_type())
-        self.assertAlmostEqual(self.mic_sensor.evenly_sampled_channel.get_value_mean(api900_pb2.MICROPHONE),
+        self.assertAlmostEqual(self.mic_sensor.__evenly_sampled_channel.get_value_mean(api900_pb2.MICROPHONE),
                                -127.91796875, 1)
 
     def test_payload_std(self):
@@ -640,7 +640,7 @@ class TestMicrophoneSensor(ArraysTestCase):
 
     def test_payload_median(self):
         self.assertEqual(self.synthetic_microphone_channel.payload_median(), 5.5)
-        self.mic_sensor.set_channel(self.example_microphone_channel.evenly_sampled_channel)
+        self.mic_sensor.set_channel(self.example_microphone_channel._evenly_sampled_channel)
         self.assertAlmostEqual(self.mic_sensor.payload_median(), -123.0, 1)
 
 
@@ -656,8 +656,8 @@ class TestBarometerSensor(ArraysTestCase):
     def test_payload_values(self):
         self.assertArraysEqual(self.synthetic_barometer_channel.payload_values(),
                                self.as_array([1.0, 2.0, 3.0, 4.0, 5.0]))
-        self.barometer_sensor.unevenly_sampled_channel.set_payload(self.synthetic_barometer_channel.payload_values(),
-                                                                   1, self.synthetic_barometer_channel.payload_type())
+        self.barometer_sensor.__unevenly_sampled_channel.set_payload(self.synthetic_barometer_channel.payload_values(),
+                                                                     1, self.synthetic_barometer_channel.payload_type())
         self.assertArraysEqual(self.barometer_sensor.payload_values(), self.as_array([1.0, 2.0, 3.0, 4.0, 5.0]))
         self.assertSampledArray(self.example_barometer_channel.payload_values(),
                                 257,
@@ -686,7 +686,7 @@ class TestLocationSensor(ArraysTestCase):
         self.synthetic_location_channel = self.wrapped_synthetic_packet.location_channel()
         self.example_location_channel = self.wrapped_example_packet.location_channel()
         self.location_sensor: reader.LocationSensor = reader.LocationSensor()
-        self.location_sensor.set_channel(self.synthetic_location_channel.unevenly_sampled_channel)
+        self.location_sensor.set_channel(self.synthetic_location_channel._unevenly_sampled_channel)
 
     def test_payload_values(self):
         self.assertArraysEqual(self.synthetic_location_channel.payload_values(),
@@ -864,22 +864,22 @@ class TestAccelerometerSensor(unittest.TestCase):
         self.wrapped_example_packet = wrapped_example_packet
         self.channel = self.wrapped_example_packet.accelerometer_channel()
         self.accel_sensor: reader.AccelerometerSensor = \
-            reader.AccelerometerSensor(self.channel.unevenly_sampled_channel)
+            reader.AccelerometerSensor(self.channel._unevenly_sampled_channel)
 
     def test_x_channel(self):
-        self.assertEqual(self.synthetic_channel.x_type, api900_pb2.ACCELEROMETER_X)
-        self.assertEqual(self.channel.x_type, api900_pb2.ACCELEROMETER_X)
-        self.assertEqual(self.accel_sensor.x_type, api900_pb2.ACCELEROMETER_X)
+        self.assertEqual(self.synthetic_channel._x_type, api900_pb2.ACCELEROMETER_X)
+        self.assertEqual(self.channel._x_type, api900_pb2.ACCELEROMETER_X)
+        self.assertEqual(self.accel_sensor._x_type, api900_pb2.ACCELEROMETER_X)
 
     def test_y_channel(self):
-        self.assertEqual(self.synthetic_channel.y_type, api900_pb2.ACCELEROMETER_Y)
-        self.assertEqual(self.channel.y_type, api900_pb2.ACCELEROMETER_Y)
-        self.assertEqual(self.accel_sensor.y_type, api900_pb2.ACCELEROMETER_Y)
+        self.assertEqual(self.synthetic_channel._y_type, api900_pb2.ACCELEROMETER_Y)
+        self.assertEqual(self.channel._y_type, api900_pb2.ACCELEROMETER_Y)
+        self.assertEqual(self.accel_sensor._y_type, api900_pb2.ACCELEROMETER_Y)
 
     def test_z_channel(self):
-        self.assertEqual(self.synthetic_channel.z_type, api900_pb2.ACCELEROMETER_Z)
-        self.assertEqual(self.channel.z_type, api900_pb2.ACCELEROMETER_Z)
-        self.assertEqual(self.accel_sensor.z_type, api900_pb2.ACCELEROMETER_Z)
+        self.assertEqual(self.synthetic_channel._z_type, api900_pb2.ACCELEROMETER_Z)
+        self.assertEqual(self.channel._z_type, api900_pb2.ACCELEROMETER_Z)
+        self.assertEqual(self.accel_sensor._z_type, api900_pb2.ACCELEROMETER_Z)
 
 
 class TestMagnetometerSensor(unittest.TestCase):
@@ -890,16 +890,16 @@ class TestMagnetometerSensor(unittest.TestCase):
         self.channel = self.wrapped_example_packet.magnetometer_channel()
 
     def test_x_channel(self):
-        self.assertEqual(self.synthetic_channel.x_type, api900_pb2.MAGNETOMETER_X)
-        self.assertEqual(self.channel.x_type, api900_pb2.MAGNETOMETER_X)
+        self.assertEqual(self.synthetic_channel._x_type, api900_pb2.MAGNETOMETER_X)
+        self.assertEqual(self.channel._x_type, api900_pb2.MAGNETOMETER_X)
 
     def test_y_channel(self):
-        self.assertEqual(self.synthetic_channel.y_type, api900_pb2.MAGNETOMETER_Y)
-        self.assertEqual(self.channel.y_type, api900_pb2.MAGNETOMETER_Y)
+        self.assertEqual(self.synthetic_channel._y_type, api900_pb2.MAGNETOMETER_Y)
+        self.assertEqual(self.channel._y_type, api900_pb2.MAGNETOMETER_Y)
 
     def test_z_channel(self):
-        self.assertEqual(self.synthetic_channel.z_type, api900_pb2.MAGNETOMETER_Z)
-        self.assertEqual(self.channel.z_type, api900_pb2.MAGNETOMETER_Z)
+        self.assertEqual(self.synthetic_channel._z_type, api900_pb2.MAGNETOMETER_Z)
+        self.assertEqual(self.channel._z_type, api900_pb2.MAGNETOMETER_Z)
 
 
 class TestGyroscopeSensor(unittest.TestCase):
@@ -910,16 +910,16 @@ class TestGyroscopeSensor(unittest.TestCase):
         self.channel = self.wrapped_example_packet.gyroscope_channel()
 
     def test_x_channel(self):
-        self.assertEqual(self.synthetic_channel.x_type, api900_pb2.GYROSCOPE_X)
-        self.assertEqual(self.channel.x_type, api900_pb2.GYROSCOPE_X)
+        self.assertEqual(self.synthetic_channel._x_type, api900_pb2.GYROSCOPE_X)
+        self.assertEqual(self.channel._x_type, api900_pb2.GYROSCOPE_X)
 
     def test_y_channel(self):
-        self.assertEqual(self.synthetic_channel.y_type, api900_pb2.GYROSCOPE_Y)
-        self.assertEqual(self.channel.y_type, api900_pb2.GYROSCOPE_Y)
+        self.assertEqual(self.synthetic_channel._y_type, api900_pb2.GYROSCOPE_Y)
+        self.assertEqual(self.channel._y_type, api900_pb2.GYROSCOPE_Y)
 
     def test_z_channel(self):
-        self.assertEqual(self.synthetic_channel.z_type, api900_pb2.GYROSCOPE_Z)
-        self.assertEqual(self.channel.z_type, api900_pb2.GYROSCOPE_Z)
+        self.assertEqual(self.synthetic_channel._z_type, api900_pb2.GYROSCOPE_Z)
+        self.assertEqual(self.channel._z_type, api900_pb2.GYROSCOPE_Z)
 
 
 class TestLightSensor(ArraysTestCase):
