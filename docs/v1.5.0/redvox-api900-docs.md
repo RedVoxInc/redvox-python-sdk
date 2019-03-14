@@ -8,7 +8,8 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 
 * [Prerequisites](#markdown-header-prerequisites)
 * [Installing from pip](#markdown-header-installing-from-pip)
-* [Install from source](#markdown-header-install-from-source)
+* [Installing from source](#markdown-header-installing-from-source)
+* [Updating the RedVox Python SDK](#markdown-header-updating-the-redvox-sdk)
 * [Working with the SDK CLI](#markdown-header-working-with-the-sdk-cli)
 * [Loading RedVox API 900 files](#markdown-header-loading-redvox-api-900-files)
 * [Working with microphone sensor channels](#markdown-header-working-with-microphone-sensor-channels)
@@ -21,13 +22,14 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Working with light sensor channels](#markdown-header-working-with-light-sensor-channels)
 * [Working with infrafred sensor channels](#markdown-header-working-with-infrared-sensor-channels)
 * [Working with image sensor channels](#markdown-header-working-with-image-sensor-channels)
+* [Example files]()
 * [Generated API Documentation](https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/)
 
 ### Prerequisites
 
 Python 3.6 or greater is required. 
 
-This project depends on `lz4`, `numpy`, and `protobuf` libraries. `coala` is required if you wish to perform linting and/or static analysis.
+This project depends on `lz4`, `numpy`, and `protobuf` libraries. `coala` is required if you wish to perform linting and/or static analysis. These dependencies will be installed automatically if you install this library from pip (see: [Installing from pip](#markdown-header-installing-from-pip)).
 
 
 ### Installing from pip
@@ -40,9 +42,13 @@ To install run `pip install redvox`.
 
 pip is the recommended way of obtaining this library. However, if you are looking for the source distribution, it can be found at https://bitbucket.org/redvoxhi/redvox-api900-python-reader/downloads/
 
+### Updating the RedVox Python SDK
+
+pip is the recommended way of updating this library. To update to the latest version, run `pip install redvox --upgrade --no-cache`.
+
 ### Verifying installation
 
-It is possible to verify installation of the library by printing out the version information. There are two top level functions in the `redvox` namespace that do this. `version()` which returns the version number string and `print_version()` which prints the version number string. A full example follows:
+It is possible to verify installation of the library by printing out the version information. There are two top level functions in the `redvox` namespace that do this. `version()` which returns the version number string. An example follows:
 
 ```
 import redvox
@@ -70,7 +76,7 @@ Once the redvox library has been installed from pip, the CLI can be accessed by 
 
 ##### Example: Converting .rdvxz files to RedVox API 900 .json files
 
-Given the following files in `/docs/v1.5.0` (or a directory of your choice)
+Given the following files in `/docs/v1.5.0/examples/example_data` (or a directory of your choice)
 
 ```
 > ls -l /data
