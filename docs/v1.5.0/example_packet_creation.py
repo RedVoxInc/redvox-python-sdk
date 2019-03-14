@@ -173,15 +173,17 @@ example_packet_2 = reader.WrappedRedvoxPacket() \
                                                example_y_payload,
                                                example_z_payload)) \
     .set_light_channel(reader.LightSensor()
-                       .set_sensor_name("example_lighte")
+                       .set_sensor_name("example_light")
                        .set_timestamps_microseconds_utc(example_scalar_timestamps)
                        .set_payload_values(example_scalar_payload)) \
     .set_infrared_channel(reader.InfraredSensor()
-                          .set_sensor_name("example_infrarede")
+                          .set_sensor_name("example_infrared")
                           .set_timestamps_microseconds_utc(example_scalar_timestamps)
                           .set_payload_values(example_scalar_payload)
                           .set_metadata(["a", "b", "c", "d"]))
 
 # To ensure that both these methods are equal, we can compare the redvox packets for equality
 print(example_packet == example_packet_2)
-print(example_packet.diff(example_packet_2))
+
+# Now that we have a packet constructed, let's write it to disk as a compressed .rdvxz file.
+example_packet.write_rdvxz(".")
