@@ -1019,7 +1019,7 @@ class UnevenlySampledSensor:
         return self._unevenly_sampled_channel.timestamps_microseconds_utc
 
     def set_timestamps_microseconds_utc(self, timestamps: typing.Union[
-        numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
+            numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
         """
         set the time stamps
         :param timestamps: a list of ascending timestamps that associate with each sample value
@@ -2760,7 +2760,7 @@ class WrappedRedvoxPacket:
         return None
 
     def set_time_synchronization_channel(self, time_synchronization_sensor: typing.Optional[
-        TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
+            TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's time sync sensor. A channel can be removed by passing in None.
         :param time_synchronization_sensor: An optional instance of a time sync sensor.
