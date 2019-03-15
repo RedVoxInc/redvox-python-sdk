@@ -7,7 +7,7 @@ When files are read, they return a WrappedRedvoxPacket which provides both high 
 modifying, creating, and writing RedVox API 900 files.
 
 Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/redvox-api900-docs.md
-API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/
+API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox
 """
 
 # First, we import the RedVox API 900 reader.

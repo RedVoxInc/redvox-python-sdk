@@ -685,7 +685,7 @@ A set of example files can be found at: https://bitbucket.org/redvoxhi/redvox-ap
 
 ### Generated API documentation
 
-API documentation for this library can be found at: https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/
+API documentation for this library can be found at: https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox
 
 ### Developer Guidelines
 
