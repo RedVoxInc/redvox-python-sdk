@@ -43,6 +43,9 @@ print("server_timestamp_epoch_microseconds_utc", wrapped_packet.server_timestamp
 print("metadata", wrapped_packet.metadata())
 print("metadata_as_dict", wrapped_packet.metadata_as_dict())
 
+# We can also print out the contents of the entire file
+print(wrapped_packet)
+
 # Next, we'll move onto the sensor channels.
 # Each sensor channel has a "has_channel" method which tests for the existence of a channel and a "get_channel" method
 # which either returns the sensor channel or "None" if the channel DNE.
@@ -61,6 +64,9 @@ if wrapped_packet.has_microphone_channel():
     print("metadata", microphone_sensor.metadata())
     print("metadata_as_dict", microphone_sensor.metadata_as_dict())
 
+    # We can also print a description of the channel itself
+    print(microphone_sensor)
+
 # BarometerSensor
 if wrapped_packet.has_barometer_channel():
     barometer_sensor = wrapped_packet.barometer_channel()
@@ -76,6 +82,9 @@ if wrapped_packet.has_barometer_channel():
     print("payload_std", barometer_sensor.payload_std())
     print("metadata", barometer_sensor.metadata())
     print("metadata_as_dict", barometer_sensor.metadata_as_dict())
+
+    # We can also print a description of the channel itself
+    print(barometer_sensor)
     
 # LocationSensor
 if wrapped_packet.has_location_channel():
@@ -109,6 +118,9 @@ if wrapped_packet.has_location_channel():
     print("metadata", location_sensor.metadata())
     print("metadata_as_dict", location_sensor.metadata_as_dict())
 
+    # We can also print a description of the channel itself
+    print(location_sensor)
+
 # TimeSynchronizationSensor
 if wrapped_packet.has_time_synchronization_channel():
     time_synchronization_sensor = wrapped_packet.time_synchronization_channel()
@@ -116,6 +128,9 @@ if wrapped_packet.has_time_synchronization_channel():
     print("payload_values", time_synchronization_sensor.payload_values())
     print("metadata", time_synchronization_sensor.metadata())
     print("metadata_as_dict", time_synchronization_sensor.metadata_as_dict())
+
+    # We can also print a description of the channel itself
+    print(time_synchronization_sensor)
 
 # AccelerometerSensor
 if wrapped_packet.has_accelerometer_channel():
@@ -141,6 +156,9 @@ if wrapped_packet.has_accelerometer_channel():
     print("metadata", accelerometer_sensor.metadata())
     print("metadata_as_dict", accelerometer_sensor.metadata_as_dict())
 
+    # We can also print a description of the channel itself
+    print(accelerometer_sensor)
+
 # GyroscopeSensor
 if wrapped_packet.has_gyroscope_channel():
     gyroscope_sensor = wrapped_packet.gyroscope_channel()
@@ -164,6 +182,9 @@ if wrapped_packet.has_gyroscope_channel():
     print("payload_values_z_std", gyroscope_sensor.payload_values_z_std())
     print("metadata", gyroscope_sensor.metadata())
     print("metadata_as_dict", gyroscope_sensor.metadata_as_dict())
+
+    # We can also print a description of the channel itself
+    print(gyroscope_sensor)
 
 # MagnetometerSensor
 if wrapped_packet.has_magnetometer_channel():
@@ -189,6 +210,9 @@ if wrapped_packet.has_magnetometer_channel():
     print("metadata", magnetometer_sensor.metadata())
     print("metadata_as_dict", magnetometer_sensor.metadata_as_dict())
 
+    # We can also print a description of the channel itself
+    print(magnetometer_sensor)
+
 # LightSensor
 if wrapped_packet.has_light_channel():
     light_sensor = wrapped_packet.light_channel()
@@ -205,6 +229,9 @@ if wrapped_packet.has_light_channel():
     print("metadata", light_sensor.metadata())
     print("metadata_as_dict", light_sensor.metadata_as_dict())
 
+    # We can also print a description of the channel itself
+    print(light_sensor)
+
 # InfraredSensor
 if wrapped_packet.has_light_channel():
     infrared_sensor = wrapped_packet.infrared_channel()
@@ -220,13 +247,9 @@ if wrapped_packet.has_light_channel():
     print("payload_std", infrared_sensor.payload_std())
     print("metadata", infrared_sensor.metadata())
     print("metadata_as_dict", infrared_sensor.metadata_as_dict())
-    
-    
-# Printing out the contents of sensor channels and WrappedRedvoxPackets
-# An entire WrappedRedvoxPacket and all of its contents can be printed out
-print(wrapped_packet)
 
-# Also, individual sensor channels can also be printed out
+    # We can also print a description of the channel itself
+    print(infrared_sensor)
 
 
 # Comparing sensor channels and WrappedRedvoxPackets
