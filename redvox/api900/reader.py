@@ -844,7 +844,7 @@ class EvenlySampledSensor:
             self._evenly_sampled_channel: EvenlySampledChannel = evenly_sampled_channel
             """A reference to the original unevenly sampled channel"""
 
-    def get_channel_type_names(self) -> typing.List[str]:
+    def _get_channel_type_names(self) -> typing.List[str]:
         """
         Returns the list of channel_types as a list of names instead of enumeration constants.
         :return: The list of channel_types as a list of names instead of enumeration constants.
@@ -947,7 +947,7 @@ class EvenlySampledSensor:
         :return: A list of differences or an empty list if there are none.
         """
         diffs = map(lambda tuple2: _diff(tuple2[0], tuple2[1]), [
-            (self.get_channel_type_names(), other.get_channel_type_names()),
+            (self._get_channel_type_names(), other._get_channel_type_names()),
             (self.sensor_name(), other.sensor_name()),
             (self.sample_rate_hz(), other.sample_rate_hz()),
             (self.first_sample_timestamp_epoch_microseconds_utc(),
@@ -2620,7 +2620,7 @@ class WrappedRedvoxPacket:
         self._redvox_packet.metadata[:] = data
         return self
 
-    def clear_metadata(self):
+    def _clear_metadata(self):
         """
         removes all of the packet level metadata from packet
         """
