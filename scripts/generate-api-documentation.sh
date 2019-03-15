@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
 cd ..
-python3 -m pydoc -w redvox/api900/reader.py
-mv reader.html reader.api.html
+
+VERSION=${1}
+
+if [[ -z ${VERSION} ]]; then
+    echo "missing required version"
+    exit 1
+fi
+
+pdoc redvox --overwrite --html --html-dir docs/${VERSION}/api_docs
