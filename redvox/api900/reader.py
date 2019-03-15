@@ -1122,7 +1122,7 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
         self._y_type = y_type
         self._z_type = z_type
 
-    def payload_values(self) -> numpy.ndarray:
+    def _payload_values(self) -> numpy.ndarray:
         """
         Returns this channel's payload as an interleaved payload of the form
         [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]].
@@ -1374,7 +1374,7 @@ class LocationSensor(UnevenlySampledSensor):
             api900_pb2.ACCURACY
         ])
 
-    def payload_values(self):
+    def _payload_values(self):
         """
         Return the location payload as an interleaved payload with the following format:
         [[latitude_0, longitude_0, altitude_0, speed_0, accuracy_0],
@@ -1656,7 +1656,7 @@ class AccelerometerSensor(XyzUnevenlySampledSensor):
                          api900_pb2.ACCELEROMETER_Y,
                          api900_pb2.ACCELEROMETER_Z)
 
-    def payload_values(self) -> numpy.ndarray:
+    def _payload_values(self) -> numpy.ndarray:
         """
         returns the sensor payload as a numpy ndarray
         :return: accelerometer payload as a numpy ndarray
@@ -1695,7 +1695,7 @@ class MagnetometerSensor(XyzUnevenlySampledSensor):
                          api900_pb2.MAGNETOMETER_Y,
                          api900_pb2.MAGNETOMETER_Z)
 
-    def payload_values(self) -> numpy.ndarray:
+    def _payload_values(self) -> numpy.ndarray:
         """
         returns the sensor payload as a numpy ndarray
         :return: magnetometer payload as a numpy ndarray
@@ -1734,7 +1734,7 @@ class GyroscopeSensor(XyzUnevenlySampledSensor):
                          api900_pb2.GYROSCOPE_Y,
                          api900_pb2.GYROSCOPE_Z)
 
-    def payload_values(self) -> numpy.ndarray:
+    def _payload_values(self) -> numpy.ndarray:
         """
         returns the sensor payload as a numpy ndarray
         :return: gyroscope payload as a numpy ndarray

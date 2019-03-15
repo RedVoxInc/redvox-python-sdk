@@ -1,0 +1,233 @@
+"""
+This example demonstrates how to read RedVox API 900 files from both disk and memory.
+
+We now accept the original, compressed, binary-encoded .rdvxz files and the larger RedVox API 900 compliant .json files.
+
+When files are read, they return a WrappedRedvoxPacket which provides both high level getters and setters for reading,
+modifying, creating, and writing RedVox API 900 files.
+
+Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/redvox-api900-docs.md
+API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/
+"""
+
+# First, we import the RedVox API 900 reader.
+from redvox.api900 import reader
+
+# Now, let's load both a .rdvxz file
+wrapped_packet = reader.read_rdvxz_file("example_data/example.rdvxz")
+
+# Now that the we have loaded the data into a wrapped_packet, let's look at all of the fields we can access.
+# We'll start with top-level metadata.
+print("api", wrapped_packet.api())
+print("redvox_id", wrapped_packet.redvox_id())
+print("uuid", wrapped_packet.uuid())
+print("authenticated_email", wrapped_packet.authenticated_email())
+print("authentication_token", wrapped_packet.authentication_token())
+print("firebase_token", wrapped_packet.firebase_token())
+print("is_backfilled", wrapped_packet.is_backfilled())
+print("is_private", wrapped_packet.is_private())
+print("is_scrambled", wrapped_packet.is_scrambled())
+print("device_make", wrapped_packet.device_make())
+print("device_model", wrapped_packet.device_model())
+print("device_is", wrapped_packet.device_os())
+print("device_os_version", wrapped_packet.device_os_version())
+print("app_versionb", wrapped_packet.app_version())
+print("battery_level_percent", wrapped_packet.battery_level_percent())
+print("device_temperature_c", wrapped_packet.device_temperature_c())
+print("acquisition_server", wrapped_packet.acquisition_server())
+print("time_synchronization_server", wrapped_packet.time_synchronization_server())
+print("authentication_server", wrapped_packet.authentication_server())
+print("app_file_start_timestamp_epoch_microseconds_utc", wrapped_packet.app_file_start_timestamp_epoch_microseconds_utc())
+print("app_file_start_timestamp_machine", wrapped_packet.app_file_start_timestamp_machine())
+print("server_timestamp_epoch_microseconds_utc", wrapped_packet.server_timestamp_epoch_microseconds_utc())
+print("metadata", wrapped_packet.metadata())
+print("metadata_as_dict", wrapped_packet.metadata_as_dict())
+
+# Next, we'll move onto the sensor channels.
+# Each sensor channel has a "has_channel" method which tests for the existence of a channel and a "get_channel" method
+# which either returns the sensor channel or "None" if the channel DNE.
+
+# MicrophoneSensor
+if wrapped_packet.has_microphone_channel():
+    microphone_sensor = wrapped_packet.microphone_channel()
+    print("sample_rate_hz", microphone_sensor.sample_rate_hz())
+    print("sensor_name", microphone_sensor.sensor_name())
+    print("first_sample_timestamp_epoch_microseconds_utc", microphone_sensor.first_sample_timestamp_epoch_microseconds_utc())
+    print("payload_type", microphone_sensor.payload_type())
+    print("payload_values", microphone_sensor.payload_values())
+    print("payload_mean", microphone_sensor.payload_mean())
+    print("payload_median", microphone_sensor.payload_median())
+    print("payload_std", microphone_sensor.payload_std())
+    print("metadata", microphone_sensor.metadata())
+    print("metadata_as_dict", microphone_sensor.metadata_as_dict())
+
+# BarometerSensor
+if wrapped_packet.has_barometer_channel():
+    barometer_sensor = wrapped_packet.barometer_channel()
+    print("sensor_name", barometer_sensor.sensor_name())
+    print("timestamps_microseconds_utc", barometer_sensor.timestamps_microseconds_utc())
+    print("payload_type", barometer_sensor.payload_type())
+    print("payload_values", barometer_sensor.payload_values())
+    print("sample_interval_mean", barometer_sensor.sample_interval_mean())
+    print("sample_interval_median", barometer_sensor.sample_interval_median())
+    print("sample_interval_std", barometer_sensor.sample_interval_std())
+    print("payload_mean", barometer_sensor.payload_mean())
+    print("payload_median", barometer_sensor.payload_median())
+    print("payload_std", barometer_sensor.payload_std())
+    print("metadata", barometer_sensor.metadata())
+    print("metadata_as_dict", barometer_sensor.metadata_as_dict())
+    
+# LocationSensor
+if wrapped_packet.has_location_channel():
+    location_sensor = wrapped_packet.location_channel()
+    print("sensor_name", location_sensor.sensor_name())
+    print("timestamps_microseconds_utc", location_sensor.timestamps_microseconds_utc())
+    print("payload_type", location_sensor.payload_type())
+    print("payload_values_latitude", location_sensor.payload_values_latitude())
+    print("payload_values_longitude", location_sensor.payload_values_longitude())
+    print("payload_values_altitude", location_sensor.payload_values_altitude())
+    print("payload_values_speed", location_sensor.payload_values_speed())
+    print("payload_values_accuracy", location_sensor.payload_values_accuracy())
+    print("sample_interval_mean", location_sensor.sample_interval_mean())
+    print("sample_interval_median", location_sensor.sample_interval_median())
+    print("sample_interval_std", location_sensor.sample_interval_std())
+    print("payload_values_latitude_mean", location_sensor.payload_values_latitude_mean())
+    print("payload_values_latitude_median", location_sensor.payload_values_latitude_median())
+    print("payload_values_latitude_std", location_sensor.payload_values_latitude_std())
+    print("payload_values_longitude_mean", location_sensor.payload_values_longitude_mean())
+    print("payload_values_longitude_median", location_sensor.payload_values_longitude_median())
+    print("payload_values_longitude_std", location_sensor.payload_values_longitude_std())
+    print("payload_values_altitude_mean", location_sensor.payload_values_altitude_mean())
+    print("payload_values_altitude_median", location_sensor.payload_values_altitude_median())
+    print("payload_values_altitude_std", location_sensor.payload_values_altitude_std())
+    print("payload_values_speed_mean", location_sensor.payload_values_speed_mean())
+    print("payload_values_speed_median", location_sensor.payload_values_speed_median())
+    print("payload_values_speed_std", location_sensor.payload_values_speed_std())
+    print("payload_values_accuracy_mean", location_sensor.payload_values_accuracy_mean())
+    print("payload_values_accuracy_median", location_sensor.payload_values_accuracy_median())
+    print("payload_values_accuracy_std", location_sensor.payload_values_accuracy_std())
+    print("metadata", location_sensor.metadata())
+    print("metadata_as_dict", location_sensor.metadata_as_dict())
+
+# TimeSynchronizationSensor
+if wrapped_packet.has_time_synchronization_channel():
+    time_synchronization_sensor = wrapped_packet.time_synchronization_channel()
+    print("payload_type", time_synchronization_sensor.payload_type())
+    print("payload_values", time_synchronization_sensor.payload_values())
+    print("metadata", time_synchronization_sensor.metadata())
+    print("metadata_as_dict", time_synchronization_sensor.metadata_as_dict())
+
+# AccelerometerSensor
+if wrapped_packet.has_accelerometer_channel():
+    accelerometer_sensor = wrapped_packet.accelerometer_channel()
+    print("sensor_name", accelerometer_sensor.sensor_name())
+    print("timestamps_microseconds_utc", accelerometer_sensor.timestamps_microseconds_utc())
+    print("payload_type", accelerometer_sensor.payload_type())
+    print("sample_interval_mean", accelerometer_sensor.sample_interval_mean())
+    print("sample_interval_median", accelerometer_sensor.sample_interval_median())
+    print("sample_interval_std", accelerometer_sensor.sample_interval_std())
+    print("payload_values_x", accelerometer_sensor.payload_values_x())
+    print("payload_values_y", accelerometer_sensor.payload_values_y())
+    print("payload_values_z", accelerometer_sensor.payload_values_z())
+    print("payload_values_x_mean", accelerometer_sensor.payload_values_x_mean())
+    print("payload_values_x_median", accelerometer_sensor.payload_values_x_median())
+    print("payload_values_x_std", accelerometer_sensor.payload_values_x_std())
+    print("payload_values_y_mean", accelerometer_sensor.payload_values_y_mean())
+    print("payload_values_y_median", accelerometer_sensor.payload_values_y_median())
+    print("payload_values_y_std", accelerometer_sensor.payload_values_y_std())
+    print("payload_values_z_mean", accelerometer_sensor.payload_values_z_mean())
+    print("payload_values_z_median", accelerometer_sensor.payload_values_z_median())
+    print("payload_values_z_std", accelerometer_sensor.payload_values_z_std())
+    print("metadata", accelerometer_sensor.metadata())
+    print("metadata_as_dict", accelerometer_sensor.metadata_as_dict())
+
+# GyroscopeSensor
+if wrapped_packet.has_gyroscope_channel():
+    gyroscope_sensor = wrapped_packet.gyroscope_channel()
+    print("sensor_name", gyroscope_sensor.sensor_name())
+    print("timestamps_microseconds_utc", gyroscope_sensor.timestamps_microseconds_utc())
+    print("payload_type", gyroscope_sensor.payload_type())
+    print("sample_interval_mean", gyroscope_sensor.sample_interval_mean())
+    print("sample_interval_median", gyroscope_sensor.sample_interval_median())
+    print("sample_interval_std", gyroscope_sensor.sample_interval_std())
+    print("payload_values_x", gyroscope_sensor.payload_values_x())
+    print("payload_values_y", gyroscope_sensor.payload_values_y())
+    print("payload_values_z", gyroscope_sensor.payload_values_z())
+    print("payload_values_x_mean", gyroscope_sensor.payload_values_x_mean())
+    print("payload_values_x_median", gyroscope_sensor.payload_values_x_median())
+    print("payload_values_x_std", gyroscope_sensor.payload_values_x_std())
+    print("payload_values_y_mean", gyroscope_sensor.payload_values_y_mean())
+    print("payload_values_y_median", gyroscope_sensor.payload_values_y_median())
+    print("payload_values_y_std", gyroscope_sensor.payload_values_y_std())
+    print("payload_values_z_mean", gyroscope_sensor.payload_values_z_mean())
+    print("payload_values_z_median", gyroscope_sensor.payload_values_z_median())
+    print("payload_values_z_std", gyroscope_sensor.payload_values_z_std())
+    print("metadata", gyroscope_sensor.metadata())
+    print("metadata_as_dict", gyroscope_sensor.metadata_as_dict())
+
+# MagnetometerSensor
+if wrapped_packet.has_magnetometer_channel():
+    magnetometer_sensor = wrapped_packet.magnetometer_channel()
+    print("sensor_name", magnetometer_sensor.sensor_name())
+    print("timestamps_microseconds_utc", magnetometer_sensor.timestamps_microseconds_utc())
+    print("payload_type", magnetometer_sensor.payload_type())
+    print("sample_interval_mean", magnetometer_sensor.sample_interval_mean())
+    print("sample_interval_median", magnetometer_sensor.sample_interval_median())
+    print("sample_interval_std", magnetometer_sensor.sample_interval_std())
+    print("payload_values_x", magnetometer_sensor.payload_values_x())
+    print("payload_values_y", magnetometer_sensor.payload_values_y())
+    print("payload_values_z", magnetometer_sensor.payload_values_z())
+    print("payload_values_x_mean", magnetometer_sensor.payload_values_x_mean())
+    print("payload_values_x_median", magnetometer_sensor.payload_values_x_median())
+    print("payload_values_x_std", magnetometer_sensor.payload_values_x_std())
+    print("payload_values_y_mean", magnetometer_sensor.payload_values_y_mean())
+    print("payload_values_y_median", magnetometer_sensor.payload_values_y_median())
+    print("payload_values_y_std", magnetometer_sensor.payload_values_y_std())
+    print("payload_values_z_mean", magnetometer_sensor.payload_values_z_mean())
+    print("payload_values_z_median", magnetometer_sensor.payload_values_z_median())
+    print("payload_values_z_std", magnetometer_sensor.payload_values_z_std())
+    print("metadata", magnetometer_sensor.metadata())
+    print("metadata_as_dict", magnetometer_sensor.metadata_as_dict())
+
+# LightSensor
+if wrapped_packet.has_light_channel():
+    light_sensor = wrapped_packet.light_channel()
+    print("sensor_name", light_sensor.sensor_name())
+    print("timestamps_microseconds_utc", light_sensor.timestamps_microseconds_utc())
+    print("payload_type", light_sensor.payload_type())
+    print("payload_values", light_sensor.payload_values())
+    print("sample_interval_mean", light_sensor.sample_interval_mean())
+    print("sample_interval_median", light_sensor.sample_interval_median())
+    print("sample_interval_std", light_sensor.sample_interval_std())
+    print("payload_mean", light_sensor.payload_mean())
+    print("payload_median", light_sensor.payload_median())
+    print("payload_std", light_sensor.payload_std())
+    print("metadata", light_sensor.metadata())
+    print("metadata_as_dict", light_sensor.metadata_as_dict())
+
+# InfraredSensor
+if wrapped_packet.has_light_channel():
+    infrared_sensor = wrapped_packet.infrared_channel()
+    print("sensor_name", infrared_sensor.sensor_name())
+    print("timestamps_microseconds_utc", infrared_sensor.timestamps_microseconds_utc())
+    print("payload_type", infrared_sensor.payload_type())
+    print("payload_values", infrared_sensor.payload_values())
+    print("sample_interval_mean", infrared_sensor.sample_interval_mean())
+    print("sample_interval_median", infrared_sensor.sample_interval_median())
+    print("sample_interval_std", infrared_sensor.sample_interval_std())
+    print("payload_mean", infrared_sensor.payload_mean())
+    print("payload_median", infrared_sensor.payload_median())
+    print("payload_std", infrared_sensor.payload_std())
+    print("metadata", infrared_sensor.metadata())
+    print("metadata_as_dict", infrared_sensor.metadata_as_dict())
+    
+    
+# Printing out the contents of sensor channels and WrappedRedvoxPackets
+# An entire WrappedRedvoxPacket and all of its contents can be printed out
+print(wrapped_packet)
+
+# Also, individual sensor channels can also be printed out
+
+
+# Comparing sensor channels and WrappedRedvoxPackets
+

@@ -25,6 +25,7 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Working with image sensor channels](#markdown-header-working-with-image-sensor-channels)
 * [Example files](#markdown-header-example-files)
 * [Generated API Documentation](#markdown-header-generated-api-documentation)
+* [Developer Guidelines](#markdown-header-developer-guidelines)
 
 ### Prerequisites
 
@@ -685,3 +686,17 @@ A set of example files can be found at: https://bitbucket.org/redvoxhi/redvox-ap
 ### Generated API documentation
 
 API documentation for this library can be found at: https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/
+
+### Developer Guidelines
+
+If you plan on making changes to the library, please follow these guidelines.
+
+1. Please perform all work in a separate branch.
+2. Ensure all unit tests pass before committing. This can be achieved by running `python3 -m unittest discover` in the root of this project.
+3. Ensure all linting checks pass before committing. This requires the pip package `coala-bears` and can be performed by running `coala --ci` in the root of this project.
+4. Update the version number in redvox/__init__.py. This project uses [Semantic Versioning](https://semver.org/).
+5. Do not introduce backwards incompatible changes unless absolutely necessary.
+6. Create a new set of documentation in the docs/ directory that matches the new version. 
+7. Update the developer documentation, API documentation, and examples with your new changes.
+8. Either create a pull request from your branch (if forked) or check with one of us before attempting to merge changes into master.
+ 
