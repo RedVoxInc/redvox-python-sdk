@@ -251,6 +251,9 @@ if wrapped_packet.has_light_channel():
     # We can also print a description of the channel itself
     print(infrared_sensor)
 
+# Cloning a WrappedRedvoxPacket
+# It's possible to make a clone of a packet for modification so that the original packet is not modified.
+cloned_packet = wrapped_packet.clone()
 
 # Comparing sensor channels and WrappedRedvoxPackets
 # All sensor channels implement Python's "__eq__" method which allows us to compare sensor channels by content.
