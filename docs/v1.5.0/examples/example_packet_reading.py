@@ -253,4 +253,30 @@ if wrapped_packet.has_light_channel():
 
 
 # Comparing sensor channels and WrappedRedvoxPackets
+# All sensor channels implement Python's "__eq__" method which allows us to compare sensor channels by content.
+# When comparisons are made, it means that every fields in each sensor matches exactly. Let's look at an example.
+
+# First, let's create a copy of our example packet.
+wrapped_packet_2 = wrapped_packet.clone()
+
+# Let's now compare them for equality
+print(wrapped_packet == wrapped_packet_2)
+
+# Next, let's modify the second packet and then check for equality
+wrapped_packet_2.set_api(901)
+print(wrapped_packet == wrapped_packet_2)
+
+# We can also do this for sensor channels.
+print(wrapped_packet.microphone_channel() == wrapped_packet_2.microphone_channel())
+
+# And then modify and compare
+wrapped_packet_2.microphone_channel().set_sensor_name("foo")
+print(wrapped_packet.microphone_channel() == wrapped_packet_2.microphone_channel())
+
+# We can also find the difference between two sensor channels
+print(wrapped_packet.microphone_channel().diff(wrapped_packet_2.microphone_channel()))
+
+# Or between two WrappedRedvoxPackets
+print(wrapped_packet.diff(wrapped_packet_2))
+
 
