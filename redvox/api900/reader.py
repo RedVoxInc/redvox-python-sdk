@@ -2270,6 +2270,13 @@ class WrappedRedvoxPacket:
         with open(path, "w") as json_out:
             json_out.write(self.to_json())
 
+    def clone(self) -> 'WrappedRedvoxPacket':
+        """
+        Returns a clone of this WrappedRedvoxPacket.
+        :return: A clone of this WrappedRedvoxPacket.
+        """
+        return read_rdvxz_buffer(self.compressed_buffer())
+
     def api(self) -> int:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
