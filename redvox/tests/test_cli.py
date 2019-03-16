@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import unittest
 
-from redvox.api900 import cli, reader
+from redvox.api900 import reader
 from redvox.tests.utils import test_data, TEST_DATA_DIR
 
 
