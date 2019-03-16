@@ -12,7 +12,7 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Updating the RedVox Python SDK](#markdown-header-updating-the-redvox-python-sdk)
 * [Working with the SDK CLI](#markdown-header-working-with-the-sdk-cli)
 * [Loading RedVox API 900 files](#markdown-header-loading-redvox-api-900-files)
-* [Working with WrappedRedvoxPackets](#markdown-header-working-with-wrappedredvoxpackets)
+* [Working with WrappedRedvoxPackets](#markdown-header-working-with-wrappedredvoxpacket-objects)
 * [Working with microphone sensor channels](#markdown-header-working-with-microphone-sensor-channels)
 * [Working with barometer sensor channels](#markdown-header-working-with-barometer-sensor-channels)
 * [Working with location sensor channels](#markdown-header-working-with-location-sensor-channels)
@@ -23,6 +23,7 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Working with light sensor channels](#markdown-header-working-with-light-sensor-channels)
 * [Working with infrafred sensor channels](#markdown-header-working-with-infrared-sensor-channels)
 * [Working with image sensor channels](#markdown-header-working-with-image-sensor-channels)
+8 [Modifying and creating WrappedRedvoxPacket objects and sensor channels](#markdown-header-modifying-and-creating-wrappedredvoxpacket-objects-and-sensor-channel)
 * [Example files](#markdown-header-example-files)
 * [Generated API Documentation](#markdown-header-generated-api-documentation)
 * [Developer Guidelines](#markdown-header-developer-guidelines)
@@ -78,606 +79,216 @@ Once the redvox library has been installed from pip, the CLI can be accessed by 
 
 ##### Example: Converting .rdvxz files to RedVox API 900 .json files
 
-Given the following files in `/docs/v1.5.0/examples/example_data` (or a directory of your choice)
+You can convert a single .rdvxz file to json with a command like:
 
-```
+`python3 -m redvox.api900.cli to_json example_data/example.rdvxz`
 
-```
+You can convert multiple .rdvxz files in the same directory to json with a command like:
 
-Let's first convert a single file to .json.
-
-```
-
-```
-
-And now if we look at the directory listing we see the .json file.
-
-```
-
-```
-
-We can convert multiple files at once with:
-
-```
-
-```
-
-and the contents of the directory contains:
-
-```
-
-```
+`python3 -m redvox.api900.cli to_json example_data/*.rdvxz`
 
 ##### Example: Converting RedVox compliant API 900 .json files to .rdvxz files
 
-We can also convert from .json files to .rdvxz files using the `to_rdvxz command`.
+You can convert a single RedVox AIP 900 compliant json file to .rdvxz with a command like:
 
-Let's start with a directory of .json files.
+`python3 -m redvox.api900.cli to_rdvxz example_data/example.json`
 
-```
+You can convert multiple RedVox AIP 900 compliant json files to .rdvxz with a command like:
 
-```
-
-We can convert a single file:
-
-```
-
-```
-
-and the contents are now:
-
-```
-
-```
-
-or we can convert all the .json files at once
-
-```
-
-```
-
-which changes the directory contents to:
-
-```
-
-```
+`python3 -m redvox.api900.cli to_rdvxz example_data/*.json`
 
 ##### Example: Displaying the contents of .rdvxz files
 
-It's possible to display the contents of a single or multiple .rdvxz files with the `print` command.
+You can display the contents of a single .rdvxz file with:
 
-To display the contents of a single file:
+`python3 -m redvox.api900.cli print example_data/example.rdvxz`
 
-```
+You can display the contents of multiple .rdvxz files with:
 
-```
-
-Multiple files can be displayed at once as well with:
-
-```
-
-```
+`python3 -m redvox.api900.cli print example_data/*.rdvxz`
 
 ### Loading RedVox API 900 Files
 
-The module `redvox/api900/reader.py` contains two functions for loading RedVox API 900 data files: `read_buffer` and `read_file`. The module also contains one function, `wrap`, that wraps the low-level protobuf RedVox packet in our high-level API which allows easy access to packet fields and sensor data.
+The module `redvox/api900/reader.py` contains several high-level methods for reading RedVox API 900 .rdvxz files and RedVox API 900 compliant .json files. These methods all return an instance of a [WrappedRedvoxPacket](#markdown-header-working-with-wrappedrevoxpacket-ojects).
 
-`read_buffer` accepts an array of bytes which represent a serialized RedVox data packet and returns a low-level protobuf `api900_pb2.RedvoxPacket`. `read_file` accepts the path to a RedVox data packet file stored somewhere on the file system and also returns a low-level protobuf `api900_pb2.RedvoxPacket`.
+These methods are `read_rdvxz_file`, `read_rdvxz_buffer`, `read_json_file`, and `read_json_string`.
 
-A `WrappedRedvoxPacket` is a Python class that acts as a wrapper around the raw protobuf API and provides convenience methods for accessing fields and sensor channels of the loaded RedVox packet.
+Descriptions of these methods can be found at: https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox/api900/reader.m.html#header-functions
 
-We can call the `wrap` function to wrap a low-level protobuf packet in our high-level API.
+Examples of the usage can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_reading.py
 
-The following table summarizes the available top-level function of reader.py.
+### Working with WrappedRedvoxPacket objects
 
-| Name | Type | Description |
-|------|------|-------------|
-| read_file(file: str) | api900_pb2.RedvoxPacket | Reads a file and returns a low-level RedVox API 900 protobuf packet |
-| read_buffer(buf: bytes) | api900_pb2.RedvoxPacket | Reads from a buffer of bytes and returns a low-level RedVox API 900 packet |
-| wrap(redvox_packet: api900_pb2.RedvoxPacket) | WrappedRedvoxPacket | Wraps a low-level RedVox packet in our high-level API |
-| from_json(json: str) | api900_pb2.RedvoxPacket | Accepts a string containing JSON and converts it into an instance of an api900_pb2.RedvoxPacket |
-| to_json(redvox_packet: api900_pb2.RedvoxPacket | str | Converts an instance of an api900_pb2.RedvoxPacket into a string containing json |
+A WrappedRedvoxPacket is a high-level API that is backed by a protobuf buffer. The high-level API provides getters and setters for all fields and sensor channels that the RedVox API 900 provides.
 
-### Working with WrappedRedvoxPackets
+To see a list of all getters and setters that a WrappedRedvoxPacket provides, please see: https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.WrappedRedvoxPacket
 
-Once a file is loaded, we can now access its top level metadata and sensor fields.
+To check if a sensor channel is in a packet, you can use any of the `has_channel` methods.
 
-The following is a table that summarizes the convenience methods provided by the WrappedRedvoxPacket class. For brevity, we only list the new, high-level API methods. If you wish to use or dig into the low-level protobuf API, please see the section titled "Low Level Access".
+When accessing a sensor channel (e.g. microphone_channel()), if the channel does not exist in the packet, the sensor channel getter will return `None`.
 
-The following methods retrieve fields which are described in detail at: https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master
+Channels can be removed from a packet by passing `None` to a `set_channel` method.
 
-| Name | Type |
-| -----|------|
-| api() | int |
-| redvox_id() | str |
-| uuid() | str | 
-| authenticated_email() | str | 
-| authentication_token() | str | 
-| firebase_token() | str |
-| is_backfilled() | bool | 
-| is_private() | bool |
-| is_scrambled() | bool |
-| device_make() | str |
-| device_model() | str |
-| device_os() | str |
-| device_os_version() | str |
-| app_version() | str |
-| battery_level_percent() | float |
-| device_temperature_c() | float |
-| acquisition_server() | str |
-| time_synchronization_server() | str |
-| authentication_server() | str |
-| app_file_start_timestamp_epoch_microseconds_utc() | int |
-| app_file_start_timestamp_machine() | int |
-| server_timestamp_epoch_microseconds_utc() | int |
-| metadata() | List[str] |
-| metadata_as_dict() | Dict[str, str] |
-| to_json() | str |
+Examples of reading/writing to/from WrappedRedvoxPacket objects can be found at:
 
-The following methods allow you to set the values of high-level API methods.  Give the method a value that matches the type within the parenthesis and it will change the redvox packet's corresponding data to the value.
-| Name |
-| -----|
-| set_api(int) |
-| set_redvox_id(str) |
-| set_uuid(str) |
-| set_authenticated_email(str) |
-| set_authentication_token(str) |
-| set_firebase_token(str) |
-| set_is_backfilled(bool) |
-| set_is_private(bool) |
-| set_is_scrambled(bool) |
-| set_device_make(str) |
-| set_device_model(str) |
-| set_device_os(str) |
-| set_device_os_version(str) |
-| set_app_version(str) |
-| set_battery_level_percent(float) |
-| set_device_temperature_c(float) |
-| set_acquisition_server(str) |
-| set_time_synchronization_server(str) |
-| set_authentication_server(str) |
-| set_app_file_start_timestamp_epoch_microseconds_utc(int) |
-| set_app_file_start_timestamp_machine(int) |
-| set_server_timestamp_epoch_microseconds_utc(int) |
-| set_metadata(List[str]) |
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_reading.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_modifcation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_creation.py
 
-The following methods provide easy access to high-level sensor channel implementations. Each sensor has a method to test for existence, a method for retrieving the sensor, and a method for setting sensor. Please note that `None` can be passed to the set_sensor methods to clear a sensor.
-
-| Name | Return Type |
-|------|------|
-| has_microphone_channel() | bool |
-| microphone_channel() | Optional[MicrophoneSensor] |
-| set_microphone_channel(Optional[MicrophoneSensor]) | |
-| has_barometer_channel() | bool |
-| barometer_channel() | Optional[BarometerSensor] |
-| set_barometer_chanel(Optional[BarometerSensor] | |
-| has_location_channel() | bool |
-| location_channel() | Optional[LocationSensor] |
-| set_location_channel(Optional[LocationSensor] | |
-| has_time_synchronization_channel() | bool |
-| time_synchronization_channel() | Optional[TimeSynchronizationChannel] |
-| set_time_synchronization_channel(Optional[TimeSynchronizationChannel] | |
-| has_accelerometer_channel() | bool |
-| accelerometer_channel() | Optional[AccelerometerSensor] |
-| set_accelerometer_channel(Optional[AccelerometerSensor] | |
-| has_magnetometer_channel() | bool |
-| magnetometer_channel() | Optional[MagnetometerSensor] |
-| set_magnetometer_channel(Optional[MagnetometerSensor] | |
-| has_gyroscope_channel() | bool |
-| gyroscope_channel() | Optional[GyroscopeSensor] |
-| set_gyroscope_channel(Optional[GyroscopeSensor] | |
-| has_light_channel() | bool |
-| light_channel() | Optional[LightSensor] |
-| set_light_channel(Optional[LightSensor] | |
-| has_infrared_channel() | bool |
-| infrared_channel() | Optional[InfraredSensor] |
-| set_infrared_channel(Optional[InfraredChannel] | |
-| has_image_channel() | bool |
-| image_channel() | Optional[ImageChannel] |
-
-It's also possible to convert a WrappedRedvoxPacket into a compressed array of bytes. This can be achieved by calling the compressed_buffer method on a WrappedRedvoxPacket. These compressed buffers can be written to disk as .rdvxz files.
-
-| Name | Type |
-| compressed_buffer() | bytes |
-
-##### Example loading RedVox data
-
-Let's look at accessing some of top level fields. 
-
-```python
-
-```
+The contents of WrappedRedvoxPacket objects can be written to .rdvxz or RedVox API 900 compliant .json files. See https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_writing.py for examples.
 
 ### Working with microphone sensor channels
-It's possible to test for the availability of this sensor in a data packet by calling the method `has_microphone_channel` on an instance of a `WrappedRedvoxPacket`.
 
-The sensor can be accessed from an instance of a `WrappedRedvoxPacket` by calling the method `microphone_channel`. `None` is returned if the data packet does not have a channel of this sensor type.
+MicrophoneSensor channels are an evenly sampled sensor that contain microphone data in a single payload. The payload represents counts from the microphone. Payloads are represented by integers. 
 
-The `MicrophoneSensor` class contains methods for directly accessing the fields and payloads of microphone channels. The following table briefly describes the available methods for microphone sensor channels.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.MicrophoneSensor for a list of methods this sensor provides.
 
-| Name | Type | Description | 
-|------|------|-------------|
-| sample_rate_hz() | float | Returns the sample rate in Hz of this microphone sensor channel |
-| set_sample_rate_hz(float) | | Sets the sample rate in Hz of this microphone sensor channel |
-| first_sample_timestamp_epoch_microseconds_utc() | int | The timestamp of the first microphone sample in this packet as the number of microseconds since the epoch UTC |
-| set_first_sample_timestamp_epoch_microseconds_utc(int) | | Sets the timestamp of the first microphone sample in this packet as the number of microseconds since the epoch UTC |
-| sensor_name() | str | Returns the name of the sensor for this microphone sensor channel |
-| set_sensor_name(str) | | Sets the name of the sensor for this microphone sensor channel |
-| payload_values() | numpy.ndarray[int] | A numpy array of integers representing the data payload from this packet's microphone channel |
-| payload_mean() | float | The mean value of this packet's microphone data payload |
-| payload_median() | float | The median value of this packet's microphone data payload |
-| payload_std() | float | The standard deviation of this packet's microphone data payload |
-| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
-| metadata() | List[str] | Returns this channel's metadata |
-| set_metadata(List[str]) | | Sets this channel's metadata |
-| payload_type() | str | Return this channel's internal protobuf type as a string |
+See the following for example usage:
 
-##### Creating a microphone sensor
-This function creates a microphone sensor:
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_creation.py 
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_reading.py 
 
-```python
-
-```
-
-
-##### Example microphone sensor reading
-
-```python
-
-```
 
 ### Working with barometer sensor channels
 
-It's possible to test for the availability of this sensor in a data packet by calling the method `has_barometer_channel` on an instance of a `WrappedRedvoxPacket`.
+BarometerSensor channels are an unevenly sampled sensor that contain barometer data in a single payload. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-The sensor can be accessed from an instance of a `WrappedRedvoxPacket` by calling the method `barometer channel`. `None` is returned if the data packet does not have a channel of this sensor type.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.BarometerSensor for a list of methods this sensor provides.
 
-The `BarometerSensor` class contains methods for directly accessing the fields and payloads of barometer channels. The following table briefly describes the available methods for barometer sensor channels.
+See the following for example usage:
 
-| Name | Type | Description | 
-|------|------|-------------|
-| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
-| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
-| sensor_name() | str | Returns the name of the sensor for this sensor channel |
-| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
-| payload_values() | numpy.ndarray[float] | A numpy array of floats representing the data payload from this packet's barometer channel |
-| payload_mean() | float | The mean value of this packet's barometer data payload |
-| payload_median() | float | The median value of this packet's barometer data payload |
-| payload_std() | float | The standard deviation of this packet's barometer data payload |
-| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
-| sample_interval_median() | float | The median of the sample interval for samples in this packet |
-| sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
-| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
-| metadata() | List[str] | Returns this channel's metadata |
-| set_metadata(List[str]) | | Sets this channel's metadata |
-| payload_type() | str | Return this channel's internal protobuf type as a string |
-
-##### Creating a barometer sensor
-This function creates a barometer sensor:
-
-```python
-
-```
-
-##### Example barometer sensor reading
-
-```python
-
-```
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_creation.py 
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_reading.py
 
 ### Working with location sensor channels
 
-It's possible to test for the availability of this sensor in a data packet by calling the method `has_location_channel` on an instance of a `WrappedRedvoxPacket`.
+LocationSensor channels are an unevenly sampled sensor that contain location data with 5 payloads. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-The sensor can be accessed from an instance of a `WrappedRedvoxPacket` by calling the method `location_channel`. `None` is returned if the data packet does not have a channel of this sensor type.
+The payload types available to the LocationSensor include:
 
-The `LocationSensor` class contains methods for directly accessing the fields and payloads of location channels. The location channel can return the payload as interleaved values or also return the individual components of the payload. The following table briefly describes the available methods for location sensor channels. 
+* latitude
+* longitude
+* altitude
+* speed
+* accuracy
 
-| Name | Type | Description | 
-|------|------|-------------|
-| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
-| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
-| sensor_name() | str | Returns the name of the sensor for this sensor channel |
-| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
-| payload_values() | numpy.ndarray[float] | A numpy array of interleaved location values [[latitude_0, longitude_0, altitude_0, speed_0, accuracy_0], [latitude_1, longitude_1, altitude_1, speed_1, accuracy_1], ..., [latitude_n, longitude_n, altitude_n, speed_n, accuracy_n]] |
-| payload_values_latitude() | numpy.ndarray[float] | A numpy array contains the latitude values for each sample |
-| payload_values_longitude() | numpy.ndarray[float] | A numpy array contains the longitude values for each sample |
-| payload_values_altitude() | numpy.ndarray[float] | A numpy array contains the altitude values for each sample |
-| payload_values_speed() | numpy.ndarray[float] | A numpy array contains the speed values for each sample |
-| payload_values_accuracy() | numpy.ndarray[float] | A numpy array contains the accuracy values for each sample |
-| payload_values_latitude_mean() | float | Mean value of latitudes from this location channel |
-| payload_values_longitude_mean() | float | Mean value of longitudes from this location channel |
-| payload_values_altitude_mean() | float | Mean value of altitudes from this location channel |
-| payload_values_speed_mean() | float | Mean value of speeds from this location channel |
-| payload_values_accuracy_mean() | float | Mean value of accuracies from this location channel |
-| payload_values_latitude_median() | float | Median value of latitudes from this location channel |
-| payload_values_longitude_median() | float | Median value of longitudes from this location channel |
-| payload_values_altitude_median() | float | Median value of altitudes from this location channel |
-| payload_values_speed_median() | float | Median value of speeds from this location channel |
-| payload_values_accuracy_median() | float | Median value of accuracies from this location channel |
-| payload_values_latitude_std() | float | Standard deviation value of latitudes from this location channel |
-| payload_values_longitude_std() | float | Standard deviation value of longitudes from this location channel |
-| payload_values_altitude_std() | float | Standard deviation value of altitudes from this location channel |
-| payload_values_speed_std() | float | Standard deviation value of speeds from this location channel |
-| payload_values_accuracy_std() | float | Standard deviation value of accuracies from this location channel |
-| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
-| sample_interval_median() | float | The median of the sample interval for samples in this packet |
-| sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
-| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
-| metadata() | List[str] | Returns this channel's metadata |
-| set_metadata(List[str]) | | Sets this channel's metadata |
-| payload_type() | str | Return this channel's internal protobuf type as a string |
+This sensor also provides mean, median, and std statistics for each payload type.
 
-##### Creating a location sensor
-These functions create a location sensor:
+See https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.LocationSensor for a list of methods this sensor provides.
 
-```python
+See the following for example usage:
 
-```
-
-##### Example locations sensor reading
-
-```python
-
-```
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_creation.py 
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_reading.py
 
 ### Working with time synchronization sensor channels
 
-It's possible to test for the availability of this sensor in a data packet by calling the method `has_time_synchronization_channel` on an instance of a `WrappedRedvoxPacket`.
+TimeSynchronizationSensor channels are an unevenly sampled sensor that contain time synchronization data in a single payload.
 
-The sensor can be accessed from an instance of a `WrappedRedvoxPacket` by calling the method `time_synchronization_channel`. `None` is returned if the data packet does not have a channel of this sensor type.
+This sensor is unique in that is only contains a payload of values and no timestamps or other fields. 
 
-The `TimeSynchronizationSensor` class contains methods for directly accessing the fields and payloads of time synchronization channels. The following table briefly describes the available methods for time synchronization sensor channels. 
+See https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.TimeSynchronizationSensor for a list of methods this sensor provides.
 
-| Name | Type | Description | 
-|------|------|-------------|
-| payload_values() | numpy.ndarray[float] | Time synchronization exchange parameters |
-| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
-| metadata() | List[str] | Returns this channel's metadata |
-| set_metadata(List[str]) | | Sets this channel's metadata |
-| payload_type() | str | Return this channel's internal protobuf type as a string |
+See the following for example usage:
 
-##### Creating a time synchronization sensor
-This function creates a time synchronization sensor:
-
-```python
-
-```
-
-##### Example time synchronization sensor reading
-
-```python
-
-```
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_creation.py 
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_reading.py
 
 ### Working with accelerometer sensor channels
 
-It's possible to test for the availability of this sensor in a data packet by calling the method `has_accelerometer_channel` on an instance of a `WrappedRedvoxPacket`.
+AccelerometerSensor channels are an unevenly sampled sensor that contain accelerometer data in 3 payloads. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-The sensor can be accessed from an instance of a `WrappedRedvoxPacket` by calling the method `accelerometer_channel`. `None` is returned if the data packet does not have a channel of this sensor type.
+The three payloads are:
 
-The `AccelerationSensor` class contains methods for directly accessing the fields and payloads of accelerometer channels. The accelerometer sensor payload can either be accessed as a single interleaved payload which contains all X, Y, and Z components, or each component can be accessed individually. The following table briefly describes the available methods for accelerometer sensor channels. 
+* x
+* y
+* z
 
-| Name | Type | Description | 
-|------|------|-------------|
-| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
-| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
-| sensor_name() | str | Returns the name of the sensor for this sensor channel |
-| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
-| payload_values() | numpy.ndarray[float] | A numpy array of floats representing the X, Y, and Z components of this channel [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]] |
-| payload_values_x() | numpy.ndarray[float] | A numpy array of floats representing the X component of this channel. |
-| payload_values_y() | numpy.ndarray[float] | A numpy array of floats representing the Y component of this channel. |
-| payload_values_z() | numpy.ndarray[float] | A numpy array of floats representing the Z component of this channel. |
-| payload_values_x_mean() | float | The mean value of the X component from this packet's channel |
-| payload_values_y_mean() | float | The mean value of the Y component from this packet's channel |
-| payload_values_z_mean() | float | The mean value of the Z component from this packet's channel |
-| payload_values_x_median() | float | The median value of the X component from this packet's channel |
-| payload_values_y_median() | float | The median value of the Y component from this packet's channel |
-| payload_values_z_median() | float | The median value of the Z component from this packet's channel |
-| payload_values_x_std() | float | The standard deviation value of the X component from this packet's channel |
-| payload_values_y_std() | float | The standard deviation value of the Y component from this packet's channel |
-| payload_values_z_std() | float | The standard deviation value of the Z component from this packet's channel |
-| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
-| sample_interval_median() | float | The median of the sample interval for samples in this packet |
-| sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
-| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
-| metadata() | List[str] | Returns this channel's metadata |
-| set_metadata(List[str]) | | Sets this channel's metadata |
-| payload_type() | str | Return this channel's internal protobuf type as a string |
+Further, each payload type has its own set of mean, median, and std statistics.
 
-##### Creating an accelerometer sensor
-These functions create an accelerometer sensor:
+See https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.AccelerometerSensor for a list of methods this sensor provides.
 
-```python
+See the following for example usage:
 
-```
-
-
-##### Example accelerometer sensor reading
-
-```python
-
-```
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_creation.py 
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_reading.py
 
 ### Working with magnetometer sensor channels
 
-It's possible to test for the availability of this sensor in a data packet by calling the method `has_magnetometer_channel` on an instance of a `WrappedRedvoxPacket`.
+MagnetometerSensor channels are an unevenly sampled sensor that contain magnetometer data in 3 payloads. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-The sensor can be accessed from an instance of a `WrappedRedvoxPacket` by calling the method `magenetoner_channel`. `None` is returned if the data packet does not have a channel of this sensor type.
+The three payloads are:
 
-The `MagnetometerSensor` class contains methods for directly accessing the fields and payloads of magnetometer channels. The magnetometer sensor payload can either be accessed as a single interleaved payload which contains all X, Y, and Z components, or each component can be accessed individually. The following table briefly describes the available methods for magnetometer sensor channels. 
+* x
+* y
+* z
 
-| Name | Type | Description | 
-|------|------|-------------|
-| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
-| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
-| sensor_name() | str | Returns the name of the sensor for this sensor channel |
-| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
-| payload_values() | numpy.ndarray[float] | A numpy array of floats representing the X, Y, and Z components of this channel [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]] |
-| payload_values_x() | numpy.ndarray[float] | A numpy array of floats representing the X component of this channel. |
-| payload_values_y() | numpy.ndarray[float] | A numpy array of floats representing the Y component of this channel. |
-| payload_values_z() | numpy.ndarray[float] | A numpy array of floats representing the Z component of this channel. |
-| payload_values_x_mean() | float | The mean value of the X component from this packet's channel |
-| payload_values_y_mean() | float | The mean value of the Y component from this packet's channel |
-| payload_values_z_mean() | float | The mean value of the Z component from this packet's channel |
-| payload_values_x_median() | float | The median value of the X component from this packet's channel |
-| payload_values_y_median() | float | The median value of the Y component from this packet's channel |
-| payload_values_z_median() | float | The median value of the Z component from this packet's channel |
-| payload_values_x_std() | float | The standard deviation value of the X component from this packet's channel |
-| payload_values_y_std() | float | The standard deviation value of the Y component from this packet's channel |
-| payload_values_z_std() | float | The standard deviation value of the Z component from this packet's channel |
-| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
-| sample_interval_median() | float | The median of the sample interval for samples in this packet |
-| sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
-| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
-| metadata() | List[str] | Returns this channel's metadata |
-| set_metadata(List[str]) | | Sets this channel's metadata |
-| payload_type() | str | Return this channel's internal protobuf type as a string |
+Further, each payload type has its own set of mean, median, and std statistics.
 
-##### Creating a magnetometer sensor
-These functions create an magnetometer sensor:
+See https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.MagnetometerSensor for a list of methods this sensor provides.
 
-```python
+See the following for example usage:
 
-```
-Give the first function a sensor name (sensor_name), metadata (metadata), the data as an interleaved array (payload), the timestamps in microseconds since epoch utc (timestamps).  The data should look like : [x_0, y_0, z_0, x_1, y_1, z_1, ... , x_n, y_n, z_n] where 0-n is the index of the samples.
-Give the second function a sensor name (sensor_name), metadata (metadata), the list of arrays that make up the data (payload), the timestamps in microseconds since epoch utc (timestamps).  There are usually 3 channels in an magnetometer sensor, so you should give this function 3 arrays.  For consistency, put the arrays in order of: x-axis, y-axis, z-axis.
-
-##### Example magnetometer sensor reading
-
-```python
-
-```
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_creation.py 
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_reading.py
 
 ### Working with gyroscope sensor channels
 
-It's possible to test for the availability of this sensor in a data packet by calling the method `has_gyroscope_channel` on an instance of a `WrappedRedvoxPacket`.
+GyrocopeSensor channels are an unevenly sampled sensor that contain gyroscope data in 3 payloads. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-The sensor can be accessed from an instance of a `WrappedRedvoxPacket` by calling the method `gyroscope_channel`. `None` is returned if the data packet does not have a channel of this sensor type.
+The three payloads are:
 
-The `GyroscopeSensor` class contains methods for directly accessing the fields and payloads of gyroscope channels. The gyroscope sensor payload can either be accessed as a single interleaved payload which contains all X, Y, and Z components, or each component can be accessed individually. The following table briefly describes the available methods for gyroscope sensor channels. 
+* x
+* y
+* z
 
-| Name | Type | Description | 
-|------|------|-------------|
-| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
-| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
-| sensor_name() | str | Returns the name of the sensor for this sensor channel |
-| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
-| payload_values() | numpy.ndarray[float] | A numpy array of floats representing the X, Y, and Z components of this channel [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]] |
-| payload_values_x() | numpy.ndarray[float] | A numpy array of floats representing the X component of this channel. |
-| payload_values_y() | numpy.ndarray[float] | A numpy array of floats representing the Y component of this channel. |
-| payload_values_z() | numpy.ndarray[float] | A numpy array of floats representing the Z component of this channel. |
-| payload_values_x_mean() | float | The mean value of the X component from this packet's channel |
-| payload_values_y_mean() | float | The mean value of the Y component from this packet's channel |
-| payload_values_z_mean() | float | The mean value of the Z component from this packet's channel |
-| payload_values_x_median() | float | The median value of the X component from this packet's channel |
-| payload_values_y_median() | float | The median value of the Y component from this packet's channel |
-| payload_values_z_median() | float | The median value of the Z component from this packet's channel |
-| payload_values_x_std() | float | The standard deviation value of the X component from this packet's channel |
-| payload_values_y_std() | float | The standard deviation value of the Y component from this packet's channel |
-| payload_values_z_std() | float | The standard deviation value of the Z component from this packet's channel |
-| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
-| sample_interval_median() | float | The median of the sample interval for samples in this packet |
-| sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
-| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
-| metadata() | List[str] | Returns this channel's metadata |
-| set_metadata(List[str]) | | Sets this channel's metadata |
-| payload_type() | str | Return this channel's internal protobuf type as a string |
+Further, each payload type has its own set of mean, median, and std statistics.
 
-##### Creating a gyroscope sensor
-These functions create an gyroscope sensor:
+See https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.GyroscopeSensor for a list of methods this sensor provides.
 
-```python
+See the following for example usage:
 
-```
-Give the first function a sensor name (sensor_name), metadata (metadata), the data as an interleaved array (payload), the timestamps in microseconds since epoch utc (timestamps).  The data should look like : [x_0, y_0, z_0, x_1, y_1, z_1, ... , x_n, y_n, z_n] where 0-n is the index of the samples.
-Give the second function a sensor name (sensor_name), metadata (metadata), the list of arrays that make up the data (payload), the timestamps in microseconds since epoch utc (timestamps).  There are usually 3 channels in an gyroscope sensor, so you should give this function 3 arrays.  For consistency, put the arrays in order of: x-axis, y-axis, z-axis.
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_creation.py 
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_reading.py
 
-##### Example gyroscope sensor reading
-
-```python
-
-```
 
 ### Working with light sensor channels
 
-It's possible to test for the availability of this sensor in a data packet by calling the method `has_light_channel` on an instance of a `WrappedRedvoxPacket`.
+LightSensor channels are an unevenly sampled sensor that contain light data in a single payload. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-The sensor can be accessed from an instance of a `WrappedRedvoxPacket` by calling the method `light_channel`. `None` is returned if the data packet does not have a channel of this sensor type.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.LightSensor for a list of methods this sensor provides.
 
-The `LightSensor` class contains methods for directly accessing the fields and payloads of light channels. The following table briefly describes the available methods for light sensor channels.
+See the following for example usage:
 
-| Name | Type | Description | 
-|------|------|-------------|
-| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
-| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
-| sensor_name() | str | Returns the name of the sensor for this sensor channel |
-| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
-| payload_values() | numpy.ndarray[float] | A numpy array of floats representing the data payload from this packet's light channel |
-| payload_mean() | float | The mean value of this packet's light data payload |
-| payload_median() | float | The median value of this packet's light data payload |
-| payload_std() | float | The standard deviation of this packet's light data payload |
-| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
-| sample_interval_median() | float | The median of the sample interval for samples in this packet |
-| sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
-| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
-| metadata() | List[str] | Returns this channel's metadata |
-| set_metadata(List[str]) | | Sets this channel's metadata |
-| payload_type() | str | Return this channel's internal protobuf type as a string |
-
-##### Creating a light sensor
-This function creates a light sensor:
-
-```python
-
-```
-Give it a sensor name (sensor_name), metadata (metadata), the data (payload), the timestamps in microseconds since epoch utc (timestamps)
-
-##### Example light sensor reading
-
-```print
-
-```
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_creation.py 
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_reading.py
 
 ### Working with infrared sensor channels
 
-It's possible to test for the availability of this sensor in a data packet by calling the method `has_infrared_channel` on an instance of a `WrappedRedvoxPacket`.
+InfraredSensor channels are an unevenly sampled sensor that contain infrared data in a single payload. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-The sensor can be accessed from an instance of a `WrappedRedvoxPacket` by calling the method `infrared_channel`. `None` is returned if the data packet does not have a channel of this sensor type.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.InfraredSensor for a list of methods this sensor provides.
 
-The `InfraredSensor` class contains methods for directly accessing the fields and payloads of infrared channels. The following table briefly describes the available methods for infrared sensor channels.
+See the following for example usage:
 
-| Name | Type | Description | 
-|------|------|-------------|
-| timestamps_microseconds_utc() | numpy.ndarray[int] | A numpy array of timestamps, where each timestamp is associated with a sample from this channel. For example, timestamp[0] is associated with payload[0], timestamp[1] w/ payload[1], etc. |
-| set_timestamps_microseconds_utc(numpy.ndarray[int]) | | Sets the timestamps |
-| sensor_name() | str | Returns the name of the sensor for this sensor channel |
-| set_sensor_name(str) | | Sets the name of the sensor for this sensor channel |
-| payload_values() | numpy.ndarray[float] | A numpy array of floats representing the data payload from this packet's infrared channel |
-| payload_mean() | float | The mean value of this packet's light data payload |
-| payload_median() | float | The median value of this packet's light data payload |
-| payload_std() | float | The standard deviation of this packet's infrared data payload |
-| sample_interval_mean() | float | The mean of the sample interval for samples in this packet |
-| sample_interval_median() | float | The median of the sample interval for samples in this packet |
-| sample_interval_std() | float | The standard deviation of the sample interval for samples in this packet |
-| metadata_as_dict() | Dict[str, str] | Returns this channel's metadata as a Python dictionary |
-| metadata() | List[str] | Returns this channel's metadata |
-| set_metadata(List[str]) | | Sets this channel's metadata |
-| payload_type() | str | Return this channel's internal protobuf type as a string |
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_creation.py 
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_reading.py
 
-##### Creating an infrared sensor
-This function creates an infrared sensor:
 
-```python
+### Modifying and Creating WrappedRedvoxPacket Objects and Sensor Channels
 
-```
-Give it a sensor name (sensor_name), metadata (metadata), the data (payload), the timestamps in microseconds since epoch utc (timestamps)
+It's possible to modify WrappedRedvoxPacket objects and sensor channels as well as create new WrappedRedvoxPacket objects and sensor channels. See the following links for examples:
 
-##### Example infrared sensor reading
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_creation.py 
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_modifcation.py
 
-```python
+### Testing for Equality and Finding Differences
 
-```
+WrappedRedvoxPacket objects can be compared to each other for equality using the `==` operator. The same is true for comparing sensor channels.
+
+It's also possible to find the differences between WrappedRedvoxPacket objects using the `.diff(other_packer)` method. This will then return a list of differences between the two files or an empty list if there are none.
+
+See the end of https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/examples/example_packet_reading.py for examples of this.
 
 ### Example files
 
@@ -686,6 +297,8 @@ A set of example files can be found at: https://bitbucket.org/redvoxhi/redvox-ap
 ### Generated API documentation
 
 API documentation for this library can be found at: https://redvoxhi.bitbucket.io/redvox-sdk/v1.5.0/api_docs/redvox
+
+*Note: to see type information for a particular function, click the `SHOW SOURCE` button.*
 
 ### Developer Guidelines
 
