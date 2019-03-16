@@ -2,6 +2,7 @@
 This module provides a CLI for working with RedVox API 900 files.
 """
 
+import os
 import typing
 
 import redvox.api900.reader as reader
@@ -77,6 +78,13 @@ if __name__ == "__main__":
 
     ARGS = ARGPARSE.parse_args()
     PATHS = ARGS.file_paths
+
+    # Check that paths exist
+    for path in PATHS:
+        if not os.path.isfile(path):
+            print("Error: File with path %s not found." % path)
+            exit(1)
+
     if ARGS.cmd == "to_json":
         to_json(ARGS.file_paths)
     elif ARGS.cmd == "to_rdvxz":
