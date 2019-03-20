@@ -1,8 +1,10 @@
 from redvox.api900 import reader
+from redvox.api900.reader import ReaderException
 from redvox.tests.utils import *
 
 import unittest
 
+from numpy import array_equal
 
 class TestMicrophoneSensor(unittest.TestCase):
     def setUp(self):
@@ -44,6 +46,29 @@ class TestMicrophoneSensor(unittest.TestCase):
     def test_get_metadata_as_dict(self):
         self.assertEqual("bar", self.example_sensor.metadata_as_dict()["foo"])
         self.assertEqual(0, len(self.empty_sensor.metadata_as_dict()))
+
+    def test_set_metadata_as_dict(self):
+        self.assertEqual("b", self.example_sensor.set_metadata_as_dict({"a": "b"}).metadata_as_dict()["a"])
+        self.assertEqual("b", self.empty_sensor.set_metadata_as_dict({"a": "b"}).metadata_as_dict()["a"])
+
+    def test_get_payload_values(self):
+        self.assertTrue(array_equal([-10, 0, 10, 20, 15, -6, 0], self.example_sensor.payload_values()))
+        self.assertTrue(array_equal([], self.empty_sensor.payload_values()))
+
+    def test_set_payload_values(self):
+        self.assertTrue(array_equal([1, 2, 3], self.example_sensor.set_payload_values([1, 2, 3]).payload_values()))
+        self.assertTrue(array_equal([1, 2, 3], self.empty_sensor.set_payload_values([1, 2, 3]).payload_values()))
+
+    def test_set_payload_values_empty(self):
+        self.assertTrue(array_equal([], self.example_sensor.set_payload_values([]).payload_values()))
+        self.assertTrue(array_equal([], self.empty_sensor.set_payload_values([]).payload_values()))
+
+    def test_get_payload_mean(self):
+        self.assertAlmostEqual(4.1428571428571, self.example_sensor.payload_mean())
+
+        with self.assertRaises(ReaderException):
+            self.assertAlmostEqual(0.0, self.empty_sensor.payload_mean())
+
 
 
 

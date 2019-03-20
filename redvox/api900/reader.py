@@ -623,11 +623,11 @@ class InterleavedChannel:
         """
         Returns the mean value for a single channel type.
         :param channel_type: The channel type to extract the mean from.
-        :return: The mean value or 0.0 if the mean value DNE.
+        :return: The mean value.
         """
         idx = self.channel_index(channel_type)
-        if idx < 0:
-            return 0.0
+        if idx < 0 or len(self.value_means) == 0:
+            raise ReaderException("Mean value DNE for this channel with a payload of length=%d" % len(self.payload))
 
         return self.value_means[idx]
 
@@ -635,11 +635,11 @@ class InterleavedChannel:
         """
         Returns the standard deviation value for a single channel type.
         :param channel_type: The channel type to extract the std from.
-        :return: The standard deviation value or 0.0 if the standard deviation value DNE.
+        :return: The standard deviation.
         """
         idx = self.channel_index(channel_type)
-        if idx < 0:
-            return 0.0
+        if idx < 0 or len(self.value_stds) == 0:
+            raise ReaderException("Std value DNE for this channel with a payload of length=%d" % len(self.payload))
 
         return self.value_stds[idx]
 
@@ -647,11 +647,11 @@ class InterleavedChannel:
         """
         Returns the median value for a single channel type.
         :param channel_type: The channel type to extract the median from.
-        :return:The median value or 0.0 if the median value DNE.
+        :return:The median value.
         """
         idx = self.channel_index(channel_type)
-        if idx < 0:
-            return 0.0
+        if idx < 0 or len(self.value_medians) == 0:
+            raise ReaderException("Median value DNE for this channel with a payload of length=%d" % len(self.payload))
 
         return self.value_medians[idx]
 
