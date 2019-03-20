@@ -1,6 +1,6 @@
 [redvox]
-ignore = redvox/api900/lib/api900_pb2.py
 files = redvox/**.py
+ignore = redvox/api900/lib/api900_pb2.py, redvox/tests/**.py
 
 [redvox.spacing]
 bears = SpaceConsistencyBear
