@@ -6,6 +6,7 @@ import unittest
 
 from numpy import array_equal
 
+
 class TestMicrophoneSensor(unittest.TestCase):
     def setUp(self):
         self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).microphone_channel()
@@ -32,8 +33,10 @@ class TestMicrophoneSensor(unittest.TestCase):
         self.assertEqual(0, self.empty_sensor.first_sample_timestamp_epoch_microseconds_utc())
 
     def test_set_first_sample_timestamp_microseconds_utc(self):
-        self.assertEqual(100, self.example_sensor.set_first_sample_timestamp_epoch_microseconds_utc(100).first_sample_timestamp_epoch_microseconds_utc())
-        self.assertEqual(100, self.empty_sensor.set_first_sample_timestamp_epoch_microseconds_utc(100).first_sample_timestamp_epoch_microseconds_utc())
+        self.assertEqual(100, self.example_sensor.set_first_sample_timestamp_epoch_microseconds_utc(
+            100).first_sample_timestamp_epoch_microseconds_utc())
+        self.assertEqual(100, self.empty_sensor.set_first_sample_timestamp_epoch_microseconds_utc(
+            100).first_sample_timestamp_epoch_microseconds_utc())
 
     def test_get_metadata(self):
         self.assertEqual(["foo", "bar"], self.example_sensor.metadata())
@@ -69,6 +72,14 @@ class TestMicrophoneSensor(unittest.TestCase):
         with self.assertRaises(ReaderException):
             self.assertAlmostEqual(0.0, self.empty_sensor.payload_mean())
 
+    def test_get_payload_median(self):
+        self.assertAlmostEqual(0.0, self.example_sensor.payload_median())
 
+        with self.assertRaises(ReaderException):
+            self.assertAlmostEqual(0.0, self.empty_sensor.payload_median())
 
+    def test_get_payload_std(self):
+        self.assertAlmostEqual(10.28769822, self.example_sensor.payload_std())
 
+        with self.assertRaises(ReaderException):
+            self.assertAlmostEqual(0.0, self.empty_sensor.payload_std())
