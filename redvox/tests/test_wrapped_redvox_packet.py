@@ -473,6 +473,19 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         self.assertIsNone(self.example_packet.infrared_channel())
         self.assertIsNone(self.empty_packet.infrared_channel())
 
+    def test_to_json(self):
+        json = self.example_packet.to_json()
+        print(json)
+        self.assertTrue('"api": 900' in json)
+
+    def test_compressed_buffer(self):
+        self.assertEqual(self.example_packet,
+                         reader.read_rdvxz_buffer(self.example_packet.compressed_buffer()))
+
+    def test_default_filename(self):
+        self.assertEqual("0000000001_1552075743960.rdvxz", self.example_packet.default_filename())
+        self.assertEqual("_0.rdvxz", self.empty_packet.default_filename())
+
     def test_eq(self):
         pass
 
