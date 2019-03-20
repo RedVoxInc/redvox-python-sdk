@@ -528,8 +528,8 @@ class InterleavedChannel:
         :param payload_values: Interleaved payload values
         :param pl_type: payload type
         """
-        if len(payload_values) < 1:
-            raise ValueError("Channel must not be empty and number of arrays must not be less than 1.")
+        # if len(payload_values) < 1:
+        #     raise ReaderException("Channel must not be empty and number of arrays must not be less than 1.")
 
         # Convert to numpy array is necessary
         payload_values = _to_array(payload_values)
@@ -561,11 +561,14 @@ class InterleavedChannel:
         else:
             raise TypeError("Unknown payload type to set.")
 
-        self.payload = _extract_payload(self.protobuf_channel)
+        if len(payload_values) < 1:
+            self.payload = payload_values
+        else:
+            self.payload = _extract_payload(self.protobuf_channel)
 
-        # calculate the means, std devs, and medians
-        if should_compute_stats:
-            self.update_stats()
+            # calculate the means, std devs, and medians
+            if should_compute_stats:
+                self.update_stats()
 
     def set_interleaved_payload(self,
                                 payloads: typing.List[typing.Union[typing.List, numpy.ndarray]],
