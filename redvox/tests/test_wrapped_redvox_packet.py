@@ -1,8 +1,9 @@
+import os
 import unittest
 
 from redvox.api900 import reader
 from redvox.api900.reader import ReaderException
-from redvox.tests.utils import test_data
+from redvox.tests.utils import test_data, TEST_DATA_DIR
 
 import numpy
 
@@ -475,7 +476,6 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
 
     def test_to_json(self):
         json = self.example_packet.to_json()
-        print(json)
         self.assertTrue('"api": 900' in json)
 
     def test_compressed_buffer(self):
@@ -487,15 +487,49 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         self.assertEqual("_0.rdvxz", self.empty_packet.default_filename())
 
     def test_eq(self):
-        pass
+        self.assertEqual(self.example_packet, self.example_packet)
+        self.assertEqual(self.empty_packet, self.empty_packet)
+        self.assertNotEqual(self.example_packet, self.empty_packet)
 
-    def test_diff(self):
-        pass
+        cloned = self.example_packet.clone()
+        self.assertEqual(self.example_packet, cloned)
+        cloned.set_is_private(False)
+
+        self.assertNotEqual(self.example_packet, cloned)
+        self.assertNotEqual(self.example_packet, self.example_packet.clone().microphone_channel().set_sensor_name("foo"))
 
     def test_clone(self):
         cloned = self.example_packet.clone()
         self.assertTrue(self.example_packet == cloned)
         self.assertEqual(0, len(self.example_packet.diff(cloned)))
+
+    def test_diff(self):
+        cloned_packet = self.example_packet.clone()
+        cloned_packet.set_api(901)
+        cloned_packet_2 = self.example_packet.clone()
+        cloned_packet_2.set_microphone_channel(None)
+        self.assertEqual([], self.example_packet.diff(self.example_packet))
+        self.assertEqual(["900 != 901"], self.example_packet.diff(cloned_packet))
+        self.assertTrue(len(self.example_packet.diff(cloned_packet_2)) > 0)
+
+    def test_write_rdvxz(self):
+        self.example_packet.write_rdvxz(TEST_DATA_DIR, "test.rdvxz")
+        self.example_packet.write_rdvxz(TEST_DATA_DIR)
+        self.assertEqual(self.example_packet, reader.read_rdvxz_file(test_data("test.rdvxz")))
+        self.assertEqual(self.example_packet, reader.read_rdvxz_file(test_data("0000000001_1552075743960.rdvxz")))
+        os.remove(test_data("test.rdvxz"))
+        os.remove(test_data("0000000001_1552075743960.rdvxz"))
+
+    def test_write_json(self):
+        self.example_packet.write_json(TEST_DATA_DIR, "test.json")
+        self.example_packet.write_json(TEST_DATA_DIR)
+        self.assertEqual(self.example_packet, reader.read_json_file(test_data("test.json")))
+        self.assertEqual(self.example_packet, reader.read_json_file(test_data("0000000001_1552075743960.json")))
+        os.remove(test_data("test.json"))
+        os.remove(test_data("0000000001_1552075743960.json"))
+
+
+
         
             
         
