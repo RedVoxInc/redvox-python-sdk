@@ -36,46 +36,93 @@ class TestLocationSensor(unittest.TestCase):
                 [5.0, 5.0, 5.0])
 
     def test_get_payload_values_latitude_mean(self):
-        pass
+        self.assertAlmostEqual(2.0, self.example_sensor.payload_values_latitude_mean())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_latitude_mean()
 
     def test_get_payload_values_latitude_median(self):
-        pass
+        self.assertAlmostEqual(2.0, self.example_sensor.payload_values_latitude_median())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_latitude_median()
 
     def test_get_payload_values_latitude_std(self):
-        pass
+        self.assertAlmostEqual(0.8164965809, self.example_sensor.payload_values_latitude_std())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_latitude_std()
 
     def test_get_payload_values_longitude_mean(self):
-        pass
+        self.assertAlmostEqual(5.0, self.example_sensor.payload_values_longitude_mean())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_longitude_mean()
 
     def test_get_payload_values_longitude_median(self):
-        pass
+        self.assertAlmostEqual(5.0, self.example_sensor.payload_values_longitude_median())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_longitude_median()
 
     def test_get_payload_values_longitude_std(self):
-        pass
+        self.assertAlmostEqual(0.8164965809, self.example_sensor.payload_values_longitude_std())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_longitude_std()
 
     def test_get_payload_values_altitude_mean(self):
-        pass
+        self.assertAlmostEqual(8.0, self.example_sensor.payload_values_altitude_mean())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_altitude_mean()
 
     def test_get_payload_values_altitude_median(self):
-        pass
+        self.assertAlmostEqual(8.0, self.example_sensor.payload_values_altitude_median())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_altitude_median()
 
     def test_get_payload_values_altitude_std(self):
-        pass
+        self.assertAlmostEqual(0.8164965809, self.example_sensor.payload_values_altitude_std())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_altitude_std()
 
     def test_get_payload_values_speed_mean(self):
-        pass
+        self.assertAlmostEqual(11.0, self.example_sensor.payload_values_speed_mean())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_speed_mean()
 
     def test_get_payload_values_speed_median(self):
-        pass
+        self.assertAlmostEqual(11.0, self.example_sensor.payload_values_speed_median())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_speed_median()
 
     def test_get_payload_values_speed_std(self):
-        pass
+        self.assertAlmostEqual(0.8164965809, self.example_sensor.payload_values_speed_std())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_speed_std()
 
     def test_get_payload_values_accuracy_mean(self):
-        pass
+        self.assertAlmostEqual(14.0, self.example_sensor.payload_values_accuracy_mean())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_accuracy_mean()
 
     def test_get_payload_values_accuracy_median(self):
-        pass
+        self.assertAlmostEqual(14.0, self.example_sensor.payload_values_accuracy_median())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_accuracy_median()
+
 
     def test_get_payload_values_accuracy_std(self):
-        pass
+        self.assertAlmostEqual(0.8164965809, self.example_sensor.payload_values_accuracy_std())
+
+        with self.assertRaises(ReaderException):
+            self.empty_sensor.payload_values_accuracy_std()
+
