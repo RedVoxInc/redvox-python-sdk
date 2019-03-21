@@ -627,7 +627,7 @@ class InterleavedChannel:
         """
         idx = self.channel_index(channel_type)
         if idx < 0 or len(self.value_means) == 0:
-            raise ReaderException("Mean value DNE for this channel with a payload of length=%d" % len(self.payload))
+            raise ReaderException("mean DNE, is the payload empty?")
 
         return self.value_means[idx]
 
@@ -639,7 +639,7 @@ class InterleavedChannel:
         """
         idx = self.channel_index(channel_type)
         if idx < 0 or len(self.value_stds) == 0:
-            raise ReaderException("Std value DNE for this channel with a payload of length=%d" % len(self.payload))
+            raise ReaderException("std DNE, is the payload empty?")
 
         return self.value_stds[idx]
 
@@ -651,7 +651,7 @@ class InterleavedChannel:
         """
         idx = self.channel_index(channel_type)
         if idx < 0 or len(self.value_medians) == 0:
-            raise ReaderException("Median value DNE for this channel with a payload of length=%d" % len(self.payload))
+            raise ReaderException("median DNE, is the payload empty?")
 
         return self.value_medians[idx]
 
@@ -679,6 +679,7 @@ class InterleavedChannel:
         :param name: name of sensor
         """
         self.sensor_name = name
+        self.protobuf_channel.sensor_name = name
 
     def set_metadata(self, data: typing.List[str]):
         """
@@ -751,6 +752,7 @@ class EvenlySampledChannel(InterleavedChannel):
         :param rate: sample rate in hz
         """
         self.sample_rate_hz = rate
+        self.protobuf_channel.sample_rate_hz = rate
 
     def set_first_sample_timestamp_epoch_microseconds_utc(self, time: int):
         """
@@ -758,6 +760,7 @@ class EvenlySampledChannel(InterleavedChannel):
         :param time: time in microseconds since epoch utc
         """
         self.first_sample_timestamp_epoch_microseconds_utc = time
+        self.protobuf_channel.first_sample_timestamp_epoch_microseconds_utc = time
 
     def __str__(self) -> str:
         """
@@ -816,8 +819,19 @@ class UnevenlySampledChannel(InterleavedChannel):
         """
         timestamps = _to_array(timestamps)
         self.timestamps_microseconds_utc = timestamps
-        self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
-            redvox.api900.stat_utils.calc_utils_timeseries(timestamps)
+        self.protobuf_channel.timestamps_microseconds_utc[:] = timestamps
+
+        if len(timestamps) > 0:
+            self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
+                redvox.api900.stat_utils.calc_utils_timeseries(timestamps)
+        else:
+            self.sample_interval_mean = 0.0
+            self.sample_interval_median = 0.0
+            self.sample_interval_std = 0.0
+
+        self.protobuf_channel.sample_interval_std = self.sample_interval_std
+        self.protobuf_channel.sample_interval_mean = self.sample_interval_mean
+        self.protobuf_channel.sample_interval_median = self.sample_interval_median
 
     def __str__(self) -> str:
         """
@@ -984,7 +998,7 @@ class UnevenlySampledSensor:
         else:
             self._unevenly_sampled_channel: UnevenlySampledChannel = unevenly_sampled_channel
 
-    def get_channel_type_names(self) -> typing.List[str]:
+    def _get_channel_type_names(self) -> typing.List[str]:
         """
         Returns the list of channel_types as a list of names instead of enumeration constants.
         :return: The list of channel_types as a list of names instead of enumeration constants.
@@ -1028,8 +1042,7 @@ class UnevenlySampledSensor:
         :param timestamps: a list of ascending timestamps that associate with each sample value
         :return: An instance of the sensor.
         """
-        if isinstance(timestamps, typing.List):
-            timestamps = numpy.array(timestamps)
+        timestamps = _to_array(timestamps)
 
         self._unevenly_sampled_channel.set_timestamps_microseconds_utc(timestamps)
         return self
@@ -1078,6 +1091,15 @@ class UnevenlySampledSensor:
         """
         return _get_metadata_as_dict(self._unevenly_sampled_channel.metadata)
 
+    def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'UnevenlySampledSensor':
+        """
+        Sets the metadata using a dictionary.
+        :param metadata_dict: Metadata to set.
+        :return: An instance of itself.
+        """
+        self.set_metadata(_metadata_dict_to_list(metadata_dict))
+        return self
+
     def __str__(self) -> str:
         return str(self._unevenly_sampled_channel)
 
@@ -1091,7 +1113,7 @@ class UnevenlySampledSensor:
         :return: A list odifferences or an empty list if there are none.
         """
         diffs = map(lambda tuple2: _diff(tuple2[0], tuple2[1]), [
-            (self.get_channel_type_names(), other.get_channel_type_names()),
+            (self._get_channel_type_names(), other._get_channel_type_names()),
             (self.sensor_name(), other.sensor_name()),
             (self.timestamps_microseconds_utc(), other.timestamps_microseconds_utc()),
             (self.payload_type(), other.payload_type()),
