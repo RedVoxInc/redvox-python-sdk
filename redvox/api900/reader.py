@@ -1628,12 +1628,14 @@ class TimeSynchronizationSensor:
         """
         return self._unevenly_sampled_channel.metadata
 
-    def set_metadata(self, data: typing.List[str]):
+    def set_metadata(self, data: typing.List[str]) -> 'TimeSynchronizationSensor':
         """
         sets the metadata
         :param data: metadata as list of strings
+        :return: An instance of itself.
         """
         self._unevenly_sampled_channel.set_metadata(data)
+        return self
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
@@ -1641,6 +1643,15 @@ class TimeSynchronizationSensor:
         :return: This channel's metadata (if there is any) as a Python dictionary.
         """
         return _get_metadata_as_dict(self._unevenly_sampled_channel.metadata)
+
+    def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'TimeSynchronizationSensor':
+        """
+        Sets the metadata.
+        :param metadata_dict: Metadata to set.
+        :return: An instance of self.
+        """
+        self.set_metadata(_metadata_dict_to_list(metadata_dict))
+        return self
 
     def __str__(self):
         return str(self._unevenly_sampled_channel)
