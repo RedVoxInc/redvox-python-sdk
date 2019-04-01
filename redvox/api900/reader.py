@@ -525,7 +525,8 @@ class InterleavedChannel:
         :param pl_type: payload type
         """
         # if len(payload_values) < 1:
-        #     raise exceptions.ReaderException("Channel must not be empty and number of arrays must not be less than 1.")
+        #     raise exceptions.ReaderException("Channel must not be empty and number of arrays must not be less than
+        #     1.")
 
         # Convert to numpy array is necessary
         payload_values = _to_array(payload_values)
@@ -864,6 +865,32 @@ class EvenlySampledSensor:
         """
         return list(map(_channel_type_name_from_enum, self._evenly_sampled_channel.channel_types))
 
+    def _can_concat(self, evenly_sampled_sensor: 'EvenlySampledSensor') -> bool:
+        if evenly_sampled_sensor is None:
+            raise exceptions.ConcatenationException("Other sensor is None.")
+
+        if self.first_sample_timestamp_epoch_microseconds_utc() > \
+                evenly_sampled_sensor.first_sample_timestamp_epoch_microseconds_utc():
+            raise exceptions.ConcatenationException("Second sensor comes after the first in time.")
+
+        if self.sample_rate_hz() != evenly_sampled_sensor.sample_rate_hz():
+            raise exceptions.ConcatenationException("Sample rates do not match. self=%f, other=%f" % (
+                self.sample_rate_hz(), evenly_sampled_sensor.sample_rate_hz()
+            ))
+
+        if self.sensor_name() != evenly_sampled_sensor.sensor_name():
+            raise exceptions.ConcatenationException("Sensor names do not match. self=%s, other=%s" % (
+                self.sensor_name(), evenly_sampled_sensor.sensor_name()
+            ))
+
+        return True
+
+    def _concat_metadata(self, evenly_sampled_sensor: 'EvenlySampledSensor') -> 'EvenlySampledSensor':
+        concat_meta = []
+        concat_meta.extend(self.metadata())
+        concat_meta.extend(evenly_sampled_sensor.metadata())
+        return self.set_metadata(concat_meta)
+
     def sample_rate_hz(self) -> float:
         """
         Returns the sample rate in Hz of this evenly sampled channel.
@@ -1001,6 +1028,32 @@ class UnevenlySampledSensor:
         """
         return list(map(_channel_type_name_from_enum, self._unevenly_sampled_channel.channel_types))
 
+    def _can_concat(self, unevenly_sampled_sensor: 'UnevenlySampledSensor') -> bool:
+        if unevenly_sampled_sensor is None:
+            raise exceptions.ConcatenationException("Other sensor is None.")
+
+        if self.timestamps_microseconds_utc()[-1] > unevenly_sampled_sensor.timestamps_microseconds_utc()[0]:
+            raise exceptions.ConcatenationException("Second sensor comes after first in time")
+
+        if self.sensor_name() != unevenly_sampled_sensor.sensor_name():
+            raise exceptions.ConcatenationException("Sensor names do not match. self=%s, other=%s" % (
+                self.sensor_name(), unevenly_sampled_sensor.sensor_name()
+            ))
+
+        return True
+
+    def _concat_timestamps(self, unevenly_sampled_sensor: 'UnevenlySampledSensor') -> 'UnevenlySampledSensor':
+        return self.set_timestamps_microseconds_utc(numpy.concatenate([
+            self.timestamps_microseconds_utc(),
+            unevenly_sampled_sensor.timestamps_microseconds_utc()
+        ]))
+
+    def _concat_metadata(self, unevenly_sampled_sensor: 'UnevenlySampledSensor') -> 'UnevenlySampledSensor':
+        concat_meta = []
+        concat_meta.extend(self.metadata())
+        concat_meta.extend(unevenly_sampled_sensor.metadata())
+        return self.set_metadata(concat_meta)
+
     def sensor_name(self) -> str:
         """
         Returns the sensor name associated with this unevenly sampled channel.
@@ -1032,7 +1085,7 @@ class UnevenlySampledSensor:
         return self._unevenly_sampled_channel.timestamps_microseconds_utc
 
     def set_timestamps_microseconds_utc(self, timestamps: typing.Union[
-            numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
+        numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
         """
         set the time stamps
         :param timestamps: a list of ascending timestamps that associate with each sample value
@@ -1277,6 +1330,11 @@ class MicrophoneSensor(EvenlySampledSensor):
         super().__init__(evenly_sampled_channel)
         self._evenly_sampled_channel.set_channel_types([api900_pb2.MICROPHONE])
 
+    def concat(self, microphone_sensor: 'MicrophoneSensor') -> 'MicrophoneSensor':
+        if self._can_concat(microphone_sensor):
+            return self._concat_metadata(microphone_sensor).set_payload_values(numpy.concatenate([self.payload_values(),
+                                                                                                  microphone_sensor.payload_values()]))
+
     def set_payload_values(self,
                            microphone_payload: typing.Union[typing.List[int], numpy.ndarray]) -> 'MicrophoneSensor':
         """
@@ -1339,6 +1397,13 @@ class BarometerSensor(UnevenlySampledSensor):
         """
         super().__init__(unevenly_sampled_channel)
         self._unevenly_sampled_channel.set_channel_types([api900_pb2.BAROMETER])
+
+    def concat(self, barometer_sensor: 'BarometerSensor') -> 'BarometerSensor':
+        if self._can_concat(barometer_sensor):
+            concat_values = numpy.concatenate([self.payload_values(), barometer_sensor.payload_values()])
+            return self._concat_timestamps(barometer_sensor) \
+                ._concat_metadata(barometer_sensor) \
+                .set_payload_values(concat_values)
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -1411,6 +1476,20 @@ class LocationSensor(UnevenlySampledSensor):
             api900_pb2.SPEED,
             api900_pb2.ACCURACY
         ])
+
+    def concat(self, location_sensor: 'LocationSensor') -> 'LocationSensor':
+        concat_latitude = numpy.concatenate([self.payload_values_latitude(), location_sensor.payload_values_latitude()])
+        concat_longitude = numpy.concatenate(
+                [self.payload_values_longitude(), location_sensor.payload_values_longitude()])
+        concat_altitude = numpy.concatenate([self.payload_values_altitude(), location_sensor.payload_values_altitude()])
+        concat_speed = numpy.concatenate([self.payload_values_speed(), location_sensor.payload_values_speed()])
+        concat_accuracy = numpy.concatenate([self.payload_values_accuracy(), location_sensor.payload_values_accuracy()])
+        return self._concat_timestamps(location_sensor)._concat_metadata(location_sensor) \
+            .set_payload_values(concat_latitude,
+                                concat_longitude,
+                                concat_altitude,
+                                concat_speed,
+                                concat_accuracy)
 
     def set_payload_values(self,
                            latitude_payload: typing.Union[typing.List[float], numpy.ndarray],
@@ -1594,6 +1673,10 @@ class TimeSynchronizationSensor:
             self._unevenly_sampled_channel = UnevenlySampledChannel(unevenly_sampled_channel.protobuf_channel)
         self._unevenly_sampled_channel.set_channel_types([api900_pb2.TIME_SYNCHRONIZATION])
 
+    def concat(self, time_synchonization_sensor: 'TimeSynchronizationSensor') -> 'TimeSynchronizationSensor':
+        return self.set_payload_values(numpy.concatenate([self.payload_values(),
+                                                          time_synchonization_sensor.payload_values()]))
+
     def payload_type(self) -> str:
         """
         Returns the internal protobuf payload type.
@@ -1699,6 +1782,14 @@ class AccelerometerSensor(XyzUnevenlySampledSensor):
             api900_pb2.ACCELEROMETER_Z
         ])
 
+    def concat(self, accelerometer_sensor: 'AccelerometerSensor') -> 'AccelerometerSensor':
+        concat_x = numpy.concatenate([self.payload_values_x(), accelerometer_sensor.payload_values_x()])
+        concat_y = numpy.concatenate([self.payload_values_y(), accelerometer_sensor.payload_values_y()])
+        concat_z = numpy.concatenate([self.payload_values_z(), accelerometer_sensor.payload_values_z()])
+        return self._concat_timestamps(accelerometer_sensor) \
+            ._concat_metadata(accelerometer_sensor) \
+            .set_payload_values(concat_x, concat_y, concat_z)
+
     def set_payload_values(self,
                            x_values: typing.Union[typing.List[float], numpy.ndarray],
                            y_values: typing.Union[typing.List[float], numpy.ndarray],
@@ -1737,6 +1828,13 @@ class MagnetometerSensor(XyzUnevenlySampledSensor):
             api900_pb2.MAGNETOMETER_Y,
             api900_pb2.MAGNETOMETER_Z
         ])
+
+    def concat(self, magnetometer_sensor: 'MagnetometerSensor') -> 'MagnetometerSensor':
+        concat_x = numpy.concatenate([self.payload_values_x(), magnetometer_sensor.payload_values_x()])
+        concat_y = numpy.concatenate([self.payload_values_y(), magnetometer_sensor.payload_values_y()])
+        concat_z = numpy.concatenate([self.payload_values_z(), magnetometer_sensor.payload_values_z()])
+        return self._concat_timestamps(magnetometer_sensor)._concat_metadata(magnetometer_sensor) \
+            .set_payload_values(concat_x, concat_y, concat_z)
 
     def set_payload_values(self,
                            x_values: typing.Union[typing.List[float], numpy.ndarray],
@@ -1777,6 +1875,13 @@ class GyroscopeSensor(XyzUnevenlySampledSensor):
             api900_pb2.GYROSCOPE_Z
         ])
 
+    def concat(self, gyroscope_sensor: 'GyroscopeSensor') -> 'GyroscopeSensor':
+        concat_x = numpy.concatenate([self.payload_values_x(), gyroscope_sensor.payload_values_x()])
+        concat_y = numpy.concatenate([self.payload_values_y(), gyroscope_sensor.payload_values_y()])
+        concat_z = numpy.concatenate([self.payload_values_z(), gyroscope_sensor.payload_values_z()])
+        return self._concat_timestamps(gyroscope_sensor)._concat_metadata(gyroscope_sensor) \
+            .set_payload_values(concat_x, concat_y, concat_z)
+
     def set_payload_values(self,
                            x_values: typing.Union[typing.List[float], numpy.ndarray],
                            y_values: typing.Union[typing.List[float], numpy.ndarray],
@@ -1802,6 +1907,12 @@ class LightSensor(UnevenlySampledSensor):
         """
         super().__init__(unevenly_sampled_channel)
         self._unevenly_sampled_channel.set_channel_types([api900_pb2.LIGHT])
+
+    def concat(self, light_sensor: 'LightSensor') -> 'LightSensor':
+        if self._can_concat(light_sensor):
+            concat_values = numpy.concatenate([self.payload_values(), light_sensor.payload_values()])
+            return self._concat_timestamps(light_sensor)._concat_metadata(light_sensor) \
+                .set_payload_values(concat_values)
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -1851,6 +1962,12 @@ class InfraredSensor(UnevenlySampledSensor):
         """
         super().__init__(unevenly_sampled_channel)
         self._unevenly_sampled_channel.set_channel_types([api900_pb2.INFRARED])
+
+    def concat(self, infrared_sensor: 'InfraredSensor') -> 'InfraredSensor':
+        if self._can_concat(infrared_sensor):
+            concat_values = numpy.concatenate([self.payload_values(), infrared_sensor.payload_values()])
+            return self._concat_timestamps(infrared_sensor)._concat_metadata(infrared_sensor) \
+                .set_payload_values(concat_values)
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -2309,18 +2426,110 @@ class WrappedRedvoxPacket:
         """
         return read_rdvxz_buffer(self.compressed_buffer())
 
+    def _is_same_sensor(self,
+                        wrapped_redvox_packet: 'WrappedRedvoxPacket',
+                        sensor_fn,
+                        compare_names: bool = True,
+                        compare_sample_rates: bool = False) -> bool:
+
+        sensor_1 = sensor_fn(self)
+        sensor_2 = sensor_fn(wrapped_redvox_packet)
+
+        # If only one of the sensors is None and the other isn't, they're not the same.
+        if len(list(filter(lambda sensor: sensor is None, [sensor_1, sensor_2]))) == 1:
+            raise exceptions.ConcatenationException("One sensor is None while the other isn't. self=%s, other=%s" % (
+                sensor_1, sensor_2
+            ))
+
+        # If the names are different, then they are different sensors
+        if compare_names and sensor_1.sensor_name() != sensor_2.sensor_name():
+            raise exceptions.ConcatenationException("Sensor names are not the same. self=%s, other=%s" % (
+                sensor_1.sensor_name(), sensor_2.sensor_name()
+            ))
+
+        if compare_sample_rates and sensor_1.sample_rate_hz() != sensor_2.sample_rate_hz():
+            raise exceptions.ConcatenationException("Sample rates are not the same. self=%f, other=%f" % (
+                sensor_1.sample_rate_hz(), sensor_2.sample_rate_hz()
+            ))
+
+        return True
+
+    def _can_concat(self, wrapped_redvox_packet: 'WrappedRedvoxPacket') -> bool:
+        """
+        Returns if two packets can be concatenated.
+        :param wrapped_redvox_packet: The other packet to test.
+        :return: True if they can, False otherwise.
+        """
+        # Make sure the second packet has same device information
+        if self.redvox_id() != wrapped_redvox_packet.redvox_id() or self.uuid() != wrapped_redvox_packet.uuid():
+            raise exceptions.ConcatenationException("Devices are not the same. %s:%s != %s:%s" % (
+                self.redvox_id(),
+                self.uuid(),
+                wrapped_redvox_packet.redvox_id(),
+                wrapped_redvox_packet.uuid()))
+
+        # Make sure second packet comes after this packet
+        if wrapped_redvox_packet.app_file_start_timestamp_machine() < self.app_file_start_timestamp_machine():
+            raise exceptions.ConcatenationException("Timestamps are not in order. This packet=%d, other=%d." % (
+                self.app_file_start_timestamp_machine(), wrapped_redvox_packet.app_file_start_timestamp_machine()
+            ))
+
+        # Ensure same sensor channels exist for each packet
+        if self.has_microphone_channel():
+            if not wrapped_redvox_packet.has_microphone_channel():
+                raise exceptions.ConcatenationException("Packets have difference microphone sensors")
+
+        self._is_same_sensor(wrapped_redvox_packet, WrappedRedvoxPacket.microphone_channel, compare_sample_rates=True)
+        self._is_same_sensor(wrapped_redvox_packet, WrappedRedvoxPacket.barometer_channel)
+        self._is_same_sensor(wrapped_redvox_packet, WrappedRedvoxPacket.location_channel)
+        self._is_same_sensor(wrapped_redvox_packet, WrappedRedvoxPacket.time_synchronization_channel,
+                             compare_names=False)
+        self._is_same_sensor(wrapped_redvox_packet, WrappedRedvoxPacket.gyroscope_channel)
+        self._is_same_sensor(wrapped_redvox_packet, WrappedRedvoxPacket.accelerometer_channel)
+        self._is_same_sensor(wrapped_redvox_packet, WrappedRedvoxPacket.magnetometer_channel)
+        self._is_same_sensor(wrapped_redvox_packet, WrappedRedvoxPacket.light_channel)
+        self._is_same_sensor(wrapped_redvox_packet, WrappedRedvoxPacket.infrared_channel)
+
+        return True
+
     def concat(self, wrapped_redvox_packet: 'WrappedRedvoxPacket') -> 'WrappedRedvoxPacket':
         """
         Concatenates one WrappedRedvoxPacket with another.
 
         :param wrapped_redvox_packet: Packet to concat with.
-        :return:
+        :return: This packet concatenated with the next.
         """
-        pass
+        if self._can_concat(wrapped_redvox_packet):
+            if self.has_microphone_channel():
+                self.microphone_channel().concat(wrapped_redvox_packet.microphone_channel())
 
+            if self.has_barometer_channel():
+                self.barometer_channel().concat(wrapped_redvox_packet.barometer_channel())
+
+            if self.has_location_channel():
+                self.location_channel().concat(wrapped_redvox_packet.location_channel())
+
+            if self.has_time_synchronization_channel():
+                self.time_synchronization_channel().concat(wrapped_redvox_packet.time_synchronization_channel())
+
+            if self.has_accelerometer_channel():
+                self.accelerometer_channel().concat(wrapped_redvox_packet.accelerometer_channel())
+
+            if self.has_gyroscope_channel():
+                self.gyroscope_channel().concat(wrapped_redvox_packet.gyroscope_channel())
+
+            if self.has_magnetometer_channel():
+                self.magnetometer_channel().concat(wrapped_redvox_packet.magnetometer_channel())
+
+            if self.has_light_channel():
+                self.light_channel().concat(wrapped_redvox_packet.light_channel())
+
+            if self.has_infrared_channel():
+                self.infrared_channel().concat(wrapped_redvox_packet.infrared_channel())
+
+        return self
 
     # Start of packet level API getters and setters
-
     def api(self) -> int:
         """
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
@@ -2811,7 +3020,7 @@ class WrappedRedvoxPacket:
         return None
 
     def set_time_synchronization_channel(self, time_synchronization_sensor: typing.Optional[
-            TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
+        TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's time sync sensor. A channel can be removed by passing in None.
         :param time_synchronization_sensor: An optional instance of a time sync sensor.
