@@ -17,13 +17,9 @@ import lz4.block
 import numpy
 
 import redvox.api900.constants as constants
+import redvox.api900.exceptions as exceptions
+import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.stat_utils
-from redvox.api900.lib import api900_pb2
-
-
-class ReaderException(Exception):
-    """Custom reader exception"""
-    pass
 
 
 def _calculate_uncompressed_size(buf: bytes) -> int:
@@ -53,7 +49,7 @@ def _lz4_decompress(buf: bytes) -> bytes:
     uncompressed_size = _calculate_uncompressed_size(buf)
 
     if uncompressed_size <= 0:
-        raise ReaderException("uncompressed size [{}] must be > 0".format(uncompressed_size))
+        raise exceptions.ReaderException("uncompressed size [{}] must be > 0".format(uncompressed_size))
 
     return lz4.block.decompress(buf[4:], uncompressed_size=_calculate_uncompressed_size(buf))
 
@@ -143,7 +139,7 @@ def _extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
         payload = channel.float64_payload.payload
     else:
         return numpy.array([])
-        # raise ReaderException("unsupported payload type {}".format(payload_type_str))
+        # raise exceptions.ReaderException("unsupported payload type {}".format(payload_type_str))
 
     return numpy.array(payload)
 
@@ -193,16 +189,16 @@ def _deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy
     """
 
     if offset < 0 or offset >= len(ndarray):
-        raise ReaderException("offset {} out of range [{},{})".format(offset, 0, len(ndarray)))
+        raise exceptions.ReaderException("offset {} out of range [{},{})".format(offset, 0, len(ndarray)))
 
     if offset >= step:
-        raise ReaderException("offset {} must be smaller than step {}".format(offset, step))
+        raise exceptions.ReaderException("offset {} must be smaller than step {}".format(offset, step))
 
     if step <= 0 or step > len(ndarray):
-        raise ReaderException("step {} out of range [{},{})".format(step, 0, len(ndarray)))
+        raise exceptions.ReaderException("step {} out of range [{},{})".format(step, 0, len(ndarray)))
 
     if len(ndarray) % step != 0:
-        raise ReaderException("step {} is not a multiple of {}".format(step, len(ndarray)))
+        raise exceptions.ReaderException("step {} is not a multiple of {}".format(step, len(ndarray)))
 
     # pylint: disable=C1801
     if len(ndarray) == 0:
@@ -229,10 +225,10 @@ def _interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
     :return: Interleaved arrays.
     """
     if len(arrays) < 2:
-        raise ReaderException("At least 2 arrays are required for interleaving")
+        raise exceptions.ReaderException("At least 2 arrays are required for interleaving")
 
     if len(set(map(len, arrays))) > 1:
-        raise ReaderException("all arrays must be same size")
+        raise exceptions.ReaderException("all arrays must be same size")
 
     total_arrays = len(arrays)
     total_elements = sum(map(lambda array: array.size, arrays))
@@ -340,7 +336,7 @@ def _get_metadata(metadata: typing.List[str], k: str) -> str:
     :return: The value corresponding to the key or an empty string.
     """
     if len(metadata) % 2 != 0:
-        raise ReaderException("metadata list must contain an even number of items")
+        raise exceptions.ReaderException("metadata list must contain an even number of items")
 
     idx = _safe_index_of(metadata, k)
     if idx < 0:
@@ -359,7 +355,7 @@ def _get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
         return {}
 
     if len(metadata) % 2 != 0:
-        raise ReaderException("metadata list must contain an even number of items")
+        raise exceptions.ReaderException("metadata list must contain an even number of items")
 
     metadata_dict = {}
     metadata_copy = metadata.copy()
@@ -529,7 +525,7 @@ class InterleavedChannel:
         :param pl_type: payload type
         """
         # if len(payload_values) < 1:
-        #     raise ReaderException("Channel must not be empty and number of arrays must not be less than 1.")
+        #     raise exceptions.ReaderException("Channel must not be empty and number of arrays must not be less than 1.")
 
         # Convert to numpy array is necessary
         payload_values = _to_array(payload_values)
@@ -594,7 +590,7 @@ class InterleavedChannel:
             return _empty_array()
         try:
             return _deinterleave_array(self.payload, idx, len(self.channel_types))
-        except ReaderException:
+        except exceptions.ReaderException:
             return _empty_array()
 
     def get_payload_type(self) -> str:
@@ -627,7 +623,7 @@ class InterleavedChannel:
         """
         idx = self.channel_index(channel_type)
         if idx < 0 or len(self.value_means) == 0:
-            raise ReaderException("mean DNE, is the payload empty?")
+            raise exceptions.ReaderException("mean DNE, is the payload empty?")
 
         return self.value_means[idx]
 
@@ -639,7 +635,7 @@ class InterleavedChannel:
         """
         idx = self.channel_index(channel_type)
         if idx < 0 or len(self.value_stds) == 0:
-            raise ReaderException("std DNE, is the payload empty?")
+            raise exceptions.ReaderException("std DNE, is the payload empty?")
 
         return self.value_stds[idx]
 
@@ -651,7 +647,7 @@ class InterleavedChannel:
         """
         idx = self.channel_index(channel_type)
         if idx < 0 or len(self.value_medians) == 0:
-            raise ReaderException("median DNE, is the payload empty?")
+            raise exceptions.ReaderException("median DNE, is the payload empty?")
 
         return self.value_medians[idx]
 
@@ -1313,7 +1309,7 @@ class MicrophoneSensor(EvenlySampledSensor):
         payload_values = self.payload_values()
 
         if len(payload_values) <= 0:
-            raise ReaderException("Can't obtain median value of empty array")
+            raise exceptions.ReaderException("Can't obtain median value of empty array")
 
         median = numpy.median(self.payload_values())
 
@@ -1322,7 +1318,7 @@ class MicrophoneSensor(EvenlySampledSensor):
         elif isinstance(median, numpy.float64):
             return median
         else:
-            raise ReaderException("Unknown type %s" % str(type(median)))
+            raise exceptions.ReaderException("Unknown type %s" % str(type(median)))
 
     def payload_std(self) -> float:
         """Returns the standard deviation of this channel's payload.
@@ -2312,6 +2308,18 @@ class WrappedRedvoxPacket:
         :return: A clone of this WrappedRedvoxPacket.
         """
         return read_rdvxz_buffer(self.compressed_buffer())
+
+    def concat(self, wrapped_redvox_packet: 'WrappedRedvoxPacket') -> 'WrappedRedvoxPacket':
+        """
+        Concatenates one WrappedRedvoxPacket with another.
+
+        :param wrapped_redvox_packet: Packet to concat with.
+        :return:
+        """
+        pass
+
+
+    # Start of packet level API getters and setters
 
     def api(self) -> int:
         """
