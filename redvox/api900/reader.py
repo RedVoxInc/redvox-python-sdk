@@ -865,26 +865,6 @@ class EvenlySampledSensor:
         """
         return list(map(_channel_type_name_from_enum, self._evenly_sampled_channel.channel_types))
 
-    def _can_concat(self, evenly_sampled_sensor: 'EvenlySampledSensor') -> bool:
-        if evenly_sampled_sensor is None:
-            raise exceptions.ConcatenationException("Other sensor is None.")
-
-        if self.first_sample_timestamp_epoch_microseconds_utc() > \
-                evenly_sampled_sensor.first_sample_timestamp_epoch_microseconds_utc():
-            raise exceptions.ConcatenationException("Second sensor comes after the first in time.")
-
-        if self.sample_rate_hz() != evenly_sampled_sensor.sample_rate_hz():
-            raise exceptions.ConcatenationException("Sample rates do not match. self=%f, other=%f" % (
-                self.sample_rate_hz(), evenly_sampled_sensor.sample_rate_hz()
-            ))
-
-        if self.sensor_name() != evenly_sampled_sensor.sensor_name():
-            raise exceptions.ConcatenationException("Sensor names do not match. self=%s, other=%s" % (
-                self.sensor_name(), evenly_sampled_sensor.sensor_name()
-            ))
-
-        return True
-
     def _concat_metadata(self, evenly_sampled_sensor: 'EvenlySampledSensor') -> 'EvenlySampledSensor':
         concat_meta = []
         concat_meta.extend(self.metadata())
