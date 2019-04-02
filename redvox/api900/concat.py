@@ -73,4 +73,4 @@ def concat_wrapped_redvox_packets(wrapped_redvox_packets: WrappedRedvoxPackets) 
 
     gaps = identify_gaps(wrapped_redvox_packets)
 
-    
+
