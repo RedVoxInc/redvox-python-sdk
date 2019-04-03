@@ -8,10 +8,12 @@ import redvox.api900.types as _types
 
 import numpy as _np
 
+_NONE_HASH = hash(None)
+
 
 def _partial_hash_sensor(sensor: typing.Optional[_types.RedvoxSensor]) -> int:
     if sensor is None:
-        return hash(None)
+        return _NONE_HASH
 
     if isinstance(sensor, _reader.UnevenlySampledSensor):
         return hash((sensor.sensor_name(), sensor.payload_type()))
@@ -25,7 +27,10 @@ def _partial_hash_sensor(sensor: typing.Optional[_types.RedvoxSensor]) -> int:
     raise _exceptions.ConcatenationException("trying to hash non-sensor type=%s" % type(sensor))
 
 
-def _partial_hash_packet(wrapped_redvox_packet: _reader.WrappedRedvoxPacket) -> int:
+def _partial_hash_packet(wrapped_redvox_packet: typing.Optional[_reader.WrappedRedvoxPacket]) -> int:
+    if wrapped_redvox_packet is None:
+        return _NONE_HASH
+
     return hash((wrapped_redvox_packet.redvox_id(),
                  wrapped_redvox_packet.uuid(),
                  _partial_hash_sensor(wrapped_redvox_packet.microphone_channel()),
@@ -133,7 +138,7 @@ def _concat_continuous_data(wrapped_redvox_packets: _types.WrappedRedvoxPackets)
                 _concat_payloads(sensors, _reader.MagnetometerSensor.payload_values_z)
         ) \
             .set_timestamps_microseconds_utc(
-            _concat_timestamps(sensors, _reader.MagnetometerSensor.timestamps_microseconds_utc)) \
+                _concat_timestamps(sensors, _reader.MagnetometerSensor.timestamps_microseconds_utc)) \
             .set_metadata(_concat_metadata(sensors, _reader.MagnetometerSensor.metadata))
 
     if first_packet.has_accelerometer_channel():
@@ -144,7 +149,7 @@ def _concat_continuous_data(wrapped_redvox_packets: _types.WrappedRedvoxPackets)
                 _concat_payloads(sensors, _reader.AccelerometerSensor.payload_values_z)
         ) \
             .set_timestamps_microseconds_utc(
-            _concat_timestamps(sensors, _reader.AccelerometerSensor.timestamps_microseconds_utc)) \
+                _concat_timestamps(sensors, _reader.AccelerometerSensor.timestamps_microseconds_utc)) \
             .set_metadata(_concat_metadata(sensors, _reader.AccelerometerSensor.metadata))
 
     if first_packet.has_gyroscope_channel():
@@ -155,7 +160,7 @@ def _concat_continuous_data(wrapped_redvox_packets: _types.WrappedRedvoxPackets)
                 _concat_payloads(sensors, _reader.GyroscopeSensor.payload_values_z)
         ) \
             .set_timestamps_microseconds_utc(
-            _concat_timestamps(sensors, _reader.GyroscopeSensor.timestamps_microseconds_utc)) \
+                _concat_timestamps(sensors, _reader.GyroscopeSensor.timestamps_microseconds_utc)) \
             .set_metadata(_concat_metadata(sensors, _reader.GyroscopeSensor.metadata))
 
     if first_packet.has_light_channel():

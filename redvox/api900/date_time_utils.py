@@ -12,3 +12,7 @@ def microseconds_to_seconds(microseconds: float) -> float:
     :return: Seconds from microseconds.
     """
     return microseconds / MICROSECONDS_PER_SECOND
+
+
+def seconds_to_microseconds(seconds: float) -> float:
+    return seconds * MICROSECONDS_PER_SECOND

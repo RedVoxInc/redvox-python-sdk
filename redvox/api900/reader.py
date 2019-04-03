@@ -5,6 +5,7 @@ This module provides functions and classes for working with RedVox API 900 data.
 
 import collections
 import glob
+import json
 import os
 import struct
 import typing
@@ -17,6 +18,7 @@ import lz4.block
 import numpy
 
 import redvox.api900.constants as constants
+import redvox.api900.date_time_utils as date_time_utils
 import redvox.api900.exceptions as exceptions
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.stat_utils
@@ -2090,6 +2092,46 @@ class ImageSensor(UnevenlySampledSensor):
         return "{}\nnum images: {}\nbyte offsets: {}".format(self._unevenly_sampled_channel,
                                                              self.num_images(),
                                                              self.image_offsets)
+
+
+class WrappedRedvoxPacketSummary:
+    def __init__(self, wrapped_redvox_packet: 'WrappedRedvoxPacket'):
+        microphone_sensor = wrapped_redvox_packet.microphone_channel()
+        self.start_time_us = wrapped_redvox_packet.app_file_start_timestamp_machine()
+        self.end_time_us = self.start_time_us + date_time_utils.seconds_to_microseconds(len(microphone_sensor.payload_values()) / microphone_sensor.sample_rate_hz())
+        self.duration_us = self.end_time_us - self.start_time_us
+        self.mic_sample_rate_hz = microphone_sensor.sample_rate_hz()
+        self.has_microphone_sensor = wrapped_redvox_packet.has_microphone_channel()
+        self.microphone_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.microphone_channel, MicrophoneSensor.payload_values)
+        self.has_barometer_sensor = wrapped_redvox_packet.has_barometer_channel()
+        self.barometer_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.barometer_channel, BarometerSensor.payload_values)
+        self.has_time_synchronization_sensor = wrapped_redvox_packet.has_time_synchronization_channel()
+        self.time_synchronization_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.time_synchronization_channel, TimeSynchronizationSensor.payload_values)
+        self.has_location_sensor = wrapped_redvox_packet.has_location_channel()
+        self.location_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.location_channel, LocationSensor.payload_values_latitude)
+        self.has_accelerometer_sensor = wrapped_redvox_packet.has_accelerometer_channel()
+        self.accelerometer_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.accelerometer_channel, AccelerometerSensor.payload_values_x)
+        self.has_gyroscope_sensor = wrapped_redvox_packet.has_gyroscope_channel()
+        self.gyroscope_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.gyroscope_channel, GyroscopeSensor.payload_values_x)
+        self.has_magnetometer_sensor = wrapped_redvox_packet.has_magnetometer_channel()
+        self.magnetometer_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.magnetometer_channel, MagnetometerSensor.payload_values_x)
+        self.has_light_sensor = wrapped_redvox_packet.has_light_channel()
+        self.light_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.light_channel, LightSensor.payload_values)
+        self.has_infrared_sensor = wrapped_redvox_packet.has_infrared_channel()
+        self.infrared_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.infrared_channel, InfraredSensor.payload_values)
+        
+    def _get_num_samples(self,
+                         wrapped_redvox_packet: 'WrappedRedvoxPacket',
+                         sensor_fn,
+                         payload_fn):
+        sensor = sensor_fn(wrapped_redvox_packet)
+        if sensor is None:
+            return 0
+        else:
+            return len(payload_fn(sensor))
+
+    def __str__(self) -> str:
+        return json.dumps(self.__dict__)
 
 
 # pylint: disable=R0904
