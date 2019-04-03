@@ -5,7 +5,7 @@ import redvox.api900.reader
 import redvox.tests.mock_packets as mock
 from redvox.tests.utils import ArraysTestCase
 
-from redvox.api900.reader import ReaderException
+from redvox.api900.exceptions import ReaderException
 
 class ModuleFunctionTests(ArraysTestCase):
     def setUp(self):
@@ -114,20 +114,20 @@ class ModuleFunctionTests(ArraysTestCase):
 
     # deinterleave_array
     def test_deinterleave_array_empty(self):
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader._deinterleave_array,
+        self.assertRaises(redvox.api900.exceptions.ReaderException, redvox.api900.reader._deinterleave_array,
                           self.empty_array,
                           -1, 2)
 
     def test_deinterleave_array_bad_offsets(self):
         a = numpy.array([0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3])
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader._deinterleave_array, a, -1, 4)
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader._deinterleave_array, a, 4, 4)
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader._deinterleave_array, a, 30, 4)
+        self.assertRaises(redvox.api900.exceptions.ReaderException, redvox.api900.reader._deinterleave_array, a, -1, 4)
+        self.assertRaises(redvox.api900.exceptions.ReaderException, redvox.api900.reader._deinterleave_array, a, 4, 4)
+        self.assertRaises(redvox.api900.exceptions.ReaderException, redvox.api900.reader._deinterleave_array, a, 30, 4)
 
     def test_deinterleave_array_bad_steps(self):
         a = numpy.array([0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3])
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader._deinterleave_array, a, 0, 0)
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader._deinterleave_array, a, 0, 5)
+        self.assertRaises(redvox.api900.exceptions.ReaderException, redvox.api900.reader._deinterleave_array, a, 0, 0)
+        self.assertRaises(redvox.api900.exceptions.ReaderException, redvox.api900.reader._deinterleave_array, a, 0, 5)
 
     def test_deinterleave_array_single(self):
         a = numpy.array([0])
@@ -163,23 +163,23 @@ class ModuleFunctionTests(ArraysTestCase):
         self.assertArraysEqual(redvox.api900.reader._deinterleave_array(c, 2, 3), numpy.array([2, 2, 2]))
 
     def test_interleave_arrays_empty(self):
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader._interleave_arrays, [])
+        self.assertRaises(redvox.api900.exceptions.ReaderException, redvox.api900.reader._interleave_arrays, [])
 
     def test_interleave_arrays_single(self):
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader._interleave_arrays, [
+        self.assertRaises(redvox.api900.exceptions.ReaderException, redvox.api900.reader._interleave_arrays, [
             numpy.array([1, 2, 3])])
 
     def test_interleave_arrays_different_sizes(self):
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader._interleave_arrays, [
+        self.assertRaises(redvox.api900.exceptions.ReaderException, redvox.api900.reader._interleave_arrays, [
             self.empty_array,
             numpy.array([0])])
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader._interleave_arrays, [
+        self.assertRaises(redvox.api900.exceptions.ReaderException, redvox.api900.reader._interleave_arrays, [
             numpy.array([0, 1]),
             numpy.array([0])])
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader._interleave_arrays, [
+        self.assertRaises(redvox.api900.exceptions.ReaderException, redvox.api900.reader._interleave_arrays, [
             numpy.array([0, 1, 2]),
             numpy.array([0, 1, 2, 3, 4])])
-        self.assertRaises(redvox.api900.reader.ReaderException, redvox.api900.reader._interleave_arrays, [
+        self.assertRaises(redvox.api900.exceptions.ReaderException, redvox.api900.reader._interleave_arrays, [
             numpy.array([0, 1]),
             numpy.array([0, 1]),
             numpy.array([0])])
@@ -250,13 +250,13 @@ class ModuleFunctionTests(ArraysTestCase):
 
     def test_get_metadata_odd_sized_lists(self):
         self.assertRaises(
-            redvox.api900.reader.ReaderException,
+            redvox.api900.exceptions.ReaderException,
             redvox.api900.reader._get_metadata, ["a", "b", "c"], "a")
 
     def test_get_metadata_single_list(self):
         metadata = ["a"]
         self.assertRaises(
-            redvox.api900.reader.ReaderException,
+            redvox.api900.exceptions.ReaderException,
             redvox.api900.reader._get_metadata, metadata, "a")
 
     def test_get_metadata_one_kv(self):
@@ -295,13 +295,13 @@ class ModuleFunctionTests(ArraysTestCase):
     def test_get_metadata_as_dict_single_list(self):
         metadata = ["a"]
         self.assertRaises(
-            redvox.api900.reader.ReaderException,
+            redvox.api900.exceptions.ReaderException,
             redvox.api900.reader._get_metadata_as_dict, metadata)
 
     def test_get_metadata_as_dict_odd_sized_lists(self):
         metadata = ["a", "b", "c"]
         self.assertRaises(
-            redvox.api900.reader.ReaderException,
+            redvox.api900.exceptions.ReaderException,
             redvox.api900.reader._get_metadata_as_dict, metadata)
 
     def test_get_metadata_as_dict_one_kv(self):
@@ -418,7 +418,7 @@ class InterleavedChannelTests(ArraysTestCase):
 
     def test_get_multi_payload_single_dne(self):
         return self.assertRaises(
-            redvox.api900.reader.ReaderException,
+            redvox.api900.exceptions.ReaderException,
             self.gps_channel.get_multi_payload,
             [api900_pb2.LATITUDE, api900_pb2.BAROMETER])
 

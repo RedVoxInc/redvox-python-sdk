@@ -3348,6 +3348,15 @@ def read_rdvxz_file(path: str) -> WrappedRedvoxPacket:
     """
     return wrap(read_file(path))
 
+def read_rdvxz_file_range(directory: str,
+                          start_timestamp_utc_s: int,
+                          end_timestamp_utc_s: int,
+                          device_ids: typing.List[str],
+                          structured_layout: bool = False,
+                          concat_continuous_segments: bool = True) -> typing.List[WrappedRedvoxPacket]:
+    pass
+
+
 
 def read_rdvxz_buffer(buf: bytes) -> WrappedRedvoxPacket:
     """

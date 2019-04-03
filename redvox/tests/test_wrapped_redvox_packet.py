@@ -2,7 +2,7 @@ import os
 import unittest
 
 from redvox.api900 import reader
-from redvox.api900.reader import ReaderException
+from redvox.api900.exceptions import ReaderException
 from redvox.tests.utils import test_data, TEST_DATA_DIR
 
 import numpy
