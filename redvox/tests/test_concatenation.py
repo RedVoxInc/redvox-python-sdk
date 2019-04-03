@@ -1,12 +1,13 @@
 """
 This modules provides test for concatenating sensors and packets.
 """
+import unittest
 
 import redvox.api900.concat as concat
 import redvox.api900.reader as reader
 import redvox.tests.utils as test_utils
 
-import unittest
+import numpy as np
 
 
 class TestConcatenation(unittest.TestCase):
@@ -282,11 +283,17 @@ class TestConcatenation(unittest.TestCase):
         self.cloned_packet.microphone_channel().set_sample_rate_hz(800.0)
         cloned_packet_2.set_barometer_channel(None)
 
-        self.assertEqual([1, 2], concat._identify_gaps([self.example_packet, self.cloned_packet, self.example_packet], 5.0))
+        self.assertEqual([1, 2],
+                         concat._identify_gaps([self.example_packet, self.cloned_packet, self.example_packet], 5.0))
         self.assertEqual([1, 2], concat._identify_gaps([self.example_packet, self.cloned_packet, cloned_packet_2], 5.0))
-        self.assertEqual([1, 3], concat._identify_gaps([self.example_packet, self.cloned_packet, self.cloned_packet, self.example_packet], 5.0))
-        self.assertEqual([2, 4], concat._identify_gaps([self.example_packet, self.example_packet, self.cloned_packet, self.cloned_packet, cloned_packet_2], 5.0))
-        self.assertEqual([2, 3, 4], concat._identify_gaps([self.example_packet, self.example_packet, self.cloned_packet, self.example_packet, cloned_packet_2], 5.0))
+        self.assertEqual([1, 3], concat._identify_gaps(
+                [self.example_packet, self.cloned_packet, self.cloned_packet, self.example_packet], 5.0))
+        self.assertEqual([2, 4], concat._identify_gaps(
+                [self.example_packet, self.example_packet, self.cloned_packet, self.cloned_packet, cloned_packet_2],
+                5.0))
+        self.assertEqual([2, 3, 4], concat._identify_gaps(
+                [self.example_packet, self.example_packet, self.cloned_packet, self.example_packet, cloned_packet_2],
+                5.0))
 
     def test_identify_gaps_by_time(self):
         basic_packet = self.example_packet \
@@ -347,6 +354,52 @@ class TestConcatenation(unittest.TestCase):
             .microphone_channel() \
             .set_first_sample_timestamp_epoch_microseconds_utc(32_000_000)
         self.assertEqual([1, 2], concat._identify_gaps([basic_packet, cloned_basic_packet, cloned_basic_packet_2], 5.0))
+
+    def test_concat_numpy_single(self):
+        self.assertTrue(np.array_equal(self.example_packet.microphone_channel().payload_values(),
+                                       concat._concat_numpy([self.example_packet.microphone_channel()],
+                                                            reader.MicrophoneSensor.payload_values)))
+        self.assertTrue(np.array_equal(self.example_packet.barometer_channel().payload_values(),
+                                       concat._concat_numpy([self.example_packet.barometer_channel()],
+                                                            reader.BarometerSensor.payload_values)))
+
+    def test_concat_numpy(self):
+        self.assertTrue(np.array_equal([-10, 0, 10, 20, 15, -6, 0, -10, 0, 10, 20, 15, -6, 0],
+                                       concat._concat_numpy([self.example_packet.microphone_channel(),
+                                                             self.example_packet.microphone_channel()],
+                                                            reader.MicrophoneSensor.payload_values)))
+        self.assertTrue(np.array_equal([1, 2, 3, 1, 2, 3, 1, 2, 3],
+                                       concat._concat_numpy([self.example_packet.gyroscope_channel(),
+                                                             self.example_packet.gyroscope_channel(),
+                                                             self.example_packet.gyroscope_channel()],
+                                                            reader.GyroscopeSensor.payload_values_x)))
+
+        self.assertTrue(np.array_equal([4, 5, 6, 4, 5, 6],
+                                       concat._concat_numpy([self.example_packet.gyroscope_channel(),
+                                                             self.example_packet.gyroscope_channel()],
+                                                            reader.GyroscopeSensor.payload_values_y)))
+
+        self.assertTrue(np.array_equal([7, 8, 9, 7, 8, 9],
+                                       concat._concat_numpy([self.example_packet.gyroscope_channel(),
+                                                             self.example_packet.gyroscope_channel()],
+                                                            reader.GyroscopeSensor.payload_values_z)))
+
+    def test_concat_lists_single(self):
+        self.assertEqual(["a", "b", "c", "d"],
+                         concat._concat_lists([self.example_packet.infrared_channel()],
+                                              reader.InfraredSensor.metadata))
+
+    def test_concat_lists(self):
+        self.assertEqual(["a", "b", "c", "d", "a", "b", "c", "d"],
+                         concat._concat_lists([self.example_packet.infrared_channel(),
+                                               self.example_packet.infrared_channel()],
+                                              reader.InfraredSensor.metadata))
+
+        self.assertEqual(["a", "b", "c", "d", "a", "b", "c", "d", "a", "b", "c", "d"],
+                         concat._concat_lists([self.example_packet.infrared_channel(),
+                                               self.example_packet.infrared_channel(),
+                                               self.example_packet.infrared_channel()],
+                                              reader.InfraredSensor.metadata))
 
     def test_concat_empty(self):
         self.assertEqual([], concat.concat_wrapped_redvox_packets([]))
