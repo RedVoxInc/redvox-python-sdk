@@ -16,7 +16,7 @@ class EvenlySampledChannel(interleaved_channel.InterleavedChannel):
         :param channel: A protobuf evenly sampled channel.
         """
         if channel is None:
-            channel = reader_utils._empty_evenly_sampled_channel()
+            channel = reader_utils.empty_evenly_sampled_channel()
 
         interleaved_channel.InterleavedChannel.__init__(self, channel)
         self.sample_rate_hz: float = channel.sample_rate_hz

@@ -59,22 +59,22 @@ class InterleavedChannel:
             self.channel_types: typing.List[
                 typing.Union[
                     api900_pb2.EvenlySampledChannel,
-                    api900_pb2.UnevenlySampledChannel]] = reader_utils._repeated_to_list(channel.channel_types)
+                    api900_pb2.UnevenlySampledChannel]] = reader_utils.repeated_to_list(channel.channel_types)
             """List of channel type constant enumerations"""
 
-            self.payload: numpy.ndarray = reader_utils._extract_payload(channel)
+            self.payload: numpy.ndarray = reader_utils.extract_payload(channel)
             """This channels payload as a numpy array of either floats or ints"""
 
-            self.metadata: typing.List[str] = reader_utils._repeated_to_list(channel.metadata)
+            self.metadata: typing.List[str] = reader_utils.repeated_to_list(channel.metadata)
             """This channels list of metadata"""
 
-            self.value_means: numpy.ndarray = reader_utils._repeated_to_array(channel.value_means)
+            self.value_means: numpy.ndarray = reader_utils.repeated_to_array(channel.value_means)
             """Interleaved array of mean values"""
 
-            self.value_stds: numpy.ndarray = reader_utils._repeated_to_array(channel.value_stds)
+            self.value_stds: numpy.ndarray = reader_utils.repeated_to_array(channel.value_stds)
             """Interleaved array of standard deviations of values"""
 
-            self.value_medians: numpy.ndarray = reader_utils._repeated_to_array(channel.value_medians)
+            self.value_medians: numpy.ndarray = reader_utils.repeated_to_array(channel.value_medians)
             """Interleaves array of median values"""
 
             self.channel_type_index: typing.Dict[api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
@@ -93,7 +93,7 @@ class InterleavedChannel:
         del self.protobuf_channel.channel_types[:]
         for ctype in types:
             self.protobuf_channel.channel_types.append(ctype)
-        self.channel_types = reader_utils._repeated_to_list(self.protobuf_channel.channel_types)
+        self.channel_types = reader_utils.repeated_to_list(self.protobuf_channel.channel_types)
         self.channel_type_index = {self.channel_types[i]: i for i in range(len(self.channel_types))}
 
     def get_channel_type_names(self) -> typing.List[str]:
@@ -101,7 +101,7 @@ class InterleavedChannel:
         Returns the list of channel_types as a list of names instead of enumeration constants.
         :return: The list of channel_types as a list of names instead of enumeration constants.
         """
-        return list(map(reader_utils._channel_type_name_from_enum, self.channel_types))
+        return list(map(reader_utils.channel_type_name_from_enum, self.channel_types))
 
     def channel_index(self, channel_type: int) -> int:
         """
@@ -127,12 +127,12 @@ class InterleavedChannel:
         """
         self.protobuf_channel = channel
         self.sensor_name = channel.sensor_name
-        self.channel_types = reader_utils._repeated_to_list(channel.channel_types)
-        self.payload = reader_utils._extract_payload(channel)
-        self.metadata = reader_utils._repeated_to_list(channel.metadata)
-        self.value_means = reader_utils._repeated_to_array(channel.value_means)
-        self.value_stds = reader_utils._repeated_to_array(channel.value_stds)
-        self.value_medians = reader_utils._repeated_to_array(channel.value_medians)
+        self.channel_types = reader_utils.repeated_to_list(channel.channel_types)
+        self.payload = reader_utils.extract_payload(channel)
+        self.metadata = reader_utils.repeated_to_list(channel.metadata)
+        self.value_means = reader_utils.repeated_to_array(channel.value_means)
+        self.value_stds = reader_utils.repeated_to_array(channel.value_stds)
+        self.value_medians = reader_utils.repeated_to_array(channel.value_medians)
         self.channel_type_index = {self.channel_types[i]: i for i in range(len(self.channel_types))}
 
     def has_payload(self, channel_type: int) -> bool:
@@ -158,7 +158,7 @@ class InterleavedChannel:
         #     1.")
 
         # Convert to numpy array is necessary
-        payload_values = reader_utils._to_array(payload_values)
+        payload_values = reader_utils.to_array(payload_values)
 
         # clear all other payloads
         self.protobuf_channel.byte_payload.ClearField("payload")
@@ -190,7 +190,7 @@ class InterleavedChannel:
         if len(payload_values) < 1:
             self.payload = payload_values
         else:
-            self.payload = reader_utils._extract_payload(self.protobuf_channel)
+            self.payload = reader_utils.extract_payload(self.protobuf_channel)
 
             # calculate the means, std devs, and medians
             if should_compute_stats:
@@ -206,7 +206,7 @@ class InterleavedChannel:
         :param pl_type: The payload type
         :param should_compute_stats: Whether or not payload stats should be calculated.
         """
-        interleaved = reader_utils._interleave_arrays(list(map(reader_utils._to_array, payloads)))
+        interleaved = reader_utils.interleave_arrays(list(map(reader_utils.to_array, payloads)))
         self.set_payload(interleaved, pl_type, should_compute_stats)
 
     def get_payload(self, channel_type: int) -> numpy.ndarray:
@@ -217,18 +217,18 @@ class InterleavedChannel:
         """
         idx = self.channel_index(channel_type)
         if idx < 0:
-            return reader_utils._empty_array()
+            return reader_utils.empty_array()
         try:
-            return reader_utils._deinterleave_array(self.payload, idx, len(self.channel_types))
+            return reader_utils.deinterleave_array(self.payload, idx, len(self.channel_types))
         except exceptions.ReaderException:
-            return reader_utils._empty_array()
+            return reader_utils.empty_array()
 
     def get_payload_type(self) -> str:
         """
         Returns the internal protobuf payload type.
         :return: The internal protobuf payload type.
         """
-        return reader_utils._payload_type(self.protobuf_channel)
+        return reader_utils.payload_type(self.protobuf_channel)
 
     def get_multi_payload(self, channel_types: typing.List[int]) -> numpy.ndarray:
         """
@@ -238,12 +238,12 @@ class InterleavedChannel:
         """
         channel_types_len = len(channel_types)
         if channel_types_len == 0:
-            return reader_utils._empty_array()
+            return reader_utils.empty_array()
         elif channel_types_len == 1:
             return self.get_payload(channel_types[0])
 
         payloads = list(map(self.get_payload, channel_types))
-        return reader_utils._interleave_arrays(payloads)
+        return reader_utils.interleave_arrays(payloads)
 
     def get_value_mean(self, channel_type: int) -> float:
         """
@@ -291,13 +291,13 @@ class InterleavedChannel:
         del self.protobuf_channel.value_stds[:]
         del self.protobuf_channel.value_medians[:]
         for i in range(step):
-            std, mean, median = stat_utils.calc_utils(reader_utils._deinterleave_array(channel, i, step))
+            std, mean, median = stat_utils.calc_utils(reader_utils.deinterleave_array(channel, i, step))
             self.protobuf_channel.value_means.append(mean)
             self.protobuf_channel.value_stds.append(std)
             self.protobuf_channel.value_medians.append(median)
-        self.value_stds = reader_utils._repeated_to_array(self.protobuf_channel.value_stds)
-        self.value_means = reader_utils._repeated_to_array(self.protobuf_channel.value_means)
-        self.value_medians = reader_utils._repeated_to_array(self.protobuf_channel.value_medians)
+        self.value_stds = reader_utils.repeated_to_array(self.protobuf_channel.value_stds)
+        self.value_means = reader_utils.repeated_to_array(self.protobuf_channel.value_means)
+        self.value_medians = reader_utils.repeated_to_array(self.protobuf_channel.value_medians)
 
     def set_sensor_name(self, name: str):
         """
@@ -315,14 +315,14 @@ class InterleavedChannel:
         del self.protobuf_channel.metadata[:]
         for meta in data:
             self.protobuf_channel.metadata.append(meta)
-        self.metadata = reader_utils._repeated_to_list(self.protobuf_channel.metadata)
+        self.metadata = reader_utils.repeated_to_list(self.protobuf_channel.metadata)
 
     def metadata_as_dict(self) -> typing.Dict[str, str]:
         """
         Returns any metadata as a dictionary of key-pair values.
         :return: Any metadata as a dictionary of key-pair values.
         """
-        return reader_utils._get_metadata_as_dict(self.metadata)
+        return reader_utils.get_metadata_as_dict(self.metadata)
 
     def __str__(self) -> str:
         """
@@ -334,8 +334,8 @@ class InterleavedChannel:
                "len(payload): {}\n" \
                "payload_type: {}".format(self.sensor_name,
                                          list(map(
-                                                 reader_utils._channel_type_name_from_enum,
+                                                 reader_utils.channel_type_name_from_enum,
                                                  self.channel_types)),
                                          len(self.payload),
-                                         reader_utils._payload_type(
+                                         reader_utils.payload_type(
                                                  self.protobuf_channel))

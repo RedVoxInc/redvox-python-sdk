@@ -22,10 +22,10 @@ class UnevenlySampledChannel(interleaved_channel.InterleavedChannel):
         :param channel: A protobuf unevenly sampled channel.
         """
         if channel is None:
-            channel = reader_utils._empty_unevenly_sampled_channel()
+            channel = reader_utils.empty_unevenly_sampled_channel()
 
         interleaved_channel.InterleavedChannel.__init__(self, channel)
-        self.timestamps_microseconds_utc: numpy.ndarray = reader_utils._repeated_to_array(
+        self.timestamps_microseconds_utc: numpy.ndarray = reader_utils.repeated_to_array(
             channel.timestamps_microseconds_utc)
         """Numpy array of timestamps epoch microseconds utc for each sample"""
 
@@ -44,7 +44,7 @@ class UnevenlySampledChannel(interleaved_channel.InterleavedChannel):
         :param channel: unevenly sampled channel
         """
         super().set_channel(channel)
-        self.timestamps_microseconds_utc = reader_utils._repeated_to_array(channel.timestamps_microseconds_utc)
+        self.timestamps_microseconds_utc = reader_utils.repeated_to_array(channel.timestamps_microseconds_utc)
         self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
             stat_utils.calc_utils_timeseries(self.timestamps_microseconds_utc)
 
@@ -53,7 +53,7 @@ class UnevenlySampledChannel(interleaved_channel.InterleavedChannel):
         set the timestamps in microseconds from utc
         :param timestamps: array of timestamps
         """
-        timestamps = reader_utils._to_array(timestamps)
+        timestamps = reader_utils.to_array(timestamps)
         self.timestamps_microseconds_utc = timestamps
         self.protobuf_channel.timestamps_microseconds_utc[:] = timestamps
 

@@ -11,7 +11,7 @@ import lz4.block
 import numpy
 
 
-def _calculate_uncompressed_size(buf: bytes) -> int:
+def calculate_uncompressed_size(buf: bytes) -> int:
     """
     Given a buffer, calculate the original size of the uncompressed packet by looking at the first four bytes.
     :param buf: Buffer where first 4 big endian bytes contain the size of the original uncompressed packet.
@@ -20,7 +20,7 @@ def _calculate_uncompressed_size(buf: bytes) -> int:
     return struct.unpack(">I", buf[:4])[0]
 
 
-def _uncompressed_size_bytes(size: int) -> bytes:
+def uncompressed_size_bytes(size: int) -> bytes:
     """
     Given the size of the original uncompressed file, return the size as an array of 4 bytes.
     :param size: The size to convert.
@@ -29,46 +29,46 @@ def _uncompressed_size_bytes(size: int) -> bytes:
     return struct.pack(">I", size)
 
 
-def _lz4_decompress(buf: bytes) -> bytes:
+def lz4_decompress(buf: bytes) -> bytes:
     """
     Decompresses an API 900 compressed buffer.
     :param buf: The buffer to decompress.
     :return: The uncompressed buffer.
     """
-    uncompressed_size = _calculate_uncompressed_size(buf)
+    uncompressed_size = calculate_uncompressed_size(buf)
 
     if uncompressed_size <= 0:
         raise exceptions.ReaderException("uncompressed size [{}] must be > 0".format(uncompressed_size))
 
-    return lz4.block.decompress(buf[4:], uncompressed_size=_calculate_uncompressed_size(buf))
+    return lz4.block.decompress(buf[4:], uncompressed_size=calculate_uncompressed_size(buf))
 
 
 # noinspection PyArgumentList
-def _lz4_compress(buf: bytes) -> bytes:
+def lz4_compress(buf: bytes) -> bytes:
     """
     Compresses a buffer using LZ4. The compressed buffer is then prepended with the 4 bytes indicating the original
     size of uncompressed buffer.
     :param buf: The buffer to compress.
     :return: The compressed buffer with 4 bytes prepended indicated the original size of the uncompressed buffer.
     """
-    uncompressed_size = _uncompressed_size_bytes(len(buf))
+    uncompressed_size = uncompressed_size_bytes(len(buf))
     compressed = lz4.block.compress(buf, store_size=False)
     return uncompressed_size + compressed
 
 
-def _write_file(file: str, redvox_packet: api900_pb2.RedvoxPacket):
+def write_file(file: str, redvox_packet: api900_pb2.RedvoxPacket):
     """
     Writes a redvox file.  Specify the correct file type in the file string.
     :param file: str, File to write
     :param redvox_packet: protobuf packet to write
     :return: Nothing, compressed file is written to disk
     """
-    buffer = _lz4_compress(redvox_packet.SerializeToString())
+    buffer = lz4_compress(redvox_packet.SerializeToString())
     with open(file, "wb") as f:
         f.write(buffer)
 
 
-def _to_json(redvox_packet: api900_pb2.RedvoxPacket) -> str:
+def to_json(redvox_packet: api900_pb2.RedvoxPacket) -> str:
     """
     Converts a protobuf encoded API 900 RedVox packet into JSON.
     :param redvox_packet: The protobuf encoded packet.
@@ -77,7 +77,7 @@ def _to_json(redvox_packet: api900_pb2.RedvoxPacket) -> str:
     return json_format.MessageToJson(redvox_packet)
 
 
-def _from_json(redvox_packet_json: str) -> api900_pb2.RedvoxPacket:
+def from_json(redvox_packet_json: str) -> api900_pb2.RedvoxPacket:
     """
     Converts a JSON packet representing an API 900 packet into a protobuf encoded RedVox API 900 packet.
     :param redvox_packet_json: A string containing the json representing the packet.
@@ -86,8 +86,8 @@ def _from_json(redvox_packet_json: str) -> api900_pb2.RedvoxPacket:
     return json_format.Parse(redvox_packet_json, api900_pb2.RedvoxPacket())
 
 
-def _payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                        api900_pb2.UnevenlySampledChannel]) -> str:
+def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                       api900_pb2.UnevenlySampledChannel]) -> str:
     """
     Given a channel, return the internal protobuf string representation of the payload's data type.
     :param channel: The channel to check the data type of.
@@ -99,8 +99,8 @@ def _payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
         return channel.WhichOneof("payload")
 
 
-def _extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                           api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
+def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                          api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
     """
     Given an evenly or unevenly sampled channel, extracts the entire payload.
 
@@ -109,7 +109,7 @@ def _extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     :param channel: The protobuf channel to extract the payload from.
     :return: A numpy array of either floats or ints.
     """
-    payload_type_str = _payload_type(channel)
+    payload_type_str = payload_type(channel)
 
     if payload_type_str == "byte_payload":
         payload = channel.byte_payload.payload
@@ -133,8 +133,8 @@ def _extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     return numpy.array(payload)
 
 
-def _repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
-                                             containers.RepeatedScalarFieldContainer]) -> typing.List:
+def repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
+                                            containers.RepeatedScalarFieldContainer]) -> typing.List:
     """
     Transforms a repeated protobuf field into a list.
     :param repeated: The repeated field to transform.
@@ -143,17 +143,17 @@ def _repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldCo
     return repeated[0:len(repeated)]
 
 
-def _repeated_to_array(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
-                                              containers.RepeatedScalarFieldContainer]) -> numpy.ndarray:
+def repeated_to_array(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
+                                             containers.RepeatedScalarFieldContainer]) -> numpy.ndarray:
     """
     Transforms a repeated protobuf field into a numpy array.
     :param repeated: The repeated field to transform.
     :return: A numpy array of the repeated items.
     """
-    return numpy.array(_repeated_to_list(repeated))
+    return numpy.array(repeated_to_list(repeated))
 
 
-def _deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.ndarray:
+def deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.ndarray:
     """
     Extracts a single channel type from an interleaved array.
 
@@ -191,12 +191,12 @@ def _deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy
 
     # pylint: disable=C1801
     if len(ndarray) == 0:
-        return _empty_array()
+        return empty_array()
 
     return ndarray[offset::step]
 
 
-def _to_array(values: typing.Union[typing.List, numpy.ndarray]) -> numpy.ndarray:
+def to_array(values: typing.Union[typing.List, numpy.ndarray]) -> numpy.ndarray:
     """
     Takes either a list or a numpy array and returns a numpy array if the parameter was a list.
     :param values: Values to convert into numpy array if values are in a list.
@@ -207,7 +207,7 @@ def _to_array(values: typing.Union[typing.List, numpy.ndarray]) -> numpy.ndarray
     return values
 
 
-def _interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
+def interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
     """
     Interleaves multiple arrays together.
     :param arrays: Arrays to interleave.
@@ -228,7 +228,7 @@ def _interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
     return interleaved_array
 
 
-def _implements_diff(val) -> bool:
+def implements_diff(val) -> bool:
     """
     Checks if a value implements the diff method.
     :param val: Value to check
@@ -241,7 +241,7 @@ def _implements_diff(val) -> bool:
     return False
 
 
-def _diff(val1, val2) -> typing.Tuple[bool, typing.Optional[str]]:
+def diff(val1, val2) -> typing.Tuple[bool, typing.Optional[str]]:
     """
     Determines if the two values are different.
     :param val1: The first value to check.
@@ -251,7 +251,7 @@ def _diff(val1, val2) -> typing.Tuple[bool, typing.Optional[str]]:
     if type(val1) != type(val2):
         return True, "type {} != type {}".format(type(val1), type(val2))
 
-    if _implements_diff(val1) and _implements_diff(val2):
+    if implements_diff(val1) and implements_diff(val2):
         diffs = val1.diff(val2)
         if len(diffs) == 0:
             return False, None
@@ -270,7 +270,7 @@ def _diff(val1, val2) -> typing.Tuple[bool, typing.Optional[str]]:
     return False, None
 
 
-def _safe_index_of(lst: typing.List, val: typing.Any) -> int:
+def safe_index_of(lst: typing.List, val: typing.Any) -> int:
     """
     Finds the index of an item in a list and instead of throwing an exception returns -1 when the item DNE.
     :param lst: List to search through.
@@ -283,14 +283,14 @@ def _safe_index_of(lst: typing.List, val: typing.Any) -> int:
         return -1
 
 
-def _empty_array() -> numpy.ndarray:
+def empty_array() -> numpy.ndarray:
     """Returns an empty numpy array.
     :return: An empty numpy array.
     """
     return numpy.array([])
 
 
-def _empty_evenly_sampled_channel() -> api900_pb2.EvenlySampledChannel:
+def empty_evenly_sampled_channel() -> api900_pb2.EvenlySampledChannel:
     """
     Returns an empty protobuf EvenlySampledChannel
     :return: empty EvenlySampledChannel
@@ -299,7 +299,7 @@ def _empty_evenly_sampled_channel() -> api900_pb2.EvenlySampledChannel:
     return obj
 
 
-def _empty_unevenly_sampled_channel() -> api900_pb2.UnevenlySampledChannel:
+def empty_unevenly_sampled_channel() -> api900_pb2.UnevenlySampledChannel:
     """
     Returns an empty protobuf UnevenlySampledChannel
     :return: empty UnevenlySampledChannel
@@ -308,7 +308,7 @@ def _empty_unevenly_sampled_channel() -> api900_pb2.UnevenlySampledChannel:
     return obj
 
 
-def _channel_type_name_from_enum(enum_constant: int) -> str:
+def channel_type_name_from_enum(enum_constant: int) -> str:
     """
     Returns the name of a channel type given its enumeration constant.
     :param enum_constant: The constant to turn into a name.
@@ -317,7 +317,7 @@ def _channel_type_name_from_enum(enum_constant: int) -> str:
     return api900_pb2.ChannelType.Name(enum_constant)
 
 
-def _get_metadata(metadata: typing.List[str], k: str) -> str:
+def get_metadata(metadata: typing.List[str], k: str) -> str:
     """
     Given a meta-data key, extract the value.
     :param metadata: List of metadata to extract value from.
@@ -327,14 +327,14 @@ def _get_metadata(metadata: typing.List[str], k: str) -> str:
     if len(metadata) % 2 != 0:
         raise exceptions.ReaderException("metadata list must contain an even number of items")
 
-    idx = _safe_index_of(metadata, k)
+    idx = safe_index_of(metadata, k)
     if idx < 0:
         return ""
 
     return metadata[idx + 1]
 
 
-def _get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
+def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
     """
     Since the metadata is inherently key-value, it may be useful to turn the metadata list into a python dictionary.
     :param metadata: The metadata list.
@@ -356,7 +356,7 @@ def _get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
     return metadata_dict
 
 
-def _metadata_dict_to_list(metadata_dict: typing.Dict[str, str]) -> typing.List[str]:
+def metadata_dict_to_list(metadata_dict: typing.Dict[str, str]) -> typing.List[str]:
     """
     Converts a dictionary containing metadata into a list of metadata.
     :param metadata_dict: The dictionary of metadata.

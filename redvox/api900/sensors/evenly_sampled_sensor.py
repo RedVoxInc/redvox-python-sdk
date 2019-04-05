@@ -28,7 +28,7 @@ class EvenlySampledSensor:
         Returns the list of channel_types as a list of names instead of enumeration constants.
         :return: The list of channel_types as a list of names instead of enumeration constants.
         """
-        return list(map(reader_utils._channel_type_name_from_enum, self._evenly_sampled_channel.channel_types))
+        return list(map(reader_utils.channel_type_name_from_enum, self._evenly_sampled_channel.channel_types))
 
     def sample_rate_hz(self) -> float:
         """
@@ -107,10 +107,10 @@ class EvenlySampledSensor:
         Returns this channel's metadata (if there is any) as a Python dictionary.
         :return: This channel's metadata (if there is any) as a Python dictionary.
         """
-        return reader_utils._get_metadata_as_dict(self._evenly_sampled_channel.metadata)
+        return reader_utils.get_metadata_as_dict(self._evenly_sampled_channel.metadata)
 
     def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'EvenlySampledSensor':
-        self.set_metadata(reader_utils._metadata_dict_to_list(metadata_dict))
+        self.set_metadata(reader_utils.metadata_dict_to_list(metadata_dict))
         return self
 
     def __str__(self):
@@ -125,7 +125,7 @@ class EvenlySampledSensor:
         :param other: The other sensor to compare with.
         :return: A list of differences or an empty list if there are none.
         """
-        diffs = map(lambda tuple2: reader_utils._diff(tuple2[0], tuple2[1]), [
+        diffs = map(lambda tuple2: reader_utils.diff(tuple2[0], tuple2[1]), [
             (self._get_channel_type_names(), other._get_channel_type_names()),
             (self.sensor_name(), other.sensor_name()),
             (self.sample_rate_hz(), other.sample_rate_hz()),

@@ -29,7 +29,7 @@ class UnevenlySampledSensor:
         Returns the list of channel_types as a list of names instead of enumeration constants.
         :return: The list of channel_types as a list of names instead of enumeration constants.
         """
-        return list(map(reader_utils._channel_type_name_from_enum, self._unevenly_sampled_channel.channel_types))
+        return list(map(reader_utils.channel_type_name_from_enum, self._unevenly_sampled_channel.channel_types))
 
     def sensor_name(self) -> str:
         """
@@ -68,7 +68,7 @@ class UnevenlySampledSensor:
         :param timestamps: a list of ascending timestamps that associate with each sample value
         :return: An instance of the sensor.
         """
-        timestamps = reader_utils._to_array(timestamps)
+        timestamps = reader_utils.to_array(timestamps)
 
         self._unevenly_sampled_channel.set_timestamps_microseconds_utc(timestamps)
         return self
@@ -115,7 +115,7 @@ class UnevenlySampledSensor:
         Returns this channel's metadata (if there is any) as a Python dictionary.
         :return: This channel's metadata (if there is any) as a Python dictionary.
         """
-        return reader_utils._get_metadata_as_dict(self._unevenly_sampled_channel.metadata)
+        return reader_utils.get_metadata_as_dict(self._unevenly_sampled_channel.metadata)
 
     def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'UnevenlySampledSensor':
         """
@@ -123,7 +123,7 @@ class UnevenlySampledSensor:
         :param metadata_dict: Metadata to set.
         :return: An instance of itself.
         """
-        self.set_metadata(reader_utils._metadata_dict_to_list(metadata_dict))
+        self.set_metadata(reader_utils.metadata_dict_to_list(metadata_dict))
         return self
 
     def __str__(self) -> str:
@@ -138,7 +138,7 @@ class UnevenlySampledSensor:
         :param other: The other sensor to compare with.
         :return: A list odifferences or an empty list if there are none.
         """
-        diffs = map(lambda tuple2: reader_utils._diff(tuple2[0], tuple2[1]), [
+        diffs = map(lambda tuple2: reader_utils.diff(tuple2[0], tuple2[1]), [
             (self._get_channel_type_names(), other._get_channel_type_names()),
             (self.sensor_name(), other.sensor_name()),
             (self.timestamps_microseconds_utc(), other.timestamps_microseconds_utc()),

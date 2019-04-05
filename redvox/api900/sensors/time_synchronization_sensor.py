@@ -72,7 +72,7 @@ class TimeSynchronizationSensor:
         Returns this channel's metadata (if there is any) as a Python dictionary.
         :return: This channel's metadata (if there is any) as a Python dictionary.
         """
-        return reader_utils._get_metadata_as_dict(self._unevenly_sampled_channel.metadata)
+        return reader_utils.get_metadata_as_dict(self._unevenly_sampled_channel.metadata)
 
     def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'TimeSynchronizationSensor':
         """
@@ -80,7 +80,7 @@ class TimeSynchronizationSensor:
         :param metadata_dict: Metadata to set.
         :return: An instance of self.
         """
-        self.set_metadata(reader_utils._metadata_dict_to_list(metadata_dict))
+        self.set_metadata(reader_utils.metadata_dict_to_list(metadata_dict))
         return self
 
     def __str__(self):
@@ -95,7 +95,7 @@ class TimeSynchronizationSensor:
         :param other: The other sensor to compare with.
         :return: A list of differences or an empty list if there are none.
         """
-        diffs = map(lambda tuple2: reader_utils._diff(tuple2[0], tuple2[1]), [
+        diffs = map(lambda tuple2: reader_utils.diff(tuple2[0], tuple2[1]), [
             (self._unevenly_sampled_channel.channel_types, other._unevenly_sampled_channel.channel_types),
             (self.payload_type(), other.payload_type()),
             (self.metadata(), other.metadata()),

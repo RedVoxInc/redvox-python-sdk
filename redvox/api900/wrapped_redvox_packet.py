@@ -107,14 +107,14 @@ class WrappedRedvoxPacket:
             """Protobuf api 900 redvox packet"""
 
             self._evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
-                map(EvenlySampledChannel, reader_utils._repeated_to_array(redvox_packet.evenly_sampled_channels)))
+                map(EvenlySampledChannel, reader_utils.repeated_to_array(redvox_packet.evenly_sampled_channels)))
             """List of evenly sampled channels"""
 
             self._unevenly_sampled_channels: typing.List[UnevenlySampledChannel] = list(
-                map(UnevenlySampledChannel, reader_utils._repeated_to_array(redvox_packet.unevenly_sampled_channels)))
+                map(UnevenlySampledChannel, reader_utils.repeated_to_array(redvox_packet.unevenly_sampled_channels)))
             """List of unevenly sampled channels"""
 
-            self._metadata_list: typing.List[str] = reader_utils._repeated_to_list(redvox_packet.metadata)
+            self._metadata_list: typing.List[str] = reader_utils.repeated_to_list(redvox_packet.metadata)
             """List of metadata"""
 
             self._channel_cache: typing.Dict[int, typing.Union[EvenlySampledChannel, UnevenlySampledChannel]] = {}
@@ -155,10 +155,10 @@ class WrappedRedvoxPacket:
         takes the redvox packet and rebuilds the channel cache from it
         """
         self._evenly_sampled_channels = list(map(EvenlySampledChannel,
-                                                 reader_utils._repeated_to_array(
+                                                 reader_utils.repeated_to_array(
                                                      self._redvox_packet.evenly_sampled_channels)))
         self._unevenly_sampled_channels = list(map(UnevenlySampledChannel,
-                                                   reader_utils._repeated_to_array(
+                                                   reader_utils.repeated_to_array(
                                                        self._redvox_packet.unevenly_sampled_channels)))
         self._channel_cache = {}
         for evenly_sampled_channel in self._evenly_sampled_channels:
@@ -311,7 +311,7 @@ class WrappedRedvoxPacket:
         """
         names = []
         for channel_types in self._get_channel_types():
-            names.append(list(map(reader_utils._channel_type_name_from_enum, channel_types)))
+            names.append(list(map(reader_utils.channel_type_name_from_enum, channel_types)))
         return names
 
     def _get_channel(self, channel_type: int) -> typing.Union[EvenlySampledChannel, UnevenlySampledChannel, None]:
@@ -350,14 +350,14 @@ class WrappedRedvoxPacket:
         Converts the protobuf packet stored in this wrapped packet to JSON.
         :return: The JSON representation of the protobuf encoded packet.
         """
-        return reader_utils._to_json(self._redvox_packet)
+        return reader_utils.to_json(self._redvox_packet)
 
     def compressed_buffer(self) -> bytes:
         """
         Returns the compressed buffer associated with this packet.
         :return: The compressed buffer associated with this packet.
         """
-        return reader_utils._lz4_compress(self._redvox_packet.SerializeToString())
+        return reader_utils.lz4_compress(self._redvox_packet.SerializeToString())
 
     def default_filename(self, extension: str = "rdvxz") -> str:
         """
@@ -759,10 +759,10 @@ class WrappedRedvoxPacket:
         Return this packet's metadata as a key-value Python dictionary.
         :return: This packet's metadata as a key-value Python dictionary.
         """
-        return reader_utils._get_metadata_as_dict(self._metadata_list)
+        return reader_utils.get_metadata_as_dict(self._metadata_list)
 
     def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'WrappedRedvoxPacket':
-        self.set_metadata(reader_utils._metadata_dict_to_list(metadata_dict))
+        self.set_metadata(reader_utils.metadata_dict_to_list(metadata_dict))
         return self
 
     # Sensor channels
@@ -1109,7 +1109,7 @@ class WrappedRedvoxPacket:
         :param other: The other wrapped redvox packet to compare to.
         :return: A list of differences or an empty list if there are none.
         """
-        diffs = map(lambda tuple2: reader_utils._diff(tuple2[0], tuple2[1]), [
+        diffs = map(lambda tuple2: reader_utils.diff(tuple2[0], tuple2[1]), [
             (self.api(), other.api()),
             (self.redvox_id(), other.redvox_id()),
             (self.uuid(), other.uuid()),

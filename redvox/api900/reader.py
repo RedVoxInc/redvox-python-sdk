@@ -48,7 +48,7 @@ def read_buffer(buf: bytes, is_compressed: bool = True) -> api900_pb2.RedvoxPack
     :param is_compressed: Whether or not the buffer is compressed or decompressed.
     :return: Deserialized protobuf redvox packet.
     """
-    buffer = reader_utils._lz4_decompress(buf) if is_compressed else buf
+    buffer = reader_utils.lz4_decompress(buf) if is_compressed else buf
     redvox_packet = api900_pb2.RedvoxPacket()
     redvox_packet.ParseFromString(buffer)
     return redvox_packet
@@ -105,7 +105,7 @@ def read_json_file(path: str) -> WrappedRedvoxPacket:
     :return: A WrappedRedvoxPacket.
     """
     with open(path, "r") as json_in:
-        return wrap(reader_utils._from_json(json_in.read()))
+        return wrap(reader_utils.from_json(json_in.read()))
 
 
 def read_json_string(json: str) -> WrappedRedvoxPacket:
@@ -114,7 +114,7 @@ def read_json_string(json: str) -> WrappedRedvoxPacket:
     :param json: RedVox API 900 compliant json string.
     :return: A WrappedRedvoxPacket.
     """
-    return wrap(reader_utils._from_json(json))
+    return wrap(reader_utils.from_json(json))
 
 
 def read_directory(directory_path: str) -> typing.Dict[str, typing.List[WrappedRedvoxPacket]]:
