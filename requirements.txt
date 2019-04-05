@@ -1,4 +1,4 @@
 lz4>=2.1.6
-numpy>=1.16.1
-protobuf>=3.6.1
+numpy>=1.16.2
+protobuf>=3.7.1
 coala-bears
