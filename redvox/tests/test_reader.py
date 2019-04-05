@@ -8,6 +8,7 @@ from redvox.tests.utils import ArraysTestCase
 
 from redvox.api900.exceptions import ReaderException
 
+
 class ModuleFunctionTests(ArraysTestCase):
     def setUp(self):
         super().setUp()
@@ -492,7 +493,7 @@ class InterleavedChannelTests(ArraysTestCase):
     def test_get_value_mean_dne(self):
         with self.assertRaises(ReaderException):
             self.assertEqual(self.mic_channel.get_value_mean(api900_pb2.BAROMETER),
-                         0.0)
+                             0.0)
 
     def test_get_value_mean_single(self):
         self.assertEqual(self.mic_channel.get_value_mean(api900_pb2.MICROPHONE),
