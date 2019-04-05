@@ -6,8 +6,8 @@ import json
 import os
 import typing
 
+import redvox.api900.concat
 import redvox.api900.date_time_utils as date_time_utils
-import redvox.api900.exceptions as exceptions
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.reader
 import redvox.api900.reader_utils as reader_utils
@@ -395,6 +395,14 @@ class WrappedRedvoxPacket:
         :return: A clone of this WrappedRedvoxPacket.
         """
         return redvox.api900.reader.read_rdvxz_buffer(self.compressed_buffer())
+
+    def concat(self, wrapped_redvox_packets: typing.List['WrappedRedvoxPacket']) -> typing.List['WrappedRedvoxPacket']:
+        """
+        Concatenates this packet with other packets.
+        :param wrapped_redvox_packets: Other packets to concatenate with this packet.
+        :return: A list of packets each containing a continuous set of data.
+        """
+        return redvox.api900.concat.concat_wrapped_redvox_packets([self] + wrapped_redvox_packets)
 
     # Start of packet level API getters and setters
     def api(self) -> int:
