@@ -30,12 +30,6 @@ class EvenlySampledSensor:
         """
         return list(map(reader_utils._channel_type_name_from_enum, self._evenly_sampled_channel.channel_types))
 
-    def _concat_metadata(self, evenly_sampled_sensor: 'EvenlySampledSensor') -> 'EvenlySampledSensor':
-        concat_meta = []
-        concat_meta.extend(self.metadata())
-        concat_meta.extend(evenly_sampled_sensor.metadata())
-        return self.set_metadata(concat_meta)
-
     def sample_rate_hz(self) -> float:
         """
         Returns the sample rate in Hz of this evenly sampled channel.

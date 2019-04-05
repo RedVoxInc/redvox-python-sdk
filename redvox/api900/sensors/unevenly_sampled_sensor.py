@@ -1,6 +1,5 @@
 import typing
 
-import redvox.api900.exceptions as exceptions
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
 import redvox.api900.reader_utils as reader_utils
 
@@ -31,32 +30,6 @@ class UnevenlySampledSensor:
         :return: The list of channel_types as a list of names instead of enumeration constants.
         """
         return list(map(reader_utils._channel_type_name_from_enum, self._unevenly_sampled_channel.channel_types))
-
-    def _can_concat(self, unevenly_sampled_sensor: 'UnevenlySampledSensor') -> bool:
-        if unevenly_sampled_sensor is None:
-            raise exceptions.ConcatenationException("Other sensor is None.")
-
-        if self.timestamps_microseconds_utc()[-1] > unevenly_sampled_sensor.timestamps_microseconds_utc()[0]:
-            raise exceptions.ConcatenationException("Second sensor comes after first in time")
-
-        if self.sensor_name() != unevenly_sampled_sensor.sensor_name():
-            raise exceptions.ConcatenationException("Sensor names do not match. self=%s, other=%s" % (
-                self.sensor_name(), unevenly_sampled_sensor.sensor_name()
-            ))
-
-        return True
-
-    def _concat_timestamps(self, unevenly_sampled_sensor: 'UnevenlySampledSensor') -> 'UnevenlySampledSensor':
-        return self.set_timestamps_microseconds_utc(numpy.concatenate([
-            self.timestamps_microseconds_utc(),
-            unevenly_sampled_sensor.timestamps_microseconds_utc()
-        ]))
-
-    def _concat_metadata(self, unevenly_sampled_sensor: 'UnevenlySampledSensor') -> 'UnevenlySampledSensor':
-        concat_meta = []
-        concat_meta.extend(self.metadata())
-        concat_meta.extend(unevenly_sampled_sensor.metadata())
-        return self.set_metadata(concat_meta)
 
     def sensor_name(self) -> str:
         """
