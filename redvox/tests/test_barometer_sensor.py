@@ -1,5 +1,5 @@
-from redvox.api900 import reader
-from redvox.api900.exceptions import ReaderException
+import redvox.api900.reader as reader
+import redvox.api900.exceptions as exceptions
 from redvox.tests.utils import *
 
 import unittest
@@ -25,19 +25,19 @@ class TestBarometerSensor(unittest.TestCase):
     def test_get_payload_mean(self):
         self.assertAlmostEqual(4.1428571428571, self.example_sensor.payload_mean())
 
-        with self.assertRaises(ReaderException):
+        with self.assertRaises(exceptions.ReaderException):
             self.assertAlmostEqual(4.1428571428571, self.empty_sensor.payload_mean())
 
     def test_get_payload_median(self):
         self.assertAlmostEqual(0.0, self.example_sensor.payload_median())
 
-        with self.assertRaises(ReaderException):
+        with self.assertRaises(exceptions.ReaderException):
             self.assertAlmostEqual(4.1428571428571, self.empty_sensor.payload_median())
 
     def test_get_payload_std(self):
         self.assertAlmostEqual(10.28769822, self.example_sensor.payload_std())
 
-        with self.assertRaises(ReaderException):
+        with self.assertRaises(exceptions.ReaderException):
             self.assertAlmostEqual(4.1428571428571, self.empty_sensor.payload_std())
 
 
