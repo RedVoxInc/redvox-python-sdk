@@ -1,4 +1,4 @@
-from redvox.api900 import reader
+import redvox.api900.reader as reader
 from redvox.api900.exceptions import ReaderException
 from redvox.tests.utils import *
 

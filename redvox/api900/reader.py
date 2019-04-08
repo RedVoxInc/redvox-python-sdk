@@ -9,27 +9,45 @@ import typing
 
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.reader_utils as reader_utils
-from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
 # For backwards compatibility, we want to expose as much as we can from this file since everything used to live in this
 # file. This will allow old code that referenced everything through this module to still function. Someday "soon" we
 # should probably deprecate this.
-from redvox.api900.sensors.interleaved_channel import InterleavedChannel
-from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
-from redvox.api900.sensors.evenly_sampled_channel import EvenlySampledChannel
-from redvox.api900.sensors.evenly_sampled_sensor import EvenlySampledSensor
-from redvox.api900.sensors.unevenly_sampled_sensor import UnevenlySampledSensor
-from redvox.api900.sensors.xyz_unevenly_sampled_sensor import XyzUnevenlySampledSensor
-from redvox.api900.sensors.microphone_sensor import MicrophoneSensor
-from redvox.api900.sensors.barometer_sensor import BarometerSensor
-from redvox.api900.sensors.location_sensor import LocationSensor
-from redvox.api900.sensors.time_synchronization_sensor import TimeSynchronizationSensor
-from redvox.api900.sensors.accelerometer_sensor import AccelerometerSensor
-from redvox.api900.sensors.magnetometer_sensor import MagnetometerSensor
-from redvox.api900.sensors.gyroscope_sensor import GyroscopeSensor
-from redvox.api900.sensors.light_sensor import LightSensor
-from redvox.api900.sensors.infrared_sensor import InfraredSensor
-from redvox.api900.sensors.image_sensor import ImageSensor
+from redvox.api900.wrapped_redvox_packet import *
+from redvox.api900.sensors.interleaved_channel import *
+from redvox.api900.sensors.unevenly_sampled_channel import *
+from redvox.api900.sensors.evenly_sampled_channel import *
+from redvox.api900.sensors.evenly_sampled_sensor import *
+from redvox.api900.sensors.unevenly_sampled_sensor import *
+from redvox.api900.sensors.xyz_unevenly_sampled_sensor import *
+from redvox.api900.sensors.microphone_sensor import *
+from redvox.api900.sensors.barometer_sensor import *
+from redvox.api900.sensors.location_sensor import *
+from redvox.api900.sensors.time_synchronization_sensor import *
+from redvox.api900.sensors.accelerometer_sensor import *
+from redvox.api900.sensors.magnetometer_sensor import *
+from redvox.api900.sensors.gyroscope_sensor import *
+from redvox.api900.sensors.light_sensor import *
+from redvox.api900.sensors.infrared_sensor import *
+from redvox.api900.sensors.image_sensor import *
+
+
+WrappedRedvoxPackets = typing.List[WrappedRedvoxPacket]
+RedvoxSensor = typing.Union[
+    EvenlySampledSensor,
+    UnevenlySampledSensor,
+    MicrophoneSensor,
+    BarometerSensor,
+    LocationSensor,
+    TimeSynchronizationSensor,
+    AccelerometerSensor,
+    GyroscopeSensor,
+    MagnetometerSensor,
+    LightSensor,
+    InfraredSensor,
+    ImageSensor
+]
+RedvoxSensors = typing.List[RedvoxSensor]
 
 
 def wrap(redvox_packet: api900_pb2.RedvoxPacket) -> WrappedRedvoxPacket:

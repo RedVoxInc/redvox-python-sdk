@@ -4,30 +4,58 @@ import typing
 import redvox.api900.date_time_utils as _date_time_utils
 import redvox.api900.exceptions as _exceptions
 import redvox.api900.reader as _reader
-import redvox.api900.types as _types
+import redvox.api900.sensors.evenly_sampled_sensor as evenly_sampled_sensor
+import redvox.api900.sensors.time_synchronization_sensor as time_synchronization_sensor
+import redvox.api900.sensors.unevenly_sampled_sensor as unevenly_sampled_sensor
+
+import redvox.api900.sensors.microphone_sensor as microphone_sensor
+import redvox.api900.sensors.barometer_sensor as barometer_sensor
+import redvox.api900.sensors.location_sensor as location_sensor
+import redvox.api900.sensors.gyroscope_sensor as gyroscope_sensor
+import redvox.api900.sensors.magnetometer_sensor as magnetometer_sensor
+import redvox.api900.sensors.accelerometer_sensor as accelerometer_sensor
+import redvox.api900.sensors.light_sensor as light_sensor
+import redvox.api900.sensors.infrared_sensor as infrared_sensor
+import redvox.api900.sensors.image_sensor as image_sensor
+
+RedvoxSensor = typing.Union[
+    evenly_sampled_sensor.EvenlySampledSensor,
+    unevenly_sampled_sensor.UnevenlySampledSensor,
+    microphone_sensor.MicrophoneSensor,
+    barometer_sensor.BarometerSensor,
+    location_sensor.LocationSensor,
+    time_synchronization_sensor.TimeSynchronizationSensor,
+    accelerometer_sensor.AccelerometerSensor,
+    gyroscope_sensor.GyroscopeSensor,
+    magnetometer_sensor.MagnetometerSensor,
+    light_sensor.LightSensor,
+    infrared_sensor.InfraredSensor,
+    image_sensor.ImageSensor
+]
+RedvoxSensors = typing.List[RedvoxSensor]
 
 import numpy as _np
 
 _NONE_HASH = hash(None)
 
 
-def _partial_hash_sensor(sensor: typing.Optional[_types.RedvoxSensor]) -> int:
+def _partial_hash_sensor(sensor: typing.Optional[RedvoxSensor]) -> int:
     if sensor is None:
         return _NONE_HASH
 
-    if isinstance(sensor, _reader.UnevenlySampledSensor):
+    if isinstance(sensor, unevenly_sampled_sensor.UnevenlySampledSensor):
         return hash((sensor.sensor_name(), sensor.payload_type()))
 
-    if isinstance(sensor, _reader.EvenlySampledSensor):
+    if isinstance(sensor, evenly_sampled_sensor.EvenlySampledSensor):
         return hash((sensor.sample_rate_hz(), sensor.sensor_name(), sensor.payload_type()))
 
-    if isinstance(sensor, _reader.TimeSynchronizationSensor):
+    if isinstance(sensor, time_synchronization_sensor.TimeSynchronizationSensor):
         return hash("TimeSynchronizationSensor")
 
     raise _exceptions.ConcatenationException("trying to hash non-sensor type=%s" % type(sensor))
 
 
-def _partial_hash_packet(wrapped_redvox_packet: typing.Optional[_reader.WrappedRedvoxPacket]) -> int:
+def _partial_hash_packet(wrapped_redvox_packet) -> int:
     if wrapped_redvox_packet is None:
         return _NONE_HASH
 
@@ -44,12 +72,12 @@ def _partial_hash_packet(wrapped_redvox_packet: typing.Optional[_reader.WrappedR
                  _partial_hash_sensor(wrapped_redvox_packet.infrared_channel())))
 
 
-def _packet_len_s(wrapped_redvox_packet: _reader.WrappedRedvoxPacket) -> float:
+def _packet_len_s(wrapped_redvox_packet) -> float:
     microphone_sensor = wrapped_redvox_packet.microphone_channel()
     return len(microphone_sensor.payload_values()) / microphone_sensor.sample_rate_hz()
 
 
-def _identify_gaps(wrapped_redvox_packets: _types.WrappedRedvoxPackets,
+def _identify_gaps(wrapped_redvox_packets,
                    allowed_timing_error_s) -> typing.List[int]:
     if len(wrapped_redvox_packets) <= 1:
         return []
@@ -79,19 +107,19 @@ def _identify_gaps(wrapped_redvox_packets: _types.WrappedRedvoxPackets,
     return sorted(list(gaps))
 
 
-def _concat_numpy(sensors: _types.RedvoxSensors,
-                  array_extraction_fn: typing.Callable[[_types.RedvoxSensor], _np.ndarray]) -> _np.ndarray:
+def _concat_numpy(sensors: RedvoxSensors,
+                  array_extraction_fn: typing.Callable[[RedvoxSensor], _np.ndarray]) -> _np.ndarray:
     return _np.concatenate(list(map(array_extraction_fn, sensors)))
 
 
-def _concat_lists(sensors: _types.RedvoxSensors,
-                  list_extraction_fn: typing.Callable[[_types.RedvoxSensor], typing.List[str]]) -> typing.List[
+def _concat_lists(sensors: RedvoxSensors,
+                  list_extraction_fn: typing.Callable[[RedvoxSensor], typing.List[str]]) -> typing.List[
     str]:
     metadata_list = list(map(list_extraction_fn, sensors))
     return list(itertools.chain(*metadata_list))
 
 
-def _concat_continuous_data(wrapped_redvox_packets: _types.WrappedRedvoxPackets) -> _reader.WrappedRedvoxPacket:
+def _concat_continuous_data(wrapped_redvox_packets):
     first_packet = wrapped_redvox_packets[0]
 
     # Concat channels
@@ -179,7 +207,7 @@ def _concat_continuous_data(wrapped_redvox_packets: _types.WrappedRedvoxPackets)
     return first_packet
 
 
-def concat_wrapped_redvox_packets(wrapped_redvox_packets: _types.WrappedRedvoxPackets) -> _types.WrappedRedvoxPackets:
+def concat_wrapped_redvox_packets(wrapped_redvox_packets):
     if wrapped_redvox_packets is None or len(wrapped_redvox_packets) == 0:
         return []
 
@@ -202,7 +230,7 @@ def concat_wrapped_redvox_packets(wrapped_redvox_packets: _types.WrappedRedvoxPa
     gaps = _identify_gaps(wrapped_redvox_packets, 5)
 
     # Concat
-    concatenated_packets: _types.WrappedRedvoxPackets = []
+    concatenated_packets = []
     start = 0
     end = len(wrapped_redvox_packets)
 
