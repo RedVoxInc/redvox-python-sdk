@@ -36,7 +36,7 @@ class DateIterator:
     def __iter__(self):
         return self
 
-    def next(self) -> (str, str, str):
+    def __next__(self) -> (str, str, str):
         if self.start_dt > self.end_dt:
             raise StopIteration()
 
