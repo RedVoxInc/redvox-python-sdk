@@ -5,9 +5,13 @@ This module provides functions and classes for working with RedVox API 900 data.
 
 import collections
 import glob
+import os
+import os.path
 import typing
 
 import redvox.api900.lib.api900_pb2 as api900_pb2
+import redvox.api900.concat as concat
+import redvox.api900.date_time_utils as date_time_utils
 import redvox.api900.reader_utils as reader_utils
 
 # For backwards compatibility, we want to expose as much as we can from this file since everything used to live in this
@@ -97,13 +101,107 @@ def read_rdvxz_file(path: str) -> WrappedRedvoxPacket:
     return wrap(read_file(path))
 
 
+def _is_int(s: str) -> bool:
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+
+def _is_valid_redvox_filename(filename: str) -> bool:
+    return filename.endswith(".rdvxz") \
+           and _is_int(filename[0:10]) and filename[10:11] == "_" and _is_int(filename[11:24])
+
+
+def _is_path_in_set(path: str,
+                    start_timestamp_utc_s: int,
+                    end_timestamp_utc_s: int,
+                    redvox_ids: typing.Set[str]) -> bool:
+    filename = path.split(os.sep)[-1]
+
+    if not _is_valid_redvox_filename(filename):
+        return False
+
+    timestamp = int(date_time_utils.milliseconds_to_seconds(float(filename[11:24])))
+
+    if not (start_timestamp_utc_s <= timestamp <= end_timestamp_utc_s):
+        return False
+
+    redvox_id = filename[0:10]
+    if redvox_id not in redvox_ids:
+        return False
+
+    return True
+
+
+def _get_structured_paths(directory: str,
+                          start_timestamp_utc_s: int,
+                          end_timestamp_utc_s: int,
+                          redvox_ids: typing.Set[str]) -> typing.List[str]:
+    paths = []
+    for (year, month, day) in date_time_utils.DateIterator(start_timestamp_utc_s, end_timestamp_utc_s):
+        all_paths = glob.glob(os.path.join(directory, year, month, day, "*.rdvxz"))
+        valid_paths = list(
+            filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids),
+                   all_paths))
+        paths.extend(valid_paths)
+
+    return []
+
+
+T = typing.TypeVar("T")
+TT = typing.TypeVar("TT")
+
+
+def _group_by(grouping_fn: typing.Callable[[T], TT],
+              items: typing.Iterable[T]) -> typing.Dict[TT, typing.List[T]]:
+    grouped = collections.defaultdict(list)
+
+    for item in items:
+        grouped[grouping_fn(items)].append(item)
+
+    return grouped
+
+
+def _id_uuid(wrapped_redvox_packet: WrappedRedvoxPacket) -> str:
+    return "%s:%s" % (wrapped_redvox_packet.redvox_id(),
+                      wrapped_redvox_packet.uuid())
+
+
 def read_rdvxz_file_range(directory: str,
                           start_timestamp_utc_s: int,
                           end_timestamp_utc_s: int,
-                          device_ids: typing.List[str],
+                          redvox_ids: typing.List[str],
                           structured_layout: bool = False,
-                          concat_continuous_segments: bool = True) -> typing.List[WrappedRedvoxPacket]:
-    pass
+                          concat_continuous_segments: bool = True) -> typing.Dict[
+    str, typing.List[WrappedRedvoxPacket]]:
+    while directory.endswith("/") or directory.endswith("\\"):
+        directory = directory[:-1]
+
+    if structured_layout:
+        paths = _get_structured_paths(directory,
+                                      start_timestamp_utc_s,
+                                      end_timestamp_utc_s,
+                                      set(redvox_ids))
+    else:
+        all_paths = glob.glob(os.path.join(directory, "*.rdvxz"))
+        paths = list(
+            filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, set(redvox_ids)),
+                   all_paths))
+
+    wrapped_redvox_packets = map(read_rdvxz_file, paths)
+    grouped = _group_by(_id_uuid, wrapped_redvox_packets)
+    for packets in grouped.values():
+        packets.sort(key=WrappedRedvoxPacket.app_file_start_timestamp_machine)
+
+    if not concat_continuous_segments:
+        return grouped
+
+    for id_uuid in grouped:
+        grouped[id_uuid] = concat.concat_wrapped_redvox_packets(grouped[id_uuid])
+
+    return grouped
 
 
 def read_rdvxz_buffer(buf: bytes) -> WrappedRedvoxPacket:
