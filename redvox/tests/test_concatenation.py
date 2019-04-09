@@ -469,6 +469,65 @@ class TestConcatenation(unittest.TestCase):
         self.assertEqual(concatted.infrared_channel().metadata(),
                          ["a", "b", "c", "d", "a", "b", "c", "d"])
 
+    def test_concat_continuous_three(self):
+        concatted = concat._concat_continuous_data([self.example_packet, self.example_packet, self.example_packet])
+        self.assertTrue(np.array_equal(concatted.microphone_channel().payload_values(),
+                                       [-10, 0, 10, 20, 15, -6, 0, -10, 0, 10, 20, 15, -6, 0, -10, 0, 10, 20, 15, -6, 0]))
+        self.assertEqual(concatted.microphone_channel().metadata(),
+                         ["foo", "bar", "foo", "bar", "foo", "bar"])
+        self.assertTrue(np.array_equal(concatted.barometer_channel().timestamps_microseconds_utc(),
+                                       [0, 5, 11, 15, 22, 27, 31, 0, 5, 11, 15, 22, 27, 31, 0, 5, 11, 15, 22, 27, 31]))
+        self.assertTrue(np.array_equal(concatted.barometer_channel().payload_values(),
+                                       [-10, 0, 10, 20, 15, -6, 0, -10, 0, 10, 20, 15, -6, 0, -10, 0, 10, 20, 15, -6, 0]))
+        self.assertTrue(np.array_equal(concatted.time_synchronization_channel().payload_values(),
+                                       [-10, 0, 10, 20, 15, -6, 0, -10, 0, 10, 20, 15, -6, 0, -10, 0, 10, 20, 15, -6, 0]))
+        self.assertTrue(np.array_equal(concatted.location_channel().timestamps_microseconds_utc(),
+                                       [1, 2, 3, 1, 2, 3, 1, 2, 3]))
+        self.assertTrue(np.array_equal(concatted.location_channel().payload_values_latitude(),
+                                       [1, 2, 3, 1, 2, 3, 1, 2, 3]))
+        self.assertTrue(np.array_equal(concatted.location_channel().payload_values_longitude(),
+                                       [4, 5, 6, 4, 5, 6, 4, 5, 6]))
+        self.assertTrue(np.array_equal(concatted.location_channel().payload_values_altitude(),
+                                       [7, 8, 9, 7, 8, 9, 7, 8, 9]))
+        self.assertTrue(np.array_equal(concatted.location_channel().payload_values_speed(),
+                                       [10, 11, 12, 10, 11, 12, 10, 11, 12]))
+        self.assertTrue(np.array_equal(concatted.location_channel().payload_values_accuracy(),
+                                       [13, 14, 15, 13, 14, 15, 13, 14, 15]))
+        self.assertTrue(np.array_equal(concatted.accelerometer_channel().timestamps_microseconds_utc(),
+                                       [1, 2, 3, 1, 2, 3, 1, 2, 3]))
+        self.assertTrue(np.array_equal(concatted.accelerometer_channel().payload_values_x(),
+                                       [1, 2, 3, 1, 2, 3, 1, 2, 3]))
+        self.assertTrue(np.array_equal(concatted.accelerometer_channel().payload_values_y(),
+                                       [4, 5, 6, 4, 5, 6, 4, 5, 6]))
+        self.assertTrue(np.array_equal(concatted.accelerometer_channel().payload_values_z(),
+                                       [7, 8, 9, 7, 8, 9, 7, 8, 9]))
+        self.assertTrue(np.array_equal(concatted.gyroscope_channel().timestamps_microseconds_utc(),
+                                       [1, 2, 3, 1, 2, 3, 1, 2, 3]))
+        self.assertTrue(np.array_equal(concatted.gyroscope_channel().payload_values_x(),
+                                       [1, 2, 3, 1, 2, 3, 1, 2, 3]))
+        self.assertTrue(np.array_equal(concatted.gyroscope_channel().payload_values_y(),
+                                       [4, 5, 6, 4, 5, 6, 4, 5, 6]))
+        self.assertTrue(np.array_equal(concatted.gyroscope_channel().payload_values_z(),
+                                       [7, 8, 9, 7, 8, 9, 7, 8, 9]))
+        self.assertTrue(np.array_equal(concatted.accelerometer_channel().timestamps_microseconds_utc(),
+                                       [1, 2, 3, 1, 2, 3, 1, 2, 3]))
+        self.assertTrue(np.array_equal(concatted.magnetometer_channel().payload_values_x(),
+                                       [1, 2, 3, 1, 2, 3, 1, 2, 3]))
+        self.assertTrue(np.array_equal(concatted.magnetometer_channel().payload_values_y(),
+                                       [4, 5, 6, 4, 5, 6, 4, 5, 6]))
+        self.assertTrue(np.array_equal(concatted.magnetometer_channel().payload_values_z(),
+                                       [7, 8, 9, 7, 8, 9, 7, 8, 9]))
+        self.assertTrue(np.array_equal(concatted.light_channel().timestamps_microseconds_utc(),
+                                       [0, 5, 11, 15, 22, 27, 31, 0, 5, 11, 15, 22, 27, 31, 0, 5, 11, 15, 22, 27, 31]))
+        self.assertTrue(np.array_equal(concatted.light_channel().payload_values(),
+                                       [-10, 0, 10, 20, 15, -6, 0, -10, 0, 10, 20, 15, -6, 0, -10, 0, 10, 20, 15, -6, 0]))
+        self.assertTrue(np.array_equal(concatted.infrared_channel().timestamps_microseconds_utc(),
+                                       [0, 5, 11, 15, 22, 27, 31, 0, 5, 11, 15, 22, 27, 31, 0, 5, 11, 15, 22, 27, 31]))
+        self.assertTrue(np.array_equal(concatted.infrared_channel().payload_values(),
+                                       [-10, 0, 10, 20, 15, -6, 0, -10, 0, 10, 20, 15, -6, 0, -10, 0, 10, 20, 15, -6, 0]))
+        self.assertEqual(concatted.infrared_channel().metadata(),
+                         ["a", "b", "c", "d", "a", "b", "c", "d", "a", "b", "c", "d"])
+
     def test_concat_empty(self):
         self.assertEqual([], concat.concat_wrapped_redvox_packets([]))
 
