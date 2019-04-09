@@ -147,7 +147,7 @@ def _get_structured_paths(directory: str,
                    all_paths))
         paths.extend(valid_paths)
 
-    return []
+    return paths
 
 
 T = typing.TypeVar("T")
@@ -159,7 +159,7 @@ def _group_by(grouping_fn: typing.Callable[[T], TT],
     grouped = collections.defaultdict(list)
 
     for item in items:
-        grouped[grouping_fn(items)].append(item)
+        grouped[grouping_fn(item)].append(item)
 
     return grouped
 
@@ -176,6 +176,7 @@ def read_rdvxz_file_range(directory: str,
                           structured_layout: bool = False,
                           concat_continuous_segments: bool = True) -> typing.Dict[
     str, typing.List[WrappedRedvoxPacket]]:
+    
     while directory.endswith("/") or directory.endswith("\\"):
         directory = directory[:-1]
 
