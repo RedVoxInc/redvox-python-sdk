@@ -176,7 +176,7 @@ def read_rdvxz_file_range(directory: str,
                           structured_layout: bool = False,
                           concat_continuous_segments: bool = True) -> typing.Dict[
     str, typing.List[WrappedRedvoxPacket]]:
-    
+
     while directory.endswith("/") or directory.endswith("\\"):
         directory = directory[:-1]
 
