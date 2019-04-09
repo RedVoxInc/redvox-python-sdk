@@ -70,6 +70,11 @@ class TestReader(unittest.TestCase):
                                                 3000000000,
                                                 {"0000000001", "0000000002"}))
 
+    def test_id_uuid(self):
+        self.assertEqual("0000000001:123456789", reader._id_uuid(self.example_packet))
+        self.cloned_packet.set_redvox_id("foo").set_uuid("bar")
+        self.assertEqual("foo:bar", reader._id_uuid(self.cloned_packet))
+
     def test_group_by(self):
         class Foo:
             def __init__(self, bar: str):
