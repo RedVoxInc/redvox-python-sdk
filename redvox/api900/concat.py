@@ -208,7 +208,7 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
     return first_packet
 
 
-def concat_wrapped_redvox_packets(wrapped_redvox_packets):
+def concat_wrapped_redvox_packets(wrapped_redvox_packets: typing.List[WrappedRedvoxPacket]) -> typing.List[WrappedRedvoxPacket]:
     if wrapped_redvox_packets is None or len(wrapped_redvox_packets) == 0:
         return []
 

@@ -5,7 +5,7 @@ This module contains utilies for working with dates and times.
 import datetime
 
 MICROSECONDS_PER_SECOND = 1_000_000.0
-MILLISECONDS_PER_SECONDS = 1_000.0
+MILLISECONDS_PER_SECOND = 1_000.0
 
 
 def microseconds_to_seconds(microseconds: float) -> float:
@@ -22,7 +22,7 @@ def seconds_to_microseconds(seconds: float) -> float:
 
 
 def milliseconds_to_seconds(milliseconds: float) -> float:
-    return milliseconds / MICROSECONDS_PER_SECOND
+    return milliseconds / MILLISECONDS_PER_SECOND
 
 
 class DateIterator:

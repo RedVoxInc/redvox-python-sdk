@@ -533,3 +533,26 @@ class TestConcatenation(unittest.TestCase):
 
     def test_concat_one(self):
         self.assertEqual([self.example_packet], concat.concat_wrapped_redvox_packets([self.example_packet]))
+
+    def test_concat_diff_device(self):
+        self.cloned_packet.set_redvox_id("foo")
+        with self.assertRaises(exceptions.ConcatenationException):
+            concat.concat_wrapped_redvox_packets([self.example_packet, self.cloned_packet])
+        self.reset_clone()
+
+        self.cloned_packet.set_uuid("foo")
+        with self.assertRaises(exceptions.ConcatenationException):
+            concat.concat_wrapped_redvox_packets([self.example_packet, self.cloned_packet])
+        self.reset_clone()
+
+        self.cloned_packet.set_redvox_id("foo")
+        self.cloned_packet.set_uuid("foo")
+        with self.assertRaises(exceptions.ConcatenationException):
+            concat.concat_wrapped_redvox_packets([self.example_packet, self.cloned_packet])
+
+        with self.assertRaises(exceptions.ConcatenationException):
+            concat.concat_wrapped_redvox_packets([self.example_packet, self.example_packet, self.cloned_packet])
+
+    def test_concat_non_monotonic(self):
+        with self.assertRaises(exceptions.ConcatenationException):
+            concat.concat_wrapped_redvox_packets([self.example_packet, self.example_packet])

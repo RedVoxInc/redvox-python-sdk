@@ -110,8 +110,11 @@ def _is_int(s: str) -> bool:
 
 
 def _is_valid_redvox_filename(filename: str) -> bool:
-    return filename.endswith(".rdvxz") \
-           and _is_int(filename[0:10]) and filename[10:11] == "_" and _is_int(filename[11:24])
+    return len(filename) == 30 \
+            and _is_int(filename[0:10]) \
+            and filename[10:11] == "_" \
+            and _is_int(filename[11:24]) \
+            and filename[24:len(filename)] == ".rdvxz"
 
 
 def _is_path_in_set(path: str,
@@ -130,6 +133,7 @@ def _is_path_in_set(path: str,
 
     redvox_id = filename[0:10]
     if redvox_id not in redvox_ids:
+        print("reject due id", redvox_id, redvox_ids)
         return False
 
     return True
@@ -176,7 +180,6 @@ def read_rdvxz_file_range(directory: str,
                           structured_layout: bool = False,
                           concat_continuous_segments: bool = True) -> typing.Dict[
     str, typing.List[WrappedRedvoxPacket]]:
-
     while directory.endswith("/") or directory.endswith("\\"):
         directory = directory[:-1]
 
