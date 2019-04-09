@@ -1,9 +1,14 @@
 import unittest
 
 import redvox.api900.reader as reader
+import redvox.tests.utils as test_utils
 
 
 class TestReader(unittest.TestCase):
+    def setUp(self):
+        self.example_packet = reader.read_rdvxz_file(test_utils.test_data("example.rdvxz"))
+        self.cloned_packet = self.example_packet.clone()
+
     def test_is_int(self):
         self.assertTrue(reader._is_int("1"))
         self.assertTrue(reader._is_int("0"))
@@ -64,3 +69,25 @@ class TestReader(unittest.TestCase):
                                                 1000000000,
                                                 3000000000,
                                                 {"0000000001", "0000000002"}))
+
+    def test_group_by(self):
+        class Foo:
+            def __init__(self, bar: str):
+                self.bar = bar
+
+            def baz(self) -> str:
+                return self.bar
+
+        f = Foo("fuzz")
+        b = Foo("nuz")
+        foos = [f, f, b, f, b, b, b, f, f, b, b, b]
+        grouped = reader._group_by(Foo.baz, foos)
+        self.assertEqual(5, len(grouped["fuzz"]))
+        self.assertEqual(7, len(grouped["nuz"]))
+
+        self.cloned_packet.set_redvox_id("foo").set_uuid("bar")
+        packets = [self.example_packet, self.example_packet, self.cloned_packet, self.cloned_packet, self.example_packet]
+        grouped = reader._group_by(reader._id_uuid, packets)
+        self.assertEqual(3, len(grouped["0000000001:123456789"]))
+        self.assertEqual(2, len(grouped["foo:bar"]))
+
