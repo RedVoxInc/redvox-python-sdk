@@ -4,6 +4,7 @@ This modules provides test for concatenating sensors and packets.
 import unittest
 
 import redvox.api900.concat as concat
+import redvox.api900.exceptions as exceptions
 import redvox.api900.reader as reader
 import redvox.tests.utils as test_utils
 
@@ -400,6 +401,18 @@ class TestConcatenation(unittest.TestCase):
                                                self.example_packet.infrared_channel(),
                                                self.example_packet.infrared_channel()],
                                               reader.InfraredSensor.metadata))
+
+    def test_concat_continuous_empty(self):
+        with self.assertRaises(IndexError):
+            concat._concat_continuous_data([])
+
+    def test_concat_continuous_single(self):
+        self.assertEqual(self.example_packet,
+                         concat._concat_continuous_data([self.example_packet]))
+
+    def test_concat_continuous_two(self):
+        concatted = concat._concat_continuous_data([self.example_packet, self.example_packet])
+        self.assertEqual(concatted.microphone_channel().)
 
     def test_concat_empty(self):
         self.assertEqual([], concat.concat_wrapped_redvox_packets([]))

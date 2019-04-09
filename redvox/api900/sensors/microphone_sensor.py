@@ -24,11 +24,6 @@ class MicrophoneSensor(EvenlySampledSensor):
         super().__init__(evenly_sampled_channel)
         self._evenly_sampled_channel.set_channel_types([api900_pb2.MICROPHONE])
 
-    def concat(self, microphone_sensor: 'MicrophoneSensor') -> 'MicrophoneSensor':
-        if self._can_concat(microphone_sensor):
-            return self._concat_metadata(microphone_sensor).set_payload_values(numpy.concatenate([self.payload_values(),
-                                                                                                  microphone_sensor.payload_values()]))
-
     def set_payload_values(self,
                            microphone_payload: typing.Union[typing.List[int], numpy.ndarray]) -> 'MicrophoneSensor':
         """

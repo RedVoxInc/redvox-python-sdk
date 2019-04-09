@@ -17,6 +17,7 @@ import redvox.api900.sensors.accelerometer_sensor as accelerometer_sensor
 import redvox.api900.sensors.light_sensor as light_sensor
 import redvox.api900.sensors.infrared_sensor as infrared_sensor
 import redvox.api900.sensors.image_sensor as image_sensor
+from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
 RedvoxSensor = typing.Union[
     evenly_sampled_sensor.EvenlySampledSensor,
@@ -119,7 +120,7 @@ def _concat_lists(sensors: RedvoxSensors,
     return list(itertools.chain(*metadata_list))
 
 
-def _concat_continuous_data(wrapped_redvox_packets):
+def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPacket]) -> WrappedRedvoxPacket:
     first_packet = wrapped_redvox_packets[0]
 
     # Concat channels

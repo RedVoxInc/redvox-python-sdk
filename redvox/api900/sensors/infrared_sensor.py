@@ -19,12 +19,6 @@ class InfraredSensor(UnevenlySampledSensor):
         super().__init__(unevenly_sampled_channel)
         self._unevenly_sampled_channel.set_channel_types([api900_pb2.INFRARED])
 
-    def concat(self, infrared_sensor: 'InfraredSensor') -> 'InfraredSensor':
-        if self._can_concat(infrared_sensor):
-            concat_values = numpy.concatenate([self.payload_values(), infrared_sensor.payload_values()])
-            return self._concat_timestamps(infrared_sensor)._concat_metadata(infrared_sensor) \
-                .set_payload_values(concat_values)
-
     def payload_values(self) -> numpy.ndarray:
         """
         Returns a numpy ndarray of floats representing this sensor's payload.

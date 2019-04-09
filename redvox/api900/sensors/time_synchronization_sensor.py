@@ -24,10 +24,6 @@ class TimeSynchronizationSensor:
             self._unevenly_sampled_channel = UnevenlySampledChannel(unevenly_sampled_channel.protobuf_channel)
         self._unevenly_sampled_channel.set_channel_types([api900_pb2.TIME_SYNCHRONIZATION])
 
-    def concat(self, time_synchonization_sensor: 'TimeSynchronizationSensor') -> 'TimeSynchronizationSensor':
-        return self.set_payload_values(numpy.concatenate([self.payload_values(),
-                                                          time_synchonization_sensor.payload_values()]))
-
     def payload_type(self) -> str:
         """
         Returns the internal protobuf payload type.

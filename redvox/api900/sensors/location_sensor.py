@@ -45,20 +45,6 @@ class LocationSensor(UnevenlySampledSensor):
             api900_pb2.ACCURACY
         ])
 
-    def concat(self, location_sensor: 'LocationSensor') -> 'LocationSensor':
-        concat_latitude = numpy.concatenate([self.payload_values_latitude(), location_sensor.payload_values_latitude()])
-        concat_longitude = numpy.concatenate(
-                [self.payload_values_longitude(), location_sensor.payload_values_longitude()])
-        concat_altitude = numpy.concatenate([self.payload_values_altitude(), location_sensor.payload_values_altitude()])
-        concat_speed = numpy.concatenate([self.payload_values_speed(), location_sensor.payload_values_speed()])
-        concat_accuracy = numpy.concatenate([self.payload_values_accuracy(), location_sensor.payload_values_accuracy()])
-        return self._concat_timestamps(location_sensor)._concat_metadata(location_sensor) \
-            .set_payload_values(concat_latitude,
-                                concat_longitude,
-                                concat_altitude,
-                                concat_speed,
-                                concat_accuracy)
-
     def set_payload_values(self,
                            latitude_payload: typing.Union[typing.List[float], numpy.ndarray],
                            longitude_payload: typing.Union[typing.List[float], numpy.ndarray],

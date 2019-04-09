@@ -19,12 +19,6 @@ class LightSensor(UnevenlySampledSensor):
         super().__init__(unevenly_sampled_channel)
         self._unevenly_sampled_channel.set_channel_types([api900_pb2.LIGHT])
 
-    def concat(self, light_sensor: 'LightSensor') -> 'LightSensor':
-        if self._can_concat(light_sensor):
-            concat_values = numpy.concatenate([self.payload_values(), light_sensor.payload_values()])
-            return self._concat_timestamps(light_sensor)._concat_metadata(light_sensor) \
-                .set_payload_values(concat_values)
-
     def payload_values(self) -> numpy.ndarray:
         """
         Returns a numpy ndarray of floats representing this light sensor's payload.

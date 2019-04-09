@@ -33,14 +33,6 @@ class AccelerometerSensor(XyzUnevenlySampledSensor):
             api900_pb2.ACCELEROMETER_Z
         ])
 
-    def concat(self, accelerometer_sensor: 'AccelerometerSensor') -> 'AccelerometerSensor':
-        concat_x = numpy.concatenate([self.payload_values_x(), accelerometer_sensor.payload_values_x()])
-        concat_y = numpy.concatenate([self.payload_values_y(), accelerometer_sensor.payload_values_y()])
-        concat_z = numpy.concatenate([self.payload_values_z(), accelerometer_sensor.payload_values_z()])
-        return self._concat_timestamps(accelerometer_sensor) \
-            ._concat_metadata(accelerometer_sensor) \
-            .set_payload_values(concat_x, concat_y, concat_z)
-
     def set_payload_values(self,
                            x_values: typing.Union[typing.List[float], numpy.ndarray],
                            y_values: typing.Union[typing.List[float], numpy.ndarray],

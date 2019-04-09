@@ -32,13 +32,6 @@ class GyroscopeSensor(XyzUnevenlySampledSensor):
             api900_pb2.GYROSCOPE_Z
         ])
 
-    def concat(self, gyroscope_sensor: 'GyroscopeSensor') -> 'GyroscopeSensor':
-        concat_x = numpy.concatenate([self.payload_values_x(), gyroscope_sensor.payload_values_x()])
-        concat_y = numpy.concatenate([self.payload_values_y(), gyroscope_sensor.payload_values_y()])
-        concat_z = numpy.concatenate([self.payload_values_z(), gyroscope_sensor.payload_values_z()])
-        return self._concat_timestamps(gyroscope_sensor)._concat_metadata(gyroscope_sensor) \
-            .set_payload_values(concat_x, concat_y, concat_z)
-
     def set_payload_values(self,
                            x_values: typing.Union[typing.List[float], numpy.ndarray],
                            y_values: typing.Union[typing.List[float], numpy.ndarray],

@@ -20,13 +20,6 @@ class BarometerSensor(UnevenlySampledSensor):
         super().__init__(unevenly_sampled_channel)
         self._unevenly_sampled_channel.set_channel_types([api900_pb2.BAROMETER])
 
-    def concat(self, barometer_sensor: 'BarometerSensor') -> 'BarometerSensor':
-        if self._can_concat(barometer_sensor):
-            concat_values = numpy.concatenate([self.payload_values(), barometer_sensor.payload_values()])
-            return self._concat_timestamps(barometer_sensor) \
-                ._concat_metadata(barometer_sensor) \
-                .set_payload_values(concat_values)
-
     def payload_values(self) -> numpy.ndarray:
         """
         Returns this channels payload as a numpy ndarray of floats.
