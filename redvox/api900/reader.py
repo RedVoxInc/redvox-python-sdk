@@ -120,7 +120,15 @@ def _is_valid_redvox_filename(filename: str) -> bool:
 def _is_path_in_set(path: str,
                     start_timestamp_utc_s: int,
                     end_timestamp_utc_s: int,
-                    redvox_ids: typing.Set[str]) -> bool:
+                    redvox_ids: typing.Set[str] = set()) -> bool:
+    """
+    Determines whether a given path is in a provided time range and set of redvox_ids.
+    :param path: The path to
+    :param start_timestamp_utc_s:
+    :param end_timestamp_utc_s:
+    :param redvox_ids:
+    :return:
+    """
     filename = path.split(os.sep)[-1]
 
     if not _is_valid_redvox_filename(filename):
@@ -131,11 +139,11 @@ def _is_path_in_set(path: str,
     if not (start_timestamp_utc_s <= timestamp <= end_timestamp_utc_s):
         return False
 
-    if len(redvox_ids) > 0:
-        redvox_id = filename[0:10]
-        if redvox_id not in redvox_ids:
-            print("reject due id", redvox_id, redvox_ids)
-            return False
+    if len(redvox_ids)> 0:
+        if len(redvox_ids) > 0:
+            redvox_id = filename[0:10]
+            if redvox_id not in redvox_ids:
+                return False
 
     return True
 
@@ -143,7 +151,15 @@ def _is_path_in_set(path: str,
 def _get_structured_paths(directory: str,
                           start_timestamp_utc_s: int,
                           end_timestamp_utc_s: int,
-                          redvox_ids: typing.Set[str]) -> typing.List[str]:
+                          redvox_ids: typing.Set[str] = set()) -> typing.List[str]:
+    """
+    Given a base directory (which should end with api900), find the paths of all structured .rdvxz files.
+    :param directory: The base directory path (which should end with api900)
+    :param start_timestamp_utc_s: Start timestamp as seconds since the epoch UTC.
+    :param end_timestamp_utc_s: End timestamp as seconds since the epoch UTC.
+    :param redvox_ids: An optional set of redvox_ids to filter against.
+    :return: A list of paths in a structured layout of filtered .rdvxz files.
+    """
     paths = []
     for (year, month, day) in date_time_utils.DateIterator(start_timestamp_utc_s, end_timestamp_utc_s):
         all_paths = glob.glob(os.path.join(directory, year, month, day, "*.rdvxz"))
@@ -151,25 +167,35 @@ def _get_structured_paths(directory: str,
             filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids),
                    all_paths))
         paths.extend(valid_paths)
-
     return paths
 
 
+# These type vars are used for defining a generic group by function further down.
 T = typing.TypeVar("T")
 TT = typing.TypeVar("TT")
 
 
 def _group_by(grouping_fn: typing.Callable[[T], TT],
               items: typing.Iterable[T]) -> typing.Dict[TT, typing.List[T]]:
+    """
+    Groups items by a grouping function.
+    :param grouping_fn: A function that takes an item and returns a key that should be used to group the items.
+    :param items: The items to group.
+    :return: A dictionary where each key groups similar items into the value.
+    """
     grouped = collections.defaultdict(list)
 
     for item in items:
         grouped[grouping_fn(item)].append(item)
-
     return grouped
 
 
 def _id_uuid(wrapped_redvox_packet: WrappedRedvoxPacket) -> str:
+    """
+    Extracts and formats the redvox id and uuid from a WrappedRedvoxPacket.
+    :param wrapped_redvox_packet: Packet to extract redvox id and uuid from.
+    :return: Formatted redvox_id:uuid
+    """
     return "%s:%s" % (wrapped_redvox_packet.redvox_id(),
                       wrapped_redvox_packet.uuid())
 
@@ -177,10 +203,33 @@ def _id_uuid(wrapped_redvox_packet: WrappedRedvoxPacket) -> str:
 def read_rdvxz_file_range(directory: str,
                           start_timestamp_utc_s: int,
                           end_timestamp_utc_s: int,
-                          redvox_ids: typing.List[str],
+                          redvox_ids: typing.List[str] = [],
                           structured_layout: bool = False,
                           concat_continuous_segments: bool = True) -> typing.Dict[
     str, typing.List[WrappedRedvoxPacket]]:
+    """
+    Reads a range of .rdvxz files from a given directory.
+
+    Given start and end timestamps which represent UNIX time (the number of seconds from the epoch) UTC and an
+    optional set of redvox ids, this function reads .rdvxz within the given time range with the given redvox ids. If
+    not redvox ids are provided, all valid .rdvxz files within the given time range will be included.
+
+    We also support a standardized structured layout. The structured layout organizes .rdvxz files by api, year, month,
+    and day. The structured layout is as follows. api900/YYYY/MM/DD/*.rdvxz where YYYY is the year, MM is the month,
+    and DD is the day. When using the structured layout option, be sure that the root directory path is api900.
+    :param directory: The root directory of the data. If structured_layout is False, then this directory will contain
+                      various unorganized .rdvxz files. If structured_layout is True, then this directory must be the
+                      root api900 directory of the structured files.
+    :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
+    :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
+    :param redvox_ids: An optional list of redvox_ids to filter against (default=[]).
+    :param structured_layout: An optional value to define if this is loading structured data (default=False).
+    :param concat_continuous_segments: An optional value to define if this function should concatenate rdvxz files into
+                                       a multiple continuous rdvxz files seperated at gaps.
+    :return: A dictionary where each key is a single redvox id and each value is a list of ordered WrappedRedvoxPackets.
+    """
+
+    # Remove trailing directory separators
     while directory.endswith("/") or directory.endswith("\\"):
         directory = directory[:-1]
 
@@ -195,14 +244,21 @@ def read_rdvxz_file_range(directory: str,
             filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, set(redvox_ids)),
                    all_paths))
 
+    # Convert to WrappedRedvoxPackets
     wrapped_redvox_packets = map(read_rdvxz_file, paths)
+
+    # Group by redvox_id
     grouped = _group_by(_id_uuid, wrapped_redvox_packets)
+
+    # Sort
     for packets in grouped.values():
         packets.sort(key=WrappedRedvoxPacket.app_file_start_timestamp_machine)
 
+    # If not concatenating, return what we have
     if not concat_continuous_segments:
         return grouped
 
+    # Otherwise, concatenate and return
     for id_uuid in grouped:
         grouped[id_uuid] = concat.concat_wrapped_redvox_packets(grouped[id_uuid])
 
