@@ -131,10 +131,11 @@ def _is_path_in_set(path: str,
     if not (start_timestamp_utc_s <= timestamp <= end_timestamp_utc_s):
         return False
 
-    redvox_id = filename[0:10]
-    if redvox_id not in redvox_ids:
-        print("reject due id", redvox_id, redvox_ids)
-        return False
+    if len(redvox_ids) > 0:
+        redvox_id = filename[0:10]
+        if redvox_id not in redvox_ids:
+            print("reject due id", redvox_id, redvox_ids)
+            return False
 
     return True
 
