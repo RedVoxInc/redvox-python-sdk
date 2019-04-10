@@ -23,6 +23,9 @@ def calc_utils_timeseries(values: numpy.array) -> (float, float, float):
     :param values: array containing uneven timestamps
     :return: std deviation, mean, median
     """
+    if len(values) == 1:
+        return 0.0, 0.0, 0.0
+
     values = values - values[0]  # zero out the timestamps
     values = values[1:] - values[:-1]  # calculate differences
     mean = numpy.mean(values)
