@@ -1,3 +1,7 @@
+"""
+This module contains classes and methods for working with magnetometer sensors.
+"""
+
 import typing
 
 import redvox.api900.constants as constants

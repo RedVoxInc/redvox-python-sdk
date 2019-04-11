@@ -1,3 +1,7 @@
+"""
+This module contains classes and methods for working with time synchronization sensors.
+"""
+
 import typing
 
 import redvox.api900.constants as constants
@@ -6,6 +10,7 @@ import redvox.api900.reader_utils as reader_utils
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
 
 import numpy
+
 
 class TimeSynchronizationSensor:
     """High-level wrapper around time synchronization exchange.

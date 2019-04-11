@@ -1,3 +1,7 @@
+"""
+This module contains classes and methods for working with unevenly sampled sensors.
+"""
+
 import typing
 
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel

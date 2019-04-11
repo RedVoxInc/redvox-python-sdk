@@ -1,3 +1,7 @@
+"""
+This module contains classes and methods for working with barometer sensors.
+"""
+
 import typing
 
 import redvox.api900.constants as constants
@@ -6,6 +10,7 @@ from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChanne
 from redvox.api900.sensors.unevenly_sampled_sensor import UnevenlySampledSensor
 
 import numpy
+
 
 class BarometerSensor(UnevenlySampledSensor):
     """

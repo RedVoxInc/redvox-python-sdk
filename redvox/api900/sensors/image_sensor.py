@@ -1,3 +1,7 @@
+"""
+This module contains classes and methods for working with image sensors.
+"""
+
 import typing
 
 import redvox.api900.lib.api900_pb2 as api900_pb2
