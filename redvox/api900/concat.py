@@ -1,3 +1,7 @@
+"""
+This module contains functions for concatenating multiple WrappedRedvoxPackets together.
+"""
+
 import itertools
 import typing
 
@@ -41,6 +45,11 @@ _NONE_HASH = hash(None)
 
 
 def _partial_hash_sensor(sensor: typing.Optional[RedvoxSensor]) -> int:
+    """
+    Performs a partial hash on a sensor hashing the sensor name, sample rate, and payload type.
+    :param sensor: The sensor to hash.
+    :return: Hash of the sensor.
+    """
     if sensor is None:
         return _NONE_HASH
 
@@ -57,6 +66,13 @@ def _partial_hash_sensor(sensor: typing.Optional[RedvoxSensor]) -> int:
 
 
 def _partial_hash_packet(wrapped_redvox_packet) -> int:
+    """
+    Computes the partial hash of a wrapped redvox packet.
+
+    The hash is computed by hashing all of the partial hashes of the sensor channels.
+    :param wrapped_redvox_packet: Packet to hash.
+    :return: The has of this packet.
+    """
     if wrapped_redvox_packet is None:
         return _NONE_HASH
 
@@ -74,12 +90,25 @@ def _partial_hash_packet(wrapped_redvox_packet) -> int:
 
 
 def _packet_len_s(wrapped_redvox_packet) -> float:
+    """
+    Returns the length of a packet in seconds.
+    :param wrapped_redvox_packet: Packet to find the length of.
+    :return: The length of a packet in seconds.
+    """
     microphone_sensor = wrapped_redvox_packet.microphone_sensor()
     return len(microphone_sensor.payload_values()) / microphone_sensor.sample_rate_hz()
 
 
 def _identify_gaps(wrapped_redvox_packets,
-                   allowed_timing_error_s) -> typing.List[int]:
+                   allowed_timing_error_s: float) -> typing.List[int]:
+    """
+    Identifies gaps in redvox packets by first comparing hashes which identifies sensor changes and then looking at
+    timing gas.
+    :param wrapped_redvox_packets: Packets to look for gaps in.
+    :param allowed_timing_error_s: The amount of timing error in seconds.
+    :return: A list of indices into the original list where gaps were found.
+    """
+
     if len(wrapped_redvox_packets) <= 1:
         return []
 
@@ -111,17 +140,35 @@ def _identify_gaps(wrapped_redvox_packets,
 
 def _concat_numpy(sensors: RedvoxSensors,
                   array_extraction_fn: typing.Callable[[RedvoxSensor], _np.ndarray]) -> _np.ndarray:
+    """
+    Given a list of sensors concatenate the numpy arrays found with the extraction function.
+    :param sensors: Sensors to extract arrays from.
+    :param array_extraction_fn: A function that takes a sensor and returns a numpy array.
+    :return: An array of concatenated arrays.
+    """
     return _np.concatenate(list(map(array_extraction_fn, sensors)))
 
 
 def _concat_lists(sensors: RedvoxSensors,
                   list_extraction_fn: typing.Callable[[RedvoxSensor], typing.List[str]]) -> typing.List[
     str]:
+    """
+    Given a list of sensors concatenate the lists found with the extraction function.
+    :param sensors: Sensors to extract lists from.
+    :param list_extraction_fn: A function that takes a sensor and returns a list.
+    :return: A list of concatenated arrays.
+    """
     metadata_list = list(map(list_extraction_fn, sensors))
     return list(itertools.chain(*metadata_list))
 
 
 def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPacket]) -> WrappedRedvoxPacket:
+    """
+    Given a set of continuous wrapped redvox packets, concatenate the packets together by concatting the timestamps,
+    payload values, and metadata.
+    :param wrapped_redvox_packets: Packets to concatenate.
+    :return: A single WrappedRedvoxPacket with concatenated data.
+    """
     first_packet = wrapped_redvox_packets[0]
 
     # Concat channels
@@ -210,6 +257,12 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
 
 
 def concat_wrapped_redvox_packets(wrapped_redvox_packets: typing.List[WrappedRedvoxPacket]) -> typing.List[WrappedRedvoxPacket]:
+    """
+    Concatenates multiple WrappedRedvoxPackets together by combining sensor timestamps, values, and metadata.
+    :param wrapped_redvox_packets: Packets to concatenate.
+    :return: A list of concatenated WrappedRedvoxPackets. A list is returned because each packet represents a single
+             continuous range of data.
+    """
     if wrapped_redvox_packets is None or len(wrapped_redvox_packets) == 0:
         return []
 
