@@ -773,6 +773,16 @@ class WrappedRedvoxPacket:
         self.set_metadata(reader_utils.metadata_dict_to_list(metadata_dict))
         return self
 
+    def start_timestamp_us_utc(self) -> int:
+        return self.microphone_channel().first_sample_timestamp_epoch_microseconds_utc()
+
+    def duration_s(self) -> float:
+        microphone_sensor = self.microphone_channel()
+        return len(microphone_sensor.payload_values()) / microphone_sensor.sample_rate_hz()
+
+    def end_timestamp_us_utc(self):
+        return self.start_timestamp_us_utc() + date_time_utils.seconds_to_microseconds(self.duration_s())
+
     # Sensor channels
     def has_microphone_channel(self) -> bool:
         """
