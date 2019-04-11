@@ -11,73 +11,19 @@ import redvox.api900.date_time_utils as date_time_utils
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.reader
 import redvox.api900.reader_utils as reader_utils
-import redvox.api900.sensors.microphone_sensor as microphone_sensor
-import redvox.api900.sensors.barometer_sensor as barometer_sensor
-import redvox.api900.sensors.time_synchronization_sensor as time_synchronization_sensor
-import redvox.api900.sensors.location_sensor as location_sensor
-import redvox.api900.sensors.accelerometer_sensor as accelerometer_sensor
-import redvox.api900.sensors.gyroscope_sensor as gyroscope_sensor
-import redvox.api900.sensors.magnetometer_sensor as magnetometer_sensor
-import redvox.api900.sensors.light_sensor as light_sensor
-import redvox.api900.sensors.infrared_sensor as infrared_sensor
-import redvox.api900.sensors.image_sensor as image_sensor
+import redvox.api900.sensors.microphone_sensor as _microphone_sensor
+import redvox.api900.sensors.barometer_sensor as _barometer_sensor
+import redvox.api900.sensors.time_synchronization_sensor as _time_synchronization_sensor
+import redvox.api900.sensors.location_sensor as _location_sensor
+import redvox.api900.sensors.accelerometer_sensor as _accelerometer_sensor
+import redvox.api900.sensors.gyroscope_sensor as _gyroscope_sensor
+import redvox.api900.sensors.magnetometer_sensor as _magnetometer_sensor
+import redvox.api900.sensors.light_sensor as _light_sensor
+import redvox.api900.sensors.infrared_sensor as _infrared_sensor
+import redvox.api900.sensors.image_sensor as _image_sensor
 
 from redvox.api900.sensors.evenly_sampled_channel import EvenlySampledChannel
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
-
-
-class WrappedRedvoxPacketSummary:
-    def __init__(self, wrapped_redvox_packet: 'WrappedRedvoxPacket'):
-        microphone_channel = wrapped_redvox_packet.microphone_channel()
-        self.start_time_us = wrapped_redvox_packet.app_file_start_timestamp_machine()
-        self.end_time_us = self.start_time_us + date_time_utils.seconds_to_microseconds(
-            len(microphone_channel.payload_values()) / microphone_channel.sample_rate_hz())
-        self.duration_us = self.end_time_us - self.start_time_us
-        self.mic_sample_rate_hz = microphone_channel.sample_rate_hz()
-        self.has_microphone_sensor = wrapped_redvox_packet.has_microphone_channel()
-        self.microphone_sensor_len = self._get_num_samples(wrapped_redvox_packet,
-                                                           WrappedRedvoxPacket.microphone_channel,
-                                                           microphone_sensor.MicrophoneSensor.payload_values)
-        self.has_barometer_sensor = wrapped_redvox_packet.has_barometer_channel()
-        self.barometer_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.barometer_channel,
-                                                          barometer_sensor.BarometerSensor.payload_values)
-        self.has_time_synchronization_sensor = wrapped_redvox_packet.has_time_synchronization_channel()
-        self.time_synchronization_len = self._get_num_samples(wrapped_redvox_packet,
-                                                              WrappedRedvoxPacket.time_synchronization_channel,
-                                                              time_synchronization_sensor.TimeSynchronizationSensor.payload_values)
-        self.has_location_sensor = wrapped_redvox_packet.has_location_channel()
-        self.location_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.location_channel,
-                                                         location_sensor.LocationSensor.payload_values_latitude)
-        self.has_accelerometer_sensor = wrapped_redvox_packet.has_accelerometer_channel()
-        self.accelerometer_sensor_len = self._get_num_samples(wrapped_redvox_packet,
-                                                              WrappedRedvoxPacket.accelerometer_channel,
-                                                              accelerometer_sensor.AccelerometerSensor.payload_values_x)
-        self.has_gyroscope_sensor = wrapped_redvox_packet.has_gyroscope_channel()
-        self.gyroscope_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.gyroscope_channel,
-                                                          gyroscope_sensor.GyroscopeSensor.payload_values_x)
-        self.has_magnetometer_sensor = wrapped_redvox_packet.has_magnetometer_channel()
-        self.magnetometer_sensor_len = self._get_num_samples(wrapped_redvox_packet,
-                                                             WrappedRedvoxPacket.magnetometer_channel,
-                                                             magnetometer_sensor.MagnetometerSensor.payload_values_x)
-        self.has_light_sensor = wrapped_redvox_packet.has_light_channel()
-        self.light_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.light_channel,
-                                                      light_sensor.LightSensor.payload_values)
-        self.has_infrared_sensor = wrapped_redvox_packet.has_infrared_channel()
-        self.infrared_sensor_len = self._get_num_samples(wrapped_redvox_packet, WrappedRedvoxPacket.infrared_channel,
-                                                         infrared_sensor.InfraredSensor.payload_values)
-
-    def _get_num_samples(self,
-                         wrapped_redvox_packet: 'WrappedRedvoxPacket',
-                         sensor_fn,
-                         payload_fn):
-        sensor = sensor_fn(wrapped_redvox_packet)
-        if sensor is None:
-            return 0
-        else:
-            return len(payload_fn(sensor))
-
-    def __str__(self) -> str:
-        return json.dumps(self.__dict__)
 
 
 # pylint: disable=R0904
@@ -107,11 +53,12 @@ class WrappedRedvoxPacket:
             """Protobuf api 900 redvox packet"""
 
             self._evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
-                map(EvenlySampledChannel, reader_utils.repeated_to_array(redvox_packet.evenly_sampled_channels)))
+                    map(EvenlySampledChannel, reader_utils.repeated_to_array(redvox_packet.evenly_sampled_channels)))
             """List of evenly sampled channels"""
 
             self._unevenly_sampled_channels: typing.List[UnevenlySampledChannel] = list(
-                map(UnevenlySampledChannel, reader_utils.repeated_to_array(redvox_packet.unevenly_sampled_channels)))
+                    map(UnevenlySampledChannel,
+                        reader_utils.repeated_to_array(redvox_packet.unevenly_sampled_channels)))
             """List of unevenly sampled channels"""
 
             self._metadata_list: typing.List[str] = reader_utils.repeated_to_list(redvox_packet.metadata)
@@ -156,10 +103,10 @@ class WrappedRedvoxPacket:
         """
         self._evenly_sampled_channels = list(map(EvenlySampledChannel,
                                                  reader_utils.repeated_to_array(
-                                                     self._redvox_packet.evenly_sampled_channels)))
+                                                         self._redvox_packet.evenly_sampled_channels)))
         self._unevenly_sampled_channels = list(map(UnevenlySampledChannel,
                                                    reader_utils.repeated_to_array(
-                                                       self._redvox_packet.unevenly_sampled_channels)))
+                                                           self._redvox_packet.unevenly_sampled_channels)))
         self._channel_cache = {}
         for evenly_sampled_channel in self._evenly_sampled_channels:
             for channel_type in evenly_sampled_channel.channel_types:
@@ -784,31 +731,31 @@ class WrappedRedvoxPacket:
         return self.start_timestamp_us_utc() + date_time_utils.seconds_to_microseconds(self.duration_s())
 
     # Sensor channels
-    def has_microphone_channel(self) -> bool:
+    def has_microphone_sensor(self) -> bool:
         """
         Returns if this packet has a microphone channel.
         :return: If this packet has a microphone channel.
         """
         return self._has_channel(api900_pb2.MICROPHONE)
 
-    def microphone_channel(self) -> typing.Optional[microphone_sensor.MicrophoneSensor]:
+    def microphone_sensor(self) -> typing.Optional[_microphone_sensor.MicrophoneSensor]:
         """
         Returns the high-level microphone channel API or None if this packet doesn't contain a channel of this type.
         :return: the high-level microphone channel API or None if this packet doesn't contain a channel of this type.
         """
-        if self.has_microphone_channel():
-            return microphone_sensor.MicrophoneSensor(self._get_channel(api900_pb2.MICROPHONE))
+        if self.has_microphone_sensor():
+            return _microphone_sensor.MicrophoneSensor(self._get_channel(api900_pb2.MICROPHONE))
 
         return None
 
-    def set_microphone_channel(self, microphone_sensor: typing.Optional[
-        microphone_sensor.MicrophoneSensor]) -> 'WrappedRedvoxPacket':
+    def set_microphone_sensor(self, microphone_sensor: typing.Optional[
+        _microphone_sensor.MicrophoneSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packets microphone sensor. A channel can be removed by passing in None.
         :param microphone_sensor: An optional instance of a microphone sensor.
         :return: This instance of a wrapped redvox packet.
         """
-        if self.has_microphone_channel():
+        if self.has_microphone_sensor():
             self._delete_channel(api900_pb2.MICROPHONE)
 
         if microphone_sensor is not None:
@@ -816,35 +763,116 @@ class WrappedRedvoxPacket:
 
         return self
 
-    def has_barometer_channel(self) -> bool:
+    def has_microphone_channel(self) -> bool:
+        """
+        Returns if this packet has a microphone channel.
+        :return: If this packet has a microphone channel.
+        """
+        return self.has_microphone_sensor()
+
+    def microphone_channel(self) -> typing.Optional[_microphone_sensor.MicrophoneSensor]:
+        """
+        Returns the high-level microphone channel API or None if this packet doesn't contain a channel of this type.
+        :return: the high-level microphone channel API or None if this packet doesn't contain a channel of this type.
+        """
+        return self.microphone_sensor()
+
+    def set_microphone_channel(self, microphone_sensor: typing.Optional[
+        _microphone_sensor.MicrophoneSensor]) -> 'WrappedRedvoxPacket':
+        """
+        Sets this packets microphone sensor. A channel can be removed by passing in None.
+        :param microphone_sensor: An optional instance of a microphone sensor.
+        :return: This instance of a wrapped redvox packet.
+        """
+        return self.set_microphone_sensor(microphone_sensor)
+
+    def has_barometer_sensor(self) -> bool:
         """
         Returns if this packet has a barometer channel.
         :return: If this packet has a barometer channel.
         """
         return self._has_channel(api900_pb2.BAROMETER)
 
-    def barometer_channel(self) -> typing.Optional[barometer_sensor.BarometerSensor]:
+    def barometer_sensor(self) -> typing.Optional[_barometer_sensor.BarometerSensor]:
         """
         Returns the high-level barometer channel API or None if this packet doesn't contain a channel of this type.
         :return: the high-level barometer channel API or None if this packet doesn't contain a channel of this type.
         """
-        if self.has_barometer_channel():
-            return barometer_sensor.BarometerSensor(self._get_channel(api900_pb2.BAROMETER))
+        if self.has_barometer_sensor():
+            return _barometer_sensor.BarometerSensor(self._get_channel(api900_pb2.BAROMETER))
 
         return None
 
-    def set_barometer_channel(self, barometer_sensor: typing.Optional[
-        barometer_sensor.BarometerSensor]) -> 'WrappedRedvoxPacket':
+    def set_barometer_sensor(self, barometer_sensor: typing.Optional[
+        _barometer_sensor.BarometerSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packets barometer sensor. A channel can be removed by passing in None.
         :param barometer_sensor: An optional instance of a barometer sensor.
         :return: This instance of a wrapped redvox packet.
         """
-        if self.has_barometer_channel():
+        if self.has_barometer_sensor():
             self._delete_channel(api900_pb2.BAROMETER)
 
         if barometer_sensor is not None:
             self._add_channel(barometer_sensor._unevenly_sampled_channel)
+
+        return self
+
+    def barometer_channel(self) -> typing.Optional[_barometer_sensor.BarometerSensor]:
+        """
+        Returns the high-level barometer channel API or None if this packet doesn't contain a channel of this type.
+        :return: the high-level barometer channel API or None if this packet doesn't contain a channel of this type.
+        """
+        return self.barometer_sensor()
+
+    def has_barometer_channel(self) -> bool:
+        """
+        Returns if this packet has a barometer channel.
+        :return: If this packet has a barometer channel.
+        """
+        return self.has_barometer_sensor()
+
+    def set_barometer_channel(self, barometer_sensor: typing.Optional[
+        _barometer_sensor.BarometerSensor]) -> 'WrappedRedvoxPacket':
+        """
+        Sets this packets barometer sensor. A channel can be removed by passing in None.
+        :param barometer_sensor: An optional instance of a barometer sensor.
+        :return: This instance of a wrapped redvox packet.
+        """
+        return self.set_barometer_sensor(barometer_sensor)
+
+    def has_location_sensor(self) -> bool:
+        """
+        Returns if this packet has a location channel.
+        :return: If this packet has a location channel.
+        """
+        return (self._has_channels(
+                [api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED,
+                 api900_pb2.ACCURACY]) or
+                self._has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE]))
+
+    def location_sensor(self) -> typing.Optional[_location_sensor.LocationSensor]:
+        """
+        Returns the high-level location channel API or None if this packet doesn't contain a channel of this type.
+        :return: the high-level location channel API or None if this packet doesn't contain a channel of this type.
+        """
+        if self.has_location_sensor():
+            return _location_sensor.LocationSensor(self._get_channel(api900_pb2.LATITUDE))
+
+        return None
+
+    def set_location_sensor(self,
+                            location_sensor: typing.Optional[_location_sensor.LocationSensor]) -> 'WrappedRedvoxPacket':
+        """
+        Sets this packet's location sensor. A channel can be removed by passing in None.
+        :param location_sensor: An optional instance of a location sensor.
+        :return: This instance of a wrapped redvox packet.
+        """
+        if self.has_location_sensor():
+            self._delete_channel(api900_pb2.LATITUDE)
+
+        if location_sensor is not None:
+            self._add_channel(location_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -853,33 +881,63 @@ class WrappedRedvoxPacket:
         Returns if this packet has a location channel.
         :return: If this packet has a location channel.
         """
-        return (self._has_channels(
-            [api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED,
-             api900_pb2.ACCURACY]) or
-                self._has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE]))
+        return self.has_location_sensor()
 
-    def location_channel(self) -> typing.Optional[location_sensor.LocationSensor]:
+    def location_channel(self) -> typing.Optional[_location_sensor.LocationSensor]:
         """
         Returns the high-level location channel API or None if this packet doesn't contain a channel of this type.
         :return: the high-level location channel API or None if this packet doesn't contain a channel of this type.
         """
-        if self.has_location_channel():
-            return location_sensor.LocationSensor(self._get_channel(api900_pb2.LATITUDE))
-
-        return None
+        return self.location_sensor()
 
     def set_location_channel(self,
-                             location_sensor: typing.Optional[location_sensor.LocationSensor]) -> 'WrappedRedvoxPacket':
+                             location_sensor: typing.Optional[
+                                 _location_sensor.LocationSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's location sensor. A channel can be removed by passing in None.
         :param location_sensor: An optional instance of a location sensor.
         :return: This instance of a wrapped redvox packet.
         """
-        if self.has_location_channel():
-            self._delete_channel(api900_pb2.LATITUDE)
+        return self.set_location_sensor(location_sensor)
 
-        if location_sensor is not None:
-            self._add_channel(location_sensor._unevenly_sampled_channel)
+    # pylint: disable=invalid-name,C1801
+    def has_time_synchronization_sensor(self) -> bool:
+        """
+        Returns if this packet has a time synchronization channel.
+        :return: If this packet has a time synchronization channel.
+        """
+        if self._has_channel(api900_pb2.TIME_SYNCHRONIZATION):
+            ch = _time_synchronization_sensor.TimeSynchronizationSensor(
+                    self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
+            return len(ch.payload_values()) > 0
+
+        return False
+
+    def time_synchronization_sensor(self) -> typing.Optional[_time_synchronization_sensor.TimeSynchronizationSensor]:
+        """
+        Returns the high-level time synchronization channel API or None if this packet doesn't contain a channel of
+        this type.
+        :return: the high-level time synchronization channel API or None if this packet doesn't contain a channel of
+        this type.
+        """
+        if self.has_time_synchronization_sensor():
+            return _time_synchronization_sensor.TimeSynchronizationSensor(
+                    self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
+
+        return None
+
+    def set_time_synchronization_sensor(self, time_synchronization_sensor: typing.Optional[
+        _time_synchronization_sensor.TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
+        """
+        Sets this packet's time sync sensor. A channel can be removed by passing in None.
+        :param time_synchronization_sensor: An optional instance of a time sync sensor.
+        :return: This instance of a wrapped redvox packet.
+        """
+        if self.has_time_synchronization_sensor():
+            self._delete_channel(api900_pb2.TIME_SYNCHRONIZATION)
+
+        if time_synchronization_sensor is not None:
+            self._add_channel(time_synchronization_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -889,38 +947,55 @@ class WrappedRedvoxPacket:
         Returns if this packet has a time synchronization channel.
         :return: If this packet has a time synchronization channel.
         """
-        if self._has_channel(api900_pb2.TIME_SYNCHRONIZATION):
-            ch = time_synchronization_sensor.TimeSynchronizationSensor(
-                self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
-            return len(ch.payload_values()) > 0
+        return self.has_time_synchronization_sensor()
 
-        return False
-
-    def time_synchronization_channel(self) -> typing.Optional[time_synchronization_sensor.TimeSynchronizationSensor]:
+    def time_synchronization_channel(self) -> typing.Optional[_time_synchronization_sensor.TimeSynchronizationSensor]:
         """
         Returns the high-level time synchronization channel API or None if this packet doesn't contain a channel of
         this type.
         :return: the high-level time synchronization channel API or None if this packet doesn't contain a channel of
         this type.
         """
-        if self.has_time_synchronization_channel():
-            return time_synchronization_sensor.TimeSynchronizationSensor(
-                self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
-
-        return None
+        return self.time_synchronization_sensor()
 
     def set_time_synchronization_channel(self, time_synchronization_sensor: typing.Optional[
-        time_synchronization_sensor.TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
+        _time_synchronization_sensor.TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's time sync sensor. A channel can be removed by passing in None.
         :param time_synchronization_sensor: An optional instance of a time sync sensor.
         :return: This instance of a wrapped redvox packet.
         """
-        if self.has_time_synchronization_channel():
-            self._delete_channel(api900_pb2.TIME_SYNCHRONIZATION)
+        return self.set_time_synchronization_sensor(time_synchronization_sensor)
 
-        if time_synchronization_sensor is not None:
-            self._add_channel(time_synchronization_sensor._unevenly_sampled_channel)
+    def has_accelerometer_sensor(self) -> bool:
+        """
+        Returns if this packet has an accelerometer channel.
+        :return: If this packet has an accelerometer channel.
+        """
+        return self._has_channels([api900_pb2.ACCELEROMETER_X, api900_pb2.ACCELEROMETER_Y, api900_pb2.ACCELEROMETER_Z])
+
+    def accelerometer_sensor(self) -> typing.Optional[_accelerometer_sensor.AccelerometerSensor]:
+        """
+        Returns the high-level accelerometer channel API or None if this packet doesn't contain a channel of this type.
+        :return: the high-level accelerometer channel API or None if this packet doesn't contain a channel of this type.
+        """
+        if self.has_accelerometer_sensor():
+            return _accelerometer_sensor.AccelerometerSensor(self._get_channel(api900_pb2.ACCELEROMETER_X))
+
+        return None
+
+    def set_accelerometer_sensor(self,
+                                 accelerometer_sensor: typing.Optional[
+                                     _accelerometer_sensor.AccelerometerSensor]) -> 'WrappedRedvoxPacket':
+        """
+        Sets this packet's accelerometer sensor. A channel can be removed by passing in None.
+        :param accelerometer_sensor: An optional instance of a accelerometer sensor.
+        """
+        if self.has_accelerometer_sensor():
+            self._delete_channel(api900_pb2.ACCELEROMETER_X)
+
+        if accelerometer_sensor is not None:
+            self._add_channel(accelerometer_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -929,30 +1004,54 @@ class WrappedRedvoxPacket:
         Returns if this packet has an accelerometer channel.
         :return: If this packet has an accelerometer channel.
         """
-        return self._has_channels([api900_pb2.ACCELEROMETER_X, api900_pb2.ACCELEROMETER_Y, api900_pb2.ACCELEROMETER_Z])
+        return self.has_accelerometer_sensor()
 
-    def accelerometer_channel(self) -> typing.Optional[accelerometer_sensor.AccelerometerSensor]:
+    def accelerometer_channel(self) -> typing.Optional[_accelerometer_sensor.AccelerometerSensor]:
         """
         Returns the high-level accelerometer channel API or None if this packet doesn't contain a channel of this type.
         :return: the high-level accelerometer channel API or None if this packet doesn't contain a channel of this type.
         """
-        if self.has_accelerometer_channel():
-            return accelerometer_sensor.AccelerometerSensor(self._get_channel(api900_pb2.ACCELEROMETER_X))
-
-        return None
+        return self.accelerometer_sensor()
 
     def set_accelerometer_channel(self,
                                   accelerometer_sensor: typing.Optional[
-                                      accelerometer_sensor.AccelerometerSensor]) -> 'WrappedRedvoxPacket':
+                                      _accelerometer_sensor.AccelerometerSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's accelerometer sensor. A channel can be removed by passing in None.
         :param accelerometer_sensor: An optional instance of a accelerometer sensor.
         """
-        if self.has_accelerometer_channel():
-            self._delete_channel(api900_pb2.ACCELEROMETER_X)
+        return self.set_accelerometer_sensor(accelerometer_sensor)
 
-        if accelerometer_sensor is not None:
-            self._add_channel(accelerometer_sensor._unevenly_sampled_channel)
+    def has_magnetometer_sensor(self) -> bool:
+        """
+        Returns if this packet has a magnetometer channel.
+        :return: If this packet has a magnetometer channel.
+        """
+        return self._has_channels([api900_pb2.MAGNETOMETER_X, api900_pb2.MAGNETOMETER_Y, api900_pb2.MAGNETOMETER_Z])
+
+    def magnetometer_sensor(self) -> typing.Optional[_magnetometer_sensor.MagnetometerSensor]:
+        """
+        Returns the high-level magnetometer channel API or None if this packet doesn't contain a channel of this type.
+        :return: the high-level magnetometer channel API or None if this packet doesn't contain a channel of this type.
+        """
+        if self.has_magnetometer_sensor():
+            return _magnetometer_sensor.MagnetometerSensor(self._get_channel(api900_pb2.MAGNETOMETER_X))
+
+        return None
+
+    def set_magnetometer_sensor(self,
+                                 magnetometer_sensor: typing.Optional[
+                                     _magnetometer_sensor.MagnetometerSensor]) -> 'WrappedRedvoxPacket':
+        """
+        Sets this packet's magnetomer sensor. A channel can be removed by passing in None.
+        :param magnetometer_sensor: An optional instance of a magnetometer sensor.
+        :return: This instance of a wrapped redvox packet.
+        """
+        if self.has_magnetometer_sensor():
+            self._delete_channel(api900_pb2.MAGNETOMETER_X)
+
+        if magnetometer_sensor is not None:
+            self._add_channel(magnetometer_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -961,31 +1060,54 @@ class WrappedRedvoxPacket:
         Returns if this packet has a magnetometer channel.
         :return: If this packet has a magnetometer channel.
         """
-        return self._has_channels([api900_pb2.MAGNETOMETER_X, api900_pb2.MAGNETOMETER_Y, api900_pb2.MAGNETOMETER_Z])
+        return self.has_magnetometer_sensor()
 
-    def magnetometer_channel(self) -> typing.Optional[magnetometer_sensor.MagnetometerSensor]:
+    def magnetometer_channel(self) -> typing.Optional[_magnetometer_sensor.MagnetometerSensor]:
         """
         Returns the high-level magnetometer channel API or None if this packet doesn't contain a channel of this type.
         :return: the high-level magnetometer channel API or None if this packet doesn't contain a channel of this type.
         """
-        if self.has_magnetometer_channel():
-            return magnetometer_sensor.MagnetometerSensor(self._get_channel(api900_pb2.MAGNETOMETER_X))
-
-        return None
+        return self.magnetometer_sensor()
 
     def set_magnetometer_channel(self,
                                  magnetometer_sensor: typing.Optional[
-                                     magnetometer_sensor.MagnetometerSensor]) -> 'WrappedRedvoxPacket':
+                                     _magnetometer_sensor.MagnetometerSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's magnetomer sensor. A channel can be removed by passing in None.
         :param magnetometer_sensor: An optional instance of a magnetometer sensor.
         :return: This instance of a wrapped redvox packet.
         """
-        if self.has_magnetometer_channel():
-            self._delete_channel(api900_pb2.MAGNETOMETER_X)
+        return self.set_magnetometer_sensor(magnetometer_sensor)
 
-        if magnetometer_sensor is not None:
-            self._add_channel(magnetometer_sensor._unevenly_sampled_channel)
+    def has_gyroscope_sensor(self) -> bool:
+        """
+        Returns if this packet has a gyroscope channel.
+        :return: If this packet has a gyroscope channel.
+        """
+        return self._has_channels([api900_pb2.GYROSCOPE_X, api900_pb2.GYROSCOPE_Y, api900_pb2.GYROSCOPE_Z])
+
+    def gyroscope_sensor(self) -> typing.Optional[_gyroscope_sensor.GyroscopeSensor]:
+        """
+        Returns the high-level gyroscope channel API or None if this packet doesn't contain a channel of this type.
+        :return: the high-level gyroscope channel API or None if this packet doesn't contain a channel of this type.
+        """
+        if self.has_gyroscope_sensor():
+            return _gyroscope_sensor.GyroscopeSensor(self._get_channel(api900_pb2.GYROSCOPE_X))
+
+        return None
+
+    def set_gyroscope_sensor(self, gyroscope_sensor: typing.Optional[
+        _gyroscope_sensor.GyroscopeSensor]) -> 'WrappedRedvoxPacket':
+        """
+        Sets this packet's gyroscope sensor. A channel can be removed by passing in None.
+        :param gyroscope_sensor: An optional instance of a gyroscope sensor.
+        :return: This instance of a wrapped redvox packet.
+        """
+        if self.has_gyroscope_sensor():
+            self._delete_channel(api900_pb2.GYROSCOPE_X)
+
+        if gyroscope_sensor is not None:
+            self._add_channel(gyroscope_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -994,30 +1116,52 @@ class WrappedRedvoxPacket:
         Returns if this packet has a gyroscope channel.
         :return: If this packet has a gyroscope channel.
         """
-        return self._has_channels([api900_pb2.GYROSCOPE_X, api900_pb2.GYROSCOPE_Y, api900_pb2.GYROSCOPE_Z])
+        return self.has_gyroscope_sensor()
 
-    def gyroscope_channel(self) -> typing.Optional[gyroscope_sensor.GyroscopeSensor]:
+    def gyroscope_channel(self) -> typing.Optional[_gyroscope_sensor.GyroscopeSensor]:
         """
         Returns the high-level gyroscope channel API or None if this packet doesn't contain a channel of this type.
         :return: the high-level gyroscope channel API or None if this packet doesn't contain a channel of this type.
         """
-        if self.has_gyroscope_channel():
-            return gyroscope_sensor.GyroscopeSensor(self._get_channel(api900_pb2.GYROSCOPE_X))
-
-        return None
+        return self.gyroscope_sensor()
 
     def set_gyroscope_channel(self, gyroscope_sensor: typing.Optional[
-        gyroscope_sensor.GyroscopeSensor]) -> 'WrappedRedvoxPacket':
+        _gyroscope_sensor.GyroscopeSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's gyroscope sensor. A channel can be removed by passing in None.
         :param gyroscope_sensor: An optional instance of a gyroscope sensor.
         :return: This instance of a wrapped redvox packet.
         """
-        if self.has_gyroscope_channel():
-            self._delete_channel(api900_pb2.GYROSCOPE_X)
+        return self.set_gyroscope_sensor(gyroscope_sensor)
 
-        if gyroscope_sensor is not None:
-            self._add_channel(gyroscope_sensor._unevenly_sampled_channel)
+    def has_light_sensor(self) -> bool:
+        """
+        Returns if this packet has a light channel.
+        :return: If this packet has a light channel.
+        """
+        return self._has_channel(api900_pb2.LIGHT)
+
+    def light_sensor(self) -> typing.Optional[_light_sensor.LightSensor]:
+        """
+        Returns the high-level light channel API or None if this packet doesn't contain a channel of this type.
+        :return: the high-level light channel API or None if this packet doesn't contain a channel of this type.
+        """
+        if self.has_light_sensor():
+            return _light_sensor.LightSensor(self._get_channel(api900_pb2.LIGHT))
+
+        return None
+
+    def set_light_sensor(self, light_sensor: typing.Optional[_light_sensor.LightSensor]) -> 'WrappedRedvoxPacket':
+        """
+        Sets this packet's light sensor. A channel can be removed by passing in None.
+        :param light_sensor: An optional instance of a light sensor.
+        :return: This instance of a wrapped redvox packet.
+        """
+        if self.has_light_sensor():
+            self._delete_channel(api900_pb2.LIGHT)
+
+        if light_sensor is not None:
+            self._add_channel(light_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -1026,29 +1170,52 @@ class WrappedRedvoxPacket:
         Returns if this packet has a light channel.
         :return: If this packet has a light channel.
         """
-        return self._has_channel(api900_pb2.LIGHT)
+        return self.has_light_sensor()
 
-    def light_channel(self) -> typing.Optional[light_sensor.LightSensor]:
+    def light_channel(self) -> typing.Optional[_light_sensor.LightSensor]:
         """
         Returns the high-level light channel API or None if this packet doesn't contain a channel of this type.
         :return: the high-level light channel API or None if this packet doesn't contain a channel of this type.
         """
-        if self.has_light_channel():
-            return light_sensor.LightSensor(self._get_channel(api900_pb2.LIGHT))
+        return self.light_sensor()
 
-        return None
-
-    def set_light_channel(self, light_sensor: typing.Optional[light_sensor.LightSensor]) -> 'WrappedRedvoxPacket':
+    def set_light_channel(self, light_sensor: typing.Optional[_light_sensor.LightSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's light sensor. A channel can be removed by passing in None.
         :param light_sensor: An optional instance of a light sensor.
         :return: This instance of a wrapped redvox packet.
         """
-        if self.has_light_channel():
-            self._delete_channel(api900_pb2.LIGHT)
+        return self.set_light_sensor(light_sensor)
 
-        if light_sensor is not None:
-            self._add_channel(light_sensor._unevenly_sampled_channel)
+    def has_infrared_sensor(self) -> bool:
+        """
+        Returns if this packet has an infrared channel.
+        :return: If this packlet has an infrared channel.
+        """
+        return self._has_channel(api900_pb2.INFRARED)
+
+    def infrared_sensor(self) -> typing.Optional[_infrared_sensor.InfraredSensor]:
+        """
+        Returns the high-level infrared channel API or None if this packet doesn't contain a channel of this type.
+        :return: the high-level infrared channel API or None if this packet doesn't contain a channel of this type.
+        """
+        if self.has_infrared_sensor():
+            return _infrared_sensor.InfraredSensor(self._get_channel(api900_pb2.INFRARED))
+
+        return None
+
+    def set_infrared_sensor(self,
+                             infrared_sensor: typing.Optional[
+                                 _infrared_sensor.InfraredSensor]) -> 'WrappedRedvoxPacket':
+        """
+        Sets this packet's infrared sensor. A channel can be removed by passing in None.
+        :param infrared_sensor: An optional instance of a infrared sensor.
+        """
+        if self.has_infrared_sensor():
+            self._delete_channel(api900_pb2.INFRARED)
+
+        if infrared_sensor is not None:
+            self._add_channel(infrared_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -1057,29 +1224,51 @@ class WrappedRedvoxPacket:
         Returns if this packet has an infrared channel.
         :return: If this packlet has an infrared channel.
         """
-        return self._has_channel(api900_pb2.INFRARED)
+        return self.has_infrared_sensor()
 
-    def infrared_channel(self) -> typing.Optional[infrared_sensor.InfraredSensor]:
+    def infrared_channel(self) -> typing.Optional[_infrared_sensor.InfraredSensor]:
         """
         Returns the high-level infrared channel API or None if this packet doesn't contain a channel of this type.
         :return: the high-level infrared channel API or None if this packet doesn't contain a channel of this type.
         """
-        if self.has_infrared_channel():
-            return infrared_sensor.InfraredSensor(self._get_channel(api900_pb2.INFRARED))
-
-        return None
+        return self.infrared_sensor()
 
     def set_infrared_channel(self,
-                             infrared_sensor: typing.Optional[infrared_sensor.InfraredSensor]) -> 'WrappedRedvoxPacket':
+                             infrared_sensor: typing.Optional[
+                                 _infrared_sensor.InfraredSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's infrared sensor. A channel can be removed by passing in None.
         :param infrared_sensor: An optional instance of a infrared sensor.
         """
-        if self.has_infrared_channel():
-            self._delete_channel(api900_pb2.INFRARED)
+        return self.set_infrared_sensor(infrared_sensor)
 
-        if infrared_sensor is not None:
-            self._add_channel(infrared_sensor._unevenly_sampled_channel)
+    def has_image_sensor(self) -> bool:
+        """
+        Returns if this packet has an image channel.
+        :return: If this packlet has an image channel.
+        """
+        return self._has_channel(api900_pb2.IMAGE)
+
+    def image_sensor(self) -> typing.Optional[_image_sensor.ImageSensor]:
+        """
+        Returns the high-level image channel API or None if this packet doesn't contain a channel of this type.
+        :return: the high-level image channel API or None if this packet doesn't contain a channel of this type.
+        """
+        if self.has_image_sensor():
+            return _image_sensor.ImageSensor(self._get_channel(api900_pb2.IMAGE))
+
+        return None
+
+    def set_image_sensor(self, image_sensor: typing.Optional[_image_sensor.ImageSensor]) -> 'WrappedRedvoxPacket':
+        """
+        Set's the image channel.
+        :param image_sensor: Image sensor.
+        """
+        if self.has_image_sensor():
+            self._delete_channel(api900_pb2.IMAGE)
+
+        if image_sensor is not None:
+            self._add_channel(image_sensor._unevenly_sampled_channel)
 
         return self
 
@@ -1088,28 +1277,21 @@ class WrappedRedvoxPacket:
         Returns if this packet has an image channel.
         :return: If this packlet has an image channel.
         """
-        return self._has_channel(api900_pb2.IMAGE)
+        return self.has_image_sensor()
 
-    def image_channel(self) -> typing.Optional[image_sensor.ImageSensor]:
+    def image_channel(self) -> typing.Optional[_image_sensor.ImageSensor]:
         """
         Returns the high-level image channel API or None if this packet doesn't contain a channel of this type.
         :return: the high-level image channel API or None if this packet doesn't contain a channel of this type.
         """
-        if self.has_image_channel():
-            return image_sensor.ImageSensor(self._get_channel(api900_pb2.IMAGE))
+        return self.image_sensor()
 
-        return None
-
-    def set_image_channel(self, image_sensor: typing.Optional[image_sensor.ImageSensor]):
+    def set_image_channel(self, image_sensor: typing.Optional[_image_sensor.ImageSensor]) -> 'WrappedRedvoxPacket':
         """
         Set's the image channel.
         :param image_sensor: Image sensor.
         """
-        if self.has_image_channel():
-            self._delete_channel(api900_pb2.IMAGE)
-
-        if image_sensor is not None:
-            self._add_channel(image_sensor._unevenly_sampled_channel)
+        return self.set_image_sensor(image_sensor)
 
     def __str__(self):
         """
