@@ -1,5 +1,5 @@
 """
-This module contains utilies for working with dates and times.
+This module contains utilities for working with dates and times.
 """
 
 import datetime
@@ -18,14 +18,28 @@ def microseconds_to_seconds(microseconds: float) -> float:
 
 
 def seconds_to_microseconds(seconds: float) -> float:
+    """
+    Converts seconds to microseconds.
+    :param seconds: Number of seconds to convert to microseconds.
+    :return: Microseconds.
+    """
     return seconds * MICROSECONDS_PER_SECOND
 
 
 def milliseconds_to_seconds(milliseconds: float) -> float:
+    """
+    Converts milliseconds to seconds.
+    :param milliseconds: Number of milliseconds to convert to seconds.
+    :return:
+    """
     return milliseconds / MILLISECONDS_PER_SECOND
 
 
 class DateIterator:
+    """
+    This class provides an iterator over dates. That is, it takes a start date and an end date and returns a tuple
+    of year, month, day for each date between the start and end.
+    """
     def __init__(self,
                  start_timestamp_utc_s: int,
                  end_timestamp_utc_s: int):
@@ -37,6 +51,10 @@ class DateIterator:
         return self
 
     def __next__(self) -> (str, str, str):
+        """
+        Returns the next date in the iterator.
+        :return: The next date in the iterator.
+        """
         if self.start_dt > self.end_dt:
             raise StopIteration()
 
