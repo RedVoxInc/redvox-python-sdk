@@ -11,17 +11,16 @@ import redvox.api900.deprecation as deprecation
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.reader
 import redvox.api900.reader_utils as reader_utils
-import redvox.api900.sensors.microphone_sensor as _microphone_sensor
-import redvox.api900.sensors.barometer_sensor as _barometer_sensor
-import redvox.api900.sensors.time_synchronization_sensor as _time_synchronization_sensor
-import redvox.api900.sensors.location_sensor as _location_sensor
 import redvox.api900.sensors.accelerometer_sensor as _accelerometer_sensor
+import redvox.api900.sensors.barometer_sensor as _barometer_sensor
 import redvox.api900.sensors.gyroscope_sensor as _gyroscope_sensor
-import redvox.api900.sensors.magnetometer_sensor as _magnetometer_sensor
-import redvox.api900.sensors.light_sensor as _light_sensor
-import redvox.api900.sensors.infrared_sensor as _infrared_sensor
 import redvox.api900.sensors.image_sensor as _image_sensor
-
+import redvox.api900.sensors.infrared_sensor as _infrared_sensor
+import redvox.api900.sensors.light_sensor as _light_sensor
+import redvox.api900.sensors.location_sensor as _location_sensor
+import redvox.api900.sensors.magnetometer_sensor as _magnetometer_sensor
+import redvox.api900.sensors.microphone_sensor as _microphone_sensor
+import redvox.api900.sensors.time_synchronization_sensor as _time_synchronization_sensor
 from redvox.api900.sensors.evenly_sampled_channel import EvenlySampledChannel
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
 
@@ -765,29 +764,16 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", has_microphone_sensor)
     def has_microphone_channel(self) -> bool:
-        """
-        Returns if this packet has a microphone channel.
-        :return: If this packet has a microphone channel.
-        """
-        return self.has_microphone_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", microphone_sensor)
     def microphone_channel(self) -> typing.Optional[_microphone_sensor.MicrophoneSensor]:
-        """
-        Returns the high-level microphone channel API or None if this packet doesn't contain a channel of this type.
-        :return: the high-level microphone channel API or None if this packet doesn't contain a channel of this type.
-        """
-        return self.microphone_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", set_microphone_sensor)
     def set_microphone_channel(self, microphone_sensor: typing.Optional[
         _microphone_sensor.MicrophoneSensor]) -> 'WrappedRedvoxPacket':
-        """
-        Sets this packets microphone sensor. A channel can be removed by passing in None.
-        :param microphone_sensor: An optional instance of a microphone sensor.
-        :return: This instance of a wrapped redvox packet.
-        """
-        return self.set_microphone_sensor(microphone_sensor)
+        pass
 
     def has_barometer_sensor(self) -> bool:
         """
@@ -823,29 +809,16 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", barometer_sensor)
     def barometer_channel(self) -> typing.Optional[_barometer_sensor.BarometerSensor]:
-        """
-        Returns the high-level barometer channel API or None if this packet doesn't contain a channel of this type.
-        :return: the high-level barometer channel API or None if this packet doesn't contain a channel of this type.
-        """
-        return self.barometer_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", has_barometer_sensor)
     def has_barometer_channel(self) -> bool:
-        """
-        Returns if this packet has a barometer channel.
-        :return: If this packet has a barometer channel.
-        """
-        return self.has_barometer_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", set_barometer_sensor)
     def set_barometer_channel(self, barometer_sensor: typing.Optional[
         _barometer_sensor.BarometerSensor]) -> 'WrappedRedvoxPacket':
-        """
-        Sets this packets barometer sensor. A channel can be removed by passing in None.
-        :param barometer_sensor: An optional instance of a barometer sensor.
-        :return: This instance of a wrapped redvox packet.
-        """
-        return self.set_barometer_sensor(barometer_sensor)
+        pass
 
     def has_location_sensor(self) -> bool:
         """
@@ -884,30 +857,17 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", has_location_sensor)
     def has_location_channel(self) -> bool:
-        """
-        Returns if this packet has a location channel.
-        :return: If this packet has a location channel.
-        """
-        return self.has_location_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", location_sensor)
     def location_channel(self) -> typing.Optional[_location_sensor.LocationSensor]:
-        """
-        Returns the high-level location channel API or None if this packet doesn't contain a channel of this type.
-        :return: the high-level location channel API or None if this packet doesn't contain a channel of this type.
-        """
-        return self.location_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", set_location_sensor)
     def set_location_channel(self,
                              location_sensor: typing.Optional[
                                  _location_sensor.LocationSensor]) -> 'WrappedRedvoxPacket':
-        """
-        Sets this packet's location sensor. A channel can be removed by passing in None.
-        :param location_sensor: An optional instance of a location sensor.
-        :return: This instance of a wrapped redvox packet.
-        """
-        return self.set_location_sensor(location_sensor)
+        pass
 
     # pylint: disable=invalid-name,C1801
     def has_time_synchronization_sensor(self) -> bool:
@@ -953,31 +913,16 @@ class WrappedRedvoxPacket:
     # pylint: disable=invalid-name,C1801
     @deprecation.deprecated("2.0.0", has_time_synchronization_sensor)
     def has_time_synchronization_channel(self) -> bool:
-        """
-        Returns if this packet has a time synchronization channel.
-        :return: If this packet has a time synchronization channel.
-        """
-        return self.has_time_synchronization_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", time_synchronization_sensor)
     def time_synchronization_channel(self) -> typing.Optional[_time_synchronization_sensor.TimeSynchronizationSensor]:
-        """
-        Returns the high-level time synchronization channel API or None if this packet doesn't contain a channel of
-        this type.
-        :return: the high-level time synchronization channel API or None if this packet doesn't contain a channel of
-        this type.
-        """
-        return self.time_synchronization_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", set_time_synchronization_sensor)
     def set_time_synchronization_channel(self, time_synchronization_sensor: typing.Optional[
         _time_synchronization_sensor.TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
-        """
-        Sets this packet's time sync sensor. A channel can be removed by passing in None.
-        :param time_synchronization_sensor: An optional instance of a time sync sensor.
-        :return: This instance of a wrapped redvox packet.
-        """
-        return self.set_time_synchronization_sensor(time_synchronization_sensor)
+        pass
 
     def has_accelerometer_sensor(self) -> bool:
         """
@@ -1013,29 +958,17 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", has_accelerometer_sensor)
     def has_accelerometer_channel(self) -> bool:
-        """
-        Returns if this packet has an accelerometer channel.
-        :return: If this packet has an accelerometer channel.
-        """
-        return self.has_accelerometer_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", accelerometer_sensor)
     def accelerometer_channel(self) -> typing.Optional[_accelerometer_sensor.AccelerometerSensor]:
-        """
-        Returns the high-level accelerometer channel API or None if this packet doesn't contain a channel of this type.
-        :return: the high-level accelerometer channel API or None if this packet doesn't contain a channel of this type.
-        """
-        return self.accelerometer_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", set_accelerometer_sensor)
     def set_accelerometer_channel(self,
                                   accelerometer_sensor: typing.Optional[
                                       _accelerometer_sensor.AccelerometerSensor]) -> 'WrappedRedvoxPacket':
-        """
-        Sets this packet's accelerometer sensor. A channel can be removed by passing in None.
-        :param accelerometer_sensor: An optional instance of a accelerometer sensor.
-        """
-        return self.set_accelerometer_sensor(accelerometer_sensor)
+        pass
 
     def has_magnetometer_sensor(self) -> bool:
         """
@@ -1055,8 +988,8 @@ class WrappedRedvoxPacket:
         return None
 
     def set_magnetometer_sensor(self,
-                                 magnetometer_sensor: typing.Optional[
-                                     _magnetometer_sensor.MagnetometerSensor]) -> 'WrappedRedvoxPacket':
+                                magnetometer_sensor: typing.Optional[
+                                    _magnetometer_sensor.MagnetometerSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's magnetomer sensor. A channel can be removed by passing in None.
         :param magnetometer_sensor: An optional instance of a magnetometer sensor.
@@ -1072,30 +1005,17 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", has_magnetometer_sensor)
     def has_magnetometer_channel(self) -> bool:
-        """
-        Returns if this packet has a magnetometer channel.
-        :return: If this packet has a magnetometer channel.
-        """
-        return self.has_magnetometer_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", magnetometer_sensor)
     def magnetometer_channel(self) -> typing.Optional[_magnetometer_sensor.MagnetometerSensor]:
-        """
-        Returns the high-level magnetometer channel API or None if this packet doesn't contain a channel of this type.
-        :return: the high-level magnetometer channel API or None if this packet doesn't contain a channel of this type.
-        """
-        return self.magnetometer_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", set_magnetometer_sensor)
     def set_magnetometer_channel(self,
                                  magnetometer_sensor: typing.Optional[
                                      _magnetometer_sensor.MagnetometerSensor]) -> 'WrappedRedvoxPacket':
-        """
-        Sets this packet's magnetomer sensor. A channel can be removed by passing in None.
-        :param magnetometer_sensor: An optional instance of a magnetometer sensor.
-        :return: This instance of a wrapped redvox packet.
-        """
-        return self.set_magnetometer_sensor(magnetometer_sensor)
+        pass
 
     def has_gyroscope_sensor(self) -> bool:
         """
@@ -1131,29 +1051,16 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", has_gyroscope_sensor)
     def has_gyroscope_channel(self) -> bool:
-        """
-        Returns if this packet has a gyroscope channel.
-        :return: If this packet has a gyroscope channel.
-        """
-        return self.has_gyroscope_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", gyroscope_sensor)
     def gyroscope_channel(self) -> typing.Optional[_gyroscope_sensor.GyroscopeSensor]:
-        """
-        Returns the high-level gyroscope channel API or None if this packet doesn't contain a channel of this type.
-        :return: the high-level gyroscope channel API or None if this packet doesn't contain a channel of this type.
-        """
-        return self.gyroscope_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", set_gyroscope_sensor)
     def set_gyroscope_channel(self, gyroscope_sensor: typing.Optional[
         _gyroscope_sensor.GyroscopeSensor]) -> 'WrappedRedvoxPacket':
-        """
-        Sets this packet's gyroscope sensor. A channel can be removed by passing in None.
-        :param gyroscope_sensor: An optional instance of a gyroscope sensor.
-        :return: This instance of a wrapped redvox packet.
-        """
-        return self.set_gyroscope_sensor(gyroscope_sensor)
+        pass
 
     def has_light_sensor(self) -> bool:
         """
@@ -1188,28 +1095,15 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", has_light_sensor)
     def has_light_channel(self) -> bool:
-        """
-        Returns if this packet has a light channel.
-        :return: If this packet has a light channel.
-        """
-        return self.has_light_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", light_sensor)
     def light_channel(self) -> typing.Optional[_light_sensor.LightSensor]:
-        """
-        Returns the high-level light channel API or None if this packet doesn't contain a channel of this type.
-        :return: the high-level light channel API or None if this packet doesn't contain a channel of this type.
-        """
-        return self.light_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", set_light_sensor)
     def set_light_channel(self, light_sensor: typing.Optional[_light_sensor.LightSensor]) -> 'WrappedRedvoxPacket':
-        """
-        Sets this packet's light sensor. A channel can be removed by passing in None.
-        :param light_sensor: An optional instance of a light sensor.
-        :return: This instance of a wrapped redvox packet.
-        """
-        return self.set_light_sensor(light_sensor)
+        pass
 
     def has_infrared_sensor(self) -> bool:
         """
@@ -1229,8 +1123,8 @@ class WrappedRedvoxPacket:
         return None
 
     def set_infrared_sensor(self,
-                             infrared_sensor: typing.Optional[
-                                 _infrared_sensor.InfraredSensor]) -> 'WrappedRedvoxPacket':
+                            infrared_sensor: typing.Optional[
+                                _infrared_sensor.InfraredSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's infrared sensor. A channel can be removed by passing in None.
         :param infrared_sensor: An optional instance of a infrared sensor.
@@ -1245,29 +1139,17 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", has_infrared_sensor)
     def has_infrared_channel(self) -> bool:
-        """
-        Returns if this packet has an infrared channel.
-        :return: If this packlet has an infrared channel.
-        """
-        return self.has_infrared_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", infrared_sensor)
     def infrared_channel(self) -> typing.Optional[_infrared_sensor.InfraredSensor]:
-        """
-        Returns the high-level infrared channel API or None if this packet doesn't contain a channel of this type.
-        :return: the high-level infrared channel API or None if this packet doesn't contain a channel of this type.
-        """
-        return self.infrared_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", set_infrared_sensor)
     def set_infrared_channel(self,
                              infrared_sensor: typing.Optional[
                                  _infrared_sensor.InfraredSensor]) -> 'WrappedRedvoxPacket':
-        """
-        Sets this packet's infrared sensor. A channel can be removed by passing in None.
-        :param infrared_sensor: An optional instance of a infrared sensor.
-        """
-        return self.set_infrared_sensor(infrared_sensor)
+        pass
 
     def has_image_sensor(self) -> bool:
         """
@@ -1301,27 +1183,15 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", has_image_sensor)
     def has_image_channel(self) -> bool:
-        """
-        Returns if this packet has an image channel.
-        :return: If this packlet has an image channel.
-        """
-        return self.has_image_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", image_sensor)
     def image_channel(self) -> typing.Optional[_image_sensor.ImageSensor]:
-        """
-        Returns the high-level image channel API or None if this packet doesn't contain a channel of this type.
-        :return: the high-level image channel API or None if this packet doesn't contain a channel of this type.
-        """
-        return self.image_sensor()
+        pass
 
     @deprecation.deprecated("2.0.0", set_image_sensor)
     def set_image_channel(self, image_sensor: typing.Optional[_image_sensor.ImageSensor]) -> 'WrappedRedvoxPacket':
-        """
-        Set's the image channel.
-        :param image_sensor: Image sensor.
-        """
-        return self.set_image_sensor(image_sensor)
+        pass
 
     def __str__(self):
         """
