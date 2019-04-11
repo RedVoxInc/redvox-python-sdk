@@ -6,6 +6,17 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+#### 2.0.0 (2019-4-10)
+
+* Add ability concatenate multiple .rdvxz files together
+* Add ability to identify gaps in continuous data when concatenating multiple files
+* Read a range of .rdvxz files from a directory with a given time window and optional redvox ids to filter against
+* Read a range of .rdvxz files from a structured directory with a given time window and optional redvox ids to filter against
+* Deprecated several public API methods for setting and accessing sensor fields
+* Add objects for summarizing RedVox data ranges
+* Add ability to plot summary RedVox data ranges
+* Refactor reader.py into several modules
+
 #### 1.5.0 (2019-3-20)
 
 * Add setters for all fields
