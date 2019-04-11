@@ -9,7 +9,7 @@ from numpy import array, array_equal
 
 class TestLocationSensor(unittest.TestCase):
     def setUp(self):
-        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).location_channel()
+        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).location_sensor()
         self.empty_sensor = reader.LocationSensor()
 
     def test_set_payload_values(self):

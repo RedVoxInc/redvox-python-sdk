@@ -7,7 +7,7 @@ import unittest
 class TestEvenlySampledSensor(unittest.TestCase):
     def setUp(self):
         self.example_packet = reader.read_rdvxz_file(test_data("example.rdvxz"))
-        self.example_sensor = self.example_packet.microphone_channel()
+        self.example_sensor = self.example_packet.microphone_sensor()
         self.empty_sensor = reader.EvenlySampledSensor()
 
     def test_get_sensor_name(self):
@@ -53,13 +53,13 @@ class TestEvenlySampledSensor(unittest.TestCase):
         self.assertEqual("b", self.empty_sensor.set_metadata_as_dict({"a": "b"}).metadata_as_dict()["a"])
 
     def test_eq(self):
-        other_sensor = self.example_packet.clone().microphone_channel()
+        other_sensor = self.example_packet.clone().microphone_sensor()
         self.assertEqual(self.example_sensor, other_sensor)
         other_sensor.set_sensor_name("foo")
         self.assertNotEqual(self.example_sensor, other_sensor)
 
     def test_diff(self):
-        other_sensor = self.example_packet.clone().microphone_channel()
+        other_sensor = self.example_packet.clone().microphone_sensor()
         self.assertEqual([], self.example_sensor.diff(other_sensor))
         other_sensor.set_sensor_name("foo")
         self.assertEqual(["example_mic != foo"], self.example_sensor.diff(other_sensor))

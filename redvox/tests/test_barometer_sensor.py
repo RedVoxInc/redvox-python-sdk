@@ -9,7 +9,7 @@ from numpy import array, array_equal
 
 class TestBarometerSensor(unittest.TestCase):
     def setUp(self):
-        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).barometer_channel()
+        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).barometer_sensor()
         self.empty_sensor = reader.BarometerSensor()
 
     def test_get_payload_values(self):

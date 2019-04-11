@@ -62,19 +62,19 @@ def _partial_hash_packet(wrapped_redvox_packet) -> int:
 
     return hash((wrapped_redvox_packet.redvox_id(),
                  wrapped_redvox_packet.uuid(),
-                 _partial_hash_sensor(wrapped_redvox_packet.microphone_channel()),
-                 _partial_hash_sensor(wrapped_redvox_packet.barometer_channel()),
-                 _partial_hash_sensor(wrapped_redvox_packet.location_channel()),
-                 _partial_hash_sensor(wrapped_redvox_packet.time_synchronization_channel()),
-                 _partial_hash_sensor(wrapped_redvox_packet.accelerometer_channel()),
-                 _partial_hash_sensor(wrapped_redvox_packet.gyroscope_channel()),
-                 _partial_hash_sensor(wrapped_redvox_packet.magnetometer_channel()),
-                 _partial_hash_sensor(wrapped_redvox_packet.light_channel()),
-                 _partial_hash_sensor(wrapped_redvox_packet.infrared_channel())))
+                 _partial_hash_sensor(wrapped_redvox_packet.microphone_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.barometer_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.location_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.time_synchronization_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.accelerometer_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.gyroscope_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.magnetometer_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.light_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.infrared_sensor())))
 
 
 def _packet_len_s(wrapped_redvox_packet) -> float:
-    microphone_sensor = wrapped_redvox_packet.microphone_channel()
+    microphone_sensor = wrapped_redvox_packet.microphone_sensor()
     return len(microphone_sensor.payload_values()) / microphone_sensor.sample_rate_hz()
 
 
@@ -98,8 +98,9 @@ def _identify_gaps(wrapped_redvox_packets,
             truth_hash = candidate_hash
 
         # Time based gap
-        prev_timestamp = prev_packet.microphone_channel().first_sample_timestamp_epoch_microseconds_utc()
-        next_timestamp = next_packet.microphone_channel().first_sample_timestamp_epoch_microseconds_utc()
+
+        prev_timestamp = prev_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()
+        next_timestamp = next_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()
         if _date_time_utils.microseconds_to_seconds(next_timestamp - prev_timestamp) > (
                 truth_len + allowed_timing_error_s):
             gaps.add(i)
@@ -124,20 +125,20 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
     first_packet = wrapped_redvox_packets[0]
 
     # Concat channels
-    if first_packet.has_microphone_channel():
-        sensors = list(map(_reader.WrappedRedvoxPacket.microphone_channel, wrapped_redvox_packets))
+    if first_packet.has_microphone_sensor():
+        sensors = list(map(_reader.WrappedRedvoxPacket.microphone_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(_concat_numpy(sensors, _reader.MicrophoneSensor.payload_values)) \
             .set_metadata(_concat_lists(sensors, _reader.MicrophoneSensor.metadata))
 
-    if first_packet.has_barometer_channel():
-        sensors = list(map(_reader.WrappedRedvoxPacket.barometer_channel, wrapped_redvox_packets))
+    if first_packet.has_barometer_sensor():
+        sensors = list(map(_reader.WrappedRedvoxPacket.barometer_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(_concat_numpy(sensors, _reader.BarometerSensor.payload_values)) \
             .set_timestamps_microseconds_utc(
                 _concat_numpy(sensors, _reader.BarometerSensor.timestamps_microseconds_utc)) \
             .set_metadata(_concat_lists(sensors, _reader.BarometerSensor.metadata))
 
-    if first_packet.has_location_channel():
-        sensors = list(map(_reader.WrappedRedvoxPacket.location_channel, wrapped_redvox_packets))
+    if first_packet.has_location_sensor():
+        sensors = list(map(_reader.WrappedRedvoxPacket.location_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(
                 _concat_numpy(sensors, _reader.LocationSensor.payload_values_latitude),
                 _concat_numpy(sensors, _reader.LocationSensor.payload_values_longitude),
@@ -149,13 +150,13 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
                 _concat_numpy(sensors, _reader.LocationSensor.timestamps_microseconds_utc)) \
             .set_metadata(_concat_lists(sensors, _reader.LocationSensor.metadata))
 
-    if first_packet.has_time_synchronization_channel():
-        sensors = list(map(_reader.WrappedRedvoxPacket.time_synchronization_channel, wrapped_redvox_packets))
+    if first_packet.has_time_synchronization_sensor():
+        sensors = list(map(_reader.WrappedRedvoxPacket.time_synchronization_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(_concat_numpy(sensors, _reader.TimeSynchronizationSensor.payload_values)) \
             .set_metadata(_concat_lists(sensors, _reader.TimeSynchronizationSensor.metadata))
 
-    if first_packet.has_magnetometer_channel():
-        sensors = list(map(_reader.WrappedRedvoxPacket.magnetometer_channel, wrapped_redvox_packets))
+    if first_packet.has_magnetometer_sensor():
+        sensors = list(map(_reader.WrappedRedvoxPacket.magnetometer_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(
                 _concat_numpy(sensors, _reader.MagnetometerSensor.payload_values_x),
                 _concat_numpy(sensors, _reader.MagnetometerSensor.payload_values_y),
@@ -165,8 +166,8 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
                 _concat_numpy(sensors, _reader.MagnetometerSensor.timestamps_microseconds_utc)) \
             .set_metadata(_concat_lists(sensors, _reader.MagnetometerSensor.metadata))
 
-    if first_packet.has_accelerometer_channel():
-        sensors = list(map(_reader.WrappedRedvoxPacket.accelerometer_channel, wrapped_redvox_packets))
+    if first_packet.has_accelerometer_sensor():
+        sensors = list(map(_reader.WrappedRedvoxPacket.accelerometer_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(
                 _concat_numpy(sensors, _reader.AccelerometerSensor.payload_values_x),
                 _concat_numpy(sensors, _reader.AccelerometerSensor.payload_values_y),
@@ -176,8 +177,8 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
                 _concat_numpy(sensors, _reader.AccelerometerSensor.timestamps_microseconds_utc)) \
             .set_metadata(_concat_lists(sensors, _reader.AccelerometerSensor.metadata))
 
-    if first_packet.has_gyroscope_channel():
-        sensors = list(map(_reader.WrappedRedvoxPacket.gyroscope_channel, wrapped_redvox_packets))
+    if first_packet.has_gyroscope_sensor():
+        sensors = list(map(_reader.WrappedRedvoxPacket.gyroscope_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(
                 _concat_numpy(sensors, _reader.GyroscopeSensor.payload_values_x),
                 _concat_numpy(sensors, _reader.GyroscopeSensor.payload_values_y),
@@ -187,15 +188,15 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
                 _concat_numpy(sensors, _reader.GyroscopeSensor.timestamps_microseconds_utc)) \
             .set_metadata(_concat_lists(sensors, _reader.GyroscopeSensor.metadata))
 
-    if first_packet.has_light_channel():
-        sensors = list(map(_reader.WrappedRedvoxPacket.light_channel, wrapped_redvox_packets))
+    if first_packet.has_light_sensor():
+        sensors = list(map(_reader.WrappedRedvoxPacket.light_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(_concat_numpy(sensors, _reader.LightSensor.payload_values)) \
             .set_timestamps_microseconds_utc(
                 _concat_numpy(sensors, _reader.LightSensor.timestamps_microseconds_utc)) \
             .set_metadata(_concat_lists(sensors, _reader.LightSensor.metadata))
 
-    if first_packet.has_infrared_channel():
-        sensors = list(map(_reader.WrappedRedvoxPacket.infrared_channel, wrapped_redvox_packets))
+    if first_packet.has_infrared_sensor():
+        sensors = list(map(_reader.WrappedRedvoxPacket.infrared_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(_concat_numpy(sensors, _reader.InfraredSensor.payload_values)) \
             .set_timestamps_microseconds_utc(
                 _concat_numpy(sensors, _reader.InfraredSensor.timestamps_microseconds_utc)) \

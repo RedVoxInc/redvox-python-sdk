@@ -2,12 +2,12 @@
 This module contains classes and methods for working with WrappedRedvoxPackets
 """
 
-import json
 import os
 import typing
 
 import redvox.api900.concat
 import redvox.api900.date_time_utils as date_time_utils
+import redvox.api900.deprecation as deprecation
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.reader
 import redvox.api900.reader_utils as reader_utils
@@ -721,10 +721,10 @@ class WrappedRedvoxPacket:
         return self
 
     def start_timestamp_us_utc(self) -> int:
-        return self.microphone_channel().first_sample_timestamp_epoch_microseconds_utc()
+        return self.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()
 
     def duration_s(self) -> float:
-        microphone_sensor = self.microphone_channel()
+        microphone_sensor = self.microphone_sensor()
         return len(microphone_sensor.payload_values()) / microphone_sensor.sample_rate_hz()
 
     def end_timestamp_us_utc(self):
@@ -763,6 +763,7 @@ class WrappedRedvoxPacket:
 
         return self
 
+    @deprecation.deprecated("2.0.0", has_microphone_sensor)
     def has_microphone_channel(self) -> bool:
         """
         Returns if this packet has a microphone channel.
@@ -770,6 +771,7 @@ class WrappedRedvoxPacket:
         """
         return self.has_microphone_sensor()
 
+    @deprecation.deprecated("2.0.0", microphone_sensor)
     def microphone_channel(self) -> typing.Optional[_microphone_sensor.MicrophoneSensor]:
         """
         Returns the high-level microphone channel API or None if this packet doesn't contain a channel of this type.
@@ -777,6 +779,7 @@ class WrappedRedvoxPacket:
         """
         return self.microphone_sensor()
 
+    @deprecation.deprecated("2.0.0", set_microphone_sensor)
     def set_microphone_channel(self, microphone_sensor: typing.Optional[
         _microphone_sensor.MicrophoneSensor]) -> 'WrappedRedvoxPacket':
         """
@@ -1335,15 +1338,15 @@ class WrappedRedvoxPacket:
             (self.server_timestamp_epoch_microseconds_utc(),
              other.server_timestamp_epoch_microseconds_utc()),
             (self.metadata(), other.metadata()),
-            (self.microphone_channel(), other.microphone_channel()),
-            (self.barometer_channel(), other.barometer_channel()),
-            (self.location_channel(), other.location_channel()),
-            (self.time_synchronization_channel(), other.time_synchronization_channel()),
-            (self.accelerometer_channel(), other.accelerometer_channel()),
-            (self.magnetometer_channel(), other.magnetometer_channel()),
-            (self.gyroscope_channel(), other.gyroscope_channel()),
-            (self.light_channel(), other.light_channel()),
-            (self.infrared_channel(), other.infrared_channel())
+            (self.microphone_sensor(), other.microphone_sensor()),
+            (self.barometer_sensor(), other.barometer_sensor()),
+            (self.location_sensor(), other.location_sensor()),
+            (self.time_synchronization_sensor(), other.time_synchronization_sensor()),
+            (self.accelerometer_sensor(), other.accelerometer_sensor()),
+            (self.magnetometer_sensor(), other.magnetometer_sensor()),
+            (self.gyroscope_sensor(), other.gyroscope_sensor()),
+            (self.light_sensor(), other.light_sensor()),
+            (self.infrared_sensor(), other.infrared_sensor())
         ])
         # Filter only out only the differences
         diffs = filter(lambda tuple2: tuple2[0], diffs)

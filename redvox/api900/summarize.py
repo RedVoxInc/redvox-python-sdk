@@ -50,17 +50,17 @@ class WrappedRedvoxPacketSummary:
         self.start_timestamp_us: int = redvox_packet.start_timestamp_us_utc()
         self.end_timestamp_us: int = redvox_packet.end_timestamp_us_utc()
         self.duration_s: float = redvox_packet.duration_s()
-        self.sample_rate_hz = redvox_packet.microphone_channel().sample_rate_hz()
-        self.microphone_sensor_summary: SensorSummary = SensorSummary(redvox_packet.microphone_channel())
-        self.barometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.barometer_channel())
-        self.location_sensor_summary: SensorSummary = SensorSummary(redvox_packet.location_channel())
+        self.sample_rate_hz = redvox_packet.microphone_sensor().sample_rate_hz()
+        self.microphone_sensor_summary: SensorSummary = SensorSummary(redvox_packet.microphone_sensor())
+        self.barometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.barometer_sensor())
+        self.location_sensor_summary: SensorSummary = SensorSummary(redvox_packet.location_sensor())
         self.time_synchronization_sensor_summary: SensorSummary = SensorSummary(
-                redvox_packet.time_synchronization_channel())
-        self.accelerometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.accelerometer_channel())
-        self.magnetometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.magnetometer_channel())
-        self.gyroscope_sensor_summary: SensorSummary = SensorSummary(redvox_packet.gyroscope_channel())
-        self.light_sensor_summary: SensorSummary = SensorSummary(redvox_packet.light_channel())
-        self.infrared_sensor_summary: SensorSummary = SensorSummary(redvox_packet.infrared_channel())
+                redvox_packet.time_synchronization_sensor())
+        self.accelerometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.accelerometer_sensor())
+        self.magnetometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.magnetometer_sensor())
+        self.gyroscope_sensor_summary: SensorSummary = SensorSummary(redvox_packet.gyroscope_sensor())
+        self.light_sensor_summary: SensorSummary = SensorSummary(redvox_packet.light_sensor())
+        self.infrared_sensor_summary: SensorSummary = SensorSummary(redvox_packet.infrared_sensor())
 
     def __str__(self):
         return "{WrappedRedvoxPacketSummary: %s %d-%d [%f sec] %f %s %s %s %s %s %s %s %s %s} " % (

@@ -10,7 +10,7 @@ from numpy import array, array_equal
 class TestTimeSynchronizationSensor(unittest.TestCase):
     def setUp(self):
         self.example_packet = reader.read_rdvxz_file(test_data("example.rdvxz"))
-        self.example_sensor = self.example_packet.time_synchronization_channel()
+        self.example_sensor = self.example_packet.time_synchronization_sensor()
         self.empty_sensor = reader.TimeSynchronizationSensor()
 
     def test_get_payload_values(self):
@@ -40,13 +40,13 @@ class TestTimeSynchronizationSensor(unittest.TestCase):
         self.assertEqual("b", self.empty_sensor.set_metadata_as_dict({"a": "b"}).metadata_as_dict()["a"])
 
     def test_eq(self):
-        other_sensor = self.example_packet.clone().time_synchronization_channel()
+        other_sensor = self.example_packet.clone().time_synchronization_sensor()
         self.assertEqual(self.example_sensor, other_sensor)
         other_sensor.set_payload_values([1])
         self.assertNotEqual(self.example_sensor, other_sensor)
 
     def test_diff(self):
-        other_sensor = self.example_packet.clone().time_synchronization_channel()
+        other_sensor = self.example_packet.clone().time_synchronization_sensor()
         self.assertEqual([], self.example_sensor.diff(other_sensor))
         other_sensor.set_payload_values([1])
         self.assertEqual(['[-10   0  10  20  15  -6   0] != [1]'], self.example_sensor.diff(other_sensor))

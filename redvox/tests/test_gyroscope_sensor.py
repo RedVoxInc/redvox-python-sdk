@@ -9,7 +9,7 @@ from numpy import array, array_equal
 
 class TestGyroscopeSensor(unittest.TestCase):
     def setUp(self):
-        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).gyroscope_channel()
+        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).gyroscope_sensor()
         self.empty_sensor = reader.GyroscopeSensor()
 
     def test_set_payload_values(self):

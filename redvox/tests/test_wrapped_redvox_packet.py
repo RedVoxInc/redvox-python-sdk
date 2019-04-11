@@ -267,212 +267,212 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         self.example_packet.set_metadata_as_dict({"foo": "bar"})
         self.assertEqual("bar", self.example_packet.metadata_as_dict()["foo"])
 
-    def test_has_microphone_channel(self):
-        self.assertTrue(self.example_packet.has_microphone_channel())
-        self.assertFalse(self.empty_packet.has_microphone_channel())
+    def test_has_microphone_sensor(self):
+        self.assertTrue(self.example_packet.has_microphone_sensor())
+        self.assertFalse(self.empty_packet.has_microphone_sensor())
 
-    def test_get_microphone_channel(self):
-        self.assertEqual("example_mic", self.example_packet.microphone_channel().sensor_name())
-        self.assertIsNone(self.empty_packet.microphone_channel())
+    def test_get_microphone_sensor(self):
+        self.assertEqual("example_mic", self.example_packet.microphone_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.microphone_sensor())
 
-    def test_set_microphone_channel(self):
+    def test_set_microphone_sensor(self):
         sensor = reader.MicrophoneSensor().set_sensor_name("foo")
-        self.example_packet.set_microphone_channel(sensor)
-        self.empty_packet.set_microphone_channel(sensor)
-        self.assertEqual("foo", self.example_packet.microphone_channel().sensor_name())
-        self.assertEqual("foo", self.empty_packet.microphone_channel().sensor_name())
+        self.example_packet.set_microphone_sensor(sensor)
+        self.empty_packet.set_microphone_sensor(sensor)
+        self.assertEqual("foo", self.example_packet.microphone_sensor().sensor_name())
+        self.assertEqual("foo", self.empty_packet.microphone_sensor().sensor_name())
 
-    def test_set_microphone_channel_none(self):
-        self.example_packet.set_microphone_channel(None)
-        self.empty_packet.set_microphone_channel(None)
-        self.assertFalse(self.example_packet.has_microphone_channel())
-        self.assertFalse(self.empty_packet.has_microphone_channel())
-        self.assertIsNone(self.example_packet.microphone_channel())
-        self.assertIsNone(self.empty_packet.microphone_channel())
+    def test_set_microphone_sensor_none(self):
+        self.example_packet.set_microphone_sensor(None)
+        self.empty_packet.set_microphone_sensor(None)
+        self.assertFalse(self.example_packet.has_microphone_sensor())
+        self.assertFalse(self.empty_packet.has_microphone_sensor())
+        self.assertIsNone(self.example_packet.microphone_sensor())
+        self.assertIsNone(self.empty_packet.microphone_sensor())
 
-    def test_has_barometer_channel(self):
-        self.assertTrue(self.example_packet.has_barometer_channel())
-        self.assertFalse(self.empty_packet.has_barometer_channel())
+    def test_has_barometer_sensor(self):
+        self.assertTrue(self.example_packet.has_barometer_sensor())
+        self.assertFalse(self.empty_packet.has_barometer_sensor())
 
-    def test_get_barometer_channel(self):
-        self.assertEqual("example_barometer", self.example_packet.barometer_channel().sensor_name())
-        self.assertIsNone(self.empty_packet.barometer_channel())
+    def test_get_barometer_sensor(self):
+        self.assertEqual("example_barometer", self.example_packet.barometer_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.barometer_sensor())
 
-    def test_set_barometer_channel(self):
+    def test_set_barometer_sensor(self):
         sensor = reader.BarometerSensor().set_sensor_name("foo")
-        self.example_packet.set_barometer_channel(sensor)
-        self.empty_packet.set_barometer_channel(sensor)
-        self.assertEqual("foo", self.example_packet.barometer_channel().sensor_name())
-        self.assertEqual("foo", self.empty_packet.barometer_channel().sensor_name())
+        self.example_packet.set_barometer_sensor(sensor)
+        self.empty_packet.set_barometer_sensor(sensor)
+        self.assertEqual("foo", self.example_packet.barometer_sensor().sensor_name())
+        self.assertEqual("foo", self.empty_packet.barometer_sensor().sensor_name())
 
-    def test_set_barometer_channel_none(self):
-        self.example_packet.set_barometer_channel(None)
-        self.empty_packet.set_barometer_channel(None)
-        self.assertFalse(self.example_packet.has_barometer_channel())
-        self.assertFalse(self.empty_packet.has_barometer_channel())
-        self.assertIsNone(self.example_packet.barometer_channel())
-        self.assertIsNone(self.empty_packet.barometer_channel())
+    def test_set_barometer_sensor_none(self):
+        self.example_packet.set_barometer_sensor(None)
+        self.empty_packet.set_barometer_sensor(None)
+        self.assertFalse(self.example_packet.has_barometer_sensor())
+        self.assertFalse(self.empty_packet.has_barometer_sensor())
+        self.assertIsNone(self.example_packet.barometer_sensor())
+        self.assertIsNone(self.empty_packet.barometer_sensor())
 
-    def test_has_location_channel(self):
-        self.assertTrue(self.example_packet.has_location_channel())
-        self.assertFalse(self.empty_packet.has_location_channel())
+    def test_has_location_sensor(self):
+        self.assertTrue(self.example_packet.has_location_sensor())
+        self.assertFalse(self.empty_packet.has_location_sensor())
 
-    def test_get_location_channel(self):
-        self.assertEqual("example_gps", self.example_packet.location_channel().sensor_name())
-        self.assertIsNone(self.empty_packet.location_channel())
+    def test_get_location_sensor(self):
+        self.assertEqual("example_gps", self.example_packet.location_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.location_sensor())
 
-    def test_set_location_channel(self):
+    def test_set_location_sensor(self):
         sensor = reader.LocationSensor().set_sensor_name("foo")
-        self.example_packet.set_location_channel(sensor)
-        self.empty_packet.set_location_channel(sensor)
-        self.assertEqual("foo", self.example_packet.location_channel().sensor_name())
-        self.assertEqual("foo", self.empty_packet.location_channel().sensor_name())
+        self.example_packet.set_location_sensor(sensor)
+        self.empty_packet.set_location_sensor(sensor)
+        self.assertEqual("foo", self.example_packet.location_sensor().sensor_name())
+        self.assertEqual("foo", self.empty_packet.location_sensor().sensor_name())
 
-    def test_set_location_channel_none(self):
-        self.example_packet.set_location_channel(None)
-        self.empty_packet.set_location_channel(None)
-        self.assertFalse(self.example_packet.has_location_channel())
-        self.assertFalse(self.empty_packet.has_location_channel())
-        self.assertIsNone(self.example_packet.location_channel())
-        self.assertIsNone(self.empty_packet.location_channel())
+    def test_set_location_sensor_none(self):
+        self.example_packet.set_location_sensor(None)
+        self.empty_packet.set_location_sensor(None)
+        self.assertFalse(self.example_packet.has_location_sensor())
+        self.assertFalse(self.empty_packet.has_location_sensor())
+        self.assertIsNone(self.example_packet.location_sensor())
+        self.assertIsNone(self.empty_packet.location_sensor())
 
-    def test_has_time_synchronization_channel(self):
-        self.assertTrue(self.example_packet.has_time_synchronization_channel())
-        self.assertFalse(self.empty_packet.has_time_synchronization_channel())
+    def test_has_time_synchronization_sensor(self):
+        self.assertTrue(self.example_packet.has_time_synchronization_sensor())
+        self.assertFalse(self.empty_packet.has_time_synchronization_sensor())
 
-    def test_get_time_synchronization_channel(self):
-        self.assertEqual(7, len(self.example_packet.time_synchronization_channel().payload_values()))
-        self.assertIsNone(self.empty_packet.time_synchronization_channel())
+    def test_get_time_synchronization_sensor(self):
+        self.assertEqual(7, len(self.example_packet.time_synchronization_sensor().payload_values()))
+        self.assertIsNone(self.empty_packet.time_synchronization_sensor())
 
-    def test_set_time_synchronization_channel(self):
+    def test_set_time_synchronization_sensor(self):
         sensor = reader.TimeSynchronizationSensor().set_payload_values([1, 2, 3])
-        self.example_packet.set_time_synchronization_channel(sensor)
-        self.empty_packet.set_time_synchronization_channel(sensor)
-        self.assertTrue(numpy.array_equal(numpy.array([1, 2, 3]), self.example_packet.time_synchronization_channel().payload_values()))
-        self.assertTrue(numpy.array_equal(numpy.array([1, 2, 3]), self.empty_packet.time_synchronization_channel().payload_values()))
+        self.example_packet.set_time_synchronization_sensor(sensor)
+        self.empty_packet.set_time_synchronization_sensor(sensor)
+        self.assertTrue(numpy.array_equal(numpy.array([1, 2, 3]), self.example_packet.time_synchronization_sensor().payload_values()))
+        self.assertTrue(numpy.array_equal(numpy.array([1, 2, 3]), self.empty_packet.time_synchronization_sensor().payload_values()))
 
-    def test_set_time_synchronization_channel_none(self):
-        self.example_packet.set_time_synchronization_channel(None)
-        self.empty_packet.set_time_synchronization_channel(None)
-        self.assertFalse(self.example_packet.has_time_synchronization_channel())
-        self.assertFalse(self.empty_packet.has_time_synchronization_channel())
-        self.assertIsNone(self.example_packet.time_synchronization_channel())
-        self.assertIsNone(self.empty_packet.time_synchronization_channel())
+    def test_set_time_synchronization_sensor_none(self):
+        self.example_packet.set_time_synchronization_sensor(None)
+        self.empty_packet.set_time_synchronization_sensor(None)
+        self.assertFalse(self.example_packet.has_time_synchronization_sensor())
+        self.assertFalse(self.empty_packet.has_time_synchronization_sensor())
+        self.assertIsNone(self.example_packet.time_synchronization_sensor())
+        self.assertIsNone(self.empty_packet.time_synchronization_sensor())
 
-    def test_has_accelerometer_channel(self):
-        self.assertTrue(self.example_packet.has_accelerometer_channel())
-        self.assertFalse(self.empty_packet.has_accelerometer_channel())
+    def test_has_accelerometer_sensor(self):
+        self.assertTrue(self.example_packet.has_accelerometer_sensor())
+        self.assertFalse(self.empty_packet.has_accelerometer_sensor())
 
-    def test_get_accelerometer_channel(self):
-        self.assertEqual("example_accelerometer", self.example_packet.accelerometer_channel().sensor_name())
-        self.assertIsNone(self.empty_packet.accelerometer_channel())
+    def test_get_accelerometer_sensor(self):
+        self.assertEqual("example_accelerometer", self.example_packet.accelerometer_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.accelerometer_sensor())
 
-    def test_set_accelerometer_channel(self):
+    def test_set_accelerometer_sensor(self):
         sensor = reader.AccelerometerSensor().set_sensor_name("foo")
-        self.example_packet.set_accelerometer_channel(sensor)
-        self.empty_packet.set_accelerometer_channel(sensor)
-        self.assertEqual("foo", self.example_packet.accelerometer_channel().sensor_name())
-        self.assertEqual("foo", self.empty_packet.accelerometer_channel().sensor_name())
+        self.example_packet.set_accelerometer_sensor(sensor)
+        self.empty_packet.set_accelerometer_sensor(sensor)
+        self.assertEqual("foo", self.example_packet.accelerometer_sensor().sensor_name())
+        self.assertEqual("foo", self.empty_packet.accelerometer_sensor().sensor_name())
 
-    def test_set_accelerometer_channel_none(self):
-        self.example_packet.set_accelerometer_channel(None)
-        self.empty_packet.set_accelerometer_channel(None)
-        self.assertFalse(self.example_packet.has_accelerometer_channel())
-        self.assertFalse(self.empty_packet.has_accelerometer_channel())
-        self.assertIsNone(self.example_packet.accelerometer_channel())
-        self.assertIsNone(self.empty_packet.accelerometer_channel())
+    def test_set_accelerometer_sensor_none(self):
+        self.example_packet.set_accelerometer_sensor(None)
+        self.empty_packet.set_accelerometer_sensor(None)
+        self.assertFalse(self.example_packet.has_accelerometer_sensor())
+        self.assertFalse(self.empty_packet.has_accelerometer_sensor())
+        self.assertIsNone(self.example_packet.accelerometer_sensor())
+        self.assertIsNone(self.empty_packet.accelerometer_sensor())
 
-    def test_has_magnetometer_channel(self):
-        self.assertTrue(self.example_packet.has_magnetometer_channel())
-        self.assertFalse(self.empty_packet.has_magnetometer_channel())
+    def test_has_magnetometer_sensor(self):
+        self.assertTrue(self.example_packet.has_magnetometer_sensor())
+        self.assertFalse(self.empty_packet.has_magnetometer_sensor())
 
-    def test_get_magnetometer_channel(self):
-        self.assertEqual("example_magnetometer", self.example_packet.magnetometer_channel().sensor_name())
-        self.assertIsNone(self.empty_packet.magnetometer_channel())
+    def test_get_magnetometer_sensor(self):
+        self.assertEqual("example_magnetometer", self.example_packet.magnetometer_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.magnetometer_sensor())
 
-    def test_set_magnetometer_channel(self):
+    def test_set_magnetometer_sensor(self):
         sensor = reader.MagnetometerSensor().set_sensor_name("foo")
-        self.example_packet.set_magnetometer_channel(sensor)
-        self.empty_packet.set_magnetometer_channel(sensor)
-        self.assertEqual("foo", self.example_packet.magnetometer_channel().sensor_name())
-        self.assertEqual("foo", self.empty_packet.magnetometer_channel().sensor_name())
+        self.example_packet.set_magnetometer_sensor(sensor)
+        self.empty_packet.set_magnetometer_sensor(sensor)
+        self.assertEqual("foo", self.example_packet.magnetometer_sensor().sensor_name())
+        self.assertEqual("foo", self.empty_packet.magnetometer_sensor().sensor_name())
 
-    def test_set_magnetometer_channel_none(self):
-        self.example_packet.set_magnetometer_channel(None)
-        self.empty_packet.set_magnetometer_channel(None)
-        self.assertFalse(self.example_packet.has_magnetometer_channel())
-        self.assertFalse(self.empty_packet.has_magnetometer_channel())
-        self.assertIsNone(self.example_packet.magnetometer_channel())
-        self.assertIsNone(self.empty_packet.magnetometer_channel())
+    def test_set_magnetometer_sensor_none(self):
+        self.example_packet.set_magnetometer_sensor(None)
+        self.empty_packet.set_magnetometer_sensor(None)
+        self.assertFalse(self.example_packet.has_magnetometer_sensor())
+        self.assertFalse(self.empty_packet.has_magnetometer_sensor())
+        self.assertIsNone(self.example_packet.magnetometer_sensor())
+        self.assertIsNone(self.empty_packet.magnetometer_sensor())
 
-    def test_has_gyroscope_channel(self):
-        self.assertTrue(self.example_packet.has_gyroscope_channel())
-        self.assertFalse(self.empty_packet.has_gyroscope_channel())
+    def test_has_gyroscope_sensor(self):
+        self.assertTrue(self.example_packet.has_gyroscope_sensor())
+        self.assertFalse(self.empty_packet.has_gyroscope_sensor())
 
-    def test_get_gyroscope_channel(self):
-        self.assertEqual("example_gyroscope", self.example_packet.gyroscope_channel().sensor_name())
-        self.assertIsNone(self.empty_packet.gyroscope_channel())
+    def test_get_gyroscope_sensor(self):
+        self.assertEqual("example_gyroscope", self.example_packet.gyroscope_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.gyroscope_sensor())
 
-    def test_set_gyroscope_channel(self):
+    def test_set_gyroscope_sensor(self):
         sensor = reader.GyroscopeSensor().set_sensor_name("foo")
-        self.example_packet.set_gyroscope_channel(sensor)
-        self.empty_packet.set_gyroscope_channel(sensor)
-        self.assertEqual("foo", self.example_packet.gyroscope_channel().sensor_name())
-        self.assertEqual("foo", self.empty_packet.gyroscope_channel().sensor_name())
+        self.example_packet.set_gyroscope_sensor(sensor)
+        self.empty_packet.set_gyroscope_sensor(sensor)
+        self.assertEqual("foo", self.example_packet.gyroscope_sensor().sensor_name())
+        self.assertEqual("foo", self.empty_packet.gyroscope_sensor().sensor_name())
 
-    def test_set_gyroscope_channel_none(self):
-        self.example_packet.set_gyroscope_channel(None)
-        self.empty_packet.set_gyroscope_channel(None)
-        self.assertFalse(self.example_packet.has_gyroscope_channel())
-        self.assertFalse(self.empty_packet.has_gyroscope_channel())
-        self.assertIsNone(self.example_packet.gyroscope_channel())
-        self.assertIsNone(self.empty_packet.gyroscope_channel())
+    def test_set_gyroscope_sensor_none(self):
+        self.example_packet.set_gyroscope_sensor(None)
+        self.empty_packet.set_gyroscope_sensor(None)
+        self.assertFalse(self.example_packet.has_gyroscope_sensor())
+        self.assertFalse(self.empty_packet.has_gyroscope_sensor())
+        self.assertIsNone(self.example_packet.gyroscope_sensor())
+        self.assertIsNone(self.empty_packet.gyroscope_sensor())
 
-    def test_has_light_channel(self):
-        self.assertTrue(self.example_packet.has_light_channel())
-        self.assertFalse(self.empty_packet.has_light_channel())
+    def test_has_light_sensor(self):
+        self.assertTrue(self.example_packet.has_light_sensor())
+        self.assertFalse(self.empty_packet.has_light_sensor())
 
-    def test_get_light_channel(self):
-        self.assertEqual("example_light", self.example_packet.light_channel().sensor_name())
-        self.assertIsNone(self.empty_packet.light_channel())
+    def test_get_light_sensor(self):
+        self.assertEqual("example_light", self.example_packet.light_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.light_sensor())
 
-    def test_set_light_channel(self):
+    def test_set_light_sensor(self):
         sensor = reader.LightSensor().set_sensor_name("foo")
-        self.example_packet.set_light_channel(sensor)
-        self.empty_packet.set_light_channel(sensor)
-        self.assertEqual("foo", self.example_packet.light_channel().sensor_name())
-        self.assertEqual("foo", self.empty_packet.light_channel().sensor_name())
+        self.example_packet.set_light_sensor(sensor)
+        self.empty_packet.set_light_sensor(sensor)
+        self.assertEqual("foo", self.example_packet.light_sensor().sensor_name())
+        self.assertEqual("foo", self.empty_packet.light_sensor().sensor_name())
 
-    def test_set_light_channel_none(self):
-        self.example_packet.set_light_channel(None)
-        self.empty_packet.set_light_channel(None)
-        self.assertFalse(self.example_packet.has_light_channel())
-        self.assertFalse(self.empty_packet.has_light_channel())
-        self.assertIsNone(self.example_packet.light_channel())
-        self.assertIsNone(self.empty_packet.light_channel())
+    def test_set_light_sensor_none(self):
+        self.example_packet.set_light_sensor(None)
+        self.empty_packet.set_light_sensor(None)
+        self.assertFalse(self.example_packet.has_light_sensor())
+        self.assertFalse(self.empty_packet.has_light_sensor())
+        self.assertIsNone(self.example_packet.light_sensor())
+        self.assertIsNone(self.empty_packet.light_sensor())
 
-    def test_has_infrared_channel(self):
-        self.assertTrue(self.example_packet.has_infrared_channel())
-        self.assertFalse(self.empty_packet.has_infrared_channel())
+    def test_has_infrared_sensor(self):
+        self.assertTrue(self.example_packet.has_infrared_sensor())
+        self.assertFalse(self.empty_packet.has_infrared_sensor())
 
-    def test_get_infrared_channel(self):
-        self.assertEqual("example_infrared", self.example_packet.infrared_channel().sensor_name())
-        self.assertIsNone(self.empty_packet.infrared_channel())
+    def test_get_infrared_sensor(self):
+        self.assertEqual("example_infrared", self.example_packet.infrared_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.infrared_sensor())
 
-    def test_set_infrared_channel(self):
+    def test_set_infrared_sensor(self):
         sensor = reader.InfraredSensor().set_sensor_name("foo")
-        self.example_packet.set_infrared_channel(sensor)
-        self.empty_packet.set_infrared_channel(sensor)
-        self.assertEqual("foo", self.example_packet.infrared_channel().sensor_name())
-        self.assertEqual("foo", self.empty_packet.infrared_channel().sensor_name())
+        self.example_packet.set_infrared_sensor(sensor)
+        self.empty_packet.set_infrared_sensor(sensor)
+        self.assertEqual("foo", self.example_packet.infrared_sensor().sensor_name())
+        self.assertEqual("foo", self.empty_packet.infrared_sensor().sensor_name())
 
-    def test_set_infrared_channel_none(self):
-        self.example_packet.set_infrared_channel(None)
-        self.empty_packet.set_infrared_channel(None)
-        self.assertFalse(self.example_packet.has_infrared_channel())
-        self.assertFalse(self.empty_packet.has_infrared_channel())
-        self.assertIsNone(self.example_packet.infrared_channel())
-        self.assertIsNone(self.empty_packet.infrared_channel())
+    def test_set_infrared_sensor_none(self):
+        self.example_packet.set_infrared_sensor(None)
+        self.empty_packet.set_infrared_sensor(None)
+        self.assertFalse(self.example_packet.has_infrared_sensor())
+        self.assertFalse(self.empty_packet.has_infrared_sensor())
+        self.assertIsNone(self.example_packet.infrared_sensor())
+        self.assertIsNone(self.empty_packet.infrared_sensor())
 
     def test_to_json(self):
         json = self.example_packet.to_json()
@@ -496,7 +496,7 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         cloned.set_is_private(False)
 
         self.assertNotEqual(self.example_packet, cloned)
-        self.assertNotEqual(self.example_packet, self.example_packet.clone().microphone_channel().set_sensor_name("foo"))
+        self.assertNotEqual(self.example_packet, self.example_packet.clone().microphone_sensor().set_sensor_name("foo"))
 
     def test_clone(self):
         cloned = self.example_packet.clone()
@@ -507,7 +507,7 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         cloned_packet = self.example_packet.clone()
         cloned_packet.set_api(901)
         cloned_packet_2 = self.example_packet.clone()
-        cloned_packet_2.set_microphone_channel(None)
+        cloned_packet_2.set_microphone_sensor(None)
         self.assertEqual([], self.example_packet.diff(self.example_packet))
         self.assertEqual(["900 != 901"], self.example_packet.diff(cloned_packet))
         self.assertTrue(len(self.example_packet.diff(cloned_packet_2)) > 0)

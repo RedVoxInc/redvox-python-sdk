@@ -9,7 +9,7 @@ from numpy import array, array_equal
 
 class TestMagnetometerSensor(unittest.TestCase):
     def setUp(self):
-        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).magnetometer_channel()
+        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).magnetometer_sensor()
         self.empty_sensor = reader.MagnetometerSensor()
 
     def test_set_payload_values(self):

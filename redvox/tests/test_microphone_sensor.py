@@ -9,7 +9,7 @@ from numpy import array, array_equal
 
 class TestMicrophoneSensor(unittest.TestCase):
     def setUp(self):
-        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).microphone_channel()
+        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).microphone_sensor()
         self.empty_sensor = reader.MicrophoneSensor()
 
     def test_get_payload_values(self):

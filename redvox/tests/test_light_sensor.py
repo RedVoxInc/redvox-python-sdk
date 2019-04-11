@@ -9,7 +9,7 @@ from numpy import array, array_equal
 
 class TestLightSensor(unittest.TestCase):
     def setUp(self):
-        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).light_channel()
+        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).light_sensor()
         self.empty_sensor = reader.LightSensor()
 
     def test_get_payload_values(self):

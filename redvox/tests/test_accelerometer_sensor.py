@@ -9,7 +9,7 @@ from numpy import array, array_equal
 
 class TestAccelerometerSensor(unittest.TestCase):
     def setUp(self):
-        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).accelerometer_channel()
+        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).accelerometer_sensor()
         self.empty_sensor = reader.AccelerometerSensor()
 
     def test_set_payload_values(self):
