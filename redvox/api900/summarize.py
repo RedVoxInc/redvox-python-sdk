@@ -1,3 +1,7 @@
+"""
+This module contains functions and classes for summarizing ranges of redvox data.
+"""
+
 import datetime
 import itertools
 import typing
@@ -10,6 +14,11 @@ import redvox.api900.date_time_utils as date_time_utils
 
 
 def _sensor_name(sensor: typing.Optional[types.RedvoxSensor]) -> str:
+    """
+    Extracts the sensor name from a redvox sensor.
+    :param sensor: Sensor to get sensor name for.
+    :return: The sensor name for the given sensor.
+    """
     if sensor is None:
         return ""
 
@@ -20,6 +29,11 @@ def _sensor_name(sensor: typing.Optional[types.RedvoxSensor]) -> str:
 
 
 def _sensor_samples(sensor: typing.Optional[types.RedvoxSensor]) -> int:
+    """
+    Returns the number of samples a sensor contains.
+    :param sensor: Sensor to test.
+    :return: Number of samples in sensor.
+    """
     if sensor is None:
         return 0
 
@@ -31,6 +45,10 @@ def _sensor_samples(sensor: typing.Optional[types.RedvoxSensor]) -> int:
 
 
 class SensorSummary:
+    """
+    This class provides a summary of a sensor.
+    """
+
     def __init__(self, sensor: typing.Optional[types.RedvoxSensor]):
         self.has_sensor = sensor is not None
         self.sensor_name = _sensor_name(sensor)
@@ -43,6 +61,10 @@ class SensorSummary:
 
 
 class WrappedRedvoxPacketSummary:
+    """
+    This class provides a summary of a WrappedRedvoxPacket.
+    """
+
     def __init__(self, redvox_packet):
         self.redvox_id = redvox_packet.redvox_id()
         self.uuid = redvox_packet.uuid()
@@ -81,6 +103,7 @@ class WrappedRedvoxPacketSummary:
         )
 
 
+# Type vars for compose function.
 X = typing.TypeVar("X")
 Y = typing.TypeVar("Y")
 Z = typing.TypeVar("Z")
@@ -88,17 +111,30 @@ Z = typing.TypeVar("Z")
 
 def _compose(fn1: typing.Callable[[X], Y],
              fn2: typing.Callable[[Y], Z]) -> typing.Callable[[X], Z]:
+    """
+    Composes two functions together.
+    :param fn1: A function from X -> Y
+    :param fn2: A function from Y -> Z
+    :return: A function from X -> Z
+    """
     return lambda value: fn2(fn1(value))
 
 
 def summarize_data(grouped_redvox_packets: typing.Dict[str, typing.List]) -> typing.Dict[
     str, typing.List[WrappedRedvoxPacketSummary]]:
+    """
+    Given grouped redvox packets, generate summaries for each device and each packet.
+    :param grouped_redvox_packets: Grouped packets to generate summary for.
+    :return: A dictionary which maps redvox ids to summaries of redvox packets for that device.
+    """
     summarized = {}
     for id_uuid, wrapped_redvox_packets in grouped_redvox_packets.items():
         summarized[id_uuid] = list(map(WrappedRedvoxPacketSummary, wrapped_redvox_packets))
     return summarized
 
-def _subsample(vs: typing.Union[numpy.ndarray, typing.List], num_samples: int) -> typing.Union[numpy.ndarray, typing.List]:
+
+def _subsample(vs: typing.Union[numpy.ndarray, typing.List], num_samples: int) -> typing.Union[
+    numpy.ndarray, typing.List]:
     """
     Returns evenly sampled values from an array.
     From https://stackoverflow.com/a/50685454 and https://stackoverflow.com/a/9873935
@@ -116,10 +152,14 @@ def _subsample(vs: typing.Union[numpy.ndarray, typing.List], num_samples: int) -
 
 
 def plot_summarized_data(summarized_data: typing.Dict[str, typing.List[WrappedRedvoxPacketSummary]]):
+    """
+    Given summarized data, plot the data to display sensor activity for all passed in summarized data.
+    :param summarized_data: Data to plot.
+    """
     all_summaries = list(itertools.chain(*summarized_data.values()))
 
     start_timestamp_us = numpy.min(
-        list(map(lambda packet_summary: packet_summary.start_timestamp_us, all_summaries)))
+            list(map(lambda packet_summary: packet_summary.start_timestamp_us, all_summaries)))
     end_timestamp_us = numpy.max(list(map(lambda packet_summary: packet_summary.end_timestamp_us, all_summaries)))
     start_s = int(date_time_utils.microseconds_to_seconds(start_timestamp_us))
     end_s = int(date_time_utils.microseconds_to_seconds(end_timestamp_us))
@@ -160,7 +200,6 @@ def plot_summarized_data(summarized_data: typing.Dict[str, typing.List[WrappedRe
     ax.set_title("RedVox Device Summary")
     ax.set_xlabel("Date and Time")
     ax.set_ylabel("Device Activity")
-
 
     fig.text(.5, .01, "UTC %s - %s" % (datetime.datetime.utcfromtimestamp(start_s),
                                        datetime.datetime.utcfromtimestamp(end_s)), ha='center')

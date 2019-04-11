@@ -102,6 +102,11 @@ def read_rdvxz_file(path: str) -> WrappedRedvoxPacket:
 
 
 def _is_int(s: str) -> bool:
+    """
+    Returns true if the given string can be parsed as an int.
+    :param s: String to test.
+    :return: True if it is an int, False otherwise.
+    """
     try:
         int(s)
         return True
@@ -110,6 +115,11 @@ def _is_int(s: str) -> bool:
 
 
 def _is_valid_redvox_filename(filename: str) -> bool:
+    """
+    Given a filename, determine if the filename is a valid redvox file name.
+    :param filename: Filename to test.
+    :return: True if it is valid, valse otherwise.
+    """
     return len(filename) == 30 \
             and _is_int(filename[0:10]) \
             and filename[10:11] == "_" \
