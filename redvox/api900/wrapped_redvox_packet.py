@@ -720,13 +720,25 @@ class WrappedRedvoxPacket:
         return self
 
     def start_timestamp_us_utc(self) -> int:
+        """
+        Returns the start timestamp of a WrappedRedvoxPacket.
+        :return: The start timestamp of a WrappedRedvoxPacket.
+        """
         return self.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()
 
     def duration_s(self) -> float:
+        """
+        The duration of this WrappedRedvoxPacket in seconds.
+        :return: The duration of this WrappedRedvoxPacket in seconds.
+        """
         microphone_sensor = self.microphone_sensor()
         return len(microphone_sensor.payload_values()) / microphone_sensor.sample_rate_hz()
 
     def end_timestamp_us_utc(self):
+        """
+        Returns the end timestamp of a WrappedRedvoxPacket.
+        :return: The end timestamp of a WrappedRedvoxPacket.
+        """
         return self.start_timestamp_us_utc() + date_time_utils.seconds_to_microseconds(self.duration_s())
 
     # Sensor channels
