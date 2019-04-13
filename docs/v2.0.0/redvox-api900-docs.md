@@ -132,23 +132,27 @@ Reading packets from a range always requires a time window provided by timestamp
 We support reading from a standardized file structure used by RedVox or reading files from an unstructured directory.
 
 When reading structured data, our standardized directory layout expects the following layout:
-  api900/YYYY/MM/DD/*.rdvxz where api900 is the base directory of a structured data set, YYYY is the year as 4 digits, MM the month as 2 digits, DD the date as 2 digits which is filled by valid .rdvxz files.
+  `api900/YYYY/MM/DD/*.rdvxz` where `api900` is the base directory of a structured data set, `YYYY` is the year as 4 digits, `MM` the month as 2 digits, `DD` the date as 2 digits which is filled by valid .rdvxz files.
   
 When reading unstructured data, this function simply loads .rdvxz files from a given directory within the provided time window and optionally filtered by redvox_id.
 
-Examples of usage can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/examples/example_packet_read_from_range.py
+Examples of usage can be found at:
+ 
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/examples/example_packet_read_from_range.py
 
 ### Working with WrappedRedvoxPacket objects
 
 A WrappedRedvoxPacket is a high-level API that is backed by a protobuf buffer. The high-level API provides getters and setters for all fields and sensor channels that the RedVox API 900 provides.
 
-To see a list of all getters and setters that a WrappedRedvoxPacket provides, please see: https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.WrappedRedvoxPacket
+To see a list of all getters and setters that a WrappedRedvoxPacket provides, please see:
+ 
+* https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/wrapped_redvox_packet.m.html
 
-To check if a sensor channel is in a packet, you can use any of the `has_channel` methods.
+To check if a sensor channel is in a packet, you can use any of the `has_sensor` methods.
 
 When accessing a sensor channel (e.g. microphone_sensor()), if the channel does not exist in the packet, the sensor channel getter will return `None`.
 
-Channels can be removed from a packet by passing `None` to a `set_channel` method.
+Channels can be removed from a packet by passing `None` to a `set_sensor` method.
 
 Examples of reading/writing to/from WrappedRedvoxPacket objects can be found at:
 
@@ -196,7 +200,7 @@ It's now possible to summarize the contents of a WrappedRedvoxPacket. There are 
 
 See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/summarize.m.html for API details.
 
-The __str__ methods of these classes will format the data in a reasonable way. 
+The `__str__` methods of these classes will format the data in a reasonable way. 
 
 Further, these classes can be used to make a plot of device activity over time, showing data gaps, and providing a high-level view of device activity. 
 
@@ -209,7 +213,7 @@ Examples of summarizing data can be seen in:
 
 MicrophoneSensor channels are an evenly sampled sensor that contain microphone data in a single payload. The payload represents counts from the microphone. Payloads are represented by integers. 
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.MicrophoneSensor for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/sensors/microphone_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
@@ -221,7 +225,7 @@ See the following for example usage:
 
 BarometerSensor channels are an unevenly sampled sensor that contain barometer data in a single payload. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.BarometerSensor for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/sensors/barometer_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
@@ -242,7 +246,7 @@ The payload types available to the LocationSensor include:
 
 This sensor also provides mean, median, and std statistics for each payload type.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.LocationSensor for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/sensors/location_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
@@ -255,7 +259,7 @@ TimeSynchronizationSensor channels are an unevenly sampled sensor that contain t
 
 This sensor is unique in that is only contains a payload of values and no timestamps or other fields. 
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.TimeSynchronizationSensor for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/sensors/time_synchronization_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
@@ -274,7 +278,7 @@ The three payloads are:
 
 Further, each payload type has its own set of mean, median, and std statistics.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.AccelerometerSensor for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/sensors/accelerometer_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
@@ -293,7 +297,7 @@ The three payloads are:
 
 Further, each payload type has its own set of mean, median, and std statistics.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.MagnetometerSensor for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/sensors/magnetometer_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
@@ -312,7 +316,7 @@ The three payloads are:
 
 Further, each payload type has its own set of mean, median, and std statistics.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.GyroscopeSensor for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/sensors/gyroscope_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
@@ -324,7 +328,7 @@ See the following for example usage:
 
 LightSensor channels are an unevenly sampled sensor that contain light data in a single payload. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.LightSensor for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/sensors/light_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
@@ -335,7 +339,7 @@ See the following for example usage:
 
 InfraredSensor channels are an unevenly sampled sensor that contain infrared data in a single payload. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.InfraredSensor for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/sensors/infrared_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
