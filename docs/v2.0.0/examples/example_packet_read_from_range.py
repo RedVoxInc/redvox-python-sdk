@@ -4,14 +4,18 @@ This example demonstrates how to read a range of .rdvxz files from disk.
 To follow along with this example, download example data from: https://s3-us-west-2.amazonaws.com/redvox-public/bffdf0b5-7031-4add-89f3-2eb6b9e1f1cd.zip
 and place the downloaded api900 directory in the example_data directory or run the "download_example_data.sh" script.
 
-Reading packets from a range always requires a time window. The packets can also be filtered by RedVox ID.
+Reading a range of .rdvxz files can be achieved with the `redvox.api900.reader` function `read_rdvxz_file_range`.
+
+API details at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.read_rdvxz_file_range
+
+Reading packets from a range always requires a time window provided by timestamps as seconds since the epoch UTC. The packets can also be optionally filtered by redvox_id.
 
 We support reading from a standardized file structure used by RedVox or reading files from an unstructured directory.
 
-Our standardized file structure expects the following layout:
-  api900/YYYY/MM/DD/*.rdvxz
+When reading structured data, our standardized directory layout expects the following layout:
+  api900/YYYY/MM/DD/*.rdvxz where api900 is the base directory of a structured data set, YYYY is the year as 4 digits, MM the month as 2 digits, DD the date as 2 digits which is filled by valid .rdvxz files.
 
-Full details can be found at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.read_rdvxz_file_range
+When reading unstructured data, this function simply loads .rdvxz files from a given directory within the provided time window and optionally filtered by redvox_id.
 
 Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/redvox-api900-docs.md
 API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox

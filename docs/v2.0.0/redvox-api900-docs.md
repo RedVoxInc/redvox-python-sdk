@@ -12,7 +12,10 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Updating the RedVox Python SDK](#markdown-header-updating-the-redvox-python-sdk)
 * [Working with the SDK CLI](#markdown-header-working-with-the-sdk-cli)
 * [Loading RedVox API 900 files](#markdown-header-loading-redvox-api-900-files)
+* [Loading RedVox API 900 files from a range](#markdown-header-loading-redvox-api-900-files-from-a-range)
 * [Working with WrappedRedvoxPackets](#markdown-header-working-with-wrappedredvoxpacket-objects)
+* [Concatenating WrappedRedvoxPackets](#markdown-header-concatenating-wrappedredvoxpackets)
+* [Summarizing WrappedRedvoxPackets](#markdown-header-summarizing-wrappedredvoxpackets)
 * [Working with microphone sensor channels](#markdown-header-working-with-microphone-sensor-channels)
 * [Working with barometer sensor channels](#markdown-header-working-with-barometer-sensor-channels)
 * [Working with location sensor channels](#markdown-header-working-with-location-sensor-channels)
@@ -110,13 +113,30 @@ You can display the contents of multiple .rdvxz files with:
 
 ### Loading RedVox API 900 Files
 
-The module `redvox/api900/reader.py` contains several high-level methods for reading RedVox API 900 .rdvxz files and RedVox API 900 compliant .json files. These methods all return an instance of a [WrappedRedvoxPacket](#markdown-header-working-with-wrappedrevoxpacket-ojects).
+The module `redvox/api900/reader.py` contains several high-level methods for reading RedVox API 900 .rdvxz files and RedVox API 900 compliant .json files. These methods all return an instance of a [WrappedRedvoxPacket](#markdown-header-working-with-wrappedrevoxpacket-objects).
 
-These methods are `read_rdvxz_file`, `read_rdvxz_buffer`, `read_json_file`, and `read_json_string`.
+These methods are `read_rdvxz_file`, `read_rdvxz_buffer`, `read_json_file`, `read_json_string`, and `read_rdvxz_file_range`.
 
 Descriptions of these methods can be found at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#header-functions
 
-Examples of the usage can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/examples/example_packet_reading.py
+Examples of the usage can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/examples/example_packet_reading.py and https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/examples/example_packet_read_from_range.py
+
+### Loading RedVox API 900 files from a range
+
+Reading a range of .rdvxz files can be achieved with the `redvox.api900.reader` function `read_rdvxz_file_range`.
+
+API details at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.read_rdvxz_file_range
+
+Reading packets from a range always requires a time window provided by timestamps as seconds since the epoch UTC. The packets can also be optionally filtered by redvox_id.
+
+We support reading from a standardized file structure used by RedVox or reading files from an unstructured directory.
+
+When reading structured data, our standardized directory layout expects the following layout:
+  api900/YYYY/MM/DD/*.rdvxz where api900 is the base directory of a structured data set, YYYY is the year as 4 digits, MM the month as 2 digits, DD the date as 2 digits which is filled by valid .rdvxz files.
+  
+When reading unstructured data, this function simply loads .rdvxz files from a given directory within the provided time window and optionally filtered by redvox_id.
+
+Examples of usage can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/examples/example_packet_read_from_range.py
 
 ### Working with WrappedRedvoxPacket objects
 
@@ -126,7 +146,7 @@ To see a list of all getters and setters that a WrappedRedvoxPacket provides, pl
 
 To check if a sensor channel is in a packet, you can use any of the `has_channel` methods.
 
-When accessing a sensor channel (e.g. microphone_channel()), if the channel does not exist in the packet, the sensor channel getter will return `None`.
+When accessing a sensor channel (e.g. microphone_sensor()), if the channel does not exist in the packet, the sensor channel getter will return `None`.
 
 Channels can be removed from a packet by passing `None` to a `set_channel` method.
 
@@ -137,6 +157,53 @@ Examples of reading/writing to/from WrappedRedvoxPacket objects can be found at:
 * https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/examples/example_packet_creation.py
 
 The contents of WrappedRedvoxPacket objects can be written to .rdvxz or RedVox API 900 compliant .json files. See https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/examples/example_packet_writing.py for examples.
+
+#### Concatenating WrappedRedvoxPackets
+
+Concatenating a range of .rdvxz files can be achieved with the `redvox.api900.concat` function `concat_wrapped_redvox_packets`.
+
+API details at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/concat.m.html#redvox.api900.concat.concat_wrapped_redvox_packets
+
+When WrappedRedvoxPackets are concatenated, the following values are concatenated together:
+
+* WrappedRedvoxPacket metadata
+* Sensor metadata
+* Sensor timestamps
+* Sensor payloads
+
+Only continuous data is concatenated. That means that gaps in the data will result in multiple WrappedRedvocPackets,
+each representing a continuous segment of data.
+
+Gaps are identified under the following circumstances:
+
+* Greater than 5 second time gap between adjacent WrappedRedvoxPackets
+* Change in microphone sampling rate
+* Change in sensor name
+* Change in sensor availability
+
+Concatenation will fail under the following circumstances:
+
+* Not all WrappedRedvoxPackets are from the same device
+* WrappedRedvoxPackets are not in monotonically increasing order
+
+Examples of concatenation can be found at:
+
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/examples/example_packet_concatenation.py
+
+#### Summarizing WrappedRedvoxPackets
+
+It's now possible to summarize the contents of a WrappedRedvoxPacket. There are two classes in `redvox/api900/summarize.py` that encapsulate the summarized details of a WrappedRedvoxPacket.
+
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.0.0/api_docs/redvox/api900/summarize.m.html for API details.
+
+The __str__ methods of these classes will format the data in a reasonable way. 
+
+Further, these classes can be used to make a plot of device activity over time, showing data gaps, and providing a high-level view of device activity. 
+
+Examples of summarizing data can be seen in: 
+
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/examples/example_packet_concatenation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/examples/example_packet_read_from_range.py
 
 ### Working with microphone sensor channels
 
