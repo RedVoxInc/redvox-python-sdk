@@ -2,11 +2,11 @@
 
 This repository contains code for reading and working with the RedVox API 900 data format.
 
-See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v1.5.0/redvox-api900-docs.md for SDK documentation.
+See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/redvox-api900-docs.md for SDK documentation.
 
 ### Changelog
 
-#### 2.0.0 (2019-4-10)
+#### 2.0.0 (2019-4-12)
 
 * Add ability concatenate multiple .rdvxz files together
 * Add ability to identify gaps in continuous data when concatenating multiple files
