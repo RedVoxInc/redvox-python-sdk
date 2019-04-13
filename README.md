@@ -16,6 +16,7 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 * Add objects for summarizing RedVox data ranges (https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.0.0/redvox-api900-docs.md#markdown-header-summarizing-wrappedredvoxpackets)
 * Add ability to plot summary RedVox data ranges
 * Refactor reader.py into several modules
+* Update dependency versions
 
 #### 1.5.0 (2019-3-20)
 
