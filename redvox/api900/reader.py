@@ -121,10 +121,10 @@ def _is_valid_redvox_filename(filename: str) -> bool:
     :return: True if it is valid, valse otherwise.
     """
     return len(filename) == 30 \
-            and _is_int(filename[0:10]) \
-            and filename[10:11] == "_" \
-            and _is_int(filename[11:24]) \
-            and filename[24:len(filename)] == ".rdvxz"
+           and _is_int(filename[0:10]) \
+           and filename[10:11] == "_" \
+           and _is_int(filename[11:24]) \
+           and filename[24:len(filename)] == ".rdvxz"
 
 
 def _is_path_in_set(path: str,
@@ -149,13 +149,75 @@ def _is_path_in_set(path: str,
     if not (start_timestamp_utc_s <= timestamp <= end_timestamp_utc_s):
         return False
 
-    if len(redvox_ids)> 0:
+    if len(redvox_ids) > 0:
         if len(redvox_ids) > 0:
             redvox_id = filename[0:10]
             if redvox_id not in redvox_ids:
                 return False
 
     return True
+
+
+def _extract_timestamp_s(path: str) -> int:
+    """
+    Extracts a timestamp from a file path.
+    :param path: Path to extract a timestamp from.
+    :return: The timestamp in seconds from a path.
+    """
+    file = path.split(os.path.sep)[-1].split(".")[0]
+    return int(round(float(file.split("_")[1]) / 1000.0))
+
+
+def _extract_redvox_id(path: str) -> str:
+    """
+    Extracts a redvox id from a file path.
+    :param path: A path to extract the id from.
+    :return: The redvox id.
+    """
+    file = path.split(os.path.sep)[-1]
+    return file.split("_")[0]
+
+
+def _get_time_range_paths(paths: typing.List[str],
+                          redvox_ids: typing.Optional[typing.Set[str]]) -> typing.Tuple[int, int]:
+    """
+    Given a set of paths, get the start and end timestamps.
+    :param paths: Paths to get time range from.
+    :param redvox_ids: Redvox ids to filter on.
+    :return: A tuple containing the start and end timestamps of the data range.
+    """
+    if redvox_ids is not None:
+        paths = list(filter(lambda path: _extract_redvox_id(path) in redvox_ids, paths))
+
+    if len(paths) == 0:
+        return -1, -1
+
+    if len(paths) == 1:
+        ts = _extract_timestamp_s(paths[0])
+        return ts, ts
+
+    timestamps = sorted(list(map(_extract_timestamp_s, paths)))
+    return timestamps[0], timestamps[-1]
+
+
+def _get_paths_time_range(directory: str,
+                          redvox_ids: typing.Optional[typing.Set[str]],
+                          recursive: bool) -> typing.Tuple[int, int]:
+    """
+    Gets the start and end time range of a given set of data.
+    :param directory: The base directory of the data.
+    :param redvox_ids: Redvox ids to filter on.
+    :param recursive: Whether or not to perform a recursive search.
+    :return: A tuple containing the start and end timestamps of the given data set.
+    """
+    if recursive:
+        all_paths = glob.glob(os.path.join(directory, "**", "*.rdvxz"),
+                              recursive=recursive)
+    else:
+        all_paths = glob.glob(os.path.join(directory, "*.rdvxz"),
+                              recursive=recursive)
+
+    return _get_time_range_paths(all_paths, redvox_ids)
 
 
 def _get_structured_paths(directory: str,
@@ -174,8 +236,8 @@ def _get_structured_paths(directory: str,
     for (year, month, day) in date_time_utils.DateIterator(start_timestamp_utc_s, end_timestamp_utc_s):
         all_paths = glob.glob(os.path.join(directory, year, month, day, "*.rdvxz"))
         valid_paths = list(
-            filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids),
-                   all_paths))
+                filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids),
+                       all_paths))
         paths.extend(valid_paths)
     return paths
 
@@ -211,8 +273,8 @@ def _id_uuid(wrapped_redvox_packet: WrappedRedvoxPacket) -> str:
 
 
 def read_rdvxz_file_range(directory: str,
-                          start_timestamp_utc_s: int,
-                          end_timestamp_utc_s: int,
+                          start_timestamp_utc_s: typing.Optional[int] = None,
+                          end_timestamp_utc_s: typing.Optional[int] = None,
                           redvox_ids: typing.List[str] = [],
                           structured_layout: bool = False,
                           concat_continuous_segments: bool = True) -> typing.Dict[
@@ -243,6 +305,15 @@ def read_rdvxz_file_range(directory: str,
     while directory.endswith("/") or directory.endswith("\\"):
         directory = directory[:-1]
 
+    if start_timestamp_utc_s is None or end_timestamp_utc_s is None:
+        ids = None if len(redvox_ids) == 0 else set(redvox_ids)
+        start_adjusted, end_adjusted = _get_paths_time_range(directory, ids, structured_layout)
+
+        if start_timestamp_utc_s is None:
+            start_timestamp_utc_s = start_adjusted
+
+        if end_timestamp_utc_s is None:
+            end_timestamp_utc_s = end_adjusted
     if structured_layout:
         paths = _get_structured_paths(directory,
                                       start_timestamp_utc_s,
@@ -251,8 +322,8 @@ def read_rdvxz_file_range(directory: str,
     else:
         all_paths = glob.glob(os.path.join(directory, "*.rdvxz"))
         paths = list(
-            filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, set(redvox_ids)),
-                   all_paths))
+                filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, set(redvox_ids)),
+                       all_paths))
 
     # Convert to WrappedRedvoxPackets
     wrapped_redvox_packets = map(read_rdvxz_file, paths)
