@@ -18,11 +18,15 @@ import redvox.api900.reader_utils as reader_utils
 # file. This will allow old code that referenced everything through this module to still function. Someday "soon" we
 # should probably deprecate this.
 from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+# noinspection PyUnresolvedReferences
 from redvox.api900.sensors.interleaved_channel import InterleavedChannel
+# noinspection PyUnresolvedReferences
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
+# noinspection PyUnresolvedReferences
 from redvox.api900.sensors.evenly_sampled_channel import EvenlySampledChannel
 from redvox.api900.sensors.evenly_sampled_sensor import EvenlySampledSensor
 from redvox.api900.sensors.unevenly_sampled_sensor import UnevenlySampledSensor
+# noinspection PyUnresolvedReferences
 from redvox.api900.sensors.xyz_unevenly_sampled_sensor import XyzUnevenlySampledSensor
 from redvox.api900.sensors.microphone_sensor import MicrophoneSensor
 from redvox.api900.sensors.barometer_sensor import BarometerSensor
@@ -121,10 +125,10 @@ def _is_valid_redvox_filename(filename: str) -> bool:
     :return: True if it is valid, valse otherwise.
     """
     return len(filename) == 30 \
-           and _is_int(filename[0:10]) \
-           and filename[10:11] == "_" \
-           and _is_int(filename[11:24]) \
-           and filename[24:len(filename)] == ".rdvxz"
+        and _is_int(filename[0:10]) \
+        and filename[10:11] == "_" \
+        and _is_int(filename[11:24]) \
+        and filename[24:len(filename)] == ".rdvxz"
 
 
 def _is_path_in_set(path: str,
@@ -146,7 +150,7 @@ def _is_path_in_set(path: str,
 
     timestamp = int(date_time_utils.milliseconds_to_seconds(float(filename[11:24])))
 
-    if not (start_timestamp_utc_s <= timestamp <= end_timestamp_utc_s):
+    if not start_timestamp_utc_s <= timestamp <= end_timestamp_utc_s:
         return False
 
     if len(redvox_ids) > 0:
@@ -236,8 +240,8 @@ def _get_structured_paths(directory: str,
     for (year, month, day) in date_time_utils.DateIterator(start_timestamp_utc_s, end_timestamp_utc_s):
         all_paths = glob.glob(os.path.join(directory, year, month, day, "*.rdvxz"))
         valid_paths = list(
-                filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids),
-                       all_paths))
+            filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids),
+                   all_paths))
         paths.extend(valid_paths)
     return paths
 
@@ -278,7 +282,7 @@ def read_rdvxz_file_range(directory: str,
                           redvox_ids: typing.List[str] = [],
                           structured_layout: bool = False,
                           concat_continuous_segments: bool = True) -> typing.Dict[
-    str, typing.List[WrappedRedvoxPacket]]:
+                              str, typing.List[WrappedRedvoxPacket]]:
     """
     Reads a range of .rdvxz files from a given directory.
 
@@ -322,8 +326,8 @@ def read_rdvxz_file_range(directory: str,
     else:
         all_paths = glob.glob(os.path.join(directory, "*.rdvxz"))
         paths = list(
-                filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, set(redvox_ids)),
-                       all_paths))
+            filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, set(redvox_ids)),
+                   all_paths))
 
     # Convert to WrappedRedvoxPackets
     wrapped_redvox_packets = map(read_rdvxz_file, paths)

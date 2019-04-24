@@ -14,9 +14,6 @@ max_line_length = 120
 bears = PyLintBear
 pylint_disable = C0301, W0105, F0002
 
-[redvox.pyflakes]
-bears = PyFlakesBear
-
 [redvox.bandit]
 bears = BanditBear
 bandit_skipped_tests = B322

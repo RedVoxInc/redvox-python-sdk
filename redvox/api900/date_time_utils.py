@@ -40,6 +40,7 @@ class DateIterator:
     This class provides an iterator over dates. That is, it takes a start date and an end date and returns a tuple
     of year, month, day for each date between the start and end.
     """
+
     def __init__(self,
                  start_timestamp_utc_s: int,
                  end_timestamp_utc_s: int):

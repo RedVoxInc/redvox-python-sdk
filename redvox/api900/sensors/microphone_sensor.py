@@ -12,6 +12,7 @@ from redvox.api900.sensors.evenly_sampled_sensor import EvenlySampledSensor
 
 import numpy
 
+
 class MicrophoneSensor(EvenlySampledSensor):
     """
     High-level wrapper around microphone channels.

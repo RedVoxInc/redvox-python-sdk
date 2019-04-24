@@ -66,7 +66,7 @@ class UnevenlySampledSensor:
         return self._unevenly_sampled_channel.timestamps_microseconds_utc
 
     def set_timestamps_microseconds_utc(self, timestamps: typing.Union[
-        numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
+            numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
         """
         set the time stamps
         :param timestamps: a list of ascending timestamps that associate with each sample value

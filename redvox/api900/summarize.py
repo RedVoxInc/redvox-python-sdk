@@ -121,7 +121,7 @@ def _compose(fn1: typing.Callable[[X], Y],
 
 
 def summarize_data(grouped_redvox_packets: typing.Dict[str, typing.List]) -> typing.Dict[
-    str, typing.List[WrappedRedvoxPacketSummary]]:
+        str, typing.List[WrappedRedvoxPacketSummary]]:
     """
     Given grouped redvox packets, generate summaries for each device and each packet.
     :param grouped_redvox_packets: Grouped packets to generate summary for.
@@ -134,7 +134,7 @@ def summarize_data(grouped_redvox_packets: typing.Dict[str, typing.List]) -> typ
 
 
 def _subsample(vs: typing.Union[numpy.ndarray, typing.List], num_samples: int) -> typing.Union[
-    numpy.ndarray, typing.List]:
+        numpy.ndarray, typing.List]:
     """
     Returns evenly sampled values from an array.
     From https://stackoverflow.com/a/50685454 and https://stackoverflow.com/a/9873935

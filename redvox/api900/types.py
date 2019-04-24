@@ -1,6 +1,6 @@
-# """
-# This module provides convenience types for RedVox data types.
-# """
+"""
+This module provides convenience types for RedVox data types.
+"""
 
 import typing
 

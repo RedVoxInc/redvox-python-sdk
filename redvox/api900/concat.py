@@ -5,6 +5,8 @@ This module contains functions for concatenating multiple WrappedRedvoxPackets t
 import itertools
 import typing
 
+import numpy as _np
+
 import redvox.api900.date_time_utils as _date_time_utils
 import redvox.api900.exceptions as _exceptions
 import redvox.api900.sensors.evenly_sampled_sensor as evenly_sampled_sensor
@@ -39,7 +41,6 @@ RedvoxSensor = typing.Union[
 ]
 RedvoxSensors = typing.List[RedvoxSensor]
 
-import numpy as _np
 
 _NONE_HASH = hash(None)
 
@@ -151,7 +152,7 @@ def _concat_numpy(sensors: RedvoxSensors,
 
 def _concat_lists(sensors: RedvoxSensors,
                   list_extraction_fn: typing.Callable[[RedvoxSensor], typing.List[str]]) -> typing.List[
-    str]:
+                      str]:
     """
     Given a list of sensors concatenate the lists found with the extraction function.
     :param sensors: Sensors to extract lists from.
@@ -187,11 +188,11 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
     if first_packet.has_location_sensor():
         sensors = list(map(WrappedRedvoxPacket.location_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(
-                _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_latitude),
-                _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_longitude),
-                _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_altitude),
-                _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_speed),
-                _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_accuracy)
+            _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_latitude),
+            _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_longitude),
+            _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_altitude),
+            _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_speed),
+            _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_accuracy)
         ) \
             .set_timestamps_microseconds_utc(
                 _concat_numpy(sensors, _location_sensor.LocationSensor.timestamps_microseconds_utc)) \
@@ -205,9 +206,9 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
     if first_packet.has_magnetometer_sensor():
         sensors = list(map(WrappedRedvoxPacket.magnetometer_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(
-                _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.payload_values_x),
-                _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.payload_values_y),
-                _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.payload_values_z)
+            _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.payload_values_x),
+            _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.payload_values_y),
+            _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.payload_values_z)
         ) \
             .set_timestamps_microseconds_utc(
                 _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.timestamps_microseconds_utc)) \
@@ -216,9 +217,9 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
     if first_packet.has_accelerometer_sensor():
         sensors = list(map(WrappedRedvoxPacket.accelerometer_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(
-                _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.payload_values_x),
-                _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.payload_values_y),
-                _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.payload_values_z)
+            _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.payload_values_x),
+            _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.payload_values_y),
+            _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.payload_values_z)
         ) \
             .set_timestamps_microseconds_utc(
                 _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.timestamps_microseconds_utc)) \
@@ -227,9 +228,9 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
     if first_packet.has_gyroscope_sensor():
         sensors = list(map(WrappedRedvoxPacket.gyroscope_sensor, wrapped_redvox_packets))
         sensors[0].set_payload_values(
-                _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.payload_values_x),
-                _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.payload_values_y),
-                _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.payload_values_z)
+            _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.payload_values_x),
+            _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.payload_values_y),
+            _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.payload_values_z)
         ) \
             .set_timestamps_microseconds_utc(
                 _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.timestamps_microseconds_utc)) \

@@ -1,3 +1,8 @@
+"""
+This module provides utility functions that are used by the reader but generally will not be used directly by end
+users.
+"""
+
 import struct
 import typing
 

@@ -12,6 +12,7 @@ import redvox.api900.stat_utils as stat_utils
 
 import numpy
 
+
 # pylint: disable=R0902
 class InterleavedChannel:
     """
