@@ -19,14 +19,18 @@ import redvox.api900.reader_utils as reader_utils
 # should probably deprecate this.
 from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 # noinspection PyUnresolvedReferences
+# pylint: disable=W0611
 from redvox.api900.sensors.interleaved_channel import InterleavedChannel
 # noinspection PyUnresolvedReferences
+# pylint: disable=W0611
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
 # noinspection PyUnresolvedReferences
+# pylint: disable=W0611
 from redvox.api900.sensors.evenly_sampled_channel import EvenlySampledChannel
 from redvox.api900.sensors.evenly_sampled_sensor import EvenlySampledSensor
 from redvox.api900.sensors.unevenly_sampled_sensor import UnevenlySampledSensor
 # noinspection PyUnresolvedReferences
+# pylint: disable=W0611
 from redvox.api900.sensors.xyz_unevenly_sampled_sensor import XyzUnevenlySampledSensor
 from redvox.api900.sensors.microphone_sensor import MicrophoneSensor
 from redvox.api900.sensors.barometer_sensor import BarometerSensor
@@ -39,7 +43,9 @@ from redvox.api900.sensors.light_sensor import LightSensor
 from redvox.api900.sensors.infrared_sensor import InfraredSensor
 from redvox.api900.sensors.image_sensor import ImageSensor
 
+# pylint: disable=C0103
 WrappedRedvoxPackets = typing.List[WrappedRedvoxPacket]
+# pylint: disable=C0103
 RedvoxSensor = typing.Union[
     EvenlySampledSensor,
     UnevenlySampledSensor,
@@ -54,6 +60,7 @@ RedvoxSensor = typing.Union[
     InfraredSensor,
     ImageSensor
 ]
+# pylint: disable=C0103
 RedvoxSensors = typing.List[RedvoxSensor]
 
 
@@ -105,14 +112,14 @@ def read_rdvxz_file(path: str) -> WrappedRedvoxPacket:
     return wrap(read_file(path))
 
 
-def _is_int(s: str) -> bool:
+def _is_int(int_as_str: str) -> bool:
     """
     Returns true if the given string can be parsed as an int.
-    :param s: String to test.
+    :param int_as_str: String to test.
     :return: True if it is an int, False otherwise.
     """
     try:
-        int(s)
+        int(int_as_str)
         return True
     except ValueError:
         return False
@@ -134,15 +141,17 @@ def _is_valid_redvox_filename(filename: str) -> bool:
 def _is_path_in_set(path: str,
                     start_timestamp_utc_s: int,
                     end_timestamp_utc_s: int,
-                    redvox_ids: typing.Set[str] = set()) -> bool:
+                    redvox_ids: typing.Set[str] = None) -> bool:
     """
     Determines whether a given path is in a provided time range and set of redvox_ids.
-    :param path: The path to
-    :param start_timestamp_utc_s:
-    :param end_timestamp_utc_s:
-    :param redvox_ids:
-    :return:
+    :param path: The path to check.
+    :param start_timestamp_utc_s: Start of time range.
+    :param end_timestamp_utc_s: End of time range.
+    :param redvox_ids: Optional set of redvox ids.
+    :return: True if path is in set false otherwise.
     """
+    if redvox_ids is None:
+        redvox_ids = set()
     filename = path.split(os.sep)[-1]
 
     if not _is_valid_redvox_filename(filename):
@@ -197,8 +206,8 @@ def _get_time_range_paths(paths: typing.List[str],
         return -1, -1
 
     if len(paths) == 1:
-        ts = _extract_timestamp_s(paths[0])
-        return ts, ts
+        timestamp = _extract_timestamp_s(paths[0])
+        return timestamp, timestamp
 
     timestamps = sorted(list(map(_extract_timestamp_s, paths)))
     return timestamps[0], timestamps[-1]
@@ -227,7 +236,7 @@ def _get_paths_time_range(directory: str,
 def _get_structured_paths(directory: str,
                           start_timestamp_utc_s: int,
                           end_timestamp_utc_s: int,
-                          redvox_ids: typing.Set[str] = set()) -> typing.List[str]:
+                          redvox_ids: typing.Set[str] = None) -> typing.List[str]:
     """
     Given a base directory (which should end with api900), find the paths of all structured .rdvxz files.
     :param directory: The base directory path (which should end with api900)
@@ -236,6 +245,8 @@ def _get_structured_paths(directory: str,
     :param redvox_ids: An optional set of redvox_ids to filter against.
     :return: A list of paths in a structured layout of filtered .rdvxz files.
     """
+    if redvox_ids is None:
+        redvox_ids = set()
     paths = []
     for (year, month, day) in date_time_utils.DateIterator(start_timestamp_utc_s, end_timestamp_utc_s):
         all_paths = glob.glob(os.path.join(directory, year, month, day, "*.rdvxz"))
@@ -276,10 +287,11 @@ def _id_uuid(wrapped_redvox_packet: WrappedRedvoxPacket) -> str:
                       wrapped_redvox_packet.uuid())
 
 
+# pylint: disable=R0913
 def read_rdvxz_file_range(directory: str,
                           start_timestamp_utc_s: typing.Optional[int] = None,
                           end_timestamp_utc_s: typing.Optional[int] = None,
-                          redvox_ids: typing.List[str] = [],
+                          redvox_ids: typing.Optional[typing.List[str]] = None,
                           structured_layout: bool = False,
                           concat_continuous_segments: bool = True) -> typing.Dict[
                               str, typing.List[WrappedRedvoxPacket]]:
@@ -306,6 +318,8 @@ def read_rdvxz_file_range(directory: str,
     """
 
     # Remove trailing directory separators
+    if redvox_ids is None:
+        redvox_ids = []
     while directory.endswith("/") or directory.endswith("\\"):
         directory = directory[:-1]
 

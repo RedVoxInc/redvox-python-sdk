@@ -4,11 +4,11 @@ This module contains classes and methods for working with xyz unevenly sensors.
 
 import typing
 
+import numpy
+
 import redvox.api900.constants as constants
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
 from redvox.api900.sensors.unevenly_sampled_sensor import UnevenlySampledSensor
-
-import numpy
 
 
 class XyzUnevenlySampledSensor(UnevenlySampledSensor):
@@ -61,7 +61,7 @@ class XyzUnevenlySampledSensor(UnevenlySampledSensor):
             y_values,
             z_values
         ],
-                pl_type)
+                                                               pl_type)
         return self
 
     def payload_values_x(self) -> numpy.ndarray:

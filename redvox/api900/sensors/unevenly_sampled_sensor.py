@@ -4,10 +4,10 @@ This module contains classes and methods for working with unevenly sampled senso
 
 import typing
 
+import numpy
+
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
 import redvox.api900.reader_utils as reader_utils
-
-import numpy
 
 
 class UnevenlySampledSensor:
@@ -136,6 +136,7 @@ class UnevenlySampledSensor:
     def __eq__(self, other) -> bool:
         return isinstance(other, UnevenlySampledSensor) and len(self.diff(other)) == 0
 
+    # pylint: disable=W0212
     def diff(self, other: 'UnevenlySampledSensor') -> typing.List[str]:
         """
         Compares two unevenly sampled sensors for differences.

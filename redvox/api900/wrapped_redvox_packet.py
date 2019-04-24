@@ -1,3 +1,4 @@
+# pylint: disable=C0302
 """
 This module contains classes and methods for working with WrappedRedvoxPackets
 """
@@ -137,10 +138,10 @@ class WrappedRedvoxPacket:
         """
         index, sampling = self._find_channel(channel_type)
         if index is not None and sampling is not None:
-            if type(channel) == EvenlySampledChannel:
+            if isinstance(channel, EvenlySampledChannel):
                 del self._redvox_packet.evenly_sampled_channels[index]
                 self._add_channel_redvox_packet(channel)
-            elif type(channel) == UnevenlySampledChannel:
+            elif isinstance(channel, UnevenlySampledChannel):
                 del self._redvox_packet.unevenly_sampled_channels[index]
                 self._add_channel_redvox_packet(channel)
             else:
@@ -181,17 +182,18 @@ class WrappedRedvoxPacket:
         else:
             return None, None
 
+    # pylint: disable=R0912
     def _add_channel_redvox_packet(self, channel: typing.Union[EvenlySampledChannel, UnevenlySampledChannel]):
         """
         adds the channel to the redvox_packet
         :param channel: channel to add
         """
-        if type(channel) == EvenlySampledChannel:
+        if isinstance(channel, EvenlySampledChannel):
             newchan = self._redvox_packet.evenly_sampled_channels.add()
             newchan.sample_rate_hz = channel.sample_rate_hz
             newchan.first_sample_timestamp_epoch_microseconds_utc = \
                 channel.first_sample_timestamp_epoch_microseconds_utc
-        elif type(channel) == UnevenlySampledChannel:
+        elif isinstance(channel, UnevenlySampledChannel):
             newchan = self._redvox_packet.unevenly_sampled_channels.add()
             for time in channel.timestamps_microseconds_utc:
                 newchan.timestamps_microseconds_utc.append(time)
@@ -716,6 +718,11 @@ class WrappedRedvoxPacket:
         return reader_utils.get_metadata_as_dict(self._metadata_list)
 
     def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'WrappedRedvoxPacket':
+        """
+        Sets the metadata using a dictionary.
+        :param metadata_dict: Dictionary of metadata.
+        :return: This WrappedRedvoxPacket.
+        """
         self.set_metadata(reader_utils.metadata_dict_to_list(metadata_dict))
         return self
 
@@ -780,6 +787,7 @@ class WrappedRedvoxPacket:
             self._delete_channel(api900_pb2.MICROPHONE)
 
         if microphone_sensor is not None:
+            # pylint: disable=W0212
             self._add_channel(microphone_sensor._evenly_sampled_channel)
 
         return self
@@ -834,6 +842,7 @@ class WrappedRedvoxPacket:
             self._delete_channel(api900_pb2.BAROMETER)
 
         if barometer_sensor is not None:
+            # pylint: disable=W0212
             self._add_channel(barometer_sensor._unevenly_sampled_channel)
 
         return self
@@ -891,6 +900,7 @@ class WrappedRedvoxPacket:
             self._delete_channel(api900_pb2.LATITUDE)
 
         if location_sensor is not None:
+            # pylint: disable=W0212
             self._add_channel(location_sensor._unevenly_sampled_channel)
 
         return self
@@ -955,6 +965,7 @@ class WrappedRedvoxPacket:
             self._delete_channel(api900_pb2.TIME_SYNCHRONIZATION)
 
         if time_synchronization_sensor is not None:
+            # pylint: disable=W0212
             self._add_channel(time_synchronization_sensor._unevenly_sampled_channel)
 
         return self
@@ -1010,6 +1021,7 @@ class WrappedRedvoxPacket:
             self._delete_channel(api900_pb2.ACCELEROMETER_X)
 
         if accelerometer_sensor is not None:
+            # pylint: disable=W0212
             self._add_channel(accelerometer_sensor._unevenly_sampled_channel)
 
         return self
@@ -1066,6 +1078,7 @@ class WrappedRedvoxPacket:
             self._delete_channel(api900_pb2.MAGNETOMETER_X)
 
         if magnetometer_sensor is not None:
+            # pylint: disable=W0212
             self._add_channel(magnetometer_sensor._unevenly_sampled_channel)
 
         return self
@@ -1121,6 +1134,7 @@ class WrappedRedvoxPacket:
             self._delete_channel(api900_pb2.GYROSCOPE_X)
 
         if gyroscope_sensor is not None:
+            # pylint: disable=W0212
             self._add_channel(gyroscope_sensor._unevenly_sampled_channel)
 
         return self
@@ -1174,6 +1188,7 @@ class WrappedRedvoxPacket:
             self._delete_channel(api900_pb2.LIGHT)
 
         if light_sensor is not None:
+            # pylint: disable=W0212
             self._add_channel(light_sensor._unevenly_sampled_channel)
 
         return self
@@ -1227,6 +1242,7 @@ class WrappedRedvoxPacket:
             self._delete_channel(api900_pb2.INFRARED)
 
         if infrared_sensor is not None:
+            # pylint: disable=W0212
             self._add_channel(infrared_sensor._unevenly_sampled_channel)
 
         return self
@@ -1280,6 +1296,7 @@ class WrappedRedvoxPacket:
             self._delete_channel(api900_pb2.IMAGE)
 
         if image_sensor is not None:
+            # pylint: disable=W0212
             self._add_channel(image_sensor._unevenly_sampled_channel)
 
         return self

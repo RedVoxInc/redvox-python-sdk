@@ -6,14 +6,14 @@ users.
 import struct
 import typing
 
+from google.protobuf import json_format
 from google.protobuf.internal import containers
+import lz4.block
+import numpy
+
 
 import redvox.api900.exceptions as exceptions
 import redvox.api900.lib.api900_pb2 as api900_pb2
-
-from google.protobuf import json_format
-import lz4.block
-import numpy
 
 
 def calculate_uncompressed_size(buf: bytes) -> int:
@@ -69,8 +69,8 @@ def write_file(file: str, redvox_packet: api900_pb2.RedvoxPacket):
     :return: Nothing, compressed file is written to disk
     """
     buffer = lz4_compress(redvox_packet.SerializeToString())
-    with open(file, "wb") as f:
-        f.write(buffer)
+    with open(file, "wb") as file_out:
+        file_out.write(buffer)
 
 
 def to_json(redvox_packet: api900_pb2.RedvoxPacket) -> str:
@@ -100,8 +100,8 @@ def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     """
     if channel is None:
         return "No channel to hold payload"
-    else:
-        return channel.WhichOneof("payload")
+
+    return channel.WhichOneof("payload")
 
 
 def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
@@ -246,6 +246,7 @@ def implements_diff(val) -> bool:
     return False
 
 
+# pylint: disable=R0911
 def diff(val1, val2) -> typing.Tuple[bool, typing.Optional[str]]:
     """
     Determines if the two values are different.
@@ -253,21 +254,21 @@ def diff(val1, val2) -> typing.Tuple[bool, typing.Optional[str]]:
     :param val2: The second value to check.
     :return: False, None if the values are the same or True, and a string displaying the differences when different.
     """
-    if type(val1) != type(val2):
+    if not isinstance(val1, val2):
         return True, "type {} != type {}".format(type(val1), type(val2))
 
     if implements_diff(val1) and implements_diff(val2):
         diffs = val1.diff(val2)
         if len(diffs) == 0:
             return False, None
-        else:
-            return True, "%s" % list(diffs)
+
+        return True, "%s" % list(diffs)
 
     if isinstance(val1, numpy.ndarray) and isinstance(val2, numpy.ndarray):
         if numpy.array_equal(val1, val2):
             return False, None
-        else:
-            return True, "{} != {}".format(val1, val2)
+
+        return True, "{} != {}".format(val1, val2)
 
     if val1 != val2:
         return True, "{} != {}".format(val1, val2)

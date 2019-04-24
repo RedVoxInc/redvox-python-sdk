@@ -4,12 +4,12 @@ This module contains classes and methods for working with time synchronization s
 
 import typing
 
+import numpy
+
 import redvox.api900.constants as constants
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.reader_utils as reader_utils
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
-
-import numpy
 
 
 class TimeSynchronizationSensor:
@@ -90,6 +90,7 @@ class TimeSynchronizationSensor:
     def __eq__(self, other) -> bool:
         return isinstance(other, TimeSynchronizationSensor) and len(self.diff(other)) == 0
 
+    # pylint: disable=W0212
     def diff(self, other: 'TimeSynchronizationSensor') -> typing.List[str]:
         """
         Compares two time synchronization sensors for differences.

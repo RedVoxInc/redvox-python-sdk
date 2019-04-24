@@ -49,6 +49,7 @@ class LocationSensor(UnevenlySampledSensor):
             api900_pb2.ACCURACY
         ])
 
+    # pylint: disable=R0913
     def set_payload_values(self,
                            latitude_payload: typing.Union[typing.List[float], numpy.ndarray],
                            longitude_payload: typing.Union[typing.List[float], numpy.ndarray],

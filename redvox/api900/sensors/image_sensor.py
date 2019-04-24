@@ -4,11 +4,11 @@ This module contains classes and methods for working with image sensors.
 
 import typing
 
+import numpy
+
 import redvox.api900.lib.api900_pb2 as api900_pb2
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
 from redvox.api900.sensors.unevenly_sampled_sensor import UnevenlySampledSensor
-
-import numpy
 
 
 class ImageSensor(UnevenlySampledSensor):
@@ -22,7 +22,7 @@ class ImageSensor(UnevenlySampledSensor):
         super().__init__(unevenly_sampled_channel)
         self._unevenly_sampled_channel.set_channel_types([api900_pb2.IMAGE])
 
-        self.image_offsets: typing.List[int] = self.parse_offsets()
+        self._image_offsets: typing.List[int] = self.parse_offsets()
         """A list of image byte offsets into the payload of this sensor channel."""
 
     def parse_offsets(self) -> typing.List[int]:
@@ -45,7 +45,7 @@ class ImageSensor(UnevenlySampledSensor):
         Returns the byte offsets for each image in the payload.
         :return: The byte offsets for each image in the payload.
         """
-        return self.image_offsets
+        return self._image_offsets
 
     def payload_values(self) -> numpy.ndarray:
         """
@@ -61,7 +61,7 @@ class ImageSensor(UnevenlySampledSensor):
         Returns the number of images in this packet's image channel.
         :return: The number of images in this packet's image channel.
         """
-        return len(self.image_offsets)
+        return len(self._image_offsets)
 
     def get_image_bytes(self, idx: int) -> numpy.ndarray:
         """
@@ -74,9 +74,9 @@ class ImageSensor(UnevenlySampledSensor):
                                str(self.num_images()))
 
         if idx == self.num_images() - 1:
-            return self.payload_values()[self.image_offsets[idx]:]
+            return self.payload_values()[self._image_offsets[idx]:]
 
-        return self.payload_values()[self.image_offsets[idx]:self.image_offsets[idx + 1]]
+        return self.payload_values()[self._image_offsets[idx]:self._image_offsets[idx + 1]]
 
     def write_image_to_file(self, idx: int, path: str):
         """
@@ -107,10 +107,10 @@ class ImageSensor(UnevenlySampledSensor):
         Returns the byte offsets for each image in the payload.
         :return: The byte offsets for each image in the payload.
         """
-        return self.image_offsets
+        return self._image_offsets
 
     def __str__(self):
         """Provide image information in str of this instance"""
         return "{}\nnum images: {}\nbyte offsets: {}".format(self._unevenly_sampled_channel,
                                                              self.num_images(),
-                                                             self.image_offsets)
+                                                             self._image_offsets)

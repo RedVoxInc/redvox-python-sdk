@@ -17,6 +17,8 @@ import redvox.api900.sensors.light_sensor as light_sensor
 import redvox.api900.sensors.infrared_sensor as infrared_sensor
 import redvox.api900.sensors.image_sensor as image_sensor
 
+
+# pylint: disable=C0103
 RedvoxSensor = typing.Union[
     evenly_sampled_sensor.EvenlySampledSensor,
     unevenly_sampled_sensor.UnevenlySampledSensor,
@@ -31,4 +33,5 @@ RedvoxSensor = typing.Union[
     infrared_sensor.InfraredSensor,
     image_sensor.ImageSensor
 ]
+# pylint: disable=C0103
 RedvoxSensors = typing.List[RedvoxSensor]
