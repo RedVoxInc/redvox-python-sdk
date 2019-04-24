@@ -254,7 +254,7 @@ def diff(val1, val2) -> typing.Tuple[bool, typing.Optional[str]]:
     :param val2: The second value to check.
     :return: False, None if the values are the same or True, and a string displaying the differences when different.
     """
-    if not isinstance(val1, val2):
+    if type(val1) != type(val2):
         return True, "type {} != type {}".format(type(val1), type(val2))
 
     if implements_diff(val1) and implements_diff(val2):

@@ -61,7 +61,6 @@ class TestCli(unittest.TestCase):
     def test_print_multi(self):
         output: str = subprocess.check_output("python3 -m redvox.api900.cli print %s/*.rdvxz" % TEST_DATA_DIR,
                                               shell=True).decode()
-
         self.assertEqual(len(list(filter(lambda line: line.startswith("api: 900"),
                                     output.split("\n")))),
                          3)
