@@ -741,6 +741,16 @@ class WrappedRedvoxPacket:
         """
         return self.start_timestamp_us_utc() + date_time_utils.seconds_to_microseconds(self.duration_s())
 
+    def update_uneven_sensor_timestamps(self, time_delta: int or float):
+        """
+        Given a time delta in microseconds, will adjust all unevenly sampled sensor timestamps by that amount.
+        Use negative values to adjust backwards in time.
+        :param time_delta: amount of time to adjust timestamps in microseconds
+        """
+        for channel in self._unevenly_sampled_channels:
+            if not channel.has_channel(api900_pb2.TIME_SYNCHRONIZATION):
+                channel.set_timestamps_microseconds_utc(channel.timestamps_microseconds_utc + time_delta)
+
     # Sensor channels
     def has_microphone_sensor(self) -> bool:
         """
