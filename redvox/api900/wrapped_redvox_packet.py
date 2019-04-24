@@ -166,6 +166,7 @@ class WrappedRedvoxPacket:
         else:
             raise TypeError("Unknown channel type to remove from packet.")
 
+    # pylint: disable=W0120
     def _find_channel(self, channel_type: int) -> (int, typing.Union[EvenlySampledChannel, UnevenlySampledChannel]):
         """
         returns the index of the channel and the kind of sampled array its in
