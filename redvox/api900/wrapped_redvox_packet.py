@@ -178,6 +178,8 @@ class WrappedRedvoxPacket:
             for idx in range(len(self._unevenly_sampled_channels_field)):
                 if channel_type in self._unevenly_sampled_channels_field[idx].channel_types:
                     return idx, UnevenlySampledChannel
+            else:
+                return None, None
         else:
             return None, None
 
