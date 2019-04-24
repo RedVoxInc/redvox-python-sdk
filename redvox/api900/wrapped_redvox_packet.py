@@ -103,10 +103,10 @@ class WrappedRedvoxPacket:
         """
         self._evenly_sampled_channels_field = list(map(EvenlySampledChannel,
                                                        reader_utils.repeated_to_array(
-                                                    self._redvox_packet.evenly_sampled_channels)))
+                                                           self._redvox_packet.evenly_sampled_channels)))
         self._unevenly_sampled_channels_field = list(map(UnevenlySampledChannel,
                                                          reader_utils.repeated_to_array(
-                                                        self._redvox_packet.unevenly_sampled_channels)))
+                                                             self._redvox_packet.unevenly_sampled_channels)))
         self._channel_cache = {}
         for evenly_sampled_channel in self._evenly_sampled_channels_field:
             for channel_type in evenly_sampled_channel.channel_types:

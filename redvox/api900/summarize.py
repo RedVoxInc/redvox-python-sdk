@@ -164,7 +164,7 @@ def plot_summarized_data(summarized_data: typing.Dict[str, typing.List[WrappedRe
     all_summaries = list(itertools.chain(*summarized_data.values()))
 
     start_timestamp_us = numpy.min(
-            list(map(lambda packet_summary: packet_summary.start_timestamp_us, all_summaries)))
+                list(map(lambda packet_summary: packet_summary.start_timestamp_us, all_summaries)))
     end_timestamp_us = numpy.max(list(map(lambda packet_summary: packet_summary.end_timestamp_us, all_summaries)))
     start_s = int(date_time_utils.microseconds_to_seconds(start_timestamp_us))
     end_s = int(date_time_utils.microseconds_to_seconds(end_timestamp_us))
