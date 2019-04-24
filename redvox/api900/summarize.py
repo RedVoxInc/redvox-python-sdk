@@ -6,8 +6,8 @@ import datetime
 import itertools
 import typing
 
-import matplotlib.pylab as plt
 import numpy
+import matplotlib.pyplot as plt
 
 import redvox.api900.types as types
 import redvox.api900.date_time_utils as date_time_utils
@@ -37,13 +37,14 @@ def _sensor_samples(sensor: typing.Optional[types.RedvoxSensor]) -> int:
     if sensor is None:
         return 0
 
-    if isinstance(sensor, types.microphone_sensor.MicrophoneSensor) or isinstance(sensor,
-                                                                                  types.time_synchronization_sensor.TimeSynchronizationSensor):
+    if isinstance(sensor, (types.microphone_sensor.MicrophoneSensor,
+                           types.time_synchronization_sensor.TimeSynchronizationSensor)):
         return len(sensor.payload_values())
 
     return len(sensor.timestamps_microseconds_utc())
 
 
+# pylint: disable=R0903
 class SensorSummary:
     """
     This class provides a summary of a sensor.
@@ -60,6 +61,8 @@ class SensorSummary:
         return "{SensorSummary: %s with %d samples} " % (self.sensor_name, self.num_samples)
 
 
+# pylint: disable=R0902
+# pylint: disable=R0903
 class WrappedRedvoxPacketSummary:
     """
     This class provides a summary of a WrappedRedvoxPacket.
@@ -76,8 +79,9 @@ class WrappedRedvoxPacketSummary:
         self.microphone_sensor_summary: SensorSummary = SensorSummary(redvox_packet.microphone_sensor())
         self.barometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.barometer_sensor())
         self.location_sensor_summary: SensorSummary = SensorSummary(redvox_packet.location_sensor())
+        # pylint: disable=C0103
         self.time_synchronization_sensor_summary: SensorSummary = SensorSummary(
-                redvox_packet.time_synchronization_sensor())
+            redvox_packet.time_synchronization_sensor())
         self.accelerometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.accelerometer_sensor())
         self.magnetometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.magnetometer_sensor())
         self.gyroscope_sensor_summary: SensorSummary = SensorSummary(redvox_packet.gyroscope_sensor())
@@ -133,24 +137,25 @@ def summarize_data(grouped_redvox_packets: typing.Dict[str, typing.List]) -> typ
     return summarized
 
 
-def _subsample(vs: typing.Union[numpy.ndarray, typing.List], num_samples: int) -> typing.Union[
+def _subsample(values: typing.Union[numpy.ndarray, typing.List], num_samples: int) -> typing.Union[
         numpy.ndarray, typing.List]:
     """
     Returns evenly sampled values from an array.
     From https://stackoverflow.com/a/50685454 and https://stackoverflow.com/a/9873935
-    :param vs: Sequence to extract evenly sampled samples from.
+    :param values: Sequence to extract evenly sampled samples from.
     :param num_samples: Number of samples to extract.
     :return: A new, subsampled array.
     """
-    indexes = numpy.round(numpy.linspace(0, len(vs) - 1, num_samples)).astype(int)
-    if isinstance(vs, numpy.ndarray):
-        return numpy.take(vs, indexes)
-    elif isinstance(vs, typing.List):
-        return [vs[i] for i in indexes]
+    indexes = numpy.round(numpy.linspace(0, len(values) - 1, num_samples)).astype(int)
+    if isinstance(values, numpy.ndarray):
+        return numpy.take(values, indexes)
+    elif isinstance(values, typing.List):
+        return [values[i] for i in indexes]
     else:
         raise RuntimeError("Non sequence type passed to subsample")
 
 
+# pylint: disable=R0914
 def plot_summarized_data(summarized_data: typing.Dict[str, typing.List[WrappedRedvoxPacketSummary]]):
     """
     Given summarized data, plot the data to display sensor activity for all passed in summarized data.
@@ -166,9 +171,9 @@ def plot_summarized_data(summarized_data: typing.Dict[str, typing.List[WrappedRe
     timestamps = numpy.arange(start_s, end_s + 1)
 
     # Setup the plot
-    fig, ax = plt.subplots(nrows=1)
-    ax.set_xlim([timestamps[0], timestamps[-1]])
-    ax.set_ylim([0, len(summarized_data.keys()) + 1])
+    fig, axes = plt.subplots(nrows=1)
+    axes.set_xlim([timestamps[0], timestamps[-1]])
+    axes.set_ylim([0, len(summarized_data.keys()) + 1])
 
     # Not for each device, let's plot its ranges
     yticks = []
@@ -180,7 +185,7 @@ def plot_summarized_data(summarized_data: typing.Dict[str, typing.List[WrappedRe
             summary_end_s = int(date_time_utils.microseconds_to_seconds(summary.end_timestamp_us))
             values = numpy.full(len(timestamps), numpy.nan)
             values[timestamps.searchsorted(summary_start_s):timestamps.searchsorted(summary_end_s)] = i
-            ax.plot(timestamps, values)
+            axes.plot(timestamps, values)
 
         yticks.append(i)
         ylabels.append(redvox_id.split(":")[0])
@@ -189,17 +194,17 @@ def plot_summarized_data(summarized_data: typing.Dict[str, typing.List[WrappedRe
     xticks = _subsample(timestamps, 6)
     datetimes = map(datetime.datetime.utcfromtimestamp, xticks)
     datetimes = map(lambda dt: dt.strftime("%d %H:%M"), datetimes)
-    ax.set_xticks(xticks)
-    ax.set_xticklabels(list(datetimes))
-    ax.set_yticks(yticks)
-    ax.set_yticklabels(ylabels)
+    axes.set_xticks(xticks)
+    axes.set_xticklabels(list(datetimes))
+    axes.set_yticks(yticks)
+    axes.set_yticklabels(ylabels)
 
-    ax.tick_params(axis='both', which='major', labelsize=8)
-    ax.tick_params(axis='both', which='minor', labelsize=7)
+    axes.tick_params(axis='both', which='major', labelsize=8)
+    axes.tick_params(axis='both', which='minor', labelsize=7)
 
-    ax.set_title("RedVox Device Summary")
-    ax.set_xlabel("Date and Time")
-    ax.set_ylabel("Device Activity")
+    axes.set_title("RedVox Device Summary")
+    axes.set_xlabel("Date and Time")
+    axes.set_ylabel("Device Activity")
 
     fig.text(.5, .01, "UTC %s - %s" % (datetime.datetime.utcfromtimestamp(start_s),
                                        datetime.datetime.utcfromtimestamp(end_s)), ha='center')

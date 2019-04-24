@@ -4,12 +4,12 @@ This module contains classes and methods for working with unevenly sampled chann
 
 import typing
 
+import numpy
+
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.reader_utils as reader_utils
 import redvox.api900.sensors.interleaved_channel as interleaved_channel
 import redvox.api900.stat_utils as stat_utils
-
-import numpy
 
 
 class UnevenlySampledChannel(interleaved_channel.InterleavedChannel):

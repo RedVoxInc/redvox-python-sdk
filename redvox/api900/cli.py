@@ -14,15 +14,15 @@ def to_json(paths: typing.List[str]):
     Given a list of paths of .rdvxz files, convert the .rdvxz files to RedVox API 900 compliant .json files.
     :param paths: List of paths to .rdvxz files.
     """
-    def _to_json(path: str):
+    def _to_json(_path: str):
         """
         Converts a .rdvxz file at path to json and writes the file to the same directory as the .rdvxz file was read
         from.
-        :param path: Path to the rdvxz file to convert.
+        :param _path: Path to the rdvxz file to convert.
         """
-        pb_packet = reader.read_file(path)
-        new_path = path.replace(".rdvxz", ".json")
-        print("Converting %s -> %s" % (path, new_path))
+        pb_packet = reader.read_file(_path)
+        new_path = _path.replace(".rdvxz", ".json")
+        print("Converting %s -> %s" % (_path, new_path))
         with open(new_path, "w") as fout:
             fout.write(reader_utils.to_json(pb_packet))
 
@@ -34,16 +34,16 @@ def to_rdvxz(paths: typing.List[str]):
     Given a list of paths of RedVox API 900 compliant .json files, convert the .json files to .rdvxz files.
     :param paths: List of paths to RedVox API 900 compliant .json files.
     """
-    def _to_rdvxz(path: str):
+    def _to_rdvxz(_path: str):
         """
         Converts a RedVox API 900 compliant .json file at path to a .rdvxz file in the same directory.
-        :param path: Path to the RedVox API 900 compliant json file.
+        :param _path: Path to the RedVox API 900 compliant json file.
         """
-        with open(path, "r") as json_in:
+        with open(_path, "r") as json_in:
             json = json_in.read()
 
-        new_path = path.replace(".json", ".rdvxz")
-        print("Converting %s -> %s" % (path, new_path))
+        new_path = _path.replace(".json", ".rdvxz")
+        print("Converting %s -> %s" % (_path, new_path))
         reader_utils.write_file(new_path, reader_utils.from_json(json))
 
     list(map(_to_rdvxz, paths))
@@ -54,9 +54,9 @@ def string(paths: typing.List[str]):
     For each path passed in, print out the contents of the .rdvxz file using protobuf's string serialization.
     :param paths: Paths of .rdvxz files.
     """
-    for path in paths:
-        print(" ------------- Contents of %s" % path)
-        print(reader.read_file(path))
+    for _path in paths:
+        print(" ------------- Contents of %s" % _path)
+        print(reader.read_file(_path))
 
 
 # Entry point to CLI.

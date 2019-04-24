@@ -598,13 +598,13 @@ class WrappedRedvoxPacketTests(ArraysTestCase):
         self.assertEqual(self.gps_packet.redvox_packet().api, 900)
         self.assertEqual(self.multi_packet.redvox_packet().api, 900)
 
-        self.assertEqual(len(self.mic_packet._evenly_sampled_channels), 1)
-        self.assertEqual(len(self.gps_packet._evenly_sampled_channels), 0)
-        self.assertEqual(len(self.multi_packet._evenly_sampled_channels), 1)
+        self.assertEqual(len(self.mic_packet._evenly_sampled_channels_field), 1)
+        self.assertEqual(len(self.gps_packet._evenly_sampled_channels_field), 0)
+        self.assertEqual(len(self.multi_packet._evenly_sampled_channels_field), 1)
 
-        self.assertEqual(len(self.mic_packet._unevenly_sampled_channels), 0)
-        self.assertEqual(len(self.gps_packet._unevenly_sampled_channels), 1)
-        self.assertEqual(len(self.multi_packet._unevenly_sampled_channels), 2)
+        self.assertEqual(len(self.mic_packet._unevenly_sampled_channels_field), 0)
+        self.assertEqual(len(self.gps_packet._unevenly_sampled_channels_field), 1)
+        self.assertEqual(len(self.multi_packet._unevenly_sampled_channels_field), 2)
 
         self.assertEqual(self.mic_packet.metadata(), ["foo", "bar", "a", "b", "c", "d"])
         self.assertEqual(self.gps_packet.metadata(), ["foo", "bar"])

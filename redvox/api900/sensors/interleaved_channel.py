@@ -33,6 +33,7 @@ class InterleavedChannel:
     This class provides methods for working with interleaved channels as well as accessing interleaved statistic values.
     """
 
+    # pylint: disable=C0326
     def __init__(self, channel: typing.Optional[typing.Union[api900_pb2.EvenlySampledChannel,
                                                              api900_pb2.UnevenlySampledChannel]] = None):
         """
@@ -85,8 +86,8 @@ class InterleavedChannel:
             self.channel_type_index: typing.Dict[api900_pb2.ChannelType, int] = {self.channel_types[i]: i for
                                                                                  i in
                                                                                  range(
-                                                                                         len(
-                                                                                                 self.channel_types))}
+                                                                                     len(
+                                                                                         self.channel_types))}
             """Contains a mapping of channel type to index in channel_types array"""
 
     def set_channel_types(self, types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,

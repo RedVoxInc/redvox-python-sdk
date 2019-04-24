@@ -43,8 +43,8 @@ class WrappedRedvoxPacket:
         """
         if redvox_packet is None:
             self._redvox_packet = api900_pb2.RedvoxPacket()
-            self._evenly_sampled_channels = list()
-            self._unevenly_sampled_channels = list()
+            self._evenly_sampled_channels_field = list()
+            self._unevenly_sampled_channels_field = list()
             self._metadata_list = list()
             self._channel_cache = {}
 
@@ -52,13 +52,13 @@ class WrappedRedvoxPacket:
             self._redvox_packet: api900_pb2.RedvoxPacket = redvox_packet
             """Protobuf api 900 redvox packet"""
 
-            self._evenly_sampled_channels: typing.List[EvenlySampledChannel] = list(
-                    map(EvenlySampledChannel, reader_utils.repeated_to_array(redvox_packet.evenly_sampled_channels)))
+            self._evenly_sampled_channels_field: typing.List[EvenlySampledChannel] = list(
+                map(EvenlySampledChannel, reader_utils.repeated_to_array(redvox_packet.evenly_sampled_channels)))
             """List of evenly sampled channels"""
 
-            self._unevenly_sampled_channels: typing.List[UnevenlySampledChannel] = list(
-                    map(UnevenlySampledChannel,
-                        reader_utils.repeated_to_array(redvox_packet.unevenly_sampled_channels)))
+            self._unevenly_sampled_channels_field: typing.List[UnevenlySampledChannel] = list(
+                map(UnevenlySampledChannel,
+                    reader_utils.repeated_to_array(redvox_packet.unevenly_sampled_channels)))
             """List of unevenly sampled channels"""
 
             self._metadata_list: typing.List[str] = reader_utils.repeated_to_list(redvox_packet.metadata)
@@ -68,11 +68,11 @@ class WrappedRedvoxPacket:
             """Holds a mapping of channel type to channel for O(1) access."""
 
             # Initialize channel cache
-            for evenly_sampled_channel in self._evenly_sampled_channels:
+            for evenly_sampled_channel in self._evenly_sampled_channels_field:
                 for channel_type in evenly_sampled_channel.channel_types:
                     self._channel_cache[channel_type] = evenly_sampled_channel
 
-            for unevenly_sampled_channel in self._unevenly_sampled_channels:
+            for unevenly_sampled_channel in self._unevenly_sampled_channels_field:
                 for channel_type in unevenly_sampled_channel.channel_types:
                     self._channel_cache[channel_type] = unevenly_sampled_channel
 
@@ -88,30 +88,30 @@ class WrappedRedvoxPacket:
         returns the evenly sampled channels as a copied list to avoid built in functions making untracked changes
         :return: list of evenly sampled channels
         """
-        return self._evenly_sampled_channels.copy()
+        return self._evenly_sampled_channels_field.copy()
 
     def _unevenly_sampled_channels(self) -> typing.List[UnevenlySampledChannel]:
         """
         returns the unevenly sampled channels as a copied list to avoid built in functions making untracked changes
         :return: list of unevenly sampled channels
         """
-        return self._unevenly_sampled_channels.copy()
+        return self._unevenly_sampled_channels_field.copy()
 
     def _refresh_channels(self):
         """
         takes the redvox packet and rebuilds the channel cache from it
         """
-        self._evenly_sampled_channels = list(map(EvenlySampledChannel,
-                                                 reader_utils.repeated_to_array(
-                                                         self._redvox_packet.evenly_sampled_channels)))
-        self._unevenly_sampled_channels = list(map(UnevenlySampledChannel,
-                                                   reader_utils.repeated_to_array(
-                                                           self._redvox_packet.unevenly_sampled_channels)))
+        self._evenly_sampled_channels_field = list(map(EvenlySampledChannel,
+                                                       reader_utils.repeated_to_array(
+                                                    self._redvox_packet.evenly_sampled_channels)))
+        self._unevenly_sampled_channels_field = list(map(UnevenlySampledChannel,
+                                                         reader_utils.repeated_to_array(
+                                                        self._redvox_packet.unevenly_sampled_channels)))
         self._channel_cache = {}
-        for evenly_sampled_channel in self._evenly_sampled_channels:
+        for evenly_sampled_channel in self._evenly_sampled_channels_field:
             for channel_type in evenly_sampled_channel.channel_types:
                 self._channel_cache[channel_type] = evenly_sampled_channel
-        for unevenly_sampled_channel in self._unevenly_sampled_channels:
+        for unevenly_sampled_channel in self._unevenly_sampled_channels_field:
             for channel_type in unevenly_sampled_channel.channel_types:
                 self._channel_cache[channel_type] = unevenly_sampled_channel
 
@@ -122,7 +122,8 @@ class WrappedRedvoxPacket:
         """
         index, sample = self._find_channel(channel.channel_types[0])
         if index is None and sample is None:
-            if type(channel) not in [EvenlySampledChannel, UnevenlySampledChannel]:
+            # if type(channel) not in [EvenlySampledChannel, UnevenlySampledChannel]:
+            if not isinstance(channel, (EvenlySampledChannel, UnevenlySampledChannel)):
                 raise TypeError("Channel type to add must be even or uneven.")
             else:
                 self._add_channel_redvox_packet(channel)
@@ -171,14 +172,12 @@ class WrappedRedvoxPacket:
         :return: the index in the even or uneven array and the name of the array
         """
         if self._has_channel(channel_type):
-            for idx in range(len(self._evenly_sampled_channels)):
-                if channel_type in self._evenly_sampled_channels[idx].channel_types:
+            for idx in range(len(self._evenly_sampled_channels_field)):
+                if channel_type in self._evenly_sampled_channels_field[idx].channel_types:
                     return idx, EvenlySampledChannel
-            for idx in range(len(self._unevenly_sampled_channels)):
-                if channel_type in self._unevenly_sampled_channels[idx].channel_types:
+            for idx in range(len(self._unevenly_sampled_channels_field)):
+                if channel_type in self._unevenly_sampled_channels_field[idx].channel_types:
                     return idx, UnevenlySampledChannel
-            else:
-                return None, None
         else:
             return None, None
 
@@ -242,10 +241,10 @@ class WrappedRedvoxPacket:
         :return: A list of channel type enumerations.
         """
         channel_types = []
-        for evenly_sampled_channel in self._evenly_sampled_channels:
+        for evenly_sampled_channel in self._evenly_sampled_channels_field:
             channel_types.append(evenly_sampled_channel.channel_types)
 
-        for unevenly_sampled_channel in self._unevenly_sampled_channels:
+        for unevenly_sampled_channel in self._unevenly_sampled_channels_field:
             channel_types.append(unevenly_sampled_channel.channel_types)
 
         return channel_types
@@ -754,7 +753,7 @@ class WrappedRedvoxPacket:
         Use negative values to adjust backwards in time.
         :param time_delta: amount of time to adjust timestamps in microseconds
         """
-        for channel in self._unevenly_sampled_channels:
+        for channel in self._unevenly_sampled_channels_field:
             if not channel.has_channel(api900_pb2.TIME_SYNCHRONIZATION):
                 channel.set_timestamps_microseconds_utc(channel.timestamps_microseconds_utc + time_delta)
 
@@ -875,9 +874,8 @@ class WrappedRedvoxPacket:
         :return: If this packet has a location channel.
         """
         return (self._has_channels(
-                [api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED,
-                 api900_pb2.ACCURACY]) or
-                self._has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE]))
+            [api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED,
+             api900_pb2.ACCURACY]) or self._has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE]))
 
     def location_sensor(self) -> typing.Optional[_location_sensor.LocationSensor]:
         """
@@ -936,7 +934,7 @@ class WrappedRedvoxPacket:
         """
         if self._has_channel(api900_pb2.TIME_SYNCHRONIZATION):
             ch = _time_synchronization_sensor.TimeSynchronizationSensor(
-                    self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
+                self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
             return len(ch.payload_values()) > 0
 
         return False
@@ -950,7 +948,7 @@ class WrappedRedvoxPacket:
         """
         if self.has_time_synchronization_sensor():
             return _time_synchronization_sensor.TimeSynchronizationSensor(
-                    self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
+                self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
 
         return None
 
