@@ -10,7 +10,6 @@ import numpy as _np
 import redvox.api900.date_time_utils as _date_time_utils
 import redvox.api900.exceptions as _exceptions
 import redvox.api900.sensors.evenly_sampled_sensor as evenly_sampled_sensor
-import redvox.api900.sensors.time_synchronization_sensor as time_synchronization_sensor
 import redvox.api900.sensors.unevenly_sampled_sensor as unevenly_sampled_sensor
 
 import redvox.api900.sensors.microphone_sensor as _microphone_sensor
@@ -25,13 +24,14 @@ import redvox.api900.sensors.image_sensor as _image_sensor
 import redvox.api900.sensors.time_synchronization_sensor as _time_synchronization_sensor
 from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
+# pylint: disable=C0103
 RedvoxSensor = typing.Union[
     evenly_sampled_sensor.EvenlySampledSensor,
     unevenly_sampled_sensor.UnevenlySampledSensor,
     _microphone_sensor.MicrophoneSensor,
     _barometer_sensor.BarometerSensor,
     _location_sensor.LocationSensor,
-    time_synchronization_sensor.TimeSynchronizationSensor,
+    _time_synchronization_sensor.TimeSynchronizationSensor,
     _accelerometer_sensor.AccelerometerSensor,
     _gyroscope_sensor.GyroscopeSensor,
     _magnetometer_sensor.MagnetometerSensor,
@@ -39,6 +39,7 @@ RedvoxSensor = typing.Union[
     _infrared_sensor.InfraredSensor,
     _image_sensor.ImageSensor
 ]
+# pylint: disable=C0103
 RedvoxSensors = typing.List[RedvoxSensor]
 
 
@@ -60,7 +61,7 @@ def _partial_hash_sensor(sensor: typing.Optional[RedvoxSensor]) -> int:
     if isinstance(sensor, evenly_sampled_sensor.EvenlySampledSensor):
         return hash((sensor.sample_rate_hz(), sensor.sensor_name(), sensor.payload_type()))
 
-    if isinstance(sensor, time_synchronization_sensor.TimeSynchronizationSensor):
+    if isinstance(sensor, _time_synchronization_sensor.TimeSynchronizationSensor):
         return hash("TimeSynchronizationSensor")
 
     raise _exceptions.ConcatenationException("trying to hash non-sensor type=%s" % type(sensor))

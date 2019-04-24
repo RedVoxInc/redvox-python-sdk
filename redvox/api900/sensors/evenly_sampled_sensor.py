@@ -114,6 +114,11 @@ class EvenlySampledSensor:
         return reader_utils.get_metadata_as_dict(self._evenly_sampled_channel.metadata)
 
     def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'EvenlySampledSensor':
+        """
+        Sets the metadata given a dictionary of key-pair values.
+        :param metadata_dict: Dictionary to use to set metadata.
+        :return: An instance of the sensor.
+        """
         self.set_metadata(reader_utils.metadata_dict_to_list(metadata_dict))
         return self
 
@@ -123,6 +128,7 @@ class EvenlySampledSensor:
     def __eq__(self, other):
         return isinstance(other, EvenlySampledSensor) and len(self.diff(other)) == 0
 
+    # pylint: disable=W0212
     def diff(self, other: 'EvenlySampledSensor') -> typing.List[str]:
         """
         Compares two evenly sampled sensors for differences.

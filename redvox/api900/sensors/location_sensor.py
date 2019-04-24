@@ -4,12 +4,12 @@ This module contains classes and methods for working with location sensors.
 
 import typing
 
+import numpy
+
 import redvox.api900.constants as constants
 import redvox.api900.lib.api900_pb2 as api900_pb2
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
 from redvox.api900.sensors.unevenly_sampled_sensor import UnevenlySampledSensor
-
-import numpy
 
 
 # pylint: disable=R0904

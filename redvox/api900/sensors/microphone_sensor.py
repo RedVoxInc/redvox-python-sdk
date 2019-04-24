@@ -4,13 +4,13 @@ This module contains classes and methods for working with microphone sensors.
 
 import typing
 
+import numpy
+
 import redvox.api900.constants as constants
 import redvox.api900.exceptions as exceptions
 import redvox.api900.lib.api900_pb2 as api900_pb2
 from redvox.api900.sensors.evenly_sampled_channel import EvenlySampledChannel
 from redvox.api900.sensors.evenly_sampled_sensor import EvenlySampledSensor
-
-import numpy
 
 
 class MicrophoneSensor(EvenlySampledSensor):

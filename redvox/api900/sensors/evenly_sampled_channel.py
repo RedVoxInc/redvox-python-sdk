@@ -48,6 +48,7 @@ class EvenlySampledChannel(interleaved_channel.InterleavedChannel):
         self.sample_rate_hz = rate
         self.protobuf_channel.sample_rate_hz = rate
 
+    # pylint: disable=C0103
     def set_first_sample_timestamp_epoch_microseconds_utc(self, time: int):
         """
         set the epoch in microseconds
@@ -62,6 +63,6 @@ class EvenlySampledChannel(interleaved_channel.InterleavedChannel):
         :return: A string representation of this evenly sampled channel.
         """
         return "{}\nsample_rate_hz: {}\nfirst_sample_timestamp_epoch_microseconds_utc: {}".format(
-                super(EvenlySampledChannel, self).__str__(),
-                self.sample_rate_hz,
-                self.first_sample_timestamp_epoch_microseconds_utc)
+            super(EvenlySampledChannel, self).__str__(),
+            self.sample_rate_hz,
+            self.first_sample_timestamp_epoch_microseconds_utc)

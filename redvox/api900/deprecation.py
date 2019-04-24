@@ -7,7 +7,7 @@ import logging
 import traceback
 import typing
 
-logger = logging.getLogger("DeprecationWarningLogger")
+LOGGER = logging.getLogger("DeprecationWarningLogger")
 
 
 def deprecated(in_version: str, alt_fn: typing.Callable) -> typing.Callable:
@@ -19,6 +19,11 @@ def deprecated(in_version: str, alt_fn: typing.Callable) -> typing.Callable:
     :param alt_fn: An alternate function to use instead of the deprecated one.
     """
     def decorator_repeat(func):
+        """
+        Wraps a function.
+        :param func: Function to wrap.
+        :return: A decorator.
+        """
         warn = "%s has been deprecated in version %s. Use %s instead." % (
             func.__name__,
             in_version,
@@ -26,9 +31,15 @@ def deprecated(in_version: str, alt_fn: typing.Callable) -> typing.Callable:
 
         @functools.wraps(func)
         def wrapper_decorator(*args, **kwargs):
-            tb = traceback.extract_stack(limit=2)[0]
-            logger.warning("RedVox SDK Deprecation Warning: %s", warn)
-            logger.warning(" -- %s %d %s", tb.filename, tb.lineno, tb.name)
+            """
+            Displays the deprecation warning and runs the alternate function.
+            :param args: Original args.
+            :param kwargs: Original kwargs.
+            :return: The result of running the alternate function.
+            """
+            _traceback = traceback.extract_stack(limit=2)[0]
+            LOGGER.warning("RedVox SDK Deprecation Warning: %s", warn)
+            LOGGER.warning(" -- %s %d %s", _traceback.filename, _traceback.lineno, _traceback.name)
             return alt_fn(*args, **kwargs)
 
         wrapper_decorator.__doc__ = warn

@@ -4,13 +4,13 @@ This module contains classes and methods for working with interleaved channels.
 
 import typing
 
+import numpy
+
 import redvox.api900.constants as constants
 import redvox.api900.exceptions as exceptions
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.reader_utils as reader_utils
 import redvox.api900.stat_utils as stat_utils
-
-import numpy
 
 
 # pylint: disable=R0902
@@ -339,8 +339,8 @@ class InterleavedChannel:
                "len(payload): {}\n" \
                "payload_type: {}".format(self.sensor_name,
                                          list(map(
-                                                 reader_utils.channel_type_name_from_enum,
-                                                 self.channel_types)),
+                                             reader_utils.channel_type_name_from_enum,
+                                             self.channel_types)),
                                          len(self.payload),
                                          reader_utils.payload_type(
-                                                 self.protobuf_channel))
+                                             self.protobuf_channel))
