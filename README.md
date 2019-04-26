@@ -6,6 +6,12 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+#### 2.2.0 (2019-4-26)
+
+* Add sensor timing correction
+* Add high-level documentation
+* Fix more cyclic dependency issues
+
 #### 2.1.1 (2019-4-24)
 
 * Start and end timestamps are now optional when reading .rdvxz files from a range. For timestamps that are not supplied, the timestamps are parsed from the data file names to find the earliest and latest timestamp.

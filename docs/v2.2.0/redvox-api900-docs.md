@@ -35,37 +35,59 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 
 ### Prerequisites
 
-Python 3.6 or greater is required. 
+#### Installing Python
+Python version 3.6 or greater is required to use this SDK. 
+* If you are using Windows, Python can be downloaded and installed from [https://www.python.org/](https://www.python.org/). 
+* If you are using OS X, we recommend installing Python from [homebrew](https://brew.sh/).
+* If you are using Linux, we recommend installing Python with your distribution's package manager. 
 
-This project depends on `lz4`, `numpy`, and `protobuf` libraries. `coala` is required if you wish to perform linting and/or static analysis. These dependencies will be installed automatically if you install this library from pip (see: [Installing from pip](#markdown-header-installing-from-pip)).
+Please see the Python [documentation](https://docs.python.org/3/) to learn more.
 
-If you are interested in developing code for the sdk or working with development versions, refer to the section [Developer Guidelines](#markdown-header-developer-guidelines).
+#### SDK dependencies
+This project depends on the `lz4`, `numpy`, and `protobuf` libraries. `coala` is required if you wish to perform linting and/or static analysis. These dependencies will be installed automatically if you install this library from pip (see: [Installing from pip](#markdown-header-installing-from-pip)).
+
+If you are interested in developing code for the SDK or working with development versions, refer to the section [Developer Guidelines](#markdown-header-developer-guidelines).
 
 ### Installing from pip
 
-Installing the RedVox SDK via pip is the recommended way of obtaining the library. This method also takes care of installing required dependencies.
+* Installing the RedVox SDK via pip is the recommended way of obtaining the library.* This method also takes care of installing required dependencies.
 
-To install run `pip install redvox`.
+1. Install Python 3.6 or greater as described in the previous section.
+2. Open a terminal window
+3. Type and run `pip install redvox`.
 
 ### Installing from source
 
 pip is the recommended way of obtaining this library. However, if you are looking for the source distribution, it can be found at https://bitbucket.org/redvoxhi/redvox-api900-python-reader/downloads/
 
+It's also possible to use git to checkout the master branch if you want to work with the currently unstable development version of the library.
+
 ### Updating the RedVox Python SDK
 
-pip is the recommended way of updating this library. To update to the latest version, run `pip install redvox --upgrade --no-cache`.
+pip is the recommended way of updating this library. To update to the latest version
+
+1. Open a terminal window 
+2. Type and run `pip install redvox --upgrade --no-cache`.
 
 ### Verifying installation
 
-It is possible to verify installation of the library by printing out the version information. There are two top level functions in the `redvox` namespace that do this. `version()` which returns the version number string. An example follows:
+It is possible to verify installation of the library by printing out the version information. There is a top level function in the `redvox` namespace that does this. `version()` which returns the version number string. To verify the installation, create a new Python source file. Copy the following contents into that file:
 
-```
+```python
 import redvox
 
 print(redvox.version())
 ``` 
 
-which, when ran produces the following output:
+Then,
+
+1. Save the file
+2. Open a terminal
+3. Navigate the terminal to the same directory as the saved file
+4. Run the file with `python name_of_file.py` replacing name_of_file with the name of the file you saved.
+
+
+which, when ran should produce the following output:
 
 ```
 2.2.0
@@ -73,14 +95,14 @@ which, when ran produces the following output:
 
 ### Example files
 
-A set of example files can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.2.0/examples/
-In order to run these examples you will need some example data.  To get the data:
+A set of example files and example data can be downloaded from our respository at https://bitbucket.org/redvoxhi/redvox-api900-python-reader/downloads/examples-v2.2.0.zip
 
-* Change directories to where your sdk was installed, then change directories again to redvox-api900-python-reader/docs/2.2.0/examples/example_data/.
-* Run the download_example_data.sh script within that directory.
-* Alternatively, download the files directly from https://s3-us-west-2.amazonaws.com/redvox-public/bffdf0b5-7031-4add-89f3-2eb6b9e1f1cd.zip and extract the contents to the docs/2.2.0/examples/example_data/ directory.
+Download and extract the files. This should produce a new directory called `examples-v2.0.0`. Inside this directory you will find several .py files, each providing examples for different functionally our SDK provides.
 
-If successful, there will be a directory called api900 that will contain the example data.
+To run these examples:
+
+1. Open a terminal window
+2. Type `python name_of_example.py` where name_of_example is replaced by the name of the example you would like to run.
 
 ### Working with the SDK CLI
 
