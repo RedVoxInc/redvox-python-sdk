@@ -10,6 +10,7 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Installing from pip](#markdown-header-installing-from-pip)
 * [Installing from source](#markdown-header-installing-from-source)
 * [Updating the RedVox Python SDK](#markdown-header-updating-the-redvox-python-sdk)
+* [Example files](#markdown-header-example-files)
 * [Working with the SDK CLI](#markdown-header-working-with-the-sdk-cli)
 * [Loading RedVox API 900 files](#markdown-header-loading-redvox-api-900-files)
 * [Loading RedVox API 900 files from a range](#markdown-header-loading-redvox-api-900-files-from-a-range)
@@ -27,8 +28,8 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 * [Working with infrared sensor channels](#markdown-header-working-with-infrared-sensor-channels)
 * [Working with image sensor channels](#markdown-header-working-with-image-sensor-channels)
 * [Modifying and creating WrappedRedvoxPacket objects and sensor channels](#markdown-header-modifying-and-creating-wrappedredvoxpacket-objects-and-sensor-channel)
+* [Updating Timestamps in Sensor Channels](#markdown-header-updating-timestamps-in-sensor-channels)
 * [Testing for Equality and Finding Differences](#markdown-header-testing-for-equality-and-finding-differences)
-* [Example files](#markdown-header-example-files)
 * [Generated API Documentation](#markdown-header-generated-api-documentation)
 * [Developer Guidelines](#markdown-header-developer-guidelines)
 
@@ -38,6 +39,7 @@ Python 3.6 or greater is required.
 
 This project depends on `lz4`, `numpy`, and `protobuf` libraries. `coala` is required if you wish to perform linting and/or static analysis. These dependencies will be installed automatically if you install this library from pip (see: [Installing from pip](#markdown-header-installing-from-pip)).
 
+If you are interested in developing code for the sdk or working with development versions, refer to the section [Developer Guidelines](#markdown-header-developer-guidelines).
 
 ### Installing from pip
 
@@ -66,8 +68,19 @@ print(redvox.version())
 which, when ran produces the following output:
 
 ```
-2.0.0
+2.2.0
 ```
+
+### Example files
+
+A set of example files can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.2.0/examples/
+In order to run these examples you will need some example data.  To get the data:
+
+* Change directories to where your sdk was installed, then change directories again to redvox-api900-python-reader/docs/2.2.0/examples/example_data/.
+* Run the download_example_data.sh script within that directory.
+* Alternatively, download the files directly from https://s3-us-west-2.amazonaws.com/redvox-public/bffdf0b5-7031-4add-89f3-2eb6b9e1f1cd.zip and extract the contents to the docs/2.2.0/examples/example_data/ directory.
+
+If successful, there will be a directory called api900 that will contain the example data.
 
 ### Working with the SDK CLI
 
@@ -140,6 +153,8 @@ Examples of usage can be found at:
  
 * https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.2.0/examples/example_packet_read_from_range.py
 
+Note: To run this example, refer to [Example files](#markdown-header-example-files) to download the example data.
+
 ### Working with WrappedRedvoxPacket objects
 
 A WrappedRedvoxPacket is a high-level API that is backed by a protobuf buffer. The high-level API provides getters and setters for all fields and sensor channels that the RedVox API 900 provides.
@@ -193,6 +208,8 @@ Concatenation will fail under the following circumstances:
 Examples of concatenation can be found at:
 
 * https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.2.0/examples/example_packet_concatenation.py
+
+Note: To run this example, refer to [Example files](#markdown-header-example-files) to download the example data.
 
 #### Summarizing WrappedRedvoxPackets
 
@@ -357,6 +374,7 @@ It's possible to modify WrappedRedvoxPacket objects and sensor channels as well 
 ### Updating Timestamps in Sensor Channels
 
 It's possible to update all the timestamps of data points in multiple sensor channels at once.  The sensor channels affected by this update are:
+
 * Barometer
 * Location
 * Accelerometer
@@ -366,6 +384,7 @@ It's possible to update all the timestamps of data points in multiple sensor cha
 * Infrared
 
 See the following link for an example:
+
 * https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.2.0/examples/example_packet_modifcation.py
 
 ### Testing for Equality and Finding Differences
@@ -375,10 +394,6 @@ WrappedRedvoxPacket objects can be compared to each other for equality using the
 It's also possible to find the differences between WrappedRedvoxPacket objects using the `.diff(other_packer)` method. This will then return a list of differences between the two files or an empty list if there are none.
 
 See the end of https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.2.0/examples/example_packet_reading.py for examples of this.
-
-### Example files
-
-A set of example files can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.2.0/examples/
 
 ### Generated API documentation
 
