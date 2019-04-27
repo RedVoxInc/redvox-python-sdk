@@ -9,7 +9,7 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 #### 2.2.0 (2019-4-26)
 
 * Add sensor timing correction
-* Add high-level documentation
+* Update documentation
 * Fix more cyclic dependency issues
 
 #### 2.1.1 (2019-4-24)
