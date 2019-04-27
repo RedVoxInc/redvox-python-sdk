@@ -97,7 +97,7 @@ which, when ran should produce the following output:
 
 A set of example files and example data can be downloaded from our respository at https://bitbucket.org/redvoxhi/redvox-api900-python-reader/downloads/examples-v2.2.0.zip
 
-Download and extract the files. This should produce a new directory called `examples-v2.0.0`. Inside this directory you will find several .py files, each providing examples for different functionally our SDK provides.
+Download and extract the files. This should produce a new directory called `examples-v2.2.0`. Inside this directory you will find several .py files, each providing examples for different functionally our SDK provides.
 
 To run these examples:
 
