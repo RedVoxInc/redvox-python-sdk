@@ -26,8 +26,7 @@ def calc_utils_timeseries(values: numpy.array) -> (float, float, float):
     if len(values) == 1:
         return 0.0, 0.0, 0.0
 
-    values = values - values[0]  # zero out the timestamps
-    values = values[1:] - values[:-1]  # calculate differences
+    values = numpy.diff(values)  # calculate differences
     mean = numpy.mean(values)
     stddev = numpy.std(values)
     median = numpy.median(values)

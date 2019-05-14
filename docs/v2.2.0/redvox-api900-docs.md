@@ -36,7 +36,8 @@ The Redvox API 900 utilizes Google's protobuf library for serializing and deseri
 ### Prerequisites
 
 #### Installing Python
-Python version 3.6 or greater is required to use this SDK. 
+Python version 3.6 or greater is required to use this SDK.
+
 * If you are using Windows, Python can be downloaded and installed from [https://www.python.org/](https://www.python.org/). 
 * If you are using OS X, we recommend installing Python from [homebrew](https://brew.sh/).
 * If you are using Linux, we recommend installing Python with your distribution's package manager. 
@@ -50,7 +51,7 @@ If you are interested in developing code for the SDK or working with development
 
 ### Installing from pip
 
-* Installing the RedVox SDK via pip is the recommended way of obtaining the library.* This method also takes care of installing required dependencies.
+Installing the RedVox SDK via pip is the recommended way of obtaining the library.  This method also takes care of installing required dependencies.
 
 1. Install Python 3.6 or greater as described in the previous section.
 2. Open a terminal window
@@ -97,7 +98,7 @@ which, when ran should produce the following output:
 
 A set of example files and example data can be downloaded from our respository at https://bitbucket.org/redvoxhi/redvox-api900-python-reader/downloads/examples-v2.2.0.zip
 
-Download and extract the files. This should produce a new directory called `examples-v2.2.0`. Inside this directory you will find several .py files, each providing examples for different functionally our SDK provides.
+Download and extract the files. This should produce a new directory called `examples-v2.2.0`. Inside this directory you will find several .py files, each providing examples for different functionality our SDK provides.
 
 To run these examples:
 
@@ -175,8 +176,6 @@ Examples of usage can be found at:
  
 * https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.2.0/examples/example_packet_read_from_range.py
 
-Note: To run this example, refer to [Example files](#markdown-header-example-files) to download the example data.
-
 ### Working with WrappedRedvoxPacket objects
 
 A WrappedRedvoxPacket is a high-level API that is backed by a protobuf buffer. The high-level API provides getters and setters for all fields and sensor channels that the RedVox API 900 provides.
@@ -212,7 +211,7 @@ When WrappedRedvoxPackets are concatenated, the following values are concatenate
 * Sensor timestamps
 * Sensor payloads
 
-Only continuous data is concatenated. That means that gaps in the data will result in multiple WrappedRedvocPackets,
+Only continuous data is concatenated. That means that gaps in the data will result in multiple WrappedRedvoxPackets,
 each representing a continuous segment of data.
 
 Gaps are identified under the following circumstances:
@@ -230,8 +229,6 @@ Concatenation will fail under the following circumstances:
 Examples of concatenation can be found at:
 
 * https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.2.0/examples/example_packet_concatenation.py
-
-Note: To run this example, refer to [Example files](#markdown-header-example-files) to download the example data.
 
 #### Summarizing WrappedRedvoxPackets
 
@@ -283,7 +280,7 @@ The payload types available to the LocationSensor include:
 * speed
 * accuracy
 
-This sensor also provides mean, median, and std statistics for each payload type.
+This sensor also provides mean, median, and standard deviation (std) statistics for each payload type.
 
 See https://redvoxhi.bitbucket.io/redvox-sdk/v2.2.0/api_docs/redvox/api900/sensors/location_sensor.m.html for a list of methods this sensor provides.
 
@@ -296,7 +293,7 @@ See the following for example usage:
 
 TimeSynchronizationSensor channels are an unevenly sampled sensor that contain time synchronization data in a single payload.
 
-This sensor is unique in that is only contains a payload of values and no timestamps or other fields. 
+This sensor is unique in that it only contains a payload of values and no timestamps or other fields.
 
 See https://redvoxhi.bitbucket.io/redvox-sdk/v2.2.0/api_docs/redvox/api900/sensors/time_synchronization_sensor.m.html for a list of methods this sensor provides.
 
