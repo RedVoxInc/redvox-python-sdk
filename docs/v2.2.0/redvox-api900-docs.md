@@ -91,7 +91,7 @@ Then,
 which, when ran should produce the following output:
 
 ```
-2.2.0
+2.2.1
 ```
 
 ### Example files
