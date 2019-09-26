@@ -104,8 +104,7 @@ def _packet_len_s(wrapped_redvox_packet) -> float:
 def _identify_gaps(wrapped_redvox_packets,
                    allowed_timing_error_s: float) -> typing.List[int]:
     """
-    Identifies gaps in redvox packets by first comparing hashes which identifies sensor changes and then looking at
-    timing gas.
+    Identifies discontinuities in sensor data by checking if sensors drop in and out and by comparing timing info.
     :param wrapped_redvox_packets: Packets to look for gaps in.
     :param allowed_timing_error_s: The amount of timing error in seconds.
     :return: A list of indices into the original list where gaps were found.
@@ -116,20 +115,39 @@ def _identify_gaps(wrapped_redvox_packets,
 
     gaps = set()
 
-    truth_hash = _partial_hash_packet(wrapped_redvox_packets[0])
     truth_len = _packet_len_s(wrapped_redvox_packets[0])
     for i in range(1, len(wrapped_redvox_packets)):
         prev_packet = wrapped_redvox_packets[i - 1]
         next_packet = wrapped_redvox_packets[i]
 
-        # Sensor changes
-        candidate_hash = _partial_hash_packet(next_packet)
-        if truth_hash != candidate_hash:
-            gaps.add(i)
-            truth_hash = candidate_hash
+        # Sensor discontinuity
+        prev_sensors = [prev_packet.has_microphone_sensor(),
+                        prev_packet.has_barometer_sensor(),
+                        prev_packet.has_time_synchronization_sensor(),
+                        prev_packet.has_accelerometer_sensor(),
+                        prev_packet.has_gyroscope_sensor(),
+                        prev_packet.has_infrared_sensor(),
+                        prev_packet.has_light_sensor(),
+                        prev_packet.has_image_sensor(),
+                        prev_packet.has_location_sensor(),
+                        prev_packet.has_magnetometer_sensor()]
 
-        # Time based gap
+        next_sensors = [next_packet.has_microphone_sensor(),
+                        next_packet.has_barometer_sensor(),
+                        next_packet.has_time_synchronization_sensor(),
+                        next_packet.has_accelerometer_sensor(),
+                        next_packet.has_gyroscope_sensor(),
+                        next_packet.has_infrared_sensor(),
+                        next_packet.has_light_sensor(),
+                        next_packet.has_image_sensor(),
+                        next_packet.has_location_sensor(),
+                        next_packet.has_magnetometer_sensor()]
 
+        for j in range(len(prev_sensors)):
+            if prev_sensors[j] != next_sensors[j]:
+                gaps.add(i)
+
+        # Time based gaps
         prev_timestamp = prev_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()
         next_timestamp = next_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()
         if _date_time_utils.microseconds_to_seconds(next_timestamp - prev_timestamp) > (
@@ -138,6 +156,28 @@ def _identify_gaps(wrapped_redvox_packets,
             truth_len = _packet_len_s(wrapped_redvox_packets[i])
 
     return sorted(list(gaps))
+
+
+def _identify_sensor_changes(wrapped_redvox_packets: typing.List) -> typing.List[int]:
+    """
+    Identifies discontinuities in sensors including sample ratechange , redvox id/uuid change, and sensor name change.
+    :param wrapped_redvox_packets: A list of WrappedRedvoxPackets
+    :return: A list of indexes where sensor changes were detected.
+    """
+    if len(wrapped_redvox_packets) <= 1:
+        return []
+
+    sensor_changes: typing.List[int] = []
+    truth_hash = _partial_hash_packet(wrapped_redvox_packets[0])
+    for i in range(1, len(wrapped_redvox_packets)):
+        next_packet = wrapped_redvox_packets[i]
+
+        candidate_hash = _partial_hash_packet(next_packet)
+        if truth_hash != candidate_hash:
+            sensor_changes.append(i)
+            truth_hash = candidate_hash
+
+    return sensor_changes
 
 
 def _concat_numpy(sensors: RedvoxSensors,

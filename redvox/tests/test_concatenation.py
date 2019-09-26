@@ -216,86 +216,6 @@ class TestConcatenation(unittest.TestCase):
     def test_identify_gaps_single(self):
         self.assertEqual([], concat._identify_gaps([self.example_packet], 5.0))
 
-    def test_identify_gaps_single_gap_by_sensor(self):
-        self.cloned_packet.microphone_sensor().set_sample_rate_hz(81.0)
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet, self.cloned_packet], 5.0))
-
-        self.reset_clone()
-        self.cloned_packet.microphone_sensor().set_sensor_name("foo")
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.barometer_sensor().set_sensor_name("foo")
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.location_sensor().set_sensor_name("foo")
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.accelerometer_sensor().set_sensor_name("foo")
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.magnetometer_sensor().set_sensor_name("foo")
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.gyroscope_sensor().set_sensor_name("foo")
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.light_sensor().set_sensor_name("foo")
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.infrared_sensor().set_sensor_name("foo")
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-
-        self.reset_clone()
-        self.cloned_packet.set_barometer_sensor(None)
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.assertEqual([1], concat._identify_gaps([self.cloned_packet, self.example_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.set_time_synchronization_sensor(None)
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.assertEqual([1], concat._identify_gaps([self.cloned_packet, self.example_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.set_location_sensor(None)
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.assertEqual([1], concat._identify_gaps([self.cloned_packet, self.example_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.set_magnetometer_sensor(None)
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.assertEqual([1], concat._identify_gaps([self.cloned_packet, self.example_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.set_accelerometer_sensor(None)
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.assertEqual([1], concat._identify_gaps([self.cloned_packet, self.example_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.set_gyroscope_sensor(None)
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.assertEqual([1], concat._identify_gaps([self.cloned_packet, self.example_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.set_light_sensor(None)
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.assertEqual([1], concat._identify_gaps([self.cloned_packet, self.example_packet], 5.0))
-        self.reset_clone()
-        self.cloned_packet.set_infrared_sensor(None)
-        self.assertEqual([1], concat._identify_gaps([self.example_packet, self.cloned_packet], 5.0))
-        self.assertEqual([1], concat._identify_gaps([self.cloned_packet, self.example_packet], 5.0))
-
-    def test_identify_gaps_by_sensor(self):
-        cloned_packet_2 = self.example_packet.clone()
-        self.cloned_packet.microphone_sensor().set_sample_rate_hz(800.0)
-        cloned_packet_2.set_barometer_sensor(None)
-
-        self.assertEqual([1, 2],
-                         concat._identify_gaps([self.example_packet, self.cloned_packet, self.example_packet], 5.0))
-        self.assertEqual([1, 2], concat._identify_gaps([self.example_packet, self.cloned_packet, cloned_packet_2], 5.0))
-        self.assertEqual([1, 3], concat._identify_gaps(
-                [self.example_packet, self.cloned_packet, self.cloned_packet, self.example_packet], 5.0))
-        self.assertEqual([2, 4], concat._identify_gaps(
-                [self.example_packet, self.example_packet, self.cloned_packet, self.cloned_packet, cloned_packet_2],
-                5.0))
-        self.assertEqual([2, 3, 4], concat._identify_gaps(
-                [self.example_packet, self.example_packet, self.cloned_packet, self.example_packet, cloned_packet_2],
-                5.0))
-
     def test_identify_gaps_by_time(self):
         basic_packet = self.example_packet \
             .set_barometer_sensor(None) \
@@ -355,6 +275,29 @@ class TestConcatenation(unittest.TestCase):
             .microphone_sensor() \
             .set_first_sample_timestamp_epoch_microseconds_utc(32_000_000)
         self.assertEqual([1, 2], concat._identify_gaps([basic_packet, cloned_basic_packet, cloned_basic_packet_2], 5.0))
+
+    def test_sensor_diff_none(self):
+        self.assertEqual(concat._identify_sensor_changes([self.example_packet, self.cloned_packet]), [])
+
+    def test_sensor_differences_sample_rate_change(self):
+        self.cloned_packet.microphone_sensor().set_sample_rate_hz(81.0)
+        self.assertEqual(concat._identify_sensor_changes([self.cloned_packet, self.example_packet]), [1])
+
+    def test_sensor_diff_sensor_name(self):
+        self.cloned_packet.microphone_sensor().set_sensor_name("diffname")
+        self.assertEqual(concat._identify_sensor_changes([self.cloned_packet, self.example_packet]), [1])
+
+    def test_sensor_diff_id(self):
+        self.cloned_packet.set_redvox_id("diffid")
+        self.assertEqual(concat._identify_sensor_changes([self.cloned_packet, self.example_packet]), [1])
+
+    def test_sensor_diff_uuid(self):
+        self.cloned_packet.set_uuid("diffuuid")
+        self.assertEqual(concat._identify_sensor_changes([self.cloned_packet, self.example_packet]), [1])
+
+    def test_sensor_diff_missing(self):
+        self.cloned_packet.set_barometer_sensor(None)
+        self.assertEqual(concat._identify_sensor_changes([self.cloned_packet, self.example_packet, self.cloned_packet]), [1, 2])
 
     def test_concat_numpy_single(self):
         self.assertTrue(np.array_equal(self.example_packet.microphone_sensor().payload_values(),
