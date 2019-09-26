@@ -6,6 +6,11 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+#### 2.3.0 (2019-9-25)
+
+* concat._identify_gaps now only checks for dropped data from sensors. It checks for timing continuity by ensuring that the gap between packets is no larger than a configurable amount for a given sample rate.
+* concat._identify_sensor_changes was added to identify sensor changes such as change in sample rate, change in sensor name, change in data type, or missing sensor data
+
 #### 2.2.1 (2019-5-14)
 
 * Added stat utils tests and updated function
