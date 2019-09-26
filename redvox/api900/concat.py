@@ -143,6 +143,7 @@ def _identify_gaps(wrapped_redvox_packets,
                         next_packet.has_location_sensor(),
                         next_packet.has_magnetometer_sensor()]
 
+        # pylint: disable=C0200
         for j in range(len(prev_sensors)):
             if prev_sensors[j] != next_sensors[j]:
                 gaps.add(i)
