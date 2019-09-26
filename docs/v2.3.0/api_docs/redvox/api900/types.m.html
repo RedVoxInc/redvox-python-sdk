@@ -851,77 +851,6 @@ table {
 
   </style>
 
-  <style type="text/css">
-  .codehilite .hll { background-color: #ffffcc }
-.codehilite  { background: #f8f8f8; }
-.codehilite .c { color: #408080; font-style: italic } /* Comment */
-.codehilite .err { border: 1px solid #FF0000 } /* Error */
-.codehilite .k { color: #008000; font-weight: bold } /* Keyword */
-.codehilite .o { color: #666666 } /* Operator */
-.codehilite .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
-.codehilite .cm { color: #408080; font-style: italic } /* Comment.Multiline */
-.codehilite .cp { color: #BC7A00 } /* Comment.Preproc */
-.codehilite .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
-.codehilite .c1 { color: #408080; font-style: italic } /* Comment.Single */
-.codehilite .cs { color: #408080; font-style: italic } /* Comment.Special */
-.codehilite .gd { color: #A00000 } /* Generic.Deleted */
-.codehilite .ge { font-style: italic } /* Generic.Emph */
-.codehilite .gr { color: #FF0000 } /* Generic.Error */
-.codehilite .gh { color: #000080; font-weight: bold } /* Generic.Heading */
-.codehilite .gi { color: #00A000 } /* Generic.Inserted */
-.codehilite .go { color: #888888 } /* Generic.Output */
-.codehilite .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
-.codehilite .gs { font-weight: bold } /* Generic.Strong */
-.codehilite .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.codehilite .gt { color: #0044DD } /* Generic.Traceback */
-.codehilite .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
-.codehilite .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
-.codehilite .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
-.codehilite .kp { color: #008000 } /* Keyword.Pseudo */
-.codehilite .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
-.codehilite .kt { color: #B00040 } /* Keyword.Type */
-.codehilite .m { color: #666666 } /* Literal.Number */
-.codehilite .s { color: #BA2121 } /* Literal.String */
-.codehilite .na { color: #7D9029 } /* Name.Attribute */
-.codehilite .nb { color: #008000 } /* Name.Builtin */
-.codehilite .nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.codehilite .no { color: #880000 } /* Name.Constant */
-.codehilite .nd { color: #AA22FF } /* Name.Decorator */
-.codehilite .ni { color: #999999; font-weight: bold } /* Name.Entity */
-.codehilite .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
-.codehilite .nf { color: #0000FF } /* Name.Function */
-.codehilite .nl { color: #A0A000 } /* Name.Label */
-.codehilite .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
-.codehilite .nt { color: #008000; font-weight: bold } /* Name.Tag */
-.codehilite .nv { color: #19177C } /* Name.Variable */
-.codehilite .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.codehilite .w { color: #bbbbbb } /* Text.Whitespace */
-.codehilite .mb { color: #666666 } /* Literal.Number.Bin */
-.codehilite .mf { color: #666666 } /* Literal.Number.Float */
-.codehilite .mh { color: #666666 } /* Literal.Number.Hex */
-.codehilite .mi { color: #666666 } /* Literal.Number.Integer */
-.codehilite .mo { color: #666666 } /* Literal.Number.Oct */
-.codehilite .sa { color: #BA2121 } /* Literal.String.Affix */
-.codehilite .sb { color: #BA2121 } /* Literal.String.Backtick */
-.codehilite .sc { color: #BA2121 } /* Literal.String.Char */
-.codehilite .dl { color: #BA2121 } /* Literal.String.Delimiter */
-.codehilite .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
-.codehilite .s2 { color: #BA2121 } /* Literal.String.Double */
-.codehilite .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
-.codehilite .sh { color: #BA2121 } /* Literal.String.Heredoc */
-.codehilite .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
-.codehilite .sx { color: #008000 } /* Literal.String.Other */
-.codehilite .sr { color: #BB6688 } /* Literal.String.Regex */
-.codehilite .s1 { color: #BA2121 } /* Literal.String.Single */
-.codehilite .ss { color: #19177C } /* Literal.String.Symbol */
-.codehilite .bp { color: #008000 } /* Name.Builtin.Pseudo */
-.codehilite .fm { color: #0000FF } /* Name.Function.Magic */
-.codehilite .vc { color: #19177C } /* Name.Variable.Class */
-.codehilite .vg { color: #19177C } /* Name.Variable.Global */
-.codehilite .vi { color: #19177C } /* Name.Variable.Instance */
-.codehilite .vm { color: #19177C } /* Name.Variable.Magic */
-.codehilite .il { color: #666666 } /* Literal.Number.Integer.Long */
-  </style>
 
   <style type="text/css">
   
@@ -1067,45 +996,44 @@ table {
   
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.types', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.types" class="source">
-    <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module provides convenience types for RedVox data types.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+    <pre><code>"""
+This module provides convenience types for RedVox data types.
+"""
 
-<span class="kn">import</span> <span class="nn">typing</span>
+import typing
 
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.evenly_sampled_sensor</span> <span class="kn">as</span> <span class="nn">evenly_sampled_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.unevenly_sampled_sensor</span> <span class="kn">as</span> <span class="nn">unevenly_sampled_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.microphone_sensor</span> <span class="kn">as</span> <span class="nn">microphone_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.barometer_sensor</span> <span class="kn">as</span> <span class="nn">barometer_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.location_sensor</span> <span class="kn">as</span> <span class="nn">location_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.time_synchronization_sensor</span> <span class="kn">as</span> <span class="nn">time_synchronization_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.gyroscope_sensor</span> <span class="kn">as</span> <span class="nn">gyroscope_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.magnetometer_sensor</span> <span class="kn">as</span> <span class="nn">magnetometer_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.accelerometer_sensor</span> <span class="kn">as</span> <span class="nn">accelerometer_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.light_sensor</span> <span class="kn">as</span> <span class="nn">light_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.infrared_sensor</span> <span class="kn">as</span> <span class="nn">infrared_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.image_sensor</span> <span class="kn">as</span> <span class="nn">image_sensor</span>
+import redvox.api900.sensors.evenly_sampled_sensor as evenly_sampled_sensor
+import redvox.api900.sensors.unevenly_sampled_sensor as unevenly_sampled_sensor
+import redvox.api900.sensors.microphone_sensor as microphone_sensor
+import redvox.api900.sensors.barometer_sensor as barometer_sensor
+import redvox.api900.sensors.location_sensor as location_sensor
+import redvox.api900.sensors.time_synchronization_sensor as time_synchronization_sensor
+import redvox.api900.sensors.gyroscope_sensor as gyroscope_sensor
+import redvox.api900.sensors.magnetometer_sensor as magnetometer_sensor
+import redvox.api900.sensors.accelerometer_sensor as accelerometer_sensor
+import redvox.api900.sensors.light_sensor as light_sensor
+import redvox.api900.sensors.infrared_sensor as infrared_sensor
+import redvox.api900.sensors.image_sensor as image_sensor
 
 
-<span class="c1"># pylint: disable=C0103</span>
-<span class="n">RedvoxSensor</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span>
-    <span class="n">evenly_sampled_sensor</span><span class="o">.</span><span class="n">EvenlySampledSensor</span><span class="p">,</span>
-    <span class="n">unevenly_sampled_sensor</span><span class="o">.</span><span class="n">UnevenlySampledSensor</span><span class="p">,</span>
-    <span class="n">microphone_sensor</span><span class="o">.</span><span class="n">MicrophoneSensor</span><span class="p">,</span>
-    <span class="n">barometer_sensor</span><span class="o">.</span><span class="n">BarometerSensor</span><span class="p">,</span>
-    <span class="n">location_sensor</span><span class="o">.</span><span class="n">LocationSensor</span><span class="p">,</span>
-    <span class="n">time_synchronization_sensor</span><span class="o">.</span><span class="n">TimeSynchronizationSensor</span><span class="p">,</span>
-    <span class="n">accelerometer_sensor</span><span class="o">.</span><span class="n">AccelerometerSensor</span><span class="p">,</span>
-    <span class="n">gyroscope_sensor</span><span class="o">.</span><span class="n">GyroscopeSensor</span><span class="p">,</span>
-    <span class="n">magnetometer_sensor</span><span class="o">.</span><span class="n">MagnetometerSensor</span><span class="p">,</span>
-    <span class="n">light_sensor</span><span class="o">.</span><span class="n">LightSensor</span><span class="p">,</span>
-    <span class="n">infrared_sensor</span><span class="o">.</span><span class="n">InfraredSensor</span><span class="p">,</span>
-    <span class="n">image_sensor</span><span class="o">.</span><span class="n">ImageSensor</span>
-<span class="p">]</span>
-<span class="c1"># pylint: disable=C0103</span>
-<span class="n">RedvoxSensors</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">RedvoxSensor</span><span class="p">]</span>
-</pre></div>
-
+# pylint: disable=C0103
+RedvoxSensor = typing.Union[
+    evenly_sampled_sensor.EvenlySampledSensor,
+    unevenly_sampled_sensor.UnevenlySampledSensor,
+    microphone_sensor.MicrophoneSensor,
+    barometer_sensor.BarometerSensor,
+    location_sensor.LocationSensor,
+    time_synchronization_sensor.TimeSynchronizationSensor,
+    accelerometer_sensor.AccelerometerSensor,
+    gyroscope_sensor.GyroscopeSensor,
+    magnetometer_sensor.MagnetometerSensor,
+    light_sensor.LightSensor,
+    infrared_sensor.InfraredSensor,
+    image_sensor.ImageSensor
+]
+# pylint: disable=C0103
+RedvoxSensors = typing.List[RedvoxSensor]
+</code></pre>
   </div>
 
   </header>

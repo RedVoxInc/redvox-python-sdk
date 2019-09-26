@@ -851,77 +851,6 @@ table {
 
   </style>
 
-  <style type="text/css">
-  .codehilite .hll { background-color: #ffffcc }
-.codehilite  { background: #f8f8f8; }
-.codehilite .c { color: #408080; font-style: italic } /* Comment */
-.codehilite .err { border: 1px solid #FF0000 } /* Error */
-.codehilite .k { color: #008000; font-weight: bold } /* Keyword */
-.codehilite .o { color: #666666 } /* Operator */
-.codehilite .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
-.codehilite .cm { color: #408080; font-style: italic } /* Comment.Multiline */
-.codehilite .cp { color: #BC7A00 } /* Comment.Preproc */
-.codehilite .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
-.codehilite .c1 { color: #408080; font-style: italic } /* Comment.Single */
-.codehilite .cs { color: #408080; font-style: italic } /* Comment.Special */
-.codehilite .gd { color: #A00000 } /* Generic.Deleted */
-.codehilite .ge { font-style: italic } /* Generic.Emph */
-.codehilite .gr { color: #FF0000 } /* Generic.Error */
-.codehilite .gh { color: #000080; font-weight: bold } /* Generic.Heading */
-.codehilite .gi { color: #00A000 } /* Generic.Inserted */
-.codehilite .go { color: #888888 } /* Generic.Output */
-.codehilite .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
-.codehilite .gs { font-weight: bold } /* Generic.Strong */
-.codehilite .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.codehilite .gt { color: #0044DD } /* Generic.Traceback */
-.codehilite .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
-.codehilite .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
-.codehilite .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
-.codehilite .kp { color: #008000 } /* Keyword.Pseudo */
-.codehilite .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
-.codehilite .kt { color: #B00040 } /* Keyword.Type */
-.codehilite .m { color: #666666 } /* Literal.Number */
-.codehilite .s { color: #BA2121 } /* Literal.String */
-.codehilite .na { color: #7D9029 } /* Name.Attribute */
-.codehilite .nb { color: #008000 } /* Name.Builtin */
-.codehilite .nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.codehilite .no { color: #880000 } /* Name.Constant */
-.codehilite .nd { color: #AA22FF } /* Name.Decorator */
-.codehilite .ni { color: #999999; font-weight: bold } /* Name.Entity */
-.codehilite .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
-.codehilite .nf { color: #0000FF } /* Name.Function */
-.codehilite .nl { color: #A0A000 } /* Name.Label */
-.codehilite .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
-.codehilite .nt { color: #008000; font-weight: bold } /* Name.Tag */
-.codehilite .nv { color: #19177C } /* Name.Variable */
-.codehilite .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.codehilite .w { color: #bbbbbb } /* Text.Whitespace */
-.codehilite .mb { color: #666666 } /* Literal.Number.Bin */
-.codehilite .mf { color: #666666 } /* Literal.Number.Float */
-.codehilite .mh { color: #666666 } /* Literal.Number.Hex */
-.codehilite .mi { color: #666666 } /* Literal.Number.Integer */
-.codehilite .mo { color: #666666 } /* Literal.Number.Oct */
-.codehilite .sa { color: #BA2121 } /* Literal.String.Affix */
-.codehilite .sb { color: #BA2121 } /* Literal.String.Backtick */
-.codehilite .sc { color: #BA2121 } /* Literal.String.Char */
-.codehilite .dl { color: #BA2121 } /* Literal.String.Delimiter */
-.codehilite .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
-.codehilite .s2 { color: #BA2121 } /* Literal.String.Double */
-.codehilite .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
-.codehilite .sh { color: #BA2121 } /* Literal.String.Heredoc */
-.codehilite .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
-.codehilite .sx { color: #008000 } /* Literal.String.Other */
-.codehilite .sr { color: #BB6688 } /* Literal.String.Regex */
-.codehilite .s1 { color: #BA2121 } /* Literal.String.Single */
-.codehilite .ss { color: #19177C } /* Literal.String.Symbol */
-.codehilite .bp { color: #008000 } /* Name.Builtin.Pseudo */
-.codehilite .fm { color: #0000FF } /* Name.Function.Magic */
-.codehilite .vc { color: #19177C } /* Name.Variable.Class */
-.codehilite .vg { color: #19177C } /* Name.Variable.Global */
-.codehilite .vi { color: #19177C } /* Name.Variable.Instance */
-.codehilite .vm { color: #19177C } /* Name.Variable.Magic */
-.codehilite .il { color: #666666 } /* Literal.Number.Integer.Long */
-  </style>
 
   <style type="text/css">
   
@@ -1074,308 +1003,347 @@ table {
   
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.concat', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.concat" class="source">
-    <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module contains functions for concatenating multiple WrappedRedvoxPackets together.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+    <pre><code>"""
+This module contains functions for concatenating multiple WrappedRedvoxPackets together.
+"""
 
-<span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">import</span> <span class="nn">typing</span>
+import itertools
+import typing
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">_np</span>
+import numpy as _np
 
-<span class="kn">import</span> <span class="nn">redvox.api900.date_time_utils</span> <span class="kn">as</span> <span class="nn">_date_time_utils</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.exceptions</span> <span class="kn">as</span> <span class="nn">_exceptions</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.evenly_sampled_sensor</span> <span class="kn">as</span> <span class="nn">evenly_sampled_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.unevenly_sampled_sensor</span> <span class="kn">as</span> <span class="nn">unevenly_sampled_sensor</span>
+import redvox.api900.date_time_utils as _date_time_utils
+import redvox.api900.exceptions as _exceptions
+import redvox.api900.sensors.evenly_sampled_sensor as evenly_sampled_sensor
+import redvox.api900.sensors.unevenly_sampled_sensor as unevenly_sampled_sensor
 
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.microphone_sensor</span> <span class="kn">as</span> <span class="nn">_microphone_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.barometer_sensor</span> <span class="kn">as</span> <span class="nn">_barometer_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.location_sensor</span> <span class="kn">as</span> <span class="nn">_location_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.gyroscope_sensor</span> <span class="kn">as</span> <span class="nn">_gyroscope_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.magnetometer_sensor</span> <span class="kn">as</span> <span class="nn">_magnetometer_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.accelerometer_sensor</span> <span class="kn">as</span> <span class="nn">_accelerometer_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.light_sensor</span> <span class="kn">as</span> <span class="nn">_light_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.infrared_sensor</span> <span class="kn">as</span> <span class="nn">_infrared_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.image_sensor</span> <span class="kn">as</span> <span class="nn">_image_sensor</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.time_synchronization_sensor</span> <span class="kn">as</span> <span class="nn">_time_synchronization_sensor</span>
-<span class="kn">from</span> <span class="nn">redvox.api900.wrapped_redvox_packet</span> <span class="kn">import</span> <span class="n">WrappedRedvoxPacket</span>
+import redvox.api900.sensors.microphone_sensor as _microphone_sensor
+import redvox.api900.sensors.barometer_sensor as _barometer_sensor
+import redvox.api900.sensors.location_sensor as _location_sensor
+import redvox.api900.sensors.gyroscope_sensor as _gyroscope_sensor
+import redvox.api900.sensors.magnetometer_sensor as _magnetometer_sensor
+import redvox.api900.sensors.accelerometer_sensor as _accelerometer_sensor
+import redvox.api900.sensors.light_sensor as _light_sensor
+import redvox.api900.sensors.infrared_sensor as _infrared_sensor
+import redvox.api900.sensors.image_sensor as _image_sensor
+import redvox.api900.sensors.time_synchronization_sensor as _time_synchronization_sensor
+from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
-<span class="c1"># pylint: disable=C0103</span>
-<span class="n">RedvoxSensor</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span>
-    <span class="n">evenly_sampled_sensor</span><span class="o">.</span><span class="n">EvenlySampledSensor</span><span class="p">,</span>
-    <span class="n">unevenly_sampled_sensor</span><span class="o">.</span><span class="n">UnevenlySampledSensor</span><span class="p">,</span>
-    <span class="n">_microphone_sensor</span><span class="o">.</span><span class="n">MicrophoneSensor</span><span class="p">,</span>
-    <span class="n">_barometer_sensor</span><span class="o">.</span><span class="n">BarometerSensor</span><span class="p">,</span>
-    <span class="n">_location_sensor</span><span class="o">.</span><span class="n">LocationSensor</span><span class="p">,</span>
-    <span class="n">_time_synchronization_sensor</span><span class="o">.</span><span class="n">TimeSynchronizationSensor</span><span class="p">,</span>
-    <span class="n">_accelerometer_sensor</span><span class="o">.</span><span class="n">AccelerometerSensor</span><span class="p">,</span>
-    <span class="n">_gyroscope_sensor</span><span class="o">.</span><span class="n">GyroscopeSensor</span><span class="p">,</span>
-    <span class="n">_magnetometer_sensor</span><span class="o">.</span><span class="n">MagnetometerSensor</span><span class="p">,</span>
-    <span class="n">_light_sensor</span><span class="o">.</span><span class="n">LightSensor</span><span class="p">,</span>
-    <span class="n">_infrared_sensor</span><span class="o">.</span><span class="n">InfraredSensor</span><span class="p">,</span>
-    <span class="n">_image_sensor</span><span class="o">.</span><span class="n">ImageSensor</span>
-<span class="p">]</span>
-<span class="c1"># pylint: disable=C0103</span>
-<span class="n">RedvoxSensors</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">RedvoxSensor</span><span class="p">]</span>
-
-
-<span class="n">_NONE_HASH</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+# pylint: disable=C0103
+RedvoxSensor = typing.Union[
+    evenly_sampled_sensor.EvenlySampledSensor,
+    unevenly_sampled_sensor.UnevenlySampledSensor,
+    _microphone_sensor.MicrophoneSensor,
+    _barometer_sensor.BarometerSensor,
+    _location_sensor.LocationSensor,
+    _time_synchronization_sensor.TimeSynchronizationSensor,
+    _accelerometer_sensor.AccelerometerSensor,
+    _gyroscope_sensor.GyroscopeSensor,
+    _magnetometer_sensor.MagnetometerSensor,
+    _light_sensor.LightSensor,
+    _infrared_sensor.InfraredSensor,
+    _image_sensor.ImageSensor
+]
+# pylint: disable=C0103
+RedvoxSensors = typing.List[RedvoxSensor]
 
 
-<span class="k">def</span> <span class="nf">_partial_hash_sensor</span><span class="p">(</span><span class="n">sensor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">RedvoxSensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Performs a partial hash on a sensor hashing the sensor name, sample rate, and payload type.</span>
-<span class="sd">    :param sensor: The sensor to hash.</span>
-<span class="sd">    :return: Hash of the sensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">sensor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_NONE_HASH</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sensor</span><span class="p">,</span> <span class="n">unevenly_sampled_sensor</span><span class="o">.</span><span class="n">UnevenlySampledSensor</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="n">sensor</span><span class="o">.</span><span class="n">sensor_name</span><span class="p">(),</span> <span class="n">sensor</span><span class="o">.</span><span class="n">payload_type</span><span class="p">()))</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sensor</span><span class="p">,</span> <span class="n">evenly_sampled_sensor</span><span class="o">.</span><span class="n">EvenlySampledSensor</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="n">sensor</span><span class="o">.</span><span class="n">sample_rate_hz</span><span class="p">(),</span> <span class="n">sensor</span><span class="o">.</span><span class="n">sensor_name</span><span class="p">(),</span> <span class="n">sensor</span><span class="o">.</span><span class="n">payload_type</span><span class="p">()))</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sensor</span><span class="p">,</span> <span class="n">_time_synchronization_sensor</span><span class="o">.</span><span class="n">TimeSynchronizationSensor</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="s2">&quot;TimeSynchronizationSensor&quot;</span><span class="p">)</span>
-
-    <span class="k">raise</span> <span class="n">_exceptions</span><span class="o">.</span><span class="n">ConcatenationException</span><span class="p">(</span><span class="s2">&quot;trying to hash non-sensor type=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">sensor</span><span class="p">))</span>
+_NONE_HASH = hash(None)
 
 
-<span class="k">def</span> <span class="nf">_partial_hash_packet</span><span class="p">(</span><span class="n">wrapped_redvox_packet</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Computes the partial hash of a wrapped redvox packet.</span>
+def _partial_hash_sensor(sensor: typing.Optional[RedvoxSensor]) -> int:
+    """
+    Performs a partial hash on a sensor hashing the sensor name, sample rate, and payload type.
+    :param sensor: The sensor to hash.
+    :return: Hash of the sensor.
+    """
+    if sensor is None:
+        return _NONE_HASH
 
-<span class="sd">    The hash is computed by hashing all of the partial hashes of the sensor channels.</span>
-<span class="sd">    :param wrapped_redvox_packet: Packet to hash.</span>
-<span class="sd">    :return: The has of this packet.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">wrapped_redvox_packet</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_NONE_HASH</span>
+    if isinstance(sensor, unevenly_sampled_sensor.UnevenlySampledSensor):
+        return hash((sensor.sensor_name(), sensor.payload_type()))
 
-    <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="n">wrapped_redvox_packet</span><span class="o">.</span><span class="n">redvox_id</span><span class="p">(),</span>
-                 <span class="n">wrapped_redvox_packet</span><span class="o">.</span><span class="n">uuid</span><span class="p">(),</span>
-                 <span class="n">_partial_hash_sensor</span><span class="p">(</span><span class="n">wrapped_redvox_packet</span><span class="o">.</span><span class="n">microphone_sensor</span><span class="p">()),</span>
-                 <span class="n">_partial_hash_sensor</span><span class="p">(</span><span class="n">wrapped_redvox_packet</span><span class="o">.</span><span class="n">barometer_sensor</span><span class="p">()),</span>
-                 <span class="n">_partial_hash_sensor</span><span class="p">(</span><span class="n">wrapped_redvox_packet</span><span class="o">.</span><span class="n">location_sensor</span><span class="p">()),</span>
-                 <span class="n">_partial_hash_sensor</span><span class="p">(</span><span class="n">wrapped_redvox_packet</span><span class="o">.</span><span class="n">time_synchronization_sensor</span><span class="p">()),</span>
-                 <span class="n">_partial_hash_sensor</span><span class="p">(</span><span class="n">wrapped_redvox_packet</span><span class="o">.</span><span class="n">accelerometer_sensor</span><span class="p">()),</span>
-                 <span class="n">_partial_hash_sensor</span><span class="p">(</span><span class="n">wrapped_redvox_packet</span><span class="o">.</span><span class="n">gyroscope_sensor</span><span class="p">()),</span>
-                 <span class="n">_partial_hash_sensor</span><span class="p">(</span><span class="n">wrapped_redvox_packet</span><span class="o">.</span><span class="n">magnetometer_sensor</span><span class="p">()),</span>
-                 <span class="n">_partial_hash_sensor</span><span class="p">(</span><span class="n">wrapped_redvox_packet</span><span class="o">.</span><span class="n">light_sensor</span><span class="p">()),</span>
-                 <span class="n">_partial_hash_sensor</span><span class="p">(</span><span class="n">wrapped_redvox_packet</span><span class="o">.</span><span class="n">infrared_sensor</span><span class="p">())))</span>
+    if isinstance(sensor, evenly_sampled_sensor.EvenlySampledSensor):
+        return hash((sensor.sample_rate_hz(), sensor.sensor_name(), sensor.payload_type()))
+
+    if isinstance(sensor, _time_synchronization_sensor.TimeSynchronizationSensor):
+        return hash("TimeSynchronizationSensor")
+
+    raise _exceptions.ConcatenationException("trying to hash non-sensor type=%s" % type(sensor))
 
 
-<span class="k">def</span> <span class="nf">_packet_len_s</span><span class="p">(</span><span class="n">wrapped_redvox_packet</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the length of a packet in seconds.</span>
-<span class="sd">    :param wrapped_redvox_packet: Packet to find the length of.</span>
-<span class="sd">    :return: The length of a packet in seconds.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">microphone_sensor</span> <span class="o">=</span> <span class="n">wrapped_redvox_packet</span><span class="o">.</span><span class="n">microphone_sensor</span><span class="p">()</span>
-    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">microphone_sensor</span><span class="o">.</span><span class="n">payload_values</span><span class="p">())</span> <span class="o">/</span> <span class="n">microphone_sensor</span><span class="o">.</span><span class="n">sample_rate_hz</span><span class="p">()</span>
+def _partial_hash_packet(wrapped_redvox_packet) -> int:
+    """
+    Computes the partial hash of a wrapped redvox packet.
+
+    The hash is computed by hashing all of the partial hashes of the sensor channels.
+    :param wrapped_redvox_packet: Packet to hash.
+    :return: The has of this packet.
+    """
+    if wrapped_redvox_packet is None:
+        return _NONE_HASH
+
+    return hash((wrapped_redvox_packet.redvox_id(),
+                 wrapped_redvox_packet.uuid(),
+                 _partial_hash_sensor(wrapped_redvox_packet.microphone_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.barometer_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.location_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.time_synchronization_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.accelerometer_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.gyroscope_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.magnetometer_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.light_sensor()),
+                 _partial_hash_sensor(wrapped_redvox_packet.infrared_sensor())))
 
 
-<span class="k">def</span> <span class="nf">_identify_gaps</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">,</span>
-                   <span class="n">allowed_timing_error_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Identifies gaps in redvox packets by first comparing hashes which identifies sensor changes and then looking at</span>
-<span class="sd">    timing gas.</span>
-<span class="sd">    :param wrapped_redvox_packets: Packets to look for gaps in.</span>
-<span class="sd">    :param allowed_timing_error_s: The amount of timing error in seconds.</span>
-<span class="sd">    :return: A list of indices into the original list where gaps were found.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">[]</span>
-
-    <span class="n">gaps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-
-    <span class="n">truth_hash</span> <span class="o">=</span> <span class="n">_partial_hash_packet</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">truth_len</span> <span class="o">=</span> <span class="n">_packet_len_s</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">)):</span>
-        <span class="n">prev_packet</span> <span class="o">=</span> <span class="n">wrapped_redvox_packets</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="n">next_packet</span> <span class="o">=</span> <span class="n">wrapped_redvox_packets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-
-        <span class="c1"># Sensor changes</span>
-        <span class="n">candidate_hash</span> <span class="o">=</span> <span class="n">_partial_hash_packet</span><span class="p">(</span><span class="n">next_packet</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">truth_hash</span> <span class="o">!=</span> <span class="n">candidate_hash</span><span class="p">:</span>
-            <span class="n">gaps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="n">truth_hash</span> <span class="o">=</span> <span class="n">candidate_hash</span>
-
-        <span class="c1"># Time based gap</span>
-
-        <span class="n">prev_timestamp</span> <span class="o">=</span> <span class="n">prev_packet</span><span class="o">.</span><span class="n">microphone_sensor</span><span class="p">()</span><span class="o">.</span><span class="n">first_sample_timestamp_epoch_microseconds_utc</span><span class="p">()</span>
-        <span class="n">next_timestamp</span> <span class="o">=</span> <span class="n">next_packet</span><span class="o">.</span><span class="n">microphone_sensor</span><span class="p">()</span><span class="o">.</span><span class="n">first_sample_timestamp_epoch_microseconds_utc</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">_date_time_utils</span><span class="o">.</span><span class="n">microseconds_to_seconds</span><span class="p">(</span><span class="n">next_timestamp</span> <span class="o">-</span> <span class="n">prev_timestamp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="p">(</span>
-                <span class="n">truth_len</span> <span class="o">+</span> <span class="n">allowed_timing_error_s</span><span class="p">):</span>
-            <span class="n">gaps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="n">truth_len</span> <span class="o">=</span> <span class="n">_packet_len_s</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-
-    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">gaps</span><span class="p">))</span>
+def _packet_len_s(wrapped_redvox_packet) -> float:
+    """
+    Returns the length of a packet in seconds.
+    :param wrapped_redvox_packet: Packet to find the length of.
+    :return: The length of a packet in seconds.
+    """
+    microphone_sensor = wrapped_redvox_packet.microphone_sensor()
+    return len(microphone_sensor.payload_values()) / microphone_sensor.sample_rate_hz()
 
 
-<span class="k">def</span> <span class="nf">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">:</span> <span class="n">RedvoxSensors</span><span class="p">,</span>
-                  <span class="n">array_extraction_fn</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">RedvoxSensor</span><span class="p">],</span> <span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">_np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a list of sensors concatenate the numpy arrays found with the extraction function.</span>
-<span class="sd">    :param sensors: Sensors to extract arrays from.</span>
-<span class="sd">    :param array_extraction_fn: A function that takes a sensor and returns a numpy array.</span>
-<span class="sd">    :return: An array of concatenated arrays.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">array_extraction_fn</span><span class="p">,</span> <span class="n">sensors</span><span class="p">)))</span>
+def _identify_gaps(wrapped_redvox_packets,
+                   allowed_timing_error_s: float) -> typing.List[int]:
+    """
+    Identifies discontinuities in sensor data by checking if sensors drop in and out and by comparing timing info.
+    :param wrapped_redvox_packets: Packets to look for gaps in.
+    :param allowed_timing_error_s: The amount of timing error in seconds.
+    :return: A list of indices into the original list where gaps were found.
+    """
+
+    if len(wrapped_redvox_packets) <= 1:
+        return []
+
+    gaps = set()
+
+    truth_len = _packet_len_s(wrapped_redvox_packets[0])
+    for i in range(1, len(wrapped_redvox_packets)):
+        prev_packet = wrapped_redvox_packets[i - 1]
+        next_packet = wrapped_redvox_packets[i]
+
+        # Sensor discontinuity
+        prev_sensors = [prev_packet.has_microphone_sensor(),
+                        prev_packet.has_barometer_sensor(),
+                        prev_packet.has_time_synchronization_sensor(),
+                        prev_packet.has_accelerometer_sensor(),
+                        prev_packet.has_gyroscope_sensor(),
+                        prev_packet.has_infrared_sensor(),
+                        prev_packet.has_light_sensor(),
+                        prev_packet.has_image_sensor(),
+                        prev_packet.has_location_sensor(),
+                        prev_packet.has_magnetometer_sensor()]
+
+        next_sensors = [next_packet.has_microphone_sensor(),
+                        next_packet.has_barometer_sensor(),
+                        next_packet.has_time_synchronization_sensor(),
+                        next_packet.has_accelerometer_sensor(),
+                        next_packet.has_gyroscope_sensor(),
+                        next_packet.has_infrared_sensor(),
+                        next_packet.has_light_sensor(),
+                        next_packet.has_image_sensor(),
+                        next_packet.has_location_sensor(),
+                        next_packet.has_magnetometer_sensor()]
+
+        for j in range(len(prev_sensors)):
+            if prev_sensors[j] != next_sensors[j]:
+                gaps.add(i)
+
+        # Time based gaps
+        prev_timestamp = prev_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()
+        next_timestamp = next_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()
+        if _date_time_utils.microseconds_to_seconds(next_timestamp - prev_timestamp) > (
+                truth_len + allowed_timing_error_s):
+            gaps.add(i)
+            truth_len = _packet_len_s(wrapped_redvox_packets[i])
+
+    return sorted(list(gaps))
 
 
-<span class="k">def</span> <span class="nf">_concat_lists</span><span class="p">(</span><span class="n">sensors</span><span class="p">:</span> <span class="n">RedvoxSensors</span><span class="p">,</span>
-                  <span class="n">list_extraction_fn</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">RedvoxSensor</span><span class="p">],</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span>
-                      <span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a list of sensors concatenate the lists found with the extraction function.</span>
-<span class="sd">    :param sensors: Sensors to extract lists from.</span>
-<span class="sd">    :param list_extraction_fn: A function that takes a sensor and returns a list.</span>
-<span class="sd">    :return: A list of concatenated arrays.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">metadata_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">list_extraction_fn</span><span class="p">,</span> <span class="n">sensors</span><span class="p">))</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">metadata_list</span><span class="p">))</span>
+def _identify_sensor_changes(wrapped_redvox_packets: typing.List) -> typing.List[int]:
+    """
+    Identifies discontinuities in sensors including sample ratechange , redvox id/uuid change, and sensor name change.
+    :param wrapped_redvox_packets: A list of WrappedRedvoxPackets
+    :return: A list of indexes where sensor changes were detected.
+    """
+    if len(wrapped_redvox_packets) <= 1:
+        return []
+
+    sensor_changes: typing.List[int] = []
+    truth_hash = _partial_hash_packet(wrapped_redvox_packets[0])
+    for i in range(1, len(wrapped_redvox_packets)):
+        next_packet = wrapped_redvox_packets[i]
+
+        candidate_hash = _partial_hash_packet(next_packet)
+        if truth_hash != candidate_hash:
+            sensor_changes.append(i)
+            truth_hash = candidate_hash
+
+    return sensor_changes
 
 
-<span class="k">def</span> <span class="nf">_concat_continuous_data</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">WrappedRedvoxPacket</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">WrappedRedvoxPacket</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a set of continuous wrapped redvox packets, concatenate the packets together by concatting the timestamps,</span>
-<span class="sd">    payload values, and metadata.</span>
-<span class="sd">    :param wrapped_redvox_packets: Packets to concatenate.</span>
-<span class="sd">    :return: A single WrappedRedvoxPacket with concatenated data.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">first_packet</span> <span class="o">=</span> <span class="n">wrapped_redvox_packets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-    <span class="c1"># Concat channels</span>
-    <span class="k">if</span> <span class="n">first_packet</span><span class="o">.</span><span class="n">has_microphone_sensor</span><span class="p">():</span>
-        <span class="n">sensors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WrappedRedvoxPacket</span><span class="o">.</span><span class="n">microphone_sensor</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-        <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_payload_values</span><span class="p">(</span><span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_microphone_sensor</span><span class="o">.</span><span class="n">MicrophoneSensor</span><span class="o">.</span><span class="n">payload_values</span><span class="p">))</span> \
-            <span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">_concat_lists</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_microphone_sensor</span><span class="o">.</span><span class="n">MicrophoneSensor</span><span class="o">.</span><span class="n">metadata</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">first_packet</span><span class="o">.</span><span class="n">has_barometer_sensor</span><span class="p">():</span>
-        <span class="n">sensors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WrappedRedvoxPacket</span><span class="o">.</span><span class="n">barometer_sensor</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-        <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_payload_values</span><span class="p">(</span><span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_barometer_sensor</span><span class="o">.</span><span class="n">BarometerSensor</span><span class="o">.</span><span class="n">payload_values</span><span class="p">))</span> \
-            <span class="o">.</span><span class="n">set_timestamps_microseconds_utc</span><span class="p">(</span>
-                <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_barometer_sensor</span><span class="o">.</span><span class="n">BarometerSensor</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">))</span> \
-            <span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">_concat_lists</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_barometer_sensor</span><span class="o">.</span><span class="n">BarometerSensor</span><span class="o">.</span><span class="n">metadata</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">first_packet</span><span class="o">.</span><span class="n">has_location_sensor</span><span class="p">():</span>
-        <span class="n">sensors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WrappedRedvoxPacket</span><span class="o">.</span><span class="n">location_sensor</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-        <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_payload_values</span><span class="p">(</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_location_sensor</span><span class="o">.</span><span class="n">LocationSensor</span><span class="o">.</span><span class="n">payload_values_latitude</span><span class="p">),</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_location_sensor</span><span class="o">.</span><span class="n">LocationSensor</span><span class="o">.</span><span class="n">payload_values_longitude</span><span class="p">),</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_location_sensor</span><span class="o">.</span><span class="n">LocationSensor</span><span class="o">.</span><span class="n">payload_values_altitude</span><span class="p">),</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_location_sensor</span><span class="o">.</span><span class="n">LocationSensor</span><span class="o">.</span><span class="n">payload_values_speed</span><span class="p">),</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_location_sensor</span><span class="o">.</span><span class="n">LocationSensor</span><span class="o">.</span><span class="n">payload_values_accuracy</span><span class="p">)</span>
-        <span class="p">)</span> \
-            <span class="o">.</span><span class="n">set_timestamps_microseconds_utc</span><span class="p">(</span>
-                <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_location_sensor</span><span class="o">.</span><span class="n">LocationSensor</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">))</span> \
-            <span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">_concat_lists</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_location_sensor</span><span class="o">.</span><span class="n">LocationSensor</span><span class="o">.</span><span class="n">metadata</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">first_packet</span><span class="o">.</span><span class="n">has_time_synchronization_sensor</span><span class="p">():</span>
-        <span class="n">sensors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WrappedRedvoxPacket</span><span class="o">.</span><span class="n">time_synchronization_sensor</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-        <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_payload_values</span><span class="p">(</span><span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_time_synchronization_sensor</span><span class="o">.</span><span class="n">TimeSynchronizationSensor</span><span class="o">.</span><span class="n">payload_values</span><span class="p">))</span> \
-            <span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">_concat_lists</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_time_synchronization_sensor</span><span class="o">.</span><span class="n">TimeSynchronizationSensor</span><span class="o">.</span><span class="n">metadata</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">first_packet</span><span class="o">.</span><span class="n">has_magnetometer_sensor</span><span class="p">():</span>
-        <span class="n">sensors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WrappedRedvoxPacket</span><span class="o">.</span><span class="n">magnetometer_sensor</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-        <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_payload_values</span><span class="p">(</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_magnetometer_sensor</span><span class="o">.</span><span class="n">MagnetometerSensor</span><span class="o">.</span><span class="n">payload_values_x</span><span class="p">),</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_magnetometer_sensor</span><span class="o">.</span><span class="n">MagnetometerSensor</span><span class="o">.</span><span class="n">payload_values_y</span><span class="p">),</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_magnetometer_sensor</span><span class="o">.</span><span class="n">MagnetometerSensor</span><span class="o">.</span><span class="n">payload_values_z</span><span class="p">)</span>
-        <span class="p">)</span> \
-            <span class="o">.</span><span class="n">set_timestamps_microseconds_utc</span><span class="p">(</span>
-                <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_magnetometer_sensor</span><span class="o">.</span><span class="n">MagnetometerSensor</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">))</span> \
-            <span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">_concat_lists</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_magnetometer_sensor</span><span class="o">.</span><span class="n">MagnetometerSensor</span><span class="o">.</span><span class="n">metadata</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">first_packet</span><span class="o">.</span><span class="n">has_accelerometer_sensor</span><span class="p">():</span>
-        <span class="n">sensors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WrappedRedvoxPacket</span><span class="o">.</span><span class="n">accelerometer_sensor</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-        <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_payload_values</span><span class="p">(</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_accelerometer_sensor</span><span class="o">.</span><span class="n">AccelerometerSensor</span><span class="o">.</span><span class="n">payload_values_x</span><span class="p">),</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_accelerometer_sensor</span><span class="o">.</span><span class="n">AccelerometerSensor</span><span class="o">.</span><span class="n">payload_values_y</span><span class="p">),</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_accelerometer_sensor</span><span class="o">.</span><span class="n">AccelerometerSensor</span><span class="o">.</span><span class="n">payload_values_z</span><span class="p">)</span>
-        <span class="p">)</span> \
-            <span class="o">.</span><span class="n">set_timestamps_microseconds_utc</span><span class="p">(</span>
-                <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_accelerometer_sensor</span><span class="o">.</span><span class="n">AccelerometerSensor</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">))</span> \
-            <span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">_concat_lists</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_accelerometer_sensor</span><span class="o">.</span><span class="n">AccelerometerSensor</span><span class="o">.</span><span class="n">metadata</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">first_packet</span><span class="o">.</span><span class="n">has_gyroscope_sensor</span><span class="p">():</span>
-        <span class="n">sensors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WrappedRedvoxPacket</span><span class="o">.</span><span class="n">gyroscope_sensor</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-        <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_payload_values</span><span class="p">(</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_gyroscope_sensor</span><span class="o">.</span><span class="n">GyroscopeSensor</span><span class="o">.</span><span class="n">payload_values_x</span><span class="p">),</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_gyroscope_sensor</span><span class="o">.</span><span class="n">GyroscopeSensor</span><span class="o">.</span><span class="n">payload_values_y</span><span class="p">),</span>
-            <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_gyroscope_sensor</span><span class="o">.</span><span class="n">GyroscopeSensor</span><span class="o">.</span><span class="n">payload_values_z</span><span class="p">)</span>
-        <span class="p">)</span> \
-            <span class="o">.</span><span class="n">set_timestamps_microseconds_utc</span><span class="p">(</span>
-                <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_gyroscope_sensor</span><span class="o">.</span><span class="n">GyroscopeSensor</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">))</span> \
-            <span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">_concat_lists</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_gyroscope_sensor</span><span class="o">.</span><span class="n">GyroscopeSensor</span><span class="o">.</span><span class="n">metadata</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">first_packet</span><span class="o">.</span><span class="n">has_light_sensor</span><span class="p">():</span>
-        <span class="n">sensors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WrappedRedvoxPacket</span><span class="o">.</span><span class="n">light_sensor</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-        <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_payload_values</span><span class="p">(</span><span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_light_sensor</span><span class="o">.</span><span class="n">LightSensor</span><span class="o">.</span><span class="n">payload_values</span><span class="p">))</span> \
-            <span class="o">.</span><span class="n">set_timestamps_microseconds_utc</span><span class="p">(</span>
-                <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_light_sensor</span><span class="o">.</span><span class="n">LightSensor</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">))</span> \
-            <span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">_concat_lists</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_light_sensor</span><span class="o">.</span><span class="n">LightSensor</span><span class="o">.</span><span class="n">metadata</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">first_packet</span><span class="o">.</span><span class="n">has_infrared_sensor</span><span class="p">():</span>
-        <span class="n">sensors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WrappedRedvoxPacket</span><span class="o">.</span><span class="n">infrared_sensor</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-        <span class="n">sensors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_payload_values</span><span class="p">(</span><span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_infrared_sensor</span><span class="o">.</span><span class="n">InfraredSensor</span><span class="o">.</span><span class="n">payload_values</span><span class="p">))</span> \
-            <span class="o">.</span><span class="n">set_timestamps_microseconds_utc</span><span class="p">(</span>
-                <span class="n">_concat_numpy</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_infrared_sensor</span><span class="o">.</span><span class="n">InfraredSensor</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">))</span> \
-            <span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">_concat_lists</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">_infrared_sensor</span><span class="o">.</span><span class="n">InfraredSensor</span><span class="o">.</span><span class="n">metadata</span><span class="p">))</span>
-
-    <span class="c1"># Concat metadata</span>
-    <span class="n">all_metadata</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WrappedRedvoxPacket</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-    <span class="n">first_packet</span><span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">all_metadata</span><span class="p">)))</span>
-
-    <span class="k">return</span> <span class="n">first_packet</span>
+def _concat_numpy(sensors: RedvoxSensors,
+                  array_extraction_fn: typing.Callable[[RedvoxSensor], _np.ndarray]) -> _np.ndarray:
+    """
+    Given a list of sensors concatenate the numpy arrays found with the extraction function.
+    :param sensors: Sensors to extract arrays from.
+    :param array_extraction_fn: A function that takes a sensor and returns a numpy array.
+    :return: An array of concatenated arrays.
+    """
+    return _np.concatenate(list(map(array_extraction_fn, sensors)))
 
 
-<span class="k">def</span> <span class="nf">concat_wrapped_redvox_packets</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">WrappedRedvoxPacket</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">WrappedRedvoxPacket</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Concatenates multiple WrappedRedvoxPackets together by combining sensor timestamps, values, and metadata.</span>
-<span class="sd">    :param wrapped_redvox_packets: Packets to concatenate.</span>
-<span class="sd">    :return: A list of concatenated WrappedRedvoxPackets. A list is returned because each packet represents a single</span>
-<span class="sd">             continuous range of data.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">wrapped_redvox_packets</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">[]</span>
+def _concat_lists(sensors: RedvoxSensors,
+                  list_extraction_fn: typing.Callable[[RedvoxSensor], typing.List[str]]) -> typing.List[
+                      str]:
+    """
+    Given a list of sensors concatenate the lists found with the extraction function.
+    :param sensors: Sensors to extract lists from.
+    :param list_extraction_fn: A function that takes a sensor and returns a list.
+    :return: A list of concatenated arrays.
+    """
+    metadata_list = list(map(list_extraction_fn, sensors))
+    return list(itertools.chain(*metadata_list))
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">wrapped_redvox_packets</span>
 
-    <span class="c1"># Check that packets are from same device</span>
-    <span class="n">device_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">packet</span><span class="p">:</span> <span class="n">packet</span><span class="o">.</span><span class="n">redvox_id</span><span class="p">(),</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">device_ids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">_exceptions</span><span class="o">.</span><span class="n">ConcatenationException</span><span class="p">(</span><span class="s2">&quot;Not all packets from same device </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">device_ids</span><span class="p">))</span>
+def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPacket]) -> WrappedRedvoxPacket:
+    """
+    Given a set of continuous wrapped redvox packets, concatenate the packets together by concatting the timestamps,
+    payload values, and metadata.
+    :param wrapped_redvox_packets: Packets to concatenate.
+    :return: A single WrappedRedvoxPacket with concatenated data.
+    """
+    first_packet = wrapped_redvox_packets[0]
 
-    <span class="c1"># Check that packets are ordered</span>
-    <span class="n">machine_times</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">packet</span><span class="p">:</span> <span class="n">packet</span><span class="o">.</span><span class="n">app_file_start_timestamp_machine</span><span class="p">(),</span>
-                             <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
+    # Concat channels
+    if first_packet.has_microphone_sensor():
+        sensors = list(map(WrappedRedvoxPacket.microphone_sensor, wrapped_redvox_packets))
+        sensors[0].set_payload_values(_concat_numpy(sensors, _microphone_sensor.MicrophoneSensor.payload_values)) \
+            .set_metadata(_concat_lists(sensors, _microphone_sensor.MicrophoneSensor.metadata))
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">_np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">machine_times</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">_exceptions</span><span class="o">.</span><span class="n">ConcatenationException</span><span class="p">(</span><span class="s2">&quot;Packets are not strictly monotonic&quot;</span><span class="p">)</span>
+    if first_packet.has_barometer_sensor():
+        sensors = list(map(WrappedRedvoxPacket.barometer_sensor, wrapped_redvox_packets))
+        sensors[0].set_payload_values(_concat_numpy(sensors, _barometer_sensor.BarometerSensor.payload_values)) \
+            .set_timestamps_microseconds_utc(
+                _concat_numpy(sensors, _barometer_sensor.BarometerSensor.timestamps_microseconds_utc)) \
+            .set_metadata(_concat_lists(sensors, _barometer_sensor.BarometerSensor.metadata))
 
-    <span class="c1"># Identify gaps</span>
-    <span class="n">gaps</span> <span class="o">=</span> <span class="n">_identify_gaps</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+    if first_packet.has_location_sensor():
+        sensors = list(map(WrappedRedvoxPacket.location_sensor, wrapped_redvox_packets))
+        sensors[0].set_payload_values(
+            _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_latitude),
+            _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_longitude),
+            _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_altitude),
+            _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_speed),
+            _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_accuracy)
+        ) \
+            .set_timestamps_microseconds_utc(
+                _concat_numpy(sensors, _location_sensor.LocationSensor.timestamps_microseconds_utc)) \
+            .set_metadata(_concat_lists(sensors, _location_sensor.LocationSensor.metadata))
 
-    <span class="c1"># Concat</span>
-    <span class="n">concatenated_packets</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">)</span>
+    if first_packet.has_time_synchronization_sensor():
+        sensors = list(map(WrappedRedvoxPacket.time_synchronization_sensor, wrapped_redvox_packets))
+        sensors[0].set_payload_values(_concat_numpy(sensors, _time_synchronization_sensor.TimeSynchronizationSensor.payload_values)) \
+            .set_metadata(_concat_lists(sensors, _time_synchronization_sensor.TimeSynchronizationSensor.metadata))
 
-    <span class="k">for</span> <span class="n">gap_idx</span> <span class="ow">in</span> <span class="n">gaps</span><span class="p">:</span>
-        <span class="n">concatenated_packets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_concat_continuous_data</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">gap_idx</span><span class="p">]))</span>
-        <span class="n">start</span> <span class="o">=</span> <span class="n">gap_idx</span>
+    if first_packet.has_magnetometer_sensor():
+        sensors = list(map(WrappedRedvoxPacket.magnetometer_sensor, wrapped_redvox_packets))
+        sensors[0].set_payload_values(
+            _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.payload_values_x),
+            _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.payload_values_y),
+            _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.payload_values_z)
+        ) \
+            .set_timestamps_microseconds_utc(
+                _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.timestamps_microseconds_utc)) \
+            .set_metadata(_concat_lists(sensors, _magnetometer_sensor.MagnetometerSensor.metadata))
 
-    <span class="n">concatenated_packets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_concat_continuous_data</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]))</span>
+    if first_packet.has_accelerometer_sensor():
+        sensors = list(map(WrappedRedvoxPacket.accelerometer_sensor, wrapped_redvox_packets))
+        sensors[0].set_payload_values(
+            _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.payload_values_x),
+            _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.payload_values_y),
+            _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.payload_values_z)
+        ) \
+            .set_timestamps_microseconds_utc(
+                _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.timestamps_microseconds_utc)) \
+            .set_metadata(_concat_lists(sensors, _accelerometer_sensor.AccelerometerSensor.metadata))
 
-    <span class="k">return</span> <span class="n">concatenated_packets</span>
-</pre></div>
+    if first_packet.has_gyroscope_sensor():
+        sensors = list(map(WrappedRedvoxPacket.gyroscope_sensor, wrapped_redvox_packets))
+        sensors[0].set_payload_values(
+            _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.payload_values_x),
+            _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.payload_values_y),
+            _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.payload_values_z)
+        ) \
+            .set_timestamps_microseconds_utc(
+                _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.timestamps_microseconds_utc)) \
+            .set_metadata(_concat_lists(sensors, _gyroscope_sensor.GyroscopeSensor.metadata))
 
+    if first_packet.has_light_sensor():
+        sensors = list(map(WrappedRedvoxPacket.light_sensor, wrapped_redvox_packets))
+        sensors[0].set_payload_values(_concat_numpy(sensors, _light_sensor.LightSensor.payload_values)) \
+            .set_timestamps_microseconds_utc(
+                _concat_numpy(sensors, _light_sensor.LightSensor.timestamps_microseconds_utc)) \
+            .set_metadata(_concat_lists(sensors, _light_sensor.LightSensor.metadata))
+
+    if first_packet.has_infrared_sensor():
+        sensors = list(map(WrappedRedvoxPacket.infrared_sensor, wrapped_redvox_packets))
+        sensors[0].set_payload_values(_concat_numpy(sensors, _infrared_sensor.InfraredSensor.payload_values)) \
+            .set_timestamps_microseconds_utc(
+                _concat_numpy(sensors, _infrared_sensor.InfraredSensor.timestamps_microseconds_utc)) \
+            .set_metadata(_concat_lists(sensors, _infrared_sensor.InfraredSensor.metadata))
+
+    # Concat metadata
+    all_metadata = list(map(WrappedRedvoxPacket.metadata, wrapped_redvox_packets))
+    first_packet.set_metadata(list(itertools.chain(*all_metadata)))
+
+    return first_packet
+
+
+def concat_wrapped_redvox_packets(wrapped_redvox_packets: typing.List[WrappedRedvoxPacket]) -> typing.List[WrappedRedvoxPacket]:
+    """
+    Concatenates multiple WrappedRedvoxPackets together by combining sensor timestamps, values, and metadata.
+    :param wrapped_redvox_packets: Packets to concatenate.
+    :return: A list of concatenated WrappedRedvoxPackets. A list is returned because each packet represents a single
+             continuous range of data.
+    """
+    if wrapped_redvox_packets is None or len(wrapped_redvox_packets) == 0:
+        return []
+
+    if len(wrapped_redvox_packets) == 1:
+        return wrapped_redvox_packets
+
+    # Check that packets are from same device
+    device_ids = set(map(lambda packet: packet.redvox_id(), wrapped_redvox_packets))
+    if len(device_ids) != 1:
+        raise _exceptions.ConcatenationException("Not all packets from same device %s" % str(device_ids))
+
+    # Check that packets are ordered
+    machine_times = list(map(lambda packet: packet.app_file_start_timestamp_machine(),
+                             wrapped_redvox_packets))
+
+    if not _np.all(_np.diff(_np.array(machine_times)) > 0):
+        raise _exceptions.ConcatenationException("Packets are not strictly monotonic")
+
+    # Identify gaps
+    gaps = _identify_gaps(wrapped_redvox_packets, 5)
+
+    # Concat
+    concatenated_packets = []
+    start = 0
+    end = len(wrapped_redvox_packets)
+
+    for gap_idx in gaps:
+        concatenated_packets.append(_concat_continuous_data(wrapped_redvox_packets[start:gap_idx]))
+        start = gap_idx
+
+    concatenated_packets.append(_concat_continuous_data(wrapped_redvox_packets[start:end]))
+
+    return concatenated_packets
+</code></pre>
   </div>
 
   </header>
@@ -1416,48 +1384,47 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.concat.concat_wrapped_redvox_packets', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.concat.concat_wrapped_redvox_packets" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">concat_wrapped_redvox_packets</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">WrappedRedvoxPacket</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">WrappedRedvoxPacket</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Concatenates multiple WrappedRedvoxPackets together by combining sensor timestamps, values, and metadata.</span>
-<span class="sd">    :param wrapped_redvox_packets: Packets to concatenate.</span>
-<span class="sd">    :return: A list of concatenated WrappedRedvoxPackets. A list is returned because each packet represents a single</span>
-<span class="sd">             continuous range of data.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">wrapped_redvox_packets</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">[]</span>
+    <pre><code>def concat_wrapped_redvox_packets(wrapped_redvox_packets: typing.List[WrappedRedvoxPacket]) -> typing.List[WrappedRedvoxPacket]:
+    """
+    Concatenates multiple WrappedRedvoxPackets together by combining sensor timestamps, values, and metadata.
+    :param wrapped_redvox_packets: Packets to concatenate.
+    :return: A list of concatenated WrappedRedvoxPackets. A list is returned because each packet represents a single
+             continuous range of data.
+    """
+    if wrapped_redvox_packets is None or len(wrapped_redvox_packets) == 0:
+        return []
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">wrapped_redvox_packets</span>
+    if len(wrapped_redvox_packets) == 1:
+        return wrapped_redvox_packets
 
-    <span class="c1"># Check that packets are from same device</span>
-    <span class="n">device_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">packet</span><span class="p">:</span> <span class="n">packet</span><span class="o">.</span><span class="n">redvox_id</span><span class="p">(),</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">device_ids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">_exceptions</span><span class="o">.</span><span class="n">ConcatenationException</span><span class="p">(</span><span class="s2">&quot;Not all packets from same device </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">device_ids</span><span class="p">))</span>
+    # Check that packets are from same device
+    device_ids = set(map(lambda packet: packet.redvox_id(), wrapped_redvox_packets))
+    if len(device_ids) != 1:
+        raise _exceptions.ConcatenationException("Not all packets from same device %s" % str(device_ids))
 
-    <span class="c1"># Check that packets are ordered</span>
-    <span class="n">machine_times</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">packet</span><span class="p">:</span> <span class="n">packet</span><span class="o">.</span><span class="n">app_file_start_timestamp_machine</span><span class="p">(),</span>
-                             <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
+    # Check that packets are ordered
+    machine_times = list(map(lambda packet: packet.app_file_start_timestamp_machine(),
+                             wrapped_redvox_packets))
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">_np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">_np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">machine_times</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">_exceptions</span><span class="o">.</span><span class="n">ConcatenationException</span><span class="p">(</span><span class="s2">&quot;Packets are not strictly monotonic&quot;</span><span class="p">)</span>
+    if not _np.all(_np.diff(_np.array(machine_times)) > 0):
+        raise _exceptions.ConcatenationException("Packets are not strictly monotonic")
 
-    <span class="c1"># Identify gaps</span>
-    <span class="n">gaps</span> <span class="o">=</span> <span class="n">_identify_gaps</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+    # Identify gaps
+    gaps = _identify_gaps(wrapped_redvox_packets, 5)
 
-    <span class="c1"># Concat</span>
-    <span class="n">concatenated_packets</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">)</span>
+    # Concat
+    concatenated_packets = []
+    start = 0
+    end = len(wrapped_redvox_packets)
 
-    <span class="k">for</span> <span class="n">gap_idx</span> <span class="ow">in</span> <span class="n">gaps</span><span class="p">:</span>
-        <span class="n">concatenated_packets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_concat_continuous_data</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">gap_idx</span><span class="p">]))</span>
-        <span class="n">start</span> <span class="o">=</span> <span class="n">gap_idx</span>
+    for gap_idx in gaps:
+        concatenated_packets.append(_concat_continuous_data(wrapped_redvox_packets[start:gap_idx]))
+        start = gap_idx
 
-    <span class="n">concatenated_packets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_concat_continuous_data</span><span class="p">(</span><span class="n">wrapped_redvox_packets</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]))</span>
+    concatenated_packets.append(_concat_continuous_data(wrapped_redvox_packets[start:end]))
 
-    <span class="k">return</span> <span class="n">concatenated_packets</span>
-</pre></div>
-
+    return concatenated_packets
+</code></pre>
   </div>
 </div>
 

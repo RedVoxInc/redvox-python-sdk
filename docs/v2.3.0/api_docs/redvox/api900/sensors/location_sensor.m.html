@@ -851,77 +851,6 @@ table {
 
   </style>
 
-  <style type="text/css">
-  .codehilite .hll { background-color: #ffffcc }
-.codehilite  { background: #f8f8f8; }
-.codehilite .c { color: #408080; font-style: italic } /* Comment */
-.codehilite .err { border: 1px solid #FF0000 } /* Error */
-.codehilite .k { color: #008000; font-weight: bold } /* Keyword */
-.codehilite .o { color: #666666 } /* Operator */
-.codehilite .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
-.codehilite .cm { color: #408080; font-style: italic } /* Comment.Multiline */
-.codehilite .cp { color: #BC7A00 } /* Comment.Preproc */
-.codehilite .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
-.codehilite .c1 { color: #408080; font-style: italic } /* Comment.Single */
-.codehilite .cs { color: #408080; font-style: italic } /* Comment.Special */
-.codehilite .gd { color: #A00000 } /* Generic.Deleted */
-.codehilite .ge { font-style: italic } /* Generic.Emph */
-.codehilite .gr { color: #FF0000 } /* Generic.Error */
-.codehilite .gh { color: #000080; font-weight: bold } /* Generic.Heading */
-.codehilite .gi { color: #00A000 } /* Generic.Inserted */
-.codehilite .go { color: #888888 } /* Generic.Output */
-.codehilite .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
-.codehilite .gs { font-weight: bold } /* Generic.Strong */
-.codehilite .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.codehilite .gt { color: #0044DD } /* Generic.Traceback */
-.codehilite .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
-.codehilite .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
-.codehilite .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
-.codehilite .kp { color: #008000 } /* Keyword.Pseudo */
-.codehilite .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
-.codehilite .kt { color: #B00040 } /* Keyword.Type */
-.codehilite .m { color: #666666 } /* Literal.Number */
-.codehilite .s { color: #BA2121 } /* Literal.String */
-.codehilite .na { color: #7D9029 } /* Name.Attribute */
-.codehilite .nb { color: #008000 } /* Name.Builtin */
-.codehilite .nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.codehilite .no { color: #880000 } /* Name.Constant */
-.codehilite .nd { color: #AA22FF } /* Name.Decorator */
-.codehilite .ni { color: #999999; font-weight: bold } /* Name.Entity */
-.codehilite .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
-.codehilite .nf { color: #0000FF } /* Name.Function */
-.codehilite .nl { color: #A0A000 } /* Name.Label */
-.codehilite .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
-.codehilite .nt { color: #008000; font-weight: bold } /* Name.Tag */
-.codehilite .nv { color: #19177C } /* Name.Variable */
-.codehilite .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.codehilite .w { color: #bbbbbb } /* Text.Whitespace */
-.codehilite .mb { color: #666666 } /* Literal.Number.Bin */
-.codehilite .mf { color: #666666 } /* Literal.Number.Float */
-.codehilite .mh { color: #666666 } /* Literal.Number.Hex */
-.codehilite .mi { color: #666666 } /* Literal.Number.Integer */
-.codehilite .mo { color: #666666 } /* Literal.Number.Oct */
-.codehilite .sa { color: #BA2121 } /* Literal.String.Affix */
-.codehilite .sb { color: #BA2121 } /* Literal.String.Backtick */
-.codehilite .sc { color: #BA2121 } /* Literal.String.Char */
-.codehilite .dl { color: #BA2121 } /* Literal.String.Delimiter */
-.codehilite .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
-.codehilite .s2 { color: #BA2121 } /* Literal.String.Double */
-.codehilite .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
-.codehilite .sh { color: #BA2121 } /* Literal.String.Heredoc */
-.codehilite .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
-.codehilite .sx { color: #008000 } /* Literal.String.Other */
-.codehilite .sr { color: #BB6688 } /* Literal.String.Regex */
-.codehilite .s1 { color: #BA2121 } /* Literal.String.Single */
-.codehilite .ss { color: #19177C } /* Literal.String.Symbol */
-.codehilite .bp { color: #008000 } /* Name.Builtin.Pseudo */
-.codehilite .fm { color: #0000FF } /* Name.Function.Magic */
-.codehilite .vc { color: #19177C } /* Name.Variable.Class */
-.codehilite .vg { color: #19177C } /* Name.Variable.Global */
-.codehilite .vi { color: #19177C } /* Name.Variable.Instance */
-.codehilite .vm { color: #19177C } /* Name.Variable.Magic */
-.codehilite .il { color: #666666 } /* Literal.Number.Integer.Long */
-  </style>
 
   <style type="text/css">
   
@@ -1106,223 +1035,222 @@ table {
   
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor" class="source">
-    <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module contains classes and methods for working with location sensors.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+    <pre><code>"""
+This module contains classes and methods for working with location sensors.
+"""
 
-<span class="kn">import</span> <span class="nn">typing</span>
+import typing
 
-<span class="kn">import</span> <span class="nn">numpy</span>
+import numpy
 
-<span class="kn">import</span> <span class="nn">redvox.api900.constants</span> <span class="kn">as</span> <span class="nn">constants</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.lib.api900_pb2</span> <span class="kn">as</span> <span class="nn">api900_pb2</span>
-<span class="kn">from</span> <span class="nn">redvox.api900.sensors.unevenly_sampled_channel</span> <span class="kn">import</span> <span class="n">UnevenlySampledChannel</span>
-<span class="kn">from</span> <span class="nn">redvox.api900.sensors.unevenly_sampled_sensor</span> <span class="kn">import</span> <span class="n">UnevenlySampledSensor</span>
+import redvox.api900.constants as constants
+import redvox.api900.lib.api900_pb2 as api900_pb2
+from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
+from redvox.api900.sensors.unevenly_sampled_sensor import UnevenlySampledSensor
 
 
-<span class="c1"># pylint: disable=R0904</span>
-<span class="k">class</span> <span class="nc">LocationSensor</span><span class="p">(</span><span class="n">UnevenlySampledSensor</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    High-level wrapper around location channels.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+# pylint: disable=R0904
+class LocationSensor(UnevenlySampledSensor):
+    """
+    High-level wrapper around location channels.
+    """
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unevenly_sampled_channel</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">UnevenlySampledChannel</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize this channel</span>
-<span class="sd">        :param unevenly_sampled_channel: Instance of UnevenlySampledChannel containing location data</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">unevenly_sampled_channel</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_channel_types</span><span class="p">([</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span>
-        <span class="p">])</span>
+    def __init__(self, unevenly_sampled_channel: typing.Optional[UnevenlySampledChannel] = None):
+        """
+        Initialize this channel
+        :param unevenly_sampled_channel: Instance of UnevenlySampledChannel containing location data
+        """
+        super().__init__(unevenly_sampled_channel)
+        self._unevenly_sampled_channel.set_channel_types([
+            api900_pb2.LATITUDE,
+            api900_pb2.LONGITUDE,
+            api900_pb2.ALTITUDE,
+            api900_pb2.SPEED,
+            api900_pb2.ACCURACY
+        ])
 
-    <span class="k">def</span> <span class="nf">_payload_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the location payload as an interleaved payload with the following format:</span>
-<span class="sd">        [[latitude_0, longitude_0, altitude_0, speed_0, accuracy_0],</span>
-<span class="sd">         [latitude_1, longitude_1, altitude_1, speed_1, accuracy_1],</span>
-<span class="sd">         ...,</span>
-<span class="sd">         [latitude_n, longitude_n, altitude_n, speed_n, accuracy_n],]</span>
-<span class="sd">        :return: array containing interleaved values of the 5 channels</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_multi_payload</span><span class="p">([</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span>
-        <span class="p">])</span>
+    def _payload_values(self):
+        """
+        Return the location payload as an interleaved payload with the following format:
+        [[latitude_0, longitude_0, altitude_0, speed_0, accuracy_0],
+         [latitude_1, longitude_1, altitude_1, speed_1, accuracy_1],
+         ...,
+         [latitude_n, longitude_n, altitude_n, speed_n, accuracy_n],]
+        :return: array containing interleaved values of the 5 channels
+        """
+        return self._unevenly_sampled_channel.get_multi_payload([
+            api900_pb2.LATITUDE,
+            api900_pb2.LONGITUDE,
+            api900_pb2.ALTITUDE,
+            api900_pb2.SPEED,
+            api900_pb2.ACCURACY
+        ])
 
-    <span class="c1"># pylint: disable=R0913</span>
-    <span class="k">def</span> <span class="nf">set_payload_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                           <span class="n">latitude_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                           <span class="n">longitude_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                           <span class="n">altitude_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                           <span class="n">speed_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                           <span class="n">accuracy_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;LocationSensor&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sets the location sensor&#39;s payload. Note that if one of the below channels don&#39;t exist, you must still provide</span>
-<span class="sd">        a zero-filled payload that is the same length as all other paylods.</span>
-<span class="sd">        :param latitude_payload: The latitude payload.</span>
-<span class="sd">        :param longitude_payload: The longitude payload.</span>
-<span class="sd">        :param altitude_payload: The altitude payload.</span>
-<span class="sd">        :param speed_payload: The speed payload</span>
-<span class="sd">        :param accuracy_payload: The accuracy payload.</span>
-<span class="sd">        :return: An instance of the sensor.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_interleaved_payload</span><span class="p">([</span><span class="n">latitude_payload</span><span class="p">,</span>
-                                                                <span class="n">longitude_payload</span><span class="p">,</span>
-                                                                <span class="n">altitude_payload</span><span class="p">,</span>
-                                                                <span class="n">speed_payload</span><span class="p">,</span>
-                                                                <span class="n">accuracy_payload</span><span class="p">],</span>
-                                                               <span class="n">constants</span><span class="o">.</span><span class="n">PayloadType</span><span class="o">.</span><span class="n">FLOAT64_PAYLOAD</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span>
+    # pylint: disable=R0913
+    def set_payload_values(self,
+                           latitude_payload: typing.Union[typing.List[float], numpy.ndarray],
+                           longitude_payload: typing.Union[typing.List[float], numpy.ndarray],
+                           altitude_payload: typing.Union[typing.List[float], numpy.ndarray],
+                           speed_payload: typing.Union[typing.List[float], numpy.ndarray],
+                           accuracy_payload: typing.Union[typing.List[float], numpy.ndarray]) -> 'LocationSensor':
+        """
+        Sets the location sensor's payload. Note that if one of the below channels don't exist, you must still provide
+        a zero-filled payload that is the same length as all other paylods.
+        :param latitude_payload: The latitude payload.
+        :param longitude_payload: The longitude payload.
+        :param altitude_payload: The altitude payload.
+        :param speed_payload: The speed payload
+        :param accuracy_payload: The accuracy payload.
+        :return: An instance of the sensor.
+        """
+        self._unevenly_sampled_channel.set_interleaved_payload([latitude_payload,
+                                                                longitude_payload,
+                                                                altitude_payload,
+                                                                speed_payload,
+                                                                accuracy_payload],
+                                                               constants.PayloadType.FLOAT64_PAYLOAD)
+        return self
 
-    <span class="k">def</span> <span class="nf">payload_values_latitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the latitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The latitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">)</span>
+    def payload_values_latitude(self):
+        """
+        Returns the latitude component of this channel's payload.
+        :return: The latitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.LATITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_longitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the longitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The longitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">)</span>
+    def payload_values_longitude(self):
+        """
+        Returns the longitude component of this channel's payload.
+        :return: The longitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.LONGITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_altitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the altitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The altitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">)</span>
+    def payload_values_altitude(self):
+        """
+        Returns the altitude component of this channel's payload.
+        :return: The altitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.ALTITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_speed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the speed component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The speed component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">)</span>
+    def payload_values_speed(self):
+        """
+        Returns the speed component of this channel's payload.
+        :return: The speed component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.SPEED)
 
-    <span class="k">def</span> <span class="nf">payload_values_accuracy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span><span class="p">)</span>
+    def payload_values_accuracy(self):
+        """
+        Returns the accuracy component of this channel's payload.
+        :return: The accuracy component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.ACCURACY)
 
-    <span class="k">def</span> <span class="nf">payload_values_latitude_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the mean latitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The mean latitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">)</span>
+    def payload_values_latitude_mean(self) -> float:
+        """
+        Returns the mean latitude component of this channel's payload.
+        :return: The mean latitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.LATITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_longitude_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the mean longitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The mean longitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">)</span>
+    def payload_values_longitude_mean(self) -> float:
+        """
+        Returns the mean longitude component of this channel's payload.
+        :return: The mean longitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.LONGITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_altitude_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the mean altitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The mean altitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">)</span>
+    def payload_values_altitude_mean(self) -> float:
+        """
+        Returns the mean altitude component of this channel's payload.
+        :return: The mean altitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.ALTITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_speed_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the mean speed component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The mean speed component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">)</span>
+    def payload_values_speed_mean(self) -> float:
+        """
+        Returns the mean speed component of this channel's payload.
+        :return: The mean speed component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.SPEED)
 
-    <span class="k">def</span> <span class="nf">payload_values_accuracy_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the mean accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The mean accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span><span class="p">)</span>
+    def payload_values_accuracy_mean(self) -> float:
+        """
+        Returns the mean accuracy component of this channel's payload.
+        :return: The mean accuracy component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.ACCURACY)
 
-    <span class="k">def</span> <span class="nf">payload_values_latitude_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the median latitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The median latitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">)</span>
+    def payload_values_latitude_median(self) -> float:
+        """
+        Returns the median latitude component of this channel's payload.
+        :return: The median latitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.LATITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_longitude_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the median longitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The median longitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">)</span>
+    def payload_values_longitude_median(self) -> float:
+        """
+        Returns the median longitude component of this channel's payload.
+        :return: The median longitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.LONGITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_altitude_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the median altitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The median altitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">)</span>
+    def payload_values_altitude_median(self) -> float:
+        """
+        Returns the median altitude component of this channel's payload.
+        :return: The median altitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.ALTITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_speed_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the median speed component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The median speed component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">)</span>
+    def payload_values_speed_median(self) -> float:
+        """
+        Returns the median speed component of this channel's payload.
+        :return: The median speed component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.SPEED)
 
-    <span class="k">def</span> <span class="nf">payload_values_accuracy_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the median accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The median accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span><span class="p">)</span>
+    def payload_values_accuracy_median(self) -> float:
+        """
+        Returns the median accuracy component of this channel's payload.
+        :return: The median accuracy component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.ACCURACY)
 
-    <span class="k">def</span> <span class="nf">payload_values_latitude_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the standard deviation latitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The standard deviation latitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">)</span>
+    def payload_values_latitude_std(self) -> float:
+        """
+        Returns the standard deviation latitude component of this channel's payload.
+        :return: The standard deviation latitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.LATITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_longitude_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the standard deviation longitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The standard deviation longitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">)</span>
+    def payload_values_longitude_std(self) -> float:
+        """
+        Returns the standard deviation longitude component of this channel's payload.
+        :return: The standard deviation longitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.LONGITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_altitude_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the standard deviation altitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The standard deviation altitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">)</span>
+    def payload_values_altitude_std(self) -> float:
+        """
+        Returns the standard deviation altitude component of this channel's payload.
+        :return: The standard deviation altitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.ALTITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_speed_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the standard deviation speed component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The standard deviation speed component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">)</span>
+    def payload_values_speed_std(self) -> float:
+        """
+        Returns the standard deviation speed component of this channel's payload.
+        :return: The standard deviation speed component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.SPEED)
 
-    <span class="k">def</span> <span class="nf">payload_values_accuracy_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the standard deviation accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The standard deviation accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span><span class="p">)</span>
-</pre></div>
-
+    def payload_values_accuracy_std(self) -> float:
+        """
+        Returns the standard deviation accuracy component of this channel's payload.
+        :return: The standard deviation accuracy component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.ACCURACY)
+</code></pre>
   </div>
 
   </header>
@@ -1340,208 +1268,207 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">LocationSensor</span><span class="p">(</span><span class="n">UnevenlySampledSensor</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    High-level wrapper around location channels.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <pre><code>class LocationSensor(UnevenlySampledSensor):
+    """
+    High-level wrapper around location channels.
+    """
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unevenly_sampled_channel</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">UnevenlySampledChannel</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize this channel</span>
-<span class="sd">        :param unevenly_sampled_channel: Instance of UnevenlySampledChannel containing location data</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">unevenly_sampled_channel</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_channel_types</span><span class="p">([</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span>
-        <span class="p">])</span>
+    def __init__(self, unevenly_sampled_channel: typing.Optional[UnevenlySampledChannel] = None):
+        """
+        Initialize this channel
+        :param unevenly_sampled_channel: Instance of UnevenlySampledChannel containing location data
+        """
+        super().__init__(unevenly_sampled_channel)
+        self._unevenly_sampled_channel.set_channel_types([
+            api900_pb2.LATITUDE,
+            api900_pb2.LONGITUDE,
+            api900_pb2.ALTITUDE,
+            api900_pb2.SPEED,
+            api900_pb2.ACCURACY
+        ])
 
-    <span class="k">def</span> <span class="nf">_payload_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the location payload as an interleaved payload with the following format:</span>
-<span class="sd">        [[latitude_0, longitude_0, altitude_0, speed_0, accuracy_0],</span>
-<span class="sd">         [latitude_1, longitude_1, altitude_1, speed_1, accuracy_1],</span>
-<span class="sd">         ...,</span>
-<span class="sd">         [latitude_n, longitude_n, altitude_n, speed_n, accuracy_n],]</span>
-<span class="sd">        :return: array containing interleaved values of the 5 channels</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_multi_payload</span><span class="p">([</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">,</span>
-            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span>
-        <span class="p">])</span>
+    def _payload_values(self):
+        """
+        Return the location payload as an interleaved payload with the following format:
+        [[latitude_0, longitude_0, altitude_0, speed_0, accuracy_0],
+         [latitude_1, longitude_1, altitude_1, speed_1, accuracy_1],
+         ...,
+         [latitude_n, longitude_n, altitude_n, speed_n, accuracy_n],]
+        :return: array containing interleaved values of the 5 channels
+        """
+        return self._unevenly_sampled_channel.get_multi_payload([
+            api900_pb2.LATITUDE,
+            api900_pb2.LONGITUDE,
+            api900_pb2.ALTITUDE,
+            api900_pb2.SPEED,
+            api900_pb2.ACCURACY
+        ])
 
-    <span class="c1"># pylint: disable=R0913</span>
-    <span class="k">def</span> <span class="nf">set_payload_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                           <span class="n">latitude_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                           <span class="n">longitude_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                           <span class="n">altitude_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                           <span class="n">speed_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                           <span class="n">accuracy_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;LocationSensor&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Sets the location sensor&#39;s payload. Note that if one of the below channels don&#39;t exist, you must still provide</span>
-<span class="sd">        a zero-filled payload that is the same length as all other paylods.</span>
-<span class="sd">        :param latitude_payload: The latitude payload.</span>
-<span class="sd">        :param longitude_payload: The longitude payload.</span>
-<span class="sd">        :param altitude_payload: The altitude payload.</span>
-<span class="sd">        :param speed_payload: The speed payload</span>
-<span class="sd">        :param accuracy_payload: The accuracy payload.</span>
-<span class="sd">        :return: An instance of the sensor.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_interleaved_payload</span><span class="p">([</span><span class="n">latitude_payload</span><span class="p">,</span>
-                                                                <span class="n">longitude_payload</span><span class="p">,</span>
-                                                                <span class="n">altitude_payload</span><span class="p">,</span>
-                                                                <span class="n">speed_payload</span><span class="p">,</span>
-                                                                <span class="n">accuracy_payload</span><span class="p">],</span>
-                                                               <span class="n">constants</span><span class="o">.</span><span class="n">PayloadType</span><span class="o">.</span><span class="n">FLOAT64_PAYLOAD</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span>
+    # pylint: disable=R0913
+    def set_payload_values(self,
+                           latitude_payload: typing.Union[typing.List[float], numpy.ndarray],
+                           longitude_payload: typing.Union[typing.List[float], numpy.ndarray],
+                           altitude_payload: typing.Union[typing.List[float], numpy.ndarray],
+                           speed_payload: typing.Union[typing.List[float], numpy.ndarray],
+                           accuracy_payload: typing.Union[typing.List[float], numpy.ndarray]) -> 'LocationSensor':
+        """
+        Sets the location sensor's payload. Note that if one of the below channels don't exist, you must still provide
+        a zero-filled payload that is the same length as all other paylods.
+        :param latitude_payload: The latitude payload.
+        :param longitude_payload: The longitude payload.
+        :param altitude_payload: The altitude payload.
+        :param speed_payload: The speed payload
+        :param accuracy_payload: The accuracy payload.
+        :return: An instance of the sensor.
+        """
+        self._unevenly_sampled_channel.set_interleaved_payload([latitude_payload,
+                                                                longitude_payload,
+                                                                altitude_payload,
+                                                                speed_payload,
+                                                                accuracy_payload],
+                                                               constants.PayloadType.FLOAT64_PAYLOAD)
+        return self
 
-    <span class="k">def</span> <span class="nf">payload_values_latitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the latitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The latitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">)</span>
+    def payload_values_latitude(self):
+        """
+        Returns the latitude component of this channel's payload.
+        :return: The latitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.LATITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_longitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the longitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The longitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">)</span>
+    def payload_values_longitude(self):
+        """
+        Returns the longitude component of this channel's payload.
+        :return: The longitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.LONGITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_altitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the altitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The altitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">)</span>
+    def payload_values_altitude(self):
+        """
+        Returns the altitude component of this channel's payload.
+        :return: The altitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.ALTITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_speed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the speed component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The speed component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">)</span>
+    def payload_values_speed(self):
+        """
+        Returns the speed component of this channel's payload.
+        :return: The speed component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.SPEED)
 
-    <span class="k">def</span> <span class="nf">payload_values_accuracy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span><span class="p">)</span>
+    def payload_values_accuracy(self):
+        """
+        Returns the accuracy component of this channel's payload.
+        :return: The accuracy component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.ACCURACY)
 
-    <span class="k">def</span> <span class="nf">payload_values_latitude_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the mean latitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The mean latitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">)</span>
+    def payload_values_latitude_mean(self) -> float:
+        """
+        Returns the mean latitude component of this channel's payload.
+        :return: The mean latitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.LATITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_longitude_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the mean longitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The mean longitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">)</span>
+    def payload_values_longitude_mean(self) -> float:
+        """
+        Returns the mean longitude component of this channel's payload.
+        :return: The mean longitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.LONGITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_altitude_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the mean altitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The mean altitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">)</span>
+    def payload_values_altitude_mean(self) -> float:
+        """
+        Returns the mean altitude component of this channel's payload.
+        :return: The mean altitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.ALTITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_speed_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the mean speed component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The mean speed component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">)</span>
+    def payload_values_speed_mean(self) -> float:
+        """
+        Returns the mean speed component of this channel's payload.
+        :return: The mean speed component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.SPEED)
 
-    <span class="k">def</span> <span class="nf">payload_values_accuracy_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the mean accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The mean accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span><span class="p">)</span>
+    def payload_values_accuracy_mean(self) -> float:
+        """
+        Returns the mean accuracy component of this channel's payload.
+        :return: The mean accuracy component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_mean(api900_pb2.ACCURACY)
 
-    <span class="k">def</span> <span class="nf">payload_values_latitude_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the median latitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The median latitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">)</span>
+    def payload_values_latitude_median(self) -> float:
+        """
+        Returns the median latitude component of this channel's payload.
+        :return: The median latitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.LATITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_longitude_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the median longitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The median longitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">)</span>
+    def payload_values_longitude_median(self) -> float:
+        """
+        Returns the median longitude component of this channel's payload.
+        :return: The median longitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.LONGITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_altitude_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the median altitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The median altitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">)</span>
+    def payload_values_altitude_median(self) -> float:
+        """
+        Returns the median altitude component of this channel's payload.
+        :return: The median altitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.ALTITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_speed_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the median speed component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The median speed component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">)</span>
+    def payload_values_speed_median(self) -> float:
+        """
+        Returns the median speed component of this channel's payload.
+        :return: The median speed component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.SPEED)
 
-    <span class="k">def</span> <span class="nf">payload_values_accuracy_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the median accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The median accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span><span class="p">)</span>
+    def payload_values_accuracy_median(self) -> float:
+        """
+        Returns the median accuracy component of this channel's payload.
+        :return: The median accuracy component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_median(api900_pb2.ACCURACY)
 
-    <span class="k">def</span> <span class="nf">payload_values_latitude_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the standard deviation latitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The standard deviation latitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">)</span>
+    def payload_values_latitude_std(self) -> float:
+        """
+        Returns the standard deviation latitude component of this channel's payload.
+        :return: The standard deviation latitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.LATITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_longitude_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the standard deviation longitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The standard deviation longitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">)</span>
+    def payload_values_longitude_std(self) -> float:
+        """
+        Returns the standard deviation longitude component of this channel's payload.
+        :return: The standard deviation longitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.LONGITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_altitude_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the standard deviation altitude component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The standard deviation altitude component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">)</span>
+    def payload_values_altitude_std(self) -> float:
+        """
+        Returns the standard deviation altitude component of this channel's payload.
+        :return: The standard deviation altitude component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.ALTITUDE)
 
-    <span class="k">def</span> <span class="nf">payload_values_speed_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the standard deviation speed component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The standard deviation speed component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">)</span>
+    def payload_values_speed_std(self) -> float:
+        """
+        Returns the standard deviation speed component of this channel's payload.
+        :return: The standard deviation speed component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.SPEED)
 
-    <span class="k">def</span> <span class="nf">payload_values_accuracy_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the standard deviation accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        :return: The standard deviation accuracy component of this channel&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span><span class="p">)</span>
-</pre></div>
-
+    def payload_values_accuracy_std(self) -> float:
+        """
+        Returns the standard deviation accuracy component of this channel's payload.
+        :return: The standard deviation accuracy component of this channel's payload.
+        """
+        return self._unevenly_sampled_channel.get_value_std(api900_pb2.ACCURACY)
+</code></pre>
   </div>
 </div>
 
@@ -1568,21 +1495,20 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.__init__', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.__init__" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unevenly_sampled_channel</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">UnevenlySampledChannel</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Initialize this channel</span>
-<span class="sd">    :param unevenly_sampled_channel: Instance of UnevenlySampledChannel containing location data</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">unevenly_sampled_channel</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_channel_types</span><span class="p">([</span>
-        <span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">,</span>
-        <span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">,</span>
-        <span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">,</span>
-        <span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">,</span>
-        <span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span>
-    <span class="p">])</span>
-</pre></div>
-
+    <pre><code>def __init__(self, unevenly_sampled_channel: typing.Optional[UnevenlySampledChannel] = None):
+    """
+    Initialize this channel
+    :param unevenly_sampled_channel: Instance of UnevenlySampledChannel containing location data
+    """
+    super().__init__(unevenly_sampled_channel)
+    self._unevenly_sampled_channel.set_channel_types([
+        api900_pb2.LATITUDE,
+        api900_pb2.LONGITUDE,
+        api900_pb2.ALTITUDE,
+        api900_pb2.SPEED,
+        api900_pb2.ACCURACY
+    ])
+</code></pre>
   </div>
 </div>
 
@@ -1603,27 +1529,26 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.diff', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.diff" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s1">&#39;UnevenlySampledSensor&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compares two unevenly sampled sensors for differences.</span>
-<span class="sd">    :param other: The other sensor to compare with.</span>
-<span class="sd">    :return: A list odifferences or an empty list if there are none.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">diffs</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tuple2</span><span class="p">:</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">tuple2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tuple2</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="p">[</span>
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_channel_type_names</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">_get_channel_type_names</span><span class="p">()),</span>
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sensor_name</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">sensor_name</span><span class="p">()),</span>
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">()),</span>
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">payload_type</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">payload_type</span><span class="p">()),</span>
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">metadata</span><span class="p">()),</span>
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">payload</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">payload</span><span class="p">)</span>
-    <span class="p">])</span>
-    <span class="c1"># Filter only out only the differences</span>
-    <span class="n">diffs</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tuple2</span><span class="p">:</span> <span class="n">tuple2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">diffs</span><span class="p">)</span>
-    <span class="c1"># Extract the difference string</span>
-    <span class="n">diffs</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tuple2</span><span class="p">:</span> <span class="n">tuple2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">diffs</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">diffs</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def diff(self, other: 'UnevenlySampledSensor') -> typing.List[str]:
+    """
+    Compares two unevenly sampled sensors for differences.
+    :param other: The other sensor to compare with.
+    :return: A list odifferences or an empty list if there are none.
+    """
+    diffs = map(lambda tuple2: reader_utils.diff(tuple2[0], tuple2[1]), [
+        (self._get_channel_type_names(), other._get_channel_type_names()),
+        (self.sensor_name(), other.sensor_name()),
+        (self.timestamps_microseconds_utc(), other.timestamps_microseconds_utc()),
+        (self.payload_type(), other.payload_type()),
+        (self.metadata(), other.metadata()),
+        (self._unevenly_sampled_channel.payload, other._unevenly_sampled_channel.payload)
+    ])
+    # Filter only out only the differences
+    diffs = filter(lambda tuple2: tuple2[0], diffs)
+    # Extract the difference string
+    diffs = map(lambda tuple2: tuple2[1], diffs)
+    return list(diffs)
+</code></pre>
   </div>
 </div>
 
@@ -1643,14 +1568,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.metadata', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.metadata" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns this channel&#39;s metadata (if there is any) as a Python list.</span>
-<span class="sd">    :return: This channel&#39;s metadata (if there is any) as a Python list.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">metadata</span>
-</pre></div>
-
+    <pre><code>def metadata(self) -> typing.List[str]:
+    """
+    Returns this channel's metadata (if there is any) as a Python list.
+    :return: This channel's metadata (if there is any) as a Python list.
+    """
+    return self._unevenly_sampled_channel.metadata
+</code></pre>
   </div>
 </div>
 
@@ -1670,14 +1594,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.metadata_as_dict', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.metadata_as_dict" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">metadata_as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns this channel&#39;s metadata (if there is any) as a Python dictionary.</span>
-<span class="sd">    :return: This channel&#39;s metadata (if there is any) as a Python dictionary.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">get_metadata_as_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def metadata_as_dict(self) -> typing.Dict[str, str]:
+    """
+    Returns this channel's metadata (if there is any) as a Python dictionary.
+    :return: This channel's metadata (if there is any) as a Python dictionary.
+    """
+    return reader_utils.get_metadata_as_dict(self._unevenly_sampled_channel.metadata)
+</code></pre>
   </div>
 </div>
 
@@ -1697,14 +1620,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_type', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_type" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the internal protobuf payload type.</span>
-<span class="sd">    :return: The internal protobuf payload type.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload_type</span><span class="p">()</span>
-</pre></div>
-
+    <pre><code>def payload_type(self) -> str:
+    """
+    Returns the internal protobuf payload type.
+    :return: The internal protobuf payload type.
+    """
+    return self._unevenly_sampled_channel.get_payload_type()
+</code></pre>
   </div>
 </div>
 
@@ -1724,14 +1646,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_accuracy', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_accuracy" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_accuracy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the accuracy component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The accuracy component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_accuracy(self):
+    """
+    Returns the accuracy component of this channel's payload.
+    :return: The accuracy component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_payload(api900_pb2.ACCURACY)
+</code></pre>
   </div>
 </div>
 
@@ -1751,14 +1672,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_accuracy_mean', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_accuracy_mean" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_accuracy_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the mean accuracy component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The mean accuracy component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_accuracy_mean(self) -> float:
+    """
+    Returns the mean accuracy component of this channel's payload.
+    :return: The mean accuracy component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_mean(api900_pb2.ACCURACY)
+</code></pre>
   </div>
 </div>
 
@@ -1778,14 +1698,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_accuracy_median', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_accuracy_median" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_accuracy_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the median accuracy component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The median accuracy component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_accuracy_median(self) -> float:
+    """
+    Returns the median accuracy component of this channel's payload.
+    :return: The median accuracy component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_median(api900_pb2.ACCURACY)
+</code></pre>
   </div>
 </div>
 
@@ -1805,14 +1724,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_accuracy_std', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_accuracy_std" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_accuracy_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the standard deviation accuracy component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The standard deviation accuracy component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ACCURACY</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_accuracy_std(self) -> float:
+    """
+    Returns the standard deviation accuracy component of this channel's payload.
+    :return: The standard deviation accuracy component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_std(api900_pb2.ACCURACY)
+</code></pre>
   </div>
 </div>
 
@@ -1832,14 +1750,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_altitude', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_altitude" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_altitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the altitude component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The altitude component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_altitude(self):
+    """
+    Returns the altitude component of this channel's payload.
+    :return: The altitude component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_payload(api900_pb2.ALTITUDE)
+</code></pre>
   </div>
 </div>
 
@@ -1859,14 +1776,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_altitude_mean', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_altitude_mean" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_altitude_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the mean altitude component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The mean altitude component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_altitude_mean(self) -> float:
+    """
+    Returns the mean altitude component of this channel's payload.
+    :return: The mean altitude component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_mean(api900_pb2.ALTITUDE)
+</code></pre>
   </div>
 </div>
 
@@ -1886,14 +1802,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_altitude_median', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_altitude_median" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_altitude_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the median altitude component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The median altitude component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_altitude_median(self) -> float:
+    """
+    Returns the median altitude component of this channel's payload.
+    :return: The median altitude component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_median(api900_pb2.ALTITUDE)
+</code></pre>
   </div>
 </div>
 
@@ -1913,14 +1828,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_altitude_std', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_altitude_std" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_altitude_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the standard deviation altitude component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The standard deviation altitude component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">ALTITUDE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_altitude_std(self) -> float:
+    """
+    Returns the standard deviation altitude component of this channel's payload.
+    :return: The standard deviation altitude component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_std(api900_pb2.ALTITUDE)
+</code></pre>
   </div>
 </div>
 
@@ -1940,14 +1854,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_latitude', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_latitude" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_latitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the latitude component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The latitude component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_latitude(self):
+    """
+    Returns the latitude component of this channel's payload.
+    :return: The latitude component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_payload(api900_pb2.LATITUDE)
+</code></pre>
   </div>
 </div>
 
@@ -1967,14 +1880,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_latitude_mean', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_latitude_mean" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_latitude_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the mean latitude component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The mean latitude component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_latitude_mean(self) -> float:
+    """
+    Returns the mean latitude component of this channel's payload.
+    :return: The mean latitude component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_mean(api900_pb2.LATITUDE)
+</code></pre>
   </div>
 </div>
 
@@ -1994,14 +1906,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_latitude_median', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_latitude_median" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_latitude_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the median latitude component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The median latitude component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_latitude_median(self) -> float:
+    """
+    Returns the median latitude component of this channel's payload.
+    :return: The median latitude component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_median(api900_pb2.LATITUDE)
+</code></pre>
   </div>
 </div>
 
@@ -2021,14 +1932,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_latitude_std', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_latitude_std" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_latitude_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the standard deviation latitude component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The standard deviation latitude component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LATITUDE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_latitude_std(self) -> float:
+    """
+    Returns the standard deviation latitude component of this channel's payload.
+    :return: The standard deviation latitude component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_std(api900_pb2.LATITUDE)
+</code></pre>
   </div>
 </div>
 
@@ -2048,14 +1958,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_longitude', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_longitude" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_longitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the longitude component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The longitude component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_longitude(self):
+    """
+    Returns the longitude component of this channel's payload.
+    :return: The longitude component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_payload(api900_pb2.LONGITUDE)
+</code></pre>
   </div>
 </div>
 
@@ -2075,14 +1984,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_longitude_mean', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_longitude_mean" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_longitude_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the mean longitude component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The mean longitude component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_longitude_mean(self) -> float:
+    """
+    Returns the mean longitude component of this channel's payload.
+    :return: The mean longitude component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_mean(api900_pb2.LONGITUDE)
+</code></pre>
   </div>
 </div>
 
@@ -2102,14 +2010,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_longitude_median', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_longitude_median" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_longitude_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the median longitude component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The median longitude component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_longitude_median(self) -> float:
+    """
+    Returns the median longitude component of this channel's payload.
+    :return: The median longitude component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_median(api900_pb2.LONGITUDE)
+</code></pre>
   </div>
 </div>
 
@@ -2129,14 +2036,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_longitude_std', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_longitude_std" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_longitude_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the standard deviation longitude component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The standard deviation longitude component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">LONGITUDE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_longitude_std(self) -> float:
+    """
+    Returns the standard deviation longitude component of this channel's payload.
+    :return: The standard deviation longitude component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_std(api900_pb2.LONGITUDE)
+</code></pre>
   </div>
 </div>
 
@@ -2156,14 +2062,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_speed', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_speed" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_speed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the speed component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The speed component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_speed(self):
+    """
+    Returns the speed component of this channel's payload.
+    :return: The speed component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_payload(api900_pb2.SPEED)
+</code></pre>
   </div>
 </div>
 
@@ -2183,14 +2088,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_speed_mean', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_speed_mean" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_speed_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the mean speed component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The mean speed component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_mean</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_speed_mean(self) -> float:
+    """
+    Returns the mean speed component of this channel's payload.
+    :return: The mean speed component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_mean(api900_pb2.SPEED)
+</code></pre>
   </div>
 </div>
 
@@ -2210,14 +2114,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_speed_median', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_speed_median" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_speed_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the median speed component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The median speed component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_median</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_speed_median(self) -> float:
+    """
+    Returns the median speed component of this channel's payload.
+    :return: The median speed component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_median(api900_pb2.SPEED)
+</code></pre>
   </div>
 </div>
 
@@ -2237,14 +2140,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_speed_std', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.payload_values_speed_std" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values_speed_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the standard deviation speed component of this channel&#39;s payload.</span>
-<span class="sd">    :return: The standard deviation speed component of this channel&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_value_std</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">SPEED</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values_speed_std(self) -> float:
+    """
+    Returns the standard deviation speed component of this channel's payload.
+    :return: The standard deviation speed component of this channel's payload.
+    """
+    return self._unevenly_sampled_channel.get_value_std(api900_pb2.SPEED)
+</code></pre>
   </div>
 </div>
 
@@ -2264,14 +2166,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.sample_interval_mean', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.sample_interval_mean" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">sample_interval_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the mean sample interval for this unevenly sampled sensor channel.</span>
-<span class="sd">    :return: The mean sample interval for this unevenly sampled sensor channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">sample_interval_mean</span>
-</pre></div>
-
+    <pre><code>def sample_interval_mean(self) -> float:
+    """
+    Returns the mean sample interval for this unevenly sampled sensor channel.
+    :return: The mean sample interval for this unevenly sampled sensor channel.
+    """
+    return self._unevenly_sampled_channel.sample_interval_mean
+</code></pre>
   </div>
 </div>
 
@@ -2291,14 +2192,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.sample_interval_median', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.sample_interval_median" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">sample_interval_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the median sample interval for this unevenly sampled sensor channel.</span>
-<span class="sd">    :return: The median sample interval for this unevenly sampled sensor channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">sample_interval_median</span>
-</pre></div>
-
+    <pre><code>def sample_interval_median(self) -> float:
+    """
+    Returns the median sample interval for this unevenly sampled sensor channel.
+    :return: The median sample interval for this unevenly sampled sensor channel.
+    """
+    return self._unevenly_sampled_channel.sample_interval_median
+</code></pre>
   </div>
 </div>
 
@@ -2318,14 +2218,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.sample_interval_std', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.sample_interval_std" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">sample_interval_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the standard deviation sample interval for this unevenly sampled sensor channel.</span>
-<span class="sd">    :return: The standard deviation sample interval for this unevenly sampled sensor channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">sample_interval_std</span>
-</pre></div>
-
+    <pre><code>def sample_interval_std(self) -> float:
+    """
+    Returns the standard deviation sample interval for this unevenly sampled sensor channel.
+    :return: The standard deviation sample interval for this unevenly sampled sensor channel.
+    """
+    return self._unevenly_sampled_channel.sample_interval_std
+</code></pre>
   </div>
 </div>
 
@@ -2345,14 +2244,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.sensor_name', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.sensor_name" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">sensor_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the sensor name associated with this unevenly sampled channel.</span>
-<span class="sd">    :return: The sensor name associated with this unevenly sampled channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">sensor_name</span>
-</pre></div>
-
+    <pre><code>def sensor_name(self) -> str:
+    """
+    Returns the sensor name associated with this unevenly sampled channel.
+    :return: The sensor name associated with this unevenly sampled channel.
+    """
+    return self._unevenly_sampled_channel.sensor_name
+</code></pre>
   </div>
 </div>
 
@@ -2373,16 +2271,15 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.set_metadata', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.set_metadata" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;UnevenlySampledSensor&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    sets the metadata</span>
-<span class="sd">    :param data: metadata as list of strings</span>
-<span class="sd">    :return: An instance of the sensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="k">return</span> <span class="bp">self</span>
-</pre></div>
-
+    <pre><code>def set_metadata(self, data: typing.List[str]) -> 'UnevenlySampledSensor':
+    """
+    sets the metadata
+    :param data: metadata as list of strings
+    :return: An instance of the sensor.
+    """
+    self._unevenly_sampled_channel.set_metadata(data)
+    return self
+</code></pre>
   </div>
 </div>
 
@@ -2403,16 +2300,15 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.set_metadata_as_dict', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.set_metadata_as_dict" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_metadata_as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata_dict</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;UnevenlySampledSensor&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Sets the metadata using a dictionary.</span>
-<span class="sd">    :param metadata_dict: Metadata to set.</span>
-<span class="sd">    :return: An instance of itself.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">reader_utils</span><span class="o">.</span><span class="n">metadata_dict_to_list</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">))</span>
-    <span class="k">return</span> <span class="bp">self</span>
-</pre></div>
-
+    <pre><code>def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'UnevenlySampledSensor':
+    """
+    Sets the metadata using a dictionary.
+    :param metadata_dict: Metadata to set.
+    :return: An instance of itself.
+    """
+    self.set_metadata(reader_utils.metadata_dict_to_list(metadata_dict))
+    return self
+</code></pre>
   </div>
 </div>
 
@@ -2438,31 +2334,30 @@ a zero-filled payload that is the same length as all other paylods.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.set_payload_values', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.set_payload_values" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_payload_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                       <span class="n">latitude_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                       <span class="n">longitude_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                       <span class="n">altitude_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                       <span class="n">speed_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-                       <span class="n">accuracy_payload</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;LocationSensor&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Sets the location sensor&#39;s payload. Note that if one of the below channels don&#39;t exist, you must still provide</span>
-<span class="sd">    a zero-filled payload that is the same length as all other paylods.</span>
-<span class="sd">    :param latitude_payload: The latitude payload.</span>
-<span class="sd">    :param longitude_payload: The longitude payload.</span>
-<span class="sd">    :param altitude_payload: The altitude payload.</span>
-<span class="sd">    :param speed_payload: The speed payload</span>
-<span class="sd">    :param accuracy_payload: The accuracy payload.</span>
-<span class="sd">    :return: An instance of the sensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_interleaved_payload</span><span class="p">([</span><span class="n">latitude_payload</span><span class="p">,</span>
-                                                            <span class="n">longitude_payload</span><span class="p">,</span>
-                                                            <span class="n">altitude_payload</span><span class="p">,</span>
-                                                            <span class="n">speed_payload</span><span class="p">,</span>
-                                                            <span class="n">accuracy_payload</span><span class="p">],</span>
-                                                           <span class="n">constants</span><span class="o">.</span><span class="n">PayloadType</span><span class="o">.</span><span class="n">FLOAT64_PAYLOAD</span><span class="p">)</span>
-    <span class="k">return</span> <span class="bp">self</span>
-</pre></div>
-
+    <pre><code>def set_payload_values(self,
+                       latitude_payload: typing.Union[typing.List[float], numpy.ndarray],
+                       longitude_payload: typing.Union[typing.List[float], numpy.ndarray],
+                       altitude_payload: typing.Union[typing.List[float], numpy.ndarray],
+                       speed_payload: typing.Union[typing.List[float], numpy.ndarray],
+                       accuracy_payload: typing.Union[typing.List[float], numpy.ndarray]) -> 'LocationSensor':
+    """
+    Sets the location sensor's payload. Note that if one of the below channels don't exist, you must still provide
+    a zero-filled payload that is the same length as all other paylods.
+    :param latitude_payload: The latitude payload.
+    :param longitude_payload: The longitude payload.
+    :param altitude_payload: The altitude payload.
+    :param speed_payload: The speed payload
+    :param accuracy_payload: The accuracy payload.
+    :return: An instance of the sensor.
+    """
+    self._unevenly_sampled_channel.set_interleaved_payload([latitude_payload,
+                                                            longitude_payload,
+                                                            altitude_payload,
+                                                            speed_payload,
+                                                            accuracy_payload],
+                                                           constants.PayloadType.FLOAT64_PAYLOAD)
+    return self
+</code></pre>
   </div>
 </div>
 
@@ -2483,16 +2378,15 @@ a zero-filled payload that is the same length as all other paylods.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.set_sensor_name', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.set_sensor_name" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_sensor_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;UnevenlySampledSensor&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Sets the sensor name</span>
-<span class="sd">    :param name: name of the sensor</span>
-<span class="sd">    :return: An instance of the sensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_sensor_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-    <span class="k">return</span> <span class="bp">self</span>
-</pre></div>
-
+    <pre><code>def set_sensor_name(self, name: str) -> 'UnevenlySampledSensor':
+    """
+    Sets the sensor name
+    :param name: name of the sensor
+    :return: An instance of the sensor.
+    """
+    self._unevenly_sampled_channel.set_sensor_name(name)
+    return self
+</code></pre>
   </div>
 </div>
 
@@ -2513,18 +2407,17 @@ a zero-filled payload that is the same length as all other paylods.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.set_timestamps_microseconds_utc', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.set_timestamps_microseconds_utc" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_timestamps_microseconds_utc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamps</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span>
-        <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="s1">&#39;UnevenlySampledSensor&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    set the time stamps</span>
-<span class="sd">    :param timestamps: a list of ascending timestamps that associate with each sample value</span>
-<span class="sd">    :return: An instance of the sensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">timestamps</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">to_array</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_timestamps_microseconds_utc</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
-    <span class="k">return</span> <span class="bp">self</span>
-</pre></div>
-
+    <pre><code>def set_timestamps_microseconds_utc(self, timestamps: typing.Union[
+        numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
+    """
+    set the time stamps
+    :param timestamps: a list of ascending timestamps that associate with each sample value
+    :return: An instance of the sensor.
+    """
+    timestamps = reader_utils.to_array(timestamps)
+    self._unevenly_sampled_channel.set_timestamps_microseconds_utc(timestamps)
+    return self
+</code></pre>
   </div>
 </div>
 
@@ -2544,14 +2437,13 @@ a zero-filled payload that is the same length as all other paylods.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.location_sensor.LocationSensor.timestamps_microseconds_utc', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.location_sensor.LocationSensor.timestamps_microseconds_utc" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">timestamps_microseconds_utc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a list of ascending timestamps that associate with each sample value</span>
-<span class="sd">    :return: A list of ascending timestamps that associate with each sample value</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span>
-</pre></div>
-
+    <pre><code>def timestamps_microseconds_utc(self) -> numpy.ndarray:
+    """
+    Returns a list of ascending timestamps that associate with each sample value
+    :return: A list of ascending timestamps that associate with each sample value
+    """
+    return self._unevenly_sampled_channel.timestamps_microseconds_utc
+</code></pre>
   </div>
 </div>
 

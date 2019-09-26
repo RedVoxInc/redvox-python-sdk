@@ -851,77 +851,6 @@ table {
 
   </style>
 
-  <style type="text/css">
-  .codehilite .hll { background-color: #ffffcc }
-.codehilite  { background: #f8f8f8; }
-.codehilite .c { color: #408080; font-style: italic } /* Comment */
-.codehilite .err { border: 1px solid #FF0000 } /* Error */
-.codehilite .k { color: #008000; font-weight: bold } /* Keyword */
-.codehilite .o { color: #666666 } /* Operator */
-.codehilite .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
-.codehilite .cm { color: #408080; font-style: italic } /* Comment.Multiline */
-.codehilite .cp { color: #BC7A00 } /* Comment.Preproc */
-.codehilite .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
-.codehilite .c1 { color: #408080; font-style: italic } /* Comment.Single */
-.codehilite .cs { color: #408080; font-style: italic } /* Comment.Special */
-.codehilite .gd { color: #A00000 } /* Generic.Deleted */
-.codehilite .ge { font-style: italic } /* Generic.Emph */
-.codehilite .gr { color: #FF0000 } /* Generic.Error */
-.codehilite .gh { color: #000080; font-weight: bold } /* Generic.Heading */
-.codehilite .gi { color: #00A000 } /* Generic.Inserted */
-.codehilite .go { color: #888888 } /* Generic.Output */
-.codehilite .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
-.codehilite .gs { font-weight: bold } /* Generic.Strong */
-.codehilite .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.codehilite .gt { color: #0044DD } /* Generic.Traceback */
-.codehilite .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
-.codehilite .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
-.codehilite .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
-.codehilite .kp { color: #008000 } /* Keyword.Pseudo */
-.codehilite .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
-.codehilite .kt { color: #B00040 } /* Keyword.Type */
-.codehilite .m { color: #666666 } /* Literal.Number */
-.codehilite .s { color: #BA2121 } /* Literal.String */
-.codehilite .na { color: #7D9029 } /* Name.Attribute */
-.codehilite .nb { color: #008000 } /* Name.Builtin */
-.codehilite .nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.codehilite .no { color: #880000 } /* Name.Constant */
-.codehilite .nd { color: #AA22FF } /* Name.Decorator */
-.codehilite .ni { color: #999999; font-weight: bold } /* Name.Entity */
-.codehilite .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
-.codehilite .nf { color: #0000FF } /* Name.Function */
-.codehilite .nl { color: #A0A000 } /* Name.Label */
-.codehilite .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
-.codehilite .nt { color: #008000; font-weight: bold } /* Name.Tag */
-.codehilite .nv { color: #19177C } /* Name.Variable */
-.codehilite .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.codehilite .w { color: #bbbbbb } /* Text.Whitespace */
-.codehilite .mb { color: #666666 } /* Literal.Number.Bin */
-.codehilite .mf { color: #666666 } /* Literal.Number.Float */
-.codehilite .mh { color: #666666 } /* Literal.Number.Hex */
-.codehilite .mi { color: #666666 } /* Literal.Number.Integer */
-.codehilite .mo { color: #666666 } /* Literal.Number.Oct */
-.codehilite .sa { color: #BA2121 } /* Literal.String.Affix */
-.codehilite .sb { color: #BA2121 } /* Literal.String.Backtick */
-.codehilite .sc { color: #BA2121 } /* Literal.String.Char */
-.codehilite .dl { color: #BA2121 } /* Literal.String.Delimiter */
-.codehilite .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
-.codehilite .s2 { color: #BA2121 } /* Literal.String.Double */
-.codehilite .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
-.codehilite .sh { color: #BA2121 } /* Literal.String.Heredoc */
-.codehilite .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
-.codehilite .sx { color: #008000 } /* Literal.String.Other */
-.codehilite .sr { color: #BB6688 } /* Literal.String.Regex */
-.codehilite .s1 { color: #BA2121 } /* Literal.String.Single */
-.codehilite .ss { color: #19177C } /* Literal.String.Symbol */
-.codehilite .bp { color: #008000 } /* Name.Builtin.Pseudo */
-.codehilite .fm { color: #0000FF } /* Name.Function.Magic */
-.codehilite .vc { color: #19177C } /* Name.Variable.Class */
-.codehilite .vg { color: #19177C } /* Name.Variable.Global */
-.codehilite .vi { color: #19177C } /* Name.Variable.Instance */
-.codehilite .vm { color: #19177C } /* Name.Variable.Magic */
-.codehilite .il { color: #666666 } /* Literal.Number.Integer.Long */
-  </style>
 
   <style type="text/css">
   
@@ -1098,219 +1027,218 @@ table {
   
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.summarize', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.summarize" class="source">
-    <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module contains functions and classes for summarizing ranges of redvox data.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+    <pre><code>"""
+This module contains functions and classes for summarizing ranges of redvox data.
+"""
 
-<span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">import</span> <span class="nn">typing</span>
+import datetime
+import itertools
+import typing
 
-<span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+import numpy
+import matplotlib.pyplot as plt
 
-<span class="kn">import</span> <span class="nn">redvox.api900.types</span> <span class="kn">as</span> <span class="nn">types</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.date_time_utils</span> <span class="kn">as</span> <span class="nn">date_time_utils</span>
-
-
-<span class="k">def</span> <span class="nf">_sensor_name</span><span class="p">(</span><span class="n">sensor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">RedvoxSensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Extracts the sensor name from a redvox sensor.</span>
-<span class="sd">    :param sensor: Sensor to get sensor name for.</span>
-<span class="sd">    :return: The sensor name for the given sensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">sensor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sensor</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">time_synchronization_sensor</span><span class="o">.</span><span class="n">TimeSynchronizationSensor</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;time synch&quot;</span>
-
-    <span class="k">return</span> <span class="n">sensor</span><span class="o">.</span><span class="n">sensor_name</span><span class="p">()</span>
+import redvox.api900.types as types
+import redvox.api900.date_time_utils as date_time_utils
 
 
-<span class="k">def</span> <span class="nf">_sensor_samples</span><span class="p">(</span><span class="n">sensor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">RedvoxSensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the number of samples a sensor contains.</span>
-<span class="sd">    :param sensor: Sensor to test.</span>
-<span class="sd">    :return: Number of samples in sensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">sensor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mi">0</span>
+def _sensor_name(sensor: typing.Optional[types.RedvoxSensor]) -> str:
+    """
+    Extracts the sensor name from a redvox sensor.
+    :param sensor: Sensor to get sensor name for.
+    :return: The sensor name for the given sensor.
+    """
+    if sensor is None:
+        return ""
 
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sensor</span><span class="p">,</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">microphone_sensor</span><span class="o">.</span><span class="n">MicrophoneSensor</span><span class="p">,</span>
-                           <span class="n">types</span><span class="o">.</span><span class="n">time_synchronization_sensor</span><span class="o">.</span><span class="n">TimeSynchronizationSensor</span><span class="p">)):</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">sensor</span><span class="o">.</span><span class="n">payload_values</span><span class="p">())</span>
+    if isinstance(sensor, types.time_synchronization_sensor.TimeSynchronizationSensor):
+        return "time synch"
 
-    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">sensor</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">())</span>
-
-
-<span class="c1"># pylint: disable=R0903</span>
-<span class="k">class</span> <span class="nc">SensorSummary</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This class provides a summary of a sensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">RedvoxSensor</span><span class="p">]):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">has_sensor</span> <span class="o">=</span> <span class="n">sensor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sensor_name</span> <span class="o">=</span> <span class="n">_sensor_name</span><span class="p">(</span><span class="n">sensor</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span> <span class="o">=</span> <span class="n">_sensor_samples</span><span class="p">(</span><span class="n">sensor</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_sensor</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;None&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;{SensorSummary: </span><span class="si">%s</span><span class="s2"> with </span><span class="si">%d</span><span class="s2"> samples} &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sensor_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span><span class="p">)</span>
+    return sensor.sensor_name()
 
 
-<span class="c1"># pylint: disable=R0902</span>
-<span class="c1"># pylint: disable=R0903</span>
-<span class="k">class</span> <span class="nc">WrappedRedvoxPacketSummary</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This class provides a summary of a WrappedRedvoxPacket.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+def _sensor_samples(sensor: typing.Optional[types.RedvoxSensor]) -> int:
+    """
+    Returns the number of samples a sensor contains.
+    :param sensor: Sensor to test.
+    :return: Number of samples in sensor.
+    """
+    if sensor is None:
+        return 0
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">redvox_packet</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">redvox_id</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">redvox_id</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">uuid</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">uuid</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">redvox_id_uuid</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">redvox_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">start_timestamp_us</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">start_timestamp_us_utc</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">end_timestamp_us</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">end_timestamp_us_utc</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">duration_s</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate_hz</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">microphone_sensor</span><span class="p">()</span><span class="o">.</span><span class="n">sample_rate_hz</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">microphone_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">microphone_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">barometer_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">barometer_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">location_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">location_sensor</span><span class="p">())</span>
-        <span class="c1"># pylint: disable=C0103</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">time_synchronization_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span>
-            <span class="n">redvox_packet</span><span class="o">.</span><span class="n">time_synchronization_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">accelerometer_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">accelerometer_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">magnetometer_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">magnetometer_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gyroscope_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">gyroscope_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">light_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">light_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">infrared_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">infrared_sensor</span><span class="p">())</span>
+    if isinstance(sensor, (types.microphone_sensor.MicrophoneSensor,
+                           types.time_synchronization_sensor.TimeSynchronizationSensor)):
+        return len(sensor.payload_values())
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;{WrappedRedvoxPacketSummary: </span><span class="si">%s</span><span class="s2"> </span><span class="si">%d</span><span class="s2">-</span><span class="si">%d</span><span class="s2"> [</span><span class="si">%f</span><span class="s2"> sec] </span><span class="si">%f</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">} &quot;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">redvox_id_uuid</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">start_timestamp_us</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">end_timestamp_us</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">duration_s</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate_hz</span><span class="p">,</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">microphone_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">barometer_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">location_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_synchronization_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accelerometer_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">magnetometer_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gyroscope_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">light_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infrared_sensor_summary</span><span class="p">)</span>
-        <span class="p">)</span>
+    return len(sensor.timestamps_microseconds_utc())
 
 
-<span class="c1"># Type vars for compose function.</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;X&quot;</span><span class="p">)</span>
-<span class="n">Y</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Y&quot;</span><span class="p">)</span>
-<span class="n">Z</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">)</span>
+# pylint: disable=R0903
+class SensorSummary:
+    """
+    This class provides a summary of a sensor.
+    """
+
+    def __init__(self, sensor: typing.Optional[types.RedvoxSensor]):
+        self.has_sensor = sensor is not None
+        self.sensor_name = _sensor_name(sensor)
+        self.num_samples = _sensor_samples(sensor)
+
+    def __str__(self):
+        if not self.has_sensor:
+            return "None"
+        return "{SensorSummary: %s with %d samples} " % (self.sensor_name, self.num_samples)
 
 
-<span class="k">def</span> <span class="nf">_compose</span><span class="p">(</span><span class="n">fn1</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">X</span><span class="p">],</span> <span class="n">Y</span><span class="p">],</span>
-             <span class="n">fn2</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Y</span><span class="p">],</span> <span class="n">Z</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">X</span><span class="p">],</span> <span class="n">Z</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Composes two functions together.</span>
-<span class="sd">    :param fn1: A function from X -&gt; Y</span>
-<span class="sd">    :param fn2: A function from Y -&gt; Z</span>
-<span class="sd">    :return: A function from X -&gt; Z</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="k">lambda</span> <span class="n">value</span><span class="p">:</span> <span class="n">fn2</span><span class="p">(</span><span class="n">fn1</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+# pylint: disable=R0902
+# pylint: disable=R0903
+class WrappedRedvoxPacketSummary:
+    """
+    This class provides a summary of a WrappedRedvoxPacket.
+    """
+
+    def __init__(self, redvox_packet):
+        self.redvox_id = redvox_packet.redvox_id()
+        self.uuid = redvox_packet.uuid()
+        self.redvox_id_uuid: str = "%s:%s" % (self.redvox_id, self.uuid)
+        self.start_timestamp_us: int = redvox_packet.start_timestamp_us_utc()
+        self.end_timestamp_us: int = redvox_packet.end_timestamp_us_utc()
+        self.duration_s: float = redvox_packet.duration_s()
+        self.sample_rate_hz = redvox_packet.microphone_sensor().sample_rate_hz()
+        self.microphone_sensor_summary: SensorSummary = SensorSummary(redvox_packet.microphone_sensor())
+        self.barometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.barometer_sensor())
+        self.location_sensor_summary: SensorSummary = SensorSummary(redvox_packet.location_sensor())
+        # pylint: disable=C0103
+        self.time_synchronization_sensor_summary: SensorSummary = SensorSummary(
+            redvox_packet.time_synchronization_sensor())
+        self.accelerometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.accelerometer_sensor())
+        self.magnetometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.magnetometer_sensor())
+        self.gyroscope_sensor_summary: SensorSummary = SensorSummary(redvox_packet.gyroscope_sensor())
+        self.light_sensor_summary: SensorSummary = SensorSummary(redvox_packet.light_sensor())
+        self.infrared_sensor_summary: SensorSummary = SensorSummary(redvox_packet.infrared_sensor())
+
+    def __str__(self):
+        return "{WrappedRedvoxPacketSummary: %s %d-%d [%f sec] %f %s %s %s %s %s %s %s %s %s} " % (
+            self.redvox_id_uuid,
+            self.start_timestamp_us,
+            self.end_timestamp_us,
+            self.duration_s,
+            self.sample_rate_hz,
+            str(self.microphone_sensor_summary),
+            str(self.barometer_sensor_summary),
+            str(self.location_sensor_summary),
+            str(self.time_synchronization_sensor_summary),
+            str(self.accelerometer_sensor_summary),
+            str(self.magnetometer_sensor_summary),
+            str(self.gyroscope_sensor_summary),
+            str(self.light_sensor_summary),
+            str(self.infrared_sensor_summary)
+        )
 
 
-<span class="k">def</span> <span class="nf">summarize_data</span><span class="p">(</span><span class="n">grouped_redvox_packets</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span>
-        <span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">WrappedRedvoxPacketSummary</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given grouped redvox packets, generate summaries for each device and each packet.</span>
-<span class="sd">    :param grouped_redvox_packets: Grouped packets to generate summary for.</span>
-<span class="sd">    :return: A dictionary which maps redvox ids to summaries of redvox packets for that device.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">summarized</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">id_uuid</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span> <span class="ow">in</span> <span class="n">grouped_redvox_packets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">summarized</span><span class="p">[</span><span class="n">id_uuid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WrappedRedvoxPacketSummary</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">summarized</span>
+# Type vars for compose function.
+X = typing.TypeVar("X")
+Y = typing.TypeVar("Y")
+Z = typing.TypeVar("Z")
 
 
-<span class="k">def</span> <span class="nf">_subsample</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">],</span> <span class="n">num_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span>
-        <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns evenly sampled values from an array.</span>
-<span class="sd">    From https://stackoverflow.com/a/50685454 and https://stackoverflow.com/a/9873935</span>
-<span class="sd">    :param values: Sequence to extract evenly sampled samples from.</span>
-<span class="sd">    :param num_samples: Number of samples to extract.</span>
-<span class="sd">    :return: A new, subsampled array.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">indexes</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">indexes</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indexes</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Non sequence type passed to subsample&quot;</span><span class="p">)</span>
+def _compose(fn1: typing.Callable[[X], Y],
+             fn2: typing.Callable[[Y], Z]) -> typing.Callable[[X], Z]:
+    """
+    Composes two functions together.
+    :param fn1: A function from X -> Y
+    :param fn2: A function from Y -> Z
+    :return: A function from X -> Z
+    """
+    return lambda value: fn2(fn1(value))
 
 
-<span class="c1"># pylint: disable=R0914</span>
-<span class="k">def</span> <span class="nf">plot_summarized_data</span><span class="p">(</span><span class="n">summarized_data</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">WrappedRedvoxPacketSummary</span><span class="p">]]):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given summarized data, plot the data to display sensor activity for all passed in summarized data.</span>
-<span class="sd">    :param summarized_data: Data to plot.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">all_summaries</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">summarized_data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+def summarize_data(grouped_redvox_packets: typing.Dict[str, typing.List]) -> typing.Dict[
+        str, typing.List[WrappedRedvoxPacketSummary]]:
+    """
+    Given grouped redvox packets, generate summaries for each device and each packet.
+    :param grouped_redvox_packets: Grouped packets to generate summary for.
+    :return: A dictionary which maps redvox ids to summaries of redvox packets for that device.
+    """
+    summarized = {}
+    for id_uuid, wrapped_redvox_packets in grouped_redvox_packets.items():
+        summarized[id_uuid] = list(map(WrappedRedvoxPacketSummary, wrapped_redvox_packets))
+    return summarized
 
-    <span class="n">start_timestamp_us</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">(</span>
-        <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">packet_summary</span><span class="p">:</span> <span class="n">packet_summary</span><span class="o">.</span><span class="n">start_timestamp_us</span><span class="p">,</span> <span class="n">all_summaries</span><span class="p">)))</span>
-    <span class="n">end_timestamp_us</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">packet_summary</span><span class="p">:</span> <span class="n">packet_summary</span><span class="o">.</span><span class="n">end_timestamp_us</span><span class="p">,</span> <span class="n">all_summaries</span><span class="p">)))</span>
-    <span class="n">start_s</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">date_time_utils</span><span class="o">.</span><span class="n">microseconds_to_seconds</span><span class="p">(</span><span class="n">start_timestamp_us</span><span class="p">))</span>
-    <span class="n">end_s</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">date_time_utils</span><span class="o">.</span><span class="n">microseconds_to_seconds</span><span class="p">(</span><span class="n">end_timestamp_us</span><span class="p">))</span>
-    <span class="n">timestamps</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start_s</span><span class="p">,</span> <span class="n">end_s</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="c1"># Setup the plot</span>
-    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="n">timestamps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">timestamps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">summarized_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+def _subsample(values: typing.Union[numpy.ndarray, typing.List], num_samples: int) -> typing.Union[
+        numpy.ndarray, typing.List]:
+    """
+    Returns evenly sampled values from an array.
+    From https://stackoverflow.com/a/50685454 and https://stackoverflow.com/a/9873935
+    :param values: Sequence to extract evenly sampled samples from.
+    :param num_samples: Number of samples to extract.
+    :return: A new, subsampled array.
+    """
+    indexes = numpy.round(numpy.linspace(0, len(values) - 1, num_samples)).astype(int)
+    if isinstance(values, numpy.ndarray):
+        return numpy.take(values, indexes)
+    elif isinstance(values, typing.List):
+        return [values[i] for i in indexes]
+    else:
+        raise RuntimeError("Non sequence type passed to subsample")
 
-    <span class="c1"># Not for each device, let&#39;s plot its ranges</span>
-    <span class="n">yticks</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">ylabels</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="k">for</span> <span class="n">redvox_id</span><span class="p">,</span> <span class="n">summaries</span> <span class="ow">in</span> <span class="n">summarized_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">summary</span> <span class="ow">in</span> <span class="n">summaries</span><span class="p">:</span>
-            <span class="n">summary_start_s</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">date_time_utils</span><span class="o">.</span><span class="n">microseconds_to_seconds</span><span class="p">(</span><span class="n">summary</span><span class="o">.</span><span class="n">start_timestamp_us</span><span class="p">))</span>
-            <span class="n">summary_end_s</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">date_time_utils</span><span class="o">.</span><span class="n">microseconds_to_seconds</span><span class="p">(</span><span class="n">summary</span><span class="o">.</span><span class="n">end_timestamp_us</span><span class="p">))</span>
-            <span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">timestamps</span><span class="p">),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
-            <span class="n">values</span><span class="p">[</span><span class="n">timestamps</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">summary_start_s</span><span class="p">):</span><span class="n">timestamps</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">summary_end_s</span><span class="p">)]</span> <span class="o">=</span> <span class="n">i</span>
-            <span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">timestamps</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
 
-        <span class="n">yticks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-        <span class="n">ylabels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">redvox_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+# pylint: disable=R0914
+def plot_summarized_data(summarized_data: typing.Dict[str, typing.List[WrappedRedvoxPacketSummary]]):
+    """
+    Given summarized data, plot the data to display sensor activity for all passed in summarized data.
+    :param summarized_data: Data to plot.
+    """
+    all_summaries = list(itertools.chain(*summarized_data.values()))
 
-    <span class="n">xticks</span> <span class="o">=</span> <span class="n">_subsample</span><span class="p">(</span><span class="n">timestamps</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
-    <span class="n">datetimes</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">,</span> <span class="n">xticks</span><span class="p">)</span>
-    <span class="n">datetimes</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">dt</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> %H:%M&quot;</span><span class="p">),</span> <span class="n">datetimes</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">xticks</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">datetimes</span><span class="p">))</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">yticks</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">ylabels</span><span class="p">)</span>
+    start_timestamp_us = numpy.min(
+        list(map(lambda packet_summary: packet_summary.start_timestamp_us, all_summaries)))
+    end_timestamp_us = numpy.max(list(map(lambda packet_summary: packet_summary.end_timestamp_us, all_summaries)))
+    start_s = int(date_time_utils.microseconds_to_seconds(start_timestamp_us))
+    end_s = int(date_time_utils.microseconds_to_seconds(end_timestamp_us))
+    timestamps = numpy.arange(start_s, end_s + 1)
 
-    <span class="n">axes</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;minor&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+    # Setup the plot
+    fig, axes = plt.subplots(nrows=1)
+    axes.set_xlim([timestamps[0], timestamps[-1]])
+    axes.set_ylim([0, len(summarized_data.keys()) + 1])
 
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;RedVox Device Summary&quot;</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Date and Time&quot;</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Device Activity&quot;</span><span class="p">)</span>
+    # Not for each device, let's plot its ranges
+    yticks = []
+    ylabels = []
+    i = 1
+    for redvox_id, summaries in summarized_data.items():
+        for summary in summaries:
+            summary_start_s = int(date_time_utils.microseconds_to_seconds(summary.start_timestamp_us))
+            summary_end_s = int(date_time_utils.microseconds_to_seconds(summary.end_timestamp_us))
+            values = numpy.full(len(timestamps), numpy.nan)
+            values[timestamps.searchsorted(summary_start_s):timestamps.searchsorted(summary_end_s)] = i
+            axes.plot(timestamps, values)
 
-    <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="s2">&quot;UTC </span><span class="si">%s</span><span class="s2"> - </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">(</span><span class="n">start_s</span><span class="p">),</span>
-                                       <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">(</span><span class="n">end_s</span><span class="p">)),</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
+        yticks.append(i)
+        ylabels.append(redvox_id.split(":")[0])
+        i += 1
 
+    xticks = _subsample(timestamps, 6)
+    datetimes = map(datetime.datetime.utcfromtimestamp, xticks)
+    datetimes = map(lambda dt: dt.strftime("%d %H:%M"), datetimes)
+    axes.set_xticks(xticks)
+    axes.set_xticklabels(list(datetimes))
+    axes.set_yticks(yticks)
+    axes.set_yticklabels(ylabels)
+
+    axes.tick_params(axis='both', which='major', labelsize=8)
+    axes.tick_params(axis='both', which='minor', labelsize=7)
+
+    axes.set_title("RedVox Device Summary")
+    axes.set_xlabel("Date and Time")
+    axes.set_ylabel("Device Activity")
+
+    fig.text(.5, .01, "UTC %s - %s" % (datetime.datetime.utcfromtimestamp(start_s),
+                                       datetime.datetime.utcfromtimestamp(end_s)), ha='center')
+    plt.show()
+</code></pre>
   </div>
 
   </header>
@@ -1357,61 +1285,60 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.summarize.plot_summarized_data', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.summarize.plot_summarized_data" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">plot_summarized_data</span><span class="p">(</span><span class="n">summarized_data</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">WrappedRedvoxPacketSummary</span><span class="p">]]):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given summarized data, plot the data to display sensor activity for all passed in summarized data.</span>
-<span class="sd">    :param summarized_data: Data to plot.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">all_summaries</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">summarized_data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+    <pre><code>def plot_summarized_data(summarized_data: typing.Dict[str, typing.List[WrappedRedvoxPacketSummary]]):
+    """
+    Given summarized data, plot the data to display sensor activity for all passed in summarized data.
+    :param summarized_data: Data to plot.
+    """
+    all_summaries = list(itertools.chain(*summarized_data.values()))
 
-    <span class="n">start_timestamp_us</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">(</span>
-        <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">packet_summary</span><span class="p">:</span> <span class="n">packet_summary</span><span class="o">.</span><span class="n">start_timestamp_us</span><span class="p">,</span> <span class="n">all_summaries</span><span class="p">)))</span>
-    <span class="n">end_timestamp_us</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">packet_summary</span><span class="p">:</span> <span class="n">packet_summary</span><span class="o">.</span><span class="n">end_timestamp_us</span><span class="p">,</span> <span class="n">all_summaries</span><span class="p">)))</span>
-    <span class="n">start_s</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">date_time_utils</span><span class="o">.</span><span class="n">microseconds_to_seconds</span><span class="p">(</span><span class="n">start_timestamp_us</span><span class="p">))</span>
-    <span class="n">end_s</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">date_time_utils</span><span class="o">.</span><span class="n">microseconds_to_seconds</span><span class="p">(</span><span class="n">end_timestamp_us</span><span class="p">))</span>
-    <span class="n">timestamps</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start_s</span><span class="p">,</span> <span class="n">end_s</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    start_timestamp_us = numpy.min(
+        list(map(lambda packet_summary: packet_summary.start_timestamp_us, all_summaries)))
+    end_timestamp_us = numpy.max(list(map(lambda packet_summary: packet_summary.end_timestamp_us, all_summaries)))
+    start_s = int(date_time_utils.microseconds_to_seconds(start_timestamp_us))
+    end_s = int(date_time_utils.microseconds_to_seconds(end_timestamp_us))
+    timestamps = numpy.arange(start_s, end_s + 1)
 
-    <span class="c1"># Setup the plot</span>
-    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="n">timestamps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">timestamps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">summarized_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+    # Setup the plot
+    fig, axes = plt.subplots(nrows=1)
+    axes.set_xlim([timestamps[0], timestamps[-1]])
+    axes.set_ylim([0, len(summarized_data.keys()) + 1])
 
-    <span class="c1"># Not for each device, let&#39;s plot its ranges</span>
-    <span class="n">yticks</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">ylabels</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="k">for</span> <span class="n">redvox_id</span><span class="p">,</span> <span class="n">summaries</span> <span class="ow">in</span> <span class="n">summarized_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">summary</span> <span class="ow">in</span> <span class="n">summaries</span><span class="p">:</span>
-            <span class="n">summary_start_s</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">date_time_utils</span><span class="o">.</span><span class="n">microseconds_to_seconds</span><span class="p">(</span><span class="n">summary</span><span class="o">.</span><span class="n">start_timestamp_us</span><span class="p">))</span>
-            <span class="n">summary_end_s</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">date_time_utils</span><span class="o">.</span><span class="n">microseconds_to_seconds</span><span class="p">(</span><span class="n">summary</span><span class="o">.</span><span class="n">end_timestamp_us</span><span class="p">))</span>
-            <span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">timestamps</span><span class="p">),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
-            <span class="n">values</span><span class="p">[</span><span class="n">timestamps</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">summary_start_s</span><span class="p">):</span><span class="n">timestamps</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">summary_end_s</span><span class="p">)]</span> <span class="o">=</span> <span class="n">i</span>
-            <span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">timestamps</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+    # Not for each device, let's plot its ranges
+    yticks = []
+    ylabels = []
+    i = 1
+    for redvox_id, summaries in summarized_data.items():
+        for summary in summaries:
+            summary_start_s = int(date_time_utils.microseconds_to_seconds(summary.start_timestamp_us))
+            summary_end_s = int(date_time_utils.microseconds_to_seconds(summary.end_timestamp_us))
+            values = numpy.full(len(timestamps), numpy.nan)
+            values[timestamps.searchsorted(summary_start_s):timestamps.searchsorted(summary_end_s)] = i
+            axes.plot(timestamps, values)
 
-        <span class="n">yticks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-        <span class="n">ylabels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">redvox_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        yticks.append(i)
+        ylabels.append(redvox_id.split(":")[0])
+        i += 1
 
-    <span class="n">xticks</span> <span class="o">=</span> <span class="n">_subsample</span><span class="p">(</span><span class="n">timestamps</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
-    <span class="n">datetimes</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">,</span> <span class="n">xticks</span><span class="p">)</span>
-    <span class="n">datetimes</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">dt</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> %H:%M&quot;</span><span class="p">),</span> <span class="n">datetimes</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">xticks</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">datetimes</span><span class="p">))</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">yticks</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">ylabels</span><span class="p">)</span>
+    xticks = _subsample(timestamps, 6)
+    datetimes = map(datetime.datetime.utcfromtimestamp, xticks)
+    datetimes = map(lambda dt: dt.strftime("%d %H:%M"), datetimes)
+    axes.set_xticks(xticks)
+    axes.set_xticklabels(list(datetimes))
+    axes.set_yticks(yticks)
+    axes.set_yticklabels(ylabels)
 
-    <span class="n">axes</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;minor&#39;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+    axes.tick_params(axis='both', which='major', labelsize=8)
+    axes.tick_params(axis='both', which='minor', labelsize=7)
 
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;RedVox Device Summary&quot;</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Date and Time&quot;</span><span class="p">)</span>
-    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Device Activity&quot;</span><span class="p">)</span>
+    axes.set_title("RedVox Device Summary")
+    axes.set_xlabel("Date and Time")
+    axes.set_ylabel("Device Activity")
 
-    <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="s2">&quot;UTC </span><span class="si">%s</span><span class="s2"> - </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">(</span><span class="n">start_s</span><span class="p">),</span>
-                                       <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">(</span><span class="n">end_s</span><span class="p">)),</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-
+    fig.text(.5, .01, "UTC %s - %s" % (datetime.datetime.utcfromtimestamp(start_s),
+                                       datetime.datetime.utcfromtimestamp(end_s)), ha='center')
+    plt.show()
+</code></pre>
   </div>
 </div>
 
@@ -1432,19 +1359,18 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.summarize.summarize_data', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.summarize.summarize_data" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">summarize_data</span><span class="p">(</span><span class="n">grouped_redvox_packets</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span>
-        <span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">WrappedRedvoxPacketSummary</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given grouped redvox packets, generate summaries for each device and each packet.</span>
-<span class="sd">    :param grouped_redvox_packets: Grouped packets to generate summary for.</span>
-<span class="sd">    :return: A dictionary which maps redvox ids to summaries of redvox packets for that device.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">summarized</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">id_uuid</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span> <span class="ow">in</span> <span class="n">grouped_redvox_packets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">summarized</span><span class="p">[</span><span class="n">id_uuid</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">WrappedRedvoxPacketSummary</span><span class="p">,</span> <span class="n">wrapped_redvox_packets</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">summarized</span>
-</pre></div>
-
+    <pre><code>def summarize_data(grouped_redvox_packets: typing.Dict[str, typing.List]) -> typing.Dict[
+        str, typing.List[WrappedRedvoxPacketSummary]]:
+    """
+    Given grouped redvox packets, generate summaries for each device and each packet.
+    :param grouped_redvox_packets: Grouped packets to generate summary for.
+    :return: A dictionary which maps redvox ids to summaries of redvox packets for that device.
+    """
+    summarized = {}
+    for id_uuid, wrapped_redvox_packets in grouped_redvox_packets.items():
+        summarized[id_uuid] = list(map(WrappedRedvoxPacketSummary, wrapped_redvox_packets))
+    return summarized
+</code></pre>
   </div>
 </div>
 
@@ -1461,22 +1387,21 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.summarize.SensorSummary', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.summarize.SensorSummary" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">SensorSummary</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This class provides a summary of a sensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <pre><code>class SensorSummary:
+    """
+    This class provides a summary of a sensor.
+    """
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">RedvoxSensor</span><span class="p">]):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">has_sensor</span> <span class="o">=</span> <span class="n">sensor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sensor_name</span> <span class="o">=</span> <span class="n">_sensor_name</span><span class="p">(</span><span class="n">sensor</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span> <span class="o">=</span> <span class="n">_sensor_samples</span><span class="p">(</span><span class="n">sensor</span><span class="p">)</span>
+    def __init__(self, sensor: typing.Optional[types.RedvoxSensor]):
+        self.has_sensor = sensor is not None
+        self.sensor_name = _sensor_name(sensor)
+        self.num_samples = _sensor_samples(sensor)
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_sensor</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;None&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;{SensorSummary: </span><span class="si">%s</span><span class="s2"> with </span><span class="si">%d</span><span class="s2"> samples} &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sensor_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span><span class="p">)</span>
-</pre></div>
-
+    def __str__(self):
+        if not self.has_sensor:
+            return "None"
+        return "{SensorSummary: %s with %d samples} " % (self.sensor_name, self.num_samples)
+</code></pre>
   </div>
 </div>
 
@@ -1501,12 +1426,11 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.summarize.SensorSummary.__init__', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.summarize.SensorSummary.__init__" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensor</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">RedvoxSensor</span><span class="p">]):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">has_sensor</span> <span class="o">=</span> <span class="n">sensor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">sensor_name</span> <span class="o">=</span> <span class="n">_sensor_name</span><span class="p">(</span><span class="n">sensor</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span> <span class="o">=</span> <span class="n">_sensor_samples</span><span class="p">(</span><span class="n">sensor</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def __init__(self, sensor: typing.Optional[types.RedvoxSensor]):
+    self.has_sensor = sensor is not None
+    self.sensor_name = _sensor_name(sensor)
+    self.num_samples = _sensor_samples(sensor)
+</code></pre>
   </div>
 </div>
 
@@ -1554,50 +1478,49 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.summarize.WrappedRedvoxPacketSummary', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.summarize.WrappedRedvoxPacketSummary" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">WrappedRedvoxPacketSummary</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This class provides a summary of a WrappedRedvoxPacket.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <pre><code>class WrappedRedvoxPacketSummary:
+    """
+    This class provides a summary of a WrappedRedvoxPacket.
+    """
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">redvox_packet</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">redvox_id</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">redvox_id</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">uuid</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">uuid</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">redvox_id_uuid</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">redvox_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">start_timestamp_us</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">start_timestamp_us_utc</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">end_timestamp_us</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">end_timestamp_us_utc</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">duration_s</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate_hz</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">microphone_sensor</span><span class="p">()</span><span class="o">.</span><span class="n">sample_rate_hz</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">microphone_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">microphone_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">barometer_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">barometer_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">location_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">location_sensor</span><span class="p">())</span>
-        <span class="c1"># pylint: disable=C0103</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">time_synchronization_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span>
-            <span class="n">redvox_packet</span><span class="o">.</span><span class="n">time_synchronization_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">accelerometer_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">accelerometer_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">magnetometer_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">magnetometer_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gyroscope_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">gyroscope_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">light_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">light_sensor</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">infrared_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">infrared_sensor</span><span class="p">())</span>
+    def __init__(self, redvox_packet):
+        self.redvox_id = redvox_packet.redvox_id()
+        self.uuid = redvox_packet.uuid()
+        self.redvox_id_uuid: str = "%s:%s" % (self.redvox_id, self.uuid)
+        self.start_timestamp_us: int = redvox_packet.start_timestamp_us_utc()
+        self.end_timestamp_us: int = redvox_packet.end_timestamp_us_utc()
+        self.duration_s: float = redvox_packet.duration_s()
+        self.sample_rate_hz = redvox_packet.microphone_sensor().sample_rate_hz()
+        self.microphone_sensor_summary: SensorSummary = SensorSummary(redvox_packet.microphone_sensor())
+        self.barometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.barometer_sensor())
+        self.location_sensor_summary: SensorSummary = SensorSummary(redvox_packet.location_sensor())
+        # pylint: disable=C0103
+        self.time_synchronization_sensor_summary: SensorSummary = SensorSummary(
+            redvox_packet.time_synchronization_sensor())
+        self.accelerometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.accelerometer_sensor())
+        self.magnetometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.magnetometer_sensor())
+        self.gyroscope_sensor_summary: SensorSummary = SensorSummary(redvox_packet.gyroscope_sensor())
+        self.light_sensor_summary: SensorSummary = SensorSummary(redvox_packet.light_sensor())
+        self.infrared_sensor_summary: SensorSummary = SensorSummary(redvox_packet.infrared_sensor())
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;{WrappedRedvoxPacketSummary: </span><span class="si">%s</span><span class="s2"> </span><span class="si">%d</span><span class="s2">-</span><span class="si">%d</span><span class="s2"> [</span><span class="si">%f</span><span class="s2"> sec] </span><span class="si">%f</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">} &quot;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">redvox_id_uuid</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">start_timestamp_us</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">end_timestamp_us</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">duration_s</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate_hz</span><span class="p">,</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">microphone_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">barometer_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">location_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_synchronization_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accelerometer_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">magnetometer_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gyroscope_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">light_sensor_summary</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infrared_sensor_summary</span><span class="p">)</span>
-        <span class="p">)</span>
-</pre></div>
-
+    def __str__(self):
+        return "{WrappedRedvoxPacketSummary: %s %d-%d [%f sec] %f %s %s %s %s %s %s %s %s %s} " % (
+            self.redvox_id_uuid,
+            self.start_timestamp_us,
+            self.end_timestamp_us,
+            self.duration_s,
+            self.sample_rate_hz,
+            str(self.microphone_sensor_summary),
+            str(self.barometer_sensor_summary),
+            str(self.location_sensor_summary),
+            str(self.time_synchronization_sensor_summary),
+            str(self.accelerometer_sensor_summary),
+            str(self.magnetometer_sensor_summary),
+            str(self.gyroscope_sensor_summary),
+            str(self.light_sensor_summary),
+            str(self.infrared_sensor_summary)
+        )
+</code></pre>
   </div>
 </div>
 
@@ -1622,27 +1545,26 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.summarize.WrappedRedvoxPacketSummary.__init__', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.summarize.WrappedRedvoxPacketSummary.__init__" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">redvox_packet</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">redvox_id</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">redvox_id</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">uuid</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">uuid</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">redvox_id_uuid</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">redvox_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uuid</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">start_timestamp_us</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">start_timestamp_us_utc</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">end_timestamp_us</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">end_timestamp_us_utc</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">duration_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">duration_s</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate_hz</span> <span class="o">=</span> <span class="n">redvox_packet</span><span class="o">.</span><span class="n">microphone_sensor</span><span class="p">()</span><span class="o">.</span><span class="n">sample_rate_hz</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">microphone_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">microphone_sensor</span><span class="p">())</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">barometer_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">barometer_sensor</span><span class="p">())</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">location_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">location_sensor</span><span class="p">())</span>
-    <span class="c1"># pylint: disable=C0103</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">time_synchronization_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span>
-        <span class="n">redvox_packet</span><span class="o">.</span><span class="n">time_synchronization_sensor</span><span class="p">())</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">accelerometer_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">accelerometer_sensor</span><span class="p">())</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">magnetometer_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">magnetometer_sensor</span><span class="p">())</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">gyroscope_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">gyroscope_sensor</span><span class="p">())</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">light_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">light_sensor</span><span class="p">())</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">infrared_sensor_summary</span><span class="p">:</span> <span class="n">SensorSummary</span> <span class="o">=</span> <span class="n">SensorSummary</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">infrared_sensor</span><span class="p">())</span>
-</pre></div>
-
+    <pre><code>def __init__(self, redvox_packet):
+    self.redvox_id = redvox_packet.redvox_id()
+    self.uuid = redvox_packet.uuid()
+    self.redvox_id_uuid: str = "%s:%s" % (self.redvox_id, self.uuid)
+    self.start_timestamp_us: int = redvox_packet.start_timestamp_us_utc()
+    self.end_timestamp_us: int = redvox_packet.end_timestamp_us_utc()
+    self.duration_s: float = redvox_packet.duration_s()
+    self.sample_rate_hz = redvox_packet.microphone_sensor().sample_rate_hz()
+    self.microphone_sensor_summary: SensorSummary = SensorSummary(redvox_packet.microphone_sensor())
+    self.barometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.barometer_sensor())
+    self.location_sensor_summary: SensorSummary = SensorSummary(redvox_packet.location_sensor())
+    # pylint: disable=C0103
+    self.time_synchronization_sensor_summary: SensorSummary = SensorSummary(
+        redvox_packet.time_synchronization_sensor())
+    self.accelerometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.accelerometer_sensor())
+    self.magnetometer_sensor_summary: SensorSummary = SensorSummary(redvox_packet.magnetometer_sensor())
+    self.gyroscope_sensor_summary: SensorSummary = SensorSummary(redvox_packet.gyroscope_sensor())
+    self.light_sensor_summary: SensorSummary = SensorSummary(redvox_packet.light_sensor())
+    self.infrared_sensor_summary: SensorSummary = SensorSummary(redvox_packet.infrared_sensor())
+</code></pre>
   </div>
 </div>
 

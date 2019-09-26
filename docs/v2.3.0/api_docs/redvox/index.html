@@ -851,77 +851,6 @@ table {
 
   </style>
 
-  <style type="text/css">
-  .codehilite .hll { background-color: #ffffcc }
-.codehilite  { background: #f8f8f8; }
-.codehilite .c { color: #408080; font-style: italic } /* Comment */
-.codehilite .err { border: 1px solid #FF0000 } /* Error */
-.codehilite .k { color: #008000; font-weight: bold } /* Keyword */
-.codehilite .o { color: #666666 } /* Operator */
-.codehilite .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
-.codehilite .cm { color: #408080; font-style: italic } /* Comment.Multiline */
-.codehilite .cp { color: #BC7A00 } /* Comment.Preproc */
-.codehilite .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
-.codehilite .c1 { color: #408080; font-style: italic } /* Comment.Single */
-.codehilite .cs { color: #408080; font-style: italic } /* Comment.Special */
-.codehilite .gd { color: #A00000 } /* Generic.Deleted */
-.codehilite .ge { font-style: italic } /* Generic.Emph */
-.codehilite .gr { color: #FF0000 } /* Generic.Error */
-.codehilite .gh { color: #000080; font-weight: bold } /* Generic.Heading */
-.codehilite .gi { color: #00A000 } /* Generic.Inserted */
-.codehilite .go { color: #888888 } /* Generic.Output */
-.codehilite .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
-.codehilite .gs { font-weight: bold } /* Generic.Strong */
-.codehilite .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.codehilite .gt { color: #0044DD } /* Generic.Traceback */
-.codehilite .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
-.codehilite .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
-.codehilite .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
-.codehilite .kp { color: #008000 } /* Keyword.Pseudo */
-.codehilite .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
-.codehilite .kt { color: #B00040 } /* Keyword.Type */
-.codehilite .m { color: #666666 } /* Literal.Number */
-.codehilite .s { color: #BA2121 } /* Literal.String */
-.codehilite .na { color: #7D9029 } /* Name.Attribute */
-.codehilite .nb { color: #008000 } /* Name.Builtin */
-.codehilite .nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.codehilite .no { color: #880000 } /* Name.Constant */
-.codehilite .nd { color: #AA22FF } /* Name.Decorator */
-.codehilite .ni { color: #999999; font-weight: bold } /* Name.Entity */
-.codehilite .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
-.codehilite .nf { color: #0000FF } /* Name.Function */
-.codehilite .nl { color: #A0A000 } /* Name.Label */
-.codehilite .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
-.codehilite .nt { color: #008000; font-weight: bold } /* Name.Tag */
-.codehilite .nv { color: #19177C } /* Name.Variable */
-.codehilite .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.codehilite .w { color: #bbbbbb } /* Text.Whitespace */
-.codehilite .mb { color: #666666 } /* Literal.Number.Bin */
-.codehilite .mf { color: #666666 } /* Literal.Number.Float */
-.codehilite .mh { color: #666666 } /* Literal.Number.Hex */
-.codehilite .mi { color: #666666 } /* Literal.Number.Integer */
-.codehilite .mo { color: #666666 } /* Literal.Number.Oct */
-.codehilite .sa { color: #BA2121 } /* Literal.String.Affix */
-.codehilite .sb { color: #BA2121 } /* Literal.String.Backtick */
-.codehilite .sc { color: #BA2121 } /* Literal.String.Char */
-.codehilite .dl { color: #BA2121 } /* Literal.String.Delimiter */
-.codehilite .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
-.codehilite .s2 { color: #BA2121 } /* Literal.String.Double */
-.codehilite .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
-.codehilite .sh { color: #BA2121 } /* Literal.String.Heredoc */
-.codehilite .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
-.codehilite .sx { color: #008000 } /* Literal.String.Other */
-.codehilite .sr { color: #BB6688 } /* Literal.String.Regex */
-.codehilite .s1 { color: #BA2121 } /* Literal.String.Single */
-.codehilite .ss { color: #19177C } /* Literal.String.Symbol */
-.codehilite .bp { color: #008000 } /* Name.Builtin.Pseudo */
-.codehilite .fm { color: #0000FF } /* Name.Function.Magic */
-.codehilite .vc { color: #19177C } /* Name.Variable.Class */
-.codehilite .vg { color: #19177C } /* Name.Variable.Global */
-.codehilite .vi { color: #19177C } /* Name.Variable.Instance */
-.codehilite .vm { color: #19177C } /* Name.Variable.Magic */
-.codehilite .il { color: #666666 } /* Literal.Number.Integer.Long */
-  </style>
 
   <style type="text/css">
   
@@ -1062,6 +991,7 @@ table {
     <li class="set"><h3><a href="#header-submodules">Sub-modules</a></h3>
       <ul>
         <li class="mono"><a href="api900/index.html">redvox.api900</a></li>
+        <li class="mono"><a href="tests/index.html">redvox.tests</a></li>
       </ul>
     </li>
     </ul>
@@ -1080,24 +1010,23 @@ table {
   
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox', this);">Show source &equiv;</a></p>
   <div id="source-redvox" class="source">
-    <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Provides library level metadata and constants.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+    <pre><code>"""
+Provides library level metadata and constants.
+"""
 
-<span class="n">NAME</span> <span class="o">=</span> <span class="s2">&quot;redvox&quot;</span>
-<span class="n">VERSION</span> <span class="o">=</span> <span class="s2">&quot;2.2.0&quot;</span>
-
-
-<span class="k">def</span> <span class="nf">version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Returns the version number of this library.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">VERSION</span>
+NAME = "redvox"
+VERSION = "2.3.0"
 
 
-<span class="k">def</span> <span class="nf">print_version</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Prints the version number of this library&quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">version</span><span class="p">())</span>
-</pre></div>
+def version() -> str:
+    """Returns the version number of this library."""
+    return VERSION
 
+
+def print_version():
+    """Prints the version number of this library"""
+    print(version())
+</code></pre>
   </div>
 
   </header>
@@ -1135,11 +1064,10 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.print_version', this);">Show source &equiv;</a></p>
   <div id="source-redvox.print_version" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">print_version</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Prints the version number of this library&quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">version</span><span class="p">())</span>
-</pre></div>
-
+    <pre><code>def print_version():
+    """Prints the version number of this library"""
+    print(version())
+</code></pre>
   </div>
 </div>
 
@@ -1158,11 +1086,10 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.version', this);">Show source &equiv;</a></p>
   <div id="source-redvox.version" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Returns the version number of this library.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">VERSION</span>
-</pre></div>
-
+    <pre><code>def version() -> str:
+    """Returns the version number of this library."""
+    return VERSION
+</code></pre>
   </div>
 </div>
 
@@ -1173,6 +1100,12 @@ table {
     <h2 class="section-title" id="header-submodules">Sub-modules</h2>
       <div class="item">
       <p class="name"><a href="api900/index.html">redvox.api900</a></p>
+      
+  
+
+      </div>
+      <div class="item">
+      <p class="name"><a href="tests/index.html">redvox.tests</a></p>
       
   
 

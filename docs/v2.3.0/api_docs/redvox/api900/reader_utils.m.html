@@ -851,77 +851,6 @@ table {
 
   </style>
 
-  <style type="text/css">
-  .codehilite .hll { background-color: #ffffcc }
-.codehilite  { background: #f8f8f8; }
-.codehilite .c { color: #408080; font-style: italic } /* Comment */
-.codehilite .err { border: 1px solid #FF0000 } /* Error */
-.codehilite .k { color: #008000; font-weight: bold } /* Keyword */
-.codehilite .o { color: #666666 } /* Operator */
-.codehilite .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
-.codehilite .cm { color: #408080; font-style: italic } /* Comment.Multiline */
-.codehilite .cp { color: #BC7A00 } /* Comment.Preproc */
-.codehilite .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
-.codehilite .c1 { color: #408080; font-style: italic } /* Comment.Single */
-.codehilite .cs { color: #408080; font-style: italic } /* Comment.Special */
-.codehilite .gd { color: #A00000 } /* Generic.Deleted */
-.codehilite .ge { font-style: italic } /* Generic.Emph */
-.codehilite .gr { color: #FF0000 } /* Generic.Error */
-.codehilite .gh { color: #000080; font-weight: bold } /* Generic.Heading */
-.codehilite .gi { color: #00A000 } /* Generic.Inserted */
-.codehilite .go { color: #888888 } /* Generic.Output */
-.codehilite .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
-.codehilite .gs { font-weight: bold } /* Generic.Strong */
-.codehilite .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.codehilite .gt { color: #0044DD } /* Generic.Traceback */
-.codehilite .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
-.codehilite .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
-.codehilite .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
-.codehilite .kp { color: #008000 } /* Keyword.Pseudo */
-.codehilite .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
-.codehilite .kt { color: #B00040 } /* Keyword.Type */
-.codehilite .m { color: #666666 } /* Literal.Number */
-.codehilite .s { color: #BA2121 } /* Literal.String */
-.codehilite .na { color: #7D9029 } /* Name.Attribute */
-.codehilite .nb { color: #008000 } /* Name.Builtin */
-.codehilite .nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.codehilite .no { color: #880000 } /* Name.Constant */
-.codehilite .nd { color: #AA22FF } /* Name.Decorator */
-.codehilite .ni { color: #999999; font-weight: bold } /* Name.Entity */
-.codehilite .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
-.codehilite .nf { color: #0000FF } /* Name.Function */
-.codehilite .nl { color: #A0A000 } /* Name.Label */
-.codehilite .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
-.codehilite .nt { color: #008000; font-weight: bold } /* Name.Tag */
-.codehilite .nv { color: #19177C } /* Name.Variable */
-.codehilite .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.codehilite .w { color: #bbbbbb } /* Text.Whitespace */
-.codehilite .mb { color: #666666 } /* Literal.Number.Bin */
-.codehilite .mf { color: #666666 } /* Literal.Number.Float */
-.codehilite .mh { color: #666666 } /* Literal.Number.Hex */
-.codehilite .mi { color: #666666 } /* Literal.Number.Integer */
-.codehilite .mo { color: #666666 } /* Literal.Number.Oct */
-.codehilite .sa { color: #BA2121 } /* Literal.String.Affix */
-.codehilite .sb { color: #BA2121 } /* Literal.String.Backtick */
-.codehilite .sc { color: #BA2121 } /* Literal.String.Char */
-.codehilite .dl { color: #BA2121 } /* Literal.String.Delimiter */
-.codehilite .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
-.codehilite .s2 { color: #BA2121 } /* Literal.String.Double */
-.codehilite .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
-.codehilite .sh { color: #BA2121 } /* Literal.String.Heredoc */
-.codehilite .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
-.codehilite .sx { color: #008000 } /* Literal.String.Other */
-.codehilite .sr { color: #BB6688 } /* Literal.String.Regex */
-.codehilite .s1 { color: #BA2121 } /* Literal.String.Single */
-.codehilite .ss { color: #19177C } /* Literal.String.Symbol */
-.codehilite .bp { color: #008000 } /* Name.Builtin.Pseudo */
-.codehilite .fm { color: #0000FF } /* Name.Function.Magic */
-.codehilite .vc { color: #19177C } /* Name.Variable.Class */
-.codehilite .vg { color: #19177C } /* Name.Variable.Global */
-.codehilite .vi { color: #19177C } /* Name.Variable.Instance */
-.codehilite .vm { color: #19177C } /* Name.Variable.Magic */
-.codehilite .il { color: #666666 } /* Literal.Number.Integer.Long */
-  </style>
 
   <style type="text/css">
   
@@ -1090,383 +1019,382 @@ users.</p>
   
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils" class="source">
-    <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module provides utility functions that are used by the reader but generally will not be used directly by end</span>
-<span class="sd">users.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
-<span class="kn">import</span> <span class="nn">struct</span>
-<span class="kn">import</span> <span class="nn">typing</span>
-
-<span class="kn">from</span> <span class="nn">google.protobuf</span> <span class="kn">import</span> <span class="n">json_format</span>
-<span class="kn">from</span> <span class="nn">google.protobuf.internal</span> <span class="kn">import</span> <span class="n">containers</span>
-<span class="kn">import</span> <span class="nn">lz4.block</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
-
-
-<span class="kn">import</span> <span class="nn">redvox.api900.exceptions</span> <span class="kn">as</span> <span class="nn">exceptions</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.lib.api900_pb2</span> <span class="kn">as</span> <span class="nn">api900_pb2</span>
-
-
-<span class="k">def</span> <span class="nf">calculate_uncompressed_size</span><span class="p">(</span><span class="n">buf</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a buffer, calculate the original size of the uncompressed packet by looking at the first four bytes.</span>
-<span class="sd">    :param buf: Buffer where first 4 big endian bytes contain the size of the original uncompressed packet.</span>
-<span class="sd">    :return: The total number of bytes in the original uncompressed packet.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;I&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">[:</span><span class="mi">4</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
-
-
-<span class="k">def</span> <span class="nf">uncompressed_size_bytes</span><span class="p">(</span><span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given the size of the original uncompressed file, return the size as an array of 4 bytes.</span>
-<span class="sd">    :param size: The size to convert.</span>
-<span class="sd">    :return: The 4 bytes representing the size.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;I&quot;</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">lz4_decompress</span><span class="p">(</span><span class="n">buf</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Decompresses an API 900 compressed buffer.</span>
-<span class="sd">    :param buf: The buffer to decompress.</span>
-<span class="sd">    :return: The uncompressed buffer.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">uncompressed_size</span> <span class="o">=</span> <span class="n">calculate_uncompressed_size</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">uncompressed_size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;uncompressed size [{}] must be &gt; 0&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">uncompressed_size</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">lz4</span><span class="o">.</span><span class="n">block</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span><span class="n">buf</span><span class="p">[</span><span class="mi">4</span><span class="p">:],</span> <span class="n">uncompressed_size</span><span class="o">=</span><span class="n">calculate_uncompressed_size</span><span class="p">(</span><span class="n">buf</span><span class="p">))</span>
-
-
-<span class="c1"># noinspection PyArgumentList</span>
-<span class="k">def</span> <span class="nf">lz4_compress</span><span class="p">(</span><span class="n">buf</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compresses a buffer using LZ4. The compressed buffer is then prepended with the 4 bytes indicating the original</span>
-<span class="sd">    size of uncompressed buffer.</span>
-<span class="sd">    :param buf: The buffer to compress.</span>
-<span class="sd">    :return: The compressed buffer with 4 bytes prepended indicated the original size of the uncompressed buffer.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">uncompressed_size</span> <span class="o">=</span> <span class="n">uncompressed_size_bytes</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">))</span>
-    <span class="n">compressed</span> <span class="o">=</span> <span class="n">lz4</span><span class="o">.</span><span class="n">block</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">store_size</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">uncompressed_size</span> <span class="o">+</span> <span class="n">compressed</span>
-
-
-<span class="k">def</span> <span class="nf">write_file</span><span class="p">(</span><span class="nb">file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">redvox_packet</span><span class="p">:</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">RedvoxPacket</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Writes a redvox file.  Specify the correct file type in the file string.</span>
-<span class="sd">    :param file: str, File to write</span>
-<span class="sd">    :param redvox_packet: protobuf packet to write</span>
-<span class="sd">    :return: Nothing, compressed file is written to disk</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">buffer</span> <span class="o">=</span> <span class="n">lz4_compress</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">SerializeToString</span><span class="p">())</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_out</span><span class="p">:</span>
-        <span class="n">file_out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">buffer</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="n">redvox_packet</span><span class="p">:</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">RedvoxPacket</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Converts a protobuf encoded API 900 RedVox packet into JSON.</span>
-<span class="sd">    :param redvox_packet: The protobuf encoded packet.</span>
-<span class="sd">    :return: A string containing JSON of this packet.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">json_format</span><span class="o">.</span><span class="n">MessageToJson</span><span class="p">(</span><span class="n">redvox_packet</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">redvox_packet_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">RedvoxPacket</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Converts a JSON packet representing an API 900 packet into a protobuf encoded RedVox API 900 packet.</span>
-<span class="sd">    :param redvox_packet_json: A string containing the json representing the packet.</span>
-<span class="sd">    :return: A Python instance of an encoded API 900 packet.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">json_format</span><span class="o">.</span><span class="n">Parse</span><span class="p">(</span><span class="n">redvox_packet_json</span><span class="p">,</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">RedvoxPacket</span><span class="p">())</span>
-
-
-<span class="k">def</span> <span class="nf">payload_type</span><span class="p">(</span><span class="n">channel</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">EvenlySampledChannel</span><span class="p">,</span>
-                                       <span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a channel, return the internal protobuf string representation of the payload&#39;s data type.</span>
-<span class="sd">    :param channel: The channel to check the data type of.</span>
-<span class="sd">    :return: The internal protobuf string representation of the payload&#39;s data type.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">channel</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;No channel to hold payload&quot;</span>
-
-    <span class="k">return</span> <span class="n">channel</span><span class="o">.</span><span class="n">WhichOneof</span><span class="p">(</span><span class="s2">&quot;payload&quot;</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">extract_payload</span><span class="p">(</span><span class="n">channel</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">EvenlySampledChannel</span><span class="p">,</span>
-                                          <span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given an evenly or unevenly sampled channel, extracts the entire payload.</span>
-
-<span class="sd">    This will return a payload of either ints or floats and is type agnostic when it comes to the underlying</span>
-<span class="sd">    protobuf type.</span>
-<span class="sd">    :param channel: The protobuf channel to extract the payload from.</span>
-<span class="sd">    :return: A numpy array of either floats or ints.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">payload_type_str</span> <span class="o">=</span> <span class="n">payload_type</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;byte_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">byte_payload</span><span class="o">.</span><span class="n">payload</span>
-        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;uint32_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">uint32_payload</span><span class="o">.</span><span class="n">payload</span>
-    <span class="k">elif</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;uint64_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">uint64_payload</span><span class="o">.</span><span class="n">payload</span>
-    <span class="k">elif</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;int32_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">int32_payload</span><span class="o">.</span><span class="n">payload</span>
-    <span class="k">elif</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;int64_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">int64_payload</span><span class="o">.</span><span class="n">payload</span>
-    <span class="k">elif</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;float32_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">float32_payload</span><span class="o">.</span><span class="n">payload</span>
-    <span class="k">elif</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;float64_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">float64_payload</span><span class="o">.</span><span class="n">payload</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
-        <span class="c1"># raise exceptions.ReaderException(&quot;unsupported payload type {}&quot;.format(payload_type_str))</span>
-
-    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">repeated_to_list</span><span class="p">(</span><span class="n">repeated</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">containers</span><span class="o">.</span><span class="n">RepeatedCompositeFieldContainer</span><span class="p">,</span>
-                                            <span class="n">containers</span><span class="o">.</span><span class="n">RepeatedScalarFieldContainer</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Transforms a repeated protobuf field into a list.</span>
-<span class="sd">    :param repeated: The repeated field to transform.</span>
-<span class="sd">    :return: A list of the repeated items.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">repeated</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">repeated</span><span class="p">)]</span>
-
-
-<span class="k">def</span> <span class="nf">repeated_to_array</span><span class="p">(</span><span class="n">repeated</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">containers</span><span class="o">.</span><span class="n">RepeatedCompositeFieldContainer</span><span class="p">,</span>
-                                             <span class="n">containers</span><span class="o">.</span><span class="n">RepeatedScalarFieldContainer</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Transforms a repeated protobuf field into a numpy array.</span>
-<span class="sd">    :param repeated: The repeated field to transform.</span>
-<span class="sd">    :return: A numpy array of the repeated items.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">repeated_to_list</span><span class="p">(</span><span class="n">repeated</span><span class="p">))</span>
-
-
-<span class="k">def</span> <span class="nf">deinterleave_array</span><span class="p">(</span><span class="n">ndarray</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Extracts a single channel type from an interleaved array.</span>
-
-<span class="sd">    An interleaved channel contains multiple channel types in a single payload. This is useful for situations where</span>
-<span class="sd">    a sensor produces several values for a single timestamp. For example, a GPS will produce a LATITUDE, LONGITUDE,</span>
-<span class="sd">    ALTITUDE, and SPEED values with every update. An interleaved channel is an encoding that encodes multiple channel</span>
-<span class="sd">    types into a single payload.</span>
-
-<span class="sd">    Every channel has a field channel_types that list the channel types contained within the payload. For a GPS sensor,</span>
-<span class="sd">    the channel_types array would look like [LATITUDE, LONGITUDE, ALTITUDE, SPEED]. The location of the channel type</span>
-<span class="sd">    in channel_types determines the offset into the payload and the length of channel_types determines the step size.</span>
-<span class="sd">    As such, a GPS channel payload would contain the following values:</span>
-
-<span class="sd">    [LAT0, LNG0, ALT0, SPD0, LAT1, LNG1, ALT1, SPD1, ..., LATn, LNGn, ALTn, SPDn]</span>
-
-<span class="sd">    This function will &quot;deinterleave&quot; the encoding and provide an array of a single channel type.</span>
-
-<span class="sd">    :param ndarray: Interleaved array.</span>
-<span class="sd">    :param offset: Offset into the array.</span>
-<span class="sd">    :param step: The step size.</span>
-<span class="sd">    :return: A numpy array of a single channel type.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="n">offset</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">offset</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;offset {} out of range [{},{})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">)))</span>
-
-    <span class="k">if</span> <span class="n">offset</span> <span class="o">&gt;=</span> <span class="n">step</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;offset {} must be smaller than step {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">step</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">step</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;step {} out of range [{},{})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">)))</span>
-
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">%</span> <span class="n">step</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;step {} is not a multiple of {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">)))</span>
-
-    <span class="c1"># pylint: disable=C1801</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">empty_array</span><span class="p">()</span>
-
-    <span class="k">return</span> <span class="n">ndarray</span><span class="p">[</span><span class="n">offset</span><span class="p">::</span><span class="n">step</span><span class="p">]</span>
-
-
-<span class="k">def</span> <span class="nf">to_array</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Takes either a list or a numpy array and returns a numpy array if the parameter was a list.</span>
-<span class="sd">    :param values: Values to convert into numpy array if values are in a list.</span>
-<span class="sd">    :return: A numpy array of the passed in values.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">values</span>
-
-
-<span class="k">def</span> <span class="nf">interleave_arrays</span><span class="p">(</span><span class="n">arrays</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Interleaves multiple arrays together.</span>
-<span class="sd">    :param arrays: Arrays to interleave.</span>
-<span class="sd">    :return: Interleaved arrays.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;At least 2 arrays are required for interleaving&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">arrays</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;all arrays must be same size&quot;</span><span class="p">)</span>
-
-    <span class="n">total_arrays</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span>
-    <span class="n">total_elements</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">array</span><span class="p">:</span> <span class="n">array</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">arrays</span><span class="p">))</span>
-    <span class="n">interleaved_array</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">total_elements</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_arrays</span><span class="p">):</span>
-        <span class="n">interleaved_array</span><span class="p">[</span><span class="n">i</span><span class="p">::</span><span class="n">total_arrays</span><span class="p">]</span> <span class="o">=</span> <span class="n">arrays</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-
-    <span class="k">return</span> <span class="n">interleaved_array</span>
-
-
-<span class="k">def</span> <span class="nf">implements_diff</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Checks if a value implements the diff method.</span>
-<span class="sd">    :param val: Value to check</span>
-<span class="sd">    :return: True is the value implements diff, False otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">diff_atr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;diff&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">diff_atr</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">True</span>
-
-    <span class="k">return</span> <span class="bp">False</span>
-
-
-<span class="c1"># pylint: disable=R0911</span>
-<span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Determines if the two values are different.</span>
-<span class="sd">    :param val1: The first value to check.</span>
-<span class="sd">    :param val2: The second value to check.</span>
-<span class="sd">    :return: False, None if the values are the same or True, and a string displaying the differences when different.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># pylint: disable=C0123</span>
-    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val1</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">val2</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="s2">&quot;type {} != type {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">val1</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">val2</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">implements_diff</span><span class="p">(</span><span class="n">val1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">implements_diff</span><span class="p">(</span><span class="n">val2</span><span class="p">):</span>
-        <span class="n">diffs</span> <span class="o">=</span> <span class="n">val1</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">val2</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">diffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span>
-
-        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">list</span><span class="p">(</span><span class="n">diffs</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val2</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span>
-
-        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="s2">&quot;{} != {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">val1</span> <span class="o">!=</span> <span class="n">val2</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="s2">&quot;{} != {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span>
-
-
-<span class="k">def</span> <span class="nf">safe_index_of</span><span class="p">(</span><span class="n">lst</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Finds the index of an item in a list and instead of throwing an exception returns -1 when the item DNE.</span>
-<span class="sd">    :param lst: List to search through.</span>
-<span class="sd">    :param val: The value to find the index of.</span>
-<span class="sd">    :return: The index of the first value v found or -1.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">lst</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
-
-
-<span class="k">def</span> <span class="nf">empty_array</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Returns an empty numpy array.</span>
-<span class="sd">    :return: An empty numpy array.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
-
-
-<span class="k">def</span> <span class="nf">empty_evenly_sampled_channel</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">EvenlySampledChannel</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns an empty protobuf EvenlySampledChannel</span>
-<span class="sd">    :return: empty EvenlySampledChannel</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">obj</span> <span class="o">=</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">EvenlySampledChannel</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">obj</span>
-
-
-<span class="k">def</span> <span class="nf">empty_unevenly_sampled_channel</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns an empty protobuf UnevenlySampledChannel</span>
-<span class="sd">    :return: empty UnevenlySampledChannel</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">obj</span> <span class="o">=</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">obj</span>
-
-
-<span class="k">def</span> <span class="nf">channel_type_name_from_enum</span><span class="p">(</span><span class="n">enum_constant</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the name of a channel type given its enumeration constant.</span>
-<span class="sd">    :param enum_constant: The constant to turn into a name.</span>
-<span class="sd">    :return: The name of the channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">ChannelType</span><span class="o">.</span><span class="n">Name</span><span class="p">(</span><span class="n">enum_constant</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a meta-data key, extract the value.</span>
-<span class="sd">    :param metadata: List of metadata to extract value from.</span>
-<span class="sd">    :param k: The meta-data key.</span>
-<span class="sd">    :return: The value corresponding to the key or an empty string.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;metadata list must contain an even number of items&quot;</span><span class="p">)</span>
-
-    <span class="n">idx</span> <span class="o">=</span> <span class="n">safe_index_of</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
-
-    <span class="k">return</span> <span class="n">metadata</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
-
-
-<span class="k">def</span> <span class="nf">get_metadata_as_dict</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Since the metadata is inherently key-value, it may be useful to turn the metadata list into a python dictionary.</span>
-<span class="sd">    :param metadata: The metadata list.</span>
-<span class="sd">    :return: Metadata as a python dictionary.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">metadata</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{}</span>
-
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;metadata list must contain an even number of items&quot;</span><span class="p">)</span>
-
-    <span class="n">metadata_dict</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">metadata_copy</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata_copy</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">metadata_key</span> <span class="o">=</span> <span class="n">metadata_copy</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">metadata_value</span> <span class="o">=</span> <span class="n">metadata_copy</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">metadata_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata_dict</span><span class="p">:</span>
-            <span class="n">metadata_dict</span><span class="p">[</span><span class="n">metadata_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_value</span>
-    <span class="k">return</span> <span class="n">metadata_dict</span>
-
-
-<span class="k">def</span> <span class="nf">metadata_dict_to_list</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Converts a dictionary containing metadata into a list of metadata.</span>
-<span class="sd">    :param metadata_dict: The dictionary of metadata.</span>
-<span class="sd">    :return: A list of metadata.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">metadata_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metadata_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">metadata_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">])</span>
-    <span class="k">return</span> <span class="n">metadata_list</span>
-</pre></div>
-
+    <pre><code>"""
+This module provides utility functions that are used by the reader but generally will not be used directly by end
+users.
+"""
+
+import struct
+import typing
+
+from google.protobuf import json_format
+from google.protobuf.internal import containers
+import lz4.block
+import numpy
+
+
+import redvox.api900.exceptions as exceptions
+import redvox.api900.lib.api900_pb2 as api900_pb2
+
+
+def calculate_uncompressed_size(buf: bytes) -> int:
+    """
+    Given a buffer, calculate the original size of the uncompressed packet by looking at the first four bytes.
+    :param buf: Buffer where first 4 big endian bytes contain the size of the original uncompressed packet.
+    :return: The total number of bytes in the original uncompressed packet.
+    """
+    return struct.unpack(">I", buf[:4])[0]
+
+
+def uncompressed_size_bytes(size: int) -> bytes:
+    """
+    Given the size of the original uncompressed file, return the size as an array of 4 bytes.
+    :param size: The size to convert.
+    :return: The 4 bytes representing the size.
+    """
+    return struct.pack(">I", size)
+
+
+def lz4_decompress(buf: bytes) -> bytes:
+    """
+    Decompresses an API 900 compressed buffer.
+    :param buf: The buffer to decompress.
+    :return: The uncompressed buffer.
+    """
+    uncompressed_size = calculate_uncompressed_size(buf)
+
+    if uncompressed_size <= 0:
+        raise exceptions.ReaderException("uncompressed size [{}] must be > 0".format(uncompressed_size))
+
+    return lz4.block.decompress(buf[4:], uncompressed_size=calculate_uncompressed_size(buf))
+
+
+# noinspection PyArgumentList
+def lz4_compress(buf: bytes) -> bytes:
+    """
+    Compresses a buffer using LZ4. The compressed buffer is then prepended with the 4 bytes indicating the original
+    size of uncompressed buffer.
+    :param buf: The buffer to compress.
+    :return: The compressed buffer with 4 bytes prepended indicated the original size of the uncompressed buffer.
+    """
+    uncompressed_size = uncompressed_size_bytes(len(buf))
+    compressed = lz4.block.compress(buf, store_size=False)
+    return uncompressed_size + compressed
+
+
+def write_file(file: str, redvox_packet: api900_pb2.RedvoxPacket):
+    """
+    Writes a redvox file.  Specify the correct file type in the file string.
+    :param file: str, File to write
+    :param redvox_packet: protobuf packet to write
+    :return: Nothing, compressed file is written to disk
+    """
+    buffer = lz4_compress(redvox_packet.SerializeToString())
+    with open(file, "wb") as file_out:
+        file_out.write(buffer)
+
+
+def to_json(redvox_packet: api900_pb2.RedvoxPacket) -> str:
+    """
+    Converts a protobuf encoded API 900 RedVox packet into JSON.
+    :param redvox_packet: The protobuf encoded packet.
+    :return: A string containing JSON of this packet.
+    """
+    return json_format.MessageToJson(redvox_packet)
+
+
+def from_json(redvox_packet_json: str) -> api900_pb2.RedvoxPacket:
+    """
+    Converts a JSON packet representing an API 900 packet into a protobuf encoded RedVox API 900 packet.
+    :param redvox_packet_json: A string containing the json representing the packet.
+    :return: A Python instance of an encoded API 900 packet.
+    """
+    return json_format.Parse(redvox_packet_json, api900_pb2.RedvoxPacket())
+
+
+def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                       api900_pb2.UnevenlySampledChannel]) -> str:
+    """
+    Given a channel, return the internal protobuf string representation of the payload's data type.
+    :param channel: The channel to check the data type of.
+    :return: The internal protobuf string representation of the payload's data type.
+    """
+    if channel is None:
+        return "No channel to hold payload"
+
+    return channel.WhichOneof("payload")
+
+
+def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                          api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
+    """
+    Given an evenly or unevenly sampled channel, extracts the entire payload.
+
+    This will return a payload of either ints or floats and is type agnostic when it comes to the underlying
+    protobuf type.
+    :param channel: The protobuf channel to extract the payload from.
+    :return: A numpy array of either floats or ints.
+    """
+    payload_type_str = payload_type(channel)
+
+    if payload_type_str == "byte_payload":
+        payload = channel.byte_payload.payload
+        return numpy.frombuffer(payload, numpy.uint8)
+    elif payload_type_str == "uint32_payload":
+        payload = channel.uint32_payload.payload
+    elif payload_type_str == "uint64_payload":
+        payload = channel.uint64_payload.payload
+    elif payload_type_str == "int32_payload":
+        payload = channel.int32_payload.payload
+    elif payload_type_str == "int64_payload":
+        payload = channel.int64_payload.payload
+    elif payload_type_str == "float32_payload":
+        payload = channel.float32_payload.payload
+    elif payload_type_str == "float64_payload":
+        payload = channel.float64_payload.payload
+    else:
+        return numpy.array([])
+        # raise exceptions.ReaderException("unsupported payload type {}".format(payload_type_str))
+
+    return numpy.array(payload)
+
+
+def repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
+                                            containers.RepeatedScalarFieldContainer]) -> typing.List:
+    """
+    Transforms a repeated protobuf field into a list.
+    :param repeated: The repeated field to transform.
+    :return: A list of the repeated items.
+    """
+    return repeated[0:len(repeated)]
+
+
+def repeated_to_array(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
+                                             containers.RepeatedScalarFieldContainer]) -> numpy.ndarray:
+    """
+    Transforms a repeated protobuf field into a numpy array.
+    :param repeated: The repeated field to transform.
+    :return: A numpy array of the repeated items.
+    """
+    return numpy.array(repeated_to_list(repeated))
+
+
+def deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.ndarray:
+    """
+    Extracts a single channel type from an interleaved array.
+
+    An interleaved channel contains multiple channel types in a single payload. This is useful for situations where
+    a sensor produces several values for a single timestamp. For example, a GPS will produce a LATITUDE, LONGITUDE,
+    ALTITUDE, and SPEED values with every update. An interleaved channel is an encoding that encodes multiple channel
+    types into a single payload.
+
+    Every channel has a field channel_types that list the channel types contained within the payload. For a GPS sensor,
+    the channel_types array would look like [LATITUDE, LONGITUDE, ALTITUDE, SPEED]. The location of the channel type
+    in channel_types determines the offset into the payload and the length of channel_types determines the step size.
+    As such, a GPS channel payload would contain the following values:
+
+    [LAT0, LNG0, ALT0, SPD0, LAT1, LNG1, ALT1, SPD1, ..., LATn, LNGn, ALTn, SPDn]
+
+    This function will "deinterleave" the encoding and provide an array of a single channel type.
+
+    :param ndarray: Interleaved array.
+    :param offset: Offset into the array.
+    :param step: The step size.
+    :return: A numpy array of a single channel type.
+    """
+
+    if offset < 0 or offset >= len(ndarray):
+        raise exceptions.ReaderException("offset {} out of range [{},{})".format(offset, 0, len(ndarray)))
+
+    if offset >= step:
+        raise exceptions.ReaderException("offset {} must be smaller than step {}".format(offset, step))
+
+    if step <= 0 or step > len(ndarray):
+        raise exceptions.ReaderException("step {} out of range [{},{})".format(step, 0, len(ndarray)))
+
+    if len(ndarray) % step != 0:
+        raise exceptions.ReaderException("step {} is not a multiple of {}".format(step, len(ndarray)))
+
+    # pylint: disable=C1801
+    if len(ndarray) == 0:
+        return empty_array()
+
+    return ndarray[offset::step]
+
+
+def to_array(values: typing.Union[typing.List, numpy.ndarray]) -> numpy.ndarray:
+    """
+    Takes either a list or a numpy array and returns a numpy array if the parameter was a list.
+    :param values: Values to convert into numpy array if values are in a list.
+    :return: A numpy array of the passed in values.
+    """
+    if isinstance(values, typing.List):
+        return numpy.array(values)
+    return values
+
+
+def interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
+    """
+    Interleaves multiple arrays together.
+    :param arrays: Arrays to interleave.
+    :return: Interleaved arrays.
+    """
+    if len(arrays) < 2:
+        raise exceptions.ReaderException("At least 2 arrays are required for interleaving")
+
+    if len(set(map(len, arrays))) > 1:
+        raise exceptions.ReaderException("all arrays must be same size")
+
+    total_arrays = len(arrays)
+    total_elements = sum(map(lambda array: array.size, arrays))
+    interleaved_array = numpy.empty((total_elements,), dtype=arrays[0].dtype)
+    for i in range(total_arrays):
+        interleaved_array[i::total_arrays] = arrays[i]
+
+    return interleaved_array
+
+
+def implements_diff(val) -> bool:
+    """
+    Checks if a value implements the diff method.
+    :param val: Value to check
+    :return: True is the value implements diff, False otherwise.
+    """
+    diff_atr = getattr(val, "diff", None)
+    if callable(diff_atr):
+        return True
+
+    return False
+
+
+# pylint: disable=R0911
+def diff(val1, val2) -> typing.Tuple[bool, typing.Optional[str]]:
+    """
+    Determines if the two values are different.
+    :param val1: The first value to check.
+    :param val2: The second value to check.
+    :return: False, None if the values are the same or True, and a string displaying the differences when different.
+    """
+    # pylint: disable=C0123
+    if type(val1) != type(val2):
+        return True, "type {} != type {}".format(type(val1), type(val2))
+
+    if implements_diff(val1) and implements_diff(val2):
+        diffs = val1.diff(val2)
+        if len(diffs) == 0:
+            return False, None
+
+        return True, "%s" % list(diffs)
+
+    if isinstance(val1, numpy.ndarray) and isinstance(val2, numpy.ndarray):
+        if numpy.array_equal(val1, val2):
+            return False, None
+
+        return True, "{} != {}".format(val1, val2)
+
+    if val1 != val2:
+        return True, "{} != {}".format(val1, val2)
+
+    return False, None
+
+
+def safe_index_of(lst: typing.List, val: typing.Any) -> int:
+    """
+    Finds the index of an item in a list and instead of throwing an exception returns -1 when the item DNE.
+    :param lst: List to search through.
+    :param val: The value to find the index of.
+    :return: The index of the first value v found or -1.
+    """
+    try:
+        return lst.index(val)
+    except ValueError:
+        return -1
+
+
+def empty_array() -> numpy.ndarray:
+    """Returns an empty numpy array.
+    :return: An empty numpy array.
+    """
+    return numpy.array([])
+
+
+def empty_evenly_sampled_channel() -> api900_pb2.EvenlySampledChannel:
+    """
+    Returns an empty protobuf EvenlySampledChannel
+    :return: empty EvenlySampledChannel
+    """
+    obj = api900_pb2.EvenlySampledChannel()
+    return obj
+
+
+def empty_unevenly_sampled_channel() -> api900_pb2.UnevenlySampledChannel:
+    """
+    Returns an empty protobuf UnevenlySampledChannel
+    :return: empty UnevenlySampledChannel
+    """
+    obj = api900_pb2.UnevenlySampledChannel()
+    return obj
+
+
+def channel_type_name_from_enum(enum_constant: int) -> str:
+    """
+    Returns the name of a channel type given its enumeration constant.
+    :param enum_constant: The constant to turn into a name.
+    :return: The name of the channel.
+    """
+    return api900_pb2.ChannelType.Name(enum_constant)
+
+
+def get_metadata(metadata: typing.List[str], k: str) -> str:
+    """
+    Given a meta-data key, extract the value.
+    :param metadata: List of metadata to extract value from.
+    :param k: The meta-data key.
+    :return: The value corresponding to the key or an empty string.
+    """
+    if len(metadata) % 2 != 0:
+        raise exceptions.ReaderException("metadata list must contain an even number of items")
+
+    idx = safe_index_of(metadata, k)
+    if idx < 0:
+        return ""
+
+    return metadata[idx + 1]
+
+
+def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
+    """
+    Since the metadata is inherently key-value, it may be useful to turn the metadata list into a python dictionary.
+    :param metadata: The metadata list.
+    :return: Metadata as a python dictionary.
+    """
+    if not metadata:
+        return {}
+
+    if len(metadata) % 2 != 0:
+        raise exceptions.ReaderException("metadata list must contain an even number of items")
+
+    metadata_dict = {}
+    metadata_copy = metadata.copy()
+    while len(metadata_copy) >= 2:
+        metadata_key = metadata_copy.pop(0)
+        metadata_value = metadata_copy.pop(0)
+        if metadata_key not in metadata_dict:
+            metadata_dict[metadata_key] = metadata_value
+    return metadata_dict
+
+
+def metadata_dict_to_list(metadata_dict: typing.Dict[str, str]) -> typing.List[str]:
+    """
+    Converts a dictionary containing metadata into a list of metadata.
+    :param metadata_dict: The dictionary of metadata.
+    :return: A list of metadata.
+    """
+    metadata_list = []
+    for key, value in metadata_dict.items():
+        metadata_list.extend([key, value])
+    return metadata_list
+</code></pre>
   </div>
 
   </header>
@@ -1489,15 +1417,14 @@ users.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.calculate_uncompressed_size', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.calculate_uncompressed_size" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">calculate_uncompressed_size</span><span class="p">(</span><span class="n">buf</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a buffer, calculate the original size of the uncompressed packet by looking at the first four bytes.</span>
-<span class="sd">    :param buf: Buffer where first 4 big endian bytes contain the size of the original uncompressed packet.</span>
-<span class="sd">    :return: The total number of bytes in the original uncompressed packet.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&quot;&gt;I&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">[:</span><span class="mi">4</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-
+    <pre><code>def calculate_uncompressed_size(buf: bytes) -> int:
+    """
+    Given a buffer, calculate the original size of the uncompressed packet by looking at the first four bytes.
+    :param buf: Buffer where first 4 big endian bytes contain the size of the original uncompressed packet.
+    :return: The total number of bytes in the original uncompressed packet.
+    """
+    return struct.unpack(">I", buf[:4])[0]
+</code></pre>
   </div>
 </div>
 
@@ -1518,15 +1445,14 @@ users.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.channel_type_name_from_enum', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.channel_type_name_from_enum" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">channel_type_name_from_enum</span><span class="p">(</span><span class="n">enum_constant</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the name of a channel type given its enumeration constant.</span>
-<span class="sd">    :param enum_constant: The constant to turn into a name.</span>
-<span class="sd">    :return: The name of the channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">ChannelType</span><span class="o">.</span><span class="n">Name</span><span class="p">(</span><span class="n">enum_constant</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def channel_type_name_from_enum(enum_constant: int) -> str:
+    """
+    Returns the name of a channel type given its enumeration constant.
+    :param enum_constant: The constant to turn into a name.
+    :return: The name of the channel.
+    """
+    return api900_pb2.ChannelType.Name(enum_constant)
+</code></pre>
   </div>
 </div>
 
@@ -1559,49 +1485,48 @@ As such, a GPS channel payload would contain the following values:</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.deinterleave_array', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.deinterleave_array" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">deinterleave_array</span><span class="p">(</span><span class="n">ndarray</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Extracts a single channel type from an interleaved array.</span>
+    <pre><code>def deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.ndarray:
+    """
+    Extracts a single channel type from an interleaved array.
 
-<span class="sd">    An interleaved channel contains multiple channel types in a single payload. This is useful for situations where</span>
-<span class="sd">    a sensor produces several values for a single timestamp. For example, a GPS will produce a LATITUDE, LONGITUDE,</span>
-<span class="sd">    ALTITUDE, and SPEED values with every update. An interleaved channel is an encoding that encodes multiple channel</span>
-<span class="sd">    types into a single payload.</span>
+    An interleaved channel contains multiple channel types in a single payload. This is useful for situations where
+    a sensor produces several values for a single timestamp. For example, a GPS will produce a LATITUDE, LONGITUDE,
+    ALTITUDE, and SPEED values with every update. An interleaved channel is an encoding that encodes multiple channel
+    types into a single payload.
 
-<span class="sd">    Every channel has a field channel_types that list the channel types contained within the payload. For a GPS sensor,</span>
-<span class="sd">    the channel_types array would look like [LATITUDE, LONGITUDE, ALTITUDE, SPEED]. The location of the channel type</span>
-<span class="sd">    in channel_types determines the offset into the payload and the length of channel_types determines the step size.</span>
-<span class="sd">    As such, a GPS channel payload would contain the following values:</span>
+    Every channel has a field channel_types that list the channel types contained within the payload. For a GPS sensor,
+    the channel_types array would look like [LATITUDE, LONGITUDE, ALTITUDE, SPEED]. The location of the channel type
+    in channel_types determines the offset into the payload and the length of channel_types determines the step size.
+    As such, a GPS channel payload would contain the following values:
 
-<span class="sd">    [LAT0, LNG0, ALT0, SPD0, LAT1, LNG1, ALT1, SPD1, ..., LATn, LNGn, ALTn, SPDn]</span>
+    [LAT0, LNG0, ALT0, SPD0, LAT1, LNG1, ALT1, SPD1, ..., LATn, LNGn, ALTn, SPDn]
 
-<span class="sd">    This function will &quot;deinterleave&quot; the encoding and provide an array of a single channel type.</span>
+    This function will "deinterleave" the encoding and provide an array of a single channel type.
 
-<span class="sd">    :param ndarray: Interleaved array.</span>
-<span class="sd">    :param offset: Offset into the array.</span>
-<span class="sd">    :param step: The step size.</span>
-<span class="sd">    :return: A numpy array of a single channel type.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    :param ndarray: Interleaved array.
+    :param offset: Offset into the array.
+    :param step: The step size.
+    :return: A numpy array of a single channel type.
+    """
 
-    <span class="k">if</span> <span class="n">offset</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">offset</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;offset {} out of range [{},{})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">)))</span>
+    if offset < 0 or offset >= len(ndarray):
+        raise exceptions.ReaderException("offset {} out of range [{},{})".format(offset, 0, len(ndarray)))
 
-    <span class="k">if</span> <span class="n">offset</span> <span class="o">&gt;=</span> <span class="n">step</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;offset {} must be smaller than step {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">step</span><span class="p">))</span>
+    if offset >= step:
+        raise exceptions.ReaderException("offset {} must be smaller than step {}".format(offset, step))
 
-    <span class="k">if</span> <span class="n">step</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;step {} out of range [{},{})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">)))</span>
+    if step <= 0 or step > len(ndarray):
+        raise exceptions.ReaderException("step {} out of range [{},{})".format(step, 0, len(ndarray)))
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">%</span> <span class="n">step</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;step {} is not a multiple of {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">)))</span>
+    if len(ndarray) % step != 0:
+        raise exceptions.ReaderException("step {} is not a multiple of {}".format(step, len(ndarray)))
 
-    <span class="c1"># pylint: disable=C1801</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">empty_array</span><span class="p">()</span>
+    # pylint: disable=C1801
+    if len(ndarray) == 0:
+        return empty_array()
 
-    <span class="k">return</span> <span class="n">ndarray</span><span class="p">[</span><span class="n">offset</span><span class="p">::</span><span class="n">step</span><span class="p">]</span>
-</pre></div>
-
+    return ndarray[offset::step]
+</code></pre>
   </div>
 </div>
 
@@ -1623,36 +1548,35 @@ As such, a GPS channel payload would contain the following values:</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.diff', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.diff" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Determines if the two values are different.</span>
-<span class="sd">    :param val1: The first value to check.</span>
-<span class="sd">    :param val2: The second value to check.</span>
-<span class="sd">    :return: False, None if the values are the same or True, and a string displaying the differences when different.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># pylint: disable=C0123</span>
-    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val1</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">val2</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="s2">&quot;type {} != type {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">val1</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">val2</span><span class="p">))</span>
+    <pre><code>def diff(val1, val2) -> typing.Tuple[bool, typing.Optional[str]]:
+    """
+    Determines if the two values are different.
+    :param val1: The first value to check.
+    :param val2: The second value to check.
+    :return: False, None if the values are the same or True, and a string displaying the differences when different.
+    """
+    # pylint: disable=C0123
+    if type(val1) != type(val2):
+        return True, "type {} != type {}".format(type(val1), type(val2))
 
-    <span class="k">if</span> <span class="n">implements_diff</span><span class="p">(</span><span class="n">val1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">implements_diff</span><span class="p">(</span><span class="n">val2</span><span class="p">):</span>
-        <span class="n">diffs</span> <span class="o">=</span> <span class="n">val1</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">val2</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">diffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span>
+    if implements_diff(val1) and implements_diff(val2):
+        diffs = val1.diff(val2)
+        if len(diffs) == 0:
+            return False, None
 
-        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">list</span><span class="p">(</span><span class="n">diffs</span><span class="p">)</span>
+        return True, "%s" % list(diffs)
 
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val2</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span>
+    if isinstance(val1, numpy.ndarray) and isinstance(val2, numpy.ndarray):
+        if numpy.array_equal(val1, val2):
+            return False, None
 
-        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="s2">&quot;{} != {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">)</span>
+        return True, "{} != {}".format(val1, val2)
 
-    <span class="k">if</span> <span class="n">val1</span> <span class="o">!=</span> <span class="n">val2</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="s2">&quot;{} != {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val1</span><span class="p">,</span> <span class="n">val2</span><span class="p">)</span>
+    if val1 != val2:
+        return True, "{} != {}".format(val1, val2)
 
-    <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span>
-</pre></div>
-
+    return False, None
+</code></pre>
   </div>
 </div>
 
@@ -1672,13 +1596,12 @@ As such, a GPS channel payload would contain the following values:</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.empty_array', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.empty_array" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">empty_array</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Returns an empty numpy array.</span>
-<span class="sd">    :return: An empty numpy array.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
-</pre></div>
-
+    <pre><code>def empty_array() -> numpy.ndarray:
+    """Returns an empty numpy array.
+    :return: An empty numpy array.
+    """
+    return numpy.array([])
+</code></pre>
   </div>
 </div>
 
@@ -1698,15 +1621,14 @@ As such, a GPS channel payload would contain the following values:</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.empty_evenly_sampled_channel', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.empty_evenly_sampled_channel" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">empty_evenly_sampled_channel</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">EvenlySampledChannel</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns an empty protobuf EvenlySampledChannel</span>
-<span class="sd">    :return: empty EvenlySampledChannel</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">obj</span> <span class="o">=</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">EvenlySampledChannel</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">obj</span>
-</pre></div>
-
+    <pre><code>def empty_evenly_sampled_channel() -> api900_pb2.EvenlySampledChannel:
+    """
+    Returns an empty protobuf EvenlySampledChannel
+    :return: empty EvenlySampledChannel
+    """
+    obj = api900_pb2.EvenlySampledChannel()
+    return obj
+</code></pre>
   </div>
 </div>
 
@@ -1726,15 +1648,14 @@ As such, a GPS channel payload would contain the following values:</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.empty_unevenly_sampled_channel', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.empty_unevenly_sampled_channel" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">empty_unevenly_sampled_channel</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns an empty protobuf UnevenlySampledChannel</span>
-<span class="sd">    :return: empty UnevenlySampledChannel</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">obj</span> <span class="o">=</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">obj</span>
-</pre></div>
-
+    <pre><code>def empty_unevenly_sampled_channel() -> api900_pb2.UnevenlySampledChannel:
+    """
+    Returns an empty protobuf UnevenlySampledChannel
+    :return: empty UnevenlySampledChannel
+    """
+    obj = api900_pb2.UnevenlySampledChannel()
+    return obj
+</code></pre>
   </div>
 </div>
 
@@ -1757,40 +1678,39 @@ protobuf type.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.extract_payload', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.extract_payload" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">extract_payload</span><span class="p">(</span><span class="n">channel</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">EvenlySampledChannel</span><span class="p">,</span>
-                                          <span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given an evenly or unevenly sampled channel, extracts the entire payload.</span>
+    <pre><code>def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                          api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
+    """
+    Given an evenly or unevenly sampled channel, extracts the entire payload.
 
-<span class="sd">    This will return a payload of either ints or floats and is type agnostic when it comes to the underlying</span>
-<span class="sd">    protobuf type.</span>
-<span class="sd">    :param channel: The protobuf channel to extract the payload from.</span>
-<span class="sd">    :return: A numpy array of either floats or ints.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">payload_type_str</span> <span class="o">=</span> <span class="n">payload_type</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+    This will return a payload of either ints or floats and is type agnostic when it comes to the underlying
+    protobuf type.
+    :param channel: The protobuf channel to extract the payload from.
+    :return: A numpy array of either floats or ints.
+    """
+    payload_type_str = payload_type(channel)
 
-    <span class="k">if</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;byte_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">byte_payload</span><span class="o">.</span><span class="n">payload</span>
-        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;uint32_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">uint32_payload</span><span class="o">.</span><span class="n">payload</span>
-    <span class="k">elif</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;uint64_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">uint64_payload</span><span class="o">.</span><span class="n">payload</span>
-    <span class="k">elif</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;int32_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">int32_payload</span><span class="o">.</span><span class="n">payload</span>
-    <span class="k">elif</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;int64_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">int64_payload</span><span class="o">.</span><span class="n">payload</span>
-    <span class="k">elif</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;float32_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">float32_payload</span><span class="o">.</span><span class="n">payload</span>
-    <span class="k">elif</span> <span class="n">payload_type_str</span> <span class="o">==</span> <span class="s2">&quot;float64_payload&quot;</span><span class="p">:</span>
-        <span class="n">payload</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">float64_payload</span><span class="o">.</span><span class="n">payload</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
-        <span class="c1"># raise exceptions.ReaderException(&quot;unsupported payload type {}&quot;.format(payload_type_str))</span>
+    if payload_type_str == "byte_payload":
+        payload = channel.byte_payload.payload
+        return numpy.frombuffer(payload, numpy.uint8)
+    elif payload_type_str == "uint32_payload":
+        payload = channel.uint32_payload.payload
+    elif payload_type_str == "uint64_payload":
+        payload = channel.uint64_payload.payload
+    elif payload_type_str == "int32_payload":
+        payload = channel.int32_payload.payload
+    elif payload_type_str == "int64_payload":
+        payload = channel.int64_payload.payload
+    elif payload_type_str == "float32_payload":
+        payload = channel.float32_payload.payload
+    elif payload_type_str == "float64_payload":
+        payload = channel.float64_payload.payload
+    else:
+        return numpy.array([])
+        # raise exceptions.ReaderException("unsupported payload type {}".format(payload_type_str))
 
-    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-</pre></div>
-
+    return numpy.array(payload)
+</code></pre>
   </div>
 </div>
 
@@ -1811,15 +1731,14 @@ protobuf type.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.from_json', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.from_json" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">from_json</span><span class="p">(</span><span class="n">redvox_packet_json</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">RedvoxPacket</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Converts a JSON packet representing an API 900 packet into a protobuf encoded RedVox API 900 packet.</span>
-<span class="sd">    :param redvox_packet_json: A string containing the json representing the packet.</span>
-<span class="sd">    :return: A Python instance of an encoded API 900 packet.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">json_format</span><span class="o">.</span><span class="n">Parse</span><span class="p">(</span><span class="n">redvox_packet_json</span><span class="p">,</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">RedvoxPacket</span><span class="p">())</span>
-</pre></div>
-
+    <pre><code>def from_json(redvox_packet_json: str) -> api900_pb2.RedvoxPacket:
+    """
+    Converts a JSON packet representing an API 900 packet into a protobuf encoded RedVox API 900 packet.
+    :param redvox_packet_json: A string containing the json representing the packet.
+    :return: A Python instance of an encoded API 900 packet.
+    """
+    return json_format.Parse(redvox_packet_json, api900_pb2.RedvoxPacket())
+</code></pre>
   </div>
 </div>
 
@@ -1841,23 +1760,22 @@ protobuf type.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.get_metadata', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.get_metadata" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a meta-data key, extract the value.</span>
-<span class="sd">    :param metadata: List of metadata to extract value from.</span>
-<span class="sd">    :param k: The meta-data key.</span>
-<span class="sd">    :return: The value corresponding to the key or an empty string.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;metadata list must contain an even number of items&quot;</span><span class="p">)</span>
+    <pre><code>def get_metadata(metadata: typing.List[str], k: str) -> str:
+    """
+    Given a meta-data key, extract the value.
+    :param metadata: List of metadata to extract value from.
+    :param k: The meta-data key.
+    :return: The value corresponding to the key or an empty string.
+    """
+    if len(metadata) % 2 != 0:
+        raise exceptions.ReaderException("metadata list must contain an even number of items")
 
-    <span class="n">idx</span> <span class="o">=</span> <span class="n">safe_index_of</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+    idx = safe_index_of(metadata, k)
+    if idx < 0:
+        return ""
 
-    <span class="k">return</span> <span class="n">metadata</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
-</pre></div>
-
+    return metadata[idx + 1]
+</code></pre>
   </div>
 </div>
 
@@ -1878,28 +1796,27 @@ protobuf type.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.get_metadata_as_dict', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.get_metadata_as_dict" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_metadata_as_dict</span><span class="p">(</span><span class="n">metadata</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Since the metadata is inherently key-value, it may be useful to turn the metadata list into a python dictionary.</span>
-<span class="sd">    :param metadata: The metadata list.</span>
-<span class="sd">    :return: Metadata as a python dictionary.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">metadata</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{}</span>
+    <pre><code>def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
+    """
+    Since the metadata is inherently key-value, it may be useful to turn the metadata list into a python dictionary.
+    :param metadata: The metadata list.
+    :return: Metadata as a python dictionary.
+    """
+    if not metadata:
+        return {}
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;metadata list must contain an even number of items&quot;</span><span class="p">)</span>
+    if len(metadata) % 2 != 0:
+        raise exceptions.ReaderException("metadata list must contain an even number of items")
 
-    <span class="n">metadata_dict</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">metadata_copy</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata_copy</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">metadata_key</span> <span class="o">=</span> <span class="n">metadata_copy</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">metadata_value</span> <span class="o">=</span> <span class="n">metadata_copy</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">metadata_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata_dict</span><span class="p">:</span>
-            <span class="n">metadata_dict</span><span class="p">[</span><span class="n">metadata_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_value</span>
-    <span class="k">return</span> <span class="n">metadata_dict</span>
-</pre></div>
-
+    metadata_dict = {}
+    metadata_copy = metadata.copy()
+    while len(metadata_copy) >= 2:
+        metadata_key = metadata_copy.pop(0)
+        metadata_value = metadata_copy.pop(0)
+        if metadata_key not in metadata_dict:
+            metadata_dict[metadata_key] = metadata_value
+    return metadata_dict
+</code></pre>
   </div>
 </div>
 
@@ -1920,19 +1837,18 @@ protobuf type.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.implements_diff', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.implements_diff" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">implements_diff</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Checks if a value implements the diff method.</span>
-<span class="sd">    :param val: Value to check</span>
-<span class="sd">    :return: True is the value implements diff, False otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">diff_atr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="s2">&quot;diff&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">diff_atr</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">True</span>
+    <pre><code>def implements_diff(val) -> bool:
+    """
+    Checks if a value implements the diff method.
+    :param val: Value to check
+    :return: True is the value implements diff, False otherwise.
+    """
+    diff_atr = getattr(val, "diff", None)
+    if callable(diff_atr):
+        return True
 
-    <span class="k">return</span> <span class="bp">False</span>
-</pre></div>
-
+    return False
+</code></pre>
   </div>
 </div>
 
@@ -1953,27 +1869,26 @@ protobuf type.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.interleave_arrays', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.interleave_arrays" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">interleave_arrays</span><span class="p">(</span><span class="n">arrays</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Interleaves multiple arrays together.</span>
-<span class="sd">    :param arrays: Arrays to interleave.</span>
-<span class="sd">    :return: Interleaved arrays.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;At least 2 arrays are required for interleaving&quot;</span><span class="p">)</span>
+    <pre><code>def interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
+    """
+    Interleaves multiple arrays together.
+    :param arrays: Arrays to interleave.
+    :return: Interleaved arrays.
+    """
+    if len(arrays) < 2:
+        raise exceptions.ReaderException("At least 2 arrays are required for interleaving")
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">arrays</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;all arrays must be same size&quot;</span><span class="p">)</span>
+    if len(set(map(len, arrays))) > 1:
+        raise exceptions.ReaderException("all arrays must be same size")
 
-    <span class="n">total_arrays</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span>
-    <span class="n">total_elements</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">array</span><span class="p">:</span> <span class="n">array</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">arrays</span><span class="p">))</span>
-    <span class="n">interleaved_array</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">total_elements</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_arrays</span><span class="p">):</span>
-        <span class="n">interleaved_array</span><span class="p">[</span><span class="n">i</span><span class="p">::</span><span class="n">total_arrays</span><span class="p">]</span> <span class="o">=</span> <span class="n">arrays</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    total_arrays = len(arrays)
+    total_elements = sum(map(lambda array: array.size, arrays))
+    interleaved_array = numpy.empty((total_elements,), dtype=arrays[0].dtype)
+    for i in range(total_arrays):
+        interleaved_array[i::total_arrays] = arrays[i]
 
-    <span class="k">return</span> <span class="n">interleaved_array</span>
-</pre></div>
-
+    return interleaved_array
+</code></pre>
   </div>
 </div>
 
@@ -1995,18 +1910,17 @@ size of uncompressed buffer.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.lz4_compress', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.lz4_compress" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">lz4_compress</span><span class="p">(</span><span class="n">buf</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compresses a buffer using LZ4. The compressed buffer is then prepended with the 4 bytes indicating the original</span>
-<span class="sd">    size of uncompressed buffer.</span>
-<span class="sd">    :param buf: The buffer to compress.</span>
-<span class="sd">    :return: The compressed buffer with 4 bytes prepended indicated the original size of the uncompressed buffer.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">uncompressed_size</span> <span class="o">=</span> <span class="n">uncompressed_size_bytes</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">))</span>
-    <span class="n">compressed</span> <span class="o">=</span> <span class="n">lz4</span><span class="o">.</span><span class="n">block</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">store_size</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">uncompressed_size</span> <span class="o">+</span> <span class="n">compressed</span>
-</pre></div>
-
+    <pre><code>def lz4_compress(buf: bytes) -> bytes:
+    """
+    Compresses a buffer using LZ4. The compressed buffer is then prepended with the 4 bytes indicating the original
+    size of uncompressed buffer.
+    :param buf: The buffer to compress.
+    :return: The compressed buffer with 4 bytes prepended indicated the original size of the uncompressed buffer.
+    """
+    uncompressed_size = uncompressed_size_bytes(len(buf))
+    compressed = lz4.block.compress(buf, store_size=False)
+    return uncompressed_size + compressed
+</code></pre>
   </div>
 </div>
 
@@ -2027,20 +1941,19 @@ size of uncompressed buffer.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.lz4_decompress', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.lz4_decompress" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">lz4_decompress</span><span class="p">(</span><span class="n">buf</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Decompresses an API 900 compressed buffer.</span>
-<span class="sd">    :param buf: The buffer to decompress.</span>
-<span class="sd">    :return: The uncompressed buffer.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">uncompressed_size</span> <span class="o">=</span> <span class="n">calculate_uncompressed_size</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+    <pre><code>def lz4_decompress(buf: bytes) -> bytes:
+    """
+    Decompresses an API 900 compressed buffer.
+    :param buf: The buffer to decompress.
+    :return: The uncompressed buffer.
+    """
+    uncompressed_size = calculate_uncompressed_size(buf)
 
-    <span class="k">if</span> <span class="n">uncompressed_size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;uncompressed size [{}] must be &gt; 0&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">uncompressed_size</span><span class="p">))</span>
+    if uncompressed_size <= 0:
+        raise exceptions.ReaderException("uncompressed size [{}] must be > 0".format(uncompressed_size))
 
-    <span class="k">return</span> <span class="n">lz4</span><span class="o">.</span><span class="n">block</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span><span class="n">buf</span><span class="p">[</span><span class="mi">4</span><span class="p">:],</span> <span class="n">uncompressed_size</span><span class="o">=</span><span class="n">calculate_uncompressed_size</span><span class="p">(</span><span class="n">buf</span><span class="p">))</span>
-</pre></div>
-
+    return lz4.block.decompress(buf[4:], uncompressed_size=calculate_uncompressed_size(buf))
+</code></pre>
   </div>
 </div>
 
@@ -2061,18 +1974,17 @@ size of uncompressed buffer.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.metadata_dict_to_list', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.metadata_dict_to_list" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">metadata_dict_to_list</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Converts a dictionary containing metadata into a list of metadata.</span>
-<span class="sd">    :param metadata_dict: The dictionary of metadata.</span>
-<span class="sd">    :return: A list of metadata.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">metadata_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metadata_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">metadata_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">])</span>
-    <span class="k">return</span> <span class="n">metadata_list</span>
-</pre></div>
-
+    <pre><code>def metadata_dict_to_list(metadata_dict: typing.Dict[str, str]) -> typing.List[str]:
+    """
+    Converts a dictionary containing metadata into a list of metadata.
+    :param metadata_dict: The dictionary of metadata.
+    :return: A list of metadata.
+    """
+    metadata_list = []
+    for key, value in metadata_dict.items():
+        metadata_list.extend([key, value])
+    return metadata_list
+</code></pre>
   </div>
 </div>
 
@@ -2093,19 +2005,18 @@ size of uncompressed buffer.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.payload_type', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.payload_type" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_type</span><span class="p">(</span><span class="n">channel</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">EvenlySampledChannel</span><span class="p">,</span>
-                                       <span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a channel, return the internal protobuf string representation of the payload&#39;s data type.</span>
-<span class="sd">    :param channel: The channel to check the data type of.</span>
-<span class="sd">    :return: The internal protobuf string representation of the payload&#39;s data type.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">channel</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;No channel to hold payload&quot;</span>
+    <pre><code>def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                       api900_pb2.UnevenlySampledChannel]) -> str:
+    """
+    Given a channel, return the internal protobuf string representation of the payload's data type.
+    :param channel: The channel to check the data type of.
+    :return: The internal protobuf string representation of the payload's data type.
+    """
+    if channel is None:
+        return "No channel to hold payload"
 
-    <span class="k">return</span> <span class="n">channel</span><span class="o">.</span><span class="n">WhichOneof</span><span class="p">(</span><span class="s2">&quot;payload&quot;</span><span class="p">)</span>
-</pre></div>
-
+    return channel.WhichOneof("payload")
+</code></pre>
   </div>
 </div>
 
@@ -2126,16 +2037,15 @@ size of uncompressed buffer.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.repeated_to_array', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.repeated_to_array" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">repeated_to_array</span><span class="p">(</span><span class="n">repeated</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">containers</span><span class="o">.</span><span class="n">RepeatedCompositeFieldContainer</span><span class="p">,</span>
-                                             <span class="n">containers</span><span class="o">.</span><span class="n">RepeatedScalarFieldContainer</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Transforms a repeated protobuf field into a numpy array.</span>
-<span class="sd">    :param repeated: The repeated field to transform.</span>
-<span class="sd">    :return: A numpy array of the repeated items.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">repeated_to_list</span><span class="p">(</span><span class="n">repeated</span><span class="p">))</span>
-</pre></div>
-
+    <pre><code>def repeated_to_array(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
+                                             containers.RepeatedScalarFieldContainer]) -> numpy.ndarray:
+    """
+    Transforms a repeated protobuf field into a numpy array.
+    :param repeated: The repeated field to transform.
+    :return: A numpy array of the repeated items.
+    """
+    return numpy.array(repeated_to_list(repeated))
+</code></pre>
   </div>
 </div>
 
@@ -2156,16 +2066,15 @@ size of uncompressed buffer.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.repeated_to_list', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.repeated_to_list" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">repeated_to_list</span><span class="p">(</span><span class="n">repeated</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">containers</span><span class="o">.</span><span class="n">RepeatedCompositeFieldContainer</span><span class="p">,</span>
-                                            <span class="n">containers</span><span class="o">.</span><span class="n">RepeatedScalarFieldContainer</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Transforms a repeated protobuf field into a list.</span>
-<span class="sd">    :param repeated: The repeated field to transform.</span>
-<span class="sd">    :return: A list of the repeated items.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">repeated</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">repeated</span><span class="p">)]</span>
-</pre></div>
-
+    <pre><code>def repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
+                                            containers.RepeatedScalarFieldContainer]) -> typing.List:
+    """
+    Transforms a repeated protobuf field into a list.
+    :param repeated: The repeated field to transform.
+    :return: A list of the repeated items.
+    """
+    return repeated[0:len(repeated)]
+</code></pre>
   </div>
 </div>
 
@@ -2187,19 +2096,18 @@ size of uncompressed buffer.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.safe_index_of', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.safe_index_of" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">safe_index_of</span><span class="p">(</span><span class="n">lst</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Finds the index of an item in a list and instead of throwing an exception returns -1 when the item DNE.</span>
-<span class="sd">    :param lst: List to search through.</span>
-<span class="sd">    :param val: The value to find the index of.</span>
-<span class="sd">    :return: The index of the first value v found or -1.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">lst</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
-</pre></div>
-
+    <pre><code>def safe_index_of(lst: typing.List, val: typing.Any) -> int:
+    """
+    Finds the index of an item in a list and instead of throwing an exception returns -1 when the item DNE.
+    :param lst: List to search through.
+    :param val: The value to find the index of.
+    :return: The index of the first value v found or -1.
+    """
+    try:
+        return lst.index(val)
+    except ValueError:
+        return -1
+</code></pre>
   </div>
 </div>
 
@@ -2220,17 +2128,16 @@ size of uncompressed buffer.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.to_array', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.to_array" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">to_array</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Takes either a list or a numpy array and returns a numpy array if the parameter was a list.</span>
-<span class="sd">    :param values: Values to convert into numpy array if values are in a list.</span>
-<span class="sd">    :return: A numpy array of the passed in values.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">values</span>
-</pre></div>
-
+    <pre><code>def to_array(values: typing.Union[typing.List, numpy.ndarray]) -> numpy.ndarray:
+    """
+    Takes either a list or a numpy array and returns a numpy array if the parameter was a list.
+    :param values: Values to convert into numpy array if values are in a list.
+    :return: A numpy array of the passed in values.
+    """
+    if isinstance(values, typing.List):
+        return numpy.array(values)
+    return values
+</code></pre>
   </div>
 </div>
 
@@ -2251,15 +2158,14 @@ size of uncompressed buffer.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.to_json', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.to_json" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="n">redvox_packet</span><span class="p">:</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">RedvoxPacket</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Converts a protobuf encoded API 900 RedVox packet into JSON.</span>
-<span class="sd">    :param redvox_packet: The protobuf encoded packet.</span>
-<span class="sd">    :return: A string containing JSON of this packet.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">json_format</span><span class="o">.</span><span class="n">MessageToJson</span><span class="p">(</span><span class="n">redvox_packet</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def to_json(redvox_packet: api900_pb2.RedvoxPacket) -> str:
+    """
+    Converts a protobuf encoded API 900 RedVox packet into JSON.
+    :param redvox_packet: The protobuf encoded packet.
+    :return: A string containing JSON of this packet.
+    """
+    return json_format.MessageToJson(redvox_packet)
+</code></pre>
   </div>
 </div>
 
@@ -2280,15 +2186,14 @@ size of uncompressed buffer.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.uncompressed_size_bytes', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.uncompressed_size_bytes" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">uncompressed_size_bytes</span><span class="p">(</span><span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given the size of the original uncompressed file, return the size as an array of 4 bytes.</span>
-<span class="sd">    :param size: The size to convert.</span>
-<span class="sd">    :return: The 4 bytes representing the size.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&gt;I&quot;</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def uncompressed_size_bytes(size: int) -> bytes:
+    """
+    Given the size of the original uncompressed file, return the size as an array of 4 bytes.
+    :param size: The size to convert.
+    :return: The 4 bytes representing the size.
+    """
+    return struct.pack(">I", size)
+</code></pre>
   </div>
 </div>
 
@@ -2310,18 +2215,17 @@ size of uncompressed buffer.
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.reader_utils.write_file', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.reader_utils.write_file" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">write_file</span><span class="p">(</span><span class="nb">file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">redvox_packet</span><span class="p">:</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">RedvoxPacket</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Writes a redvox file.  Specify the correct file type in the file string.</span>
-<span class="sd">    :param file: str, File to write</span>
-<span class="sd">    :param redvox_packet: protobuf packet to write</span>
-<span class="sd">    :return: Nothing, compressed file is written to disk</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">buffer</span> <span class="o">=</span> <span class="n">lz4_compress</span><span class="p">(</span><span class="n">redvox_packet</span><span class="o">.</span><span class="n">SerializeToString</span><span class="p">())</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_out</span><span class="p">:</span>
-        <span class="n">file_out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">buffer</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def write_file(file: str, redvox_packet: api900_pb2.RedvoxPacket):
+    """
+    Writes a redvox file.  Specify the correct file type in the file string.
+    :param file: str, File to write
+    :param redvox_packet: protobuf packet to write
+    :return: Nothing, compressed file is written to disk
+    """
+    buffer = lz4_compress(redvox_packet.SerializeToString())
+    with open(file, "wb") as file_out:
+        file_out.write(buffer)
+</code></pre>
   </div>
 </div>
 

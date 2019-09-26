@@ -851,77 +851,6 @@ table {
 
   </style>
 
-  <style type="text/css">
-  .codehilite .hll { background-color: #ffffcc }
-.codehilite  { background: #f8f8f8; }
-.codehilite .c { color: #408080; font-style: italic } /* Comment */
-.codehilite .err { border: 1px solid #FF0000 } /* Error */
-.codehilite .k { color: #008000; font-weight: bold } /* Keyword */
-.codehilite .o { color: #666666 } /* Operator */
-.codehilite .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
-.codehilite .cm { color: #408080; font-style: italic } /* Comment.Multiline */
-.codehilite .cp { color: #BC7A00 } /* Comment.Preproc */
-.codehilite .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
-.codehilite .c1 { color: #408080; font-style: italic } /* Comment.Single */
-.codehilite .cs { color: #408080; font-style: italic } /* Comment.Special */
-.codehilite .gd { color: #A00000 } /* Generic.Deleted */
-.codehilite .ge { font-style: italic } /* Generic.Emph */
-.codehilite .gr { color: #FF0000 } /* Generic.Error */
-.codehilite .gh { color: #000080; font-weight: bold } /* Generic.Heading */
-.codehilite .gi { color: #00A000 } /* Generic.Inserted */
-.codehilite .go { color: #888888 } /* Generic.Output */
-.codehilite .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
-.codehilite .gs { font-weight: bold } /* Generic.Strong */
-.codehilite .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.codehilite .gt { color: #0044DD } /* Generic.Traceback */
-.codehilite .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
-.codehilite .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
-.codehilite .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
-.codehilite .kp { color: #008000 } /* Keyword.Pseudo */
-.codehilite .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
-.codehilite .kt { color: #B00040 } /* Keyword.Type */
-.codehilite .m { color: #666666 } /* Literal.Number */
-.codehilite .s { color: #BA2121 } /* Literal.String */
-.codehilite .na { color: #7D9029 } /* Name.Attribute */
-.codehilite .nb { color: #008000 } /* Name.Builtin */
-.codehilite .nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.codehilite .no { color: #880000 } /* Name.Constant */
-.codehilite .nd { color: #AA22FF } /* Name.Decorator */
-.codehilite .ni { color: #999999; font-weight: bold } /* Name.Entity */
-.codehilite .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
-.codehilite .nf { color: #0000FF } /* Name.Function */
-.codehilite .nl { color: #A0A000 } /* Name.Label */
-.codehilite .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
-.codehilite .nt { color: #008000; font-weight: bold } /* Name.Tag */
-.codehilite .nv { color: #19177C } /* Name.Variable */
-.codehilite .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.codehilite .w { color: #bbbbbb } /* Text.Whitespace */
-.codehilite .mb { color: #666666 } /* Literal.Number.Bin */
-.codehilite .mf { color: #666666 } /* Literal.Number.Float */
-.codehilite .mh { color: #666666 } /* Literal.Number.Hex */
-.codehilite .mi { color: #666666 } /* Literal.Number.Integer */
-.codehilite .mo { color: #666666 } /* Literal.Number.Oct */
-.codehilite .sa { color: #BA2121 } /* Literal.String.Affix */
-.codehilite .sb { color: #BA2121 } /* Literal.String.Backtick */
-.codehilite .sc { color: #BA2121 } /* Literal.String.Char */
-.codehilite .dl { color: #BA2121 } /* Literal.String.Delimiter */
-.codehilite .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
-.codehilite .s2 { color: #BA2121 } /* Literal.String.Double */
-.codehilite .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
-.codehilite .sh { color: #BA2121 } /* Literal.String.Heredoc */
-.codehilite .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
-.codehilite .sx { color: #008000 } /* Literal.String.Other */
-.codehilite .sr { color: #BB6688 } /* Literal.String.Regex */
-.codehilite .s1 { color: #BA2121 } /* Literal.String.Single */
-.codehilite .ss { color: #19177C } /* Literal.String.Symbol */
-.codehilite .bp { color: #008000 } /* Name.Builtin.Pseudo */
-.codehilite .fm { color: #0000FF } /* Name.Function.Magic */
-.codehilite .vc { color: #19177C } /* Name.Variable.Class */
-.codehilite .vg { color: #19177C } /* Name.Variable.Global */
-.codehilite .vi { color: #19177C } /* Name.Variable.Instance */
-.codehilite .vm { color: #19177C } /* Name.Variable.Magic */
-.codehilite .il { color: #666666 } /* Literal.Number.Integer.Long */
-  </style>
 
   <style type="text/css">
   
@@ -1091,90 +1020,89 @@ table {
   
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel" class="source">
-    <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module contains classes and methods for working with unevenly sampled channels.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+    <pre><code>"""
+This module contains classes and methods for working with unevenly sampled channels.
+"""
 
-<span class="kn">import</span> <span class="nn">typing</span>
+import typing
 
-<span class="kn">import</span> <span class="nn">numpy</span>
+import numpy
 
-<span class="kn">import</span> <span class="nn">redvox.api900.lib.api900_pb2</span> <span class="kn">as</span> <span class="nn">api900_pb2</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.reader_utils</span> <span class="kn">as</span> <span class="nn">reader_utils</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.sensors.interleaved_channel</span> <span class="kn">as</span> <span class="nn">interleaved_channel</span>
-<span class="kn">import</span> <span class="nn">redvox.api900.stat_utils</span> <span class="kn">as</span> <span class="nn">stat_utils</span>
+import redvox.api900.lib.api900_pb2 as api900_pb2
+import redvox.api900.reader_utils as reader_utils
+import redvox.api900.sensors.interleaved_channel as interleaved_channel
+import redvox.api900.stat_utils as stat_utils
 
 
-<span class="k">class</span> <span class="nc">UnevenlySampledChannel</span><span class="p">(</span><span class="n">interleaved_channel</span><span class="o">.</span><span class="n">InterleavedChannel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    An unevenly sampled channel is an interleaved channel that contains sampled payload which includes a list of</span>
-<span class="sd">    corresponding timestamps for each sample.</span>
+class UnevenlySampledChannel(interleaved_channel.InterleavedChannel):
+    """
+    An unevenly sampled channel is an interleaved channel that contains sampled payload which includes a list of
+    corresponding timestamps for each sample.
 
-<span class="sd">    This class also adds easy access to statistics for timestamps.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    This class also adds easy access to statistics for timestamps.
+    """
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes this unevenly sampled channel.</span>
-<span class="sd">        :param channel: A protobuf unevenly sampled channel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">channel</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">channel</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">empty_unevenly_sampled_channel</span><span class="p">()</span>
+    def __init__(self, channel: typing.Optional[api900_pb2.UnevenlySampledChannel] = None):
+        """
+        Initializes this unevenly sampled channel.
+        :param channel: A protobuf unevenly sampled channel.
+        """
+        if channel is None:
+            channel = reader_utils.empty_unevenly_sampled_channel()
 
-        <span class="n">interleaved_channel</span><span class="o">.</span><span class="n">InterleavedChannel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">repeated_to_array</span><span class="p">(</span>
-            <span class="n">channel</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;Numpy array of timestamps epoch microseconds utc for each sample&quot;&quot;&quot;</span>
+        interleaved_channel.InterleavedChannel.__init__(self, channel)
+        self.timestamps_microseconds_utc: numpy.ndarray = reader_utils.repeated_to_array(
+            channel.timestamps_microseconds_utc)
+        """Numpy array of timestamps epoch microseconds utc for each sample"""
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">sample_interval_mean</span>
-        <span class="sd">&quot;&quot;&quot;The mean sample interval&quot;&quot;&quot;</span>
+        self.sample_interval_mean: float = channel.sample_interval_mean
+        """The mean sample interval"""
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">sample_interval_std</span>
-        <span class="sd">&quot;&quot;&quot;The standard deviation of the sample interval&quot;&quot;&quot;</span>
+        self.sample_interval_std: float = channel.sample_interval_std
+        """The standard deviation of the sample interval"""
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">sample_interval_median</span>
-        <span class="sd">&quot;&quot;&quot;The median sample interval&quot;&quot;&quot;</span>
+        self.sample_interval_median: float = channel.sample_interval_median
+        """The median sample interval"""
 
-    <span class="k">def</span> <span class="nf">set_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        sets the channel to an unevenly sampled channel</span>
-<span class="sd">        :param channel: unevenly sampled channel</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">repeated_to_array</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span> <span class="o">=</span> \
-            <span class="n">stat_utils</span><span class="o">.</span><span class="n">calc_utils_timeseries</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">)</span>
+    def set_channel(self, channel: api900_pb2.UnevenlySampledChannel):
+        """
+        sets the channel to an unevenly sampled channel
+        :param channel: unevenly sampled channel
+        """
+        super().set_channel(channel)
+        self.timestamps_microseconds_utc = reader_utils.repeated_to_array(channel.timestamps_microseconds_utc)
+        self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
+            stat_utils.calc_utils_timeseries(self.timestamps_microseconds_utc)
 
-    <span class="k">def</span> <span class="nf">set_timestamps_microseconds_utc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamps</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        set the timestamps in microseconds from utc</span>
-<span class="sd">        :param timestamps: array of timestamps</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">timestamps</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">to_array</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span> <span class="o">=</span> <span class="n">timestamps</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">timestamps</span>
+    def set_timestamps_microseconds_utc(self, timestamps: typing.Union[typing.List[int], numpy.ndarray]):
+        """
+        set the timestamps in microseconds from utc
+        :param timestamps: array of timestamps
+        """
+        timestamps = reader_utils.to_array(timestamps)
+        self.timestamps_microseconds_utc = timestamps
+        self.protobuf_channel.timestamps_microseconds_utc[:] = timestamps
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span> <span class="o">=</span> \
-                <span class="n">stat_utils</span><span class="o">.</span><span class="n">calc_utils_timeseries</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span> <span class="o">=</span> <span class="mf">0.0</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span> <span class="o">=</span> <span class="mf">0.0</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span> <span class="o">=</span> <span class="mf">0.0</span>
+        if len(timestamps) > 0:
+            self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
+                stat_utils.calc_utils_timeseries(timestamps)
+        else:
+            self.sample_interval_mean = 0.0
+            self.sample_interval_median = 0.0
+            self.sample_interval_std = 0.0
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">sample_interval_std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">sample_interval_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">sample_interval_median</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span>
+        self.protobuf_channel.sample_interval_std = self.sample_interval_std
+        self.protobuf_channel.sample_interval_mean = self.sample_interval_mean
+        self.protobuf_channel.sample_interval_median = self.sample_interval_median
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a string representation of this unevenly sampled channel.</span>
-<span class="sd">        :return: A string representation of this unevenly sampled channel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;{}</span><span class="se">\n</span><span class="s2">len(timestamps_microseconds_utc): {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__str__</span><span class="p">(),</span>
-                                                                 <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">))</span>
-</pre></div>
-
+    def __str__(self) -> str:
+        """
+        Returns a string representation of this unevenly sampled channel.
+        :return: A string representation of this unevenly sampled channel.
+        """
+        return "{}\nlen(timestamps_microseconds_utc): {}".format(super().__str__(),
+                                                                 len(self.timestamps_microseconds_utc))
+</code></pre>
   </div>
 
   </header>
@@ -1194,76 +1122,75 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">UnevenlySampledChannel</span><span class="p">(</span><span class="n">interleaved_channel</span><span class="o">.</span><span class="n">InterleavedChannel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    An unevenly sampled channel is an interleaved channel that contains sampled payload which includes a list of</span>
-<span class="sd">    corresponding timestamps for each sample.</span>
+    <pre><code>class UnevenlySampledChannel(interleaved_channel.InterleavedChannel):
+    """
+    An unevenly sampled channel is an interleaved channel that contains sampled payload which includes a list of
+    corresponding timestamps for each sample.
 
-<span class="sd">    This class also adds easy access to statistics for timestamps.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    This class also adds easy access to statistics for timestamps.
+    """
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes this unevenly sampled channel.</span>
-<span class="sd">        :param channel: A protobuf unevenly sampled channel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">channel</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">channel</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">empty_unevenly_sampled_channel</span><span class="p">()</span>
+    def __init__(self, channel: typing.Optional[api900_pb2.UnevenlySampledChannel] = None):
+        """
+        Initializes this unevenly sampled channel.
+        :param channel: A protobuf unevenly sampled channel.
+        """
+        if channel is None:
+            channel = reader_utils.empty_unevenly_sampled_channel()
 
-        <span class="n">interleaved_channel</span><span class="o">.</span><span class="n">InterleavedChannel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">repeated_to_array</span><span class="p">(</span>
-            <span class="n">channel</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;Numpy array of timestamps epoch microseconds utc for each sample&quot;&quot;&quot;</span>
+        interleaved_channel.InterleavedChannel.__init__(self, channel)
+        self.timestamps_microseconds_utc: numpy.ndarray = reader_utils.repeated_to_array(
+            channel.timestamps_microseconds_utc)
+        """Numpy array of timestamps epoch microseconds utc for each sample"""
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">sample_interval_mean</span>
-        <span class="sd">&quot;&quot;&quot;The mean sample interval&quot;&quot;&quot;</span>
+        self.sample_interval_mean: float = channel.sample_interval_mean
+        """The mean sample interval"""
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">sample_interval_std</span>
-        <span class="sd">&quot;&quot;&quot;The standard deviation of the sample interval&quot;&quot;&quot;</span>
+        self.sample_interval_std: float = channel.sample_interval_std
+        """The standard deviation of the sample interval"""
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">sample_interval_median</span>
-        <span class="sd">&quot;&quot;&quot;The median sample interval&quot;&quot;&quot;</span>
+        self.sample_interval_median: float = channel.sample_interval_median
+        """The median sample interval"""
 
-    <span class="k">def</span> <span class="nf">set_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        sets the channel to an unevenly sampled channel</span>
-<span class="sd">        :param channel: unevenly sampled channel</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">repeated_to_array</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span> <span class="o">=</span> \
-            <span class="n">stat_utils</span><span class="o">.</span><span class="n">calc_utils_timeseries</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">)</span>
+    def set_channel(self, channel: api900_pb2.UnevenlySampledChannel):
+        """
+        sets the channel to an unevenly sampled channel
+        :param channel: unevenly sampled channel
+        """
+        super().set_channel(channel)
+        self.timestamps_microseconds_utc = reader_utils.repeated_to_array(channel.timestamps_microseconds_utc)
+        self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
+            stat_utils.calc_utils_timeseries(self.timestamps_microseconds_utc)
 
-    <span class="k">def</span> <span class="nf">set_timestamps_microseconds_utc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamps</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        set the timestamps in microseconds from utc</span>
-<span class="sd">        :param timestamps: array of timestamps</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">timestamps</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">to_array</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span> <span class="o">=</span> <span class="n">timestamps</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">timestamps</span>
+    def set_timestamps_microseconds_utc(self, timestamps: typing.Union[typing.List[int], numpy.ndarray]):
+        """
+        set the timestamps in microseconds from utc
+        :param timestamps: array of timestamps
+        """
+        timestamps = reader_utils.to_array(timestamps)
+        self.timestamps_microseconds_utc = timestamps
+        self.protobuf_channel.timestamps_microseconds_utc[:] = timestamps
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span> <span class="o">=</span> \
-                <span class="n">stat_utils</span><span class="o">.</span><span class="n">calc_utils_timeseries</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span> <span class="o">=</span> <span class="mf">0.0</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span> <span class="o">=</span> <span class="mf">0.0</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span> <span class="o">=</span> <span class="mf">0.0</span>
+        if len(timestamps) > 0:
+            self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
+                stat_utils.calc_utils_timeseries(timestamps)
+        else:
+            self.sample_interval_mean = 0.0
+            self.sample_interval_median = 0.0
+            self.sample_interval_std = 0.0
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">sample_interval_std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">sample_interval_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">sample_interval_median</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span>
+        self.protobuf_channel.sample_interval_std = self.sample_interval_std
+        self.protobuf_channel.sample_interval_mean = self.sample_interval_mean
+        self.protobuf_channel.sample_interval_median = self.sample_interval_median
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a string representation of this unevenly sampled channel.</span>
-<span class="sd">        :return: A string representation of this unevenly sampled channel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;{}</span><span class="se">\n</span><span class="s2">len(timestamps_microseconds_utc): {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__str__</span><span class="p">(),</span>
-                                                                 <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">))</span>
-</pre></div>
-
+    def __str__(self) -> str:
+        """
+        Returns a string representation of this unevenly sampled channel.
+        :return: A string representation of this unevenly sampled channel.
+        """
+        return "{}\nlen(timestamps_microseconds_utc): {}".format(super().__str__(),
+                                                                 len(self.timestamps_microseconds_utc))
+</code></pre>
   </div>
 </div>
 
@@ -1290,25 +1217,24 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.__init__', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.__init__" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Initializes this unevenly sampled channel.</span>
-<span class="sd">    :param channel: A protobuf unevenly sampled channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">channel</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">channel</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">empty_unevenly_sampled_channel</span><span class="p">()</span>
-    <span class="n">interleaved_channel</span><span class="o">.</span><span class="n">InterleavedChannel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">repeated_to_array</span><span class="p">(</span>
-        <span class="n">channel</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">)</span>
-    <span class="sd">&quot;&quot;&quot;Numpy array of timestamps epoch microseconds utc for each sample&quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">sample_interval_mean</span>
-    <span class="sd">&quot;&quot;&quot;The mean sample interval&quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">sample_interval_std</span>
-    <span class="sd">&quot;&quot;&quot;The standard deviation of the sample interval&quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">sample_interval_median</span>
-    <span class="sd">&quot;&quot;&quot;The median sample interval&quot;&quot;&quot;</span>
-</pre></div>
-
+    <pre><code>def __init__(self, channel: typing.Optional[api900_pb2.UnevenlySampledChannel] = None):
+    """
+    Initializes this unevenly sampled channel.
+    :param channel: A protobuf unevenly sampled channel.
+    """
+    if channel is None:
+        channel = reader_utils.empty_unevenly_sampled_channel()
+    interleaved_channel.InterleavedChannel.__init__(self, channel)
+    self.timestamps_microseconds_utc: numpy.ndarray = reader_utils.repeated_to_array(
+        channel.timestamps_microseconds_utc)
+    """Numpy array of timestamps epoch microseconds utc for each sample"""
+    self.sample_interval_mean: float = channel.sample_interval_mean
+    """The mean sample interval"""
+    self.sample_interval_std: float = channel.sample_interval_std
+    """The standard deviation of the sample interval"""
+    self.sample_interval_median: float = channel.sample_interval_median
+    """The median sample interval"""
+</code></pre>
   </div>
 </div>
 
@@ -1329,15 +1255,14 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.channel_index', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.channel_index" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">channel_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the index of a channel type or -1 if it DNE.</span>
-<span class="sd">    :param channel_type: The channel type to search for.</span>
-<span class="sd">    :return: The index of the channel or -1 if it DNE.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_type_index</span><span class="p">[</span><span class="n">channel_type</span><span class="p">]</span> <span class="k">if</span> <span class="n">channel_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_type_index</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
-</pre></div>
-
+    <pre><code>def channel_index(self, channel_type: int) -> int:
+    """
+    Returns the index of a channel type or -1 if it DNE.
+    :param channel_type: The channel type to search for.
+    :return: The index of the channel or -1 if it DNE.
+    """
+    return self.channel_type_index[channel_type] if channel_type in self.channel_type_index else -1
+</code></pre>
   </div>
 </div>
 
@@ -1357,14 +1282,13 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_channel_type_names', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_channel_type_names" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_channel_type_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the list of channel_types as a list of names instead of enumeration constants.</span>
-<span class="sd">    :return: The list of channel_types as a list of names instead of enumeration constants.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">reader_utils</span><span class="o">.</span><span class="n">channel_type_name_from_enum</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_types</span><span class="p">))</span>
-</pre></div>
-
+    <pre><code>def get_channel_type_names(self) -> typing.List[str]:
+    """
+    Returns the list of channel_types as a list of names instead of enumeration constants.
+    :return: The list of channel_types as a list of names instead of enumeration constants.
+    """
+    return list(map(reader_utils.channel_type_name_from_enum, self.channel_types))
+</code></pre>
   </div>
 </div>
 
@@ -1385,21 +1309,20 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_multi_payload', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_multi_payload" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_multi_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_types</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns an interleaved payload with the given channel types.</span>
-<span class="sd">    :param channel_types: Channel types to interleave into a single payload.</span>
-<span class="sd">    :return: A numpy array of an interleaved payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">channel_types_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">channel_types</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">channel_types_len</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">empty_array</span><span class="p">()</span>
-    <span class="k">elif</span> <span class="n">channel_types_len</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">channel_types</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">payloads</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_payload</span><span class="p">,</span> <span class="n">channel_types</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">interleave_arrays</span><span class="p">(</span><span class="n">payloads</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def get_multi_payload(self, channel_types: typing.List[int]) -> numpy.ndarray:
+    """
+    Returns an interleaved payload with the given channel types.
+    :param channel_types: Channel types to interleave into a single payload.
+    :return: A numpy array of an interleaved payload.
+    """
+    channel_types_len = len(channel_types)
+    if channel_types_len == 0:
+        return reader_utils.empty_array()
+    elif channel_types_len == 1:
+        return self.get_payload(channel_types[0])
+    payloads = list(map(self.get_payload, channel_types))
+    return reader_utils.interleave_arrays(payloads)
+</code></pre>
   </div>
 </div>
 
@@ -1420,21 +1343,20 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_payload', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_payload" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a deinterleaved payload of a given channel type or an empty array.</span>
-<span class="sd">    :param channel_type: The channel type to extract/deinterleave from the payload.</span>
-<span class="sd">    :return: A numpy array of floats or ints of a single channel type.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_index</span><span class="p">(</span><span class="n">channel_type</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">empty_array</span><span class="p">()</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">deinterleave_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_types</span><span class="p">))</span>
-    <span class="k">except</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">empty_array</span><span class="p">()</span>
-</pre></div>
-
+    <pre><code>def get_payload(self, channel_type: int) -> numpy.ndarray:
+    """
+    Returns a deinterleaved payload of a given channel type or an empty array.
+    :param channel_type: The channel type to extract/deinterleave from the payload.
+    :return: A numpy array of floats or ints of a single channel type.
+    """
+    idx = self.channel_index(channel_type)
+    if idx < 0:
+        return reader_utils.empty_array()
+    try:
+        return reader_utils.deinterleave_array(self.payload, idx, len(self.channel_types))
+    except exceptions.ReaderException:
+        return reader_utils.empty_array()
+</code></pre>
   </div>
 </div>
 
@@ -1454,14 +1376,13 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_payload_type', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_payload_type" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_payload_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the internal protobuf payload type.</span>
-<span class="sd">    :return: The internal protobuf payload type.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">payload_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def get_payload_type(self) -> str:
+    """
+    Returns the internal protobuf payload type.
+    :return: The internal protobuf payload type.
+    """
+    return reader_utils.payload_type(self.protobuf_channel)
+</code></pre>
   </div>
 </div>
 
@@ -1482,18 +1403,17 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_value_mean', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_value_mean" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_value_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the mean value for a single channel type.</span>
-<span class="sd">    :param channel_type: The channel type to extract the mean from.</span>
-<span class="sd">    :return: The mean value.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_index</span><span class="p">(</span><span class="n">channel_type</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value_means</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;mean DNE, is the payload empty?&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_means</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
-</pre></div>
-
+    <pre><code>def get_value_mean(self, channel_type: int) -> float:
+    """
+    Returns the mean value for a single channel type.
+    :param channel_type: The channel type to extract the mean from.
+    :return: The mean value.
+    """
+    idx = self.channel_index(channel_type)
+    if idx < 0 or len(self.value_means) == 0:
+        raise exceptions.ReaderException("mean DNE, is the payload empty?")
+    return self.value_means[idx]
+</code></pre>
   </div>
 </div>
 
@@ -1514,18 +1434,17 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_value_median', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_value_median" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_value_median</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the median value for a single channel type.</span>
-<span class="sd">    :param channel_type: The channel type to extract the median from.</span>
-<span class="sd">    :return:The median value.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_index</span><span class="p">(</span><span class="n">channel_type</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value_medians</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;median DNE, is the payload empty?&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_medians</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
-</pre></div>
-
+    <pre><code>def get_value_median(self, channel_type: int) -> float:
+    """
+    Returns the median value for a single channel type.
+    :param channel_type: The channel type to extract the median from.
+    :return:The median value.
+    """
+    idx = self.channel_index(channel_type)
+    if idx < 0 or len(self.value_medians) == 0:
+        raise exceptions.ReaderException("median DNE, is the payload empty?")
+    return self.value_medians[idx]
+</code></pre>
   </div>
 </div>
 
@@ -1546,18 +1465,17 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_value_std', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.get_value_std" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_value_std</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the standard deviation value for a single channel type.</span>
-<span class="sd">    :param channel_type: The channel type to extract the std from.</span>
-<span class="sd">    :return: The standard deviation.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_index</span><span class="p">(</span><span class="n">channel_type</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value_stds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">ReaderException</span><span class="p">(</span><span class="s2">&quot;std DNE, is the payload empty?&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_stds</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
-</pre></div>
-
+    <pre><code>def get_value_std(self, channel_type: int) -> float:
+    """
+    Returns the standard deviation value for a single channel type.
+    :param channel_type: The channel type to extract the std from.
+    :return: The standard deviation.
+    """
+    idx = self.channel_index(channel_type)
+    if idx < 0 or len(self.value_stds) == 0:
+        raise exceptions.ReaderException("std DNE, is the payload empty?")
+    return self.value_stds[idx]
+</code></pre>
   </div>
 </div>
 
@@ -1578,15 +1496,14 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.has_channel', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.has_channel" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">has_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns if channel type exists with in this channel.</span>
-<span class="sd">    :param channel_type: The channel type to search for.</span>
-<span class="sd">    :return: True if it exist, False otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">channel_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_type_index</span>
-</pre></div>
-
+    <pre><code>def has_channel(self, channel_type: int) -> bool:
+    """
+    Returns if channel type exists with in this channel.
+    :param channel_type: The channel type to search for.
+    :return: True if it exist, False otherwise.
+    """
+    return channel_type in self.channel_type_index
+</code></pre>
   </div>
 </div>
 
@@ -1607,15 +1524,14 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.has_payload', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.has_payload" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">has_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns if channel contains a non-empty specified payload.</span>
-<span class="sd">    :param channel_type: The channel to check for a payload for.</span>
-<span class="sd">    :return: Whether this channel contains the specified payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_channel</span><span class="p">(</span><span class="n">channel_type</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
-</pre></div>
-
+    <pre><code>def has_payload(self, channel_type: int) -> bool:
+    """
+    Returns if channel contains a non-empty specified payload.
+    :param channel_type: The channel to check for a payload for.
+    :return: Whether this channel contains the specified payload.
+    """
+    return self.has_channel(channel_type) and len(self.payload) > 0
+</code></pre>
   </div>
 </div>
 
@@ -1635,14 +1551,13 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.metadata_as_dict', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.metadata_as_dict" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">metadata_as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns any metadata as a dictionary of key-pair values.</span>
-<span class="sd">    :return: Any metadata as a dictionary of key-pair values.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">get_metadata_as_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def metadata_as_dict(self) -> typing.Dict[str, str]:
+    """
+    Returns any metadata as a dictionary of key-pair values.
+    :return: Any metadata as a dictionary of key-pair values.
+    """
+    return reader_utils.get_metadata_as_dict(self.metadata)
+</code></pre>
   </div>
 </div>
 
@@ -1662,17 +1577,16 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_channel', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_channel" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    sets the channel to an unevenly sampled channel</span>
-<span class="sd">    :param channel: unevenly sampled channel</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">repeated_to_array</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span> <span class="o">=</span> \
-        <span class="n">stat_utils</span><span class="o">.</span><span class="n">calc_utils_timeseries</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def set_channel(self, channel: api900_pb2.UnevenlySampledChannel):
+    """
+    sets the channel to an unevenly sampled channel
+    :param channel: unevenly sampled channel
+    """
+    super().set_channel(channel)
+    self.timestamps_microseconds_utc = reader_utils.repeated_to_array(channel.timestamps_microseconds_utc)
+    self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
+        stat_utils.calc_utils_timeseries(self.timestamps_microseconds_utc)
+</code></pre>
   </div>
 </div>
 
@@ -1692,19 +1606,18 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_channel_types', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_channel_types" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_channel_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">types</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">EvenlySampledChannel</span><span class="p">,</span>
-                                                            <span class="n">api900_pb2</span><span class="o">.</span><span class="n">UnevenlySampledChannel</span><span class="p">]]):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    sets the channel_types to the list given</span>
-<span class="sd">    :param types: a list of channel types</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">channel_types</span><span class="p">[:]</span>
-    <span class="k">for</span> <span class="n">ctype</span> <span class="ow">in</span> <span class="n">types</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">channel_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctype</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">channel_types</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">repeated_to_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">channel_types</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">channel_type_index</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_types</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_types</span><span class="p">))}</span>
-</pre></div>
-
+    <pre><code>def set_channel_types(self, types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel,
+                                                            api900_pb2.UnevenlySampledChannel]]):
+    """
+    sets the channel_types to the list given
+    :param types: a list of channel types
+    """
+    del self.protobuf_channel.channel_types[:]
+    for ctype in types:
+        self.protobuf_channel.channel_types.append(ctype)
+    self.channel_types = reader_utils.repeated_to_list(self.protobuf_channel.channel_types)
+    self.channel_type_index = {self.channel_types[i]: i for i in range(len(self.channel_types))}
+</code></pre>
   </div>
 </div>
 
@@ -1726,20 +1639,19 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_interleaved_payload', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_interleaved_payload" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_interleaved_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                            <span class="n">payloads</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]],</span>
-                            <span class="n">pl_type</span><span class="p">:</span> <span class="n">constants</span><span class="o">.</span><span class="n">PayloadType</span><span class="p">,</span>
-                            <span class="n">should_compute_stats</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Interleaves multiple payloads together and sets the interleaved payload.</span>
-<span class="sd">    :param payloads: Payloads of the same length to be interleaved.</span>
-<span class="sd">    :param pl_type: The payload type</span>
-<span class="sd">    :param should_compute_stats: Whether or not payload stats should be calculated.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">interleaved</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">interleave_arrays</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">reader_utils</span><span class="o">.</span><span class="n">to_array</span><span class="p">,</span> <span class="n">payloads</span><span class="p">)))</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">set_payload</span><span class="p">(</span><span class="n">interleaved</span><span class="p">,</span> <span class="n">pl_type</span><span class="p">,</span> <span class="n">should_compute_stats</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def set_interleaved_payload(self,
+                            payloads: typing.List[typing.Union[typing.List, numpy.ndarray]],
+                            pl_type: constants.PayloadType,
+                            should_compute_stats: bool = True):
+    """
+    Interleaves multiple payloads together and sets the interleaved payload.
+    :param payloads: Payloads of the same length to be interleaved.
+    :param pl_type: The payload type
+    :param should_compute_stats: Whether or not payload stats should be calculated.
+    """
+    interleaved = reader_utils.interleave_arrays(list(map(reader_utils.to_array, payloads)))
+    self.set_payload(interleaved, pl_type, should_compute_stats)
+</code></pre>
   </div>
 </div>
 
@@ -1759,17 +1671,16 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_metadata', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_metadata" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    sets the metadata</span>
-<span class="sd">    :param data: metadata as list of strings</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">metadata</span><span class="p">[:]</span>
-    <span class="k">for</span> <span class="n">meta</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">repeated_to_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def set_metadata(self, data: typing.List[str]):
+    """
+    sets the metadata
+    :param data: metadata as list of strings
+    """
+    del self.protobuf_channel.metadata[:]
+    for meta in data:
+        self.protobuf_channel.metadata.append(meta)
+    self.metadata = reader_utils.repeated_to_list(self.protobuf_channel.metadata)
+</code></pre>
   </div>
 </div>
 
@@ -1791,55 +1702,54 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_payload', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_payload" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                <span class="n">payload_values</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">],</span>
-                <span class="n">pl_type</span><span class="p">:</span> <span class="n">constants</span><span class="o">.</span><span class="n">PayloadType</span><span class="p">,</span>
-                <span class="n">should_compute_stats</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    sets the payload to an interleaved channel with step number of arrays interleaved together.</span>
-<span class="sd">    :param should_compute_stats: Whether the statistics should be computed or not (optional default to True)</span>
-<span class="sd">    :param payload_values: Interleaved payload values</span>
-<span class="sd">    :param pl_type: payload type</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># if len(payload_values) &lt; 1:</span>
-    <span class="c1">#     raise exceptions.ReaderException(&quot;Channel must not be empty and number of arrays must not be less than</span>
-    <span class="c1">#     1.&quot;)</span>
-    <span class="c1"># Convert to numpy array is necessary</span>
-    <span class="n">payload_values</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">to_array</span><span class="p">(</span><span class="n">payload_values</span><span class="p">)</span>
-    <span class="c1"># clear all other payloads</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">byte_payload</span><span class="o">.</span><span class="n">ClearField</span><span class="p">(</span><span class="s2">&quot;payload&quot;</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">uint32_payload</span><span class="o">.</span><span class="n">ClearField</span><span class="p">(</span><span class="s2">&quot;payload&quot;</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">uint64_payload</span><span class="o">.</span><span class="n">ClearField</span><span class="p">(</span><span class="s2">&quot;payload&quot;</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">int32_payload</span><span class="o">.</span><span class="n">ClearField</span><span class="p">(</span><span class="s2">&quot;payload&quot;</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">int64_payload</span><span class="o">.</span><span class="n">ClearField</span><span class="p">(</span><span class="s2">&quot;payload&quot;</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">float32_payload</span><span class="o">.</span><span class="n">ClearField</span><span class="p">(</span><span class="s2">&quot;payload&quot;</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">float64_payload</span><span class="o">.</span><span class="n">ClearField</span><span class="p">(</span><span class="s2">&quot;payload&quot;</span><span class="p">)</span>
-    <span class="c1"># set the payload based on the type of data</span>
-    <span class="k">if</span> <span class="n">pl_type</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">PayloadType</span><span class="o">.</span><span class="n">BYTE_PAYLOAD</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">byte_payload</span><span class="o">.</span><span class="n">payload</span> <span class="o">=</span> <span class="n">payload_values</span>
-    <span class="k">elif</span> <span class="n">pl_type</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">PayloadType</span><span class="o">.</span><span class="n">UINT32_PAYLOAD</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">uint32_payload</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">payload_values</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">pl_type</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">PayloadType</span><span class="o">.</span><span class="n">UINT64_PAYLOAD</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">uint64_payload</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">payload_values</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">pl_type</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">PayloadType</span><span class="o">.</span><span class="n">INT32_PAYLOAD</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">int32_payload</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">payload_values</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">pl_type</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">PayloadType</span><span class="o">.</span><span class="n">INT64_PAYLOAD</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">int64_payload</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">payload_values</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">pl_type</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">PayloadType</span><span class="o">.</span><span class="n">FLOAT32_PAYLOAD</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">float32_payload</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">payload_values</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">pl_type</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">PayloadType</span><span class="o">.</span><span class="n">FLOAT64_PAYLOAD</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">float64_payload</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">payload_values</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unknown payload type to set.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">payload_values</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">payload</span> <span class="o">=</span> <span class="n">payload_values</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">payload</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">extract_payload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="p">)</span>
-        <span class="c1"># calculate the means, std devs, and medians</span>
-        <span class="k">if</span> <span class="n">should_compute_stats</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">update_stats</span><span class="p">()</span>
-</pre></div>
-
+    <pre><code>def set_payload(self,
+                payload_values: typing.Union[numpy.ndarray, typing.List],
+                pl_type: constants.PayloadType,
+                should_compute_stats=True):
+    """
+    sets the payload to an interleaved channel with step number of arrays interleaved together.
+    :param should_compute_stats: Whether the statistics should be computed or not (optional default to True)
+    :param payload_values: Interleaved payload values
+    :param pl_type: payload type
+    """
+    # if len(payload_values) < 1:
+    #     raise exceptions.ReaderException("Channel must not be empty and number of arrays must not be less than
+    #     1.")
+    # Convert to numpy array is necessary
+    payload_values = reader_utils.to_array(payload_values)
+    # clear all other payloads
+    self.protobuf_channel.byte_payload.ClearField("payload")
+    self.protobuf_channel.uint32_payload.ClearField("payload")
+    self.protobuf_channel.uint64_payload.ClearField("payload")
+    self.protobuf_channel.int32_payload.ClearField("payload")
+    self.protobuf_channel.int64_payload.ClearField("payload")
+    self.protobuf_channel.float32_payload.ClearField("payload")
+    self.protobuf_channel.float64_payload.ClearField("payload")
+    # set the payload based on the type of data
+    if pl_type == constants.PayloadType.BYTE_PAYLOAD:
+        self.protobuf_channel.byte_payload.payload = payload_values
+    elif pl_type == constants.PayloadType.UINT32_PAYLOAD:
+        self.protobuf_channel.uint32_payload.payload.extend(payload_values)
+    elif pl_type == constants.PayloadType.UINT64_PAYLOAD:
+        self.protobuf_channel.uint64_payload.payload.extend(payload_values)
+    elif pl_type == constants.PayloadType.INT32_PAYLOAD:
+        self.protobuf_channel.int32_payload.payload.extend(payload_values)
+    elif pl_type == constants.PayloadType.INT64_PAYLOAD:
+        self.protobuf_channel.int64_payload.payload.extend(payload_values)
+    elif pl_type == constants.PayloadType.FLOAT32_PAYLOAD:
+        self.protobuf_channel.float32_payload.payload.extend(payload_values)
+    elif pl_type == constants.PayloadType.FLOAT64_PAYLOAD:
+        self.protobuf_channel.float64_payload.payload.extend(payload_values)
+    else:
+        raise TypeError("Unknown payload type to set.")
+    if len(payload_values) < 1:
+        self.payload = payload_values
+    else:
+        self.payload = reader_utils.extract_payload(self.protobuf_channel)
+        # calculate the means, std devs, and medians
+        if should_compute_stats:
+            self.update_stats()
+</code></pre>
   </div>
 </div>
 
@@ -1859,15 +1769,14 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_sensor_name', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_sensor_name" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_sensor_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    sets the sensor name</span>
-<span class="sd">    :param name: name of sensor</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">sensor_name</span> <span class="o">=</span> <span class="n">name</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">sensor_name</span> <span class="o">=</span> <span class="n">name</span>
-</pre></div>
-
+    <pre><code>def set_sensor_name(self, name: str):
+    """
+    sets the sensor name
+    :param name: name of sensor
+    """
+    self.sensor_name = name
+    self.protobuf_channel.sensor_name = name
+</code></pre>
   </div>
 </div>
 
@@ -1887,26 +1796,25 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_timestamps_microseconds_utc', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_timestamps_microseconds_utc" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_timestamps_microseconds_utc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamps</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    set the timestamps in microseconds from utc</span>
-<span class="sd">    :param timestamps: array of timestamps</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">timestamps</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">to_array</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span> <span class="o">=</span> <span class="n">timestamps</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">timestamps</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span> <span class="o">=</span> \
-            <span class="n">stat_utils</span><span class="o">.</span><span class="n">calc_utils_timeseries</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">sample_interval_std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_std</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">sample_interval_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_mean</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">sample_interval_median</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_interval_median</span>
-</pre></div>
-
+    <pre><code>def set_timestamps_microseconds_utc(self, timestamps: typing.Union[typing.List[int], numpy.ndarray]):
+    """
+    set the timestamps in microseconds from utc
+    :param timestamps: array of timestamps
+    """
+    timestamps = reader_utils.to_array(timestamps)
+    self.timestamps_microseconds_utc = timestamps
+    self.protobuf_channel.timestamps_microseconds_utc[:] = timestamps
+    if len(timestamps) > 0:
+        self.sample_interval_std, self.sample_interval_mean, self.sample_interval_median = \
+            stat_utils.calc_utils_timeseries(timestamps)
+    else:
+        self.sample_interval_mean = 0.0
+        self.sample_interval_median = 0.0
+        self.sample_interval_std = 0.0
+    self.protobuf_channel.sample_interval_std = self.sample_interval_std
+    self.protobuf_channel.sample_interval_mean = self.sample_interval_mean
+    self.protobuf_channel.sample_interval_median = self.sample_interval_median
+</code></pre>
   </div>
 </div>
 
@@ -1925,25 +1833,24 @@ corresponding timestamps for each sample.</p>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.update_stats', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.update_stats" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">update_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    updates mean, std and median for all values</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">channel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload</span>
-    <span class="n">step</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_types</span><span class="p">)</span>
-    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">value_means</span><span class="p">[:]</span>
-    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">value_stds</span><span class="p">[:]</span>
-    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">value_medians</span><span class="p">[:]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">step</span><span class="p">):</span>
-        <span class="n">std</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">median</span> <span class="o">=</span> <span class="n">stat_utils</span><span class="o">.</span><span class="n">calc_utils</span><span class="p">(</span><span class="n">reader_utils</span><span class="o">.</span><span class="n">deinterleave_array</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">step</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">value_means</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">value_stds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">std</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">value_medians</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">median</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">value_stds</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">repeated_to_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">value_stds</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">value_means</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">repeated_to_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">value_means</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">value_medians</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">repeated_to_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protobuf_channel</span><span class="o">.</span><span class="n">value_medians</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def update_stats(self):
+    """
+    updates mean, std and median for all values
+    """
+    channel = self.payload
+    step = len(self.channel_types)
+    del self.protobuf_channel.value_means[:]
+    del self.protobuf_channel.value_stds[:]
+    del self.protobuf_channel.value_medians[:]
+    for i in range(step):
+        std, mean, median = stat_utils.calc_utils(reader_utils.deinterleave_array(channel, i, step))
+        self.protobuf_channel.value_means.append(mean)
+        self.protobuf_channel.value_stds.append(std)
+        self.protobuf_channel.value_medians.append(median)
+    self.value_stds = reader_utils.repeated_to_array(self.protobuf_channel.value_stds)
+    self.value_means = reader_utils.repeated_to_array(self.protobuf_channel.value_means)
+    self.value_medians = reader_utils.repeated_to_array(self.protobuf_channel.value_medians)
+</code></pre>
   </div>
 </div>
 

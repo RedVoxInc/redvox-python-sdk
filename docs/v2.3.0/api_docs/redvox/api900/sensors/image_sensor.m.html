@@ -851,77 +851,6 @@ table {
 
   </style>
 
-  <style type="text/css">
-  .codehilite .hll { background-color: #ffffcc }
-.codehilite  { background: #f8f8f8; }
-.codehilite .c { color: #408080; font-style: italic } /* Comment */
-.codehilite .err { border: 1px solid #FF0000 } /* Error */
-.codehilite .k { color: #008000; font-weight: bold } /* Keyword */
-.codehilite .o { color: #666666 } /* Operator */
-.codehilite .ch { color: #408080; font-style: italic } /* Comment.Hashbang */
-.codehilite .cm { color: #408080; font-style: italic } /* Comment.Multiline */
-.codehilite .cp { color: #BC7A00 } /* Comment.Preproc */
-.codehilite .cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
-.codehilite .c1 { color: #408080; font-style: italic } /* Comment.Single */
-.codehilite .cs { color: #408080; font-style: italic } /* Comment.Special */
-.codehilite .gd { color: #A00000 } /* Generic.Deleted */
-.codehilite .ge { font-style: italic } /* Generic.Emph */
-.codehilite .gr { color: #FF0000 } /* Generic.Error */
-.codehilite .gh { color: #000080; font-weight: bold } /* Generic.Heading */
-.codehilite .gi { color: #00A000 } /* Generic.Inserted */
-.codehilite .go { color: #888888 } /* Generic.Output */
-.codehilite .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
-.codehilite .gs { font-weight: bold } /* Generic.Strong */
-.codehilite .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.codehilite .gt { color: #0044DD } /* Generic.Traceback */
-.codehilite .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
-.codehilite .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
-.codehilite .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
-.codehilite .kp { color: #008000 } /* Keyword.Pseudo */
-.codehilite .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
-.codehilite .kt { color: #B00040 } /* Keyword.Type */
-.codehilite .m { color: #666666 } /* Literal.Number */
-.codehilite .s { color: #BA2121 } /* Literal.String */
-.codehilite .na { color: #7D9029 } /* Name.Attribute */
-.codehilite .nb { color: #008000 } /* Name.Builtin */
-.codehilite .nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.codehilite .no { color: #880000 } /* Name.Constant */
-.codehilite .nd { color: #AA22FF } /* Name.Decorator */
-.codehilite .ni { color: #999999; font-weight: bold } /* Name.Entity */
-.codehilite .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
-.codehilite .nf { color: #0000FF } /* Name.Function */
-.codehilite .nl { color: #A0A000 } /* Name.Label */
-.codehilite .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
-.codehilite .nt { color: #008000; font-weight: bold } /* Name.Tag */
-.codehilite .nv { color: #19177C } /* Name.Variable */
-.codehilite .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.codehilite .w { color: #bbbbbb } /* Text.Whitespace */
-.codehilite .mb { color: #666666 } /* Literal.Number.Bin */
-.codehilite .mf { color: #666666 } /* Literal.Number.Float */
-.codehilite .mh { color: #666666 } /* Literal.Number.Hex */
-.codehilite .mi { color: #666666 } /* Literal.Number.Integer */
-.codehilite .mo { color: #666666 } /* Literal.Number.Oct */
-.codehilite .sa { color: #BA2121 } /* Literal.String.Affix */
-.codehilite .sb { color: #BA2121 } /* Literal.String.Backtick */
-.codehilite .sc { color: #BA2121 } /* Literal.String.Char */
-.codehilite .dl { color: #BA2121 } /* Literal.String.Delimiter */
-.codehilite .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
-.codehilite .s2 { color: #BA2121 } /* Literal.String.Double */
-.codehilite .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
-.codehilite .sh { color: #BA2121 } /* Literal.String.Heredoc */
-.codehilite .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
-.codehilite .sx { color: #008000 } /* Literal.String.Other */
-.codehilite .sr { color: #BB6688 } /* Literal.String.Regex */
-.codehilite .s1 { color: #BA2121 } /* Literal.String.Single */
-.codehilite .ss { color: #19177C } /* Literal.String.Symbol */
-.codehilite .bp { color: #008000 } /* Name.Builtin.Pseudo */
-.codehilite .fm { color: #0000FF } /* Name.Function.Magic */
-.codehilite .vc { color: #19177C } /* Name.Variable.Class */
-.codehilite .vg { color: #19177C } /* Name.Variable.Global */
-.codehilite .vi { color: #19177C } /* Name.Variable.Instance */
-.codehilite .vm { color: #19177C } /* Name.Variable.Magic */
-.codehilite .il { color: #666666 } /* Literal.Number.Integer.Long */
-  </style>
 
   <style type="text/css">
   
@@ -1094,124 +1023,123 @@ table {
   
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor" class="source">
-    <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module contains classes and methods for working with image sensors.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+    <pre><code>"""
+This module contains classes and methods for working with image sensors.
+"""
 
-<span class="kn">import</span> <span class="nn">typing</span>
+import typing
 
-<span class="kn">import</span> <span class="nn">numpy</span>
+import numpy
 
-<span class="kn">import</span> <span class="nn">redvox.api900.lib.api900_pb2</span> <span class="kn">as</span> <span class="nn">api900_pb2</span>
-<span class="kn">from</span> <span class="nn">redvox.api900.sensors.unevenly_sampled_channel</span> <span class="kn">import</span> <span class="n">UnevenlySampledChannel</span>
-<span class="kn">from</span> <span class="nn">redvox.api900.sensors.unevenly_sampled_sensor</span> <span class="kn">import</span> <span class="n">UnevenlySampledSensor</span>
+import redvox.api900.lib.api900_pb2 as api900_pb2
+from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
+from redvox.api900.sensors.unevenly_sampled_sensor import UnevenlySampledSensor
 
 
-<span class="k">class</span> <span class="nc">ImageSensor</span><span class="p">(</span><span class="n">UnevenlySampledSensor</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;High-level wrapper around image channels.&quot;&quot;&quot;</span>
+class ImageSensor(UnevenlySampledSensor):
+    """High-level wrapper around image channels."""
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unevenly_sampled_channel</span><span class="p">:</span> <span class="n">UnevenlySampledChannel</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes this ImageSensor.</span>
-<span class="sd">        :param unevenly_sampled_channel: The image channel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">unevenly_sampled_channel</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_channel_types</span><span class="p">([</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">IMAGE</span><span class="p">])</span>
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+        """
+        Initializes this ImageSensor.
+        :param unevenly_sampled_channel: The image channel.
+        """
+        super().__init__(unevenly_sampled_channel)
+        self._unevenly_sampled_channel.set_channel_types([api900_pb2.IMAGE])
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_offsets</span><span class="p">()</span>
-        <span class="sd">&quot;&quot;&quot;A list of image byte offsets into the payload of this sensor channel.&quot;&quot;&quot;</span>
+        self._image_offsets: typing.List[int] = self.parse_offsets()
+        """A list of image byte offsets into the payload of this sensor channel."""
 
-    <span class="k">def</span> <span class="nf">parse_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses the metadata of this channel to extract the image byte offsets into the payload.</span>
-<span class="sd">        :return: A list of image byte offsets.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata_as_dict</span><span class="p">()</span>
-        <span class="k">if</span> <span class="s2">&quot;images&quot;</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">:</span>
-            <span class="n">offsets_line</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;[&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;]&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">offsets_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)))</span>
-            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">[]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[]</span>
+    def parse_offsets(self) -> typing.List[int]:
+        """
+        Parses the metadata of this channel to extract the image byte offsets into the payload.
+        :return: A list of image byte offsets.
+        """
+        meta = self.metadata_as_dict()
+        if "images" in meta:
+            offsets_line = meta["images"].replace("[", "").replace("]", "")
+            try:
+                return list(map(int, offsets_line.split(",")))
+            except ValueError:
+                return []
+        else:
+            return []
 
-    <span class="k">def</span> <span class="nf">image_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the byte offsets for each image in the payload.</span>
-<span class="sd">        :return: The byte offsets for each image in the payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span>
+    def image_offsets(self) -> typing.List[int]:
+        """
+        Returns the byte offsets for each image in the payload.
+        :return: The byte offsets for each image in the payload.
+        """
+        return self._image_offsets
 
-    <span class="k">def</span> <span class="nf">payload_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a numpy ndarray of uint8s representing this sensor&#39;s payload. This byte blob may contain multiple</span>
-<span class="sd">        images. The byte offset of each image should be stored in this channels metadata as images=&quot;[offset_0,</span>
-<span class="sd">        offset_1, ..., offset_n]&quot;.</span>
-<span class="sd">        :return: A numpy ndarray of floats representing this sensor&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">IMAGE</span><span class="p">)</span>
+    def payload_values(self) -> numpy.ndarray:
+        """
+        Returns a numpy ndarray of uint8s representing this sensor's payload. This byte blob may contain multiple
+        images. The byte offset of each image should be stored in this channels metadata as images="[offset_0,
+        offset_1, ..., offset_n]".
+        :return: A numpy ndarray of floats representing this sensor's payload.
+        """
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.IMAGE)
 
-    <span class="k">def</span> <span class="nf">num_images</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the number of images in this packet&#39;s image channel.</span>
-<span class="sd">        :return: The number of images in this packet&#39;s image channel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">)</span>
+    def num_images(self) -> int:
+        """
+        Returns the number of images in this packet's image channel.
+        :return: The number of images in this packet's image channel.
+        """
+        return len(self._image_offsets)
 
-    <span class="k">def</span> <span class="nf">get_image_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the bytes associated with an image at this channel&#39;s given image index.</span>
-<span class="sd">        :param idx: The image from this channel to retrieve (starting from 0).</span>
-<span class="sd">        :return: A numpy array of uint8s representing the bytes of a selected image.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;idx must be between 0 and the total number of images available in this packet </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
-                               <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">()))</span>
+    def get_image_bytes(self, idx: int) -> numpy.ndarray:
+        """
+        Return the bytes associated with an image at this channel's given image index.
+        :param idx: The image from this channel to retrieve (starting from 0).
+        :return: A numpy array of uint8s representing the bytes of a selected image.
+        """
+        if idx < 0 or idx >= self.num_images():
+            raise RuntimeError("idx must be between 0 and the total number of images available in this packet %s" %
+                               str(self.num_images()))
 
-        <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload_values</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">[</span><span class="n">idx</span><span class="p">]:]</span>
+        if idx == self.num_images() - 1:
+            return self.payload_values()[self._image_offsets[idx]:]
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload_values</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">[</span><span class="n">idx</span><span class="p">]:</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span>
+        return self.payload_values()[self._image_offsets[idx]:self._image_offsets[idx + 1]]
 
-    <span class="k">def</span> <span class="nf">write_image_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Writes an image to a file with a given file name.</span>
-<span class="sd">        :param idx: The index of the image in this channel (starting at 0).</span>
-<span class="sd">        :param path: The full path and file name to save this image as.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">get_image_bytes</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    def write_image_to_file(self, idx: int, path: str):
+        """
+        Writes an image to a file with a given file name.
+        :param idx: The index of the image in this channel (starting at 0).
+        :param path: The full path and file name to save this image as.
+        """
+        self.get_image_bytes(idx).tofile(path)
 
-    <span class="k">def</span> <span class="nf">default_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the default file name for the image at the given index by using the timestamp of the image.</span>
-<span class="sd">        :param idx: The index of the image in this channel (starting at 0).</span>
-<span class="sd">        :return: A default filename of the format timestamp.jpg.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;{}.jpg&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">()[</span><span class="n">idx</span><span class="p">])</span>
+    def default_filename(self, idx: int) -> str:
+        """
+        Returns the default file name for the image at the given index by using the timestamp of the image.
+        :param idx: The index of the image in this channel (starting at 0).
+        :return: A default filename of the format timestamp.jpg.
+        """
+        return "{}.jpg".format(self.timestamps_microseconds_utc()[idx])
 
-    <span class="k">def</span> <span class="nf">write_all_images_to_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write all images in this packet to the provided directory using default filenames.</span>
-<span class="sd">        :param directory: The directory to write the images to.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">()):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">write_image_to_file</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s2">&quot;{}/{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_filename</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
+    def write_all_images_to_directory(self, directory: str = "."):
+        """
+        Write all images in this packet to the provided directory using default filenames.
+        :param directory: The directory to write the images to.
+        """
+        for i in range(self.num_images()):
+            self.write_image_to_file(i, "{}/{}".format(directory, self.default_filename(i)))
 
-    <span class="k">def</span> <span class="nf">get_image_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the byte offsets for each image in the payload.</span>
-<span class="sd">        :return: The byte offsets for each image in the payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span>
+    def get_image_offsets(self) -> typing.List[int]:
+        """
+        Returns the byte offsets for each image in the payload.
+        :return: The byte offsets for each image in the payload.
+        """
+        return self._image_offsets
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Provide image information in str of this instance&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;{}</span><span class="se">\n</span><span class="s2">num images: {}</span><span class="se">\n</span><span class="s2">byte offsets: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="p">,</span>
-                                                             <span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">(),</span>
-                                                             <span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">)</span>
-</pre></div>
-
+    def __str__(self):
+        """Provide image information in str of this instance"""
+        return "{}\nnum images: {}\nbyte offsets: {}".format(self._unevenly_sampled_channel,
+                                                             self.num_images(),
+                                                             self._image_offsets)
+</code></pre>
   </div>
 
   </header>
@@ -1229,111 +1157,110 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">ImageSensor</span><span class="p">(</span><span class="n">UnevenlySampledSensor</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;High-level wrapper around image channels.&quot;&quot;&quot;</span>
+    <pre><code>class ImageSensor(UnevenlySampledSensor):
+    """High-level wrapper around image channels."""
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unevenly_sampled_channel</span><span class="p">:</span> <span class="n">UnevenlySampledChannel</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes this ImageSensor.</span>
-<span class="sd">        :param unevenly_sampled_channel: The image channel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">unevenly_sampled_channel</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_channel_types</span><span class="p">([</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">IMAGE</span><span class="p">])</span>
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+        """
+        Initializes this ImageSensor.
+        :param unevenly_sampled_channel: The image channel.
+        """
+        super().__init__(unevenly_sampled_channel)
+        self._unevenly_sampled_channel.set_channel_types([api900_pb2.IMAGE])
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_offsets</span><span class="p">()</span>
-        <span class="sd">&quot;&quot;&quot;A list of image byte offsets into the payload of this sensor channel.&quot;&quot;&quot;</span>
+        self._image_offsets: typing.List[int] = self.parse_offsets()
+        """A list of image byte offsets into the payload of this sensor channel."""
 
-    <span class="k">def</span> <span class="nf">parse_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parses the metadata of this channel to extract the image byte offsets into the payload.</span>
-<span class="sd">        :return: A list of image byte offsets.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata_as_dict</span><span class="p">()</span>
-        <span class="k">if</span> <span class="s2">&quot;images&quot;</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">:</span>
-            <span class="n">offsets_line</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;[&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;]&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">offsets_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)))</span>
-            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">[]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[]</span>
+    def parse_offsets(self) -> typing.List[int]:
+        """
+        Parses the metadata of this channel to extract the image byte offsets into the payload.
+        :return: A list of image byte offsets.
+        """
+        meta = self.metadata_as_dict()
+        if "images" in meta:
+            offsets_line = meta["images"].replace("[", "").replace("]", "")
+            try:
+                return list(map(int, offsets_line.split(",")))
+            except ValueError:
+                return []
+        else:
+            return []
 
-    <span class="k">def</span> <span class="nf">image_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the byte offsets for each image in the payload.</span>
-<span class="sd">        :return: The byte offsets for each image in the payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span>
+    def image_offsets(self) -> typing.List[int]:
+        """
+        Returns the byte offsets for each image in the payload.
+        :return: The byte offsets for each image in the payload.
+        """
+        return self._image_offsets
 
-    <span class="k">def</span> <span class="nf">payload_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a numpy ndarray of uint8s representing this sensor&#39;s payload. This byte blob may contain multiple</span>
-<span class="sd">        images. The byte offset of each image should be stored in this channels metadata as images=&quot;[offset_0,</span>
-<span class="sd">        offset_1, ..., offset_n]&quot;.</span>
-<span class="sd">        :return: A numpy ndarray of floats representing this sensor&#39;s payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">IMAGE</span><span class="p">)</span>
+    def payload_values(self) -> numpy.ndarray:
+        """
+        Returns a numpy ndarray of uint8s representing this sensor's payload. This byte blob may contain multiple
+        images. The byte offset of each image should be stored in this channels metadata as images="[offset_0,
+        offset_1, ..., offset_n]".
+        :return: A numpy ndarray of floats representing this sensor's payload.
+        """
+        return self._unevenly_sampled_channel.get_payload(api900_pb2.IMAGE)
 
-    <span class="k">def</span> <span class="nf">num_images</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the number of images in this packet&#39;s image channel.</span>
-<span class="sd">        :return: The number of images in this packet&#39;s image channel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">)</span>
+    def num_images(self) -> int:
+        """
+        Returns the number of images in this packet's image channel.
+        :return: The number of images in this packet's image channel.
+        """
+        return len(self._image_offsets)
 
-    <span class="k">def</span> <span class="nf">get_image_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the bytes associated with an image at this channel&#39;s given image index.</span>
-<span class="sd">        :param idx: The image from this channel to retrieve (starting from 0).</span>
-<span class="sd">        :return: A numpy array of uint8s representing the bytes of a selected image.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;idx must be between 0 and the total number of images available in this packet </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
-                               <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">()))</span>
+    def get_image_bytes(self, idx: int) -> numpy.ndarray:
+        """
+        Return the bytes associated with an image at this channel's given image index.
+        :param idx: The image from this channel to retrieve (starting from 0).
+        :return: A numpy array of uint8s representing the bytes of a selected image.
+        """
+        if idx < 0 or idx >= self.num_images():
+            raise RuntimeError("idx must be between 0 and the total number of images available in this packet %s" %
+                               str(self.num_images()))
 
-        <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload_values</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">[</span><span class="n">idx</span><span class="p">]:]</span>
+        if idx == self.num_images() - 1:
+            return self.payload_values()[self._image_offsets[idx]:]
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload_values</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">[</span><span class="n">idx</span><span class="p">]:</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span>
+        return self.payload_values()[self._image_offsets[idx]:self._image_offsets[idx + 1]]
 
-    <span class="k">def</span> <span class="nf">write_image_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Writes an image to a file with a given file name.</span>
-<span class="sd">        :param idx: The index of the image in this channel (starting at 0).</span>
-<span class="sd">        :param path: The full path and file name to save this image as.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">get_image_bytes</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    def write_image_to_file(self, idx: int, path: str):
+        """
+        Writes an image to a file with a given file name.
+        :param idx: The index of the image in this channel (starting at 0).
+        :param path: The full path and file name to save this image as.
+        """
+        self.get_image_bytes(idx).tofile(path)
 
-    <span class="k">def</span> <span class="nf">default_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the default file name for the image at the given index by using the timestamp of the image.</span>
-<span class="sd">        :param idx: The index of the image in this channel (starting at 0).</span>
-<span class="sd">        :return: A default filename of the format timestamp.jpg.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;{}.jpg&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">()[</span><span class="n">idx</span><span class="p">])</span>
+    def default_filename(self, idx: int) -> str:
+        """
+        Returns the default file name for the image at the given index by using the timestamp of the image.
+        :param idx: The index of the image in this channel (starting at 0).
+        :return: A default filename of the format timestamp.jpg.
+        """
+        return "{}.jpg".format(self.timestamps_microseconds_utc()[idx])
 
-    <span class="k">def</span> <span class="nf">write_all_images_to_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Write all images in this packet to the provided directory using default filenames.</span>
-<span class="sd">        :param directory: The directory to write the images to.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">()):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">write_image_to_file</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s2">&quot;{}/{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_filename</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
+    def write_all_images_to_directory(self, directory: str = "."):
+        """
+        Write all images in this packet to the provided directory using default filenames.
+        :param directory: The directory to write the images to.
+        """
+        for i in range(self.num_images()):
+            self.write_image_to_file(i, "{}/{}".format(directory, self.default_filename(i)))
 
-    <span class="k">def</span> <span class="nf">get_image_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the byte offsets for each image in the payload.</span>
-<span class="sd">        :return: The byte offsets for each image in the payload.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span>
+    def get_image_offsets(self) -> typing.List[int]:
+        """
+        Returns the byte offsets for each image in the payload.
+        :return: The byte offsets for each image in the payload.
+        """
+        return self._image_offsets
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Provide image information in str of this instance&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;{}</span><span class="se">\n</span><span class="s2">num images: {}</span><span class="se">\n</span><span class="s2">byte offsets: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="p">,</span>
-                                                             <span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">(),</span>
-                                                             <span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">)</span>
-</pre></div>
-
+    def __str__(self):
+        """Provide image information in str of this instance"""
+        return "{}\nnum images: {}\nbyte offsets: {}".format(self._unevenly_sampled_channel,
+                                                             self.num_images(),
+                                                             self._image_offsets)
+</code></pre>
   </div>
 </div>
 
@@ -1360,17 +1287,16 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.__init__', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.__init__" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unevenly_sampled_channel</span><span class="p">:</span> <span class="n">UnevenlySampledChannel</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Initializes this ImageSensor.</span>
-<span class="sd">    :param unevenly_sampled_channel: The image channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">unevenly_sampled_channel</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_channel_types</span><span class="p">([</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">IMAGE</span><span class="p">])</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_offsets</span><span class="p">()</span>
-    <span class="sd">&quot;&quot;&quot;A list of image byte offsets into the payload of this sensor channel.&quot;&quot;&quot;</span>
-</pre></div>
-
+    <pre><code>def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel = None):
+    """
+    Initializes this ImageSensor.
+    :param unevenly_sampled_channel: The image channel.
+    """
+    super().__init__(unevenly_sampled_channel)
+    self._unevenly_sampled_channel.set_channel_types([api900_pb2.IMAGE])
+    self._image_offsets: typing.List[int] = self.parse_offsets()
+    """A list of image byte offsets into the payload of this sensor channel."""
+</code></pre>
   </div>
 </div>
 
@@ -1391,15 +1317,14 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.default_filename', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.default_filename" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">default_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the default file name for the image at the given index by using the timestamp of the image.</span>
-<span class="sd">    :param idx: The index of the image in this channel (starting at 0).</span>
-<span class="sd">    :return: A default filename of the format timestamp.jpg.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="s2">&quot;{}.jpg&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">()[</span><span class="n">idx</span><span class="p">])</span>
-</pre></div>
-
+    <pre><code>def default_filename(self, idx: int) -> str:
+    """
+    Returns the default file name for the image at the given index by using the timestamp of the image.
+    :param idx: The index of the image in this channel (starting at 0).
+    :return: A default filename of the format timestamp.jpg.
+    """
+    return "{}.jpg".format(self.timestamps_microseconds_utc()[idx])
+</code></pre>
   </div>
 </div>
 
@@ -1420,27 +1345,26 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.diff', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.diff" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s1">&#39;UnevenlySampledSensor&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compares two unevenly sampled sensors for differences.</span>
-<span class="sd">    :param other: The other sensor to compare with.</span>
-<span class="sd">    :return: A list odifferences or an empty list if there are none.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">diffs</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tuple2</span><span class="p">:</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">tuple2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tuple2</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="p">[</span>
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_channel_type_names</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">_get_channel_type_names</span><span class="p">()),</span>
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sensor_name</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">sensor_name</span><span class="p">()),</span>
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span><span class="p">()),</span>
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">payload_type</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">payload_type</span><span class="p">()),</span>
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">metadata</span><span class="p">()),</span>
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">payload</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">payload</span><span class="p">)</span>
-    <span class="p">])</span>
-    <span class="c1"># Filter only out only the differences</span>
-    <span class="n">diffs</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tuple2</span><span class="p">:</span> <span class="n">tuple2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">diffs</span><span class="p">)</span>
-    <span class="c1"># Extract the difference string</span>
-    <span class="n">diffs</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tuple2</span><span class="p">:</span> <span class="n">tuple2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">diffs</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">diffs</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def diff(self, other: 'UnevenlySampledSensor') -> typing.List[str]:
+    """
+    Compares two unevenly sampled sensors for differences.
+    :param other: The other sensor to compare with.
+    :return: A list odifferences or an empty list if there are none.
+    """
+    diffs = map(lambda tuple2: reader_utils.diff(tuple2[0], tuple2[1]), [
+        (self._get_channel_type_names(), other._get_channel_type_names()),
+        (self.sensor_name(), other.sensor_name()),
+        (self.timestamps_microseconds_utc(), other.timestamps_microseconds_utc()),
+        (self.payload_type(), other.payload_type()),
+        (self.metadata(), other.metadata()),
+        (self._unevenly_sampled_channel.payload, other._unevenly_sampled_channel.payload)
+    ])
+    # Filter only out only the differences
+    diffs = filter(lambda tuple2: tuple2[0], diffs)
+    # Extract the difference string
+    diffs = map(lambda tuple2: tuple2[1], diffs)
+    return list(diffs)
+</code></pre>
   </div>
 </div>
 
@@ -1461,20 +1385,19 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.get_image_bytes', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.get_image_bytes" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_image_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return the bytes associated with an image at this channel&#39;s given image index.</span>
-<span class="sd">    :param idx: The image from this channel to retrieve (starting from 0).</span>
-<span class="sd">    :return: A numpy array of uint8s representing the bytes of a selected image.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">():</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;idx must be between 0 and the total number of images available in this packet </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
-                           <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">()))</span>
-    <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload_values</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">[</span><span class="n">idx</span><span class="p">]:]</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload_values</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">[</span><span class="n">idx</span><span class="p">]:</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span>
-</pre></div>
-
+    <pre><code>def get_image_bytes(self, idx: int) -> numpy.ndarray:
+    """
+    Return the bytes associated with an image at this channel's given image index.
+    :param idx: The image from this channel to retrieve (starting from 0).
+    :return: A numpy array of uint8s representing the bytes of a selected image.
+    """
+    if idx < 0 or idx >= self.num_images():
+        raise RuntimeError("idx must be between 0 and the total number of images available in this packet %s" %
+                           str(self.num_images()))
+    if idx == self.num_images() - 1:
+        return self.payload_values()[self._image_offsets[idx]:]
+    return self.payload_values()[self._image_offsets[idx]:self._image_offsets[idx + 1]]
+</code></pre>
   </div>
 </div>
 
@@ -1494,14 +1417,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.get_image_offsets', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.get_image_offsets" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_image_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the byte offsets for each image in the payload.</span>
-<span class="sd">    :return: The byte offsets for each image in the payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span>
-</pre></div>
-
+    <pre><code>def get_image_offsets(self) -> typing.List[int]:
+    """
+    Returns the byte offsets for each image in the payload.
+    :return: The byte offsets for each image in the payload.
+    """
+    return self._image_offsets
+</code></pre>
   </div>
 </div>
 
@@ -1521,14 +1443,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.image_offsets', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.image_offsets" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">image_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the byte offsets for each image in the payload.</span>
-<span class="sd">    :return: The byte offsets for each image in the payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span>
-</pre></div>
-
+    <pre><code>def image_offsets(self) -> typing.List[int]:
+    """
+    Returns the byte offsets for each image in the payload.
+    :return: The byte offsets for each image in the payload.
+    """
+    return self._image_offsets
+</code></pre>
   </div>
 </div>
 
@@ -1548,14 +1469,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.metadata', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.metadata" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns this channel&#39;s metadata (if there is any) as a Python list.</span>
-<span class="sd">    :return: This channel&#39;s metadata (if there is any) as a Python list.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">metadata</span>
-</pre></div>
-
+    <pre><code>def metadata(self) -> typing.List[str]:
+    """
+    Returns this channel's metadata (if there is any) as a Python list.
+    :return: This channel's metadata (if there is any) as a Python list.
+    """
+    return self._unevenly_sampled_channel.metadata
+</code></pre>
   </div>
 </div>
 
@@ -1575,14 +1495,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.metadata_as_dict', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.metadata_as_dict" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">metadata_as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns this channel&#39;s metadata (if there is any) as a Python dictionary.</span>
-<span class="sd">    :return: This channel&#39;s metadata (if there is any) as a Python dictionary.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">get_metadata_as_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def metadata_as_dict(self) -> typing.Dict[str, str]:
+    """
+    Returns this channel's metadata (if there is any) as a Python dictionary.
+    :return: This channel's metadata (if there is any) as a Python dictionary.
+    """
+    return reader_utils.get_metadata_as_dict(self._unevenly_sampled_channel.metadata)
+</code></pre>
   </div>
 </div>
 
@@ -1602,14 +1521,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.num_images', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.num_images" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">num_images</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the number of images in this packet&#39;s image channel.</span>
-<span class="sd">    :return: The number of images in this packet&#39;s image channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_offsets</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def num_images(self) -> int:
+    """
+    Returns the number of images in this packet's image channel.
+    :return: The number of images in this packet's image channel.
+    """
+    return len(self._image_offsets)
+</code></pre>
   </div>
 </div>
 
@@ -1629,22 +1547,21 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.parse_offsets', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.parse_offsets" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">parse_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Parses the metadata of this channel to extract the image byte offsets into the payload.</span>
-<span class="sd">    :return: A list of image byte offsets.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata_as_dict</span><span class="p">()</span>
-    <span class="k">if</span> <span class="s2">&quot;images&quot;</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">:</span>
-        <span class="n">offsets_line</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;[&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;]&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">offsets_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)))</span>
-        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">[]</span>
-</pre></div>
-
+    <pre><code>def parse_offsets(self) -> typing.List[int]:
+    """
+    Parses the metadata of this channel to extract the image byte offsets into the payload.
+    :return: A list of image byte offsets.
+    """
+    meta = self.metadata_as_dict()
+    if "images" in meta:
+        offsets_line = meta["images"].replace("[", "").replace("]", "")
+        try:
+            return list(map(int, offsets_line.split(",")))
+        except ValueError:
+            return []
+    else:
+        return []
+</code></pre>
   </div>
 </div>
 
@@ -1664,14 +1581,13 @@ table {
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.payload_type', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.payload_type" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the internal protobuf payload type.</span>
-<span class="sd">    :return: The internal protobuf payload type.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload_type</span><span class="p">()</span>
-</pre></div>
-
+    <pre><code>def payload_type(self) -> str:
+    """
+    Returns the internal protobuf payload type.
+    :return: The internal protobuf payload type.
+    """
+    return self._unevenly_sampled_channel.get_payload_type()
+</code></pre>
   </div>
 </div>
 
@@ -1693,16 +1609,15 @@ offset_1, ..., offset_n]".
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.payload_values', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.payload_values" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">payload_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a numpy ndarray of uint8s representing this sensor&#39;s payload. This byte blob may contain multiple</span>
-<span class="sd">    images. The byte offset of each image should be stored in this channels metadata as images=&quot;[offset_0,</span>
-<span class="sd">    offset_1, ..., offset_n]&quot;.</span>
-<span class="sd">    :return: A numpy ndarray of floats representing this sensor&#39;s payload.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">api900_pb2</span><span class="o">.</span><span class="n">IMAGE</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def payload_values(self) -> numpy.ndarray:
+    """
+    Returns a numpy ndarray of uint8s representing this sensor's payload. This byte blob may contain multiple
+    images. The byte offset of each image should be stored in this channels metadata as images="[offset_0,
+    offset_1, ..., offset_n]".
+    :return: A numpy ndarray of floats representing this sensor's payload.
+    """
+    return self._unevenly_sampled_channel.get_payload(api900_pb2.IMAGE)
+</code></pre>
   </div>
 </div>
 
@@ -1722,14 +1637,13 @@ offset_1, ..., offset_n]".
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.sample_interval_mean', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.sample_interval_mean" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">sample_interval_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the mean sample interval for this unevenly sampled sensor channel.</span>
-<span class="sd">    :return: The mean sample interval for this unevenly sampled sensor channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">sample_interval_mean</span>
-</pre></div>
-
+    <pre><code>def sample_interval_mean(self) -> float:
+    """
+    Returns the mean sample interval for this unevenly sampled sensor channel.
+    :return: The mean sample interval for this unevenly sampled sensor channel.
+    """
+    return self._unevenly_sampled_channel.sample_interval_mean
+</code></pre>
   </div>
 </div>
 
@@ -1749,14 +1663,13 @@ offset_1, ..., offset_n]".
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.sample_interval_median', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.sample_interval_median" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">sample_interval_median</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the median sample interval for this unevenly sampled sensor channel.</span>
-<span class="sd">    :return: The median sample interval for this unevenly sampled sensor channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">sample_interval_median</span>
-</pre></div>
-
+    <pre><code>def sample_interval_median(self) -> float:
+    """
+    Returns the median sample interval for this unevenly sampled sensor channel.
+    :return: The median sample interval for this unevenly sampled sensor channel.
+    """
+    return self._unevenly_sampled_channel.sample_interval_median
+</code></pre>
   </div>
 </div>
 
@@ -1776,14 +1689,13 @@ offset_1, ..., offset_n]".
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.sample_interval_std', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.sample_interval_std" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">sample_interval_std</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the standard deviation sample interval for this unevenly sampled sensor channel.</span>
-<span class="sd">    :return: The standard deviation sample interval for this unevenly sampled sensor channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">sample_interval_std</span>
-</pre></div>
-
+    <pre><code>def sample_interval_std(self) -> float:
+    """
+    Returns the standard deviation sample interval for this unevenly sampled sensor channel.
+    :return: The standard deviation sample interval for this unevenly sampled sensor channel.
+    """
+    return self._unevenly_sampled_channel.sample_interval_std
+</code></pre>
   </div>
 </div>
 
@@ -1803,14 +1715,13 @@ offset_1, ..., offset_n]".
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.sensor_name', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.sensor_name" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">sensor_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns the sensor name associated with this unevenly sampled channel.</span>
-<span class="sd">    :return: The sensor name associated with this unevenly sampled channel.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">sensor_name</span>
-</pre></div>
-
+    <pre><code>def sensor_name(self) -> str:
+    """
+    Returns the sensor name associated with this unevenly sampled channel.
+    :return: The sensor name associated with this unevenly sampled channel.
+    """
+    return self._unevenly_sampled_channel.sensor_name
+</code></pre>
   </div>
 </div>
 
@@ -1831,16 +1742,15 @@ offset_1, ..., offset_n]".
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.set_metadata', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.set_metadata" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;UnevenlySampledSensor&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    sets the metadata</span>
-<span class="sd">    :param data: metadata as list of strings</span>
-<span class="sd">    :return: An instance of the sensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="k">return</span> <span class="bp">self</span>
-</pre></div>
-
+    <pre><code>def set_metadata(self, data: typing.List[str]) -> 'UnevenlySampledSensor':
+    """
+    sets the metadata
+    :param data: metadata as list of strings
+    :return: An instance of the sensor.
+    """
+    self._unevenly_sampled_channel.set_metadata(data)
+    return self
+</code></pre>
   </div>
 </div>
 
@@ -1861,16 +1771,15 @@ offset_1, ..., offset_n]".
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.set_metadata_as_dict', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.set_metadata_as_dict" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_metadata_as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata_dict</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;UnevenlySampledSensor&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Sets the metadata using a dictionary.</span>
-<span class="sd">    :param metadata_dict: Metadata to set.</span>
-<span class="sd">    :return: An instance of itself.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">set_metadata</span><span class="p">(</span><span class="n">reader_utils</span><span class="o">.</span><span class="n">metadata_dict_to_list</span><span class="p">(</span><span class="n">metadata_dict</span><span class="p">))</span>
-    <span class="k">return</span> <span class="bp">self</span>
-</pre></div>
-
+    <pre><code>def set_metadata_as_dict(self, metadata_dict: typing.Dict[str, str]) -> 'UnevenlySampledSensor':
+    """
+    Sets the metadata using a dictionary.
+    :param metadata_dict: Metadata to set.
+    :return: An instance of itself.
+    """
+    self.set_metadata(reader_utils.metadata_dict_to_list(metadata_dict))
+    return self
+</code></pre>
   </div>
 </div>
 
@@ -1891,16 +1800,15 @@ offset_1, ..., offset_n]".
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.set_sensor_name', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.set_sensor_name" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_sensor_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;UnevenlySampledSensor&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Sets the sensor name</span>
-<span class="sd">    :param name: name of the sensor</span>
-<span class="sd">    :return: An instance of the sensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_sensor_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-    <span class="k">return</span> <span class="bp">self</span>
-</pre></div>
-
+    <pre><code>def set_sensor_name(self, name: str) -> 'UnevenlySampledSensor':
+    """
+    Sets the sensor name
+    :param name: name of the sensor
+    :return: An instance of the sensor.
+    """
+    self._unevenly_sampled_channel.set_sensor_name(name)
+    return self
+</code></pre>
   </div>
 </div>
 
@@ -1921,18 +1829,17 @@ offset_1, ..., offset_n]".
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.set_timestamps_microseconds_utc', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.set_timestamps_microseconds_utc" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_timestamps_microseconds_utc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamps</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span>
-        <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="s1">&#39;UnevenlySampledSensor&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    set the time stamps</span>
-<span class="sd">    :param timestamps: a list of ascending timestamps that associate with each sample value</span>
-<span class="sd">    :return: An instance of the sensor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">timestamps</span> <span class="o">=</span> <span class="n">reader_utils</span><span class="o">.</span><span class="n">to_array</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">set_timestamps_microseconds_utc</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
-    <span class="k">return</span> <span class="bp">self</span>
-</pre></div>
-
+    <pre><code>def set_timestamps_microseconds_utc(self, timestamps: typing.Union[
+        numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
+    """
+    set the time stamps
+    :param timestamps: a list of ascending timestamps that associate with each sample value
+    :return: An instance of the sensor.
+    """
+    timestamps = reader_utils.to_array(timestamps)
+    self._unevenly_sampled_channel.set_timestamps_microseconds_utc(timestamps)
+    return self
+</code></pre>
   </div>
 </div>
 
@@ -1952,14 +1859,13 @@ offset_1, ..., offset_n]".
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.timestamps_microseconds_utc', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.timestamps_microseconds_utc" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">timestamps_microseconds_utc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a list of ascending timestamps that associate with each sample value</span>
-<span class="sd">    :return: A list of ascending timestamps that associate with each sample value</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unevenly_sampled_channel</span><span class="o">.</span><span class="n">timestamps_microseconds_utc</span>
-</pre></div>
-
+    <pre><code>def timestamps_microseconds_utc(self) -> numpy.ndarray:
+    """
+    Returns a list of ascending timestamps that associate with each sample value
+    :return: A list of ascending timestamps that associate with each sample value
+    """
+    return self._unevenly_sampled_channel.timestamps_microseconds_utc
+</code></pre>
   </div>
 </div>
 
@@ -1979,15 +1885,14 @@ offset_1, ..., offset_n]".
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.write_all_images_to_directory', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.write_all_images_to_directory" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">write_all_images_to_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Write all images in this packet to the provided directory using default filenames.</span>
-<span class="sd">    :param directory: The directory to write the images to.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_images</span><span class="p">()):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">write_image_to_file</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s2">&quot;{}/{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_filename</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
-</pre></div>
-
+    <pre><code>def write_all_images_to_directory(self, directory: str = "."):
+    """
+    Write all images in this packet to the provided directory using default filenames.
+    :param directory: The directory to write the images to.
+    """
+    for i in range(self.num_images()):
+        self.write_image_to_file(i, "{}/{}".format(directory, self.default_filename(i)))
+</code></pre>
   </div>
 </div>
 
@@ -2008,15 +1913,14 @@ offset_1, ..., offset_n]".
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.sensors.image_sensor.ImageSensor.write_image_to_file', this);">Show source &equiv;</a></p>
   <div id="source-redvox.api900.sensors.image_sensor.ImageSensor.write_image_to_file" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">write_image_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Writes an image to a file with a given file name.</span>
-<span class="sd">    :param idx: The index of the image in this channel (starting at 0).</span>
-<span class="sd">    :param path: The full path and file name to save this image as.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">get_image_bytes</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-</pre></div>
-
+    <pre><code>def write_image_to_file(self, idx: int, path: str):
+    """
+    Writes an image to a file with a given file name.
+    :param idx: The index of the image in this channel (starting at 0).
+    :param path: The full path and file name to save this image as.
+    """
+    self.get_image_bytes(idx).tofile(path)
+</code></pre>
   </div>
 </div>
 
