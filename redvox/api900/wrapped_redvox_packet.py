@@ -53,12 +53,12 @@ class WrappedRedvoxPacket:
             """Protobuf api 900 redvox packet"""
 
             self._evenly_sampled_channels_field: typing.List[EvenlySampledChannel] = list(
-                map(EvenlySampledChannel, reader_utils.repeated_to_array(redvox_packet.evenly_sampled_channels)))
+                    map(EvenlySampledChannel, reader_utils.repeated_to_array(redvox_packet.evenly_sampled_channels)))
             """List of evenly sampled channels"""
 
             self._unevenly_sampled_channels_field: typing.List[UnevenlySampledChannel] = list(
-                map(UnevenlySampledChannel,
-                    reader_utils.repeated_to_array(redvox_packet.unevenly_sampled_channels)))
+                    map(UnevenlySampledChannel,
+                        reader_utils.repeated_to_array(redvox_packet.unevenly_sampled_channels)))
             """List of unevenly sampled channels"""
 
             self._metadata_list: typing.List[str] = reader_utils.repeated_to_list(redvox_packet.metadata)
@@ -103,10 +103,10 @@ class WrappedRedvoxPacket:
         """
         self._evenly_sampled_channels_field = list(map(EvenlySampledChannel,
                                                        reader_utils.repeated_to_array(
-                                                           self._redvox_packet.evenly_sampled_channels)))
+                                                               self._redvox_packet.evenly_sampled_channels)))
         self._unevenly_sampled_channels_field = list(map(UnevenlySampledChannel,
                                                          reader_utils.repeated_to_array(
-                                                             self._redvox_packet.unevenly_sampled_channels)))
+                                                                 self._redvox_packet.unevenly_sampled_channels)))
         self._channel_cache = {}
         for evenly_sampled_channel in self._evenly_sampled_channels_field:
             for channel_type in evenly_sampled_channel.channel_types:
@@ -760,6 +760,16 @@ class WrappedRedvoxPacket:
             if not channel.has_channel(api900_pb2.TIME_SYNCHRONIZATION):
                 channel.set_timestamps_microseconds_utc(channel.timestamps_microseconds_utc + time_delta)
 
+    def mach_time_zero(self) -> typing.Optional[int]:
+        """
+        Returns the mach time zero from the metadata if it exists.
+        :return: The mach time zero from the metadata if it exists.
+        """
+        try:
+            return int(self.metadata_as_dict()["machTimeZero"])
+        except (KeyError, ValueError):
+            return None
+
     # Sensor channels
     def has_microphone_sensor(self) -> bool:
         """
@@ -779,7 +789,7 @@ class WrappedRedvoxPacket:
         return None
 
     def set_microphone_sensor(self, microphone_sensor: typing.Optional[
-            _microphone_sensor.MicrophoneSensor]) -> 'WrappedRedvoxPacket':
+        _microphone_sensor.MicrophoneSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packets microphone sensor. A channel can be removed by passing in None.
         :param microphone_sensor: An optional instance of a microphone sensor.
@@ -810,7 +820,7 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", set_microphone_sensor)
     def set_microphone_channel(self, microphone_sensor: typing.Optional[
-            _microphone_sensor.MicrophoneSensor]) -> 'WrappedRedvoxPacket':
+        _microphone_sensor.MicrophoneSensor]) -> 'WrappedRedvoxPacket':
         """
         This method has been deprecated. See the sensor method equivalent.
         """
@@ -834,7 +844,7 @@ class WrappedRedvoxPacket:
         return None
 
     def set_barometer_sensor(self, barometer_sensor: typing.Optional[
-            _barometer_sensor.BarometerSensor]) -> 'WrappedRedvoxPacket':
+        _barometer_sensor.BarometerSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packets barometer sensor. A channel can be removed by passing in None.
         :param barometer_sensor: An optional instance of a barometer sensor.
@@ -865,7 +875,7 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", set_barometer_sensor)
     def set_barometer_channel(self, barometer_sensor: typing.Optional[
-            _barometer_sensor.BarometerSensor]) -> 'WrappedRedvoxPacket':
+        _barometer_sensor.BarometerSensor]) -> 'WrappedRedvoxPacket':
         """
         This method has been deprecated. See the sensor method equivalent.
         """
@@ -877,8 +887,8 @@ class WrappedRedvoxPacket:
         :return: If this packet has a location channel.
         """
         return (self._has_channels(
-            [api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED,
-             api900_pb2.ACCURACY]) or self._has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE]))
+                [api900_pb2.LATITUDE, api900_pb2.LONGITUDE, api900_pb2.ALTITUDE, api900_pb2.SPEED,
+                 api900_pb2.ACCURACY]) or self._has_channels([api900_pb2.LATITUDE, api900_pb2.LONGITUDE]))
 
     def location_sensor(self) -> typing.Optional[_location_sensor.LocationSensor]:
         """
@@ -937,7 +947,7 @@ class WrappedRedvoxPacket:
         """
         if self._has_channel(api900_pb2.TIME_SYNCHRONIZATION):
             ch = _time_synchronization_sensor.TimeSynchronizationSensor(
-                self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
+                    self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
             return len(ch.payload_values()) > 0
 
         return False
@@ -951,12 +961,12 @@ class WrappedRedvoxPacket:
         """
         if self.has_time_synchronization_sensor():
             return _time_synchronization_sensor.TimeSynchronizationSensor(
-                self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
+                    self._get_channel(api900_pb2.TIME_SYNCHRONIZATION))
 
         return None
 
     def set_time_synchronization_sensor(self, time_synchronization_sensor: typing.Optional[
-            _time_synchronization_sensor.TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
+        _time_synchronization_sensor.TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's time sync sensor. A channel can be removed by passing in None.
         :param time_synchronization_sensor: An optional instance of a time sync sensor.
@@ -988,7 +998,7 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", set_time_synchronization_sensor)
     def set_time_synchronization_channel(self, time_synchronization_sensor: typing.Optional[
-            _time_synchronization_sensor.TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
+        _time_synchronization_sensor.TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
         """
         This method has been deprecated. See the sensor method equivalent.
         """
@@ -1125,7 +1135,7 @@ class WrappedRedvoxPacket:
         return None
 
     def set_gyroscope_sensor(self, gyroscope_sensor: typing.Optional[
-            _gyroscope_sensor.GyroscopeSensor]) -> 'WrappedRedvoxPacket':
+        _gyroscope_sensor.GyroscopeSensor]) -> 'WrappedRedvoxPacket':
         """
         Sets this packet's gyroscope sensor. A channel can be removed by passing in None.
         :param gyroscope_sensor: An optional instance of a gyroscope sensor.
@@ -1156,7 +1166,7 @@ class WrappedRedvoxPacket:
 
     @deprecation.deprecated("2.0.0", set_gyroscope_sensor)
     def set_gyroscope_channel(self, gyroscope_sensor: typing.Optional[
-            _gyroscope_sensor.GyroscopeSensor]) -> 'WrappedRedvoxPacket':
+        _gyroscope_sensor.GyroscopeSensor]) -> 'WrappedRedvoxPacket':
         """
         This method has been deprecated. See the sensor method equivalent.
         """

@@ -6,6 +6,10 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+#### 2.4.0 (2019-10-8)
+
+* Add mach_time_zero accessor to WrappedRedvoxPackets.
+
 #### 2.3.0 (2019-9-25)
 
 * concat._identify_gaps now only checks for dropped data from sensors. It checks for timing continuity by ensuring that the gap between packets is no larger than a configurable amount for a given sample rate.
