@@ -242,7 +242,9 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
 
     if first_packet.has_time_synchronization_sensor():
         sensors = list(map(WrappedRedvoxPacket.time_synchronization_sensor, wrapped_redvox_packets))
-        sensors[0].set_payload_values(_concat_numpy(sensors, _time_synchronization_sensor.TimeSynchronizationSensor.payload_values)) \
+        sensors[0].set_payload_values(_concat_numpy(
+            sensors,
+            _time_synchronization_sensor.TimeSynchronizationSensor.payload_values)) \
             .set_metadata(_concat_lists(sensors, _time_synchronization_sensor.TimeSynchronizationSensor.metadata))
 
     if first_packet.has_magnetometer_sensor():
@@ -299,7 +301,8 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
     return first_packet
 
 
-def concat_wrapped_redvox_packets(wrapped_redvox_packets: typing.List[WrappedRedvoxPacket]) -> typing.List[WrappedRedvoxPacket]:
+def concat_wrapped_redvox_packets(wrapped_redvox_packets: typing.List[WrappedRedvoxPacket]) \
+        -> typing.List[WrappedRedvoxPacket]:
     """
     Concatenates multiple WrappedRedvoxPackets together by combining sensor timestamps, values, and metadata.
     :param wrapped_redvox_packets: Packets to concatenate.

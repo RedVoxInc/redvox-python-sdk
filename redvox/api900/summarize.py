@@ -108,8 +108,11 @@ class WrappedRedvoxPacketSummary:
 
 
 # Type vars for compose function.
+# pylint: disable=C0103
 X = typing.TypeVar("X")
+# pylint: disable=C0103
 Y = typing.TypeVar("Y")
+# pylint: disable=C0103
 Z = typing.TypeVar("Z")
 
 
