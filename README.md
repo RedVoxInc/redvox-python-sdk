@@ -6,9 +6,20 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.5.0 (2019-10-17)
+
+* Add top level getters and setters for accessing time synchronization metrics stored in RedVox Packet metadata.
+    * WrappedRedvoxPacket.best_latency(self) -> typing.Optional[float]
+    * WrappedRedvoxPacket.set_best_latency(self, best_latency: float) -> 'WrappedRedvoxPacket'
+    * WrappedRedvoxPacket.best_offset(self) -> typing.Optional[float]
+    * WrappedRedvoxPacket.set_best_offset(self, best_offset: float) -> 'WrappedRedvoxPacket'
+    * WrappedRedvoxPacket.is_synch_corrected(self) -> bool
+    * WrappedRedvoxPacket.set_is_synch_corrected(self, is_synch_corrected: bool) -> 'WrappedRedvoxPacket'
+
 #### 2.4.0 (2019-10-8)
 
 * Add mach_time_zero accessor to WrappedRedvoxPackets.
+    * WrappedRedvoxPacket.mach_time_zero(self) -> typing.Optional[int]
 
 #### 2.3.0 (2019-9-25)
 

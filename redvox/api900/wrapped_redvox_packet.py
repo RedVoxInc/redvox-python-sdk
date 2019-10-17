@@ -728,6 +728,12 @@ class WrappedRedvoxPacket:
         self.set_metadata(reader_utils.metadata_dict_to_list(metadata_dict))
         return self
 
+    def add_metadata(self, key: str, value: str) -> 'WrappedRedvoxPacket':
+        metadata = self.metadata_as_dict()
+        metadata[key] = value if isinstance(value, str) else str(value)
+        self.set_metadata_as_dict(metadata)
+        return self
+
     def start_timestamp_us_utc(self) -> int:
         """
         Returns the start timestamp of a WrappedRedvoxPacket.
@@ -769,6 +775,64 @@ class WrappedRedvoxPacket:
             return int(self.metadata_as_dict()["machTimeZero"])
         except (KeyError, ValueError):
             return None
+
+    def best_latency(self) -> typing.Optional[float]:
+        """
+        Returns the best latency from the metadata if it exists.
+        :return: The best latency from the metadata if it exists.
+        """
+        try:
+            return float(self.metadata_as_dict()["bestLatency"])
+        except (KeyError, ValueError):
+            return None
+
+    def set_best_latency(self, best_latency: float) -> 'WrappedRedvoxPacket':
+        """
+        Sets the best latency in the packet's metadata.
+        :param best_latency: The best latency to use.
+        :return: An instance of this wrapped packet.
+        """
+        return self.add_metadata("bestLatency", str(best_latency))
+
+    def best_offset(self) -> typing.Optional[float]:
+        """
+        Returns the best offset from the metadata if it exists.
+        :return: The best offset from the metadata if it exists.
+        """
+        try:
+            return float(self.metadata_as_dict()["bestOffset"])
+        except (KeyError, ValueError):
+            return None
+
+    def set_best_offset(self, best_offset: float) -> 'WrappedRedvoxPacket':
+        """
+        Sets the best offset in the packet's metadata.
+        :param best_offset: The best offset to use.
+        :return: An instance of this wrapped packet.
+        """
+        return self.add_metadata("bestOffset", str(best_offset))
+
+    def is_synch_corrected(self) -> bool:
+        """
+        Returns the isSynchCorrected value from the metadata if it exists.
+        :return: The isSynchCorrected value from the metadata if it exists.
+        """
+
+        def _parse_bool(s: str) -> bool:
+            return s == "true" or s == "True"
+
+        try:
+            return _parse_bool(self.metadata_as_dict()["isSynchCorrected"])
+        except (KeyError, ValueError):
+            return False
+
+    def set_is_synch_corrected(self, is_synch_corrected: bool) -> 'WrappedRedvoxPacket':
+        """
+        Sets the is_synch_corrected field in the packet's metadata.
+        :param is_synch_corrected: The is_synch_corrected field to use.
+        :return: An instance of this wrapped packet.
+        """
+        return self.add_metadata("isSynchCorrected", "true" if is_synch_corrected else "false")
 
     # Sensor channels
     def has_microphone_sensor(self) -> bool:

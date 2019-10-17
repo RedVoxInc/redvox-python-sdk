@@ -267,6 +267,37 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         self.example_packet.set_metadata_as_dict({"foo": "bar"})
         self.assertEqual("bar", self.example_packet.metadata_as_dict()["foo"])
 
+    def test_add_metadata(self):
+        self.example_packet.set_metadata_as_dict({"foo": "bar"})
+        self.example_packet.add_metadata("baz", "buz")
+        self.example_packet.add_metadata("1", 2)
+        self.assertEqual(self.example_packet.metadata_as_dict(),
+                         {"foo": "bar",
+                          "baz": "buz",
+                          "1": "2"})
+
+    def test_mach_time_zero(self):
+        self.assertEqual(None, self.example_packet.mach_time_zero())
+        self.example_packet.add_metadata("machTimeZero", 100)
+        self.assertEqual(100, self.example_packet.mach_time_zero())
+
+    def test_best_latency(self):
+        self.assertEqual(self.example_packet.best_latency(), None)
+        self.example_packet.set_best_latency(100)
+        self.assertEqual(self.example_packet.best_latency(), 100)
+
+    def test_best_offset(self):
+        self.assertEqual(self.example_packet.best_latency(), None)
+        self.example_packet.set_best_offset(100)
+        self.assertEqual(self.example_packet.best_offset(), 100)
+
+    def test_is_synch_corrected(self):
+        self.assertFalse(self.example_packet.is_synch_corrected())
+        self.example_packet.set_is_synch_corrected(False)
+        self.assertFalse(self.example_packet.is_synch_corrected())
+        self.example_packet.set_is_synch_corrected(True)
+        self.assertTrue(self.example_packet.is_synch_corrected())
+
     def test_has_microphone_sensor(self):
         self.assertTrue(self.example_packet.has_microphone_sensor())
         self.assertFalse(self.empty_packet.has_microphone_sensor())
