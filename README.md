@@ -2,7 +2,7 @@
 
 This repository contains code for reading and working with the RedVox API 900 data format.
 
-See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.3.0/redvox-api900-docs.md for SDK documentation.
+See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.5.0/redvox-api900-docs.md for SDK documentation.
 
 ### Changelog
 
@@ -15,6 +15,8 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
     * WrappedRedvoxPacket.set_best_offset(self, best_offset: float) -> 'WrappedRedvoxPacket'
     * WrappedRedvoxPacket.is_synch_corrected(self) -> bool
     * WrappedRedvoxPacket.set_is_synch_corrected(self, is_synch_corrected: bool) -> 'WrappedRedvoxPacket'
+* Add shortcut for adding metadata to a RedVox Packet (previously the entire metadata needed to be set at a time)
+    * WrappedRedvoxPacket.add_metadata(self, key: str, value: str) -> 'WrappedRedvoxPacket'
 
 #### 2.4.0 (2019-10-8)
 
