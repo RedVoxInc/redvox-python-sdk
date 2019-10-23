@@ -782,6 +782,14 @@ class WrappedRedvoxPacket:
         except (KeyError, ValueError):
             return None
 
+    def set_mach_time_zero(self, mach_time_zero: int) -> 'WrappedRedvoxPacket':
+        """
+        Sets the mach time zero in the packet's metadata.
+        :param mach_time_zero: The mach time zero to use.
+        :return: An instance of this wrapped packet.
+        """
+        return self.add_metadata("machTimeZero", str(mach_time_zero))
+
     def best_latency(self) -> typing.Optional[float]:
         """
         Returns the best latency from the metadata if it exists.

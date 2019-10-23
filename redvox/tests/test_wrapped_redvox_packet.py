@@ -278,7 +278,7 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
 
     def test_mach_time_zero(self):
         self.assertEqual(None, self.example_packet.mach_time_zero())
-        self.example_packet.add_metadata("machTimeZero", 100)
+        self.example_packet.set_mach_time_zero(100)
         self.assertEqual(100, self.example_packet.mach_time_zero())
 
     def test_best_latency(self):

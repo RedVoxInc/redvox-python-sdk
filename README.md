@@ -6,6 +6,11 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.5.1 (2019-10-23)
+
+* Add top level setter for mach_time_zero
+    * WrappedRedvoxPacket.set_mach_time_zero(self, mach_time_zero: int) -> 'WrappedRedvoxPacket'
+
 ### 2.5.0 (2019-10-17)
 
 * Add top level getters and setters for accessing time synchronization metrics stored in RedVox Packet metadata.
