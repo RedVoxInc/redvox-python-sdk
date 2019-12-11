@@ -3,8 +3,8 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 
-    <title>redvox.api900.cli API documentation</title>
-    <meta name="description" content="This module provides a CLI for working with RedVox API 900 files." />
+    <title>redvox.cli.conversions API documentation</title>
+    <meta name="description" content="This module contains functions for performing RedVox data conversions and displaying the contents of..." />
 
   <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300' rel='stylesheet' type='text/css'>
   
@@ -969,13 +969,21 @@ table {
   <div id="sidebar">
     <h1>Index</h1>
     <ul id="index">
+    <li class="set"><h3><a href="#header-variables">Module variables</a></h3>
+      
+  <ul>
+    <li class="mono"><a href="#redvox.cli.conversions.TYPE_CHECKING">TYPE_CHECKING</a></li>
+    <li class="mono"><a href="#redvox.cli.conversions.log">log</a></li>
+  </ul>
+
+    </li>
 
     <li class="set"><h3><a href="#header-functions">Functions</a></h3>
       
   <ul>
-    <li class="mono"><a href="#redvox.api900.cli.string">string</a></li>
-    <li class="mono"><a href="#redvox.api900.cli.to_json">to_json</a></li>
-    <li class="mono"><a href="#redvox.api900.cli.to_rdvxz">to_rdvxz</a></li>
+    <li class="mono"><a href="#redvox.cli.conversions.print_stdout">print_stdout</a></li>
+    <li class="mono"><a href="#redvox.cli.conversions.to_json">to_json</a></li>
+    <li class="mono"><a href="#redvox.cli.conversions.to_rdvxz">to_rdvxz</a></li>
   </ul>
 
     </li>
@@ -992,135 +1000,134 @@ table {
 
 
   <header id="section-intro">
-  <h1 class="title"><span class="name">redvox.api900.cli</span> module</h1>
-  <p>This module provides a CLI for working with RedVox API 900 files.</p>
+  <h1 class="title"><span class="name">redvox.cli.conversions</span> module</h1>
+  <p>This module contains functions for performing RedVox data conversions and displaying the contents of rdvxz files.</p>
   
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.cli', this);">Show source &equiv;</a></p>
-  <div id="source-redvox.api900.cli" class="source">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.cli.conversions', this);">Show source &equiv;</a></p>
+  <div id="source-redvox.cli.conversions" class="source">
     <pre><code>"""
-This module provides a CLI for working with RedVox API 900 files.
+This module contains functions for performing RedVox data conversions and displaying the contents of rdvxz files.
 """
 
-import os
-import typing
+import logging
+import os.path
+from typing import *
 
 import redvox.api900.reader as reader
 import redvox.api900.reader_utils as reader_utils
 
 
-def to_json(paths: typing.List[str]):
+log = logging.getLogger(__name__)
+
+
+def to_json(paths: List[str], out_dir: Optional[str] = None) -> bool:
     """
-    Given a list of paths of .rdvxz files, convert the .rdvxz files to RedVox API 900 compliant .json files.
-    :param paths: List of paths to .rdvxz files.
+    Converts .rdvxz files to .json files.
+    :param paths: Paths of .rdvxz files to convert.
+    :param out_dir: An optional output directory (will use input directory by default)
+    :return: True if this succeeds, False otherwise
     """
-    def _to_json(_path: str):
-        """
-        Converts a .rdvxz file at path to json and writes the file to the same directory as the .rdvxz file was read
-        from.
-        :param _path: Path to the rdvxz file to convert.
-        """
-        pb_packet = reader.read_file(_path)
-        new_path = _path.replace(".rdvxz", ".json")
-        print("Converting %s -> %s" % (_path, new_path))
+    for path in paths:
+        pb_packet = reader.read_file(path)
+
+        if out_dir is not None:
+            file_name: str = os.path.basename(path).replace(".rdvxz", ".json")
+            new_path = f"{out_dir}/{file_name}"
+        else:
+            new_path = path.replace(".rdvxz", ".json")
+
         with open(new_path, "w") as fout:
             fout.write(reader_utils.to_json(pb_packet))
 
-    list(map(_to_json, paths))
+        log.info(f"Converted {path} to {new_path}")
+
+    return True
 
 
-def to_rdvxz(paths: typing.List[str]):
+def to_rdvxz(paths: List[str], out_dir: Optional[str] = None) -> bool:
     """
-    Given a list of paths of RedVox API 900 compliant .json files, convert the .json files to .rdvxz files.
-    :param paths: List of paths to RedVox API 900 compliant .json files.
+    Converts .json files to .rdvxz files.
+    :param paths: Paths of .json files to convert.
+    :param out_dir: An optional output directory (will use input directory by default)
+    :return: True if this succeeds, False otherwise
     """
-    def _to_rdvxz(_path: str):
-        """
-        Converts a RedVox API 900 compliant .json file at path to a .rdvxz file in the same directory.
-        :param _path: Path to the RedVox API 900 compliant json file.
-        """
-        with open(_path, "r") as json_in:
-            json = json_in.read()
+    for path in paths:
+        with open(path, "r") as fin:
+            json: str = fin.read()
 
-        new_path = _path.replace(".json", ".rdvxz")
-        print("Converting %s -> %s" % (_path, new_path))
-        reader_utils.write_file(new_path, reader_utils.from_json(json))
+            if out_dir is not None:
+                file_name: str = os.path.basename(path).replace(".json", ".rdvxz")
+                new_path = f"{out_dir}/{file_name}"
+            else:
+                new_path = path.replace(".json", ".rdvxz")
 
-    list(map(_to_rdvxz, paths))
+            reader_utils.write_file(new_path, reader_utils.from_json(json))
+
+            log.info(f"Converted {path} to {new_path}")
+
+    return True
 
 
-def string(paths: typing.List[str]):
+def print_stdout(paths: List[str]) -> bool:
     """
-    For each path passed in, print out the contents of the .rdvxz file using protobuf's string serialization.
-    :param paths: Paths of .rdvxz files.
+    Prints the contends of rdvxz files to sdtout.
+    :param paths: Paths to .rdvxz files to print.
+    :return: True if this succeeds, False otherwise.
     """
-    for _path in paths:
-        print(" ------------- Contents of %s" % _path)
-        print(reader.read_file(_path))
+    for path in paths:
+        print(reader.read_file(path))
 
-
-# Entry point to CLI.
-if __name__ == "__main__":
-    import argparse
-
-    ARGPARSE = argparse.ArgumentParser("api900-cli")
-
-    ARGPARSE.add_argument("cmd",
-                          choices=[
-                              "to_json",
-                              "to_rdvxz",
-                              "print"
-                          ],
-                          help="Conversion type.")
-
-    ARGPARSE.add_argument("file_paths",
-                          help="One or more files to convert.",
-                          nargs="+")
-
-    ARGS = ARGPARSE.parse_args()
-    PATHS = ARGS.file_paths
-
-    # Check that paths exist
-    for path in PATHS:
-        if not os.path.isfile(path):
-            print("Error: File with path %s not found." % path)
-            exit(1)
-
-    if ARGS.cmd == "to_json":
-        to_json(ARGS.file_paths)
-    elif ARGS.cmd == "to_rdvxz":
-        to_rdvxz(ARGS.file_paths)
-    else:
-        string(ARGS.file_paths)
+    return True
 </code></pre>
   </div>
 
   </header>
 
   <section id="section-items">
+    <h2 class="section-title" id="header-variables">Module variables</h2>
+      <div class="item">
+      <p id="redvox.cli.conversions.TYPE_CHECKING" class="name">var <span class="ident">TYPE_CHECKING</span></p>
+      
+  
+  <div class="source_cont">
+</div>
+
+      </div>
+      <div class="item">
+      <p id="redvox.cli.conversions.log" class="name">var <span class="ident">log</span></p>
+      
+  
+  <div class="source_cont">
+</div>
+
+      </div>
 
     <h2 class="section-title" id="header-functions">Functions</h2>
       
   <div class="item">
-    <div class="name def" id="redvox.api900.cli.string">
-    <p>def <span class="ident">string</span>(</p><p>paths)</p>
+    <div class="name def" id="redvox.cli.conversions.print_stdout">
+    <p>def <span class="ident">print_stdout</span>(</p><p>paths)</p>
     </div>
     
 
     
   
-    <div class="desc"><p>For each path passed in, print out the contents of the .rdvxz file using protobuf's string serialization.
-:param paths: Paths of .rdvxz files.</p></div>
+    <div class="desc"><p>Prints the contends of rdvxz files to sdtout.
+:param paths: Paths to .rdvxz files to print.
+:return: True if this succeeds, False otherwise.</p></div>
   <div class="source_cont">
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.cli.string', this);">Show source &equiv;</a></p>
-  <div id="source-redvox.api900.cli.string" class="source">
-    <pre><code>def string(paths: typing.List[str]):
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.cli.conversions.print_stdout', this);">Show source &equiv;</a></p>
+  <div id="source-redvox.cli.conversions.print_stdout" class="source">
+    <pre><code>def print_stdout(paths: List[str]) -> bool:
     """
-    For each path passed in, print out the contents of the .rdvxz file using protobuf's string serialization.
-    :param paths: Paths of .rdvxz files.
+    Prints the contends of rdvxz files to sdtout.
+    :param paths: Paths to .rdvxz files to print.
+    :return: True if this succeeds, False otherwise.
     """
-    for _path in paths:
-        print(" ------------- Contents of %s" % _path)
-        print(reader.read_file(_path))
+    for path in paths:
+        print(reader.read_file(path))
+
+    return True
 </code></pre>
   </div>
 </div>
@@ -1129,36 +1136,42 @@ if __name__ == "__main__":
   
       
   <div class="item">
-    <div class="name def" id="redvox.api900.cli.to_json">
-    <p>def <span class="ident">to_json</span>(</p><p>paths)</p>
+    <div class="name def" id="redvox.cli.conversions.to_json">
+    <p>def <span class="ident">to_json</span>(</p><p>paths, out_dir=None)</p>
     </div>
     
 
     
   
-    <div class="desc"><p>Given a list of paths of .rdvxz files, convert the .rdvxz files to RedVox API 900 compliant .json files.
-:param paths: List of paths to .rdvxz files.</p></div>
+    <div class="desc"><p>Converts .rdvxz files to .json files.
+:param paths: Paths of .rdvxz files to convert.
+:param out_dir: An optional output directory (will use input directory by default)
+:return: True if this succeeds, False otherwise</p></div>
   <div class="source_cont">
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.cli.to_json', this);">Show source &equiv;</a></p>
-  <div id="source-redvox.api900.cli.to_json" class="source">
-    <pre><code>def to_json(paths: typing.List[str]):
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.cli.conversions.to_json', this);">Show source &equiv;</a></p>
+  <div id="source-redvox.cli.conversions.to_json" class="source">
+    <pre><code>def to_json(paths: List[str], out_dir: Optional[str] = None) -> bool:
     """
-    Given a list of paths of .rdvxz files, convert the .rdvxz files to RedVox API 900 compliant .json files.
-    :param paths: List of paths to .rdvxz files.
+    Converts .rdvxz files to .json files.
+    :param paths: Paths of .rdvxz files to convert.
+    :param out_dir: An optional output directory (will use input directory by default)
+    :return: True if this succeeds, False otherwise
     """
-    def _to_json(_path: str):
-        """
-        Converts a .rdvxz file at path to json and writes the file to the same directory as the .rdvxz file was read
-        from.
-        :param _path: Path to the rdvxz file to convert.
-        """
-        pb_packet = reader.read_file(_path)
-        new_path = _path.replace(".rdvxz", ".json")
-        print("Converting %s -> %s" % (_path, new_path))
+    for path in paths:
+        pb_packet = reader.read_file(path)
+
+        if out_dir is not None:
+            file_name: str = os.path.basename(path).replace(".rdvxz", ".json")
+            new_path = f"{out_dir}/{file_name}"
+        else:
+            new_path = path.replace(".rdvxz", ".json")
+
         with open(new_path, "w") as fout:
             fout.write(reader_utils.to_json(pb_packet))
 
-    list(map(_to_json, paths))
+        log.info(f"Converted {path} to {new_path}")
+
+    return True
 </code></pre>
   </div>
 </div>
@@ -1167,36 +1180,42 @@ if __name__ == "__main__":
   
       
   <div class="item">
-    <div class="name def" id="redvox.api900.cli.to_rdvxz">
-    <p>def <span class="ident">to_rdvxz</span>(</p><p>paths)</p>
+    <div class="name def" id="redvox.cli.conversions.to_rdvxz">
+    <p>def <span class="ident">to_rdvxz</span>(</p><p>paths, out_dir=None)</p>
     </div>
     
 
     
   
-    <div class="desc"><p>Given a list of paths of RedVox API 900 compliant .json files, convert the .json files to .rdvxz files.
-:param paths: List of paths to RedVox API 900 compliant .json files.</p></div>
+    <div class="desc"><p>Converts .json files to .rdvxz files.
+:param paths: Paths of .json files to convert.
+:param out_dir: An optional output directory (will use input directory by default)
+:return: True if this succeeds, False otherwise</p></div>
   <div class="source_cont">
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.api900.cli.to_rdvxz', this);">Show source &equiv;</a></p>
-  <div id="source-redvox.api900.cli.to_rdvxz" class="source">
-    <pre><code>def to_rdvxz(paths: typing.List[str]):
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-redvox.cli.conversions.to_rdvxz', this);">Show source &equiv;</a></p>
+  <div id="source-redvox.cli.conversions.to_rdvxz" class="source">
+    <pre><code>def to_rdvxz(paths: List[str], out_dir: Optional[str] = None) -> bool:
     """
-    Given a list of paths of RedVox API 900 compliant .json files, convert the .json files to .rdvxz files.
-    :param paths: List of paths to RedVox API 900 compliant .json files.
+    Converts .json files to .rdvxz files.
+    :param paths: Paths of .json files to convert.
+    :param out_dir: An optional output directory (will use input directory by default)
+    :return: True if this succeeds, False otherwise
     """
-    def _to_rdvxz(_path: str):
-        """
-        Converts a RedVox API 900 compliant .json file at path to a .rdvxz file in the same directory.
-        :param _path: Path to the RedVox API 900 compliant json file.
-        """
-        with open(_path, "r") as json_in:
-            json = json_in.read()
+    for path in paths:
+        with open(path, "r") as fin:
+            json: str = fin.read()
 
-        new_path = _path.replace(".json", ".rdvxz")
-        print("Converting %s -> %s" % (_path, new_path))
-        reader_utils.write_file(new_path, reader_utils.from_json(json))
+            if out_dir is not None:
+                file_name: str = os.path.basename(path).replace(".json", ".rdvxz")
+                new_path = f"{out_dir}/{file_name}"
+            else:
+                new_path = path.replace(".json", ".rdvxz")
 
-    list(map(_to_rdvxz, paths))
+            reader_utils.write_file(new_path, reader_utils.from_json(json))
+
+            log.info(f"Converted {path} to {new_path}")
+
+    return True
 </code></pre>
   </div>
 </div>

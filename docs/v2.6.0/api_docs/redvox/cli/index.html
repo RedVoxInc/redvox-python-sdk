@@ -3,7 +3,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 
-    <title>redvox.api900 API documentation</title>
+    <title>redvox.cli API documentation</title>
     <meta name="description" content="" />
 
   <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300' rel='stylesheet' type='text/css'>
@@ -974,18 +974,9 @@ table {
 
     <li class="set"><h3><a href="#header-submodules">Sub-modules</a></h3>
       <ul>
-        <li class="mono"><a href="constants.m.html">redvox.api900.constants</a></li>
-        <li class="mono"><a href="date_time_utils.m.html">redvox.api900.date_time_utils</a></li>
-        <li class="mono"><a href="deprecation.m.html">redvox.api900.deprecation</a></li>
-        <li class="mono"><a href="exceptions.m.html">redvox.api900.exceptions</a></li>
-        <li class="mono"><a href="lib/index.html">redvox.api900.lib</a></li>
-        <li class="mono"><a href="reader.m.html">redvox.api900.reader</a></li>
-        <li class="mono"><a href="reader_utils.m.html">redvox.api900.reader_utils</a></li>
-        <li class="mono"><a href="sensors/index.html">redvox.api900.sensors</a></li>
-        <li class="mono"><a href="stat_utils.m.html">redvox.api900.stat_utils</a></li>
-        <li class="mono"><a href="summarize.m.html">redvox.api900.summarize</a></li>
-        <li class="mono"><a href="types.m.html">redvox.api900.types</a></li>
-        <li class="mono"><a href="wrapped_redvox_packet.m.html">redvox.api900.wrapped_redvox_packet</a></li>
+        <li class="mono"><a href="cli.m.html">redvox.cli.cli</a></li>
+        <li class="mono"><a href="conversions.m.html">redvox.cli.conversions</a></li>
+        <li class="mono"><a href="data_req.m.html">redvox.cli.data_req</a></li>
       </ul>
     </li>
     </ul>
@@ -999,7 +990,7 @@ table {
 
 
   <header id="section-intro">
-  <h1 class="title"><span class="name">redvox.api900</span> module</h1>
+  <h1 class="title"><span class="name">redvox.cli</span> module</h1>
   
   
 
@@ -1011,86 +1002,24 @@ table {
 
     <h2 class="section-title" id="header-submodules">Sub-modules</h2>
       <div class="item">
-      <p class="name"><a href="constants.m.html">redvox.api900.constants</a></p>
+      <p class="name"><a href="cli.m.html">redvox.cli.cli</a></p>
       
   
-    <div class="desc"><p>This modules contains constants used throughout the SDK.</p></div>
+    <div class="desc"><p>This module provides a command line interface (CLI) for converting, viewing, and downloading RedVox data files.</p></div>
 
       </div>
       <div class="item">
-      <p class="name"><a href="date_time_utils.m.html">redvox.api900.date_time_utils</a></p>
+      <p class="name"><a href="conversions.m.html">redvox.cli.conversions</a></p>
       
   
-    <div class="desc"><p>This module contains utilities for working with dates and times.</p></div>
+    <div class="desc"><p>This module contains functions for performing RedVox data conversions and displaying the contents of rdvxz files.</p></div>
 
       </div>
       <div class="item">
-      <p class="name"><a href="deprecation.m.html">redvox.api900.deprecation</a></p>
+      <p class="name"><a href="data_req.m.html">redvox.cli.data_req</a></p>
       
   
-    <div class="desc"><p>This module provides functions for gracefully deprecating functionality in this SDK.</p></div>
-
-      </div>
-      <div class="item">
-      <p class="name"><a href="exceptions.m.html">redvox.api900.exceptions</a></p>
-      
-  
-    <div class="desc"><p>This module contains custom exceptions for API 900.</p></div>
-
-      </div>
-      <div class="item">
-      <p class="name"><a href="lib/index.html">redvox.api900.lib</a></p>
-      
-  
-
-      </div>
-      <div class="item">
-      <p class="name"><a href="reader.m.html">redvox.api900.reader</a></p>
-      
-  
-    <div class="desc"><p>This module provides functions and classes for working with RedVox API 900 data.</p></div>
-
-      </div>
-      <div class="item">
-      <p class="name"><a href="reader_utils.m.html">redvox.api900.reader_utils</a></p>
-      
-  
-    <div class="desc"><p>This module provides utility functions that are used by the reader but generally will not be used directly by end
-users.</p></div>
-
-      </div>
-      <div class="item">
-      <p class="name"><a href="sensors/index.html">redvox.api900.sensors</a></p>
-      
-  
-
-      </div>
-      <div class="item">
-      <p class="name"><a href="stat_utils.m.html">redvox.api900.stat_utils</a></p>
-      
-  
-    <div class="desc"><p>utilities to calculate std deviation, mean, and median for arrays</p></div>
-
-      </div>
-      <div class="item">
-      <p class="name"><a href="summarize.m.html">redvox.api900.summarize</a></p>
-      
-  
-    <div class="desc"><p>This module contains functions and classes for summarizing ranges of redvox data.</p></div>
-
-      </div>
-      <div class="item">
-      <p class="name"><a href="types.m.html">redvox.api900.types</a></p>
-      
-  
-    <div class="desc"><p>This module provides convenience types for RedVox data types.</p></div>
-
-      </div>
-      <div class="item">
-      <p class="name"><a href="wrapped_redvox_packet.m.html">redvox.api900.wrapped_redvox_packet</a></p>
-      
-  
-    <div class="desc"><p>This module contains classes and methods for working with WrappedRedvoxPackets</p></div>
+    <div class="desc"><p>This module provides methods and classes for requesting bulk RedVox data.</p></div>
 
       </div>
   </section>
