@@ -1,3 +1,7 @@
+"""
+This module provides a command line interface (CLI) for converting, viewing, and downloading RedVox data files.
+"""
+
 import argparse
 import logging
 import os.path
@@ -24,6 +28,12 @@ def check_path(path: str, path_is_file: bool = True, file_ext: Optional[str] = N
 
 
 def check_files(paths: List[str], file_ext: Optional[str] = None) -> bool:
+    """
+    Checks this given files to determine if they exist.
+    :param paths: The paths to check.
+    :param file_ext: An optional file extension to filter against.
+    :return: True if all paths exist, False otherwise
+    """
     invalid_paths: List[str] = list(filter(lambda path: not check_path(path, file_ext=file_ext), paths))
     if len(invalid_paths) > 0:
         log.error(f"{len(invalid_paths)} invalid paths found")
@@ -34,6 +44,11 @@ def check_files(paths: List[str], file_ext: Optional[str] = None) -> bool:
 
 
 def check_out_dir(out_dir: Optional[str] = None) -> bool:
+    """
+    Checks if a given directory exists.
+    :param out_dir: The directory to check.
+    :return: True if it exists, False otherwise.
+    """
     if out_dir is not None and not check_path(out_dir, path_is_file=False):
         log.error(f"out_dir is invalid: {out_dir}")
         return False
@@ -41,6 +56,10 @@ def check_out_dir(out_dir: Optional[str] = None) -> bool:
 
 
 def determine_exit(status: bool) -> None:
+    """
+    Determine the exit status and exit the CLI.
+    :param status: True will exit with a status of 0 and False will exit with a status of 1.
+    """
     if status:
         log.info("Exiting with status = 0")
         sys.exit(0)
@@ -50,6 +69,10 @@ def determine_exit(status: bool) -> None:
 
 
 def to_json_args(args) -> None:
+    """
+    Wrapper function that calls the to_json conversion.
+    :param args: Args from argparse.
+    """
     if not check_files(args.rdvxz_paths, ".rdvxz"):
         determine_exit(False)
 
@@ -60,6 +83,10 @@ def to_json_args(args) -> None:
 
 
 def to_rdvxz_args(args) -> None:
+    """
+    Wrapper function that calls the to_rdvxz conversion.
+    :param args: Args from argparse.
+    """
     if not check_files(args.json_paths, ".json"):
         determine_exit(False)
 
@@ -70,6 +97,10 @@ def to_rdvxz_args(args) -> None:
 
 
 def print_stdout_args(args) -> None:
+    """
+    Wrapper function that calls the print to stdout.
+    :param args: Args from argparse.
+    """
     if not check_files(args.rdvxz_paths, ".rdvxz"):
         determine_exit(False)
 
@@ -77,6 +108,10 @@ def print_stdout_args(args) -> None:
 
 
 def data_req_args(args) -> None:
+    """
+    Wrapper function that calls the data_req.
+    :param args: Args from argparse.
+    """
     if not check_out_dir(args.out_dir):
         determine_exit(False)
 
@@ -92,6 +127,9 @@ def data_req_args(args) -> None:
 
 
 def main():
+    """
+    Entry point into the CLI.
+    """
     parser: argparse.ArgumentParser = argparse.ArgumentParser("redvox-cli",
                                                               description="Command line tools for viewing, converting,"
                                                                           " and downloading RedVox data.")
@@ -166,9 +204,10 @@ def main():
                                  help="A list of RedVox ids delimited by a space")
     data_req_parser.set_defaults(func=data_req_args)
 
-    # Parse the args and call the appropriate function
+    # Parse the args
     args = parser.parse_args()
 
+    # Setup logging
     log_levels: Dict[int, str] = {
         0: "WARN",
         1: "INFO",
@@ -181,6 +220,7 @@ def main():
 
     log.info(f"Running with args={str(args)} and log_level={log_level}")
 
+    # Try calling the appropriate handler
     try:
         args.func(args)
     except Exception as e:
