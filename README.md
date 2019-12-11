@@ -6,6 +6,13 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.6.0 (1019-12-11)
+
+* Update the redvox-cli
+    * The CLI is now installed when this SDK is installed and available to the user as ```redvox-cli```
+    * Added improved logging and error handling
+    * Added ability to download bulk RedVox data sets
+
 ### 2.5.1 (2019-10-23)
 
 * Add top level setter for mach_time_zero
