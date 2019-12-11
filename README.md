@@ -2,11 +2,11 @@
 
 This repository contains code for reading and working with the RedVox API 900 data format.
 
-See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.5.0/redvox-api900-docs.md for SDK documentation.
+See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.0/redvox-api900-docs.md for SDK documentation.
 
 ### Changelog
 
-### 2.6.0 (1019-12-11)
+### 2.6.0 (2019-12-11)
 
 * Update the redvox-cli
     * The CLI is now installed when this SDK is installed and available to the user as ```redvox-cli```
