@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 This module provides a CLI for performing bulk data downloads.
 """
@@ -7,12 +9,50 @@ import bz2
 import logging
 import multiprocessing
 import os
-from typing import Dict, List, Tuple, Union
+from typing import Callable, Dict, List, Tuple, Union
 
+import numpy as np
 import requests
 
 logging.basicConfig(format='%(asctime)s:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d\n -> %(message)s',
                     level=logging.DEBUG)
+
+
+class ProcessPool:
+    """
+    Creates a process pool used for fetching the files from S3.
+    """
+
+    def __init__(self,
+                 num_processes: int,
+                 func: Callable[[List[str], str], None],
+                 data: List[str],
+                 out_dir: str):
+        """
+        Instantiates a new process pool.
+        :param num_processes: The number of processes to create.
+        :param func: The function to run which should take a list of strings representing data keys and a string
+                     representing the out_dir.
+        :param data: The list of data keys to process.
+        :param out_dir: The output directory to write the data files to.
+        """
+
+        self.num_processes: int = num_processes
+        self.func: Callable[[List[str]], None] = func
+        self.data: List[List[str]] = list(map(list, np.array_split(np.array(data), num_processes)))
+        self.out_dir = out_dir
+
+    def run(self):
+        processes: List[multiprocessing.Process] = []
+
+        for i in range(self.num_processes):
+            process: multiprocessing.Process = multiprocessing.Process(target=self.func, args=(self.data[i],
+                                                                                               self.out_dir))
+            processes.append(process)
+            process.start()
+
+        for process in processes:
+            process.join()
 
 
 def find_between(start: str, end: str, contents: str) -> str:
@@ -43,28 +83,28 @@ def get_file(url: str, session: requests.Session, out_dir: str) -> Tuple[str, in
         return "", 0
 
 
+def get_files(urls: List[str], out_dir: str) -> None:
+    session: requests.Session = requests.Session()
+
+    for url in urls:
+        data_key, resp_len = get_file(url, session, out_dir)
+
+
 def handle_ok_resp(resp: requests.Response, out_dir: str):
     logging.debug("Handling ok response")
 
-    compressed_index = resp.content
+    compressed_index: bytes = resp.content
     logging.debug(f"Got compressed index ({len(compressed_index)} bytes)")
 
-    decompressed_index = bz2.decompress(compressed_index)
+    decompressed_index: bytes = bz2.decompress(compressed_index)
     logging.debug(f"Got decompressed index ({len(decompressed_index)} bytes)")
 
-    str_data = decompressed_index.decode()
-    parsed_data = list(map(lambda line: line.strip(), str_data.split("\n")))
+    str_data: str = decompressed_index.decode()
+    parsed_data: List[str] = list(map(lambda line: line.strip(), str_data.split("\n")))
     logging.debug(f"Got parsed data ({len(parsed_data)} entries)")
 
-
-    session: requests.Session = requests.Session()
-    pool = multiprocessing.Pool(processes=4)
-    zipped_data = list(map(lambda line: (line, session, out_dir), parsed_data))
-    handler = pool.starmap_async(get_file, zipped_data, callback=lambda t: logging.debug(f"Saved {t[0]} {t[1]} bytes"))
-    handler.wait()
-
-    # for line in parsed_data:
-    #     get_file(line, session, out_dir)
+    process_pool: ProcessPool = ProcessPool(4, get_files, parsed_data, out_dir)
+    process_pool.run()
 
 
 def make_data_req(out_dir: str,
@@ -95,7 +135,10 @@ def make_data_req(out_dir: str,
         logging.error(f"Server error: {resp.status_code} {resp.text}")
 
 
-if __name__ == "__main__":
+def main():
+    """
+    Entry point to data_req.
+    """
     parser = argparse.ArgumentParser("redvox-data-req",
                                      description="A CLI utility for performing batch downloads of RedVox data sets.")
 
@@ -132,3 +175,7 @@ if __name__ == "__main__":
                   args.req_start_s,
                   args.req_end_s,
                   args.redvox_ids)
+
+
+if __name__ == "__main__":
+    main()
