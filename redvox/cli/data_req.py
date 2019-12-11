@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-This module provides a CLI for performing bulk data downloads.
+This module provides methods and classes for requesting bulk RedVox data.
 """
 
 import bz2
@@ -35,6 +35,7 @@ class ProcessPool:
                      representing the out_dir.
         :param data: The list of data keys to process.
         :param out_dir: The output directory to write the data files to.
+        :param retries: The number of times the HTTP client should retry getting a file.
         """
 
         self.num_processes: int = num_processes
@@ -44,6 +45,9 @@ class ProcessPool:
         self.retries = retries
 
     def run(self):
+        """
+        Runs this process pool. This will block until all processes finish fetching data.
+        """
         processes: List[multiprocessing.Process] = []
 
         for i in range(self.num_processes):
@@ -53,11 +57,19 @@ class ProcessPool:
             processes.append(process)
             process.start()
 
+        # Wait for all processes to finish
         for process in processes:
             process.join()
 
 
 def find_between(start: str, end: str, contents: str) -> str:
+    """
+    Find the string contents between two other strings.
+    :param start: The first string.
+    :param end: The seconds string.
+    :param contents: The full string.
+    :return: The contents between the start and end strings.
+    """
     s = contents.find(start)
     e = contents.find(end)
     return contents[s + len(start):e]
@@ -67,6 +79,14 @@ def get_file(url: str,
              session: requests.Session,
              out_dir: str,
              retries: int) -> Tuple[str, int]:
+    """
+    Attempts to download a file from S3.
+    :param url: The URL to retrieve.
+    :param session: The HTTP session.
+    :param out_dir: The output directory where files will be stored.
+    :param retries: The number of times to retry failed file downloads.
+    :return: A tuple containing the data_key and the length of the download response.
+    """
     try:
         resp: requests.Response = session.get(url)
         if resp.status_code == 200:
@@ -102,6 +122,12 @@ def get_file(url: str,
 
 
 def get_files(urls: List[str], out_dir: str, retries: int) -> None:
+    """
+    Download files from S3.
+    :param urls: The URL of the files to download.
+    :param out_dir: The output directory to store the downloaded files.
+    :param retries: The number of retries for failed downloads.
+    """
     session: requests.Session = requests.Session()
 
     for url in urls:
@@ -112,6 +138,13 @@ def get_files(urls: List[str], out_dir: str, retries: int) -> None:
 def handle_ok_resp(resp: requests.Response,
                    out_dir: str,
                    retries: int) -> bool:
+    """
+    Handle an Ok response from the RedVox data_server.
+    :param resp: The response to handle.
+    :param out_dir: The output directory to store downloaded files.
+    :param retries: The number of retries to make on failed downloads.
+    :return: True if this succeeds, False otherwise.
+    """
     log.info("Handling ok response")
 
     compressed_index: bytes = resp.content
@@ -140,6 +173,19 @@ def make_data_req(out_dir: str,
                   req_end_s: int,
                   redvox_ids: List[str],
                   retries: int) -> bool:
+    """
+    Makes a data request to the RedVox data_server.
+    :param out_dir: The output directory to store downloaded files.
+    :param host: The host of the data server.
+    :param port: The port of the data server.
+    :param email: The email address of the redvox.io user.
+    :param password: The password of the redvox.io user.
+    :param req_start_s: The request start time as seconds since the epoch.
+    :param req_end_s: The request end time as seconds since the epoch.
+    :param redvox_ids: A list of RedVox ids.
+    :param retries: The number of retries to perform on failed downloads.
+    :return: True if this succeeds, False otherwise.
+    """
     req: Dict[str, Union[str, int, List[str]]] = {"email": email,
                                                   "password": password,
                                                   "start_ts_s": req_start_s,

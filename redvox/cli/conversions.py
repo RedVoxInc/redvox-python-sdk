@@ -1,3 +1,7 @@
+"""
+This module contains functions for performing RedVox data conversions and displaying the contents of rdvxz files.
+"""
+
 import logging
 import os.path
 from typing import *
@@ -10,6 +14,12 @@ log = logging.getLogger(__name__)
 
 
 def to_json(paths: List[str], out_dir: Optional[str] = None) -> bool:
+    """
+    Converts .rdvxz files to .json files.
+    :param paths: Paths of .rdvxz files to convert.
+    :param out_dir: An optional output directory (will use input directory by default)
+    :return: True if this succeeds, False otherwise
+    """
     for path in paths:
         pb_packet = reader.read_file(path)
 
@@ -28,6 +38,12 @@ def to_json(paths: List[str], out_dir: Optional[str] = None) -> bool:
 
 
 def to_rdvxz(paths: List[str], out_dir: Optional[str] = None) -> bool:
+    """
+    Converts .json files to .rdvxz files.
+    :param paths: Paths of .json files to convert.
+    :param out_dir: An optional output directory (will use input directory by default)
+    :return: True if this succeeds, False otherwise
+    """
     for path in paths:
         with open(path, "r") as fin:
             json: str = fin.read()
@@ -46,6 +62,11 @@ def to_rdvxz(paths: List[str], out_dir: Optional[str] = None) -> bool:
 
 
 def print_stdout(paths: List[str]) -> bool:
+    """
+    Prints the contends of rdvxz files to sdtout.
+    :param paths: Paths to .rdvxz files to print.
+    :return: True if this succeeds, False otherwise.
+    """
     for path in paths:
         print(reader.read_file(path))
 
