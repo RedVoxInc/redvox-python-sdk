@@ -5,6 +5,7 @@ from typing import *
 
 import redvox.api900.reader as reader
 import redvox.api900.reader_utils as reader_utils
+import redvox.cli.data_req as data_req
 
 
 def log(msg: str, verbose: bool) -> None:
@@ -126,6 +127,22 @@ def print_stdout_args(args) -> None:
     determine_exit(print_stdout(args.rdvxz_paths), args.verbose)
 
 
+def data_req_args(args) -> None:
+    if check_out_dir(args.out_dir):
+        determine_exit(data_req.make_data_req(args.out_dir,
+                                              args.host,
+                                              args.port,
+                                              args.email,
+                                              args.password,
+                                              args.req_start_s,
+                                              args.req_end_s,
+                                              args.redvox_ids,
+                                              args.verbose),
+                       args.verbose)
+    else:
+        determine_exit(False, args.verbose)
+
+
 def main():
     parser: argparse.ArgumentParser = argparse.ArgumentParser("redvox-cli",
                                                               description="Command line tools for viewing, converting,"
@@ -166,6 +183,33 @@ def main():
                               help="One or more rdvxz files to print",
                               nargs="+")
     print_parser.set_defaults(func=print_stdout_args)
+
+    # data_req
+    data_req_parser = sub_parser.add_parser("data_req",
+                                            help="Request bulk RedVox data from the RedVox servers")
+    data_req_parser.add_argument("--out_dir",
+                                 "-o",
+                                 help="The output directory that RedVox files will be written to.",
+                                 default=".")
+    data_req_parser.add_argument("host",
+                                 help="Data server host")
+    data_req_parser.add_argument("port",
+                                 type=int,
+                                 help="Data server port")
+    data_req_parser.add_argument("email",
+                                 help="redvox.io account email")
+    data_req_parser.add_argument("password",
+                                 help="redvox.io account password")
+    data_req_parser.add_argument("req_start_s",
+                                 type=int,
+                                 help="Data request start as number of seconds since the epoch UTC")
+    data_req_parser.add_argument("req_end_s",
+                                 type=int,
+                                 help="Data request end as number of seconds since the epoch UTC")
+    data_req_parser.add_argument("redvox_ids",
+                                 nargs="+",
+                                 help="A list of RedVox ids delimited by a space")
+    data_req_parser.set_defaults(func=data_req_args)
 
     # Parse the args and call the appropriate function
     args = parser.parse_args()

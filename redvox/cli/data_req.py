@@ -4,9 +4,7 @@
 This module provides a CLI for performing bulk data downloads.
 """
 
-import argparse
 import bz2
-import logging
 import multiprocessing
 import os
 from typing import Callable, Dict, List, Tuple, Union
@@ -14,8 +12,10 @@ from typing import Callable, Dict, List, Tuple, Union
 import numpy as np
 import requests
 
-logging.basicConfig(format='%(asctime)s:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d\n -> %(message)s',
-                    level=logging.DEBUG)
+
+def log(msg: str, verbose: bool) -> None:
+    if verbose:
+        print(msg)
 
 
 class ProcessPool:
@@ -27,7 +27,8 @@ class ProcessPool:
                  num_processes: int,
                  func: Callable[[List[str], str], None],
                  data: List[str],
-                 out_dir: str):
+                 out_dir: str,
+                 verbose: bool = False):
         """
         Instantiates a new process pool.
         :param num_processes: The number of processes to create.
@@ -41,13 +42,15 @@ class ProcessPool:
         self.func: Callable[[List[str]], None] = func
         self.data: List[List[str]] = list(map(list, np.array_split(np.array(data), num_processes)))
         self.out_dir = out_dir
+        self.verbose = verbose
 
     def run(self):
         processes: List[multiprocessing.Process] = []
 
         for i in range(self.num_processes):
             process: multiprocessing.Process = multiprocessing.Process(target=self.func, args=(self.data[i],
-                                                                                               self.out_dir))
+                                                                                               self.out_dir,
+                                                                                               self.verbose))
             processes.append(process)
             process.start()
 
@@ -61,7 +64,7 @@ def find_between(start: str, end: str, contents: str) -> str:
     return contents[s + len(start):e]
 
 
-def get_file(url: str, session: requests.Session, out_dir: str) -> Tuple[str, int]:
+def get_file(url: str, session: requests.Session, out_dir: str, verbose: bool = False) -> Tuple[str, int]:
     resp: requests.Response = session.get(url)
     if resp.status_code == 200:
         data_key = find_between("/rdvxdata/", "?X-Amz-Algorithm=", url)
@@ -69,42 +72,46 @@ def get_file(url: str, session: requests.Session, out_dir: str) -> Tuple[str, in
         directory = os.path.dirname(data_key)
         full_dir = f"{out_dir}/{directory}"
         if not os.path.exists(full_dir):
-            logging.debug(f"Directory {full_dir} does not exist, creating it")
+            log(f"Directory {full_dir} does not exist, creating it", verbose)
             os.makedirs(full_dir)
 
         full_path = f"{out_dir}/{data_key}"
         with open(full_path, "wb") as fout:
             fout.write(resp.content)
+            log(f"Wrote {full_path}", verbose)
 
         return data_key, len(resp.content)
 
     else:
-        logging.error(f"Received error response when requesting data for url={url}: {resp.status_code} {resp.text}")
+        log(f"Received error response when requesting data for url={url}: {resp.status_code} {resp.text}", True)
         return "", 0
 
 
-def get_files(urls: List[str], out_dir: str) -> None:
+def get_files(urls: List[str], out_dir: str, verbose: bool = False) -> None:
     session: requests.Session = requests.Session()
 
     for url in urls:
-        data_key, resp_len = get_file(url, session, out_dir)
+        data_key, resp_len = get_file(url, session, out_dir, verbose)
+        log(f"Recv {data_key} with len={resp_len}", verbose)
 
 
-def handle_ok_resp(resp: requests.Response, out_dir: str):
-    logging.debug("Handling ok response")
+def handle_ok_resp(resp: requests.Response, out_dir: str, verbose: bool = False) -> bool:
+    log("Handling ok response", verbose)
 
     compressed_index: bytes = resp.content
-    logging.debug(f"Got compressed index ({len(compressed_index)} bytes)")
+    log(f"Got compressed index ({len(compressed_index)} bytes)", verbose)
 
     decompressed_index: bytes = bz2.decompress(compressed_index)
-    logging.debug(f"Got decompressed index ({len(decompressed_index)} bytes)")
+    log(f"Got decompressed index ({len(decompressed_index)} bytes)", verbose)
 
     str_data: str = decompressed_index.decode()
     parsed_data: List[str] = list(map(lambda line: line.strip(), str_data.split("\n")))
-    logging.debug(f"Got parsed data ({len(parsed_data)} entries)")
+    log(f"Got parsed data ({len(parsed_data)} entries)", verbose)
 
-    process_pool: ProcessPool = ProcessPool(4, get_files, parsed_data, out_dir)
+    process_pool: ProcessPool = ProcessPool(4, get_files, parsed_data, out_dir, verbose)
     process_pool.run()
+
+    return True
 
 
 def make_data_req(out_dir: str,
@@ -114,7 +121,8 @@ def make_data_req(out_dir: str,
                   password: str,
                   req_start_s: int,
                   req_end_s: int,
-                  redvox_ids: List[str]):
+                  redvox_ids: List[str],
+                  verbose: bool = False) -> bool:
     req: Dict[str, Union[str, int, List[str]]] = {"email": email,
                                                   "password": password,
                                                   "start_ts_s": req_start_s,
@@ -125,57 +133,15 @@ def make_data_req(out_dir: str,
     resp: requests.Response = requests.post(url, json=req)
 
     if resp.status_code == 200:
-        logging.debug(f"Received ok response.")
-        handle_ok_resp(resp, out_dir)
+        log("Recv ok response.", verbose)
+        return handle_ok_resp(resp, out_dir, verbose)
     elif resp.status_code == 400:
-        logging.error(f"Bad request error: {resp.status_code} {resp.text}")
+        log(f"Bad request error: {resp.status_code} {resp.text}", True)
+        return False
     elif resp.status_code == 401:
-        logging.error(f"Authentication error: {resp.status_code} {resp.text}")
+        log(f"Authentication error: {resp.status_code} {resp.text}", True)
+        return False
     else:
-        logging.error(f"Server error: {resp.status_code} {resp.text}")
+        log(f"Server error: {resp.status_code} {resp.text}", True)
+        return False
 
-
-def main():
-    """
-    Entry point to data_req.
-    """
-    parser = argparse.ArgumentParser("redvox-data-req",
-                                     description="A CLI utility for performing batch downloads of RedVox data sets.")
-
-    parser.add_argument("out_dir",
-                        help="The output directory that RedVox files will be written to.")
-    parser.add_argument("host",
-                        help="Data server host")
-    parser.add_argument("port",
-                        type=int,
-                        help="Data server port")
-    parser.add_argument("email",
-                        help="redvox.io account email")
-    parser.add_argument("password",
-                        help="redvox.io account password")
-    parser.add_argument("req_start_s",
-                        type=int,
-                        help="Data request start as number of seconds since the epoch UTC")
-    parser.add_argument("req_end_s",
-                        type=int,
-                        help="Data request end as number of seconds since the epoch UTC")
-    parser.add_argument("redvox_ids",
-                        nargs="+",
-                        help="A list of RedVox ids delimited by a space")
-
-    args = parser.parse_args()
-
-    logging.debug(f"Starting data request with the following configuration: {args}")
-
-    make_data_req(args.out_dir,
-                  args.host,
-                  args.port,
-                  args.email,
-                  args.password,
-                  args.req_start_s,
-                  args.req_end_s,
-                  args.redvox_ids)
-
-
-if __name__ == "__main__":
-    main()
