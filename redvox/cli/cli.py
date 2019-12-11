@@ -137,6 +137,7 @@ def data_req_args(args) -> None:
                                               args.req_start_s,
                                               args.req_end_s,
                                               args.redvox_ids,
+                                              args.retries,
                                               args.verbose),
                        args.verbose)
     else:
@@ -191,6 +192,12 @@ def main():
                                  "-o",
                                  help="The output directory that RedVox files will be written to.",
                                  default=".")
+    data_req_parser.add_argument("--retries",
+                                 "-r",
+                                 help="The number of times the client should retry getting a file on failure",
+                                 default=1,
+                                 choices=set(range(0, 6)),
+                                 type=int)
     data_req_parser.add_argument("host",
                                  help="Data server host")
     data_req_parser.add_argument("port",

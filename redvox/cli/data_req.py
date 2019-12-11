@@ -28,6 +28,7 @@ class ProcessPool:
                  func: Callable[[List[str], str], None],
                  data: List[str],
                  out_dir: str,
+                 retries: int,
                  verbose: bool = False):
         """
         Instantiates a new process pool.
@@ -42,6 +43,7 @@ class ProcessPool:
         self.func: Callable[[List[str]], None] = func
         self.data: List[List[str]] = list(map(list, np.array_split(np.array(data), num_processes)))
         self.out_dir = out_dir
+        self.retries = retries
         self.verbose = verbose
 
     def run(self):
@@ -50,6 +52,7 @@ class ProcessPool:
         for i in range(self.num_processes):
             process: multiprocessing.Process = multiprocessing.Process(target=self.func, args=(self.data[i],
                                                                                                self.out_dir,
+                                                                                               self.retries,
                                                                                                self.verbose))
             processes.append(process)
             process.start()
@@ -64,38 +67,56 @@ def find_between(start: str, end: str, contents: str) -> str:
     return contents[s + len(start):e]
 
 
-def get_file(url: str, session: requests.Session, out_dir: str, verbose: bool = False) -> Tuple[str, int]:
-    resp: requests.Response = session.get(url)
-    if resp.status_code == 200:
-        data_key = find_between("/rdvxdata/", "?X-Amz-Algorithm=", url)
+def get_file(url: str,
+             session: requests.Session,
+             out_dir: str,
+             retries: int,
+             verbose: bool = False) -> Tuple[str, int]:
+    try:
+        resp: requests.Response = session.get(url)
+        if resp.status_code == 200:
+            data_key = find_between("/rdvxdata/", "?X-Amz-Algorithm=", url)
 
-        directory = os.path.dirname(data_key)
-        full_dir = f"{out_dir}/{directory}"
-        if not os.path.exists(full_dir):
-            log(f"Directory {full_dir} does not exist, creating it", verbose)
-            os.makedirs(full_dir)
+            directory = os.path.dirname(data_key)
+            full_dir = f"{out_dir}/{directory}"
+            if not os.path.exists(full_dir):
+                log(f"Directory {full_dir} does not exist, creating it", verbose)
+                os.makedirs(full_dir)
 
-        full_path = f"{out_dir}/{data_key}"
-        with open(full_path, "wb") as fout:
-            fout.write(resp.content)
-            log(f"Wrote {full_path}", verbose)
+            full_path = f"{out_dir}/{data_key}"
+            with open(full_path, "wb") as fout:
+                fout.write(resp.content)
+                log(f"Wrote {full_path}", verbose)
 
-        return data_key, len(resp.content)
+            return data_key, len(resp.content)
 
-    else:
-        log(f"Received error response when requesting data for url={url}: {resp.status_code} {resp.text}", True)
+        else:
+            log(f"Received error response when requesting data for url={url}: {resp.status_code} {resp.text}", True)
+            if retries > 0:
+                log(f"Retrying with {retries} retries", verbose)
+                get_file(url, session, out_dir, retries - 1, verbose)
+            log(f"All retries exhausted, could not get {url}", True)
+            return "", 0
+    except Exception as e:
+        log(f"Encountered an error while getting data for {url}: {str(e)}", True)
+        if retries > 0:
+            log(f"Retrying with {retries} retries", verbose)
+            get_file(url, session, out_dir, retries - 1, verbose)
+        log(f"All retries exhausted, could not get {url}", True)
         return "", 0
 
-
-def get_files(urls: List[str], out_dir: str, verbose: bool = False) -> None:
+def get_files(urls: List[str], out_dir: str, retries: int, verbose: bool = False) -> None:
     session: requests.Session = requests.Session()
 
     for url in urls:
-        data_key, resp_len = get_file(url, session, out_dir, verbose)
+        data_key, resp_len = get_file(url, session, out_dir, retries, verbose)
         log(f"Recv {data_key} with len={resp_len}", verbose)
 
 
-def handle_ok_resp(resp: requests.Response, out_dir: str, verbose: bool = False) -> bool:
+def handle_ok_resp(resp: requests.Response,
+                   out_dir: str,
+                   retries: int,
+                   verbose: bool = False) -> bool:
     log("Handling ok response", verbose)
 
     compressed_index: bytes = resp.content
@@ -105,10 +126,10 @@ def handle_ok_resp(resp: requests.Response, out_dir: str, verbose: bool = False)
     log(f"Got decompressed index ({len(decompressed_index)} bytes)", verbose)
 
     str_data: str = decompressed_index.decode()
-    parsed_data: List[str] = list(map(lambda line: line.strip(), str_data.split("\n")))
+    parsed_data: List[str] = list(filter(lambda line: len(line) > 0, map(lambda line: line.strip(), str_data.split("\n"))))
     log(f"Got parsed data ({len(parsed_data)} entries)", verbose)
 
-    process_pool: ProcessPool = ProcessPool(4, get_files, parsed_data, out_dir, verbose)
+    process_pool: ProcessPool = ProcessPool(4, get_files, parsed_data, out_dir, retries, verbose)
     process_pool.run()
 
     return True
@@ -122,6 +143,7 @@ def make_data_req(out_dir: str,
                   req_start_s: int,
                   req_end_s: int,
                   redvox_ids: List[str],
+                  retries: int,
                   verbose: bool = False) -> bool:
     req: Dict[str, Union[str, int, List[str]]] = {"email": email,
                                                   "password": password,
@@ -134,7 +156,7 @@ def make_data_req(out_dir: str,
 
     if resp.status_code == 200:
         log("Recv ok response.", verbose)
-        return handle_ok_resp(resp, out_dir, verbose)
+        return handle_ok_resp(resp, out_dir, retries, verbose)
     elif resp.status_code == 400:
         log(f"Bad request error: {resp.status_code} {resp.text}", True)
         return False
