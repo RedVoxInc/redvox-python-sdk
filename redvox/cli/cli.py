@@ -1,9 +1,15 @@
 import argparse
 import os.path
+import sys
 from typing import *
 
 import redvox.api900.reader as reader
 import redvox.api900.reader_utils as reader_utils
+
+
+def log(msg: str, verbose: bool) -> None:
+    if verbose:
+        print(msg)
 
 
 def check_path(path: str, path_is_file: bool = True, file_ext: Optional[str] = None) -> bool:
@@ -36,14 +42,14 @@ def check_out_dir(out_dir: Optional[str] = None) -> bool:
     return True
 
 
-def to_json(paths: List[str], out_dir: Optional[str] = None) -> None:
+def to_json(paths: List[str], out_dir: Optional[str] = None, verbose: bool = False) -> bool:
     # Check paths
     if not check_files(paths, ".rdvxz"):
-        return
+        return False
 
     # Check out_dir
     if not check_out_dir(out_dir):
-        return
+        return False
 
     for path in paths:
         pb_packet = reader.read_file(path)
@@ -57,15 +63,19 @@ def to_json(paths: List[str], out_dir: Optional[str] = None) -> None:
         with open(new_path, "w") as fout:
             fout.write(reader_utils.to_json(pb_packet))
 
+        log(f"Converted {path} to {new_path}", verbose)
 
-def to_rdvxz(paths: List[str], out_dir: Optional[str] = None) -> None:
+    return True
+
+
+def to_rdvxz(paths: List[str], out_dir: Optional[str] = None, verbose: bool = False) -> bool:
     # Check paths
     if not check_files(paths, ".json"):
-        return
+        return False
 
     # Check out_dir
     if not check_out_dir(out_dir):
-        return
+        return False
 
     for path in paths:
         with open(path, "r") as fin:
@@ -79,26 +89,41 @@ def to_rdvxz(paths: List[str], out_dir: Optional[str] = None) -> None:
 
             reader_utils.write_file(new_path, reader_utils.from_json(json))
 
+            log(f"Converted {path} to {new_path}", verbose)
 
-def print_stdout(paths: List[str]) -> None:
+    return True
+
+
+def print_stdout(paths: List[str]) -> bool:
     # Check paths
     if not check_files(paths, ".rdvxz"):
-        return
+        return False
 
     for path in paths:
         print(reader.read_file(path))
 
+    return True
+
+
+def determine_exit(status: bool, verbose: bool = False) -> None:
+    if status:
+        log("Exiting with status=0", verbose)
+        sys.exit(0)
+
+    log("Exiting with status=1", verbose)
+    sys.exit(1)
+
 
 def to_json_args(args) -> None:
-    to_json(args.rdvxz_paths, args.out_dir)
+    determine_exit(to_json(args.rdvxz_paths, args.out_dir, args.verbose), args.verbose)
 
 
 def to_rdvxz_args(args) -> None:
-    to_rdvxz(args.json_paths, args.out_dir)
+    determine_exit(to_rdvxz(args.json_paths, args.out_dir, args.verbose), args.verbose)
 
 
 def print_stdout_args(args) -> None:
-    print_stdout(args.rdvxz_paths)
+    determine_exit(print_stdout(args.rdvxz_paths), args.verbose)
 
 
 def main():
@@ -110,7 +135,7 @@ def main():
                         help="Enable verbose logging",
                         action="store_true")
 
-    sub_parser = parser.add_subparsers(title="command")
+    sub_parser = parser.add_subparsers(title="command", dest="command", required=True)
 
     # rdvxz -> json
     to_json_parser = sub_parser.add_parser("to_json",
@@ -144,6 +169,7 @@ def main():
 
     # Parse the args and call the appropriate function
     args = parser.parse_args()
+    log(f"Running with args={str(args)}", args.verbose)
     args.func(args)
 
 

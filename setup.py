@@ -21,6 +21,6 @@ setup(name=redvox.NAME,
       long_description=open('README.md').read(),
       install_requires=requirements,
       entry_points={
-            'console_scripts': ['redvox-data-req=redvox.cli.data_req:main']
+            'console_scripts': ['redvox-cli=redvox.cli.cli:main']
       },
       python_requires=">=3.6")
