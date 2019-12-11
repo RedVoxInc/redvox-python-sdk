@@ -72,7 +72,7 @@ Wild cards can also be used.
 redvox-cli to_json data/*.rdvxz
 ``` 
 
-Increase logging verbosity (not that -v can also be used).
+Increase logging verbosity (note that -v can also be used).
 
 ```
 redvox-cli --verbose to_json data/*.rdvxz
@@ -81,7 +81,7 @@ redvox-cli --verbose to_json data/*.rdvxz
 Specify output directory for converted files (note that -o can also be used). The output directory should already exist.
 
 ```
-redvox-cli --verbose to_json --out_dir ./data/json ./data/*.rdvxz
+redvox-cli to_json --out_dir ./data/json ./data/*.rdvxz
 ``` 
 
 #### to_rdvxz
@@ -120,7 +120,7 @@ Wild cards can also be used.
 redvox-cli to_rdvxz data/*.json
 ``` 
 
-Increase logging verbosity (not that -v can also be used).
+Increase logging verbosity (note that -v can also be used).
 
 ```
 redvox-cli --verbose to_rdvxz data/*.json
@@ -129,7 +129,7 @@ redvox-cli --verbose to_rdvxz data/*.json
 Specify output directory for converted files (note that -o can also be used). The output directory should already exist.
 
 ```
-redvox-cli --verbose to_rdvxz --out_dir ./data/converted_rdvxz ./data/*.json
+redvox-cli to_rdvxz --out_dir ./data/converted_rdvxz ./data/*.json
 ``` 
 
 #### print
@@ -215,12 +215,12 @@ redvox-cli data_req --out_dir /data fake_host 8080 fake_email@foo.com fake_passw
 Increase verbosity during data download (not that -v can also be used).
 
 ```
-redvox-cli data_req --verbose --out_dir /data fake_host 8080 fake_email@foo.com fake_password 1574726400 1574730000 1637650005 1637650006 1637650007
+redvox-cli --verbose data_req --out_dir /data fake_host 8080 fake_email@foo.com fake_password 1574726400 1574730000 1637650005 1637650006 1637650007
 ```
 
 Increase verbosity even more to display output from dependencies (such as the HTTP client). Note that -v -v or -vv may also be used here.
 
 ```
-redvox-cli data_req --verbose --verbose --out_dir /data fake_host 8080 fake_email@foo.com fake_password 1574726400 1574730000 1637650005 1637650006 1637650007
+redvox-cli --verbose --verbose data_req --out_dir /data fake_host 8080 fake_email@foo.com fake_password 1574726400 1574730000 1637650005 1637650006 1637650007
 ```
 
