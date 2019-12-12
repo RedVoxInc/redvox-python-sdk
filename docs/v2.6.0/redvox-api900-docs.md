@@ -112,40 +112,9 @@ The Python SDK provides a small command line interface (CLI) that has the follow
 * Convert .rdvxz files to RedVox API 900 compliant .json files
 * Convert RedVox API 900 compliant .json files to .rdvxz files
 * Display the contents of .rdvxz files
+* Perform bulk data downloads of RedVox data
 
-Once the redvox library has been installed from pip, the CLI can be accessed by running:
-
-`python3 -m redvox.api900.cli [CMD] [FILES]` where [CMD] is one of `to_json`, `to_rdvxz`, or `print` and [FILES] is a list of paths to either *.rdvxz files or *.json files.
-
-##### Example: Converting .rdvxz files to RedVox API 900 .json files
-
-You can convert a single .rdvxz file to json with a command like:
-
-`python3 -m redvox.api900.cli to_json example_data/example.rdvxz`
-
-You can convert multiple .rdvxz files in the same directory to json with a command like:
-
-`python3 -m redvox.api900.cli to_json example_data/*.rdvxz`
-
-##### Example: Converting RedVox compliant API 900 .json files to .rdvxz files
-
-You can convert a single RedVox AIP 900 compliant json file to .rdvxz with a command like:
-
-`python3 -m redvox.api900.cli to_rdvxz example_data/example.json`
-
-You can convert multiple RedVox AIP 900 compliant json files to .rdvxz with a command like:
-
-`python3 -m redvox.api900.cli to_rdvxz example_data/*.json`
-
-##### Example: Displaying the contents of .rdvxz files
-
-You can display the contents of a single .rdvxz file with:
-
-`python3 -m redvox.api900.cli print example_data/example.rdvxz`
-
-You can display the contents of multiple .rdvxz files with:
-
-`python3 -m redvox.api900.cli print example_data/*.rdvxz`
+The CLI documentation can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.0/cli-docs.md
 
 ### Loading RedVox API 900 Files
 
