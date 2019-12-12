@@ -140,7 +140,9 @@ def main():
                         action="count",
                         default=0)
 
-    sub_parser = parser.add_subparsers(title="command", dest="command", required=True)
+    sub_parser = parser.add_subparsers()
+    sub_parser.required = True
+    sub_parser.dest = "command"
 
     # rdvxz -> json
     to_json_parser = sub_parser.add_parser("to_json",
