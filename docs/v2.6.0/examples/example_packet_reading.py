@@ -6,8 +6,8 @@ We now accept the original, compressed, binary-encoded .rdvxz files and the larg
 When files are read, they return a WrappedRedvoxPacket which provides both high level getters and setters for reading,
 modifying, creating, and writing RedVox API 900 files.
 
-Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.2.0/redvox-api900-docs.md
-API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v2.2.0/api_docs/redvox
+Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v.2.6.0/redvox-api900-docs.md
+API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v.2.6.0/api_docs/redvox
 """
 
 # First, we import the RedVox API 900 reader.

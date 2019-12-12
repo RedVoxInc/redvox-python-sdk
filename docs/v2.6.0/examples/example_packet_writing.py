@@ -1,8 +1,8 @@
 """
 This module shows how WrappedRedvoxPackets can be written back to disk.
 
-Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.2.0/redvox-api900-docs.md
-API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v2.2.0/api_docs/redvox
+Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v.2.6.0/redvox-api900-docs.md
+API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v.2.6.0/api_docs/redvox
 """
 
 # First, we import the RedVox API 900 reader.
