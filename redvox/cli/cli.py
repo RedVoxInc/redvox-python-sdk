@@ -6,11 +6,12 @@ import argparse
 import logging
 import os.path
 import sys
-from typing import *
+from typing import Dict, List, Optional
 
 import redvox.cli.conversions as conversions
 import redvox.cli.data_req as data_req
 
+# pylint: disable=C0103
 log = logging.getLogger(__name__)
 
 
@@ -36,9 +37,9 @@ def check_files(paths: List[str], file_ext: Optional[str] = None) -> bool:
     """
     invalid_paths: List[str] = list(filter(lambda path: not check_path(path, file_ext=file_ext), paths))
     if len(invalid_paths) > 0:
-        log.error(f"{len(invalid_paths)} invalid paths found")
+        log.error("%d invalid paths found", len(invalid_paths))
         for invalid_path in invalid_paths:
-            log.error(f"Invalid path {invalid_path}")
+            log.error("Invalid path %s", invalid_path)
         return False
     return True
 
@@ -50,7 +51,7 @@ def check_out_dir(out_dir: Optional[str] = None) -> bool:
     :return: True if it exists, False otherwise.
     """
     if out_dir is not None and not check_path(out_dir, path_is_file=False):
-        log.error(f"out_dir is invalid: {out_dir}")
+        log.error("out_dir is invalid: %s", out_dir)
         return False
     return True
 
@@ -215,16 +216,19 @@ def main():
     }
     log_level: str = log_levels[args.verbose] if args.verbose in log_levels else log_levels[0]
     logging.basicConfig(level=log_level,
-                        format="[%(levelname)s:%(process)d:%(filename)s:%(module)s:%(funcName)s:%(lineno)d:%(asctime)s] %("
-                               "message)s")
+                        format="[%(levelname)s:%(process)d:%(filename)s:%(module)s:%(funcName)s:%(lineno)d:%(asctime)s]"
+                               " %(message)s")
 
-    log.info(f"Running with args={str(args)} and log_level={log_level}")
+    log.info("Running with args=%s and log_level=%s",
+             str(args),
+             log_level)
 
     # Try calling the appropriate handler
+    # pylint: disable=W0703
     try:
         args.func(args)
     except Exception as e:
-        log.error(f"Encountered an error: {str(e)}")
+        log.error("Encountered an error: %s", str(e))
         sys.exit(1)
 
 

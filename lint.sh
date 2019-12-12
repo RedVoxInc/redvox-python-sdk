@@ -1,6 +1,8 @@
 #!/bin/bash
 
-pylint redvox.api900.cli                    && \
+pylint redvox.cli.cli                       && \
+pylint redvox.cli.conversions               && \
+pylint redvox.cli.data_req                  && \
 pylint redvox.api900.concat                 && \
 pylint redvox.api900.constants              && \
 pylint redvox.api900.date_time_utils        && \

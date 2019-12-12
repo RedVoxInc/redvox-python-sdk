@@ -13,7 +13,7 @@ from typing import Callable, Dict, List, Tuple, Union
 import numpy as np
 import requests
 
-
+# pylint: disable=C0103
 log = logging.getLogger(__name__)
 
 
@@ -70,9 +70,9 @@ def find_between(start: str, end: str, contents: str) -> str:
     :param contents: The full string.
     :return: The contents between the start and end strings.
     """
-    s = contents.find(start)
-    e = contents.find(end)
-    return contents[s + len(start):e]
+    s_idx = contents.find(start)
+    e_idx = contents.find(end)
+    return contents[s_idx + len(start):e_idx]
 
 
 def get_file(url: str,
@@ -87,6 +87,7 @@ def get_file(url: str,
     :param retries: The number of times to retry failed file downloads.
     :return: A tuple containing the data_key and the length of the download response.
     """
+    # pylint: disable=W0703
     try:
         resp: requests.Response = session.get(url)
         if resp.status_code == 200:
@@ -95,29 +96,32 @@ def get_file(url: str,
             directory = os.path.dirname(data_key)
             full_dir = f"{out_dir}/{directory}"
             if not os.path.exists(full_dir):
-                log.info(f"Directory {full_dir} does not exist, creating it")
+                log.info("Directory %s does not exist, creating it", full_dir)
                 os.makedirs(full_dir)
 
             full_path = f"{out_dir}/{data_key}"
             with open(full_path, "wb") as fout:
-                flen = fout.write(resp.content)
-                log.info(f"Wrote {full_path} {flen}")
+                bytes_written = fout.write(resp.content)
+                log.info("Wrote %s %d", full_path, bytes_written)
 
             return data_key, len(resp.content)
 
         else:
-            log.error(f"Received error response when requesting data for url={url}: {resp.status_code} {resp.text}")
+            log.error("Received error response when requesting data for url=%s: %d %s",
+                      url,
+                      resp.status_code,
+                      resp.text)
             if retries > 0:
-                log.info(f"Retrying with {retries} retries")
+                log.info("Retrying with %d retries", retries)
                 get_file(url, session, out_dir, retries - 1)
-            log.error(f"All retries exhausted, could not get {url}")
+            log.error("All retries exhausted, could not get %s", url)
             return "", 0
     except Exception as e:
-        log.error(f"Encountered an error while getting data for {url}: {str(e)}")
+        log.error("Encountered an error while getting data for %s: %s", url, str(e))
         if retries > 0:
-            log.info(f"Retrying with {retries} retries")
+            log.info("Retrying with %d retries", retries)
             get_file(url, session, out_dir, retries - 1)
-        log.error(f"All retries exhausted, could not get {url}")
+        log.error("All retries exhausted, could not get %s", url)
         return "", 0
 
 
@@ -132,7 +136,7 @@ def get_files(urls: List[str], out_dir: str, retries: int) -> None:
 
     for url in urls:
         data_key, resp_len = get_file(url, session, out_dir, retries)
-        log.info(f"Recv {data_key} with len={resp_len}")
+        log.info("Recv %s with len=%d", data_key, resp_len)
 
 
 def handle_ok_resp(resp: requests.Response,
@@ -148,15 +152,15 @@ def handle_ok_resp(resp: requests.Response,
     log.info("Handling ok response")
 
     compressed_index: bytes = resp.content
-    log.info(f"Got compressed index ({len(compressed_index)} bytes)")
+    log.info("Got compressed index (%d bytes)", len(compressed_index))
 
     decompressed_index: bytes = bz2.decompress(compressed_index)
-    log.info(f"Got decompressed index ({len(decompressed_index)} bytes)")
+    log.info("Got decompressed index (%d bytes)", len(decompressed_index))
 
     str_data: str = decompressed_index.decode()
     parsed_data: List[str] = list(
         filter(lambda line: len(line) > 0, map(lambda line: line.strip(), str_data.split("\n"))))
-    log.info(f"Got parsed data ({len(parsed_data)} entries)")
+    log.info("Got parsed data (%d entries)", len(parsed_data))
 
     process_pool: ProcessPool = ProcessPool(4, get_files, parsed_data, out_dir, retries)
     process_pool.run()
@@ -199,11 +203,11 @@ def make_data_req(out_dir: str,
         log.info("Recv ok response.")
         return handle_ok_resp(resp, out_dir, retries)
     elif resp.status_code == 400:
-        log.error(f"Bad request error: {resp.status_code} {resp.text}")
+        log.error("Bad request error: %d %s", resp.status_code, resp.text)
         return False
     elif resp.status_code == 401:
-        log.error(f"Authentication error: {resp.status_code} {resp.text}")
+        log.error("Authentication error: %d %s", resp.status_code, resp.text)
         return False
     else:
-        log.error(f"Server error: {resp.status_code} {resp.text}")
+        log.error("Server error: %d %s", resp.status_code, resp.text)
         return False

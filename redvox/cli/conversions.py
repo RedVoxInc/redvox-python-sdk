@@ -4,12 +4,12 @@ This module contains functions for performing RedVox data conversions and displa
 
 import logging
 import os.path
-from typing import *
+from typing import List, Optional
 
 import redvox.api900.reader as reader
 import redvox.api900.reader_utils as reader_utils
 
-
+# pylint: disable=C0103
 log = logging.getLogger(__name__)
 
 
@@ -32,7 +32,7 @@ def to_json(paths: List[str], out_dir: Optional[str] = None) -> bool:
         with open(new_path, "w") as fout:
             fout.write(reader_utils.to_json(pb_packet))
 
-        log.info(f"Converted {path} to {new_path}")
+        log.info("Converted %s to %s", path, new_path)
 
     return True
 
@@ -56,7 +56,7 @@ def to_rdvxz(paths: List[str], out_dir: Optional[str] = None) -> bool:
 
             reader_utils.write_file(new_path, reader_utils.from_json(json))
 
-            log.info(f"Converted {path} to {new_path}")
+            log.info("Converted %s to %s", path, new_path)
 
     return True
 
