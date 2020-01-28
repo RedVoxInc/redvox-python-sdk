@@ -6,8 +6,8 @@ We now accept the original, compressed, binary-encoded .rdvxz files and the larg
 When files are read, they return a WrappedRedvoxPacket which provides both high level getters and setters for reading,
 modifying, creating, and writing RedVox API 900 files.
 
-Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v.2.6.0/redvox-api900-docs.md
-API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v.2.6.0/api_docs/redvox
+Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v.2.6.1/redvox-api900-docs.md
+API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v.2.6.1/api_docs/redvox
 """
 
 # First, we import the RedVox API 900 reader.
@@ -85,7 +85,7 @@ if wrapped_packet.has_barometer_sensor():
 
     # We can also print a description of the sensor itself
     print(barometer_sensor)
-    
+
 # LocationSensor
 if wrapped_packet.has_location_sensor():
     location_sensor = wrapped_packet.location_sensor()

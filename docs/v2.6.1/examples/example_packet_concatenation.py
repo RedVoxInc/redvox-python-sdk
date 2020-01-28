@@ -26,8 +26,8 @@ Concatenation will fail under the following circumstances:
 * Not all WrappedRedvoxPackets are from the same device
 * WrappedRedvoxPackets are not in monotonically increasing order
 
-Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v.2.6.0/redvox-api900-docs.md
-API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v.2.6.0/api_docs/redvox
+Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v.2.6.1/redvox-api900-docs.md
+API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v.2.6.1/api_docs/redvox
 """
 
 import os
