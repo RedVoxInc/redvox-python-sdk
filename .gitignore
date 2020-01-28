@@ -7,3 +7,4 @@ redvox.egg-info/
 *.orig
 *.jpg
 *.jpeg
+.mypy_cache
