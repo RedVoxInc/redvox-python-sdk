@@ -180,22 +180,27 @@ def main():
                                             help="Request bulk RedVox data from the RedVox servers")
     data_req_parser.add_argument("--out_dir",
                                  "-o",
-                                 help="The output directory that RedVox files will be written to.",
+                                 help="The output directory that RedVox files will be written to (default=.)",
                                  default=".")
     data_req_parser.add_argument("--retries",
                                  "-r",
-                                 help="The number of times the client should retry getting a file on failure",
+                                 help="The number of times the client should retry getting a file on failure "
+                                      "(default=1)",
                                  default=1,
                                  choices=set(range(0, 6)),
                                  type=int)
+    data_req_parser.add_argument("--host",
+                                 "-H",
+                                 help="Data server host (default=redvox.io)",
+                                 default="redvox.io")
+    data_req_parser.add_argument("--port",
+                                 "-p",
+                                 type=int,
+                                 help="Data server port (default=443)",
+                                 default=443)
     data_req_parser.add_argument("auth_token",
                                  help="An authentication token provided by RedVox required for accessing the data "
                                       "request service")
-    data_req_parser.add_argument("host",
-                                 help="Data server host")
-    data_req_parser.add_argument("port",
-                                 type=int,
-                                 help="Data server port")
     data_req_parser.add_argument("email",
                                  help="redvox.io account email")
     data_req_parser.add_argument("password",
