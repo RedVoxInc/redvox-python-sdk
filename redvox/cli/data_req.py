@@ -176,7 +176,8 @@ def make_data_req(out_dir: str,
                   req_start_s: int,
                   req_end_s: int,
                   redvox_ids: List[str],
-                  retries: int) -> bool:
+                  retries: int,
+                  auth_token: str) -> bool:
     """
     Makes a data request to the RedVox data_server.
     :param out_dir: The output directory to store downloaded files.
@@ -188,13 +189,15 @@ def make_data_req(out_dir: str,
     :param req_end_s: The request end time as seconds since the epoch.
     :param redvox_ids: A list of RedVox ids.
     :param retries: The number of retries to perform on failed downloads.
+    :param auth_token: An authentication token required for accessing the data service.
     :return: True if this succeeds, False otherwise.
     """
     req: Dict[str, Union[str, int, List[str]]] = {"email": email,
                                                   "password": password,
                                                   "start_ts_s": req_start_s,
                                                   "end_ts_s": req_end_s,
-                                                  "redvox_ids": redvox_ids}
+                                                  "redvox_ids": redvox_ids,
+                                                  "auth_token": auth_token}
     url: str = f"http://{host}:{port}/req"
 
     resp: requests.Response = requests.post(url, json=req)

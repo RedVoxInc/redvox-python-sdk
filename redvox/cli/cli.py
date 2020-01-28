@@ -187,6 +187,8 @@ def main():
                                  default=1,
                                  choices=set(range(0, 6)),
                                  type=int)
+    data_req_parser.add_argument("auth_token",
+                                 help="An authentication token provided by RedVox required for accessing the data request service")
     data_req_parser.add_argument("host",
                                  help="Data server host")
     data_req_parser.add_argument("port",
