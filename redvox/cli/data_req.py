@@ -198,7 +198,7 @@ def make_data_req(out_dir: str,
                                                   "end_ts_s": req_end_s,
                                                   "redvox_ids": redvox_ids,
                                                   "auth_token": auth_token}
-    url: str = f"http://{host}:{port}/req"
+    url: str = f"https://{host}:{port}/req"
 
     resp: requests.Response = requests.post(url, json=req)
 
