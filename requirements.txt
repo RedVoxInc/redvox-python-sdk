@@ -1,5 +1,5 @@
-lz4>=2.1.6
-numpy>=1.16.2
-protobuf>=3.7.1
-matplotlib
-requests
+lz4 == 3.0.2
+numpy == 1.18.1
+protobuf == 3.11.2
+matplotlib == 3.1.2
+requests == 2.22.0
