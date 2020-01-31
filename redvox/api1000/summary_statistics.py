@@ -1,5 +1,7 @@
-import statistics
-from typing import Dict, List
+from typing import Any, Dict, Optional
+
+import numpy as np
+import scipy.stats
 
 import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
@@ -107,44 +109,37 @@ class SummaryStatistics:
         return common.get_metadata(self._proto.metadata)
 
     def set_metadata(self, metadata: Dict[str, str]) -> 'SummaryStatistics':
-        for key, value in metadata.items():
-            if not isinstance(key, str) or not isinstance(value, str):
-                raise errors.SummaryStatisticsError(f"All keys and values in metadata must be strings, however a "
-                                                    f"{}={} was provided")
+        err_value: Optional[Any] = common.set_metadata(self._proto.metadata, metadata)
 
-        common.set_metadata(self._proto.metadata, metadata)
+        if err_value is not None:
+            raise errors.SummaryStatisticsError("All keys and values in metadata must be strings, but "
+                                                f"{type(err_value)}={err_value} was supplied")
+
         return self
 
     def append_metadata(self, key: str, value: str) -> 'SummaryStatistics':
-        if not isinstance(key, str) or not isinstance(value, str):
-            raise errors.SummaryStatisticsError("All keys and values in metadata must be strings")
+        err_value: Optional[Any] = common.append_metadata(self._proto.metadata, key, value)
 
-        self._proto.metadata[key] = value
+        if err_value is not None:
+            raise errors.SummaryStatisticsError("All keys and values in metadata must be strings, but "
+                                                f"{type(err_value)}={err_value} was supplied")
+
         return self
 
-    def update_from_values(self, values: List[float]):
-        if not isinstance(values, list):
-            raise errors.SummaryStatisticsError("Values must be a list")
+    def update_from_values(self, values: np.ndarray):
+        if not common.is_protobuf_repeated_numerical_type(values):
+            raise errors.SummaryStatisticsError("Values must be an numpy array of either floats or ints")
 
         if common.none_or_empty(values):
             raise errors.SummaryStatisticsError("No values supplied for updating statistics")
 
         self._proto.count = len(values)
-        self._proto.mean = statistics.mean(values)
-        self._proto.median = statistics.median(values)
-
-        try:
-            self._proto.mode = statistics.mode(values)
-        except statistics.StatisticsError:
-            self._proto.mode = common.NAN
-
-        try:
-            self._proto.variance = statistics.variance(values)
-        except statistics.StatisticsError:
-            self._proto.variance = common.NAN
-
-        self._proto.min = min(values)
-        self._proto.max = max(values)
+        self._proto.mean = values.mean()
+        self._proto.median = np.median(values)
+        self._proto.mode = scipy.stats.mode(values)[0]
+        self._proto.variance = values.var()
+        self._proto.min = values.min()
+        self._proto.max = values.max()
         self._proto.range = self._proto.max - self._proto.min
 
     def __str__(self) -> str:
