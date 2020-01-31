@@ -16,3 +16,8 @@ class SummaryStatisticsError(Api1000Error):
 class MicrophoneChannelError(Api1000Error):
     def __init__(self, message: str):
         super().__init__(f"MicrophoneChannelError: {message}")
+
+
+class WrappedRedvoxPacketApi1000Error(Api1000Error):
+    def __init__(self, message: str):
+        super().__init__(f"WrappedRedvoxPacketApi1000Error: {message}")

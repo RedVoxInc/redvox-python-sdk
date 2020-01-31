@@ -1,11 +1,10 @@
-import redvox.api1000.summary_statistics as w
+import redvox.api1000.wrapped_packet as w
+import redvox.api1000.proto.redvox_api_1000_pb2 as p
 import numpy as np
 
 def main():
-    s = w.SummaryStatistics.new()
-    s.update_from_values(np.array(["a", "b"]))
-    print(s)
-    # print(s.get_variance())
+    wp = w.WrappedRedvoxPacketApi1000.new()
+    print(wp.get_microphone_channel())
 
 
 

@@ -128,7 +128,7 @@ class SummaryStatistics:
 
     def update_from_values(self, values: np.ndarray):
         if not common.is_protobuf_repeated_numerical_type(values):
-            raise errors.SummaryStatisticsError("Values must be an numpy array of either floats or ints")
+            raise errors.SummaryStatisticsError(f"A string is required, but a {type(values)}={values} was provided")
 
         if common.none_or_empty(values):
             raise errors.SummaryStatisticsError("No values supplied for updating statistics")
