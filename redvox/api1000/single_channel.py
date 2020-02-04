@@ -41,12 +41,43 @@ class SingleChannel:
     def get_sample_ts_us(self) -> np.ndarray:
         return np.array(self._proto.sample_ts_us)
 
-    def set_sample_ts_us(self, sample_ts_us: np.ndarray, update_sample_rate_statistics: bool = True) -> 'SingleChannel':
+    def set_sample_ts_us(self, sample_ts_us: np.ndarray,
+                         update_sample_rate_statistics: bool = True,
+                         update_mean_sample_rate: bool = True) -> 'SingleChannel':
         if not common.is_protobuf_repeated_numerical_type(sample_ts_us):
             raise errors.SingleChannelError(f"A numpy array of floats or integers is required, but a "
                                             f"{type(sample_ts_us)}={sample_ts_us} was provided")
 
         self._proto.sample_ts_us[:] = list(sample_ts_us)
+
+        if update_mean_sample_rate:
+            self.set_mean_sample_rate_hz(common.mean_sample_rate_hz_from_sample_ts_us(sample_ts_us))
+
+        if update_sample_rate_statistics:
+            self.recompute_sample_rate_statistics()
+
+        return self
+
+    def append_sample_ts_us(self, sample_ts_us: np.ndarray,
+                            update_summary_statistics: bool = True,
+                            update_mean_sample_rate: bool = True) -> 'SingleChannel':
+        if not common.is_protobuf_repeated_numerical_type(sample_ts_us):
+            raise errors.SingleChannelError(f"A numpy array of floats or integers is required, but a "
+                                            f"{type(sample_ts_us)}={sample_ts_us} was provided")
+
+        self._proto.sample_ts_us.extend(list(sample_ts_us))
+
+        if update_summary_statistics:
+            self.recompute_sample_rate_statistics()
+
+        if update_mean_sample_rate:
+            self.set_mean_sample_rate_hz(common.mean_sample_rate_hz_from_sample_ts_us(self.get_sample_ts_us()))
+
+        return self
+
+    def clear_sample_ts_us(self):
+        self._proto.sample_ts_us[:] = []
+        return self
 
     def get_samples(self) -> np.ndarray:
         return np.array(self._proto.samples)
@@ -59,7 +90,7 @@ class SingleChannel:
         self._proto.samples[:] = list(samples)
 
         if update_summary_statistics:
-            self.get_sample_statistics().update_from_values(samples)
+            self.recompute_sample_statistics()
 
         return self
 
@@ -71,12 +102,13 @@ class SingleChannel:
         self._proto.samples.extend(list(samples))
 
         if update_summary_statistics:
-            self.get_sample_statistics().update_from_values(self.get_samples())
+            self.recompute_sample_statistics()
 
         return self
 
-    def clear_samples(self):
+    def clear_samples(self) -> 'SingleChannel':
         self._proto.samples[:] = []
+        return self
 
     def get_sample_statistics(self) -> summary_statistics.SummaryStatistics:
         return summary_statistics.SummaryStatistics(self._proto.sample_statistics)
@@ -93,6 +125,23 @@ class SingleChannel:
 
     def recompute_sample_statistics(self) -> 'SingleChannel':
         self.get_sample_statistics().update_from_values(self.get_samples())
+        return self
+
+    def get_sample_rate_statistics(self) -> summary_statistics.SummaryStatistics:
+        return summary_statistics.SummaryStatistics(self._proto.sample_rate_statistics)
+
+    def set_sample_rate_statistics(self, sample_rate_statistics: summary_statistics.SummaryStatistics) -> 'SingleChannel':
+        if not isinstance(sample_rate_statistics, summary_statistics.SummaryStatistics):
+            raise errors.SingleChannelError(f"Expected an instance of SummaryStatistics, but was provided a "
+                                            f"{type(sample_rate_statistics)}={sample_rate_statistics}")
+
+        self._proto.sample_statistics.Clear()
+        self._proto.sample_statistics.CopyFrom(sample_rate_statistics._proto)
+
+        return self
+
+    def recompute_sample_rate_statistics(self) -> 'SingleChannel':
+        self.get_sample_rate_statistics().update_from_values(self.get_sample_ts_us())
         return self
 
     def get_metadata(self) -> Dict[str, str]:

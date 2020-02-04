@@ -71,3 +71,16 @@ def as_json(value):
 
 def as_dict(value) -> Dict:
     return MessageToDict(value, True)
+
+
+def mean_sample_rate_hz_from_sample_ts_us(sample_ts_us: np.ndarray) -> float:
+    sample_ts_s: np.ndarray = sample_ts_us / 1_000_000.0
+    diffs: np.ndarray = np.diff(sample_ts_s)
+    sample_rates_hz: np.ndarray = 1.0 / diffs
+    return sample_rates_hz.mean()
+
+
+
+if __name__ == "__main__":
+    ts = np.array([0.0, 10_000_000.0, 20_000_000.0, 30_000_000.0])
+    print(mean_sample_rate_hz_from_sample_ts_us(ts))

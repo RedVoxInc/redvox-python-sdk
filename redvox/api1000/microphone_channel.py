@@ -60,7 +60,7 @@ class MicrophoneChannel:
         self._proto.samples[:] = list(samples)
 
         if update_summary_statistics:
-            self.get_sample_statistics().update_from_values(samples)
+            self.recompute_sample_statistics()
 
         return self
 
@@ -72,12 +72,17 @@ class MicrophoneChannel:
         self._proto.samples.extend(list(samples))
 
         if update_summary_statistics:
-            self.get_sample_statistics().update_from_values(self.get_samples())
+            self.recompute_sample_statistics()
 
         return self
 
-    def clear_samples(self):
+    def clear_samples(self, update_summary_statistics: bool = True) -> 'MicrophoneChannel':
         self._proto.samples[:] = []
+
+        if update_summary_statistics:
+            self.recompute_sample_statistics()
+
+        return self
 
     def get_sample_statistics(self) -> summary_statistics.SummaryStatistics:
         return summary_statistics.SummaryStatistics(self._proto.sample_statistics)
