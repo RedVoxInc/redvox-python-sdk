@@ -18,6 +18,11 @@ class MicrophoneChannelError(Api1000Error):
         super().__init__(f"MicrophoneChannelError: {message}")
 
 
+class SingleChannelError(Api1000Error):
+    def __init__(self, message: str):
+        super().__init__(f"SingleChannelError: {message}")
+
+
 class WrappedRedvoxPacketApi1000Error(Api1000Error):
     def __init__(self, message: str):
         super().__init__(f"WrappedRedvoxPacketApi1000Error: {message}")
