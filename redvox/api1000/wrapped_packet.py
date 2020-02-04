@@ -9,6 +9,7 @@ import numpy as np
 import redvox.api1000.common as common
 import redvox.api1000.errors as errors
 import redvox.api1000.microphone_channel as _microphone_channel
+import redvox.api1000.single_channel as _single_channel
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
@@ -428,6 +429,39 @@ class WrappedRedvoxPacketApi1000:
                                                          f"{type(microphone_channel)}={microphone_channel} was "
                                                          f"provided")
         self._proto.microphone_channel.CopyFrom(microphone_channel._proto)
+        return self
+
+    def has_barometer_channel(self) -> bool:
+        return self._proto.HasField("barometer_channel")
+
+    def set_barometer_channel(self, barometer_channel: _single_channel.SingleChannel) -> 'WrappedRedvoxPacketApi1000':
+        if not isinstance(barometer_channel, _single_channel.SingleChannel):
+            raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a SingleChannel is required, but a "
+                                                         f"{type(barometer_channel)}={barometer_channel} was "
+                                                         f"provided")
+        self._proto.barometer_channel.CopyFrom(barometer_channel._proto)
+        return self
+
+    def has_light_channel(self) -> bool:
+        return self._proto.HasField("light_channel")
+
+    def set_light_channel(self, light_channel: _single_channel.SingleChannel) -> 'WrappedRedvoxPacketApi1000':
+        if not isinstance(light_channel, _single_channel.SingleChannel):
+            raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a SingleChannel is required, but a "
+                                                         f"{type(light_channel)}={light_channel} was "
+                                                         f"provided")
+        self._proto.light_channel.CopyFrom(light_channel._proto)
+        return self
+
+    def has_infrared_channel(self) -> bool:
+        return self._proto.HasField("infrared_channel")
+
+    def set_infrared_channel(self, infrared_channel: _single_channel.SingleChannel) -> 'WrappedRedvoxPacketApi1000':
+        if not isinstance(infrared_channel, _single_channel.SingleChannel):
+            raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a SingleChannel is required, but a "
+                                                         f"{type(infrared_channel)}={infrared_channel} was "
+                                                         f"provided")
+        self._proto.infrared_channel.CopyFrom(infrared_channel._proto)
         return self
 
     # Metadata
