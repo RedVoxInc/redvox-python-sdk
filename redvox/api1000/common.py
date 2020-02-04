@@ -65,5 +65,9 @@ def append_metadata(mutable_mapping, key: str, value: str) -> Optional[Any]:
     return None
 
 
-def to_dict(value) -> Dict:
-    return MessageToJson(value)
+def as_json(value):
+    return MessageToJson(value, True)
+
+
+def as_dict(value) -> Dict:
+    return MessageToDict(value, True)

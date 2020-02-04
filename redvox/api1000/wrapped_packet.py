@@ -452,5 +452,8 @@ class WrappedRedvoxPacketApi1000:
 
         return self
 
+    def as_json(self) -> str:
+        return common.as_json(self._proto)
+
     def __str__(self):
         return str(self._proto)

@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional
 import numpy as np
 import scipy.stats
 
+import google.protobuf.json_format
 import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 import redvox.api1000.common as common
@@ -142,5 +143,8 @@ class SummaryStatistics:
         self._proto.max = values.max()
         self._proto.range = self._proto.max - self._proto.min
 
+    def as_json(self) -> str:
+        return common.as_json(self._proto)
+
     def __str__(self) -> str:
-        return str(self._proto)
+        return self.as_json()
