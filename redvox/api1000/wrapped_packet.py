@@ -10,6 +10,7 @@ import redvox.api1000.common as common
 import redvox.api1000.errors as errors
 import redvox.api1000.microphone_channel as _microphone_channel
 import redvox.api1000.single_channel as _single_channel
+import redvox.api1000.xyz_channel as _xyz_channel
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
@@ -440,6 +441,39 @@ class WrappedRedvoxPacketApi1000:
                                                          f"{type(barometer_channel)}={barometer_channel} was "
                                                          f"provided")
         self._proto.barometer_channel.CopyFrom(barometer_channel._proto)
+        return self
+
+    def has_accelerometer_channel(self) -> bool:
+        return self._proto.HasField("accelerometer_channel")
+
+    def set_accelerometer_channel(self, accelerometer_channel: _single_channel.SingleChannel) -> 'WrappedRedvoxPacketApi1000':
+        if not isinstance(accelerometer_channel, _xyz_channel.XyzChannel):
+            raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a XyzChannel is required, but a "
+                                                         f"{type(accelerometer_channel)}={accelerometer_channel} was "
+                                                         f"provided")
+        self._proto.accelerometer_channel.CopyFrom(accelerometer_channel._proto)
+        return self
+
+    def has_gyroscope_channel(self) -> bool:
+        return self._proto.HasField("gyroscope_channel")
+
+    def set_gyroscope_channel(self, gyroscope_channel: _single_channel.SingleChannel) -> 'WrappedRedvoxPacketApi1000':
+        if not isinstance(gyroscope_channel, _xyz_channel.XyzChannel):
+            raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a XyzChannel is required, but a "
+                                                         f"{type(gyroscope_channel)}={gyroscope_channel} was "
+                                                         f"provided")
+        self._proto.gyroscope_channel.CopyFrom(gyroscope_channel._proto)
+        return self
+
+    def has_magnetometer_channel(self) -> bool:
+        return self._proto.HasField("magnetometer_channel")
+
+    def set_magnetometer_channel(self, magnetometer_channel: _single_channel.SingleChannel) -> 'WrappedRedvoxPacketApi1000':
+        if not isinstance(magnetometer_channel, _xyz_channel.XyzChannel):
+            raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a XyzChannel is required, but a "
+                                                         f"{type(magnetometer_channel)}={magnetometer_channel} was "
+                                                         f"provided")
+        self._proto.magnetometer_channel.CopyFrom(magnetometer_channel._proto)
         return self
 
     def has_light_channel(self) -> bool:
