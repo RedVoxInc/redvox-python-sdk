@@ -135,8 +135,8 @@ class SingleChannel:
             raise errors.SingleChannelError(f"Expected an instance of SummaryStatistics, but was provided a "
                                             f"{type(sample_rate_statistics)}={sample_rate_statistics}")
 
-        self._proto.sample_statistics.Clear()
-        self._proto.sample_statistics.CopyFrom(sample_rate_statistics._proto)
+        self._proto.sample_rate_statistics.Clear()
+        self._proto.sample_rate_statistics.CopyFrom(sample_rate_statistics._proto)
 
         return self
 
