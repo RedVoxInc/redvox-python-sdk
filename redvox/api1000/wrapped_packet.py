@@ -43,6 +43,21 @@ class WrappedRedvoxPacketApi1000:
     def from_compressed_path(rdvxz_path: str) -> 'WrappedRedvoxPacketApi1000':
         pass
 
+    def to_compressed_bytes(self) -> bytes:
+        pass
+
+    def to_json(self) -> str:
+        pass
+
+    def to_dict(self) -> Dict:
+        pass
+
+    def write_compressed_to_file(self, base_dir: str, filename: Optional = None):
+        pass
+
+    def write_json_to_file(self, base_dir: str, filename: Optional = None):
+        pass
+
     # API Version
     def get_api(self) -> int:
         return self._proto.api

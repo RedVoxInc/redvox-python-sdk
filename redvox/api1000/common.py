@@ -1,3 +1,4 @@
+import abc
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
@@ -6,6 +7,21 @@ from google.protobuf.json_format import MessageToDict, MessageToJson
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 NAN: float = float("NaN")
+
+
+class ProtoWrapper(abc.ABC):
+    def __init__(self, proto):
+        self._proto = proto
+
+    @abc.abstractmethod
+    def get_proto(self):
+        pass
+
+    def to_json(self) -> str:
+        return as_json(self._proto)
+
+    def __str__(self):
+        return self.to_json()
 
 
 def none_or_empty(value: Union[List, str, np.ndarray]) -> bool:
@@ -78,7 +94,6 @@ def mean_sample_rate_hz_from_sample_ts_us(sample_ts_us: np.ndarray) -> float:
     diffs: np.ndarray = np.diff(sample_ts_s)
     sample_rates_hz: np.ndarray = 1.0 / diffs
     return sample_rates_hz.mean()
-
 
 
 if __name__ == "__main__":
