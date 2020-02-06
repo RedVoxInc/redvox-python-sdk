@@ -4,24 +4,124 @@ from typing import Any, Dict, List, Optional, Union
 import numpy as np
 from google.protobuf.json_format import MessageToDict, MessageToJson
 
+import redvox.api1000.summary_statistics as summary_statistics
+import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 NAN: float = float("NaN")
 
 
-class ProtoWrapper(abc.ABC):
-    def __init__(self, proto):
-        self._proto = proto
+# RepeatedField = redvox_api_1000_pb2.google___protobuf___internal___containers___RepeatedScalarFieldContainer
+# MapField = redvox_api_1000_pb2.typing___MutableMapping
 
-    @abc.abstractmethod
-    def get_proto(self):
-        pass
 
-    def to_json(self) -> str:
-        return as_json(self._proto)
+class Samples:
+    def __init__(self, samples_proto, sample_statistics_proto: redvox_api_1000_pb2.SummaryStatistics):
+        self._samples_proto = samples_proto
+        self._sample_statistics: summary_statistics.SummaryStatistics = summary_statistics.SummaryStatistics(
+            sample_statistics_proto)
 
-    def __str__(self):
-        return self.to_json()
+    def get_samples_count(self) -> int:
+        return len(self._samples_proto)
+
+    def get_samples(self) -> np.ndarray:
+        return np.array(self._samples_proto)
+
+    def set_samples(self, samples: np.ndarray, recompute_sample_statistics: bool = True) -> 'Samples':
+        if not is_protobuf_repeated_numerical_type(samples):
+            raise errors.Api1000TypeError(f"Expected a numpy.ndarray, but instead found a {type(samples)}")
+
+        self._samples_proto[:] = list(samples)
+
+        if recompute_sample_statistics:
+            self._sample_statistics.update_from_values(samples)
+
+        return self
+
+    def append_samples(self, samples: np.ndarray, recompute_sample_statistics: bool = False) -> 'Samples':
+        if not is_protobuf_repeated_numerical_type(samples):
+            raise errors.Api1000TypeError(f"Expected a numpy.ndarray, but instead found a {type(samples)}")
+
+        self._samples_proto.extend(list(samples))
+
+        if recompute_sample_statistics:
+            pass
+
+        return self
+
+    def append_sample(self, sample: float, recompute_sample_statistics: bool = False) -> 'Samples':
+        if not is_protobuf_numerical_type(sample):
+            raise errors.Api1000TypeError(f"Expected a float or int, but instead found a {type(sample)}")
+
+        self._samples_proto.append(sample)
+
+        if recompute_sample_statistics:
+            pass
+
+        return self
+
+    def clear_samples(self, recompute_sample_statistics: bool = True) -> 'Samples':
+        self._samples_proto[:] = []
+
+        if recompute_sample_statistics:
+            pass
+
+        return self
+
+    def get_sample_statistics(self) -> summary_statistics.SummaryStatistics:
+        return self._sample_statistics
+
+    def set_sample_statistics(self, sample_statistics: summary_statistics.SummaryStatistics) -> 'Samples':
+        if not isinstance(sample_statistics, summary_statistics.SummaryStatistics):
+            raise errors.Api1000TypeError(f"Expected an instance of SummaryStatistics, but instead found a "
+                                          f"{type(sample_statistics)}")
+
+        self._sample_statistics = sample_statistics
+        return self
+
+    def recompute_sample_statistics(self) -> 'Samples':
+        self._sample_statistics.update_from_values(self.get_samples())
+        return self
+
+
+class Metadata:
+    def __init__(self, metadata_proto):
+        self._metadata_proto = metadata_proto
+
+    def get_metadata_count(self) -> int:
+        return len(self._metadata_proto)
+
+    def get_metadata(self) -> Dict[str, str]:
+        metadata_dict: Dict[str, str] = dict()
+        for key, value in self._metadata_proto.items():
+            metadata_dict[key] = value
+        return metadata_dict
+
+    def set_metadata(self, metadata: Dict[str, str]) -> 'Metadata':
+        for key, value in metadata.items():
+            if not isinstance(key, str):
+                raise errors.Api1000TypeError(f"Expected a string key, but found a {type(key)}")
+            if not isinstance(value, str):
+                raise errors.Api1000TypeError(f"Expected a string value, but found a {type(key)}")
+
+        self._metadata_proto.clear()
+        for key, value in metadata.items():
+            self._metadata_proto[key] = value
+
+        return self
+
+    def append_metadata(self, key: str, value: str) -> 'Metadata':
+        if not isinstance(key, str):
+            raise errors.Api1000TypeError(f"Expected a string key, but found a {type(key)}")
+        if not isinstance(value, str):
+            raise errors.Api1000TypeError(f"Expected a string value, but found a {type(key)}")
+
+        self._metadata_proto[key] = value
+        return self
+
+    def clear_metadata(self) -> 'Metadata':
+        self._metadata_proto.clear()
+        return self
 
 
 def none_or_empty(value: Union[List, str, np.ndarray]) -> bool:

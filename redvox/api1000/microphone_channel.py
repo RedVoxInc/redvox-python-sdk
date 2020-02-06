@@ -10,7 +10,9 @@ import redvox.api1000.common as common
 
 class MicrophoneChannel:
     def __init__(self, proto: redvox_api_1000_pb2.MicrophoneChannel):
-        self._proto = proto
+        self._proto: redvox_api_1000_pb2.MicrophoneChannel = proto
+        self._samples: common.Samples = common.Samples(self._proto.samples, self._proto.sample_statistics)
+        self._metadata: common.Metadata = common.Metadata(self._proto.metadata)
 
     @staticmethod
     def new() -> 'MicrophoneChannel':
@@ -49,78 +51,11 @@ class MicrophoneChannel:
         self._proto.sample_rate_hz = sample_rate_hz
         return self
 
-    def get_samples(self) -> np.ndarray:
-        return np.array(self._proto.samples)
+    def get_samples(self) -> common.Samples:
+        return self._samples
 
-    def set_samples(self, samples: np.ndarray, update_summary_statistics: bool = True) -> 'MicrophoneChannel':
-        if not common.is_protobuf_repeated_numerical_type(samples):
-            raise errors.MicrophoneChannelError(f"A numpy array of floats or integers is required, but a "
-                                                f"{type(samples)}={samples} was provided")
-
-        self._proto.samples[:] = list(samples)
-
-        if update_summary_statistics:
-            self.recompute_sample_statistics()
-
-        return self
-
-    def append_samples(self, samples: np.ndarray, update_summary_statistics: bool = True) -> 'MicrophoneChannel':
-        if not common.is_protobuf_repeated_numerical_type(samples):
-            raise errors.MicrophoneChannelError(f"A numpy array of floats or integers is required, but a "
-                                                f"{type(samples)}={samples} was provided")
-
-        self._proto.samples.extend(list(samples))
-
-        if update_summary_statistics:
-            self.recompute_sample_statistics()
-
-        return self
-
-    def clear_samples(self, update_summary_statistics: bool = True) -> 'MicrophoneChannel':
-        self._proto.samples[:] = []
-
-        if update_summary_statistics:
-            self.recompute_sample_statistics()
-
-        return self
-
-    def get_sample_statistics(self) -> summary_statistics.SummaryStatistics:
-        return summary_statistics.SummaryStatistics(self._proto.sample_statistics)
-
-    def set_sample_statistics(self, sample_statistics: summary_statistics.SummaryStatistics) -> 'MicrophoneChannel':
-        if not isinstance(sample_statistics, summary_statistics.SummaryStatistics):
-            raise errors.MicrophoneChannelError(f"Expected an instance of SummaryStatistics, but was provided a "
-                                                f"{type(sample_statistics)}={sample_statistics}")
-
-        self._proto.sample_statistics.Clear()
-        self._proto.sample_statistics.CopyFrom(sample_statistics._proto)
-
-        return self
-
-    def recompute_sample_statistics(self) -> 'MicrophoneChannel':
-        self.get_sample_statistics().update_from_values(self.get_samples())
-        return self
-
-    def get_metadata(self) -> Dict[str, str]:
-        return common.get_metadata(self._proto.metadata)
-
-    def set_metadata(self, metadata: Dict[str, str]) -> 'MicrophoneChannel':
-        err_value: Optional[Any] = common.set_metadata(self._proto.metadata, metadata)
-
-        if err_value is not None:
-            raise errors.MicrophoneChannelError("All keys and values in metadata must be strings, but "
-                                                f"{type(err_value)}={err_value} was supplied")
-
-        return self
-
-    def append_metadata(self, key: str, value: str) -> 'MicrophoneChannel':
-        err_value: Optional[Any] = common.append_metadata(self._proto.metadata, key, value)
-
-        if err_value is not None:
-            raise errors.MicrophoneChannelError("All keys and values in metadata must be strings, but "
-                                                f"{type(err_value)}={err_value} was supplied")
-
-        return self
+    def get_metadata(self) -> common.Metadata:
+        return self._metadata
 
     def as_json(self) -> str:
         return common.as_json(self._proto)
