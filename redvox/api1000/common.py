@@ -10,16 +10,44 @@ import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 NAN: float = float("NaN")
 
-
 # RepeatedField = redvox_api_1000_pb2.google___protobuf___internal___containers___RepeatedScalarFieldContainer
 # MapField = redvox_api_1000_pb2.typing___MutableMapping
+
+PROTO_TYPES = Union[redvox_api_1000_pb2.RedvoxPacket1000,
+                    redvox_api_1000_pb2.SummaryStatistics,
+                    redvox_api_1000_pb2.MicrophoneChannel,
+                    redvox_api_1000_pb2.SingleChannel,
+                    redvox_api_1000_pb2.XyzChannel]
+
+EMPTY_ARRAY: np.ndarray = np.array([])
+
+
+class ProtoBase(abc.ABC):
+    @abc.abstractmethod
+    def get_proto(self) -> PROTO_TYPES:
+        pass
+
+    def as_json(self) -> str:
+        return as_json(self.get_proto())
+
+    def as_dict(self) -> Dict:
+        return as_dict(self.get_proto())
+
+    def as_bytes(self) -> bytes:
+        pass
+
+    def as_compressed_bytes(self) -> bytes:
+        pass
+
+    def __str__(self):
+        return self.as_json()
 
 
 class Samples:
     def __init__(self, samples_proto, sample_statistics_proto: redvox_api_1000_pb2.SummaryStatistics):
         self._samples_proto = samples_proto
         self._sample_statistics: summary_statistics.SummaryStatistics = summary_statistics.SummaryStatistics(
-            sample_statistics_proto)
+                sample_statistics_proto)
 
     def get_samples_count(self) -> int:
         return len(self._samples_proto)
@@ -45,7 +73,7 @@ class Samples:
         self._samples_proto.extend(list(samples))
 
         if recompute_sample_statistics:
-            pass
+            self._sample_statistics.update_from_values(self.get_samples())
 
         return self
 
@@ -56,7 +84,7 @@ class Samples:
         self._samples_proto.append(sample)
 
         if recompute_sample_statistics:
-            pass
+            self._sample_statistics.update_from_values(self.get_samples())
 
         return self
 
@@ -64,7 +92,7 @@ class Samples:
         self._samples_proto[:] = []
 
         if recompute_sample_statistics:
-            pass
+            self._sample_statistics.update_from_values(EMPTY_ARRAY)
 
         return self
 

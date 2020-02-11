@@ -1,14 +1,11 @@
 from typing import Any, Dict, Optional
 
-import numpy as np
-
 import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
-import redvox.api1000.summary_statistics as summary_statistics
 import redvox.api1000.common as common
 
 
-class MicrophoneChannel:
+class MicrophoneChannel(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.MicrophoneChannel):
         self._proto: redvox_api_1000_pb2.MicrophoneChannel = proto
         self._samples: common.Samples = common.Samples(self._proto.samples, self._proto.sample_statistics)
@@ -16,7 +13,11 @@ class MicrophoneChannel:
 
     @staticmethod
     def new() -> 'MicrophoneChannel':
-        return MicrophoneChannel(redvox_api_1000_pb2.MicrophoneChannel())
+        mic_pb: redvox_api_1000_pb2.MicrophoneChannel = redvox_api_1000_pb2.MicrophoneChannel()
+        return MicrophoneChannel(mic_pb)
+
+    def get_proto(self) -> redvox_api_1000_pb2.MicrophoneChannel:
+        return self._proto
 
     def get_sensor_description(self) -> str:
         return self._proto.sensor_description
@@ -57,8 +58,3 @@ class MicrophoneChannel:
     def get_metadata(self) -> common.Metadata:
         return self._metadata
 
-    def as_json(self) -> str:
-        return common.as_json(self._proto)
-
-    def __str__(self):
-        return self.as_json()

@@ -6,7 +6,7 @@ import numpy as np
 def main():
     m = microphone_chanel.MicrophoneChannel.new()
     print(m)
-    m.get_samples().append_sample(1, True)
+    m.get_samples().append_sample(1, True).append_sample(2, True)
     print(m)
 
 
