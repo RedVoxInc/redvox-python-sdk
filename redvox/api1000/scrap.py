@@ -8,6 +8,7 @@ def main():
     print(m)
     m.get_samples().append_sample(1, True).append_sample(2, True)
     print(m)
+    print(type(m.get_proto().SerializeToString()))
 
 
 

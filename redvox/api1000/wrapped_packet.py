@@ -1,8 +1,10 @@
 """
 This module provides a high level API for creating, reading, and editing RedVox compliant API 1000 files.
 """
+
 import enum
-from typing import Dict, Optional
+import os.path
+from typing import Optional
 
 import numpy as np
 
@@ -29,8 +31,7 @@ class OsType(enum.Enum):
 
 class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def __init__(self, redvox_proto: redvox_api_1000_pb2.RedvoxPacket1000):
-        self._proto: redvox_api_1000_pb2.RedvoxPacket1000 = redvox_proto
-        self._metadata: common.Metadata = common.Metadata(self._proto.metadata)
+        super().__init__(redvox_proto)
 
     @staticmethod
     def new() -> 'WrappedRedvoxPacketApi1000':
@@ -44,23 +45,39 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def from_compressed_path(rdvxz_path: str) -> 'WrappedRedvoxPacketApi1000':
         pass
 
-    def get_proto(self) -> redvox_api_1000_pb2.RedvoxPacket1000:
-        return self._proto
+    def default_filename(self, extension: Optional[str] = None) -> str:
+        device_id: str = self.get_device_id()
+        device_id_len: int = len(device_id)
+        if device_id_len < 10:
+            device_id = f"{'0' * (10 - device_id_len)}{device_id}"
+        ts_s: int = round(self.get_packet_start_ts_us_mach() / 1_000_000.0)
 
-    def to_compressed_bytes(self) -> bytes:
-        pass
+        filename: str = f"{device_id}_{ts_s}_m"
 
-    def to_json(self) -> str:
-        pass
+        if extension is not None:
+            filename = f"{filename}.{extension}"
 
-    def to_dict(self) -> Dict:
-        pass
+        return filename
 
-    def write_compressed_to_file(self, base_dir: str, filename: Optional = None):
-        pass
+    def write_compressed_to_file(self, base_dir: str, filename: Optional[str] = None):
+        if filename is None:
+            filename: str = self.default_filename(".rdvxz")
 
-    def write_json_to_file(self, base_dir: str, filename: Optional = None):
-        pass
+        if not os.path.isdir(base_dir):
+            raise errors.WrappedRedvoxPacketApi1000Error(f"Base directory={base_dir} does not exist.")
+
+        with open(os.path.join(base_dir, filename), "wb") as compressed_out:
+            compressed_out.write(self.as_compressed_bytes())
+
+    def write_json_to_file(self, base_dir: str, filename: Optional[str] = None):
+        if filename is None:
+            filename: str = self.default_filename(".json")
+
+        if not os.path.isdir(base_dir):
+            raise errors.WrappedRedvoxPacketApi1000Error(f"Base directory={base_dir} does not exist.")
+
+        with open(os.path.join(base_dir, filename), "w") as json_out:
+            json_out.write(self.as_json())
 
     # API Version
     def get_api(self) -> int:
@@ -516,7 +533,3 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
                                                          f"provided")
         self._proto.infrared_channel.CopyFrom(infrared_channel.get_proto())
         return self
-
-    # Metadata
-    def get_metadata(self) -> common.Metadata:
-        return self._metadata

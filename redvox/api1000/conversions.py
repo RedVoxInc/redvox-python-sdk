@@ -4,4 +4,7 @@ import redvox.api1000.wrapped_packet as api1000_packet
 
 def convert_api900_to_api1000(
         wrapped_redvox_packet_900: api900_packet.WrappedRedvoxPacket) -> api1000_packet.WrappedRedvoxPacketApi1000:
-    pass
+
+    wrapped_redvox_packet_1000: api1000_packet.WrappedRedvoxPacketApi1000 = api1000_packet.WrappedRedvoxPacketApi1000.new()
+
+    wrapped_redvox_packet_1000.set_

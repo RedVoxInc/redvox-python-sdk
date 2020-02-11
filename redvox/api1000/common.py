@@ -2,7 +2,6 @@
 Provides common classes and methods for interacting with API 1000 protobuf data.
 """
 
-import abc
 from typing import Any, Dict, List, Optional, Union
 
 from google.protobuf.json_format import MessageToDict, MessageToJson
@@ -43,10 +42,11 @@ class ProtoBase:
         return MessageToDict(self._proto, True)
 
     def as_bytes(self) -> bytes:
-        pass
+        return self._proto.SerializeToString()
 
     def as_compressed_bytes(self) -> bytes:
-        pass
+        data: bytes = self.as_bytes()
+        return lz4_compress(data)
 
     def __str__(self):
         return self.as_json()
