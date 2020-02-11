@@ -1,17 +1,12 @@
-from typing import Any, Dict, Optional
-
-import numpy as np
-
 import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
-import redvox.api1000.summary_statistics as summary_statistics
 import redvox.api1000.common as common
 
 
 class XyzChannel(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.XyzChannel):
         self._proto = proto
-        self._sample_ts_us: common.Samples = common.Samples(self._proto.sample_ts_us, self._proto.sample_rate_statistics)
+        self._sample_ts_us: common.Samples = common.Samples(self._proto.sample_ts_us, self._proto.sample_ts_statistics)
         self._x_samples: common.Samples = common.Samples(self._proto.x_samples, self._proto.x_sample_statistics)
         self._y_samples: common.Samples = common.Samples(self._proto.y_samples, self._proto.y_sample_statistics)
         self._z_samples: common.Samples = common.Samples(self._proto.z_samples, self._proto.z_sample_statistics)

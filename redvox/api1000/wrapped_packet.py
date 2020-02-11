@@ -2,7 +2,7 @@
 This module provides a high level API for creating, reading, and editing RedVox compliant API 1000 files.
 """
 import enum
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import numpy as np
 
@@ -27,9 +27,10 @@ class OsType(enum.Enum):
     WINDOWS = 3
 
 
-class WrappedRedvoxPacketApi1000:
+class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def __init__(self, redvox_proto: redvox_api_1000_pb2.RedvoxPacket1000):
         self._proto: redvox_api_1000_pb2.RedvoxPacket1000 = redvox_proto
+        self._metadata: common.Metadata = common.Metadata(self._proto.metadata)
 
     @staticmethod
     def new() -> 'WrappedRedvoxPacketApi1000':
@@ -42,6 +43,9 @@ class WrappedRedvoxPacketApi1000:
     @staticmethod
     def from_compressed_path(rdvxz_path: str) -> 'WrappedRedvoxPacketApi1000':
         pass
+
+    def get_proto(self) -> redvox_api_1000_pb2.RedvoxPacket1000:
+        return self._proto
 
     def to_compressed_bytes(self) -> bytes:
         pass
@@ -444,7 +448,7 @@ class WrappedRedvoxPacketApi1000:
             raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a MicrophoneChannel is required, but a "
                                                          f"{type(microphone_channel)}={microphone_channel} was "
                                                          f"provided")
-        self._proto.microphone_channel.CopyFrom(microphone_channel._proto)
+        self._proto.microphone_channel.CopyFrom(microphone_channel.get_proto())
         return self
 
     def has_barometer_channel(self) -> bool:
@@ -455,7 +459,7 @@ class WrappedRedvoxPacketApi1000:
             raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a SingleChannel is required, but a "
                                                          f"{type(barometer_channel)}={barometer_channel} was "
                                                          f"provided")
-        self._proto.barometer_channel.CopyFrom(barometer_channel._proto)
+        self._proto.barometer_channel.CopyFrom(barometer_channel.get_proto())
         return self
 
     def has_accelerometer_channel(self) -> bool:
@@ -466,7 +470,7 @@ class WrappedRedvoxPacketApi1000:
             raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a XyzChannel is required, but a "
                                                          f"{type(accelerometer_channel)}={accelerometer_channel} was "
                                                          f"provided")
-        self._proto.accelerometer_channel.CopyFrom(accelerometer_channel._proto)
+        self._proto.accelerometer_channel.CopyFrom(accelerometer_channel.get_proto())
         return self
 
     def has_gyroscope_channel(self) -> bool:
@@ -477,7 +481,7 @@ class WrappedRedvoxPacketApi1000:
             raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a XyzChannel is required, but a "
                                                          f"{type(gyroscope_channel)}={gyroscope_channel} was "
                                                          f"provided")
-        self._proto.gyroscope_channel.CopyFrom(gyroscope_channel._proto)
+        self._proto.gyroscope_channel.CopyFrom(gyroscope_channel.get_proto())
         return self
 
     def has_magnetometer_channel(self) -> bool:
@@ -488,7 +492,7 @@ class WrappedRedvoxPacketApi1000:
             raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a XyzChannel is required, but a "
                                                          f"{type(magnetometer_channel)}={magnetometer_channel} was "
                                                          f"provided")
-        self._proto.magnetometer_channel.CopyFrom(magnetometer_channel._proto)
+        self._proto.magnetometer_channel.CopyFrom(magnetometer_channel.get_proto())
         return self
 
     def has_light_channel(self) -> bool:
@@ -499,7 +503,7 @@ class WrappedRedvoxPacketApi1000:
             raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a SingleChannel is required, but a "
                                                          f"{type(light_channel)}={light_channel} was "
                                                          f"provided")
-        self._proto.light_channel.CopyFrom(light_channel._proto)
+        self._proto.light_channel.CopyFrom(light_channel.get_proto())
         return self
 
     def has_infrared_channel(self) -> bool:
@@ -510,33 +514,9 @@ class WrappedRedvoxPacketApi1000:
             raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a SingleChannel is required, but a "
                                                          f"{type(infrared_channel)}={infrared_channel} was "
                                                          f"provided")
-        self._proto.infrared_channel.CopyFrom(infrared_channel._proto)
+        self._proto.infrared_channel.CopyFrom(infrared_channel.get_proto())
         return self
 
     # Metadata
-    def get_metadata(self) -> Dict[str, str]:
-        return common.get_metadata(self._proto.metadata)
-
-    def set_metadata(self, metadata: Dict[str, str]) -> 'WrappedRedvoxPacketApi1000':
-        err_value: Optional[Any] = common.set_metadata(self._proto.metadata, metadata)
-
-        if err_value is not None:
-            raise errors.MicrophoneChannelError("All keys and values in metadata must be strings, but "
-                                                f"{type(err_value)}={err_value} was supplied")
-
-        return self
-
-    def append_metadata(self, key: str, value: str) -> 'WrappedRedvoxPacketApi1000':
-        err_value: Optional[Any] = common.append_metadata(self._proto.metadata, key, value)
-
-        if err_value is not None:
-            raise errors.MicrophoneChannelError("All keys and values in metadata must be strings, but "
-                                                f"{type(err_value)}={err_value} was supplied")
-
-        return self
-
-    def as_json(self) -> str:
-        return common.as_json(self._proto)
-
-    def __str__(self):
-        return str(self._proto)
+    def get_metadata(self) -> common.Metadata:
+        return self._metadata

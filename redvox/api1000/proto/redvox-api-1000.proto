@@ -88,27 +88,25 @@ message MicrophoneChannel {
 // Message type for non-microphone single channel sensors (barometer, light, infrared)
 message SingleChannel {
     string sensor_description = 1;                      // The name or description of the sensor
-    double mean_sample_rate_hz = 2;                     // The mean sample rate in Hz
-    repeated double sample_ts_us = 3;                   // A list of timestamps, one for each sample
-    repeated double samples = 4;                        // A list of samples
-    SummaryStatistics sample_rate_statistics = 5;       // Statistics for sample timestamps
-    SummaryStatistics sample_statistics = 6;            // Statistics for samples
-    map<string, string> metadata = 7;                   // A map from string to string for including untyped metadata
+    repeated double sample_ts_us = 2;                   // A list of timestamps, one for each sample
+    repeated double samples = 3;                        // A list of samples
+    SummaryStatistics sample_ts_statistics = 4;         // Statistics for sample timestamps
+    SummaryStatistics sample_statistics = 5;            // Statistics for samples
+    map<string, string> metadata = 6;                   // A map from string to string for including untyped metadata
 }
 
 // Message type for channels that include x, y, and z samples (accelerometer, magnetometer, gyroscope)
 message XyzChannel {
     string sensor_description = 1;                      // The name or description of the sensor
-    double mean_sample_rate_hz = 2;                     // The mean sample rate in Hz
-    repeated double sample_ts_us = 3;                   // A list of timestamps, one for each sample
-    repeated double x_samples = 4;                      // A list of samples for the X-channel
-    repeated double y_samples = 5;                      // A list of samples for the Y-channel
-    repeated double z_samples = 6;                      // A list of samples for the Z-channel
-    SummaryStatistics sample_rate_statistics = 7;       // Statistics for sample timestamps
-    SummaryStatistics x_sample_statistics = 8;          // Statistics for X-channel
-    SummaryStatistics y_sample_statistics = 9;          // Statistics for Y-channel
-    SummaryStatistics z_sample_statistics = 10;         // Statistics for Z-channel
-    map<string, string> metadata = 11;                  // A map from string to string for including untyped metadata
+    repeated double sample_ts_us = 2;                   // A list of timestamps, one for each sample
+    repeated double x_samples = 3;                      // A list of samples for the X-channel
+    repeated double y_samples = 4;                      // A list of samples for the Y-channel
+    repeated double z_samples = 5;                      // A list of samples for the Z-channel
+    SummaryStatistics sample_ts_statistics = 6;         // Statistics for sample timestamps
+    SummaryStatistics x_sample_statistics = 7;          // Statistics for X-channel
+    SummaryStatistics y_sample_statistics = 8;          // Statistics for Y-channel
+    SummaryStatistics z_sample_statistics = 9;          // Statistics for Z-channel
+    map<string, string> metadata = 10;                  // A map from string to string for including untyped metadata
 }
 
 // Message type for the location channel
@@ -121,24 +119,23 @@ message LocationChannel {
     }
 
     string sensor_description = 1;                      // The name or description of the sensor
-    double mean_sample_rate_hz = 2;                     // The mean sample rate in Hz
-    repeated double sample_ts_us = 3;                   // A list of timestamps, one for each sample
-    repeated double latitude_samples = 4;               // A list of latitude samples
-    repeated double longitude_samples = 5;              // A list of longitude samples
-    repeated double altitude_samples = 6;               // A list of altitude samples
-    repeated double speed_samples = 7;                  // A list of speed samples
-    repeated double accuracy_Samples = 8;               // A list of accuracy samples
-    bool location_permissions_granted = 9;              // Have location permissions been granted by the user?
-    bool location_services_requested = 10;              // Has location services been requested by the user?
-    bool location_services_enabled = 11;                // Are location services enabled and working?
-    LocationProvider location_provider = 12;            // Location provider enumeration
-    SummaryStatistics sample_rate_statistics = 13;      // Statistics for sample timestamps
-    SummaryStatistics latitude_sample_statistics = 14;  // Statistics for latitude samples
-    SummaryStatistics longitude_sample_statistics = 15; // Statistics for longitude samples
-    SummaryStatistics altitude_sample_statistics = 16;  // Statistics for altitude samples
-    SummaryStatistics speed_sample_statistics = 17;     // Statistics for speed samples
-    SummaryStatistics accuracy_sample_statistics = 18;  // Statistics for accuracy samples
-    map<string, string> metadata = 19;                  // A map from string to string for including untyped metadata
+    repeated double sample_ts_us = 2;                   // A list of timestamps, one for each sample
+    repeated double latitude_samples = 3;               // A list of latitude samples
+    repeated double longitude_samples = 4;              // A list of longitude samples
+    repeated double altitude_samples = 5;               // A list of altitude samples
+    repeated double speed_samples = 6;                  // A list of speed samples
+    repeated double accuracy_Samples = 7;               // A list of accuracy samples
+    bool location_permissions_granted = 8;              // Have location permissions been granted by the user?
+    bool location_services_requested = 9;               // Has location services been requested by the user?
+    bool location_services_enabled = 10;                // Are location services enabled and working?
+    LocationProvider location_provider = 11;            // Location provider enumeration
+    SummaryStatistics sample_ts_statistics = 12;        // Statistics for sample timestamps
+    SummaryStatistics latitude_sample_statistics = 13;  // Statistics for latitude samples
+    SummaryStatistics longitude_sample_statistics = 14; // Statistics for longitude samples
+    SummaryStatistics altitude_sample_statistics = 15;  // Statistics for altitude samples
+    SummaryStatistics speed_sample_statistics = 16;     // Statistics for speed samples
+    SummaryStatistics accuracy_sample_statistics = 17;  // Statistics for accuracy samples
+    map<string, string> metadata = 18;                  // A map from string to string for including untyped metadata
 }
 
 // Message type for summary statistics

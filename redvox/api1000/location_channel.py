@@ -15,7 +15,7 @@ class LocationProvider(enum.Enum):
 class LocationChannel(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.LocationChannel):
         self._proto = proto
-        self._sample_ts_us: common.Samples = common.Samples(self._proto.sample_ts_us, self._proto.sample_rate_statistics)
+        self._sample_ts_us: common.Samples = common.Samples(self._proto.sample_ts_us, self._proto.sample_ts_statistics)
         self._latitude_samples: common.Samples = common.Samples(self._proto.latitude_samples, self._proto.latitude_sample_statistics)
         self._lontgitude_samples: common.Samples = common.Samples(self._proto.longitude_samples, self._proto.longitude_sample_statistics)
         self._altitude_samples: common.Samples = common.Samples(self._proto.altitude_samples, self._proto.accuracy_sample_statistics)

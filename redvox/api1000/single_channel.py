@@ -7,7 +7,7 @@ class SingleChannel(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.SingleChannel):
         self._proto = proto
         self._samples: common.Samples = common.Samples(self._proto.samples, self._proto.sample_statistics)
-        self._sample_ts_us: common.Samples = common.Samples(self._proto.sample_ts_us, self._proto.sample_rate_statistics)
+        self._sample_ts_us: common.Samples = common.Samples(self._proto.sample_ts_us, self._proto.sample_ts_statistics)
         self._metadata: common.Metadata = common.Metadata(self._proto.metadata)
 
     @staticmethod
