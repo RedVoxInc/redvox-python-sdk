@@ -10,6 +10,7 @@ import numpy as np
 
 import redvox.api1000.common as common
 import redvox.api1000.errors as errors
+import redvox.api1000.location_channel as _location_channel
 import redvox.api1000.microphone_channel as _microphone_channel
 import redvox.api1000.single_channel as _single_channel
 import redvox.api1000.xyz_channel as _xyz_channel
@@ -39,11 +40,25 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
 
     @staticmethod
     def from_compressed_bytes(data: bytes) -> 'WrappedRedvoxPacketApi1000':
-        pass
+        if not isinstance(data, bytes):
+            raise errors.WrappedRedvoxPacketApi1000Error(f"Expected bytes, but instead received {type(data)}")
+
+        uncompressed_data: bytes = common.lz4_decompress(data)
+        proto: redvox_api_1000_pb2.RedvoxPacket1000 = redvox_api_1000_pb2.RedvoxPacket1000()
+        proto.ParseFromString(uncompressed_data)
+        return WrappedRedvoxPacketApi1000(proto)
 
     @staticmethod
     def from_compressed_path(rdvxz_path: str) -> 'WrappedRedvoxPacketApi1000':
-        pass
+        if not isinstance(rdvxz_path, str):
+            raise errors.WrappedRedvoxPacketApi1000Error(f"Expected a string, but instead received {type(rdvxz_path)}")
+
+        if not os.path.isfile(rdvxz_path):
+            raise errors.WrappedRedvoxPacketApi1000Error(f"Path to file={rdvxz_path} does not exist.")
+
+        with open(rdvxz_path, "rb") as rdvxz_in:
+            compressed_bytes: bytes = rdvxz_in.read()
+            return WrappedRedvoxPacketApi1000.from_compressed_bytes(compressed_bytes)
 
     def default_filename(self, extension: Optional[str] = None) -> str:
         device_id: str = self.get_device_id()
@@ -227,7 +242,7 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def get_network_type(self) -> NetworkType:
         return NetworkType(self._proto.network_type)
 
-    def set_network_type(self, network_type: OsType) -> 'WrappedRedvoxPacketApi1000':
+    def set_network_type(self, network_type: NetworkType) -> 'WrappedRedvoxPacketApi1000':
         if not isinstance(network_type, NetworkType):
             raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of NetworkType is required, but a "
                                                          f"{type(network_type)}={network_type} was provided")
@@ -482,7 +497,7 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def has_accelerometer_channel(self) -> bool:
         return self._proto.HasField("accelerometer_channel")
 
-    def set_accelerometer_channel(self, accelerometer_channel: _single_channel.SingleChannel) -> 'WrappedRedvoxPacketApi1000':
+    def set_accelerometer_channel(self, accelerometer_channel: _xyz_channel.XyzChannel) -> 'WrappedRedvoxPacketApi1000':
         if not isinstance(accelerometer_channel, _xyz_channel.XyzChannel):
             raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a XyzChannel is required, but a "
                                                          f"{type(accelerometer_channel)}={accelerometer_channel} was "
@@ -493,7 +508,7 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def has_gyroscope_channel(self) -> bool:
         return self._proto.HasField("gyroscope_channel")
 
-    def set_gyroscope_channel(self, gyroscope_channel: _single_channel.SingleChannel) -> 'WrappedRedvoxPacketApi1000':
+    def set_gyroscope_channel(self, gyroscope_channel: _xyz_channel.XyzChannel) -> 'WrappedRedvoxPacketApi1000':
         if not isinstance(gyroscope_channel, _xyz_channel.XyzChannel):
             raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a XyzChannel is required, but a "
                                                          f"{type(gyroscope_channel)}={gyroscope_channel} was "
@@ -504,7 +519,7 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def has_magnetometer_channel(self) -> bool:
         return self._proto.HasField("magnetometer_channel")
 
-    def set_magnetometer_channel(self, magnetometer_channel: _single_channel.SingleChannel) -> 'WrappedRedvoxPacketApi1000':
+    def set_magnetometer_channel(self, magnetometer_channel: _xyz_channel.XyzChannel) -> 'WrappedRedvoxPacketApi1000':
         if not isinstance(magnetometer_channel, _xyz_channel.XyzChannel):
             raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a XyzChannel is required, but a "
                                                          f"{type(magnetometer_channel)}={magnetometer_channel} was "
@@ -532,4 +547,15 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
                                                          f"{type(infrared_channel)}={infrared_channel} was "
                                                          f"provided")
         self._proto.infrared_channel.CopyFrom(infrared_channel.get_proto())
+        return self
+
+    def has_location_channel(self) -> bool:
+        return self._proto.HasField("location_channel")
+
+    def set_location_channel(self, location_channel: _location_channel.LocationChannel) -> 'WrappedRedvoxPacketApi1000':
+        if not isinstance(location_channel, _location_channel.LocationChannel):
+            raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a LocationChannel is required, but a "
+                                                         f"{type(location_channel)}={location_channel} was "
+                                                         f"provided")
+        self._proto.location_channel.CopyFrom(location_channel.get_proto())
         return self
