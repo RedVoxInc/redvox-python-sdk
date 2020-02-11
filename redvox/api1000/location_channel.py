@@ -14,21 +14,17 @@ class LocationProvider(enum.Enum):
 
 class LocationChannel(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.LocationChannel):
-        self._proto = proto
+        super().__init__(proto)
         self._sample_ts_us: common.Samples = common.Samples(self._proto.sample_ts_us, self._proto.sample_ts_statistics)
         self._latitude_samples: common.Samples = common.Samples(self._proto.latitude_samples, self._proto.latitude_sample_statistics)
-        self._lontgitude_samples: common.Samples = common.Samples(self._proto.longitude_samples, self._proto.longitude_sample_statistics)
+        self._longitude_samples: common.Samples = common.Samples(self._proto.longitude_samples, self._proto.longitude_sample_statistics)
         self._altitude_samples: common.Samples = common.Samples(self._proto.altitude_samples, self._proto.accuracy_sample_statistics)
         self._speed_samples: common.Samples = common.Samples(self._proto.speed_samples, self._proto.speed_sample_statistics)
         self._accuracy_samples: common.Samples = common.Samples(self._proto.accuracy_Samples, self._proto.accuracy_sample_statistics)
-        self._metadata: common.Metadata = common.Metadata(self._proto.metadata)
 
     @staticmethod
     def new() -> 'LocationChannel':
         return LocationChannel(redvox_api_1000_pb2.LocationChannel())
-
-    def get_proto(self) -> redvox_api_1000_pb2.LocationChannel:
-        return self._proto
 
     def get_sensor_description(self) -> str:
         return self._proto.sensor_description
@@ -92,11 +88,14 @@ class LocationChannel(common.ProtoBase):
     def get_sample_ts_us(self) -> common.Samples:
         return self._sample_ts_us
 
+    def get_mean_sample_rate_hz(self) -> float:
+        return common.mean_sample_rate_hz_from_sample_ts_us(self.get_sample_ts_us().get_samples())
+
     def get_latitude_samples(self) -> common.Samples:
         return self._latitude_samples
 
     def get_longitude_samples(self) -> common.Samples:
-        return self._lontgitude_samples
+        return self._longitude_samples
 
     def get_altitude_samples(self) -> common.Samples:
         return self._altitude_samples
@@ -107,8 +106,6 @@ class LocationChannel(common.ProtoBase):
     def get_accuracy_samples(self) -> common.Samples:
         return self._accuracy_samples
 
-    def get_metadata(self) -> common.Metadata:
-        return self._metadata
     
     
 

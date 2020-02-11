@@ -1,37 +1,46 @@
+"""
+Provides common classes and methods for interacting with API 1000 protobuf data.
+"""
+
 import abc
 from typing import Any, Dict, List, Optional, Union
 
-import numpy as np
 from google.protobuf.json_format import MessageToDict, MessageToJson
+import lz4.frame
+import numpy as np
 
-import redvox.api1000.summary_statistics as summary_statistics
 import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
+import redvox.api1000.summary_statistics as summary_statistics
 
 NAN: float = float("NaN")
-
-# RepeatedField = redvox_api_1000_pb2.google___protobuf___internal___containers___RepeatedScalarFieldContainer
-# MapField = redvox_api_1000_pb2.typing___MutableMapping
 
 PROTO_TYPES = Union[redvox_api_1000_pb2.RedvoxPacket1000,
                     redvox_api_1000_pb2.SummaryStatistics,
                     redvox_api_1000_pb2.MicrophoneChannel,
                     redvox_api_1000_pb2.SingleChannel,
-                    redvox_api_1000_pb2.XyzChannel]
+                    redvox_api_1000_pb2.XyzChannel,
+                    redvox_api_1000_pb2.LocationChannel]
 
 EMPTY_ARRAY: np.ndarray = np.array([])
 
 
-class ProtoBase(abc.ABC):
-    @abc.abstractmethod
+class ProtoBase:
+    def __init__(self, proto: PROTO_TYPES):
+        self._proto: PROTO_TYPES = proto
+        self._metadata: 'Metadata' = Metadata(self._proto.metadata)
+
     def get_proto(self) -> PROTO_TYPES:
-        pass
+        return self._proto
+
+    def get_metadata(self) -> 'Metadata':
+        return self._metadata
 
     def as_json(self) -> str:
-        return as_json(self.get_proto())
+        return MessageToJson(self._proto, True)
 
     def as_dict(self) -> Dict:
-        return as_dict(self.get_proto())
+        return MessageToDict(self._proto, True)
 
     def as_bytes(self) -> bytes:
         pass
@@ -209,14 +218,6 @@ def append_metadata(mutable_mapping, key: str, value: str) -> Optional[Any]:
     return None
 
 
-def as_json(value):
-    return MessageToJson(value, True)
-
-
-def as_dict(value) -> Dict:
-    return MessageToDict(value, True)
-
-
 def mean_sample_rate_hz_from_sample_ts_us(sample_ts_us: np.ndarray) -> float:
     sample_ts_s: np.ndarray = sample_ts_us / 1_000_000.0
     diffs: np.ndarray = np.diff(sample_ts_s)
@@ -224,6 +225,9 @@ def mean_sample_rate_hz_from_sample_ts_us(sample_ts_us: np.ndarray) -> float:
     return sample_rates_hz.mean()
 
 
-if __name__ == "__main__":
-    ts = np.array([0.0, 10_000_000.0, 20_000_000.0, 30_000_000.0])
-    print(mean_sample_rate_hz_from_sample_ts_us(ts))
+def lz4_compress(data: bytes) -> bytes:
+    return lz4.frame.compress(data, compression_level=16, return_bytearray=True)
+
+
+def lz4_decompress(data: bytes) -> bytes:
+    return lz4.frame.decompress(data, True)
