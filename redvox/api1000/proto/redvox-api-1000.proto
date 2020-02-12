@@ -42,37 +42,35 @@ message RedvoxPacket1000 {
     bool is_backfilled = 16;                            // Field for if this packet has been backfilled or not
     bool is_private = 17;                               // Field for if this packet is private to the user or not
     bool is_mic_scrambled = 18;                         // Field that determines if the microphone data is scrambled or not (should be True for 8000Hz data)
-    double uncompressed_size_bytes = 19;                // Size of the uncompressed packet
-    double compressed_size_bytes = 20;                  // Size of the compressed packet
 
     // Server information
-    string auth_server_url = 21;                        // URL of server used for authentication
-    string synch_server_url = 22;                       // URL of server used for time synchronization
-    string acquisition_server_url = 23;                 // URL or server used for data acquisition
+    string auth_server_url = 19;                        // URL of server used for authentication
+    string synch_server_url = 20;                       // URL of server used for time synchronization
+    string acquisition_server_url = 21;                 // URL or server used for data acquisition
 
     // Timing
-    double packet_start_ts_us_wall = 24;                // Start timestamp of the packet using the wall clock (corresponding to first microphone sample)
-    double packet_start_ts_us_mach = 25;                // Start timestamp of the packet using machine time (corresponding to the first microphone sample)
-    double packet_end_ts_us_wall = 26;                  // End timestamp of the packet using the wall clock (corresponding to the last microphone sample)
-    double packet_end_ts_us_mach = 27;                  // End timestamp of the packet using machine time (corresponding to the last microphone sample)
-    double server_acquisition_arrival_ts_us = 28;       // Timestamp that the packet arrived at the acquisition server
-    double app_start_ts_us_mach = 29;                   // The start of the app as machine time
-    repeated double synch_params = 30;                  // An array of synchronization params from the synch server
-    double best_latency_us = 31;                        // The best latency as determined from the synch params
-    double best_offset_us = 32;                         // The best offset as determined from the synch params
+    double packet_start_ts_us_wall = 22;                // Start timestamp of the packet using the wall clock (corresponding to first microphone sample)
+    double packet_start_ts_us_mach = 23;                // Start timestamp of the packet using machine time (corresponding to the first microphone sample)
+    double packet_end_ts_us_wall = 24;                  // End timestamp of the packet using the wall clock (corresponding to the last microphone sample)
+    double packet_end_ts_us_mach = 25;                  // End timestamp of the packet using machine time (corresponding to the last microphone sample)
+    double server_acquisition_arrival_ts_us = 26;       // Timestamp that the packet arrived at the acquisition server
+    double app_start_ts_us_mach = 27;                   // The start of the app as machine time
+    repeated double synch_params = 28;                  // An array of synchronization params from the synch server
+    double best_latency_us = 29;                        // The best latency as determined from the synch params
+    double best_offset_us = 30;                         // The best offset as determined from the synch params
 
     // Channels
-    MicrophoneChannel microphone_channel = 33;          // The microphone channel
-    SingleChannel barometer_channel = 34;               // The barometer channel
-    LocationChannel location_channel = 35;              // The location channel
-    XyzChannel accelerometer_channel = 36;              // The accelerometer channel
-    XyzChannel gyroscope_channel = 37;                  // The gyroscope channel
-    XyzChannel magnetometer_channel = 38;               // The magnetometer channel
-    SingleChannel light_channel = 39;                   // The light channel
-    SingleChannel infrared_channel = 40;                // The infrared channel
+    MicrophoneChannel microphone_channel = 31;          // The microphone channel
+    SingleChannel barometer_channel = 32;               // The barometer channel
+    LocationChannel location_channel = 33;              // The location channel
+    XyzChannel accelerometer_channel = 34;              // The accelerometer channel
+    XyzChannel gyroscope_channel = 35;                  // The gyroscope channel
+    XyzChannel magnetometer_channel = 36;               // The magnetometer channel
+    SingleChannel light_channel = 37;                   // The light channel
+    SingleChannel infrared_channel = 38;                // The infrared channel
 
     // Metadata
-    map<string, string> metadata = 41;                  // A map from string to string for including untyped metadata
+    map<string, string> metadata = 39;                  // A map from string to string for including untyped metadata
 }
 
 // Message type for microphone channels

@@ -292,28 +292,6 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
         self._proto.is_mic_scrambled = is_mic_scrambled
         return self
 
-    def get_uncompressed_size_bytes(self) -> float:
-        return self._proto.uncompressed_size_bytes
-
-    def set_uncompressed_size_bytes(self, uncompressed_size_bytes: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(uncompressed_size_bytes):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(uncompressed_size_bytes)}={uncompressed_size_bytes} "
-                                                         f"was provided")
-        self._proto.uncompressed_size_bytes = uncompressed_size_bytes
-        return self
-
-    def get_compressed_size_bytes(self) -> float:
-        return self._proto.compressed_size_bytes
-
-    def set_compressed_size_bytes(self, compressed_size_bytes: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(compressed_size_bytes):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(compressed_size_bytes)}={compressed_size_bytes} "
-                                                         f"was provided")
-        self._proto.compressed_size_bytes = compressed_size_bytes
-        return self
-
     # Server information
     def get_auth_server_url(self) -> str:
         return self._proto.auth_server_url

@@ -22,7 +22,7 @@ import redvox.api1000.xyz_channel as api1000_xyz_channel
 
 
 def convert_device_os(device_os: str) -> api1000_packet.OsType:
-    return api1000_packet.OsType(device_os.upper())
+    return api1000_packet.OsType[device_os.upper()]
 
 
 def extract_app_start_ts_uh_mach(metadata_dict: Dict[str, str]) -> float:
@@ -54,6 +54,12 @@ def extract_synch_params(
     return common.EMPTY_ARRAY
 
 
+def compute_mic_duration_us(microphone_sensor_api900: api900_microphone_sensor.MicrophoneSensor) -> float:
+    duration_s: float = float(len(microphone_sensor_api900.payload_values())) / float(
+        microphone_sensor_api900.sample_rate_hz())
+
+    return duration_s * 1_000_000.0
+
 def convert_api900_to_api1000(
         wrapped_redvox_packet_900: api900_packet.WrappedRedvoxPacket) -> api1000_packet.WrappedRedvoxPacketApi1000:
     wrapped_redvox_packet_1000: api1000_packet.WrappedRedvoxPacketApi1000 = \
@@ -82,8 +88,6 @@ def convert_api900_to_api1000(
     wrapped_redvox_packet_1000.set_is_backfilled(wrapped_redvox_packet_900.is_backfilled())
     wrapped_redvox_packet_1000.set_is_private(wrapped_redvox_packet_900.is_private())
     wrapped_redvox_packet_1000.set_is_mic_scrambled(wrapped_redvox_packet_900.is_scrambled())
-    # TODO wrapped_redvox_packet_1000.set_uncompressed_size_bytes()
-    # TODO wrapped_redvox_packet_1000.set_compressed_size_bytes()
 
     # Server information
     wrapped_redvox_packet_1000.set_auth_server_url(wrapped_redvox_packet_900.authentication_server())
@@ -95,14 +99,15 @@ def convert_api900_to_api1000(
             float(wrapped_redvox_packet_900.app_file_start_timestamp_epoch_microseconds_utc()))
     wrapped_redvox_packet_1000.set_packet_start_ts_us_mach(
             float(wrapped_redvox_packet_900.app_file_start_timestamp_machine()))
-    # TODO wrapped_redvox_packet_1000.set_packet_end_ts_us_wall(float())
-    # TODO wrapped_redvox_packet_1000.set_packet_end_ts_us_mach(float())
+    mic_duration_us: float = compute_mic_duration_us(wrapped_redvox_packet_900.microphone_sensor())
+    wrapped_redvox_packet_1000.set_packet_end_ts_us_wall(wrapped_redvox_packet_1000.get_packet_start_ts_us_wall() + mic_duration_us)
+    wrapped_redvox_packet_1000.set_packet_end_ts_us_mach(wrapped_redvox_packet_1000.get_packet_start_ts_us_mach() + mic_duration_us)
     wrapped_redvox_packet_1000.set_server_acquisition_arrival_ts_us(
             wrapped_redvox_packet_900.server_timestamp_epoch_microseconds_utc())
     wrapped_redvox_packet_1000.set_app_start_ts_us_mach(
             extract_app_start_ts_uh_mach(wrapped_redvox_packet_900.metadata_as_dict()))
     wrapped_redvox_packet_1000.set_synch_params(
-        extract_synch_params(wrapped_redvox_packet_900.time_synchronization_sensor()))
+            extract_synch_params(wrapped_redvox_packet_900.time_synchronization_sensor()))
     wrapped_redvox_packet_1000.set_best_latency_us(extract_best_latency(wrapped_redvox_packet_900.metadata_as_dict()))
     wrapped_redvox_packet_1000.set_best_offset_us(extract_best_offset(wrapped_redvox_packet_900.metadata_as_dict()))
 
@@ -179,7 +184,7 @@ def convert_api900_to_api1000(
         location_channel_api1000.set_location_permissions_granted(False)
         location_channel_api1000.set_location_services_enabled(False)
         location_channel_api1000.set_location_services_requested(False)
-        location_channel_api1000.set_location_provider(api1000_location_channel.LocationProvider("NONE"))
+        location_channel_api1000.set_location_provider(api1000_location_channel.LocationProvider["NONE"])
         location_channel_api1000.get_sample_ts_us().set_samples(location_sensor_api900.timestamps_microseconds_utc(),
                                                                 True)
         location_channel_api1000.get_latitude_samples().set_samples(location_sensor_api900.payload_values_latitude(),
