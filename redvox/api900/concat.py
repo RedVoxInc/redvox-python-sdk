@@ -7,7 +7,7 @@ import typing
 
 import numpy as _np
 
-import redvox.api900.date_time_utils as _date_time_utils
+import redvox.common.date_time_utils as _date_time_utils
 import redvox.api900.exceptions as _exceptions
 import redvox.api900.sensors.evenly_sampled_sensor as evenly_sampled_sensor
 import redvox.api900.sensors.unevenly_sampled_sensor as unevenly_sampled_sensor

@@ -3,7 +3,6 @@ This module contains constants and helper functions for converting between diffe
 functions take inputs and output in UTC.
 """
 
-
 from datetime import datetime, tzinfo, timedelta
 from typing import List
 
@@ -494,3 +493,36 @@ def now() -> datetime:
     :return: The current datetime in UTC.
     """
     return datetime.utcnow()
+
+
+class DateIterator:
+    """
+    This class provides an iterator over dates. That is, it takes a start date and an end date and returns a tuple
+    of year, month, day for each date between the start and end.
+    """
+
+    def __init__(self,
+                 start_timestamp_utc_s: int,
+                 end_timestamp_utc_s: int):
+        self.start_dt = datetime.utcfromtimestamp(start_timestamp_utc_s)
+        self.end_dt = datetime.utcfromtimestamp(end_timestamp_utc_s)
+        self._one_day = timedelta(days=1)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> (str, str, str):
+        """
+        Returns the next date in the iterator.
+        :return: The next date in the iterator.
+        """
+        if self.start_dt > self.end_dt:
+            raise StopIteration()
+
+        year = str(self.start_dt.year)
+        month = f"{self.start_dt.month:02}"
+        day = f"{self.start_dt.day:02}"
+
+        self.start_dt += self._one_day
+
+        return year, month, day

@@ -11,7 +11,7 @@ import typing
 
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.concat as concat
-import redvox.api900.date_time_utils as date_time_utils
+import redvox.common.date_time_utils as date_time_utils
 import redvox.api900.reader_utils as reader_utils
 
 # For backwards compatibility, we want to expose as much as we can from this file since everything used to live in this
