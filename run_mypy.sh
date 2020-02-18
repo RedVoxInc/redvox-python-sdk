@@ -5,4 +5,4 @@ if ! [[ -x "$(command -v mypy)" ]]; then
   exit 1
 fi
 
-mypy --config-file=.mypy.ini -m redvox.common
+mypy --config-file=.mypy.ini -p redvox.common

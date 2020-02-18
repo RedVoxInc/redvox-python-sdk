@@ -4,8 +4,9 @@ functions take inputs and output in UTC.
 """
 
 from datetime import datetime, tzinfo, timedelta
-from typing import List
+from typing import List, Tuple
 
+# noinspection Mypy
 import numpy as np
 
 # Microsecond constants
@@ -511,7 +512,7 @@ class DateIterator:
     def __iter__(self):
         return self
 
-    def __next__(self) -> (str, str, str):
+    def __next__(self) -> Tuple[str, str, str]:
         """
         Returns the next date in the iterator.
         :return: The next date in the iterator.
