@@ -14,4 +14,5 @@ pipelines:
           - pip install -r requirements.txt
           - pip install -r requirements_dev.txt
           - python -m unittest discover
-          - bash run_lint.sh
+          - bash run_pylint.sh
+          - bash run_mypy.sh
