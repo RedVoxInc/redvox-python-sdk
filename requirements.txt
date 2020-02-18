@@ -1,3 +1,4 @@
+# Requirements for using the RedVox Python SDK. 
 lz4>=2.1.6
 numpy>=1.16.2
 protobuf>=3.7.1

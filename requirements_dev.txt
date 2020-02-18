@@ -1,0 +1,4 @@
+# Requirements for developing the RedVox Python SDK.
+pylint >= 2.4.4
+mypy >= 0.761
+pdoc3 >= 0.7.4
