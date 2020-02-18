@@ -1,0 +1,152 @@
+"""
+Date time test module
+"""
+
+import unittest
+from redvox.common import date_time_utils as dt
+from datetime import datetime
+
+
+class TestDateTime(unittest.TestCase):
+    """
+    Date time test class
+    """
+
+    def test_datetime_to_epoch_s(self):
+        self.assertEqual(dt.datetime_to_epoch_seconds_utc(datetime(1988, 7, 15)), 584928000)
+        self.assertEqual(dt.datetime_to_epoch_seconds_utc(datetime(1988, 7, 15, 12)), 584971200)
+        self.assertEqual(dt.datetime_to_epoch_seconds_utc(datetime(1988, 7, 15, 12, 30)), 584973000)
+        self.assertEqual(dt.datetime_to_epoch_seconds_utc(datetime(1988, 7, 15, 12, 30, 25)), 584973025)
+
+    def test_datetime_to_epoch_ms(self):
+        self.assertEqual(dt.datetime_to_epoch_milliseconds_utc(datetime(1988, 7, 15)), 584928000000)
+        self.assertEqual(dt.datetime_to_epoch_milliseconds_utc(datetime(1988, 7, 15, 12)), 584971200000)
+        self.assertEqual(dt.datetime_to_epoch_milliseconds_utc(datetime(1988, 7, 15, 12)), 584971200000)
+        self.assertEqual(dt.datetime_to_epoch_milliseconds_utc(datetime(1988, 7, 15, 12, 30)), 584973000000)
+        self.assertEqual(dt.datetime_to_epoch_milliseconds_utc(datetime(1988, 7, 15, 12, 30, 25)), 584973025000)
+
+    def test_datetime_to_epoch_us(self):
+        self.assertEqual(dt.datetime_to_epoch_microseconds_utc(datetime(1988, 7, 15)), 584928000000000)
+        self.assertEqual(dt.datetime_to_epoch_microseconds_utc(datetime(1988, 7, 15, 12)), 584971200000000)
+        self.assertEqual(dt.datetime_to_epoch_microseconds_utc(datetime(1988, 7, 15, 12)), 584971200000000)
+        self.assertEqual(dt.datetime_to_epoch_microseconds_utc(datetime(1988, 7, 15, 12, 30)), 584973000000000)
+        self.assertEqual(dt.datetime_to_epoch_microseconds_utc(datetime(1988, 7, 15, 12, 30, 25)), 584973025000000)
+
+    def test_datetime_from_epoch_seconds_utc(self):
+        self.assertEqual(dt.datetime_from_epoch_seconds_utc(1472172968), datetime(2016, 8, 26, 0, 56, 8))
+
+    def test_datetime_from_epoch_milliseconds_utc(self):
+        self.assertEqual(dt.datetime_from_epoch_milliseconds_utc(1472173092531),
+                         datetime(2016, 8, 26, 0, 58, 12, 531000))
+
+    def test_datetime_from_epoch_microseconds_utc(self):
+        self.assertEqual(dt.datetime_from_epoch_microseconds_utc(1472173092531000),
+                         datetime(2016, 8, 26, 0, 58, 12, 531000))
+
+    def test_microseconds_to_milliseconds(self):
+        self.assertEqual(dt.microseconds_to_milliseconds(1000), 1)
+
+    def test_microseconds_to_seconds(self):
+        self.assertEqual(dt.microseconds_to_seconds(1000000), 1)
+
+    def test_microseconds_to_minutes(self):
+        self.assertEqual(dt.microseconds_to_minutes(60000000), 1)
+
+    def test_microseconds_to_hours(self):
+        self.assertEqual(dt.microseconds_to_hours(3600000000), 1)
+
+    def test_microseconds_to_days(self):
+        self.assertEqual(dt.microseconds_to_days(86400000000), 1)
+
+    def test_microseconds_to_weeks(self):
+        self.assertEqual(dt.microseconds_to_weeks(604800000000), 1)
+
+    def test_milliseconds_to_microseconds(self):
+        self.assertEqual(dt.milliseconds_to_microseconds(1), 1000)
+
+    def test_milliseconds_to_seconds(self):
+        self.assertEqual(dt.milliseconds_to_seconds(1000), 1)
+
+    def test_milliseconds_to_minutes(self):
+        self.assertEqual(dt.milliseconds_to_minutes(60000), 1)
+
+    def test_milliseconds_to_hours(self):
+        self.assertEqual(dt.milliseconds_to_hours(3600000), 1)
+
+    def test_milliseconds_to_days(self):
+        self.assertEqual(dt.milliseconds_to_days(86400000), 1)
+
+    def test_milliseconds_to_weeks(self):
+        self.assertEqual(dt.milliseconds_to_weeks(604800000), 1)
+
+    def test_seconds_to_microseconds(self):
+        self.assertEqual(dt.seconds_to_microseconds(1), 1000000)
+
+    def test_seconds_to_milliseconds(self):
+        self.assertEqual(dt.seconds_to_milliseconds(1), 1000)
+
+    def test_seconds_to_minutes(self):
+        self.assertEqual(dt.seconds_to_minutes(60), 1)
+
+    def test_seconds_to_hours(self):
+        self.assertEqual(dt.seconds_to_hours(3600), 1)
+
+    def test_seconds_to_days(self):
+        self.assertEqual(dt.seconds_to_days(86400), 1)
+
+    def test_seconds_to_weeks(self):
+        self.assertEqual(dt.seconds_to_weeks(604800), 1)
+
+    def test_minutes_to_microseconds(self):
+        self.assertEqual(dt.minutes_to_microseconds(1), 60000000)
+
+    def test_minutes_to_milliseconds(self):
+        self.assertEqual(dt.minutes_to_milliseconds(1), 60000)
+
+    def test_minutes_to_seconds(self):
+        self.assertEqual(dt.minutes_to_seconds(1), 60)
+
+    def test_minutes_to_hours(self):
+        self.assertEqual(dt.minutes_to_hours(60), 1)
+
+    def test_minutes_to_days(self):
+        self.assertEqual(dt.minutes_to_days(1440), 1)
+
+    def test_minutes_to_weeks(self):
+        self.assertEqual(dt.minutes_to_weeks(10080), 1)
+
+    def test_hours_to_microseconds(self):
+        self.assertEqual(dt.hours_to_microseconds(1), 3600000000)
+
+    def test_hours_to_milliseconds(self):
+        self.assertEqual(dt.hours_to_milliseconds(1), 3600000)
+
+    def test_hours_to_seconds(self):
+        self.assertEqual(dt.hours_to_seconds(1), 3600)
+
+    def test_hours_to_minutes(self):
+        self.assertEqual(dt.hours_to_minutes(1), 60)
+
+    def test_hours_to_days(self):
+        self.assertEqual(dt.hours_to_days(24), 1)
+
+    def test_hours_to_weeks(self):
+        self.assertEqual(dt.hours_to_weeks(168), 1)
+
+    def test_weeks_to_microseconds(self):
+        self.assertEqual(dt.weeks_to_microseconds(1), 604800000000)
+
+    def test_weeks_to_milliseconds(self):
+        self.assertEqual(dt.weeks_to_milliseconds(1), 604800000)
+
+    def test_weeks_to_seconds(self):
+        self.assertEqual(dt.weeks_to_seconds(1), 604800)
+
+    def test_weeks_to_minutes(self):
+        self.assertEqual(dt.weeks_to_minutes(1), 10080)
+
+    def test_weeks_to_hours(self):
+        self.assertEqual(dt.weeks_to_hours(1), 168)
+
+    def test_weeks_to_days(self):
+        self.assertEqual(dt.weeks_to_days(1), 7)
