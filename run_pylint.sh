@@ -6,6 +6,7 @@ if ! [[ -x "$(command -v pylint)" ]]; then
 fi
 
 pylint redvox.api900.sensors                && \
+pylint redvox.api900.timesync               && \
 pylint redvox.api900.concat                 && \
 pylint redvox.api900.constants              && \
 pylint redvox.api900.deprecation            && \
