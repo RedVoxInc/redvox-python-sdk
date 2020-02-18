@@ -6,6 +6,10 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.7.1 ()
+
+* Add date time utilities to `redvox/common/date_time_utils.py`
+
 ### 2.6.1 (2020-01-28)
 
 * Update bulk data download client to utilize a RedVox provided authentication token
