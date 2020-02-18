@@ -62,7 +62,7 @@ class UTC(tzinfo):
 
 
 # An instance of the above class that can be used anywhere the class is needed
-utc = UTC()
+UTC_INSTANCE = UTC()
 
 
 # Microsecond conversions
@@ -409,32 +409,32 @@ def datetime_from(year: int, month: int, day: int, hour: int = 0, minute: int = 
     return datetime(year, month, day, hour, minute, second)
 
 
-def datetime_to_epoch_seconds_utc(dt: datetime) -> float:
+def datetime_to_epoch_seconds_utc(date_time: datetime) -> float:
     """
     Given a datetime, return the number of seconds since the epoch UTC.
-    :param dt: An instance of a datetime.
+    :param date_time: An instance of a datetime.
     :return: A UTC second timestamp.
     """
-    return (dt - EPOCH).total_seconds()
+    return (date_time - EPOCH).total_seconds()
 
 
-def datetime_to_epoch_milliseconds_utc(dt: datetime) -> float:
+def datetime_to_epoch_milliseconds_utc(date_time: datetime) -> float:
     """
     Given a datetime, return the number of milliseconds since the epoch UTC.
-    :param dt: An instance of a datetime.
+    :param date_time: An instance of a datetime.
     :return: A UTC millisecond timestamp.
     """
-    epoch_seconds: float = datetime_to_epoch_seconds_utc(dt)
+    epoch_seconds: float = datetime_to_epoch_seconds_utc(date_time)
     return seconds_to_milliseconds(epoch_seconds)
 
 
-def datetime_to_epoch_microseconds_utc(dt: datetime) -> float:
+def datetime_to_epoch_microseconds_utc(date_time: datetime) -> float:
     """
     Given a datetime, return the number of microseconds since the epoch UTC.
-    :param dt: The datetime object to convert.
+    :param date_time: The datetime object to convert.
     :return: A UTC microsecond timestamp.
     """
-    epoch_seconds: float = datetime_to_epoch_seconds_utc(dt)
+    epoch_seconds: float = datetime_to_epoch_seconds_utc(date_time)
     return seconds_to_microseconds(epoch_seconds)
 
 

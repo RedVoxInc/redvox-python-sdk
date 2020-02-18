@@ -20,6 +20,6 @@ pylint redvox.api900.sensors                && \
 pylint redvox.cli.cli                       && \
 pylint redvox.cli.conversions               && \
 pylint redvox.cli.data_req                  && \
-pylint redvox.common.date_time_utils        && \
+pylint redvox.common.date_time_utils
 
 
