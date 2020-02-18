@@ -63,7 +63,7 @@ class TestCli(unittest.TestCase):
                                               shell=True).decode()
         self.assertEqual(len(list(filter(lambda line: line.startswith("api: 900"),
                                     output.split("\n")))),
-                         3)
+                         4)
 
     def test_no_args(self):
         process = subprocess.Popen("python3 -m redvox.cli.cli", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
