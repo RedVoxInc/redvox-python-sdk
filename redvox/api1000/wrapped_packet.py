@@ -444,6 +444,10 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
         return self
 
     # Channels
+    def new_microphone_channel(self) -> _microphone_channel.MicrophoneChannel:
+
+        self.set_microphone_channel(_microphone_channel.MicrophoneChannel.new())
+
     def has_microphone_channel(self) -> bool:
         return self._proto.HasField("microphone_channel")
 

@@ -4,13 +4,13 @@ Provides common classes and methods for interacting with API 1000 protobuf data.
 
 from typing import Any, Dict, List, Optional, Union
 
+import scipy.stats
 from google.protobuf.json_format import MessageToDict, MessageToJson
 import lz4.frame
 import numpy as np
 
-import redvox.api1000.errors as errors
-import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
-import redvox.api1000.summary_statistics as summary_statistics
+from api1000 import errors as errors
+from api1000.proto import redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 NAN: float = float("NaN")
 
@@ -55,7 +55,7 @@ class ProtoBase:
 class Samples:
     def __init__(self, samples_proto, sample_statistics_proto: redvox_api_1000_pb2.SummaryStatistics):
         self._samples_proto = samples_proto
-        self._sample_statistics: summary_statistics.SummaryStatistics = summary_statistics.SummaryStatistics(
+        self._sample_statistics: SummaryStatistics = SummaryStatistics(
                 sample_statistics_proto)
 
     def get_samples_count(self) -> int:
@@ -105,11 +105,11 @@ class Samples:
 
         return self
 
-    def get_sample_statistics(self) -> summary_statistics.SummaryStatistics:
+    def get_sample_statistics(self) -> 'SummaryStatistics':
         return self._sample_statistics
 
-    def set_sample_statistics(self, sample_statistics: summary_statistics.SummaryStatistics) -> 'Samples':
-        if not isinstance(sample_statistics, summary_statistics.SummaryStatistics):
+    def set_sample_statistics(self, sample_statistics: 'SummaryStatistics') -> 'Samples':
+        if not isinstance(sample_statistics, SummaryStatistics):
             raise errors.Api1000TypeError(f"Expected an instance of SummaryStatistics, but instead found a "
                                           f"{type(sample_statistics)}")
 
@@ -161,7 +161,121 @@ class Metadata:
         return self
 
 
-def none_or_empty(value: Union[List, str, np.ndarray]) -> bool:
+class SummaryStatistics(ProtoBase):
+    def __init__(self, proto: redvox_api_1000_pb2.SummaryStatistics):
+        super().__init__(proto)
+
+    @staticmethod
+    def new() -> 'SummaryStatistics':
+        proto: redvox_api_1000_pb2.SummaryStatistics = redvox_api_1000_pb2.SummaryStatistics()
+        return SummaryStatistics(proto)
+
+    def get_count(self) -> float:
+        return self._proto.count
+
+    def set_count(self, count: float) -> 'SummaryStatistics':
+        if not is_protobuf_numerical_type(count):
+            raise errors.SummaryStatisticsError(f"A float or integer is required, but instead a {type(count)}={count} "
+                                                f"was provided")
+
+        self._proto.count = count
+        return self
+
+    def get_mean(self) -> float:
+        return self._proto.mean
+
+    def set_mean(self, mean: float) -> 'SummaryStatistics':
+        if not is_protobuf_numerical_type(mean):
+            raise errors.SummaryStatisticsError(f"A float or integer is required, but instead a {type(mean)}={mean} "
+                                                f"was provided")
+
+        self._proto.mean = mean
+        return self
+
+    def get_median(self) -> float:
+        return self._proto.median
+
+    def set_median(self, median: float) -> 'SummaryStatistics':
+        if not is_protobuf_numerical_type(median):
+            raise errors.SummaryStatisticsError(f"A float or integer is required, but instead a {type(median)}={median}"
+                                                f" was provided")
+
+        self._proto.median = median
+        return self
+
+    def get_mode(self) -> float:
+        return self._proto.mode
+
+    def set_mode(self, mode: float) -> 'SummaryStatistics':
+        if not is_protobuf_numerical_type(mode):
+            raise errors.SummaryStatisticsError(f"A float or integer is required, but instead a {type(mode)}={mode} "
+                                                f"was provided")
+
+        self._proto.mode = mode
+        return self
+
+    def get_variance(self) -> float:
+        return self._proto.variance
+
+    def set_variance(self, variance: float) -> 'SummaryStatistics':
+        if not is_protobuf_numerical_type(variance):
+            raise errors.SummaryStatisticsError(f"A float or integer is required, but instead a "
+                                                f"{type(variance)}={variance} was provided")
+
+        self._proto.variance = variance
+        return self
+
+    def get_min(self) -> float:
+        return self._proto.min
+
+    def set_min(self, min_value: float) -> 'SummaryStatistics':
+        if not is_protobuf_numerical_type(min_value):
+            raise errors.SummaryStatisticsError(f"A float or integer is required, but instead a "
+                                                f"{type(min_value)}={min_value} was provided")
+
+        self._proto.min = min_value
+        return self
+
+    def get_max(self) -> float:
+        return self._proto.max
+
+    def set_max(self, max_value: float) -> 'SummaryStatistics':
+        if not is_protobuf_numerical_type(max_value):
+            raise errors.SummaryStatisticsError(f"A float or integer is required, but instead a "
+                                                f"{type(max_value)}={max_value} was provided")
+
+        self._proto.max = max_value
+        return self
+
+    def get_range(self) -> float:
+        return self._proto.range
+
+    def set_range(self, range_value: float) -> 'SummaryStatistics':
+        if not is_protobuf_numerical_type(range_value):
+            raise errors.SummaryStatisticsError(f"A float or integer is required, but instead a "
+                                                f"{type(range_value)}={range_value} was provided")
+
+        self._proto.range = range_value
+        return self
+
+    def update_from_values(self, values: np.ndarray):
+        if not is_protobuf_repeated_numerical_type(values):
+            raise errors.SummaryStatisticsError(f"A string is required, but a {type(values)}={values} was provided")
+
+        if none_or_empty(values):
+            raise errors.SummaryStatisticsError("No values supplied for updating statistics")
+
+        self._proto.count = len(values)
+        self._proto.mean = values.mean()
+        self._proto.median = np.median(values)
+        self._proto.mode = scipy.stats.mode(values)[0]
+        self._proto.variance = values.var()
+        self._proto.min = values.min()
+        self._proto.max = values.max()
+        self._proto.range = self._proto.max - self._proto.min
+
+
+def none_or_empty(value: Optional[Union[List, str, np.ndarray]]) -> bool:
     if value is None:
         return True
 
@@ -181,41 +295,6 @@ def is_protobuf_repeated_numerical_type(values: Any) -> bool:
 
     value = values.flat[0]
     return isinstance(value, np.floating) or isinstance(value, np.integer)
-
-
-def get_metadata(mutable_mapping) -> Dict[str, str]:
-    metadata_dict: Dict[str, str] = dict()
-    for key in mutable_mapping:
-        metadata_dict[key] = mutable_mapping[key]
-    return metadata_dict
-
-
-def set_metadata(mutable_mapping,
-                 metadata: Dict[str, str]) -> Optional[Any]:
-    for key, value in metadata.items():
-        if not isinstance(key, str):
-            return key
-
-        if not isinstance(value, str):
-            return value
-
-    mutable_mapping.clear()
-    for key, value in metadata.items():
-        mutable_mapping[key] = value
-
-    return None
-
-
-def append_metadata(mutable_mapping, key: str, value: str) -> Optional[Any]:
-    if not isinstance(key, str):
-        return key
-
-    if not isinstance(value, str):
-        return value
-
-    mutable_mapping[key] = value
-
-    return None
 
 
 def mean_sample_rate_hz_from_sample_ts_us(sample_ts_us: np.ndarray) -> float:
