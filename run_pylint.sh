@@ -8,7 +8,6 @@ fi
 pylint redvox.api900.sensors                && \
 pylint redvox.api900.concat                 && \
 pylint redvox.api900.constants              && \
-pylint redvox.api900.date_time_utils        && \
 pylint redvox.api900.deprecation            && \
 pylint redvox.api900.exceptions             && \
 pylint redvox.api900.reader                 && \
