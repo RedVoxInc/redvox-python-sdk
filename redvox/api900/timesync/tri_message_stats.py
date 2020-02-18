@@ -6,7 +6,7 @@ and use Tri-Message protocol to compute latencies, check criteria, and correct t
 minimum latencies.
 """
 
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 # noinspection Mypy
 import numpy as np
@@ -50,18 +50,22 @@ class TriMessageStats:
         self.packet_id: Union[str, int] = packet_id
         self.num_messages: int = len(a1)
         # compute latencies and offsets
-        self.latency1, self.latency3 = latencies(a1, a2, a3, b1, b2, b3)
-        self.offset1, self.offset3 = offsets(a1, a2, a3, b1, b2, b3)
+        latencies_tuple: Tuple[np.ndarray, np.ndarray] = latencies(a1, a2, a3, b1, b2, b3)
+        self.latency1: np.ndarray = latencies_tuple[0]
+        self.latency3: np.ndarray = latencies_tuple[1]
+        offsets_tuple: Tuple[np.ndarray, np.ndarray] = offsets(a1, a2, a3, b1, b2, b3)
+        self.offset1: np.ndarray = offsets_tuple[0]
+        self.offset3: np.ndarray = offsets_tuple[1]
 
-        self.best_latency = None
-        self.best_latency_array_index = None
-        self.best_latency_index = None
-        self.best_offset = None
+        self.best_latency: Optional[float] = None
+        self.best_latency_array_index: Optional[int] = None
+        self.best_latency_index: Optional[int] = None
+        self.best_offset: Optional[float] = None
 
         self.find_best_latency()
         self.find_best_offset()
 
-    def find_best_latency(self):
+    def find_best_latency(self) -> None:
         """
         Finds the best latency among the latencies
         """
@@ -69,8 +73,8 @@ class TriMessageStats:
         self.best_latency = None
 
         # find value and index of minimum latency of nonzero latencies
-        d1_min = np.min(self.latency1[self.latency1 != 0])
-        d3_min = np.min(self.latency3[self.latency3 != 0])
+        d1_min: float = np.min(self.latency1[self.latency1 != 0])
+        d3_min: float = np.min(self.latency3[self.latency3 != 0])
 
         if d3_min > d1_min:
             self.best_latency = d1_min  # server round trip is shorter
@@ -81,7 +85,7 @@ class TriMessageStats:
             self.best_latency_array_index = 3
             self.best_latency_index = np.where(self.latency3 == d3_min)[0][0]
 
-    def find_best_offset(self):
+    def find_best_offset(self) -> None:
         """
         Finds the best offset among the offsets
         """
@@ -103,7 +107,7 @@ class TriMessageStats:
                     a3: np.ndarray,
                     b1: np.ndarray,
                     b2: np.ndarray,
-                    b3: np.ndarray):
+                    b3: np.ndarray) -> None:
         """
         set the latency and find the best
         :param a1: server timestamp 1
@@ -123,7 +127,7 @@ class TriMessageStats:
                    a3: np.ndarray,
                    b1: np.ndarray,
                    b2: np.ndarray,
-                   b3: np.ndarray):
+                   b3: np.ndarray) -> None:
         """
         set the offset and find the best
         :param a1: server timestamp 1
