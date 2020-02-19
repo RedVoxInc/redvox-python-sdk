@@ -2,31 +2,28 @@
 API900 timesync test module
 """
 
+import glob
+import os.path
+from typing import List
 import unittest
 
 # noinspection Mypy
 import numpy as np
 
-from redvox.common import date_time_utils as dt
 import redvox.tests as tests
-# from redvox_analysis.reader import api900_timesync, api900_loader
 import redvox.api900.reader as reader
 import redvox.api900.timesync.api900_timesync as api900_timesync
 
-path900 = tests.TEST_DATA_DIR + '/test_data_api900/'
-start_datetime900 = dt.datetime_from(2018, 7, 24, 19, 00, 00)
-stop_datetime900 = dt.datetime_from(2018, 7, 24, 19, 15, 00)
-redvox_id900 = 1637680001
-
-wrapped_packets_fs = \
-    api900_loader.get_wrapped_packets_api900(path900, start_datetime900, stop_datetime900, redvox_id900)
-mic_channels = list(map(lambda g: g.microphone_sensor(), wrapped_packets_fs))
-fs = list(map(lambda g: g.sample_rate_hz(), mic_channels))[0]  # sample rate of group in Hz
+data_paths: List[str] = glob.glob(os.path.join(tests.TEST_DATA_DIR, "1637680001*.rdvxz"))
+wrapped_packets_fs: List[reader.WrappedRedvoxPacket] = list(map(lambda path: reader.read_rdvxz_file(path),
+                                                                    data_paths))
+mic_channels: List[reader.MicrophoneSensor] = list(map(lambda wrapped_packet: wrapped_packet.microphone_sensor(),
+                                                       wrapped_packets_fs))
+fs: float = mic_channels[0].sample_rate_hz()
 time_sync_data = api900_timesync.TimeSyncData(wrapped_packets_fs)
 
 
 class RedVoxTimesyncTests(unittest.TestCase):
-
     def test_get_time_sync_data(self):
         self.assertEqual(len(time_sync_data.rev_start_times), len(wrapped_packets_fs))
         self.assertEqual(len(time_sync_data.latencies), len(wrapped_packets_fs))
