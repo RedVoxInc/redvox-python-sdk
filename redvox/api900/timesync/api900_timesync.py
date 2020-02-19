@@ -43,18 +43,22 @@ class TimeSyncData:
         """
         self.latency_stats: stats_helper.StatsContainer = stats_helper.StatsContainer("latency")
         self.offset_stats: stats_helper.StatsContainer = stats_helper.StatsContainer("offset")
+        self.latency_std_dev: Optional[float] = None
+        self.latency_mean: Optional[float] = None
+        self.offset_std_dev: Optional[float] = None
+        self.offset_mean: Optional[float] = None
         if wrapped_packets is None:
-            self.rev_start_times = np.ndarray((0, 0))
-            self.latencies = np.ndarray((0, 0))
-            self.best_latency = None
-            self.best_latency_index = None
-            self.offsets = np.ndarray((0, 0))
-            self.best_offset = 0
-            self.num_packets = 0
-            self.sample_rate_hz = None
-            self.num_tri_messages = np.ndarray((0, 0))
-            self.acquire_travel_time = np.ndarray((0, 0))
-            self.bad_packets = []
+            self.rev_start_times: np.ndarray = np.ndarray((0, 0))
+            self.latencies: np.ndarray = np.ndarray((0, 0))
+            self.best_latency: Optional[float] = None
+            self.best_latency_index: Optional[int] = None
+            self.offsets: np.ndarray = np.ndarray((0, 0))
+            self.best_offset: float = 0.0
+            self.num_packets: int = 0
+            self.sample_rate_hz: Optional[float] = None
+            self.num_tri_messages: np.ndarray = np.ndarray((0, 0))
+            self.acquire_travel_time: np.ndarray = np.ndarray((0, 0))
+            self.bad_packets: List[int] = []
         else:
             self.get_time_sync_data(wrapped_packets)
 
@@ -69,7 +73,7 @@ class TimeSyncData:
         self.latencies = np.zeros(len(wrapped_packets))  # array of minimum latencies
         self.offsets = np.zeros(len(wrapped_packets))  # array of offset applied to machine time to get sync time
         self.num_packets = len(wrapped_packets)  # number of packets in list
-        self.bad_packets = []  # array of packets that contain invalid data
+        self.bad_packets = []  # list of packets that contain invalid data
         server_time = np.zeros(len(wrapped_packets))  # array of server acquisition times
 
         # get the server acquisition time, app start time, and tri message stats
@@ -140,8 +144,12 @@ class TimeSyncData:
             # set the number of tri-message exchanges in the packet
             self.num_tri_messages[index] = len(coeffs) / 6
             coeffs_tuple: Tuple[
-                np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray] = tri_message_stats.transmit_receive_timestamps_microsec(
-                coeffs)
+                np.ndarray,
+                np.ndarray,
+                np.ndarray,
+                np.ndarray,
+                np.ndarray,
+                np.ndarray] = tri_message_stats.transmit_receive_timestamps_microsec(coeffs)
             a1_coeffs: np.ndarray = coeffs_tuple[0]
             a2_coeffs: np.ndarray = coeffs_tuple[1]
             a3_coeffs: np.ndarray = coeffs_tuple[2]
@@ -331,8 +339,12 @@ def sync_packet_time_900(wrapped_packets_fs: list, verbose: bool = False):
                 timesync_channel = packet.time_synchronization_sensor()
                 coeffs = timesync_channel.payload_values()
                 coeffs_tuple: Tuple[
-                    np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray] = tri_message_stats.transmit_receive_timestamps_microsec(
-                    coeffs)
+                    np.ndarray,
+                    np.ndarray,
+                    np.ndarray,
+                    np.ndarray,
+                    np.ndarray,
+                    np.ndarray] = tri_message_stats.transmit_receive_timestamps_microsec(coeffs)
                 a1_coeffs: np.ndarray = coeffs_tuple[0]
                 a2_coeffs: np.ndarray = coeffs_tuple[1]
                 a3_coeffs: np.ndarray = coeffs_tuple[2]
