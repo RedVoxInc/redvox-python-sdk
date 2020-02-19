@@ -16,7 +16,7 @@ import redvox.api900.timesync.api900_timesync as api900_timesync
 
 data_paths: List[str] = glob.glob(os.path.join(tests.TEST_DATA_DIR, "1637680001*.rdvxz"))
 wrapped_packets_fs: List[reader.WrappedRedvoxPacket] = list(map(lambda path: reader.read_rdvxz_file(path),
-                                                                    data_paths))
+                                                                data_paths))
 mic_channels: List[reader.MicrophoneSensor] = list(map(lambda wrapped_packet: wrapped_packet.microphone_sensor(),
                                                        wrapped_packets_fs))
 fs: float = mic_channels[0].sample_rate_hz()
