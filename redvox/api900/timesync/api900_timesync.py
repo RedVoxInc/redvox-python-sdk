@@ -3,7 +3,7 @@ Modules for extracting time synchronization statistics for API 900 data.
 Also includes functions for correcting time arrays.
 """
 
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, Tuple
 
 # noinspection Mypy
 import numpy as np
@@ -13,9 +13,6 @@ from redvox.api900.timesync import tri_message_stats
 from redvox.common import date_time_utils as dt
 from redvox.common import file_statistics as fh
 from redvox.common import stats_helper
-
-# if TYPE_CHECKING:
-#     from redvox.api900.reader import WrappedRedvoxPacket
 
 
 class TimeSyncData:
@@ -44,8 +41,8 @@ class TimeSyncData:
         Initialize properties, assume all packets share the same sample rate
         :param wrapped_packets: list of data packets
         """
-        self.latency_stats = stats_helper.StatsContainer("latency")
-        self.offset_stats = stats_helper.StatsContainer("offset")
+        self.latency_stats: stats_helper.StatsContainer = stats_helper.StatsContainer("latency")
+        self.offset_stats: stats_helper.StatsContainer = stats_helper.StatsContainer("offset")
         if wrapped_packets is None:
             self.rev_start_times = np.ndarray((0, 0))
             self.latencies = np.ndarray((0, 0))
@@ -61,25 +58,25 @@ class TimeSyncData:
         else:
             self.get_time_sync_data(wrapped_packets)
 
-    def get_time_sync_data(self, wrapped_packets: list):
+    def get_time_sync_data(self, wrapped_packets: List[WrappedRedvoxPacket]):
         """
         Sets the time statistics between machine, time server, and acquisition server for the packets given.
         :param wrapped_packets: wrapped packets with same sample rate
         """
         self.sample_rate_hz = wrapped_packets[0].microphone_sensor().sample_rate_hz()  # sample rate of all packets
-        self.rev_start_times = np.zeros(len(wrapped_packets))   # array of app start times
+        self.rev_start_times = np.zeros(len(wrapped_packets))  # array of app start times
         self.num_tri_messages = np.zeros(len(wrapped_packets))  # number of tri-message exchanges per packet
-        self.latencies = np.zeros(len(wrapped_packets))     # array of minimum latencies
+        self.latencies = np.zeros(len(wrapped_packets))  # array of minimum latencies
         self.offsets = np.zeros(len(wrapped_packets))  # array of offset applied to machine time to get sync time
-        self.num_packets = len(wrapped_packets)        # number of packets in list
-        self.bad_packets = []                          # array of packets that contain invalid data
-        server_time = np.zeros(len(wrapped_packets))   # array of server acquisition times
+        self.num_packets = len(wrapped_packets)  # number of packets in list
+        self.bad_packets = []  # array of packets that contain invalid data
+        server_time = np.zeros(len(wrapped_packets))  # array of server acquisition times
 
         # get the server acquisition time, app start time, and tri message stats
-        for i in range(len(wrapped_packets)):
-            server_time[i] = wrapped_packets[i].server_timestamp_epoch_microseconds_utc()
-            self.rev_start_times[i] = wrapped_packets[i].app_file_start_timestamp_epoch_microseconds_utc()
-            self._compute_tri_message_stats(wrapped_packets[i], i)
+        for i, wrapped_packet in enumerate(wrapped_packets):
+            server_time[i] = wrapped_packet.server_timestamp_epoch_microseconds_utc()
+            self.rev_start_times[i] = wrapped_packet.app_file_start_timestamp_epoch_microseconds_utc()
+            self._compute_tri_message_stats(wrapped_packet, i)
 
         self.find_bad_packets()
         self._evaluate_latencies_and_offsets()
@@ -142,21 +139,35 @@ class TimeSyncData:
             coeffs = timesync_channel.payload_values()
             # set the number of tri-message exchanges in the packet
             self.num_tri_messages[index] = len(coeffs) / 6
-            a1, a2, a3, b1, b2, b3 = tri_message_stats.transmit_receive_timestamps_microsec(coeffs)
+            coeffs_tuple: Tuple[
+                np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray] = tri_message_stats.transmit_receive_timestamps_microsec(
+                coeffs)
+            a1_coeffs: np.ndarray = coeffs_tuple[0]
+            a2_coeffs: np.ndarray = coeffs_tuple[1]
+            a3_coeffs: np.ndarray = coeffs_tuple[2]
+            b1_coeffs: np.ndarray = coeffs_tuple[3]
+            b2_coeffs: np.ndarray = coeffs_tuple[4]
+            b3_coeffs: np.ndarray = coeffs_tuple[5]
             # get tri message data via TriMessageStats class
-            tms = tri_message_stats.TriMessageStats(packet.redvox_id(), a1, a2, a3, b1, b2, b3)
+            tms = tri_message_stats.TriMessageStats(packet.redvox_id(),
+                                                    a1_coeffs,
+                                                    a2_coeffs,
+                                                    a3_coeffs,
+                                                    b1_coeffs,
+                                                    b2_coeffs,
+                                                    b3_coeffs)
             # Concatenate d1 and d3 arrays, and o1 and o3 arrays when passing values into stats class
             self.latency_stats.add(np.mean([*tms.latency1, *tms.latency3]), np.std([*tms.latency1, *tms.latency3]),
                                    len(coeffs) / 3)
             self.offset_stats.add(np.mean([*tms.offset1, *tms.offset3]), np.std([*tms.offset1, *tms.offset3]),
                                   len(coeffs) / 3)
             # set the best latency and offset based on the packet's metadata, or tri-message stats if no metadata
-            latency = packet.best_latency()
+            latency: Optional[float] = packet.best_latency()
             if latency is None:
                 self.latencies[index] = tms.best_latency
             else:
                 self.latencies[index] = latency
-            offset = packet.best_offset()
+            offset: Optional[float] = packet.best_offset()
             if offset is None:
                 self.offsets[index] = tms.best_offset
             else:
@@ -182,7 +193,7 @@ class TimeSyncData:
         """
         if self.num_packets < 1:
             return 0
-        return len(self.bad_packets) / self.num_packets
+        return len(self.bad_packets) / float(self.num_packets)
 
     def get_valid_latencies(self, latency_array: np.array = None) -> np.array:
         """
@@ -193,8 +204,8 @@ class TimeSyncData:
         if latency_array is None:
             clean_latencies = np.nan_to_num(self.latencies)  # replace NaNs with zeros
         else:
-            clean_latencies = np.nan_to_num(latency_array)   # replace NaNs with zeros
-        clean_latencies[clean_latencies < 0] = 0             # replace negative latencies with 0
+            clean_latencies = np.nan_to_num(latency_array)  # replace NaNs with zeros
+        clean_latencies[clean_latencies < 0] = 0  # replace negative latencies with 0
         return clean_latencies[clean_latencies != 0]  # return only non-zero latencies
 
     def get_valid_offsets(self, offset_array: np.array = None) -> np.array:
@@ -209,7 +220,7 @@ class TimeSyncData:
                 for i in range(len(self.offsets)):
                     if i not in self.bad_packets:
                         valids.append(self.offsets[i])
-                clean_offsets = np.nan_to_num(valids)    # replace NaNs with zeros
+                clean_offsets = np.nan_to_num(valids)  # replace NaNs with zeros
             else:
                 clean_offsets = np.nan_to_num(self.offsets)
         else:
@@ -305,8 +316,8 @@ def sync_packet_time_900(wrapped_packets_fs: list, verbose: bool = False):
     """
 
     # assume each packet has a best latency and offset
-    latencies = []   # array of minimum latencies
-    offsets = []     # array of offset applied to machine time to get sync time
+    latencies = []  # array of minimum latencies
+    offsets = []  # array of offset applied to machine time to get sync time
 
     # latencies and offsets
     for packet in wrapped_packets_fs:
@@ -319,9 +330,23 @@ def sync_packet_time_900(wrapped_packets_fs: list, verbose: bool = False):
                 # metadata not set, use packet contents
                 timesync_channel = packet.time_synchronization_sensor()
                 coeffs = timesync_channel.payload_values()
-                a1, a2, a3, b1, b2, b3 = tri_message_stats.transmit_receive_timestamps_microsec(coeffs)
+                coeffs_tuple: Tuple[
+                    np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray] = tri_message_stats.transmit_receive_timestamps_microsec(
+                    coeffs)
+                a1_coeffs: np.ndarray = coeffs_tuple[0]
+                a2_coeffs: np.ndarray = coeffs_tuple[1]
+                a3_coeffs: np.ndarray = coeffs_tuple[2]
+                b1_coeffs: np.ndarray = coeffs_tuple[3]
+                b2_coeffs: np.ndarray = coeffs_tuple[4]
+                b3_coeffs: np.ndarray = coeffs_tuple[5]
                 # get tri message data via TriMessageStats class
-                tms = tri_message_stats.TriMessageStats(packet.redvox_id(), a1, a2, a3, b1, b2, b3)
+                tms = tri_message_stats.TriMessageStats(packet.redvox_id(),
+                                                        a1_coeffs,
+                                                        a2_coeffs,
+                                                        a3_coeffs,
+                                                        b1_coeffs,
+                                                        b2_coeffs,
+                                                        b3_coeffs)
                 latencies.append(tms.best_latency)
                 offsets.append(tms.best_offset)
         # if there is no time sync channel (usually no communication between device and server), default to 0
@@ -343,21 +368,21 @@ def sync_packet_time_900(wrapped_packets_fs: list, verbose: bool = False):
         latencies[latencies < 0] = 0
         d1_min = np.min(latencies[latencies != 0])
         best_d1_index = np.where(latencies == d1_min)[0][0]
-        # correct each packets' timestamps
+        # correct each packet's timestamps
         offset = int(offsets[best_d1_index])
 
-    for index in range(len(wrapped_packets_fs)):
+    for wrapped_packet in wrapped_packets_fs:
         # update the machine file start time and mach time zero
-        wrapped_packets_fs[index].set_app_file_start_timestamp_epoch_microseconds_utc(
-            wrapped_packets_fs[index].app_file_start_timestamp_epoch_microseconds_utc() + offset)
-        wrapped_packets_fs[index].set_app_file_start_timestamp_machine(
-            wrapped_packets_fs[index].app_file_start_timestamp_machine() + offset)
-        if wrapped_packets_fs[index].mach_time_zero() is not None:
-            wrapped_packets_fs[index].set_mach_time_zero(wrapped_packets_fs[index].mach_time_zero() + offset)
+        wrapped_packet.set_app_file_start_timestamp_epoch_microseconds_utc(
+            wrapped_packet.app_file_start_timestamp_epoch_microseconds_utc() + offset)
+        wrapped_packet.set_app_file_start_timestamp_machine(
+            wrapped_packet.app_file_start_timestamp_machine() + offset)
+        if wrapped_packet.mach_time_zero() is not None:
+            wrapped_packet.set_mach_time_zero(wrapped_packet.mach_time_zero() + offset)
         # update microphone start time
-        if wrapped_packets_fs[index].has_microphone_sensor():
-            wrapped_packets_fs[index].microphone_sensor().set_first_sample_timestamp_epoch_microseconds_utc(
-                wrapped_packets_fs[index].microphone_sensor().first_sample_timestamp_epoch_microseconds_utc() + offset)
+        if wrapped_packet.has_microphone_sensor():
+            wrapped_packet.microphone_sensor().set_first_sample_timestamp_epoch_microseconds_utc(
+                wrapped_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc() + offset)
         # correct the times in unevenly sampled channels using the packets' best offset
-        wrapped_packets_fs[index].update_uneven_sensor_timestamps(offset)
-        wrapped_packets_fs[index].set_is_synch_corrected(True)
+        wrapped_packet.update_uneven_sensor_timestamps(offset)
+        wrapped_packet.set_is_synch_corrected(True)
