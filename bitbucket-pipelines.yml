@@ -13,6 +13,6 @@ pipelines:
         script: # Modify the commands below to build your repository.
           - pip install -r requirements.txt
           - pip install -r requirements_dev.txt
-          - python -m unittest discover
+          - bash run_tests.sh
           - bash run_pylint.sh
           - bash run_mypy.sh
