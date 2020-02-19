@@ -85,7 +85,7 @@ class TimeSyncData:
         self.find_bad_packets()
         self._evaluate_latencies_and_offsets()
         # set the packet duration
-        packet_duration = fh.get_duration_seconds_from_sample_rate(self.sample_rate_hz) * dt.MICROSECONDS_IN_SECOND
+        packet_duration = dt.seconds_to_microseconds(fh.get_duration_seconds_from_sample_rate(int(self.sample_rate_hz)))
         # apply duration to app start to get packet end time, then subtract
         # that from server acquire time to get travel time to acquisition server
         # ASSUMING that acquisition and time-sync server have the same time source
@@ -165,8 +165,10 @@ class TimeSyncData:
                                                     b2_coeffs,
                                                     b3_coeffs)
             # Concatenate d1 and d3 arrays, and o1 and o3 arrays when passing values into stats class
+            # noinspection PyTypeChecker
             self.latency_stats.add(np.mean([*tms.latency1, *tms.latency3]), np.std([*tms.latency1, *tms.latency3]),
                                    len(coeffs) / 3)
+            # noinspection PyTypeChecker
             self.offset_stats.add(np.mean([*tms.offset1, *tms.offset3]), np.std([*tms.offset1, *tms.offset3]),
                                   len(coeffs) / 3)
             # set the best latency and offset based on the packet's metadata, or tri-message stats if no metadata
