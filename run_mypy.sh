@@ -5,6 +5,6 @@ if ! [[ -x "$(command -v mypy)" ]]; then
   exit 1
 fi
 
-mypy --config-file=.mypy.ini    \
-    -p redvox.common            \
-    -p redvox.api900.timesync   \
+mypy --config-file=.mypy.ini                    \
+    -p redvox.common                            \
+    -m redvox.api900.timesync.tri_message_stats \
