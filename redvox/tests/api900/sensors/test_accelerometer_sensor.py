@@ -1,16 +1,16 @@
-from redvox.api900 import reader
+import redvox.api900.reader as reader
 from redvox.api900.exceptions import ReaderException
-from redvox.tests.utils import *
+from redvox.tests import *
 
 import unittest
 
 from numpy import array, array_equal
 
 
-class TestMagnetometerSensor(unittest.TestCase):
+class TestAccelerometerSensor(unittest.TestCase):
     def setUp(self):
-        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).magnetometer_sensor()
-        self.empty_sensor = reader.MagnetometerSensor()
+        self.example_sensor = reader.read_rdvxz_file(test_data("example.rdvxz")).accelerometer_sensor()
+        self.empty_sensor = reader.AccelerometerSensor()
 
     def test_set_payload_values(self):
         self.example_sensor.set_payload_values([1, 1, 1],

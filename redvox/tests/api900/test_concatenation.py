@@ -6,7 +6,7 @@ import unittest
 import redvox.api900.concat as concat
 import redvox.api900.exceptions as exceptions
 import redvox.api900.reader as reader
-import redvox.tests.utils as test_utils
+import redvox.tests as test_utils
 
 import numpy as np
 

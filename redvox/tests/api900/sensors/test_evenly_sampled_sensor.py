@@ -1,5 +1,5 @@
 from redvox.api900 import reader
-from redvox.tests.utils import *
+from redvox.tests import *
 
 import unittest
 

@@ -5,7 +5,7 @@ import subprocess
 import unittest
 
 import redvox.api900.reader as reader
-from redvox.tests.utils import test_data, TEST_DATA_DIR
+from redvox.tests import test_data, TEST_DATA_DIR
 
 
 class TestCli(unittest.TestCase):
@@ -63,7 +63,7 @@ class TestCli(unittest.TestCase):
                                               shell=True).decode()
         self.assertEqual(len(list(filter(lambda line: line.startswith("api: 900"),
                                     output.split("\n")))),
-                         4)
+                         7)
 
     def test_no_args(self):
         process = subprocess.Popen("python3 -m redvox.cli.cli", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)

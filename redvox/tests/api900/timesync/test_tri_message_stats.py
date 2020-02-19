@@ -12,7 +12,7 @@ from redvox.api900.timesync import tri_message_stats
 from redvox.api900 import reader
 
 
-test_filepath_api900: str = tests.test_data_path("1637680001_1532459248280.rdvxz")
+test_filepath_api900: str = tests.test_data("1637680001_1532459248280.rdvxz")
 
 api900_packet = reader.read_file(test_filepath_api900)
 api900_wrapped_packet: reader.WrappedRedvoxPacket = reader.wrap(api900_packet)

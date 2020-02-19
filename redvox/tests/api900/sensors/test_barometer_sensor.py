@@ -1,6 +1,6 @@
 import redvox.api900.reader as reader
 import redvox.api900.exceptions as exceptions
-from redvox.tests.utils import *
+from redvox.tests import *
 
 import unittest
 

@@ -1,7 +1,7 @@
 import numpy
 
 import redvox.api900.stat_utils as stat_utils
-from redvox.tests.utils import ArraysTestCase
+from redvox.tests import ArraysTestCase
 
 
 class ModuleFunctionTests(ArraysTestCase):

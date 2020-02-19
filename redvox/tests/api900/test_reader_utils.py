@@ -3,8 +3,8 @@ import numpy
 from redvox.api900.lib import api900_pb2
 import redvox.api900.reader
 import redvox.api900.reader_utils as reader_utils
-import redvox.tests.mock_packets as mock
-from redvox.tests.utils import ArraysTestCase
+import redvox.tests.api900.mock_packets as mock
+from redvox.tests import ArraysTestCase
 
 from redvox.api900.exceptions import ReaderException
 
