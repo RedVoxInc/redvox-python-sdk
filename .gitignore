@@ -8,3 +8,4 @@ redvox.egg-info/
 *.jpg
 *.jpeg
 .mypy_cache
+.coverage
