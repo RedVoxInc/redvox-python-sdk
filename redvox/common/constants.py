@@ -6,15 +6,15 @@ This is an auxiliary file where regularly used constants can be stored and expor
 import numpy as np
 
 
-GRAVITY_m_PER_s2: float = 9.80665     # acceleration of gravity in m/s^2
-AVG_SEA_LEVEL_PRESSURE_kPa = 101.325  # average sea level pressure around the world in kPa
-MOLAR_MASS_AIR_kg_PER_mol = 0.02896   # molar mass of air in kg per mol
+GRAVITY_M_PER_S2: float = 9.80665     # acceleration of gravity in m/s^2
+AVG_SEA_LEVEL_PRESSURE_KPA = 101.325  # average sea level pressure around the world in kPa
+MOLAR_MASS_AIR_KG_PER_MOL = 0.02896   # molar mass of air in kg per mol
 STANDARD_TEMPERATURE_K = 288.15       # standard surface temperature in K
-UNIVERSAL_GAS_CONSTANT_kg_m2_PER_K_mol_s2 = 8.3143  # universal gas constant in (kg * m^2) / (K * mol * s^2)
+UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2 = 8.3143  # universal gas constant in (kg * m^2) / (K * mol * s^2)
 # constant used in barometric formula
 #   source: https://www.math24.net/barometric-formula/
-Mg_DIV_BY_RT = ((MOLAR_MASS_AIR_kg_PER_mol * GRAVITY_m_PER_s2) /
-                (STANDARD_TEMPERATURE_K * UNIVERSAL_GAS_CONSTANT_kg_m2_PER_K_mol_s2))
+MG_DIV_BY_RT = ((MOLAR_MASS_AIR_KG_PER_MOL * GRAVITY_M_PER_S2) /
+                (STANDARD_TEMPERATURE_K * UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2))
 
 EARTH_RADIUS_M = 6367000.0  # earth's estimated radius in meters
 

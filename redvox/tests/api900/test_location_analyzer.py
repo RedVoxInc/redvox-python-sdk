@@ -279,7 +279,7 @@ class LocationAnalyzerTests(unittest.TestCase):
         self.list_w_p = list(packets.values())
         self.gps_data = la.load_position_data(self.list_w_p[1])
         self.survey = SURVEY
-        self.bar_mean = la.AVG_SEA_LEVEL_PRESSURE_kPa
+        self.bar_mean = la.AVG_SEA_LEVEL_PRESSURE_KPA
         self.inclusion_ranges = (la.INCLUSION_HORIZONTAL_M, la.INCLUSION_VERTICAL_M, la.INCLUSION_VERTICAL_BAR_M)
 
     def test_get_all_ios_station(self):

@@ -22,7 +22,7 @@ from typing import List, Dict, Optional, Tuple
 from fastkml import kml, styles
 from fastkml.geometry import Point
 from redvox.api900 import reader
-from redvox.common.constants import EPSILON, DEG_TO_RAD, Mg_DIV_BY_RT, AVG_SEA_LEVEL_PRESSURE_kPa, EARTH_RADIUS_M
+from redvox.common.constants import EPSILON, DEG_TO_RAD, MG_DIV_BY_RT, AVG_SEA_LEVEL_PRESSURE_KPA, EARTH_RADIUS_M
 
 # instruments have only so much accuracy, so if something has a distance less than the following values
 #  from a given point, we could feasibly consider it to be close enough to be at the given point.
@@ -381,10 +381,10 @@ class LocationAnalyzer:
         self.all_stations_mean_df.loc[idd] = [mean_loc["acc"], mean_loc["lat"], mean_loc["lon"],
                                               mean_loc["alt"], mean_loc["bar"]]
 
-    def get_barometric_heights(self, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_kPa) -> pd.DataFrame:
+    def get_barometric_heights(self, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA) -> pd.DataFrame:
         """
         for each station, compute the barometric height using the mean
-        :param sea_pressure: the local sea pressure in kPa, default AVG_SEA_LEVEL_PRESSURE_kPa
+        :param sea_pressure: the local sea pressure in kPa, default AVG_SEA_LEVEL_PRESSURE_KPA
         :return: a dataframe with the barometric heights in meters and station id as the index
         """
         bar_heights = {}
@@ -545,7 +545,7 @@ def load_position_data(w_p: List[reader.WrappedRedvoxPacket]) -> GPSDataHolder:
     return gps_dfh
 
 
-def compute_barometric_height(barometric_pressure: float, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_kPa) -> float:
+def compute_barometric_height(barometric_pressure: float, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA) -> float:
     """
     compute height of a single point using a station's barometric and sea-level pressure
     barometric equation from https://www.math24.net/barometric-formula/
@@ -555,22 +555,22 @@ def compute_barometric_height(barometric_pressure: float, sea_pressure: float = 
     """
     # formula and derivations:
     # P(h) = P0 * e**(-Mgh/RT) where:
-    # P0 = AVG_SEA_LEVEL_PRESSURE_kPa = 101.325
-    # g = GRAVITY_m_PER_s2 = 9.807
-    # M = MOLAR_MASS_AIR_kg_PER_mol = 0.02896
+    # P0 = AVG_SEA_LEVEL_PRESSURE_KPA = 101.325
+    # g = GRAVITY_M_PER_S2 = 9.807
+    # M = MOLAR_MASS_AIR_KG_PER_MOL = 0.02896
     # T = STANDARD_TEMPERATURE_K = 288.15
-    # R = UNIVERSAL_GAS_CONSTANT_kg_m2_PER_K_mol_s2 = 8.3143
+    # R = UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2 = 8.3143
     # therefore h = ln(P0/P(h)) / (Mg/RT)
     # due to log function, we can't let sea_pressure or barometric_pressure be 0
     if sea_pressure == 0.0:
         sea_pressure = EPSILON
     if barometric_pressure == 0.0:
         barometric_pressure = EPSILON
-    barometric_height = np.log(sea_pressure / barometric_pressure) / Mg_DIV_BY_RT
+    barometric_height = np.log(sea_pressure / barometric_pressure) / MG_DIV_BY_RT
     return barometric_height
 
 
-def compute_barometric_height_array(barometric_pressure: np.array, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_kPa) \
+def compute_barometric_height_array(barometric_pressure: np.array, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA) \
         -> np.array:
     """
     compute height of many points using each station's barometric and sea-level pressure
@@ -584,7 +584,7 @@ def compute_barometric_height_array(barometric_pressure: np.array, sea_pressure:
     for index in range(len(barometric_pressure)):
         if barometric_pressure[index] == 0.0:
             barometric_pressure[index] = EPSILON
-    barometric_height = np.log(sea_pressure / barometric_pressure) / Mg_DIV_BY_RT
+    barometric_height = np.log(sea_pressure / barometric_pressure) / MG_DIV_BY_RT
     return barometric_height
 
 
