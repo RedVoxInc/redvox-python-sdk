@@ -276,8 +276,8 @@ class LocationAnalyzerTests(unittest.TestCase):
                                          "altitude": SURVEY_ALT + 100.})
         self.new_la = la.LocationAnalyzer(LA_TEST_DATA_DIR)
         packets = reader.read_rdvxz_file_range(LA_TEST_DATA_DIR, concat_continuous_segments=False)
-        self.list_w_p = list(packets.values())
-        self.gps_data = la.load_position_data(self.list_w_p[1])
+        self.test_w_p = packets["testios1:2"]
+        self.gps_data = la.load_position_data(self.test_w_p)
         self.survey = SURVEY
         self.bar_mean = la.AVG_SEA_LEVEL_PRESSURE_KPA
         self.inclusion_ranges = (la.INCLUSION_HORIZONTAL_M, la.INCLUSION_VERTICAL_M, la.INCLUSION_VERTICAL_BAR_M)
