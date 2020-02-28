@@ -22,6 +22,12 @@ blacklist_point2 = {"lat": 19.700, "lon": -156.008, "alt": 143}
 BLACKLIST = [blacklist_point1, blacklist_point2]
 
 
+class LoadRedvoxTestFiles(unittest.TestCase):
+    def setUp(self) -> None:
+        self.redvox_packets = reader.read_rdvxz_file_range(LA_TEST_DATA_DIR)
+        self.wrapped_packets = list(self.redvox_packets.values())
+
+
 class DataHolderClassTests(unittest.TestCase):
     def setUp(self) -> None:
         self.new_dh = la.DataHolder("test")
@@ -124,9 +130,10 @@ class GPSDataHolderClassTests(unittest.TestCase):
         self.assertAlmostEqual(self.new_gps.barometer.get_mean(), 101.456, 3)
 
 
-class RedVoxLocationAnalyzerClassTests(unittest.TestCase):
+class RedVoxLocationAnalyzerClassTests(LoadRedvoxTestFiles):
     def setUp(self) -> None:
-        self.new_la = la.LocationAnalyzer(LA_TEST_DATA_DIR, SURVEY, BLACKLIST)
+        super().setUp()
+        self.new_la = la.LocationAnalyzer(self.wrapped_packets, SURVEY, BLACKLIST)
 
     def test_la_empty_init(self):
         new_la = la.LocationAnalyzer()
@@ -136,7 +143,7 @@ class RedVoxLocationAnalyzerClassTests(unittest.TestCase):
         self.assertEqual(new_la.all_gps_data, [])
 
     def test_la_survey_init(self):
-        new_la = la.LocationAnalyzer(survey=SURVEY)
+        new_la = la.LocationAnalyzer(real_location=SURVEY)
         self.assertIsNone(new_la.invalid_points)
         self.assertEqual(new_la.valid_gps_data, [])
         self.assertEqual(new_la.all_gps_data, [])
@@ -151,8 +158,8 @@ class RedVoxLocationAnalyzerClassTests(unittest.TestCase):
         self.assertEqual(len(new_la.invalid_points), 2)
         self.assertEqual(new_la.invalid_points[0], blacklist_point1)
 
-    def test_la_file_init(self):
-        new_la = la.LocationAnalyzer(path_to_data=LA_TEST_DATA_DIR)
+    def test_la_packet_init(self):
+        new_la = la.LocationAnalyzer(self.wrapped_packets)
         self.assertIsNone(new_la.invalid_points)
         self.assertIsNone(new_la.get_real_location())
         self.assertEqual(new_la.all_stations_mean_df.shape, (2, 5))
@@ -166,25 +173,14 @@ class RedVoxLocationAnalyzerClassTests(unittest.TestCase):
         self.assertEqual(new_la.get_real_location()["lon"], SURVEY_LON)
 
     def test_la_get_real_location(self):
-        new_la = la.LocationAnalyzer(survey=SURVEY)
+        new_la = la.LocationAnalyzer(real_location=SURVEY)
         surveyed_point = new_la.get_real_location()
         self.assertEqual(surveyed_point["lat"], SURVEY_LAT)
         self.assertEqual(surveyed_point["bar"], SURVEY_BAR)
 
-    def test_la_load_files(self):
-        new_la = la.LocationAnalyzer()
-        new_la.load_files(LA_TEST_DATA_DIR)
-        self.assertIsNone(new_la.invalid_points)
-        self.assertIsNone(new_la.get_real_location())
-        self.assertEqual(new_la.all_stations_mean_df.shape, (2, 5))
-        self.assertEqual(new_la.all_stations_std_df.shape, (2, 5))
-        self.assertEqual(len(new_la.all_gps_data), 2)
-
     def test_la_get_loc_from_packets(self):
         new_la = la.LocationAnalyzer()
-        packets = reader.read_rdvxz_file_range(LA_TEST_DATA_DIR, concat_continuous_segments=False)
-        for redvox_id, w_p in packets.items():
-            new_la.get_loc_from_packets(w_p)
+        new_la.get_loc_from_packets(self.wrapped_packets)
         self.assertEqual(new_la.all_stations_mean_df.shape, (2, 5))
         self.assertEqual(new_la.all_stations_std_df.shape, (2, 5))
         self.assertEqual(len(new_la.all_gps_data), 2)
@@ -205,16 +201,10 @@ class RedVoxLocationAnalyzerClassTests(unittest.TestCase):
         self.assertEqual(self.new_la.all_stations_std_df.shape, (1, 5))
         self.assertEqual(self.new_la.all_stations_closest_df.shape, (1, 6))
 
-    def test_la_analyze_from_files(self):
-        new_la = la.LocationAnalyzer(invalid_points=BLACKLIST)
-        new_la.analyze_from_files(LA_TEST_DATA_DIR, SURVEY)
-        self.assertEqual(new_la.all_stations_mean_df.shape, (2, 5))
-        self.assertEqual(new_la.all_stations_std_df.shape, (2, 5))
-        self.assertEqual(new_la.all_stations_closest_df.shape, (2, 6))
-
     def test_la_get_barometric_heights(self):
         bar_heights = self.new_la.get_barometric_heights()
         self.assertEqual(bar_heights.shape, (2, 1))
+        self.assertAlmostEqual(bar_heights.iloc[0, 0], -23.279, 3)
 
     def test_la_validate_all(self):
         self.new_la.validate_all()
@@ -268,15 +258,15 @@ class RedVoxLocationAnalyzerClassTests(unittest.TestCase):
         os.remove(current_csv_path)
 
 
-class LocationAnalyzerTests(unittest.TestCase):
+class LocationAnalyzerTests(LoadRedvoxTestFiles):
     def setUp(self) -> None:
+        super().setUp()
         self.valid_gps_point = pd.Series({"latitude": SURVEY_LAT + .001, "longitude": SURVEY_LON + .01,
                                           "altitude": SURVEY_ALT + 20.})
         self.dist_gps_point = pd.Series({"latitude": SURVEY_LAT + .01, "longitude": SURVEY_LON + .01,
                                          "altitude": SURVEY_ALT + 100.})
-        self.new_la = la.LocationAnalyzer(LA_TEST_DATA_DIR)
-        packets = reader.read_rdvxz_file_range(LA_TEST_DATA_DIR, concat_continuous_segments=False)
-        self.test_w_p = packets["testios1:2"]
+        self.new_la = la.LocationAnalyzer(self.wrapped_packets)
+        self.test_w_p = self.redvox_packets["testios1:2"]
         self.gps_data = la.load_position_data(self.test_w_p)
         self.survey = SURVEY
         self.bar_mean = la.AVG_SEA_LEVEL_PRESSURE_KPA
@@ -362,7 +352,7 @@ class LocationAnalyzerTests(unittest.TestCase):
         self.assertEqual(len(data["testandroid1"]), 3)
 
     def test_write_kml(self):
-        new_la = la.LocationAnalyzer(LA_TEST_DATA_DIR)
+        new_la = la.LocationAnalyzer(self.wrapped_packets)
         data_dict = new_la.get_stats_dataframes().T.to_dict()
         current_kml_path = os.path.join(LA_TEST_DATA_DIR, "all.kml")
         la.write_kml(current_kml_path, data_dict)

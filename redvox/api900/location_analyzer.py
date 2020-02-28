@@ -249,28 +249,29 @@ class LocationAnalyzer:
     """
     stores location information, which can be analyzed later
     contains functions to find mean, standard deviation (std) and validation of data
-    use one analyzer per survey point.  one analyzer can accommodate multiple stations per survey point
-    the survey dictionary must contain the minimum keys listed in SURVEY_KEYS
-    the survey dictionary may contain other keys than ones listed in SURVEY_KEYS
+    use one analyzer per real location point.  one analyzer can accommodate multiple stations per survey point
+    the real location dictionary must contain the minimum keys listed in SURVEY_KEYS
+    the real location dictionary may contain other keys than ones listed in SURVEY_KEYS
     keys in OPTIONAL_SURVEY_KEYS have special meaning and can only be used as this program intends to use them
     uses dataframes with station id as the index
     Properties:
         all_stations_info_df: dataframe with metadata about all stations
         all_stations_mean_df: dataframe with means from all stations
         all_stations_std_df: dataframe with stds from all stations
-        all_stations_closest_df: dataframe with the closest point to the survey and the distance to the survey point
-                                    for all stations
+        all_stations_closest_df: dataframe with the closest point to the real location and its distance to the
+                                    real location for all stations
         invalid_points: a list of gps points that are blacklisted
-        _real_location: the survey point that the station is located at.  privatized for security
+        _real_location: the surveyed point that the station is located at.  privatized for security
         all_gps_data: a list of all GPSDataHolders that form the data set
         valid_gps_data: a list of all GPSDataHolders that pass validation checks
     """
-    def __init__(self, path_to_data: Optional[str] = None, survey: Optional[Dict[str, float]] = None,
+    def __init__(self, wrapped_packets: List[List[reader.WrappedRedvoxPacket]] = None,
+                 real_location: Optional[Dict[str, float]] = None,
                  invalid_points: Optional[List[Dict[str, float]]] = None):
         """
         set up the LocationAnalyzer
-        :param path_to_data: string that points to the location of data files, default None
-        :param survey: dictionary containing the location of the station, default None
+        :param wrapped_packets: a list of wrapped redvox packet lists to analyze, default None
+        :param real_location: dictionary containing the real location of the station, default None
         :param invalid_points: list of gps points that should not be in the data set, default None
         """
         self.all_stations_closest_df = pd.DataFrame([], columns=CLOSEST_TO_SURVEY_COLUMNS)
@@ -280,10 +281,10 @@ class LocationAnalyzer:
         self.invalid_points = invalid_points
         self.all_gps_data = []
         self.valid_gps_data = []
-        self._real_location = survey
+        self._real_location = real_location
         # if given a path to redvox data, load data from there
-        if path_to_data is not None:
-            self.load_files(path_to_data)
+        if wrapped_packets is not None:
+            self.get_loc_from_packets(wrapped_packets)
 
     def set_real_location(self, survey: Dict[str, float] = None):
         """
@@ -316,32 +317,29 @@ class LocationAnalyzer:
         frames = [self.all_stations_info_df, self.all_stations_mean_df, self.all_stations_std_df]
         return pd.concat(frames, axis=1)
 
-    def load_files(self, path_to_data: str):
+    def get_loc_from_packets(self, w_p: List[List[reader.WrappedRedvoxPacket]]):
         """
-        read data from files in path_to_data into the LocationAnalyzer
-        :param path_to_data: full string path to directory containing the files to read
+        store the location information and their mean and std using a collection of wrapped redvox packets
+        assumes a list of redvox packets shares 1 device id, and that multiple devices can be tied to one location
+            meaning more than 1 list can be given to the function
+        :param w_p: a list of lists of wrapped redvox packets to read
         """
-        try:
-            packets = reader.read_rdvxz_file_range(path_to_data, concat_continuous_segments=False)
-            for redvox_id, w_p in packets.items():
-                # get the data values and mean location from packets
-                self.get_loc_from_packets(w_p)
-        except Exception as err:
-            print("Program failed!  {}: {}".format(type(err).__name__, err))
-
-    def analyze_from_files(self, path_to_data: str, survey_dict: Optional[Dict[str, float]] = None,
-                           write_output: bool = False):
-        """
-        load data from files, analyze it, then if a real location exists, compare data to real location
-          output is written if enabled
-        :param path_to_data: full string path to directory containing the files to read
-        :param survey_dict: dictionary containing the real location of the station, default None
-        :param write_output: boolean to write any debugging output, default False
-        """
-        self.load_files(path_to_data)
-        self._real_location = survey_dict
-        # analyze data
-        self.analyze_data(write_output)
+        # extract the information from the packets
+        for wrapped_packets in w_p:
+            sample_rate = wrapped_packets[0].microphone_sensor().sample_rate_hz()
+            dev_os_type = wrapped_packets[0].device_os()
+            idd = wrapped_packets[0].redvox_id()
+            packet_gps_data = load_position_data(wrapped_packets)
+            # compute mean location
+            mean_loc = packet_gps_data.get_mean_all()
+            std_loc = packet_gps_data.get_std_all()
+            # store the information
+            self.all_gps_data.append(packet_gps_data)
+            self.all_stations_info_df.loc[idd] = [dev_os_type, sample_rate]
+            self.all_stations_std_df.loc[idd] = [std_loc["acc"], std_loc["lat"], std_loc["lon"],
+                                                 std_loc["alt"], std_loc["bar"]]
+            self.all_stations_mean_df.loc[idd] = [mean_loc["acc"], mean_loc["lat"], mean_loc["lon"],
+                                                  mean_loc["alt"], mean_loc["bar"]]
 
     def analyze_data(self, write_output: bool = False):
         """
@@ -359,27 +357,6 @@ class LocationAnalyzer:
         # print results
         if write_output:
             self.print_to_csv("temp.csv")
-
-    def get_loc_from_packets(self, w_p: List[reader.WrappedRedvoxPacket]):
-        """
-        store the location information and their mean and std using a list of wrapped redvox packets
-        :param w_p: a list of wrapped redvox packets to read
-        """
-        # extract the information from the packets
-        sample_rate = w_p[0].microphone_sensor().sample_rate_hz()
-        dev_os_type = w_p[0].device_os()
-        idd = w_p[0].redvox_id()
-        packet_gps_data = load_position_data(w_p)
-        # compute mean location
-        mean_loc = packet_gps_data.get_mean_all()
-        std_loc = packet_gps_data.get_std_all()
-        # store the information
-        self.all_gps_data.append(packet_gps_data)
-        self.all_stations_info_df.loc[idd] = [dev_os_type, sample_rate]
-        self.all_stations_std_df.loc[idd] = [std_loc["acc"], std_loc["lat"], std_loc["lon"],
-                                             std_loc["alt"], std_loc["bar"]]
-        self.all_stations_mean_df.loc[idd] = [mean_loc["acc"], mean_loc["lat"], mean_loc["lon"],
-                                              mean_loc["alt"], mean_loc["bar"]]
 
     def get_barometric_heights(self, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA) -> pd.DataFrame:
         """
@@ -790,10 +767,10 @@ def compute_distance(point: dict, gps_data: GPSDataHolder) -> dict:
 
     # put data into dictionary to store in data frames later
     stations_data[idd] = [gps_data.os_type, gps_data.mic_samp_rate_hz, gps_data.gps_df.loc["accuracy", min_index],
-                         gps_data.gps_df.loc["latitude", min_index], gps_data.gps_df.loc["longitude", min_index],
-                         gps_data.gps_df.loc["altitude", min_index], gps_data.barometer.best_value,
-                         dist_array[min_index], gps_loc["acc"], gps_loc["lat"], gps_loc["lon"],
-                         gps_loc["alt"], gps_loc["bar"], acc_std, lat_std, lon_std, alt_std, bar_std]
+                          gps_data.gps_df.loc["latitude", min_index], gps_data.gps_df.loc["longitude", min_index],
+                          gps_data.gps_df.loc["altitude", min_index], gps_data.barometer.best_value,
+                          dist_array[min_index], gps_loc["acc"], gps_loc["lat"], gps_loc["lon"],
+                          gps_loc["alt"], gps_loc["bar"], acc_std, lat_std, lon_std, alt_std, bar_std]
 
     return stations_data
 
