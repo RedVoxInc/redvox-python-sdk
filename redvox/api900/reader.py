@@ -233,6 +233,10 @@ def _get_paths_time_range(directory: str,
     return _get_time_range_paths(all_paths, redvox_ids)
 
 
+def _sort_dict_by_key(d: typing.Dict[str, typing.List[WrappedRedvoxPacket]]) -> typing.Dict[str, typing.List[WrappedRedvoxPacket]]:
+    return {k: d[k] for k in sorted(d.keys())}
+
+
 def _get_structured_paths(directory: str,
                           start_timestamp_utc_s: int,
                           end_timestamp_utc_s: int,
@@ -361,7 +365,10 @@ def read_rdvxz_file_range(directory: str,
     for id_uuid in grouped:
         grouped[id_uuid] = concat.concat_wrapped_redvox_packets(grouped[id_uuid])
 
-    return grouped
+    # Finally, sort by device id
+    grouped_and_sorted: typing.Dict[str, typing.List[WrappedRedvoxPacket]] = _sort_dict_by_key(grouped)
+
+    return grouped_and_sorted
 
 
 def read_rdvxz_buffer(buf: bytes) -> WrappedRedvoxPacket:
