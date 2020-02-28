@@ -26,12 +26,12 @@ from redvox.common.constants import EPSILON, DEG_TO_RAD, MG_DIV_BY_RT, AVG_SEA_L
 
 # instruments have only so much accuracy, so if something has a distance less than the following values
 #  from a given point, we could feasibly consider it to be close enough to be at the given point.
-# horizontal distance in meters for something to be included with a given point
-INCLUSION_HORIZONTAL_M = 100.0
-# vertical distance in meters for something to be included within a given point
-INCLUSION_VERTICAL_M = 50.0
-# vertical distance in meters computed via barometer measurements to be included within a given point
-INCLUSION_VERTICAL_BAR_M = 10.0
+# default horizontal distance in meters for something to be included with a given point
+DEFAULT_INCLUSION_HORIZONTAL_M = 100.0
+# default vertical distance in meters for something to be included within a given point
+DEFAULT_INCLUSION_VERTICAL_M = 50.0
+# default vertical distance in meters computed via barometer measurements to be included within a given point
+DEFAULT_INCLUSION_VERTICAL_BAR_M = 10.0
 
 # Survey dictionary minimum keys
 # lat: latitude, lon: longitude, alt: altitude, bar: barometer reading
@@ -371,9 +371,9 @@ class LocationAnalyzer:
         barometric_heights = pd.DataFrame(bar_heights, index=["bar height"], columns=self.all_stations_mean_df.index)
         return barometric_heights.T
 
-    def validate_all(self, validation_ranges: Tuple[float, float, float] = (INCLUSION_HORIZONTAL_M,
-                                                                            INCLUSION_VERTICAL_M,
-                                                                            INCLUSION_VERTICAL_BAR_M),):
+    def validate_all(self, validation_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
+                                                                            DEFAULT_INCLUSION_VERTICAL_M,
+                                                                            DEFAULT_INCLUSION_VERTICAL_BAR_M), ):
         """
         check that all data in the data set are valid.  Remove outliers and strange values
         :param validation_ranges: tuple of floats that the data values are compared against for validation
@@ -618,8 +618,9 @@ def get_gps_dist_to_location(point: Dict[str, float], gps_dataholder: GPSDataHol
 
 
 def validate_blacklist(gps_data: pd.Series, point: Dict[str, float], bar_mean: float,
-                       inclusion_ranges: Tuple[float, float, float] = (INCLUSION_HORIZONTAL_M, INCLUSION_VERTICAL_M,
-                                                                       INCLUSION_VERTICAL_BAR_M)) -> bool:
+                       inclusion_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
+                                                                       DEFAULT_INCLUSION_VERTICAL_M,
+                                                                       DEFAULT_INCLUSION_VERTICAL_BAR_M)) -> bool:
     """
     return True if the gps point is NOT in the blacklist
     :param gps_data: data to compare
@@ -635,8 +636,9 @@ def validate_blacklist(gps_data: pd.Series, point: Dict[str, float], bar_mean: f
 
 
 def validate_near_point(gps_data: pd.Series, point: Dict[str, float], bar_mean: float,
-                        inclusion_ranges: Tuple[float, float, float] = (INCLUSION_HORIZONTAL_M, INCLUSION_VERTICAL_M,
-                                                                        INCLUSION_VERTICAL_BAR_M)) -> bool:
+                        inclusion_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
+                                                                        DEFAULT_INCLUSION_VERTICAL_M,
+                                                                        DEFAULT_INCLUSION_VERTICAL_BAR_M)) -> bool:
     """
     return True if the gps point IS close to the chosen point
     :param gps_data: data to compare
@@ -651,9 +653,33 @@ def validate_near_point(gps_data: pd.Series, point: Dict[str, float], bar_mean: 
     return h_dist <= inclusion_ranges[0] and (v_dist <= inclusion_ranges[1] or v_bar_dist <= inclusion_ranges[2])
 
 
+def point_on_line_side(line_points: Tuple[Dict[str, float], Dict[str, float]], point: Dict[str, float]) -> float:
+    return ((line_points[1]["lon"] - line_points[0]["lon"]) * (point["lat"] - line_points[0]["lat"]) -
+            (point["lon"] - line_points[0]["lon"]) * (line_points[1]["lat"] - line_points[0]["lat"]))
+
+
+def validate_point_in_polygon(point: Dict[str, float], edges: List[Dict[str, float]]) -> bool:
+    """
+    Use winding number algorithm to determine if a point is in a polygon
+    :param point: coordinates of the point to compare
+    :param edges: list of coordinates of the edges of the polygon, with the last edge equal to the first
+    :return: True if point is in the polygon
+    """
+    wn = 0  # winding number
+    for index in range(len(edges)):
+        if edges[index]["lat"] <= point["lat"]:
+            if point_on_line_side((edges[index], edges[index + 1]), point) > 0:
+                wn += 1
+        elif edges[index + 1]["lat"] <= point["lat"]:
+            if point_on_line_side((edges[index], edges[index + 1]), point) < 0:
+                wn -= 1
+    return wn == 0
+
+
 def validate(data_to_test: GPSDataHolder,
-             inclusion_ranges: Tuple[float, float, float] = (INCLUSION_HORIZONTAL_M,
-                                                             INCLUSION_VERTICAL_M, INCLUSION_VERTICAL_BAR_M),
+             inclusion_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
+                                                             DEFAULT_INCLUSION_VERTICAL_M,
+                                                             DEFAULT_INCLUSION_VERTICAL_BAR_M),
              validation_type: str = None, validation_points: List[Dict[str, float]] = None,
              debug: bool = False) -> GPSDataHolder:
     """

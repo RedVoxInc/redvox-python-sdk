@@ -270,7 +270,8 @@ class LocationAnalyzerTests(LoadRedvoxTestFiles):
         self.gps_data = la.load_position_data(self.test_w_p)
         self.survey = SURVEY
         self.bar_mean = la.AVG_SEA_LEVEL_PRESSURE_KPA
-        self.inclusion_ranges = (la.INCLUSION_HORIZONTAL_M, la.INCLUSION_VERTICAL_M, la.INCLUSION_VERTICAL_BAR_M)
+        self.inclusion_ranges = (la.DEFAULT_INCLUSION_HORIZONTAL_M, la.DEFAULT_INCLUSION_VERTICAL_M,
+                                 la.DEFAULT_INCLUSION_VERTICAL_BAR_M)
 
     def test_get_all_ios_station(self):
         ios_df = la.get_all_ios_station(self.new_la.get_stats_dataframes())
