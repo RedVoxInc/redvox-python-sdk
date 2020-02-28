@@ -1,5 +1,5 @@
 """
-This module contains functions for computing the cross correlation between data sets.
+This module contains functions for computing the cross correlation between data sets of equal or unequal length.
 """
 
 from typing import Tuple
