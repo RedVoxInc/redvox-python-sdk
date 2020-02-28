@@ -132,10 +132,10 @@ def _is_valid_redvox_filename(filename: str) -> bool:
     :return: True if it is valid, valse otherwise.
     """
     return len(filename) == 30 \
-        and _is_int(filename[0:10]) \
-        and filename[10:11] == "_" \
-        and _is_int(filename[11:24]) \
-        and filename[24:len(filename)] == ".rdvxz"
+           and _is_int(filename[0:10]) \
+           and filename[10:11] == "_" \
+           and _is_int(filename[11:24]) \
+           and filename[24:len(filename)] == ".rdvxz"
 
 
 def _is_path_in_set(path: str,
@@ -233,8 +233,14 @@ def _get_paths_time_range(directory: str,
     return _get_time_range_paths(all_paths, redvox_ids)
 
 
-def _sort_dict_by_key(d: typing.Dict[str, typing.List[WrappedRedvoxPacket]]) -> typing.Dict[str, typing.List[WrappedRedvoxPacket]]:
-    return {k: d[k] for k in sorted(d.keys())}
+def _sort_dict_by_key(unsorted_dict: typing.Dict[str, typing.List[WrappedRedvoxPacket]]) -> typing.Dict[
+        str, typing.List[WrappedRedvoxPacket]]:
+    """
+    Sorts a dictionary by key.
+    :param unsorted_dict: The dictionary to sort by key.
+    :return: A dictionary with sorted keys.
+    """
+    return {key: unsorted_dict[key] for key in sorted(unsorted_dict.keys())}
 
 
 def _get_structured_paths(directory: str,
