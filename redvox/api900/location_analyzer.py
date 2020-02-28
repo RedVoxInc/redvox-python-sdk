@@ -654,26 +654,36 @@ def validate_near_point(gps_data: pd.Series, point: Dict[str, float], bar_mean: 
 
 
 def point_on_line_side(line_points: Tuple[Dict[str, float], Dict[str, float]], point: Dict[str, float]) -> float:
+    """
+    check which side of a line the point is on
+    algorithm from: http://geomalgorithms.com/a03-_inclusion.html
+    :param line_points: two coordinates that define a line
+    :param point: point to test
+    :return: < 0 for right side, == 0 for on line, > 0 for left side
+    """
     return ((line_points[1]["lon"] - line_points[0]["lon"]) * (point["lat"] - line_points[0]["lat"]) -
             (point["lon"] - line_points[0]["lon"]) * (line_points[1]["lat"] - line_points[0]["lat"]))
 
 
 def validate_point_in_polygon(point: Dict[str, float], edges: List[Dict[str, float]]) -> bool:
     """
-    Use winding number algorithm to determine if a point is in a polygon
+    Use winding number algorithm to determine if a point is in a polygon (or on the edge)
+    if winding number is 0, point is outside polygon
+    algorithm from: http://geomalgorithms.com/a03-_inclusion.html
     :param point: coordinates of the point to compare
     :param edges: list of coordinates of the edges of the polygon, with the last edge equal to the first
     :return: True if point is in the polygon
     """
     wn = 0  # winding number
-    for index in range(len(edges)):
+    for index in range(len(edges) - 1):
         if edges[index]["lat"] <= point["lat"]:
-            if point_on_line_side((edges[index], edges[index + 1]), point) > 0:
-                wn += 1
+            if edges[index + 1]["lat"] > point["lat"]:
+                if point_on_line_side((edges[index], edges[index + 1]), point) >= 0:
+                    wn += 1
         elif edges[index + 1]["lat"] <= point["lat"]:
-            if point_on_line_side((edges[index], edges[index + 1]), point) < 0:
+            if point_on_line_side((edges[index], edges[index + 1]), point) <= 0:
                 wn -= 1
-    return wn == 0
+    return wn != 0
 
 
 def validate(data_to_test: GPSDataHolder,

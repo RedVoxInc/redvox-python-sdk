@@ -327,6 +327,35 @@ class LocationAnalyzerTests(LoadRedvoxTestFiles):
         is_close = la.validate_near_point(self.valid_gps_point, self.survey, self.bar_mean, self.inclusion_ranges)
         self.assertFalse(is_close)
 
+    def test_point_on_line_side(self):
+        point1 = {"lat": 0, "lon": 0, "alt": 0}
+        point2 = {"lat": 10, "lon": 10, "alt": 0}
+        point_test1 = {"lat": 1.0, "lon": 10, "alt": 0}
+        point_test2 = {"lat": 5, "lon": 5, "alt": 0}
+        point_test3 = {"lat": 15, "lon": 2, "alt": 0}
+        result = la.point_on_line_side((point1, point2), point_test1)
+        self.assertLess(result, 0)     # right of line
+        result = la.point_on_line_side((point1, point2), point_test2)
+        self.assertEqual(result, 0)    # on the line
+        result = la.point_on_line_side((point1, point2), point_test3)
+        self.assertGreater(result, 0)  # left of line
+
+    def test_validate_point_in_polygon(self):
+        point1 = {"lat": 0, "lon": 0, "alt": 0}
+        point2 = {"lat": 0, "lon": 10, "alt": 0}
+        point3 = {"lat": 10, "lon": 10, "alt": 0}
+        point4 = {"lat": 10, "lon": 0, "alt": 0}
+        point_test1 = {"lat": 1.0, "lon": 10, "alt": 0}
+        point_test2 = {"lat": 5, "lon": 5, "alt": 0}
+        point_test3 = {"lat": 15, "lon": 2, "alt": 0}
+        polygon = [point1, point2, point3, point4, point1]
+        result = la.validate_point_in_polygon(point_test1, polygon)
+        self.assertTrue(result)
+        result = la.validate_point_in_polygon(point_test2, polygon)
+        self.assertTrue(result)
+        result = la.validate_point_in_polygon(point_test3, polygon)
+        self.assertFalse(result)
+
     def test_validate(self):
         valid_data = la.validate(self.gps_data, self.inclusion_ranges, validation_points=BLACKLIST)
         self.assertEqual(valid_data.get_size(), (3, 3))
