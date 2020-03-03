@@ -14,6 +14,7 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 * Add rdvxz file statistics functions to `redvox/common/file_statistics.py`
 * Add statistical helper functions to `redvox/common/stats_helper.py`
 * Add new time synchronization package at `redvox/api900/timesync`
+* Add a location analyzer to `redvox/api900/location_analyzer.py`
 * Updated unit tests and documentation
 * Updated dependencies to latest versions
 * Added additional code QA (pylint, mypy, coverage)
