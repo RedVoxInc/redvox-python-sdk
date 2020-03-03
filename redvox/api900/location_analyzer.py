@@ -284,7 +284,8 @@ class LocationAnalyzer:
         self._real_location = real_location
         # if given a path to redvox data, load data from there
         if wrapped_packets is not None:
-            self.get_loc_from_packets(wrapped_packets)
+            for wrapped_device_packets in wrapped_packets:
+                self.get_loc_from_packets(wrapped_device_packets)
 
     def set_real_location(self, survey: Dict[str, float] = None):
         """
@@ -317,29 +318,27 @@ class LocationAnalyzer:
         frames = [self.all_stations_info_df, self.all_stations_mean_df, self.all_stations_std_df]
         return pd.concat(frames, axis=1)
 
-    def get_loc_from_packets(self, w_p: List[List[reader.WrappedRedvoxPacket]]):
+    def get_loc_from_packets(self, w_p: List[reader.WrappedRedvoxPacket]):
         """
         store the location information and their mean and std using a collection of wrapped redvox packets
-        assumes a list of redvox packets shares 1 device id, and that multiple devices can be tied to one location
-            meaning more than 1 list can be given to the function
-        :param w_p: a list of lists of wrapped redvox packets to read
+        assumes a list of redvox packets shares 1 device id
+        :param w_p: a list of wrapped redvox packets to read
         """
         # extract the information from the packets
-        for wrapped_packets in w_p:
-            sample_rate = wrapped_packets[0].microphone_sensor().sample_rate_hz()
-            dev_os_type = wrapped_packets[0].device_os()
-            idd = wrapped_packets[0].redvox_id()
-            packet_gps_data = load_position_data(wrapped_packets)
-            # compute mean location
-            mean_loc = packet_gps_data.get_mean_all()
-            std_loc = packet_gps_data.get_std_all()
-            # store the information
-            self.all_gps_data.append(packet_gps_data)
-            self.all_stations_info_df.loc[idd] = [dev_os_type, sample_rate]
-            self.all_stations_std_df.loc[idd] = [std_loc["acc"], std_loc["lat"], std_loc["lon"],
-                                                 std_loc["alt"], std_loc["bar"]]
-            self.all_stations_mean_df.loc[idd] = [mean_loc["acc"], mean_loc["lat"], mean_loc["lon"],
-                                                  mean_loc["alt"], mean_loc["bar"]]
+        sample_rate = w_p[0].microphone_sensor().sample_rate_hz()
+        dev_os_type = w_p[0].device_os()
+        idd = w_p[0].redvox_id()
+        packet_gps_data = load_position_data(w_p)
+        # compute mean location
+        mean_loc = packet_gps_data.get_mean_all()
+        std_loc = packet_gps_data.get_std_all()
+        # store the information
+        self.all_gps_data.append(packet_gps_data)
+        self.all_stations_info_df.loc[idd] = [dev_os_type, sample_rate]
+        self.all_stations_std_df.loc[idd] = [std_loc["acc"], std_loc["lat"], std_loc["lon"],
+                                             std_loc["alt"], std_loc["bar"]]
+        self.all_stations_mean_df.loc[idd] = [mean_loc["acc"], mean_loc["lat"], mean_loc["lon"],
+                                              mean_loc["alt"], mean_loc["bar"]]
 
     def analyze_data(self, write_output: bool = False):
         """
