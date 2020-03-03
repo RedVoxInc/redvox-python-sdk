@@ -180,7 +180,8 @@ class RedVoxLocationAnalyzerClassTests(LoadRedvoxTestFiles):
 
     def test_la_get_loc_from_packets(self):
         new_la = la.LocationAnalyzer()
-        new_la.get_loc_from_packets(self.wrapped_packets)
+        for w_p in self.wrapped_packets:
+            new_la.get_loc_from_packets(w_p)
         self.assertEqual(new_la.all_stations_mean_df.shape, (2, 5))
         self.assertEqual(new_la.all_stations_std_df.shape, (2, 5))
         self.assertEqual(len(new_la.all_gps_data), 2)
