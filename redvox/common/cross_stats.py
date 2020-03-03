@@ -24,8 +24,8 @@ def xcorr_all(sig: np.ndarray, sig_ref: np.ndarray) -> Tuple[np.ndarray, np.ndar
     sig_len: int = len(sig)
     ref_len: int = len(sig_ref)
     # Faster as floats
-    sig: np.ndarray = 1.0 * sig
-    sig_ref: np.ndarray = 1.0 * sig_ref
+    sig = 1.0 * sig
+    sig_ref = 1.0 * sig_ref
     if sig_len > ref_len:
         # Cross Correlation 'full' sums over the dimension of sigX
         xcorr_indexes: np.ndarray = np.arange(1 - sig_len, ref_len)
@@ -36,26 +36,26 @@ def xcorr_all(sig: np.ndarray, sig_ref: np.ndarray) -> Tuple[np.ndarray, np.ndar
         xcorr_offset_samples: np.ndarray = xcorr_indexes[xcorr_offset_index]
     elif sig_len < ref_len:
         # Cross Correlation 'full' sums over the dimension of sigY
-        xcorr_indexes: np.ndarray = np.arange(1 - ref_len, sig_len)
-        xcorr: np.ndarray = signal.correlate(sig, sig_ref, mode='full')
+        xcorr_indexes = np.arange(1 - ref_len, sig_len)
+        xcorr = signal.correlate(sig, sig_ref, mode='full')
         # Normalize
         xcorr /= np.sqrt(sig_len * ref_len) * sig.std() * sig_ref.std()
-        xcorr_offset_index: np.ndarray = xcorr.argmax()
+        xcorr_offset_index = xcorr.argmax()
         # Flip sign
-        xcorr_offset_samples: np.ndarray = -xcorr_indexes[xcorr_offset_index]
+        xcorr_offset_samples = -xcorr_indexes[xcorr_offset_index]
     elif sig_len == ref_len:
         # Cross correlation is centered in the middle of the record and has length sig_len
         # Fastest, o(sig_len) and can use FFT solution
         if sig_len % 2 == 0:
-            xcorr_indexes: np.ndarray = np.arange(-int(sig_len / 2), int(sig_len / 2))
+            xcorr_indexes = np.arange(-int(sig_len / 2), int(sig_len / 2))
         else:
-            xcorr_indexes: np.ndarray = np.arange(-int(sig_len / 2), int(sig_len / 2) + 1)
+            xcorr_indexes = np.arange(-int(sig_len / 2), int(sig_len / 2) + 1)
 
-        xcorr: np.ndarray = signal.correlate(sig_ref, sig, mode='same')
+        xcorr = signal.correlate(sig_ref, sig, mode='same')
         # Normalize
         xcorr /= np.sqrt(sig_len * ref_len) * sig.std() * sig_ref.std()
-        xcorr_offset_index: np.ndarray = xcorr.argmax()
-        xcorr_offset_samples: np.ndarray = xcorr_indexes[xcorr_offset_index]
+        xcorr_offset_index = xcorr.argmax()
+        xcorr_offset_samples = xcorr_indexes[xcorr_offset_index]
     else:
         raise errors.RedVoxError('One of the waveforms is broken')
 
