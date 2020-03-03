@@ -91,7 +91,7 @@ Then,
 which, when ran should produce the following output:
 
 ```
-2.6.1
+2.7.1
 ```
 
 ### Example files
@@ -114,7 +114,7 @@ The Python SDK provides a small command line interface (CLI) that has the follow
 * Display the contents of .rdvxz files
 * Perform bulk data downloads of RedVox data
 
-The CLI documentation can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/cli-docs.md
+The CLI documentation can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/cli-docs.md
 
 ### Loading RedVox API 900 Files
 
@@ -122,15 +122,15 @@ The module `redvox/api900/reader.py` contains several high-level methods for rea
 
 These methods are `read_rdvxz_file`, `read_rdvxz_buffer`, `read_json_file`, `read_json_string`, and `read_rdvxz_file_range`.
 
-Descriptions of these methods can be found at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/reader.m.html#header-functions
+Descriptions of these methods can be found at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/reader.m.html#header-functions
 
-Examples of the usage can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_reading.py and https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_read_from_range.py
+Examples of the usage can be found at: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_reading.py and https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_read_from_range.py
 
 ### Loading RedVox API 900 files from a range
 
 Reading a range of .rdvxz files can be achieved with the `redvox.api900.reader` function `read_rdvxz_file_range`.
 
-API details at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.read_rdvxz_file_range
+API details at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/reader.m.html#redvox.api900.reader.read_rdvxz_file_range
 
 Reading packets from a range always requires a time window provided by timestamps as seconds since the epoch UTC. The packets can also be optionally filtered by redvox_id.
 
@@ -143,7 +143,7 @@ When reading unstructured data, this function simply loads .rdvxz files from a g
 
 Examples of usage can be found at:
  
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_read_from_range.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_read_from_range.py
 
 ### Working with WrappedRedvoxPacket objects
 
@@ -151,7 +151,7 @@ A WrappedRedvoxPacket is a high-level API that is backed by a protobuf buffer. T
 
 To see a list of all getters and setters that a WrappedRedvoxPacket provides, please see:
  
-* https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/wrapped_redvox_packet.m.html
+* https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/wrapped_redvox_packet.m.html
 
 To check if a sensor channel is in a packet, you can use any of the `has_sensor` methods.
 
@@ -161,17 +161,17 @@ Channels can be removed from a packet by passing `None` to a `set_sensor` method
 
 Examples of reading/writing to/from WrappedRedvoxPacket objects can be found at:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_reading.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_modifcation.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_creation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_reading.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_modifcation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_creation.py
 
-The contents of WrappedRedvoxPacket objects can be written to .rdvxz or RedVox API 900 compliant .json files. See https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_writing.py for examples.
+The contents of WrappedRedvoxPacket objects can be written to .rdvxz or RedVox API 900 compliant .json files. See https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_writing.py for examples.
 
 #### Concatenating WrappedRedvoxPackets
 
 Concatenating a range of .rdvxz files can be achieved with the `redvox.api900.concat` function `concat_wrapped_redvox_packets`.
 
-API details at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/concat.m.html#redvox.api900.concat.concat_wrapped_redvox_packets
+API details at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/concat.m.html#redvox.api900.concat.concat_wrapped_redvox_packets
 
 When WrappedRedvoxPackets are concatenated, the following values are concatenated together:
 
@@ -197,13 +197,13 @@ Concatenation will fail under the following circumstances:
 
 Examples of concatenation can be found at:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_concatenation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_concatenation.py
 
 #### Summarizing WrappedRedvoxPackets
 
 It's now possible to summarize the contents of a WrappedRedvoxPacket. There are two classes in `redvox/api900/summarize.py` that encapsulate the summarized details of a WrappedRedvoxPacket.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/summarize.m.html for API details.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/summarize.m.html for API details.
 
 The `__str__` methods of these classes will format the data in a reasonable way. 
 
@@ -211,31 +211,31 @@ Further, these classes can be used to make a plot of device activity over time, 
 
 Examples of summarizing data can be seen in: 
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_concatenation.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_read_from_range.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_concatenation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_read_from_range.py
 
 ### Working with microphone sensor channels
 
 MicrophoneSensor channels are an evenly sampled sensor that contain microphone data in a single payload. The payload represents counts from the microphone. Payloads are represented by integers. 
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/sensors/microphone_sensor.m.html for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/sensors/microphone_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_creation.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_reading.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_creation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_reading.py
 
 
 ### Working with barometer sensor channels
 
 BarometerSensor channels are an unevenly sampled sensor that contain barometer data in a single payload. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/sensors/barometer_sensor.m.html for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/sensors/barometer_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_creation.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_reading.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_creation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_reading.py
 
 ### Working with location sensor channels
 
@@ -251,12 +251,12 @@ The payload types available to the LocationSensor include:
 
 This sensor also provides mean, median, and standard deviation (std) statistics for each payload type.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/sensors/location_sensor.m.html for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/sensors/location_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_creation.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_reading.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_creation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_reading.py
 
 ### Working with time synchronization sensor channels
 
@@ -264,12 +264,12 @@ TimeSynchronizationSensor channels are an unevenly sampled sensor that contain t
 
 This sensor is unique in that it only contains a payload of values and no timestamps or other fields.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/sensors/time_synchronization_sensor.m.html for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/sensors/time_synchronization_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_creation.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_reading.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_creation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_reading.py
 
 ### Working with accelerometer sensor channels
 
@@ -283,12 +283,12 @@ The three payloads are:
 
 Further, each payload type has its own set of mean, median, and std statistics.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/sensors/accelerometer_sensor.m.html for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/sensors/accelerometer_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_creation.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_reading.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_creation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_reading.py
 
 ### Working with magnetometer sensor channels
 
@@ -302,12 +302,12 @@ The three payloads are:
 
 Further, each payload type has its own set of mean, median, and std statistics.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/sensors/magnetometer_sensor.m.html for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/sensors/magnetometer_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_creation.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_reading.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_creation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_reading.py
 
 ### Working with gyroscope sensor channels
 
@@ -321,43 +321,43 @@ The three payloads are:
 
 Further, each payload type has its own set of mean, median, and std statistics.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/sensors/gyroscope_sensor.m.html for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/sensors/gyroscope_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_creation.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_reading.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_creation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_reading.py
 
 
 ### Working with light sensor channels
 
 LightSensor channels are an unevenly sampled sensor that contain light data in a single payload. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/sensors/light_sensor.m.html for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/sensors/light_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_creation.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_reading.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_creation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_reading.py
 
 ### Working with infrared sensor channels
 
 InfraredSensor channels are an unevenly sampled sensor that contain infrared data in a single payload. UnevenlySampled sampled sensors contain a list of timestamps that correspond to each sample.
 
-See https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox/api900/sensors/infrared_sensor.m.html for a list of methods this sensor provides.
+See https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox/api900/sensors/infrared_sensor.m.html for a list of methods this sensor provides.
 
 See the following for example usage:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_creation.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_reading.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_creation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_reading.py
 
 
 ### Modifying and Creating WrappedRedvoxPacket Objects and Sensor Channels
 
 It's possible to modify WrappedRedvoxPacket objects and sensor channels as well as create new WrappedRedvoxPacket objects and sensor channels. See the following links for examples:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_creation.py
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_modifcation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_creation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_modifcation.py
 
 ### Updating Timestamps in Sensor Channels
 
@@ -373,7 +373,7 @@ It's possible to update all the timestamps of data points in multiple sensor cha
 
 See the following link for an example:
 
-* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_modifcation.py
+* https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_modifcation.py
 
 ### Testing for Equality and Finding Differences
 
@@ -381,11 +381,11 @@ WrappedRedvoxPacket objects can be compared to each other for equality using the
 
 It's also possible to find the differences between WrappedRedvoxPacket objects using the `.diff(other_packer)` method. This will then return a list of differences between the two files or an empty list if there are none.
 
-See the end of https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/examples/example_packet_reading.py for examples of this.
+See the end of https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/examples/example_packet_reading.py for examples of this.
 
 ### Generated API documentation
 
-API documentation for this library can be found at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.6.1/api_docs/redvox
+API documentation for this library can be found at: https://redvoxhi.bitbucket.io/redvox-sdk/v2.7.1/api_docs/redvox
 
 *Note: to see type information for a particular function, click the `SHOW SOURCE` button.*
 

@@ -1,8 +1,8 @@
 """
 This module shows how to create and set fields in WrappedRedvoxPackets.
 
-Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v.2.6.1/redvox-api900-docs.md
-API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v.2.6.1/api_docs/redvox
+Developer documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v.2.7.1/redvox-api900-docs.md
+API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v.2.7.1/api_docs/redvox
 """
 
 # First, let's import the reader.
