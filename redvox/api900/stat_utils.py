@@ -1,10 +1,14 @@
 """
 utilities to calculate std deviation, mean, and median for arrays
 """
+
+from typing import Tuple
+
+# noinspection Mypy
 import numpy
 
 
-def calc_utils(values: numpy.array) -> (float, float, float):
+def calc_utils(values: numpy.array) -> Tuple[float, float, float]:
     """
     returns the std deviation, the mean, and the median of an array
     :param values: array to calculate
@@ -16,7 +20,7 @@ def calc_utils(values: numpy.array) -> (float, float, float):
     return stddev, mean, median
 
 
-def calc_utils_timeseries(values: numpy.array) -> (float, float, float):
+def calc_utils_timeseries(values: numpy.array) -> Tuple[float, float, float]:
     """
     returns the std deviation, mean and median of an array representing uneven timestamps
     creates a new array that contains the differences between two consecutive timestamps

@@ -2,9 +2,22 @@
 
 This repository contains code for reading and working with the RedVox API 900 data format.
 
-See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.6.1/redvox-api900-docs.md for SDK documentation.
+See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/redvox-api900-docs.md for SDK documentation.
 
 ### Changelog
+
+### 2.7.1 (2020-03-03)
+
+* Add and define useful constants to `redvox/common/constants.py`
+* Add cross-correlation functions to `redvox/common/cross_stats.py`
+* Add date time utilities to `redvox/common/date_time_utils.py`
+* Add rdvxz file statistics functions to `redvox/common/file_statistics.py`
+* Add statistical helper functions to `redvox/common/stats_helper.py`
+* Add new time synchronization package at `redvox/api900/timesync`
+* Add a location analyzer to `redvox/api900/location_analyzer.py`
+* Updated unit tests and documentation
+* Updated dependencies to latest versions
+* Added additional code QA (pylint, mypy, coverage)
 
 ### 2.6.1 (2020-01-28)
 

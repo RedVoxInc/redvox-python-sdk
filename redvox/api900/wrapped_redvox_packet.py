@@ -7,7 +7,7 @@ import os
 import typing
 
 import redvox.api900.concat
-import redvox.api900.date_time_utils as date_time_utils
+import redvox.common.date_time_utils as date_time_utils
 import redvox.api900.deprecation as deprecation
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.reader

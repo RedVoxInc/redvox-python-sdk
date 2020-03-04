@@ -1,6 +1,9 @@
-lz4 == 3.0.2
-numpy == 1.18.1
-protobuf == 3.11.2
-matplotlib == 3.1.2
-requests == 2.22.0
-scipy == 1.4.1
+# Requirements for using the RedVox Python SDK.
+lz4>=3.0.2
+numpy>=1.18.1
+protobuf>=3.11.3
+matplotlib
+requests
+pandas
+fastkml
+scipy

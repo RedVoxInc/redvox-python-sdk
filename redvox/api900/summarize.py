@@ -10,7 +10,7 @@ import numpy
 import matplotlib.pyplot as plt
 
 import redvox.api900.types as types
-import redvox.api900.date_time_utils as date_time_utils
+import redvox.common.date_time_utils as date_time_utils
 
 
 def _sensor_name(sensor: typing.Optional[types.RedvoxSensor]) -> str:

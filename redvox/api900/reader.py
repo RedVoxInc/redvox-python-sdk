@@ -11,7 +11,7 @@ import typing
 
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.concat as concat
-import redvox.api900.date_time_utils as date_time_utils
+import redvox.common.date_time_utils as date_time_utils
 import redvox.api900.reader_utils as reader_utils
 
 # For backwards compatibility, we want to expose as much as we can from this file since everything used to live in this
@@ -132,10 +132,10 @@ def _is_valid_redvox_filename(filename: str) -> bool:
     :return: True if it is valid, valse otherwise.
     """
     return len(filename) == 30 \
-        and _is_int(filename[0:10]) \
-        and filename[10:11] == "_" \
-        and _is_int(filename[11:24]) \
-        and filename[24:len(filename)] == ".rdvxz"
+           and _is_int(filename[0:10]) \
+           and filename[10:11] == "_" \
+           and _is_int(filename[11:24]) \
+           and filename[24:len(filename)] == ".rdvxz"
 
 
 def _is_path_in_set(path: str,
@@ -231,6 +231,16 @@ def _get_paths_time_range(directory: str,
                               recursive=recursive)
 
     return _get_time_range_paths(all_paths, redvox_ids)
+
+
+def _sort_dict_by_key(unsorted_dict: typing.Dict[str, typing.List[WrappedRedvoxPacket]]) -> typing.Dict[
+        str, typing.List[WrappedRedvoxPacket]]:
+    """
+    Sorts a dictionary by key.
+    :param unsorted_dict: The dictionary to sort by key.
+    :return: A dictionary with sorted keys.
+    """
+    return {key: unsorted_dict[key] for key in sorted(unsorted_dict.keys())}
 
 
 def _get_structured_paths(directory: str,
@@ -361,7 +371,10 @@ def read_rdvxz_file_range(directory: str,
     for id_uuid in grouped:
         grouped[id_uuid] = concat.concat_wrapped_redvox_packets(grouped[id_uuid])
 
-    return grouped
+    # Finally, sort by device id
+    grouped_and_sorted: typing.Dict[str, typing.List[WrappedRedvoxPacket]] = _sort_dict_by_key(grouped)
+
+    return grouped_and_sorted
 
 
 def read_rdvxz_buffer(buf: bytes) -> WrappedRedvoxPacket:

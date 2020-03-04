@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document id="1">
+    <visibility>1</visibility>
+    <Style id="2">
+      <IconStyle id="3">
+        <color>ff0000ff</color>
+        <scale>1.0</scale>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Placemark id="4">
+      <name>testandroid1</name>
+      <description>Android 800.0hz</description>
+      <visibility>1</visibility>
+      <styleUrl>#2</styleUrl>
+      <Point>
+        <coordinates>-156.059100,19.728430,11.800000</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark id="5">
+      <name>testios1</name>
+      <description>iOS 800.0hz</description>
+      <visibility>1</visibility>
+      <styleUrl>#2</styleUrl>
+      <Point>
+        <coordinates>-156.059100,19.728430,11.800000</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>
