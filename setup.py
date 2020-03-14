@@ -17,7 +17,7 @@ setup(name=redvox.NAME,
                                       "redvox.api900.lib",
                                       "redvox.api900.sensors",
                                       "redvox.api900.timesync",
-                                      "redvox.api900.qa"
+                                      "redvox.api900.qa",
                                       "redvox.cli",
                                       "redvox.common"],
                              exclude=['tests']),
