@@ -6,7 +6,7 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
-### 2.7.4 (2020-03-13)
+### 2.7.5 (2020-03-13)
 
 * Expose new package `redvox/api900/qa`
 * Expose new gap detection module `redvox/api900/qa/gap_detection.py`
