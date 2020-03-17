@@ -43,10 +43,6 @@ class TimeSyncData:
         """
         self.latency_stats: stats_helper.StatsContainer = stats_helper.StatsContainer("latency")
         self.offset_stats: stats_helper.StatsContainer = stats_helper.StatsContainer("offset")
-        self.latency_std_dev: Optional[float] = None
-        self.latency_mean: Optional[float] = None
-        self.offset_std_dev: Optional[float] = None
-        self.offset_mean: Optional[float] = None
         if wrapped_packets is None:
             self.rev_start_times: np.ndarray = np.ndarray((0, 0))
             self.latencies: np.ndarray = np.ndarray((0, 0))
@@ -101,17 +97,13 @@ class TimeSyncData:
             # make everything empty or None, and best offset is 0 (no change)
             self.latencies = []
             self.offsets = []
-            self.latency_std_dev = None
-            self.latency_mean = None
             self.best_latency = None
             self.best_latency_index = None
-            self.best_offset = 0
-            self.offset_std_dev = None
-            self.offset_mean = None
+            self.best_offset = 0.0
         else:
             # convert all NaN and negative values from latencies into zero
             self.latencies = np.nan_to_num(self.latencies)
-            self.latencies[self.latencies < 0] = 0
+            self.latencies[self.latencies < 0] = 0.0
             # find and set minimum latency based on non-zero latencies
             self.best_latency = np.min(self.get_valid_latencies())
             self.latency_stats.best_value = self.best_latency
@@ -205,6 +197,22 @@ class TimeSyncData:
             return 0
         return len(self.bad_packets) / float(self.num_packets)
 
+    def get_latency_mean(self) -> Optional[float]:
+        """
+        return the mean of all latencies, and 0 if the latencies are invalid.
+        :return: the mean of all latencies
+        """
+        if self.best_latency is None:
+            return None
+        else:
+            return self.latency_stats.mean_of_means()
+
+    def get_latency_std_dev(self) -> Optional[float]:
+        if self.best_latency is None:
+            return None
+        else:
+            return self.latency_stats.total_std_dev()
+
     def get_valid_latencies(self, latency_array: np.array = None) -> np.array:
         """
         takes latencies, converts NaNs and negatives to 0, then returns non-zero latencies
@@ -217,6 +225,18 @@ class TimeSyncData:
             clean_latencies = np.nan_to_num(latency_array)  # replace NaNs with zeros
         clean_latencies[clean_latencies < 0] = 0  # replace negative latencies with 0
         return clean_latencies[clean_latencies != 0]  # return only non-zero latencies
+
+    def get_offset_mean(self) -> Optional[float]:
+        if self.best_latency is None or self.best_offset == 0.0:
+            return None
+        else:
+            return self.offset_stats.mean_of_means()
+
+    def get_offset_std_dev(self) -> Optional[float]:
+        if self.best_latency is None or self.best_offset == 0.0:
+            return None
+        else:
+            return self.offset_stats.total_std_dev()
 
     def get_valid_offsets(self, offset_array: np.array = None) -> np.array:
         """

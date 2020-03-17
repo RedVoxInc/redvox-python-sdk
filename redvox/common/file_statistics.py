@@ -34,7 +34,7 @@ def get_file_stats(sample_rate: Union[float, int]) -> Tuple[int, float]:
     return DURATION_TOTAL_POINTS[position], DURATION_SECONDS[position]
 
 
-def get_num_points_from_sample_rate(sample_rate: int) -> int:
+def get_num_points_from_sample_rate(sample_rate: Union[float, int]) -> int:
     """
     Returns the number of data points in a packet given a sample rate
     :param sample_rate: A valid sample rate from the constants above

@@ -60,7 +60,7 @@ class TriMessageStats:
         self.best_latency: Optional[float] = None
         self.best_latency_array_index: Optional[int] = None
         self.best_latency_index: Optional[int] = None
-        self.best_offset: Optional[float] = None
+        self.best_offset: Optional[float] = 0.0
 
         self.find_best_latency()
         self.find_best_offset()
@@ -69,37 +69,39 @@ class TriMessageStats:
         """
         Finds the best latency among the latencies
         """
-        # initialize
-        self.best_latency = None
+        try:
+            # find value and index of minimum latency of nonzero latencies
+            d1_min: float = np.min(self.latency1[self.latency1 != 0])
+            d3_min: float = np.min(self.latency3[self.latency3 != 0])
 
-        # find value and index of minimum latency of nonzero latencies
-        d1_min: float = np.min(self.latency1[self.latency1 != 0])
-        d3_min: float = np.min(self.latency3[self.latency3 != 0])
-
-        if d3_min > d1_min:
-            self.best_latency = d1_min  # server round trip is shorter
-            self.best_latency_array_index = 1
-            self.best_latency_index = np.where(self.latency1 == d1_min)[0][0]
-        else:
-            self.best_latency = d3_min
-            self.best_latency_array_index = 3
-            self.best_latency_index = np.where(self.latency3 == d3_min)[0][0]
+            if d3_min > d1_min:
+                self.best_latency = d1_min  # server round trip is shorter
+                self.best_latency_array_index = 1
+                self.best_latency_index = np.where(self.latency1 == d1_min)[0][0]
+            else:
+                self.best_latency = d3_min
+                self.best_latency_array_index = 3
+                self.best_latency_index = np.where(self.latency3 == d3_min)[0][0]
+        except ValueError as err:
+            # all latencies for one of the arrays is zero; the data is untrustworthy.  set the defaults
+            self.best_latency = None
+            self.best_latency_array_index = None
+            self.best_latency_index = None
 
     def find_best_offset(self) -> None:
         """
         Finds the best offset among the offsets
         """
-
         # if no best latency, find it
         if self.best_latency is None:
             self.find_best_latency()
-        # best latency = best offset
+        # best latency = best offset, if best latency is still None, best offset is 0.0
         if self.best_latency_array_index == 1:
             self.best_offset = self.offset1[self.best_latency_index]
         elif self.best_latency_array_index == 3:
             self.best_offset = self.offset3[self.best_latency_index]
         else:
-            self.best_offset = None
+            self.best_offset = 0.0
 
     def set_latency(self,
                     a1_coeffs: np.ndarray,
@@ -216,6 +218,52 @@ def offsets(a1_coeffs: np.ndarray,
     return o1_coeffs, o3_coeffs
 
 
+def validate_timestamps(a1_coeffs: np.ndarray, a2_coeffs: np.ndarray, a3_coeffs: np.ndarray,
+                        b1_coeffs: np.ndarray, b2_coeffs: np.ndarray, b3_coeffs: np.ndarray) -> \
+        Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    it's possible some of the tri-message values are duplicated; the duplicates and other invalid times
+    must be removed.
+
+       Parameters
+       -------
+       a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs: arrays of message exchange timestamps
+
+       Returns
+       -------
+       a1_coeffs[valid_indices], a2_coeffs[valid_indices], a3_coeffs[valid_indices],
+       b1_coeffs[valid_indices], b2_coeffs[valid_indices], b3_coeffs[valid_indices]:
+       arrays of valid message exchange timestamps
+    """
+    num_timestamps = len(a1_coeffs)
+    invalid_times = [[], [], [], [], [], []]
+    valid_times = [{}, {}, {}, {}, {}, {}]
+    valid_indices = []
+    all_timestamps = [a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs]
+    # for each set of timestamps
+    for data_index in range(6):
+        # for each timestamp in the set
+        for time_index in range(num_timestamps):
+            # compare the time to existing information
+            time = all_timestamps[data_index][time_index]
+            if time in valid_times[data_index].keys():
+                # if it's not in invalid_times, but is in valid times, it is now invalid
+                invalid_times[data_index].append(time)
+                valid_times[data_index].pop(time)
+            elif time not in invalid_times[data_index]:
+                # it's not in invalid_times or in valid times, it's a new time
+                valid_times[data_index][time] = time_index
+            # if here, time is invalid, and we just move onto the next value
+    for index in valid_times[0].values():
+        # if it's not in the first one, it's not valid.  if it doesn't show up in all others, it's not valid
+        if index in valid_times[1].values() and index in valid_times[2].values() and \
+                index in valid_times[3].values() and index in valid_times[4].values() and \
+                index in valid_times[5].values():
+            valid_indices.append(index)
+    return a1_coeffs[valid_indices], a2_coeffs[valid_indices], a3_coeffs[valid_indices], \
+        b1_coeffs[valid_indices], b2_coeffs[valid_indices], b3_coeffs[valid_indices]
+
+
 def transmit_receive_timestamps_microsec(coeffs: np.ndarray) -> Tuple[
         np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
@@ -253,4 +301,4 @@ def transmit_receive_timestamps_microsec(coeffs: np.ndarray) -> Tuple[
     # make sure each tri-message exchange contains 6 timestamps (done with modulo check above)
     # assert len(a1_coeffs) == len(a2_coeffs) == len(a3_coeffs) == len(b1_coeffs) == len(b2_coeffs) == len(b3_coeffs)
 
-    return a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
+    return validate_timestamps(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
