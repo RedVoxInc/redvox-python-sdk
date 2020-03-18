@@ -6,6 +6,7 @@ import unittest
 import redvox.api900.concat as concat
 import redvox.api900.exceptions as exceptions
 import redvox.api900.reader as reader
+import redvox.api900.qa.gap_detection as gap_detection
 import redvox.tests as test_utils
 
 import numpy as np
@@ -211,10 +212,10 @@ class TestConcatenation(unittest.TestCase):
         self.assertAlmostEqual(2.0, concat._packet_len_s(self.example_packet))
 
     def test_identify_gaps_empty(self):
-        self.assertEqual([], concat._identify_gaps([], 5.0))
+        self.assertEqual([], gap_detection.identify_time_gaps([], 5.0))
 
     def test_identify_gaps_single(self):
-        self.assertEqual([], concat._identify_gaps([self.example_packet], 5.0))
+        self.assertEqual([], gap_detection.identify_time_gaps([self.example_packet], 5.0))
 
     def test_identify_gaps_by_time(self):
         basic_packet = self.example_packet \
@@ -242,17 +243,17 @@ class TestConcatenation(unittest.TestCase):
             .microphone_sensor() \
             .set_first_sample_timestamp_epoch_microseconds_utc(20_000_000)
 
-        self.assertEqual([], concat._identify_gaps([basic_packet, cloned_basic_packet, cloned_basic_packet_2], 5.0))
+        self.assertEqual([], gap_detection.identify_time_gaps([basic_packet, cloned_basic_packet, cloned_basic_packet_2], 5.0))
 
         cloned_basic_packet_2.set_app_file_start_timestamp_machine(25_000_000) \
             .microphone_sensor() \
             .set_first_sample_timestamp_epoch_microseconds_utc(25_000_000)
-        self.assertEqual([], concat._identify_gaps([basic_packet, cloned_basic_packet, cloned_basic_packet_2], 5.0))
+        self.assertEqual([], gap_detection.identify_time_gaps([basic_packet, cloned_basic_packet, cloned_basic_packet_2], 5.0))
 
         cloned_basic_packet_2.set_app_file_start_timestamp_machine(26_000_000) \
             .microphone_sensor() \
             .set_first_sample_timestamp_epoch_microseconds_utc(26_000_000)
-        self.assertEqual([2], concat._identify_gaps([basic_packet, cloned_basic_packet, cloned_basic_packet_2], 5.0))
+        self.assertEqual(2, gap_detection.identify_time_gaps([basic_packet, cloned_basic_packet, cloned_basic_packet_2], 5.0)[0].index)
 
         cloned_basic_packet = basic_packet.clone()
         cloned_basic_packet.set_app_file_start_timestamp_machine(16_000_000) \
@@ -263,7 +264,7 @@ class TestConcatenation(unittest.TestCase):
         cloned_basic_packet_2.set_app_file_start_timestamp_machine(26_000_000) \
             .microphone_sensor() \
             .set_first_sample_timestamp_epoch_microseconds_utc(26_000_000)
-        self.assertEqual([1], concat._identify_gaps([basic_packet, cloned_basic_packet, cloned_basic_packet_2], 5.0))
+        self.assertEqual(1, gap_detection.identify_time_gaps([basic_packet, cloned_basic_packet, cloned_basic_packet_2], 5.0)[0].index)
 
         cloned_basic_packet = basic_packet.clone()
         cloned_basic_packet.set_app_file_start_timestamp_machine(16_000_000) \
@@ -274,7 +275,10 @@ class TestConcatenation(unittest.TestCase):
         cloned_basic_packet_2.set_app_file_start_timestamp_machine(32_000_000) \
             .microphone_sensor() \
             .set_first_sample_timestamp_epoch_microseconds_utc(32_000_000)
-        self.assertEqual([1, 2], concat._identify_gaps([basic_packet, cloned_basic_packet, cloned_basic_packet_2], 5.0))
+
+        gaps = gap_detection.identify_time_gaps([basic_packet, cloned_basic_packet, cloned_basic_packet_2], 5.0)
+        self.assertEqual(1, gaps[0].index)
+        self.assertEqual(2, gaps[1].index)
 
     def test_sensor_diff_none(self):
         self.assertEqual(concat._identify_sensor_changes([self.example_packet, self.cloned_packet]), [])
