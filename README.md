@@ -7,9 +7,10 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 ### Changelog
 
 ### 2.7.6 (2020-03-19)
-* added validation function that removes duplicated timestamps to `redvox/api900/timesync/tri_message_stats.py`
-* added get_latency_mean, get_latency_std_dev, get_offset_mean and get_offset_std_dev functions to `redvox/api900/timesync/api900_timesync.py`
-* updated unit tests
+
+* Added validation function that removes duplicated timestamps to `redvox/api900/timesync/tri_message_stats.py`
+* Added get_latency_mean, get_latency_std_dev, get_offset_mean and get_offset_std_dev functions to `redvox/api900/timesync/api900_timesync.py`
+* Updated unit tests
 
 ### 2.7.5 (2020-03-13)
 
