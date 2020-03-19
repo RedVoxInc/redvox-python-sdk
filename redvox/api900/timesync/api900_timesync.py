@@ -199,7 +199,7 @@ class TimeSyncData:
 
     def get_latency_mean(self) -> Optional[float]:
         """
-        return the mean of all latencies, and 0 if the latencies are invalid.
+        return the mean of all latencies, and None if the latencies are invalid.
         :return: the mean of all latencies
         """
         if self.best_latency is None:
@@ -208,6 +208,10 @@ class TimeSyncData:
             return self.latency_stats.mean_of_means()
 
     def get_latency_std_dev(self) -> Optional[float]:
+        """
+        return the standard deviation (std_dev) of all latencies, and None if the latencies are invalid.
+        :return: the std dev of all latencies
+        """
         if self.best_latency is None:
             return None
         else:
@@ -227,14 +231,22 @@ class TimeSyncData:
         return clean_latencies[clean_latencies != 0]  # return only non-zero latencies
 
     def get_offset_mean(self) -> Optional[float]:
+        """
+        return the mean of all offsets, and 0.0 if the offsets or latencies are invalid.
+        :return: the mean of all offsets
+        """
         if self.best_latency is None or self.best_offset == 0.0:
-            return None
+            return 0.0
         else:
             return self.offset_stats.mean_of_means()
 
     def get_offset_std_dev(self) -> Optional[float]:
+        """
+        return the standard deviation (std_dev) of all offsets, and 0.0 if the offsets or latencies are invalid.
+        :return: the std dev of all offsets
+        """
         if self.best_latency is None or self.best_offset == 0.0:
-            return None
+            return 0.0
         else:
             return self.offset_stats.total_std_dev()
 

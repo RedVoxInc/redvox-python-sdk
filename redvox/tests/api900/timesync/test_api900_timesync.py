@@ -70,19 +70,19 @@ class RedVoxTimesyncTests(unittest.TestCase):
         self.assertAlmostEqual(self.time_sync_data.get_offset_mean(), -22903096.02, 2)
         old_best_latency = self.time_sync_data.best_latency
         self.time_sync_data.best_latency = None
-        self.assertEqual(self.time_sync_data.get_offset_mean(), None)
+        self.assertEqual(self.time_sync_data.get_offset_mean(), 0.0)
         self.time_sync_data.best_latency = old_best_latency
         self.time_sync_data.best_offset = 0.0
-        self.assertEqual(self.time_sync_data.get_offset_mean(), None)
+        self.assertEqual(self.time_sync_data.get_offset_mean(), 0.0)
 
     def test_get_offset_std_dev(self):
         self.assertAlmostEqual(self.time_sync_data.get_offset_std_dev(), 91847.39, 2)
         old_best_latency = self.time_sync_data.best_latency
         self.time_sync_data.best_latency = None
-        self.assertEqual(self.time_sync_data.get_offset_std_dev(), None)
+        self.assertEqual(self.time_sync_data.get_offset_std_dev(), 0.0)
         self.time_sync_data.best_latency = old_best_latency
         self.time_sync_data.best_offset = 0.0
-        self.assertEqual(self.time_sync_data.get_offset_std_dev(), None)
+        self.assertEqual(self.time_sync_data.get_offset_std_dev(), 0.0)
 
     def test_get_valid_offsets(self):
         valid_offsets = self.time_sync_data.get_valid_offsets()

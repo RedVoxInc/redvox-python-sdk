@@ -6,7 +6,7 @@ and use Tri-Message protocol to compute latencies, check criteria, and correct t
 minimum latencies.
 """
 
-from typing import Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 # noinspection Mypy
 import numpy as np
@@ -82,7 +82,7 @@ class TriMessageStats:
                 self.best_latency = d3_min
                 self.best_latency_array_index = 3
                 self.best_latency_index = np.where(self.latency3 == d3_min)[0][0]
-        except ValueError as err:
+        except ValueError:
             # all latencies for one of the arrays is zero; the data is untrustworthy.  set the defaults
             self.best_latency = None
             self.best_latency_array_index = None
@@ -236,8 +236,8 @@ def validate_timestamps(a1_coeffs: np.ndarray, a2_coeffs: np.ndarray, a3_coeffs:
        arrays of valid message exchange timestamps
     """
     num_timestamps = len(a1_coeffs)
-    invalid_times = [[], [], [], [], [], []]
-    valid_times = [{}, {}, {}, {}, {}, {}]
+    invalid_times: List[List] = [[], [], [], [], [], []]
+    valid_times: List[Dict] = [{}, {}, {}, {}, {}, {}]
     valid_indices = []
     all_timestamps = [a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs]
     # for each set of timestamps

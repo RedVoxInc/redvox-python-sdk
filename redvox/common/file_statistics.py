@@ -44,10 +44,10 @@ def get_num_points_from_sample_rate(sample_rate: Union[float, int]) -> int:
         position: int = np.where(SAMPLE_RATE_HZ == sample_rate)[0][0]
         return DURATION_TOTAL_POINTS[position]
     except Exception:
-        raise ValueError("Unknown sample rate {:d} given to compute number of data points!".format(sample_rate))
+        raise ValueError(f"Unknown sample rate {sample_rate} given to compute number of data points!")
 
 
-def get_duration_seconds_from_sample_rate(sample_rate: int) -> float:
+def get_duration_seconds_from_sample_rate(sample_rate: Union[float, int]) -> float:
     """
     Returns the duration of a packet in seconds given a sample rate
     :param sample_rate: A valid sample rate from the constants above
@@ -57,4 +57,4 @@ def get_duration_seconds_from_sample_rate(sample_rate: int) -> float:
         position: int = np.where(SAMPLE_RATE_HZ == sample_rate)[0][0]
         return DURATION_SECONDS[position]
     except Exception:
-        raise ValueError("Unknown sample rate {:d} given to compute duration!".format(sample_rate))
+        raise ValueError(f"Unknown sample rate {sample_rate} given to compute duration!")
