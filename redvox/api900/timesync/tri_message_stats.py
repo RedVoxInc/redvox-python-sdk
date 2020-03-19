@@ -236,21 +236,25 @@ def validate_timestamps(a1_coeffs: np.ndarray, a2_coeffs: np.ndarray, a3_coeffs:
        arrays of valid message exchange timestamps
     """
     num_timestamps = len(a1_coeffs)
-    invalid_times: List[List] = [[], [], [], [], [], []]
+    # if length is 1, there's only 1 exchange, so just return all the values
+    if num_timestamps == 1:
+        return a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
+    # if here, there's more than 1 exchange to check
     valid_times: List[Dict] = [{}, {}, {}, {}, {}, {}]
     valid_indices = []
     all_timestamps = [a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs]
-    # for each set of timestamps
+    # for each set of timestamps a1x, a2x, etc. in all exchanges
     for data_index in range(6):
-        # for each timestamp in the set
+        # for each timestamp in the set, create a list of invalid times
+        invalid_times: List[float] = []
         for time_index in range(num_timestamps):
             # compare the time to existing information
             time = all_timestamps[data_index][time_index]
             if time in valid_times[data_index].keys():
                 # if it's not in invalid_times, but is in valid times, it is now invalid
-                invalid_times[data_index].append(time)
+                invalid_times.append(time)
                 valid_times[data_index].pop(time)
-            elif time not in invalid_times[data_index]:
+            elif time not in invalid_times:
                 # it's not in invalid_times or in valid times, it's a new time
                 valid_times[data_index][time] = time_index
             # if here, time is invalid, and we just move onto the next value
@@ -301,4 +305,4 @@ def transmit_receive_timestamps_microsec(coeffs: np.ndarray) -> Tuple[
     # make sure each tri-message exchange contains 6 timestamps (done with modulo check above)
     # assert len(a1_coeffs) == len(a2_coeffs) == len(a3_coeffs) == len(b1_coeffs) == len(b2_coeffs) == len(b3_coeffs)
 
-    return validate_timestamps(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+    return a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs

@@ -134,7 +134,7 @@ class TimeSyncData:
             timesync_channel = packet.time_synchronization_sensor()
             coeffs = timesync_channel.payload_values()
             # set the number of tri-message exchanges in the packet
-            self.num_tri_messages[index] = len(coeffs) / 6
+            self.num_tri_messages[index] = int(len(coeffs) / 6)
             coeffs_tuple: Tuple[
                 np.ndarray,
                 np.ndarray,
@@ -156,28 +156,38 @@ class TimeSyncData:
                                                     b1_coeffs,
                                                     b2_coeffs,
                                                     b3_coeffs)
-            # Concatenate d1 and d3 arrays, and o1 and o3 arrays when passing values into stats class
-            # noinspection PyTypeChecker
-            self.latency_stats.add(np.mean([*tms.latency1, *tms.latency3]), np.std([*tms.latency1, *tms.latency3]),
-                                   len(coeffs) / 3)
-            # noinspection PyTypeChecker
-            self.offset_stats.add(np.mean([*tms.offset1, *tms.offset3]), np.std([*tms.offset1, *tms.offset3]),
-                                  len(coeffs) / 3)
-            # set the best latency and offset based on the packet's metadata, or tri-message stats if no metadata
-            latency: Optional[float] = packet.best_latency()
-            if latency is None:
-                self.latencies[index] = tms.best_latency
+            # check if we actually have unique exchanges to evaluate
+            if self.num_tri_messages[index] > 0:
+                # Concatenate d1 and d3 arrays, and o1 and o3 arrays when passing values into stats class
+                #  note the last parameter multiplies the number of exchanges by 2, as there are two latencies
+                #  and offsets calculated per exchange
+                # noinspection PyTypeChecker
+                self.latency_stats.add(np.mean([*tms.latency1, *tms.latency3]), np.std([*tms.latency1, *tms.latency3]),
+                                       self.num_tri_messages[index] * 2)
+                # noinspection PyTypeChecker
+                self.offset_stats.add(np.mean([*tms.offset1, *tms.offset3]), np.std([*tms.offset1, *tms.offset3]),
+                                      self.num_tri_messages[index] * 2)
+                # set the best latency and offset based on the packet's metadata, or tri-message stats if no metadata
+                latency: Optional[float] = packet.best_latency()
+                if latency is None:
+                    # no metadata
+                    self.latencies[index] = tms.best_latency
+                else:
+                    self.latencies[index] = latency
+                offset: Optional[float] = packet.best_offset()
+                if offset is None:
+                    # no metadata
+                    self.offsets[index] = tms.best_offset
+                else:
+                    self.offsets[index] = offset
             else:
-                self.latencies[index] = latency
-            offset: Optional[float] = packet.best_offset()
-            if offset is None:
-                self.offsets[index] = tms.best_offset
-            else:
-                self.offsets[index] = offset
+                # there is a time sync channel and it's empty, so default to 0
+                self.latencies[index] = 0.0
+                self.offsets[index] = 0.0
         # if there is no time sync channel (usually no communication between device and server), default to 0
         else:
-            self.latencies[index] = 0
-            self.offsets[index] = 0
+            self.latencies[index] = 0.0
+            self.offsets[index] = 0.0
 
     def find_bad_packets(self):
         """

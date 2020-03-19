@@ -6,6 +6,11 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.7.7 (2020-03-19)
+
+* Added unit tests for `redvox/common/stats_helper.py`
+* The functions mean_of_means, variance_of_means and mean_of_variance in `redvox/common/stats_helper.py` will not fail when sum(counts) is 0.
+
 ### 2.7.6 (2020-03-19)
 
 * Added validation function that removes duplicated timestamps to `redvox/api900/timesync/tri_message_stats.py`
