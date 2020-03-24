@@ -32,6 +32,7 @@ class TimeSyncData:
         num_packets: the number of packets being analyzed
         sample_rate_hz: the sample rate in Hz of all packets
         num_tri_messages: number of tri-message exchanges (per packet)
+        tri_message_coeffs: list of 6-tuples containing the tri-message exchange coefficients (up to 1 tuple per packet)
         acquire_travel_time: calculated time it took packet to reach server (up to 1 per packet)
         bad_packets: indices of packets with an undefined or 0 latency
     """
@@ -53,6 +54,7 @@ class TimeSyncData:
             self.num_packets: int = 0
             self.sample_rate_hz: Optional[float] = None
             self.num_tri_messages: np.ndarray = np.ndarray((0, 0))
+            self.tri_message_coeffs: List[Tuple] = []
             self.acquire_travel_time: np.ndarray = np.ndarray((0, 0))
             self.bad_packets: List[int] = []
         else:
@@ -69,6 +71,7 @@ class TimeSyncData:
         self.latencies = np.zeros(len(wrapped_packets))  # array of minimum latencies
         self.offsets = np.zeros(len(wrapped_packets))  # array of offset applied to machine time to get sync time
         self.num_packets = len(wrapped_packets)  # number of packets in list
+        self.tri_message_coeffs = []  # a list of tri-message coefficients
         self.bad_packets = []  # list of packets that contain invalid data
         server_time = np.zeros(len(wrapped_packets))  # array of server acquisition times
 
@@ -79,7 +82,7 @@ class TimeSyncData:
             self._compute_tri_message_stats(wrapped_packet, i)
 
         self.find_bad_packets()
-        self._evaluate_latencies_and_offsets()
+        self.evaluate_latencies_and_offsets()
         # set the packet duration
         packet_duration = dt.seconds_to_microseconds(fh.get_duration_seconds_from_sample_rate(int(self.sample_rate_hz)))
         # apply duration to app start to get packet end time, then subtract
@@ -87,9 +90,9 @@ class TimeSyncData:
         # ASSUMING that acquisition and time-sync server have the same time source
         self.acquire_travel_time = server_time - (self.rev_start_times + packet_duration)
 
-    def _evaluate_latencies_and_offsets(self):
+    def evaluate_latencies_and_offsets(self):
         """
-        helper function to evaluate the goodness of latencies and offsets.
+        evaluates the goodness of latencies and offsets.
         adjusts rev_start_times if there is a best offset
         """
         # if no decoders synced properly, all latencies are NaNs or all indices are bad
@@ -142,6 +145,7 @@ class TimeSyncData:
                 np.ndarray,
                 np.ndarray,
                 np.ndarray] = tri_message_stats.transmit_receive_timestamps_microsec(coeffs)
+            self.tri_message_coeffs.append(coeffs_tuple)  # save the tri-message exchanges for later
             a1_coeffs: np.ndarray = coeffs_tuple[0]
             a2_coeffs: np.ndarray = coeffs_tuple[1]
             a3_coeffs: np.ndarray = coeffs_tuple[2]
@@ -186,6 +190,7 @@ class TimeSyncData:
                 self.offsets[index] = 0.0
         # if there is no time sync channel (usually no communication between device and server), default to 0
         else:
+            self.tri_message_coeffs.append(())
             self.latencies[index] = 0.0
             self.offsets[index] = 0.0
 
