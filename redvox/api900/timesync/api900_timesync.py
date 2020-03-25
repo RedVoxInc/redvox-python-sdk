@@ -22,6 +22,7 @@ class TimeSyncData:
     ALL times in microseconds
     properties:
         rev_start_times: revised machine start times (per packet)
+        server_acquisition_times: time packet arrived at server (per packet)
         latencies: latencies (per packet)
         best_latency: the lowest latency among packets
         best_latency_index: index in latencies array that contains the best latency
@@ -31,6 +32,8 @@ class TimeSyncData:
         offset_stats: StatsContainer for offsets
         num_packets: the number of packets being analyzed
         sample_rate_hz: the sample rate in Hz of all packets
+        packet_duration: the duration of all packets
+        mach_time_zero: the start time of the app in machine time
         num_tri_messages: number of tri-message exchanges (per packet)
         tri_message_coeffs: list of 6-tuples containing the tri-message exchange coefficients (up to 1 tuple per packet)
         acquire_travel_time: calculated time it took packet to reach server (up to 1 per packet)
@@ -39,13 +42,14 @@ class TimeSyncData:
 
     def __init__(self, wrapped_packets: List[WrappedRedvoxPacket] = None):
         """
-        Initialize properties, assume all packets share the same sample rate
+        Initialize properties, assume all packets share the same sample rate and are continuous
         :param wrapped_packets: list of data packets
         """
         self.latency_stats: stats_helper.StatsContainer = stats_helper.StatsContainer("latency")
         self.offset_stats: stats_helper.StatsContainer = stats_helper.StatsContainer("offset")
         if wrapped_packets is None:
             self.rev_start_times: np.ndarray = np.ndarray((0, 0))
+            self.server_acquisition_times: np.ndarray = np.ndarray((0, 0))
             self.latencies: np.ndarray = np.ndarray((0, 0))
             self.best_latency: Optional[float] = None
             self.best_latency_index: Optional[int] = None
@@ -53,6 +57,8 @@ class TimeSyncData:
             self.best_offset: float = 0.0
             self.num_packets: int = 0
             self.sample_rate_hz: Optional[float] = None
+            self.packet_duration: int = 0
+            self.mach_time_zero: Optional[float] = None
             self.num_tri_messages: np.ndarray = np.ndarray((0, 0))
             self.tri_message_coeffs: List[Tuple] = []
             self.acquire_travel_time: np.ndarray = np.ndarray((0, 0))
@@ -66,6 +72,8 @@ class TimeSyncData:
         :param wrapped_packets: wrapped packets with same sample rate
         """
         self.sample_rate_hz = wrapped_packets[0].microphone_sensor().sample_rate_hz()  # sample rate of all packets
+        self.server_acquisition_times = np.zeros(len(wrapped_packets))  # array of server acquisition times
+        self.mach_time_zero = None
         self.rev_start_times = np.zeros(len(wrapped_packets))  # array of app start times
         self.num_tri_messages = np.zeros(len(wrapped_packets))  # number of tri-message exchanges per packet
         self.latencies = np.zeros(len(wrapped_packets))  # array of minimum latencies
@@ -73,22 +81,30 @@ class TimeSyncData:
         self.num_packets = len(wrapped_packets)  # number of packets in list
         self.tri_message_coeffs = []  # a list of tri-message coefficients
         self.bad_packets = []  # list of packets that contain invalid data
-        server_time = np.zeros(len(wrapped_packets))  # array of server acquisition times
 
         # get the server acquisition time, app start time, and tri message stats
         for i, wrapped_packet in enumerate(wrapped_packets):
-            server_time[i] = wrapped_packet.server_timestamp_epoch_microseconds_utc()
+            # check mach_time_zero for changes if it exists.  if it changed, sync will not work.
+            if self.mach_time_zero is not None and self.mach_time_zero != wrapped_packet.mach_time_zero():
+                print("Warning: packet {} has a different mach time zero than previous packets.".format(i + 1))
+                print("Please review input data; it must be from the same device and uninterrupted.")
+                print("TimeSyncData cannot continue processing input data.  Quitting.")
+                return
+            elif wrapped_packet.mach_time_zero() is not None:
+                self.mach_time_zero = wrapped_packet.mach_time_zero()
+            self.server_acquisition_times[i] = wrapped_packet.server_timestamp_epoch_microseconds_utc()
             self.rev_start_times[i] = wrapped_packet.app_file_start_timestamp_epoch_microseconds_utc()
             self._compute_tri_message_stats(wrapped_packet, i)
 
         self.find_bad_packets()
         self.evaluate_latencies_and_offsets()
         # set the packet duration
-        packet_duration = dt.seconds_to_microseconds(fh.get_duration_seconds_from_sample_rate(int(self.sample_rate_hz)))
+        self.packet_duration = dt.seconds_to_microseconds(fh.get_duration_seconds_from_sample_rate(
+            int(self.sample_rate_hz)))
         # apply duration to app start to get packet end time, then subtract
         # that from server acquire time to get travel time to acquisition server
         # ASSUMING that acquisition and time-sync server have the same time source
-        self.acquire_travel_time = server_time - (self.rev_start_times + packet_duration)
+        self.acquire_travel_time = self.server_acquisition_times - (self.rev_start_times + self.packet_duration)
 
     def evaluate_latencies_and_offsets(self):
         """
@@ -160,7 +176,7 @@ class TimeSyncData:
                                                     b1_coeffs,
                                                     b2_coeffs,
                                                     b3_coeffs)
-            # check if we actually have unique exchanges to evaluate
+            # check if we actually have exchanges to evaluate
             if self.num_tri_messages[index] > 0:
                 # Concatenate d1 and d3 arrays, and o1 and o3 arrays when passing values into stats class
                 #  note the last parameter multiplies the number of exchanges by 2, as there are two latencies
@@ -185,14 +201,23 @@ class TimeSyncData:
                 else:
                     self.offsets[index] = offset
             else:
-                # there is a time sync channel and it's empty, so default to 0
+                # There are no exchanges to read.  write empty or 0 values to the correct properties
                 self.latencies[index] = 0.0
                 self.offsets[index] = 0.0
-        # if there is no time sync channel (usually no communication between device and server), default to 0
+                self.tri_message_coeffs.append(())
+                # noinspection PyTypeChecker
+                self.latency_stats.add(0, 0, 0)
+                # noinspection PyTypeChecker
+                self.offset_stats.add(0, 0, 0)
         else:
-            self.tri_message_coeffs.append(())
+            # There is no sync channel.  write empty or 0 values to the correct properties
             self.latencies[index] = 0.0
             self.offsets[index] = 0.0
+            self.tri_message_coeffs.append(())
+            # noinspection PyTypeChecker
+            self.latency_stats.add(0, 0, 0)
+            # noinspection PyTypeChecker
+            self.offset_stats.add(0, 0, 0)
 
     def find_bad_packets(self):
         """
@@ -417,6 +442,8 @@ def sync_packet_time_900(wrapped_packets_fs: list, verbose: bool = False):
 
     # convert NaN latencies to 0
     latencies = np.nan_to_num(latencies)
+    # convert any negative latency to 0.
+    latencies[latencies < 0] = 0
 
     if len(np.nonzero(latencies)[0]) == 0:  # if no decoders synced properly, all latencies are 0
         sync_server = wrapped_packets_fs[0].time_synchronization_server()
@@ -425,8 +452,6 @@ def sync_packet_time_900(wrapped_packets_fs: list, verbose: bool = False):
                 wrapped_packets_fs[0].redvox_id(), sync_server))
         offset = 0
     else:
-        # convert any negative latency to 0.
-        latencies[latencies < 0] = 0
         d1_min = np.min(latencies[latencies != 0])
         best_d1_index = np.where(latencies == d1_min)[0][0]
         # correct each packet's timestamps

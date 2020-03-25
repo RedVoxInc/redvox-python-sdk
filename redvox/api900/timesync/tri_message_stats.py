@@ -236,8 +236,8 @@ def validate_timestamps(a1_coeffs: np.ndarray, a2_coeffs: np.ndarray, a3_coeffs:
        arrays of valid message exchange timestamps
     """
     num_timestamps = len(a1_coeffs)
-    # if length is 1, there's only 1 exchange, so just return all the values
-    if num_timestamps == 1:
+    # if length is 1 or less, no need to validate, just return all the values
+    if num_timestamps <= 1:
         return a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
     # if here, there's more than 1 exchange to check
     valid_times: List[Dict] = [{}, {}, {}, {}, {}, {}]
@@ -245,19 +245,12 @@ def validate_timestamps(a1_coeffs: np.ndarray, a2_coeffs: np.ndarray, a3_coeffs:
     all_timestamps = [a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs]
     # for each set of timestamps a1x, a2x, etc. in all exchanges
     for data_index in range(6):
-        # for each timestamp in the set, create a list of invalid times
-        invalid_times: List[float] = []
         for time_index in range(num_timestamps):
             # compare the time to existing information
             time = all_timestamps[data_index][time_index]
-            if time in valid_times[data_index].keys():
-                # if it's not in invalid_times, but is in valid times, it is now invalid
-                invalid_times.append(time)
-                valid_times[data_index].pop(time)
-            elif time not in invalid_times:
-                # it's not in invalid_times or in valid times, it's a new time
+            if time not in valid_times:
+                # it's not in valid times, it's a new time
                 valid_times[data_index][time] = time_index
-            # if here, time is invalid, and we just move onto the next value
     for index in valid_times[0].values():
         # if it's not in the first one, it's not valid.  if it doesn't show up in all others, it's not valid
         if index in valid_times[1].values() and index in valid_times[2].values() and \

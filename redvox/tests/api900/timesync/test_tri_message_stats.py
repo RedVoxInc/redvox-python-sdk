@@ -77,17 +77,17 @@ class TriMessageStatTests(unittest.TestCase):
         coeffs2 = coeffs3 = coeffs4 = coeffs5 = coeffs6 = coeffs1
         coeffs1, coeffs2, coeffs3, coeffs4, coeffs5, coeffs6 = \
             tri_message_stats.validate_timestamps(coeffs1, coeffs2, coeffs3, coeffs4, coeffs5, coeffs6)
-        self.assertEqual(len(coeffs1), 0)
+        self.assertEqual(len(coeffs1), 1)
         coeffs1 = np.array([10, 10, 12, 10, 10])
         coeffs2 = coeffs3 = coeffs4 = coeffs5 = coeffs6 = coeffs1
         coeffs1, coeffs2, coeffs3, coeffs4, coeffs5, coeffs6 = \
             tri_message_stats.validate_timestamps(coeffs1, coeffs2, coeffs3, coeffs4, coeffs5, coeffs6)
-        self.assertEqual(len(coeffs1), 1)
+        self.assertEqual(len(coeffs1), 2)
         coeffs1 = np.array([10, 10, 12, 13, 14])
         coeffs2 = coeffs3 = coeffs4 = coeffs5 = coeffs6 = coeffs1
         coeffs1, coeffs2, coeffs3, coeffs4, coeffs5, coeffs6 = \
             tri_message_stats.validate_timestamps(coeffs1, coeffs2, coeffs3, coeffs4, coeffs5, coeffs6)
-        self.assertEqual(len(coeffs1), 3)
+        self.assertEqual(len(coeffs1), 4)
 
     def test_latencies(self):
         d1_900, d3_900 = tri_message_stats.latencies(self.a1, self.a2, self.a3, self.b1, self.b2, self.b3)

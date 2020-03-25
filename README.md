@@ -6,6 +6,10 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.7.9 (2020-03-25)
+
+* Added properties: server_acquisition_times, packet_duration and mach_time_zero to `redvox/api900/timesync/api900_timesync.py` to assist with analyzing time sync data
+
 ### 2.7.8 (2020-03-23)
 
 * Added a property: tri_message_coeffs to `redvox/api900/timesync/api900_timesync.py` to allow access to the tri-message coefficients

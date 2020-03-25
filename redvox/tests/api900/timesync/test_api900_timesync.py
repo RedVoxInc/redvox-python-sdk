@@ -31,7 +31,7 @@ class RedVoxTimesyncTests(unittest.TestCase):
         self.assertEqual(len(self.time_sync_data.offsets), len(self.wrapped_packets_fs))
         self.assertEqual(self.time_sync_data.best_latency, 69664.0)
 
-    def test__compute_tri_message_stats(self):
+    def test_compute_tri_message_stats(self):
         self.assertEqual(self.time_sync_data.latencies[0], 69664.0)
         self.assertEqual(self.time_sync_data.offsets[0], -22906528.)
 
@@ -41,7 +41,7 @@ class RedVoxTimesyncTests(unittest.TestCase):
     def test_find_bad_packets_ratio(self):
         self.assertEqual(self.time_sync_data.get_ratio_bad_packets(), 0)
 
-    def test__evaluate_latencies_and_offsets(self):
+    def test_evaluate_latencies_and_offsets(self):
         self.assertEqual(len(self.time_sync_data.latencies), len(self.wrapped_packets_fs))
         self.assertEqual(len(self.time_sync_data.offsets), len(self.wrapped_packets_fs))
         self.assertEqual(self.time_sync_data.best_latency, 69664.0)
