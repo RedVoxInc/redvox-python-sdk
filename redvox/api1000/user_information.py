@@ -7,11 +7,14 @@ class UserInformation(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.UserInformation):
         super().__init__(proto)
 
-        # User information
+    @staticmethod
+    def new() -> 'UserInformation':
+        return UserInformation(redvox_api_1000_pb2.RedvoxPacket1000.UserInformation())
+
     def get_auth_email(self) -> str:
         return self._proto.auth_email
 
-    def set_auth_email(self, auth_email: str) -> 'WrappedRedvoxPacketApi1000':
+    def set_auth_email(self, auth_email: str) -> 'UserInformation':
         if not isinstance(auth_email, str):
             raise errors.WrappedRedvoxPacketApi1000Error(f"A string is required, but a {type(auth_email)}={auth_email} "
                                                          f"was provided")
@@ -22,7 +25,7 @@ class UserInformation(common.ProtoBase):
     def get_auth_token(self) -> str:
         return self._proto.auth_token
 
-    def set_auth_token(self, auth_token: str) -> 'WrappedRedvoxPacketApi1000':
+    def set_auth_token(self, auth_token: str) -> 'UserInformation':
         if not isinstance(auth_token, str):
             raise errors.WrappedRedvoxPacketApi1000Error(f"A string is required, but a {type(auth_token)}={auth_token} "
                                                          f"was provided")
@@ -33,7 +36,7 @@ class UserInformation(common.ProtoBase):
     def get_firebase_token(self) -> str:
         return self._proto.firebase_token
 
-    def set_firebase_token(self, firebase_token: str) -> 'WrappedRedvoxPacketApi1000':
+    def set_firebase_token(self, firebase_token: str) -> 'UserInformation':
         if not isinstance(firebase_token, str):
             raise errors.WrappedRedvoxPacketApi1000Error(f"A string is required, but a "
                                                          f"{type(firebase_token)}={firebase_token} was provided")

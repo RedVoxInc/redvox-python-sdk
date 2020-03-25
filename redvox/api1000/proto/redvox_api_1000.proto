@@ -65,10 +65,10 @@ message RedvoxPacket1000 {
             string redvox_id = 6;
             bool push_to_server = 7;
             bool publish_data_as_private = 8;
-            bool scrambled_voice_data = 9;
+            bool scramble_voice_data = 9;
             bool provide_backfill = 10;
             bool use_custom_time_sync_server = 11;
-            string time_synch_server_url = 12;
+            string time_sync_server_url = 12;
             bool use_custom_data_server = 13;
             string data_server_url = 14;
             bool auto_delete_data_files = 15;

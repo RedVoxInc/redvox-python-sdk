@@ -15,6 +15,8 @@ import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 NAN: float = float("NaN")
 
 PROTO_TYPES = Union[redvox_api_1000_pb2.RedvoxPacket1000,
+                    redvox_api_1000_pb2.RedvoxPacket1000.DeviceInformation,
+                    redvox_api_1000_pb2.RedvoxPacket1000.DeviceInformation.AppSettings,
                     redvox_api_1000_pb2.RedvoxPacket1000.SummaryStatistics,
                     redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.MicrophoneChannel,
                     redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.SingleChannel,

@@ -17,17 +17,6 @@ import redvox.api1000.xyz_channel as _xyz_channel
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
-class NetworkType(enum.Enum):
-    WIFI = 0
-    CELLULAR = 1
-    NONE = 2
-
-
-class OsType(enum.Enum):
-    ANDROID = 0
-    IOS = 1
-    LINUX = 2
-    WINDOWS = 3
 
 
 class WrappedRedvoxPacketApi1000(common.ProtoBase):
@@ -107,127 +96,8 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
 
 
 
-    # Device information
-    def get_device_id(self) -> str:
-        return self._proto.device_id
 
-    def set_device_id(self, device_id: str) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(device_id, str):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A string is required, but a "
-                                                         f"{type(device_id)}={device_id} was provided")
 
-        self._proto.device_id = device_id
-        return self
-
-    def get_device_uuid(self) -> str:
-        return self._proto.device_uuid
-
-    def set_device_uuid(self, device_uuid: str) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(device_uuid, str):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A string is required, but a "
-                                                         f"{type(device_uuid)}={device_uuid} was provided")
-
-        self._proto.device_uuid = device_uuid
-        return self
-
-    def get_device_make(self) -> str:
-        return self._proto.device_make
-
-    def set_device_make(self, device_make: str) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(device_make, str):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A string is required, but a "
-                                                         f"{type(device_make)}={device_make} was provided")
-
-        self._proto.device_make = device_make
-        return self
-
-    def get_device_model(self) -> str:
-        return self._proto.device_model
-
-    def set_device_model(self, device_model: str) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(device_model, str):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A string is required, but a "
-                                                         f"{type(device_model)}={device_model} was provided")
-
-        self._proto.device_model = device_model
-        return self
-
-    def get_device_os(self) -> OsType:
-        return OsType(self._proto.device_os)
-
-    def set_device_os(self, os: OsType) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(os, OsType):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of OsType is required, but a {type(os)}={os} "
-                                                         f"was provided")
-
-        self._proto.device_os = redvox_api_1000_pb2.RedvoxPacket1000.OsType.Value(os.name)
-        return self
-
-    def get_device_os_version(self) -> str:
-        return self._proto.device_os_version
-
-    def set_device_os_version(self, device_os_version: str) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(device_os_version, str):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A string is required, but a "
-                                                         f"{type(device_os_version)}={device_os_version} was provided")
-
-        self._proto.device_os_version = device_os_version
-        return self
-
-    def get_device_app_version(self) -> str:
-        return self._proto.device_app_version
-
-    def set_device_app_version(self, device_app_version: str) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(device_app_version, str):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A string is required, but a "
-                                                         f"{type(device_app_version)}={device_app_version} was "
-                                                         f"provided")
-
-        self._proto.device_app_version = device_app_version
-        return self
-
-    def get_device_temp_c(self) -> float:
-        return self._proto.device_temp_c
-
-    def set_device_temp_c(self, device_temp_c: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(device_temp_c):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(device_temp_c)}={device_temp_c} was provided")
-        self._proto.device_temp_c = device_temp_c
-        return self
-
-    def get_device_battery_percent(self) -> float:
-        return self._proto.device_battery_percent
-
-    def set_device_battery_percent(self, device_battery_percent: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(device_battery_percent):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(device_battery_percent)}={device_battery_percent} was "
-                                                         f"provided")
-        self._proto.device_battery_percent = device_battery_percent
-        return self
-
-    def get_network_type(self) -> NetworkType:
-        return NetworkType(self._proto.network_type)
-
-    def set_network_type(self, network_type: NetworkType) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(network_type, NetworkType):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of NetworkType is required, but a "
-                                                         f"{type(network_type)}={network_type} was provided")
-
-        self._proto.network_type = redvox_api_1000_pb2.RedvoxPacket1000.NetworkType.Value(network_type.name)
-        return self
-
-    def get_network_strength_db(self) -> float:
-        return self._proto.network_strength_db
-
-    def set_network_strength_db(self, network_strength_db: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(network_strength_db):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(network_strength_db)}={network_strength_db} was "
-                                                         f"provided")
-        self._proto.network_strength_db = network_strength_db
-        return self
 
     # Packet information
     def get_is_backfilled(self) -> bool:

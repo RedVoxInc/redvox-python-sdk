@@ -283,10 +283,10 @@ class RedvoxPacket1000(google___protobuf___message___Message):
             redvox_id = ... # type: typing___Text
             push_to_server = ... # type: builtin___bool
             publish_data_as_private = ... # type: builtin___bool
-            scrambled_voice_data = ... # type: builtin___bool
+            scramble_voice_data = ... # type: builtin___bool
             provide_backfill = ... # type: builtin___bool
             use_custom_time_sync_server = ... # type: builtin___bool
-            time_synch_server_url = ... # type: typing___Text
+            time_sync_server_url = ... # type: typing___Text
             use_custom_data_server = ... # type: builtin___bool
             data_server_url = ... # type: typing___Text
             auto_delete_data_files = ... # type: builtin___bool
@@ -309,10 +309,10 @@ class RedvoxPacket1000(google___protobuf___message___Message):
                 redvox_id : typing___Optional[typing___Text] = None,
                 push_to_server : typing___Optional[builtin___bool] = None,
                 publish_data_as_private : typing___Optional[builtin___bool] = None,
-                scrambled_voice_data : typing___Optional[builtin___bool] = None,
+                scramble_voice_data : typing___Optional[builtin___bool] = None,
                 provide_backfill : typing___Optional[builtin___bool] = None,
                 use_custom_time_sync_server : typing___Optional[builtin___bool] = None,
-                time_synch_server_url : typing___Optional[typing___Text] = None,
+                time_sync_server_url : typing___Optional[typing___Text] = None,
                 use_custom_data_server : typing___Optional[builtin___bool] = None,
                 data_server_url : typing___Optional[typing___Text] = None,
                 auto_delete_data_files : typing___Optional[builtin___bool] = None,
@@ -332,9 +332,9 @@ class RedvoxPacket1000(google___protobuf___message___Message):
             def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
             def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
             if sys.version_info >= (3,):
-                def ClearField(self, field_name: typing_extensions___Literal[u"additional_input_sensors",u"audio_sampling_rate",u"audio_source_tuning",u"auto_delete_data_files",u"automatically_record",u"data_server_url",u"launch_at_power_up",u"metadata",u"provide_backfill",u"publish_data_as_private",u"push_to_server",u"redvox_id",u"scrambled_voice_data",u"storage_space_allowance",u"time_synch_server_url",u"use_custom_data_server",u"use_custom_time_sync_server",u"use_latitude",u"use_location_services",u"use_longitude",u"use_sd_card_for_data_storage"]) -> None: ...
+                def ClearField(self, field_name: typing_extensions___Literal[u"additional_input_sensors",u"audio_sampling_rate",u"audio_source_tuning",u"auto_delete_data_files",u"automatically_record",u"data_server_url",u"launch_at_power_up",u"metadata",u"provide_backfill",u"publish_data_as_private",u"push_to_server",u"redvox_id",u"scramble_voice_data",u"storage_space_allowance",u"time_sync_server_url",u"use_custom_data_server",u"use_custom_time_sync_server",u"use_latitude",u"use_location_services",u"use_longitude",u"use_sd_card_for_data_storage"]) -> None: ...
             else:
-                def ClearField(self, field_name: typing_extensions___Literal[u"additional_input_sensors",b"additional_input_sensors",u"audio_sampling_rate",b"audio_sampling_rate",u"audio_source_tuning",b"audio_source_tuning",u"auto_delete_data_files",b"auto_delete_data_files",u"automatically_record",b"automatically_record",u"data_server_url",b"data_server_url",u"launch_at_power_up",b"launch_at_power_up",u"metadata",b"metadata",u"provide_backfill",b"provide_backfill",u"publish_data_as_private",b"publish_data_as_private",u"push_to_server",b"push_to_server",u"redvox_id",b"redvox_id",u"scrambled_voice_data",b"scrambled_voice_data",u"storage_space_allowance",b"storage_space_allowance",u"time_synch_server_url",b"time_synch_server_url",u"use_custom_data_server",b"use_custom_data_server",u"use_custom_time_sync_server",b"use_custom_time_sync_server",u"use_latitude",b"use_latitude",u"use_location_services",b"use_location_services",u"use_longitude",b"use_longitude",u"use_sd_card_for_data_storage",b"use_sd_card_for_data_storage"]) -> None: ...
+                def ClearField(self, field_name: typing_extensions___Literal[u"additional_input_sensors",b"additional_input_sensors",u"audio_sampling_rate",b"audio_sampling_rate",u"audio_source_tuning",b"audio_source_tuning",u"auto_delete_data_files",b"auto_delete_data_files",u"automatically_record",b"automatically_record",u"data_server_url",b"data_server_url",u"launch_at_power_up",b"launch_at_power_up",u"metadata",b"metadata",u"provide_backfill",b"provide_backfill",u"publish_data_as_private",b"publish_data_as_private",u"push_to_server",b"push_to_server",u"redvox_id",b"redvox_id",u"scramble_voice_data",b"scramble_voice_data",u"storage_space_allowance",b"storage_space_allowance",u"time_sync_server_url",b"time_sync_server_url",u"use_custom_data_server",b"use_custom_data_server",u"use_custom_time_sync_server",b"use_custom_time_sync_server",u"use_latitude",b"use_latitude",u"use_location_services",b"use_location_services",u"use_longitude",b"use_longitude",u"use_sd_card_for_data_storage",b"use_sd_card_for_data_storage"]) -> None: ...
 
         device_id = ... # type: typing___Text
         device_uuid = ... # type: typing___Text
