@@ -4,22 +4,23 @@ Provides common classes and methods for interacting with API 1000 protobuf data.
 
 from typing import Any, Dict, List, Optional, Union
 
-import scipy.stats
 from google.protobuf.json_format import MessageToDict, MessageToJson
 import lz4.frame
 import numpy as np
+import scipy.stats
 
-from api1000 import errors as errors
-from api1000.proto import redvox_api_1000_pb2 as redvox_api_1000_pb2
+import redvox.api1000.errors as errors
+import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 NAN: float = float("NaN")
 
 PROTO_TYPES = Union[redvox_api_1000_pb2.RedvoxPacket1000,
-                    redvox_api_1000_pb2.SummaryStatistics,
-                    redvox_api_1000_pb2.MicrophoneChannel,
-                    redvox_api_1000_pb2.SingleChannel,
-                    redvox_api_1000_pb2.XyzChannel,
-                    redvox_api_1000_pb2.LocationChannel]
+                    redvox_api_1000_pb2.RedvoxPacket1000.SummaryStatistics,
+                    redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.MicrophoneChannel,
+                    redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.SingleChannel,
+                    redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.XyzChannel,
+                    redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.LocationChannel,
+                    redvox_api_1000_pb2.RedvoxPacket1000.UserInformation]
 
 EMPTY_ARRAY: np.ndarray = np.array([])
 
@@ -53,7 +54,7 @@ class ProtoBase:
 
 
 class Samples:
-    def __init__(self, samples_proto, sample_statistics_proto: redvox_api_1000_pb2.SummaryStatistics):
+    def __init__(self, samples_proto, sample_statistics_proto: redvox_api_1000_pb2.RedvoxPacket1000.SummaryStatistics):
         self._samples_proto = samples_proto
         self._sample_statistics: SummaryStatistics = SummaryStatistics(
                 sample_statistics_proto)
@@ -162,12 +163,12 @@ class Metadata:
 
 
 class SummaryStatistics(ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.SummaryStatistics):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SummaryStatistics):
         super().__init__(proto)
 
     @staticmethod
     def new() -> 'SummaryStatistics':
-        proto: redvox_api_1000_pb2.SummaryStatistics = redvox_api_1000_pb2.SummaryStatistics()
+        proto: redvox_api_1000_pb2.RedvoxPacket1000.SummaryStatistics = redvox_api_1000_pb2.RedvoxPacket1000.SummaryStatistics()
         return SummaryStatistics(proto)
 
     def get_count(self) -> float:

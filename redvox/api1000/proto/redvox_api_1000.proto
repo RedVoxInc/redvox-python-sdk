@@ -22,6 +22,7 @@ message RedvoxPacket1000 {
         string auth_email = 1;                          // The e-mail the user used to authenticate with
         string auth_token = 2;                          // The JWT token used for authentication
         string firebase_token = 3;                      // The assigned firebase token
+        map<string, string> metadata = 4;               // A map from string to string for including untyped metadata
     }
 
     message DeviceInformation {
@@ -40,6 +41,7 @@ message RedvoxPacket1000 {
         SummaryStatistics available_ram_bytes = 13;     // Available RAM in bytes
         SummaryStatistics available_disk_bytes = 14;    // Available disk space in bytes
         SummaryStatistics cpu_utilization = 15;         // CPU utilization
+        map<string, string> metadata = 16;              // A map from string to string for including untyped metadata
 
         enum NetworkType {
             WIFI = 0;
@@ -75,6 +77,7 @@ message RedvoxPacket1000 {
             bool use_location_services = 18;
             double use_latitude = 19;
             double use_longitude = 20;
+            map<string, string> metadata = 21;                   // A map from string to string for including untyped metadata
 
             enum AudioSamplingRate {
                 HZ_80 = 0;
@@ -104,6 +107,7 @@ message RedvoxPacket1000 {
     message PacketInformation {
         bool is_backfilled = 1;                            // Field for if this packet has been backfilled or not
         bool is_private = 2;                               // Field for if this packet is private to the user or not
+        map<string, string> metadata = 3;                  // A map from string to string for including untyped metadata
     }
 
     message TimingInformation {
@@ -116,6 +120,7 @@ message RedvoxPacket1000 {
         repeated SynchExchange synch_exchanges = 7;        // An array of synchronization params from the synch server
         double best_latency_us = 8;                        // The best latency as determined from the synch params
         double best_offset_us = 9;                         // The best offset as determined from the synch params
+        map<string, string> metadata = 10;                   // A map from string to string for including untyped metadata
 
         message SynchExchange {
             double a1 = 1;
@@ -124,6 +129,7 @@ message RedvoxPacket1000 {
             double b1 = 4;
             double b2 = 5;
             double b3 = 6;
+            map<string, string> metadata = 7;                   // A map from string to string for including untyped metadata
         }
     }
 
@@ -137,6 +143,7 @@ message RedvoxPacket1000 {
         SingleChannel light_channel = 7;                   // The light channel
         SingleChannel infrared_channel = 8;                // The infrared channel
         ImageChannel image_channel = 9;                    // The image channel
+        map<string, string> metadata = 10;                 // A map from string to string for including untyped metadata
 
         message MicrophoneChannel {
             string sensor_description = 1;                      // The name or description of the microphone sensor
