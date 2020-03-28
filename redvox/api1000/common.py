@@ -2,7 +2,7 @@
 Provides common classes and methods for interacting with API 1000 protobuf data.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from google.protobuf.json_format import MessageToDict, MessageToJson
 import lz4.frame
@@ -28,8 +28,8 @@ EMPTY_ARRAY: np.ndarray = np.array([])
 
 
 class ProtoBase:
-    def __init__(self, proto: PROTO_TYPES):
-        self._proto: PROTO_TYPES = proto
+    def __init__(self, proto):
+        self._proto = proto
         self._metadata: 'Metadata' = Metadata(self._proto.metadata)
 
     def get_proto(self) -> PROTO_TYPES:
@@ -313,3 +313,26 @@ def lz4_compress(data: bytes) -> bytes:
 
 def lz4_decompress(data: bytes) -> bytes:
     return lz4.frame.decompress(data, True)
+
+
+def check_type(value: Any,
+               valid_types: List[Any],
+               exception: Optional[Callable[[str], errors.Api1000Error]] = None,
+               additional_info: Optional[str] = None) -> None:
+
+    for valid_type in valid_types:
+        if isinstance(value, valid_type):
+            return None
+
+    type_names: List[str] = list(map(lambda valid_type: f"'{valid_type.__name__}'", valid_types))
+    message: str = f"Expected type(s) {' or '.join(type_names)}," \
+                   f" but found '{type(value).__name__}'."
+
+    if additional_info is not None:
+        message += f" ({additional_info})"
+
+    if exception is not None:
+        raise exception(message)
+    else:
+        raise errors.Api1000TypeError(message)
+

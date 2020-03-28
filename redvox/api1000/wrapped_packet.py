@@ -9,12 +9,14 @@ from typing import Optional
 import numpy as np
 
 import redvox.api1000.common as common
+import redvox.api1000.device_information as _device_information
 import redvox.api1000.errors as errors
 import redvox.api1000.location_channel as _location_channel
 import redvox.api1000.microphone_channel as _microphone_channel
 import redvox.api1000.single_channel as _single_channel
 import redvox.api1000.xyz_channel as _xyz_channel
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
+import redvox.api1000.user_information as _user_information
 
 
 
@@ -22,6 +24,8 @@ import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def __init__(self, redvox_proto: redvox_api_1000_pb2.RedvoxPacket1000):
         super().__init__(redvox_proto)
+        self._user_information: _user_information.UserInformation = _user_information.UserInformation(redvox_proto.user_information)
+        self._device_information: _device_information.DeviceInformation = _device_information.DeviceInformation(redvox_proto.device_information)
 
     @staticmethod
     def new() -> 'WrappedRedvoxPacketApi1000':
@@ -94,10 +98,23 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
         self._proto.api = api
         return self
 
+    def get_user_information(self) -> _user_information.UserInformation:
+        pass
 
+    def set_user_information(self) -> 'WrappedRedvoxPacketApi1000':
+        pass
 
+    def new_user_information(self) -> _user_information.UserInformation:
+        pass
 
+    def get_device_information(self) -> _device_information.DeviceInformation:
+        pass
 
+    def set_device_information(self) -> 'WrappedRedvoxPacketApi1000':
+        pass
+
+    def new_device_information(self) -> _device_information.DeviceInformation:
+        pass
 
     # Packet information
     def get_is_backfilled(self) -> bool:
