@@ -13,8 +13,9 @@ message RedvoxPacket1000 {
     DeviceInformation device_information = 3;           // Device information
     PacketInformation packet_information = 4;           // Packet information
     TimingInformation timing_information = 5;           // Timing information
-    SensorChannels sensor_channels = 6;                 // Sensor channels
-    map<string, string> metadata = 7;                   // A map from string to string for including untyped metadata
+    ServerInformation server_information = 6;
+    SensorChannels sensor_channels = 7;                 // Sensor channels
+    map<string, string> metadata = 8;                   // A map from string to string for including untyped metadata
 
     // --------- The rest of this message contains embedded message types
 
@@ -131,6 +132,13 @@ message RedvoxPacket1000 {
             double b3 = 6;
             map<string, string> metadata = 7;                   // A map from string to string for including untyped metadata
         }
+    }
+
+    message ServerInformation {
+        string auth_server_url = 1;
+        string synch_server_url = 2;
+        string acquisition_server_url = 3;
+        map<string, string> metadata = 4;                   // A map from string to string for including untyped metadata
     }
 
     message SensorChannels {

@@ -2,7 +2,6 @@
 This module provides a high level API for creating, reading, and editing RedVox compliant API 1000 files.
 """
 
-import enum
 import os.path
 from typing import Optional
 
@@ -13,19 +12,29 @@ import redvox.api1000.device_information as _device_information
 import redvox.api1000.errors as errors
 import redvox.api1000.location_channel as _location_channel
 import redvox.api1000.microphone_channel as _microphone_channel
+import redvox.api1000.packet_information as _packet_information
 import redvox.api1000.single_channel as _single_channel
+import redvox.api1000.timing_information as _timing_information
 import redvox.api1000.xyz_channel as _xyz_channel
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 import redvox.api1000.user_information as _user_information
 
 
-
-
 class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def __init__(self, redvox_proto: redvox_api_1000_pb2.RedvoxPacket1000):
         super().__init__(redvox_proto)
-        self._user_information: _user_information.UserInformation = _user_information.UserInformation(redvox_proto.user_information)
-        self._device_information: _device_information.DeviceInformation = _device_information.DeviceInformation(redvox_proto.device_information)
+
+        self._user_information: _user_information.UserInformation = _user_information.UserInformation(
+            redvox_proto.user_information)
+
+        self._device_information: _device_information.DeviceInformation = _device_information.DeviceInformation(
+            redvox_proto.device_information)
+
+        self._packet_information: _packet_information.PacketInformation = _packet_information.PacketInformation(
+            redvox_proto.packet_information)
+
+        self._timing_information: _timing_information.TimingInformation = _timing_information.TimingInformation(
+            redvox_proto.timing_information)
 
     @staticmethod
     def new() -> 'WrappedRedvoxPacketApi1000':
@@ -87,7 +96,7 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
         with open(os.path.join(base_dir, filename), "w") as json_out:
             json_out.write(self.as_json())
 
-    # API Version
+    # Top-level packet fields
     def get_api(self) -> int:
         return self._proto.api
 
@@ -116,36 +125,14 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def new_device_information(self) -> _device_information.DeviceInformation:
         pass
 
-    # Packet information
-    def get_is_backfilled(self) -> bool:
-        return self._proto.is_backfilled
+    def get_packet_information(self) -> _packet_information.PacketInformation:
+        pass
 
-    def set_is_backfilled(self, is_backfilled: bool) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(is_backfilled, bool):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A boolean is required, but a "
-                                                         f"{type(is_backfilled)}={is_backfilled} was provided")
-        self._proto.is_backfilled = is_backfilled
-        return self
+    def set_packet_information(self) -> 'WrappedRedvoxPacketApi1000':
+        pass
 
-    def get_is_private(self) -> bool:
-        return self._proto.is_private
-
-    def set_is_private(self, is_private: bool) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(is_private, bool):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A boolean is required, but a "
-                                                         f"{type(is_private)}={is_private} was provided")
-        self._proto.is_private = is_private
-        return self
-
-    def get_is_mic_scrambled(self) -> bool:
-        return self._proto.is_mic_scrambled
-
-    def set_is_mic_scrambled(self, is_mic_scrambled: bool) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(is_mic_scrambled, bool):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A boolean is required, but a "
-                                                         f"{type(is_mic_scrambled)}={is_mic_scrambled} was provided")
-        self._proto.is_mic_scrambled = is_mic_scrambled
-        return self
+    def new_packet_information(self) -> _packet_information.PacketInformation:
+        pass
 
     # Server information
     def get_auth_server_url(self) -> str:
@@ -184,119 +171,7 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
         self._proto.acquisition_server_url = acquisition_server_url
         return self
 
-    # Timing information
-    def get_packet_start_ts_us_wall(self) -> float:
-        return self._proto.packet_start_ts_us_wall
 
-    def set_packet_start_ts_us_wall(self, packet_start_ts_us_wall: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(packet_start_ts_us_wall):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(packet_start_ts_us_wall)}={packet_start_ts_us_wall} was "
-                                                         f"provided")
-        self._proto.packet_start_ts_us_wall = packet_start_ts_us_wall
-        return self
-
-    def get_packet_start_ts_us_mach(self) -> float:
-        return self._proto.packet_start_ts_us_mach
-
-    def set_packet_start_ts_us_mach(self, packet_start_ts_us_mach: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(packet_start_ts_us_mach):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(packet_start_ts_us_mach)}={packet_start_ts_us_mach} was "
-                                                         f"provided")
-        self._proto.packet_start_ts_us_mach = packet_start_ts_us_mach
-        return self
-
-    def get_packet_end_ts_us_wall(self) -> float:
-        return self._proto.packet_end_ts_us_wall
-
-    def set_packet_end_ts_us_wall(self, packet_end_ts_us_wall: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(packet_end_ts_us_wall):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(packet_end_ts_us_wall)}={packet_end_ts_us_wall} was "
-                                                         f"provided")
-        self._proto.packet_end_ts_us_wall = packet_end_ts_us_wall
-        return self
-
-    def get_packet_end_ts_us_mach(self) -> float:
-        return self._proto.packet_end_ts_us_mach
-
-    def set_packet_end_ts_us_mach(self, packet_end_ts_us_mach: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(packet_end_ts_us_mach):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(packet_end_ts_us_mach)}={packet_end_ts_us_mach} was "
-                                                         f"provided")
-        self._proto.packet_end_ts_us_mach = packet_end_ts_us_mach
-        return self
-
-    def get_server_acquisition_arrival_ts_us(self) -> float:
-        return self._proto.server_acquisition_arrival_ts_us
-
-    def set_server_acquisition_arrival_ts_us(self, server_acquisition_arrival_ts_us: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(server_acquisition_arrival_ts_us):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(server_acquisition_arrival_ts_us)}="
-                                                         f"{server_acquisition_arrival_ts_us} was "
-                                                         f"provided")
-        self._proto.server_acquisition_arrival_ts_us = server_acquisition_arrival_ts_us
-        return self
-
-    def get_app_start_ts_us_mach(self) -> float:
-        return self._proto.app_start_ts_us_mach
-
-    def set_app_start_ts_us_mach(self, app_start_ts_us_mach: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(app_start_ts_us_mach):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(app_start_ts_us_mach)}="
-                                                         f"{app_start_ts_us_mach} was "
-                                                         f"provided")
-        self._proto.app_start_ts_us_mach = app_start_ts_us_mach
-        return self
-
-    def get_synch_params(self) -> np.ndarray:
-        return np.array(self._proto.synch_params)
-
-    def set_synch_params(self, synch_params: np.ndarray) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_repeated_numerical_type(synch_params):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A numpy array of floats or integers is required, but a "
-                                                         f"{type(synch_params)}={synch_params} was provided")
-        self._proto.synch_params[:] = list(synch_params)
-        return self
-
-    def append_synch_params(self, synch_params: np.ndarray) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_repeated_numerical_type(synch_params):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A numpy array of floats or integers is required, but a "
-                                                         f"{type(synch_params)}={synch_params} was provided")
-        self._proto.synch_params.extend(list(synch_params))
-        return self
-
-    def clear_synch_params(self) -> 'WrappedRedvoxPacketApi1000':
-        self._proto.synch_params[:] = []
-        return self
-
-    def get_best_latency_us(self) -> float:
-        return self._proto.best_latency_us
-
-    def set_best_latency_us(self, best_latency_us: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(best_latency_us):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(best_latency_us)}="
-                                                         f"{best_latency_us} was "
-                                                         f"provided")
-        self._proto.best_latency_us = best_latency_us
-        return self
-
-    def get_best_offset_us(self) -> float:
-        return self._proto.best_offset_us
-
-    def set_best_offset_us(self, best_offset_us: float) -> 'WrappedRedvoxPacketApi1000':
-        if not common.is_protobuf_numerical_type(best_offset_us):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a "
-                                                         f"{type(best_offset_us)}="
-                                                         f"{best_offset_us} was "
-                                                         f"provided")
-        self._proto.best_offset_us = best_offset_us
-        return self
 
     # Channels
     def new_microphone_channel(self) -> _microphone_channel.MicrophoneChannel:
@@ -312,7 +187,8 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
 
         return _microphone_channel.MicrophoneChannel(self._proto.microphone_channel)
 
-    def set_microphone_channel(self, microphone_channel: _microphone_channel.MicrophoneChannel) -> 'WrappedRedvoxPacketApi1000':
+    def set_microphone_channel(self,
+                               microphone_channel: _microphone_channel.MicrophoneChannel) -> 'WrappedRedvoxPacketApi1000':
         if not isinstance(microphone_channel, _microphone_channel.MicrophoneChannel):
             raise errors.WrappedRedvoxPacketApi1000Error(f"An instance of a MicrophoneChannel is required, but a "
                                                          f"{type(microphone_channel)}={microphone_channel} was "
