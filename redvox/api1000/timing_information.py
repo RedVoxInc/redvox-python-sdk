@@ -8,6 +8,10 @@ class SynchExchange(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.TimingInformation.SynchExchange):
         super().__init__(proto)
 
+    @staticmethod
+    def new() -> 'SynchExchange':
+        return SynchExchange(redvox_api_1000_pb2.RedvoxPacket1000.TimingInformation.SynchExchange())
+
     def get_a1(self) -> float:
         return self._proto.a1
 
@@ -60,6 +64,10 @@ class SynchExchange(common.ProtoBase):
 class TimingInformation(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.TimingInformation):
         super().__init__(proto)
+
+    @staticmethod
+    def new() -> 'TimingInformation':
+        return TimingInformation(redvox_api_1000_pb2.RedvoxPacket1000.TimingInformation())
 
     def get_packet_start_ts_us_wall(self) -> float:
         return self._proto.packet_start_ts_us_wall

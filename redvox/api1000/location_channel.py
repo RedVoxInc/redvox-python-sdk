@@ -13,18 +13,24 @@ class LocationProvider(enum.Enum):
 
 
 class LocationChannel(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.LocationChannel):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.LocationChannel):
         super().__init__(proto)
-        self._sample_ts_us: common.Samples = common.Samples(self._proto.sample_ts_us, self._proto.sample_ts_statistics)
-        self._latitude_samples: common.Samples = common.Samples(self._proto.latitude_samples, self._proto.latitude_sample_statistics)
-        self._longitude_samples: common.Samples = common.Samples(self._proto.longitude_samples, self._proto.longitude_sample_statistics)
-        self._altitude_samples: common.Samples = common.Samples(self._proto.altitude_samples, self._proto.accuracy_sample_statistics)
-        self._speed_samples: common.Samples = common.Samples(self._proto.speed_samples, self._proto.speed_sample_statistics)
-        self._accuracy_samples: common.Samples = common.Samples(self._proto.accuracy_Samples, self._proto.accuracy_sample_statistics)
+        self._sample_ts_us: common.Samples = common.Samples(self._proto.sample_ts_us,
+                                                            self._proto.sample_ts_statistics)
+        self._latitude_samples: common.Samples = common.Samples(self._proto.latitude_samples,
+                                                                self._proto.latitude_sample_statistics)
+        self._longitude_samples: common.Samples = common.Samples(self._proto.longitude_samples,
+                                                                 self._proto.longitude_sample_statistics)
+        self._altitude_samples: common.Samples = common.Samples(self._proto.altitude_samples,
+                                                                self._proto.accuracy_sample_statistics)
+        self._speed_samples: common.Samples = common.Samples(self._proto.speed_samples,
+                                                             self._proto.speed_sample_statistics)
+        self._accuracy_samples: common.Samples = common.Samples(self._proto.accuracy_Samples,
+                                                                self._proto.accuracy_sample_statistics)
 
     @staticmethod
     def new() -> 'LocationChannel':
-        return LocationChannel(redvox_api_1000_pb2.LocationChannel())
+        return LocationChannel(redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.LocationChannel())
 
     def get_sensor_description(self) -> str:
         return self._proto.sensor_description
@@ -82,7 +88,8 @@ class LocationChannel(common.ProtoBase):
                                               f"{type(location_provider)}={location_provider} "
                                               f"was provided")
 
-        self._proto.location_provider = redvox_api_1000_pb2.LocationChannel.LocationProvider.Value(location_provider.name)
+        self._proto.location_provider = redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.LocationChannel\
+            .LocationProvider.Value(location_provider.name)
         return self
 
     def get_sample_ts_us(self) -> common.Samples:
@@ -106,7 +113,7 @@ class LocationChannel(common.ProtoBase):
     def get_accuracy_samples(self) -> common.Samples:
         return self._accuracy_samples
 
-    
-    
+
+
 
 
