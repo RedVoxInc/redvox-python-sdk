@@ -4,14 +4,14 @@ import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
 class SingleChannel(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.SingleChannel):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.SingleChannel):
         super().__init__(proto)
         self._samples: common.Samples = common.Samples(self._proto.samples, self._proto.sample_statistics)
         self._sample_ts_us: common.Samples = common.Samples(self._proto.sample_ts_us, self._proto.sample_ts_statistics)
 
     @staticmethod
     def new() -> 'SingleChannel':
-        return SingleChannel(redvox_api_1000_pb2.SingleChannel())
+        return SingleChannel(redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.SingleChannel())
 
     def get_sensor_description(self) -> str:
         return self._proto.sensor_description

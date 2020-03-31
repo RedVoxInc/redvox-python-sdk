@@ -4,13 +4,14 @@ import redvox.api1000.common as common
 
 
 class MicrophoneChannel(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.MicrophoneChannel):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.MicrophoneChannel):
         super().__init__(proto)
         self._samples: common.Samples = common.Samples(self._proto.samples, self._proto.sample_statistics)
 
     @staticmethod
     def new() -> 'MicrophoneChannel':
-        mic_pb: redvox_api_1000_pb2.MicrophoneChannel = redvox_api_1000_pb2.MicrophoneChannel()
+        mic_pb: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.MicrophoneChannel \
+            = redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.MicrophoneChannel()
         return MicrophoneChannel(mic_pb)
 
     def get_sensor_description(self) -> str:
