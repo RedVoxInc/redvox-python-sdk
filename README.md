@@ -6,6 +6,10 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.8.0 (2020-03-31)
+
+* Added a migration module that allows users to slowly begin migrating API 900 data towards API 1000. A flag can be set either through the API or by setting an environment variable `ENABLE_MIGRATIONS="1"`. When enabled, all getters for numeric types will return floating point values (the only numeric type in API 1000).
+
 ### 2.7.9 (2020-03-25)
 
 * Added properties: server_acquisition_times, packet_duration and mach_time_zero to `redvox/api900/timesync/api900_timesync.py` to assist with analyzing time sync data
