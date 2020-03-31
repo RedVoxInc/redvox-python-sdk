@@ -361,7 +361,7 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return migrations.maybe_convert_to_float(self._redvox_packet.api)
+        return migrations.maybe_get_float(self._redvox_packet.api)
 
     def set_api(self, version: int) -> 'WrappedRedvoxPacket':
         """
@@ -648,7 +648,7 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return migrations.maybe_convert_to_float(self._redvox_packet.app_file_start_timestamp_epoch_microseconds_utc)
+        return migrations.maybe_get_float(self._redvox_packet.app_file_start_timestamp_epoch_microseconds_utc)
 
     def set_app_file_start_timestamp_epoch_microseconds_utc(self, time: int) -> 'WrappedRedvoxPacket':
         """
@@ -664,7 +664,7 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return migrations.maybe_convert_to_float(self._redvox_packet.app_file_start_timestamp_machine)
+        return migrations.maybe_get_float(self._redvox_packet.app_file_start_timestamp_machine)
 
     def set_app_file_start_timestamp_machine(self, time: int) -> 'WrappedRedvoxPacket':
         """
@@ -680,7 +680,7 @@ class WrappedRedvoxPacket:
         See https://bitbucket.org/redvoxhi/redvox-data-apis/src/master/src/api900/api900.proto?at=master for a
         description of this field.
         """
-        return migrations.maybe_convert_to_float(self._redvox_packet.server_timestamp_epoch_microseconds_utc)
+        return migrations.maybe_get_float(self._redvox_packet.server_timestamp_epoch_microseconds_utc)
 
     def set_server_timestamp_epoch_microseconds_utc(self, time: int) -> 'WrappedRedvoxPacket':
         """
@@ -746,7 +746,7 @@ class WrappedRedvoxPacket:
         Returns the start timestamp of a WrappedRedvoxPacket.
         :return: The start timestamp of a WrappedRedvoxPacket.
         """
-        return migrations.maybe_convert_to_float(
+        return migrations.maybe_get_float(
             self.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc())
 
     def duration_s(self) -> float:
@@ -780,7 +780,7 @@ class WrappedRedvoxPacket:
         :return: The mach time zero from the metadata if it exists.
         """
         try:
-            return migrations.maybe_convert_to_float(int(self.metadata_as_dict()["machTimeZero"]))
+            return migrations.maybe_get_float(int(self.metadata_as_dict()["machTimeZero"]))
         except (KeyError, ValueError):
             return None
 

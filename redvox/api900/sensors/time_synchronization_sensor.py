@@ -42,7 +42,7 @@ class TimeSynchronizationSensor:
         Returns the time synchronization exchanges as a numpy ndarray of integers.
         :return: The time synchronization exchanges as a numpy ndarray of integers.
         """
-        return migrations.maybe_convert_to_float(
+        return migrations.maybe_get_float(
             self._unevenly_sampled_channel.get_payload(api900_pb2.TIME_SYNCHRONIZATION))
 
     def set_payload_values(self, payload: typing.Union[typing.List[int], numpy.ndarray]) -> 'TimeSynchronizationSensor':

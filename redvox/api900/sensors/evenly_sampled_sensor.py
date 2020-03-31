@@ -57,7 +57,7 @@ class EvenlySampledSensor:
         Return the first sample timestamp in microseconds since the epoch UTC.
         :return: The first sample timestamp in microseconds since the epoch UTC.
         """
-        return migrations.maybe_convert_to_float(self._evenly_sampled_channel.first_sample_timestamp_epoch_microseconds_utc)
+        return migrations.maybe_get_float(self._evenly_sampled_channel.first_sample_timestamp_epoch_microseconds_utc)
 
     def set_first_sample_timestamp_epoch_microseconds_utc(self, time: int) -> 'EvenlySampledSensor':
         """

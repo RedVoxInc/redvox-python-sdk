@@ -227,7 +227,7 @@ class InterleavedChannel:
             return reader_utils.empty_array()
         try:
             payload: numpy.ndarray = reader_utils.deinterleave_array(self.payload, idx, len(self.channel_types))
-            return migrations.maybe_convert_to_float(payload)
+            return migrations.maybe_get_float(payload)
         except exceptions.ReaderException:
             return reader_utils.empty_array()
 
