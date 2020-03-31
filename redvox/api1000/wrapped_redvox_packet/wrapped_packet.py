@@ -5,20 +5,15 @@ This module provides a high level API for creating, reading, and editing RedVox 
 import os.path
 from typing import Optional
 
-import numpy as np
-
 import redvox.api1000.common as common
-import redvox.api1000.device_information as _device_information
+import redvox.api1000.wrapped_redvox_packet.device_information as _device_information
 import redvox.api1000.errors as errors
-import redvox.api1000.location_channel as _location_channel
-import redvox.api1000.microphone_channel as _microphone_channel
-import redvox.api1000.packet_information as _packet_information
-import redvox.api1000.single_channel as _single_channel
-import redvox.api1000.server_information as _server_information
-import redvox.api1000.timing_information as _timing_information
-import redvox.api1000.xyz_channel as _xyz_channel
+import redvox.api1000.wrapped_redvox_packet.packet_information as _packet_information
+import redvox.api1000.wrapped_redvox_packet.sensor_channels.sensor_channels as _sensor_channels
+import redvox.api1000.wrapped_redvox_packet.server_information as _server_information
+import redvox.api1000.wrapped_redvox_packet.timing_information as _timing_information
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
-import redvox.api1000.user_information as _user_information
+import redvox.api1000.wrapped_redvox_packet.user_information as _user_information
 
 
 class WrappedRedvoxPacketApi1000(common.ProtoBase):
@@ -39,6 +34,9 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
 
         self._server_information: _server_information.ServerInformation = _server_information.ServerInformation(
             redvox_proto.server_information)
+
+        self._sensor_channels: _sensor_channels.SensorChannels = _sensor_channels.SensorChannels(
+            redvox_proto.sensor_channels)
 
     @staticmethod
     def new() -> 'WrappedRedvoxPacketApi1000':
@@ -147,4 +145,11 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def new_server_information(self) -> _server_information.ServerInformation:
         pass
 
-    # Channels
+    def get_sensor_channels(self) -> None:
+        pass
+
+    def set_sensor_channels(self) -> 'WrappedRedvoxPacketApi1000':
+        pass
+
+    def new_sensor_channels(self) -> 'WrappedRedvoxPacketApi1000':
+        pass

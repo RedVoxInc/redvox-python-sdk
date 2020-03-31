@@ -3,8 +3,7 @@ import unittest
 import numpy as np
 
 import redvox.api1000.common as common
-import redvox.api1000.wrapped_packet as wrapped_packet
-import redvox.api1000.microphone_channel as microphone_channel
+import redvox.api1000.wrapped_redvox_packet.sensor_channels.microphone_channel as microphone_channel
 
 
 class TestCommonProtoBase(unittest.TestCase):
