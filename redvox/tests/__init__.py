@@ -8,6 +8,8 @@ import numpy
 import os
 import unittest
 
+import redvox.api900.migrations as migrations
+
 TEST_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data")
 LA_TEST_DATA_DIR = os.path.join(TEST_DATA_DIR, "location_analyzer_test_data")
 

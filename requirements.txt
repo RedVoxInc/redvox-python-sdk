@@ -1,9 +1,12 @@
 # Requirements for using the RedVox Python SDK.
+fastkml>=0.11
+lxml>=4.5.0
 lz4>=3.0.2
-numpy>=1.18.1
+matplotlib>=3.2.1
+numpy>=1.18.2
+pandas>=1.0.3
 protobuf>=3.11.3
-matplotlib
-requests
-pandas
-fastkml
-scipy
+requests>=2.23.0
+scipy>=1.4.1
+
+

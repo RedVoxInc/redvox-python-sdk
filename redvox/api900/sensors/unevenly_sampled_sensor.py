@@ -6,6 +6,7 @@ import typing
 
 import numpy
 
+import redvox.api900.migrations as migrations
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
 import redvox.api900.reader_utils as reader_utils
 
@@ -63,7 +64,7 @@ class UnevenlySampledSensor:
         Returns a list of ascending timestamps that associate with each sample value
         :return: A list of ascending timestamps that associate with each sample value
         """
-        return self._unevenly_sampled_channel.timestamps_microseconds_utc
+        return migrations.maybe_get_float(self._unevenly_sampled_channel.timestamps_microseconds_utc)
 
     def set_timestamps_microseconds_utc(self, timestamps: typing.Union[
             numpy.ndarray, typing.List[int]]) -> 'UnevenlySampledSensor':
@@ -72,7 +73,7 @@ class UnevenlySampledSensor:
         :param timestamps: a list of ascending timestamps that associate with each sample value
         :return: An instance of the sensor.
         """
-        timestamps = reader_utils.to_array(timestamps)
+        timestamps = migrations.maybe_set_int(reader_utils.to_array(timestamps))
 
         self._unevenly_sampled_channel.set_timestamps_microseconds_utc(timestamps)
         return self

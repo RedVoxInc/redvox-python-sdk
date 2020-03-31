@@ -3,6 +3,7 @@ import unittest
 
 from redvox.api900 import reader
 from redvox.api900.exceptions import ReaderException
+import redvox.api900.migrations as migrations
 from redvox.tests import test_data, TEST_DATA_DIR
 
 import numpy
@@ -540,7 +541,10 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         cloned_packet_2 = self.example_packet.clone()
         cloned_packet_2.set_microphone_sensor(None)
         self.assertEqual([], self.example_packet.diff(self.example_packet))
-        self.assertEqual(["900 != 901"], self.example_packet.diff(cloned_packet))
+        if migrations.are_migrations_enabled():
+            self.assertEqual(["900.0 != 901.0"], self.example_packet.diff(cloned_packet))
+        else:
+            self.assertEqual(["900 != 901"], self.example_packet.diff(cloned_packet))
         self.assertTrue(len(self.example_packet.diff(cloned_packet_2)) > 0)
 
     def test_write_rdvxz(self):

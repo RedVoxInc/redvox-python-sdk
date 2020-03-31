@@ -7,3 +7,6 @@ fi
 
 coverage run -m unittest discover
 coverage html
+
+# Run the tests again with API 1000 migrations turned on
+ENABLE_MIGRATIONS="1" python3 -m unittest discover

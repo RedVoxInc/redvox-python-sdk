@@ -6,3 +6,4 @@ rm -rf build
 rm -rf dist
 rm -rf redvox.egg-info
 rm -rf htmlcov
+rm -rf .coverage

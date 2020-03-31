@@ -4,7 +4,13 @@ This repository contains code for reading and working with the RedVox API 900 da
 
 See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/redvox-api900-docs.md for SDK documentation.
 
+![Bitbucket Pipelines branch](https://img.shields.io/bitbucket/pipelines/redvoxhi/redvox-api900-python-reader/master)
+
 ### Changelog
+
+### 2.8.0 (2020-03-31)
+
+* Added a migration module that allows users to slowly begin migrating API 900 data towards API 1000. A flag can be set either through the API or by setting an environment variable `ENABLE_MIGRATIONS="1"`. When enabled, all getters for numeric types will return floating point values (the only numeric type in API 1000).
 
 ### 2.7.9 (2020-03-25)
 
