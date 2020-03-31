@@ -38,17 +38,17 @@ class MigrationsTests(unittest.TestCase):
         self.scalar_int = 1
         self.scalar_float = 1.0
         self.scalar_str = "foo"
-        self.prev_migration: bool = migrations.get_numeric_types_as_floats()
+        self.prev_migration: bool = migrations.are_migrations_enabled()
 
     def tearDown(self) -> None:
         if self.prev_migration:
-            os.environ["GET_NUMERIC_TYPES_AS_FLOATS"] = "1"
+            migrations.enable_migrations(True)
         else:
-            os.environ["GET_NUMERIC_TYPES_AS_FLOATS"] = ""
+            migrations.enable_migrations(False)
 
     # Since migrations are disabled by default, should always get the same value back
     def test_no_migrations(self):
-        migrations.GET_NUMERIC_TYPES_AS_FLOATS = False
+        migrations.enable_migrations(False)
         self.assertTrue(arrays_equal(self.array_of_ints,
                                      migrations.maybe_get_float(self.array_of_ints)))
         self.assertTrue(arrays_equal(self.array_of_floats,
@@ -65,34 +65,30 @@ class MigrationsTests(unittest.TestCase):
                                       migrations.maybe_get_float(self.scalar_str)))
 
     def test_convert_array_to_float(self):
-        migrations.GET_NUMERIC_TYPES_AS_FLOATS = True
+        migrations.enable_migrations(True)
         self.assertTrue(arrays_equal(self.array_of_floats,
                                      migrations.maybe_get_float(self.array_of_floats)))
         self.assertTrue(arrays_equal(self.array_of_floats,
                                      migrations.maybe_get_float(self.array_of_ints)))
-        migrations.GET_NUMERIC_TYPES_AS_FLOATS = False
 
     def test_convert_list_to_float(self):
-        migrations.GET_NUMERIC_TYPES_AS_FLOATS = True
+        migrations.enable_migrations(True)
         self.assertTrue(lists_equal(self.list_of_floats,
                                     migrations.maybe_get_float(self.list_of_floats)))
         self.assertTrue(lists_equal(self.list_of_floats,
                                     migrations.maybe_get_float(self.list_of_ints)))
-        migrations.GET_NUMERIC_TYPES_AS_FLOATS = False
 
     def test_convert_scalar_to_float(self):
-        migrations.GET_NUMERIC_TYPES_AS_FLOATS = True
+        migrations.enable_migrations(True)
         self.assertTrue(scalars_equal(self.scalar_float,
                                       migrations.maybe_get_float(self.scalar_float)))
         self.assertTrue(scalars_equal(self.scalar_float,
                                       migrations.maybe_get_float(self.scalar_int)))
-        migrations.GET_NUMERIC_TYPES_AS_FLOATS = False
 
     # Bad types should return themselves
     def test_bad_data(self):
-        migrations.GET_NUMERIC_TYPES_AS_FLOATS = True
+        migrations.enable_migrations(True)
         self.assertTrue(scalars_equal(None,
                                       migrations.maybe_get_float(None)))
         self.assertTrue(scalars_equal(self.scalar_str,
                                       migrations.maybe_get_float(self.scalar_str)))
-        migrations.GET_NUMERIC_TYPES_AS_FLOATS = False

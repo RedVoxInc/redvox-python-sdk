@@ -541,7 +541,7 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         cloned_packet_2 = self.example_packet.clone()
         cloned_packet_2.set_microphone_sensor(None)
         self.assertEqual([], self.example_packet.diff(self.example_packet))
-        if migrations.get_numeric_types_as_floats():
+        if migrations.are_migrations_enabled():
             self.assertEqual(["900.0 != 901.0"], self.example_packet.diff(cloned_packet))
         else:
             self.assertEqual(["900 != 901"], self.example_packet.diff(cloned_packet))

@@ -7,13 +7,25 @@ import os
 
 import numpy as np
 
-# When set, all payload values and timestamps will be returned as floating point values.
-GET_NUMERIC_TYPES_AS_FLOATS: bool = False
+
+MIGRATIONS_KEY: str = "ENABLE_MIGRATIONS"
 
 
-def get_numeric_types_as_floats() -> bool:
-    from_env: str = os.getenv("GET_NUMERIC_TYPES_AS_FLOATS", "")
-    return GET_NUMERIC_TYPES_AS_FLOATS or from_env.lower() in ["true", "1"]
+def are_migrations_enabled() -> bool:
+    from_env: str = os.getenv(MIGRATIONS_KEY, "")
+    return from_env.lower() in ["true", "1"]
+
+
+def enable_migrations(enable: bool) -> bool:
+    prev_val: bool = are_migrations_enabled()
+
+    if enable:
+        os.environ[MIGRATIONS_KEY] = "1"
+    else:
+        if MIGRATIONS_KEY in os.environ:
+            del os.environ[MIGRATIONS_KEY]
+
+    return prev_val
 
 
 NumericLike = Union[
@@ -26,7 +38,7 @@ NumericLike = Union[
 
 
 def maybe_get_float(data: NumericLike) -> NumericLike:
-    if not get_numeric_types_as_floats():
+    if not are_migrations_enabled():
         return data
 
     if isinstance(data, np.ndarray):
@@ -43,7 +55,7 @@ def maybe_get_float(data: NumericLike) -> NumericLike:
 
 
 def maybe_set_int(data: NumericLike) -> NumericLike:
-    if not get_numeric_types_as_floats():
+    if not are_migrations_enabled():
         return data
 
     if isinstance(data, np.ndarray):
