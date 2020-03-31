@@ -8,6 +8,7 @@ import numpy
 
 import redvox.api900.constants as constants
 import redvox.api900.lib.api900_pb2 as api900_pb2
+import redvox.api900.migrations as migrations
 import redvox.api900.reader_utils as reader_utils
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
 
@@ -41,7 +42,8 @@ class TimeSynchronizationSensor:
         Returns the time synchronization exchanges as a numpy ndarray of integers.
         :return: The time synchronization exchanges as a numpy ndarray of integers.
         """
-        return self._unevenly_sampled_channel.get_payload(api900_pb2.TIME_SYNCHRONIZATION)
+        return migrations.maybe_convert_to_float(
+            self._unevenly_sampled_channel.get_payload(api900_pb2.TIME_SYNCHRONIZATION))
 
     def set_payload_values(self, payload: typing.Union[typing.List[int], numpy.ndarray]) -> 'TimeSynchronizationSensor':
         """

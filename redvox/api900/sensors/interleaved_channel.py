@@ -9,6 +9,7 @@ import numpy
 import redvox.api900.constants as constants
 import redvox.api900.exceptions as exceptions
 import redvox.api900.lib.api900_pb2 as api900_pb2
+import redvox.api900.migrations as migrations
 import redvox.api900.reader_utils as reader_utils
 import redvox.api900.stat_utils as stat_utils
 
@@ -225,7 +226,8 @@ class InterleavedChannel:
         if idx < 0:
             return reader_utils.empty_array()
         try:
-            return reader_utils.deinterleave_array(self.payload, idx, len(self.channel_types))
+            payload: numpy.ndarray = reader_utils.deinterleave_array(self.payload, idx, len(self.channel_types))
+            return migrations.maybe_convert_to_float(payload)
         except exceptions.ReaderException:
             return reader_utils.empty_array()
 

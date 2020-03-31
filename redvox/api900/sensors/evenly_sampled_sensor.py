@@ -4,6 +4,7 @@ This module contains classes and methods for working with evenly sampled sensors
 
 import typing
 
+import redvox.api900.migrations as migrations
 from redvox.api900.sensors.evenly_sampled_channel import EvenlySampledChannel
 import redvox.api900.reader_utils as reader_utils
 
@@ -56,7 +57,7 @@ class EvenlySampledSensor:
         Return the first sample timestamp in microseconds since the epoch UTC.
         :return: The first sample timestamp in microseconds since the epoch UTC.
         """
-        return self._evenly_sampled_channel.first_sample_timestamp_epoch_microseconds_utc
+        return migrations.maybe_convert_to_float(self._evenly_sampled_channel.first_sample_timestamp_epoch_microseconds_utc)
 
     def set_first_sample_timestamp_epoch_microseconds_utc(self, time: int) -> 'EvenlySampledSensor':
         """
