@@ -11,7 +11,7 @@ import numpy as np
 GET_NUMERIC_TYPES_AS_FLOATS: bool = False
 
 
-def __get_numeric_types_as_floats() -> bool:
+def get_numeric_types_as_floats() -> bool:
     from_env: str = os.getenv("GET_NUMERIC_TYPES_AS_FLOATS", "")
     return GET_NUMERIC_TYPES_AS_FLOATS or from_env.lower() in ["true", "1"]
 
@@ -26,7 +26,7 @@ NumericLike = Union[
 
 
 def maybe_get_float(data: NumericLike) -> NumericLike:
-    if not __get_numeric_types_as_floats():
+    if not get_numeric_types_as_floats():
         return data
 
     if isinstance(data, np.ndarray):
@@ -43,11 +43,11 @@ def maybe_get_float(data: NumericLike) -> NumericLike:
 
 
 def maybe_set_int(data: NumericLike) -> NumericLike:
-    if not __get_numeric_types_as_floats():
+    if not get_numeric_types_as_floats():
         return data
 
     if isinstance(data, np.ndarray):
-        return data.astype(np.int64)
+        return data.astype(np.int32)
 
     if isinstance(data, list):
         return list(map(int, data))

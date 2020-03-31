@@ -65,7 +65,7 @@ class EvenlySampledSensor:
         :param time: microseconds since utc
         :return: An instance of the sensor.
         """
-        self._evenly_sampled_channel.set_first_sample_timestamp_epoch_microseconds_utc(time)
+        self._evenly_sampled_channel.set_first_sample_timestamp_epoch_microseconds_utc(migrations.maybe_set_int(time))
         return self
 
     def sensor_name(self) -> str:

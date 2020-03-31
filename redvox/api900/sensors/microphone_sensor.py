@@ -9,6 +9,7 @@ import numpy
 import redvox.api900.constants as constants
 import redvox.api900.exceptions as exceptions
 import redvox.api900.lib.api900_pb2 as api900_pb2
+import redvox.api900.migrations as migrations
 from redvox.api900.sensors.evenly_sampled_channel import EvenlySampledChannel
 from redvox.api900.sensors.evenly_sampled_sensor import EvenlySampledSensor
 
@@ -36,7 +37,7 @@ class MicrophoneSensor(EvenlySampledSensor):
         :param microphone_payload: Payload values.
         :return: An instance of the sensor.
         """
-        self._evenly_sampled_channel.set_payload(microphone_payload, constants.PayloadType.INT32_PAYLOAD)
+        self._evenly_sampled_channel.set_payload(migrations.maybe_set_int(microphone_payload), constants.PayloadType.INT32_PAYLOAD)
         return self
 
     def payload_values(self) -> numpy.ndarray:

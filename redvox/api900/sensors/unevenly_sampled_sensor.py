@@ -73,7 +73,7 @@ class UnevenlySampledSensor:
         :param timestamps: a list of ascending timestamps that associate with each sample value
         :return: An instance of the sensor.
         """
-        timestamps = reader_utils.to_array(timestamps)
+        timestamps = migrations.maybe_set_int(reader_utils.to_array(timestamps))
 
         self._unevenly_sampled_channel.set_timestamps_microseconds_utc(timestamps)
         return self

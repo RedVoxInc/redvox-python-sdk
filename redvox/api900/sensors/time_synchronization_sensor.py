@@ -51,7 +51,8 @@ class TimeSynchronizationSensor:
         :param payload: The payload.
         :return: An instance of the sensor.
         """
-        self._unevenly_sampled_channel.set_payload(payload, constants.PayloadType.INT64_PAYLOAD)
+        self._unevenly_sampled_channel.set_payload(migrations.maybe_set_int(payload),
+                                                   constants.PayloadType.INT64_PAYLOAD)
         return self
 
     def metadata(self) -> typing.List[str]:

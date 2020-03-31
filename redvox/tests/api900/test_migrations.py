@@ -1,4 +1,5 @@
 from typing import Any, List
+import os
 import unittest
 
 import redvox.api900.migrations as migrations
@@ -37,6 +38,13 @@ class MigrationsTests(unittest.TestCase):
         self.scalar_int = 1
         self.scalar_float = 1.0
         self.scalar_str = "foo"
+        self.prev_migration: bool = migrations.get_numeric_types_as_floats()
+
+    def tearDown(self) -> None:
+        if self.prev_migration:
+            os.environ["GET_NUMERIC_TYPES_AS_FLOATS"] = "1"
+        else:
+            os.environ["GET_NUMERIC_TYPES_AS_FLOATS"] = ""
 
     # Since migrations are disabled by default, should always get the same value back
     def test_no_migrations(self):

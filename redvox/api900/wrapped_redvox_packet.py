@@ -655,7 +655,7 @@ class WrappedRedvoxPacket:
         sets the timestamp of packet creation
         :param time: time when packet was created in microseconds since utc epoch
         """
-        self._redvox_packet.app_file_start_timestamp_epoch_microseconds_utc = time
+        self._redvox_packet.app_file_start_timestamp_epoch_microseconds_utc = migrations.maybe_set_int(time)
         return self
 
     # pylint: disable=invalid-name
@@ -671,7 +671,7 @@ class WrappedRedvoxPacket:
         sets the internal machine timestamp of packet creation
         :param time: time when packet was created on local machine
         """
-        self._redvox_packet.app_file_start_timestamp_machine = time
+        self._redvox_packet.app_file_start_timestamp_machine = migrations.maybe_set_int(time)
         return self
 
     # pylint: disable=invalid-name
