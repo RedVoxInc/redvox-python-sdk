@@ -37,7 +37,8 @@ class MicrophoneSensor(EvenlySampledSensor):
         :param microphone_payload: Payload values.
         :return: An instance of the sensor.
         """
-        self._evenly_sampled_channel.set_payload(migrations.maybe_set_int(microphone_payload), constants.PayloadType.INT32_PAYLOAD)
+        self._evenly_sampled_channel.set_payload(migrations.maybe_set_int(microphone_payload),
+                                                 constants.PayloadType.INT32_PAYLOAD)
         return self
 
     def payload_values(self) -> numpy.ndarray:
