@@ -4,6 +4,8 @@ This repository contains code for reading and working with the RedVox API 900 da
 
 See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/redvox-api900-docs.md for SDK documentation.
 
+![Bitbucket Pipelines branch](https://img.shields.io/bitbucket/pipelines/redvoxhi/redvox-api900-python-reader/master)
+
 ### Changelog
 
 ### 2.8.0 (2020-03-31)
