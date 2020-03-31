@@ -1,5 +1,5 @@
 """
-This module provides functions and utilities for slowing migrating API 900 towards API 1000.
+This module provides functions and utilities for slowly migrating API 900 towards API 1000.
 """
 
 from typing import List, Optional, Union
@@ -12,11 +12,20 @@ MIGRATIONS_KEY: str = "ENABLE_MIGRATIONS"
 
 
 def are_migrations_enabled() -> bool:
+    """
+    Returns True if migrations are enabled, False otherwise.
+    :return: True if migrations are enabled, False otherwise.
+    """
     from_env: str = os.getenv(MIGRATIONS_KEY, "")
     return from_env.lower() in ["true", "1"]
 
 
 def enable_migrations(enable: bool) -> bool:
+    """
+    Either enable or disable migrations by setting or unsetting a global environment variable.
+    :param enable: True to enable migrations, False otherwise.
+    :return: The previous migration value setting.
+    """
     prev_val: bool = are_migrations_enabled()
 
     if enable:
@@ -38,6 +47,13 @@ NumericLike = Union[
 
 
 def maybe_get_float(data: NumericLike) -> NumericLike:
+    """
+    If migrations are enabled, converts integer arrays, lists, or scalars to floating point arrays, lists, or scalars.
+    If migrations are disabled, returns exactly what is passed in.
+    :param data: The numeric data to convert to floating point.
+    :return: The original input data if migrations are disabled or floating point data is migrations are enabled.
+    """
+
     if not are_migrations_enabled():
         return data
 
@@ -55,6 +71,13 @@ def maybe_get_float(data: NumericLike) -> NumericLike:
 
 
 def maybe_set_int(data: NumericLike) -> NumericLike:
+    """
+    If migrations are enabled, converts floating point arrays, lists, or scalars to integer arrays, lists, or scalars.
+    If migrations are disabled, returns exactly what is passed in.
+    :param data: The numeric data to convert to integers.
+    :return: The original input data if migrations are disabled or integer data is migrations are enabled.
+    """
+
     if not are_migrations_enabled():
         return data
 
