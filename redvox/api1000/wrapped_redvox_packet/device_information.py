@@ -1,4 +1,5 @@
 import enum
+from typing import List
 
 import redvox.api1000.common as common
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
@@ -53,6 +54,15 @@ class AppSettings(common.ProtoBase):
 
         self._proto.audio_source_tuning = redvox_api_1000_pb2.RedvoxPacket1000.DeviceInformation.AppSettings.AudioSourceTuning.Value(
             audio_source_tuning.name)
+        return self
+
+    def get_additional_input_sensors(self) -> List[InputSensor]:
+        additional_input_sensors: List[redvox_api_1000_pb2.RedvoxPacket1000.DeviceInformation.AppSettings.InputSensor] = self._proto.additional_input_sensors
+        return list(map(lambda sensor: InputSensor(sensor), additional_input_sensors))
+
+    def set_additional_input_sensors(self, additional_input_sensors: List[InputSensor]) -> 'AppSettings':
+        proto_sensors: List[redvox_api_1000_pb2.RedvoxPacket1000.DeviceInformation.AppSettings.InputSensor] = list(map(lambda sensor: redvox_api_1000_pb2.RedvoxPacket1000.DeviceInformation.AppSettings.InputSensor.Value(sensor.name) , additional_input_sensors))
+        self._proto.additional_input_sensors[:] = proto_sensors
         return self
 
     def get_automatically_record(self) -> bool:

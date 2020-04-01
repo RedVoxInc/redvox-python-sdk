@@ -16,7 +16,7 @@ class LocationChannel(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.LocationChannel):
         super().__init__(proto)
         self._sample_ts_us: common.Samples = common.Samples(self._proto.sample_ts_us,
-                                                            self._proto.sample_ts_statistics)
+                                                            self._proto.sample_rate_statistics)
         self._latitude_samples: common.Samples = common.Samples(self._proto.latitude_samples,
                                                                 self._proto.latitude_sample_statistics)
         self._longitude_samples: common.Samples = common.Samples(self._proto.longitude_samples,
@@ -25,7 +25,7 @@ class LocationChannel(common.ProtoBase):
                                                                 self._proto.accuracy_sample_statistics)
         self._speed_samples: common.Samples = common.Samples(self._proto.speed_samples,
                                                              self._proto.speed_sample_statistics)
-        self._accuracy_samples: common.Samples = common.Samples(self._proto.accuracy_Samples,
+        self._accuracy_samples: common.Samples = common.Samples(self._proto.accuracy_samples,
                                                                 self._proto.accuracy_sample_statistics)
 
     @staticmethod

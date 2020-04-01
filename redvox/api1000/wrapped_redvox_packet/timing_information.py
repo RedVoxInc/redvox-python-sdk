@@ -124,17 +124,17 @@ class TimingInformation(common.ProtoBase):
         pass
 
     def get_best_latency(self) -> float:
-        return self._proto.best_latency
+        return self._proto.best_latency_us
 
-    def set_best_latency(self, best_latency: float) -> 'TimingInformation':
-        common.check_type(best_latency, [int, float])
-        self._proto.best_latency = best_latency
+    def set_best_latency_us(self, best_latency_us: float) -> 'TimingInformation':
+        common.check_type(best_latency_us, [int, float])
+        self._proto.best_latency_us = best_latency_us
         return self
 
     def get_best_offset(self) -> float:
-        return self._proto.best_offset
+        return self._proto.best_offset_us
 
-    def set_best_offset(self, best_offset: float) -> 'TimingInformation':
-        common.check_type(best_offset, [int, float])
-        self._proto.best_offset = best_offset
+    def set_best_offset_us(self, best_offset_us: float) -> 'TimingInformation':
+        common.check_type(best_offset_us, [int, float])
+        self._proto.best_offset_us = best_offset_us
         return self

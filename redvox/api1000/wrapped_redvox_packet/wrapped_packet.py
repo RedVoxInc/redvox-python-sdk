@@ -107,9 +107,6 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
         self._proto.api = api
         return self
 
-    def has_user_information(self) -> bool:
-        return self._proto.HasField("user_information")
-
     def get_user_information(self) -> _user_information.UserInformation:
         return self._user_information
 
@@ -118,6 +115,9 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
 
     def get_packet_information(self) -> _packet_information.PacketInformation:
         return self._packet_information
+
+    def get_timing_information(self) -> _timing_information.TimingInformation:
+        return self._timing_information
 
     def get_server_information(self) -> _server_information.ServerInformation:
         return self._server_information
