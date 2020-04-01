@@ -212,6 +212,12 @@ class DeviceInformation(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.DeviceInformation):
         super().__init__(proto)
         self._app_settings: AppSettings = AppSettings(proto.app_settings)
+        self._network_strength_db: common.SummaryStatistics = common.SummaryStatistics(proto.network_strength_db)
+        self._device_temp_c: common.SummaryStatistics = common.SummaryStatistics(proto.device_temp_c)
+        self._device_battery_percent: common.SummaryStatistics = common.SummaryStatistics(proto.device_battery_percent)
+        self._available_ram_bytes: common.SummaryStatistics = common.SummaryStatistics(proto.available_ram_bytes)
+        self._available_disk_bytes: common.SummaryStatistics = common.SummaryStatistics(proto.available_disk_bytes)
+        self._cpu_utilization: common.SummaryStatistics = common.SummaryStatistics(proto.cpu_utilization)
 
     @staticmethod
     def new() -> 'DeviceInformation':
@@ -276,11 +282,6 @@ class DeviceInformation(common.ProtoBase):
     def get_app_settings(self) -> AppSettings:
         return self._app_settings
 
-    def set_app_settings(self, app_settings: AppSettings) -> 'DeviceInformation':
-        common.check_type(app_settings, [AppSettings])
-        self._app_settings = app_settings
-        return self
-
     def get_network_type(self) -> NetworkType:
         return NetworkType(self._proto.network_type)
 
@@ -290,27 +291,20 @@ class DeviceInformation(common.ProtoBase):
             network_type.name)
         return self
 
-    def get_network_strength_db(self) -> float:
-        return self._proto.network_strength_db
+    def get_network_strength_db(self) -> common.SummaryStatistics:
+        return self._network_strength_db
 
-    def set_network_strength_db(self, network_strength_db: float) -> 'DeviceInformation':
-        common.check_type(network_strength_db, [int, float])
-        self._proto.network_strength_db = network_strength_db
-        return self
+    def get_device_temp_c(self) -> common.SummaryStatistics:
+        return self._device_temp_c
 
-    def get_device_temp_c(self) -> float:
-        return self._proto.device_temp_c
+    def get_device_battery_percent(self) -> common.SummaryStatistics:
+        return self._device_battery_percent
 
-    def set_device_temp_c(self, device_temp_c: float) -> 'DeviceInformation':
-        common.check_type(device_temp_c, [int, float])
-        self._proto.device_temp_c = device_temp_c
-        return self
+    def get_available_ram_bytes(self) -> common.SummaryStatistics:
+        return self._available_ram_bytes
 
-    def get_device_battery_percent(self) -> float:
-        return self._proto.device_battery_percent
+    def get_available_disk_bytes(self) -> common.SummaryStatistics:
+        return self._available_disk_bytes
 
-    def set_device_battery_percent(self, device_battery_percent: float) -> 'DeviceInformation':
-        common.check_type(device_battery_percent, [int, float])
-        self._proto.device_battery_percent = device_battery_percent
-        return self
-
+    def get_cpu_utilization(self) -> common.SummaryStatistics:
+        return self._cpu_utilization

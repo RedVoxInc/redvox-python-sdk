@@ -19,10 +19,7 @@ class XyzChannel(common.ProtoBase):
         return self._proto.sensor_description
 
     def set_sensor_description(self, sensor_description: str) -> 'XyzChannel':
-        if not isinstance(sensor_description, str):
-            raise errors.XyzChannelError(f"A string is required, but a "
-                                         f"{type(sensor_description)}={sensor_description} was provided")
-
+        common.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self
 

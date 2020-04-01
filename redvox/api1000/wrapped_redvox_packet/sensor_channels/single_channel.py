@@ -1,5 +1,4 @@
 import redvox.api1000.common as common
-import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
@@ -17,10 +16,7 @@ class SingleChannel(common.ProtoBase):
         return self._proto.sensor_description
 
     def set_sensor_description(self, sensor_description: str) -> 'SingleChannel':
-        if not isinstance(sensor_description, str):
-            raise errors.SingleChannelError(f"A string is required, but a "
-                                            f"{type(sensor_description)}={sensor_description} was provided")
-
+        common.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self
 

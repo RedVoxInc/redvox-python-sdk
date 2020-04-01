@@ -36,10 +36,7 @@ class LocationChannel(common.ProtoBase):
         return self._proto.sensor_description
 
     def set_sensor_description(self, sensor_description: str) -> 'LocationChannel':
-        if not isinstance(sensor_description, str):
-            raise errors.LocationChannelError(f"A string is required, but a "
-                                              f"{type(sensor_description)}={sensor_description} was provided")
-
+        common.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self
 
@@ -47,11 +44,7 @@ class LocationChannel(common.ProtoBase):
         return self._proto.location_permissions_granted
 
     def set_location_permissions_granted(self, location_permissions_granted: bool) -> 'LocationChannel':
-        if not isinstance(location_permissions_granted, bool):
-            raise errors.LocationChannelError(f"A bool is required, but a "
-                                              f"{type(location_permissions_granted)}={location_permissions_granted} "
-                                              f"was provided")
-
+        common.check_type(location_permissions_granted, [bool])
         self._proto.location_permissions_granted = location_permissions_granted
         return self
 
@@ -59,11 +52,7 @@ class LocationChannel(common.ProtoBase):
         return self._proto.location_services_requested
 
     def set_location_services_requested(self, location_services_requested: bool) -> 'LocationChannel':
-        if not isinstance(location_services_requested, bool):
-            raise errors.LocationChannelError(f"A bool is required, but a "
-                                              f"{type(location_services_requested)}={location_services_requested} "
-                                              f"was provided")
-
+        common.check_type(location_services_requested, [bool])
         self._proto.location_services_requested = location_services_requested
         return self
 
@@ -71,11 +60,7 @@ class LocationChannel(common.ProtoBase):
         return self._proto.location_services_enabled
 
     def set_location_services_enabled(self, location_services_enabled: bool) -> 'LocationChannel':
-        if not isinstance(location_services_enabled, bool):
-            raise errors.LocationChannelError(f"A bool is required, but a "
-                                              f"{type(location_services_enabled)}={location_services_enabled} "
-                                              f"was provided")
-
+        common.check_type(location_services_enabled, [bool])
         self._proto.location_services_enabled = location_services_enabled
         return self
 
@@ -83,11 +68,7 @@ class LocationChannel(common.ProtoBase):
         return LocationProvider(self._proto.location_provider)
 
     def set_location_provider(self, location_provider: LocationProvider) -> 'LocationChannel':
-        if not isinstance(location_provider, LocationProvider):
-            raise errors.LocationChannelError(f"A LocationProvider is required, but a "
-                                              f"{type(location_provider)}={location_provider} "
-                                              f"was provided")
-
+        common.check_type(location_provider, [LocationProvider])
         self._proto.location_provider = redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.LocationChannel\
             .LocationProvider.Value(location_provider.name)
         return self

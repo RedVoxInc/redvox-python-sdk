@@ -99,57 +99,29 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
             json_out.write(self.as_json())
 
     # Top-level packet fields
-    def get_api(self) -> int:
+    def get_api(self) -> float:
         return self._proto.api
 
-    def set_api(self, api: int) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(api, int):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"A float or integer is required, but a {type(api)}={api} was "
-                                                         f"provided")
+    def set_api(self, api: float) -> 'WrappedRedvoxPacketApi1000':
+        common.check_type(api, [int, float])
         self._proto.api = api
         return self
 
+    def has_user_information(self) -> bool:
+        return self._proto.HasField("user_information")
+
     def get_user_information(self) -> _user_information.UserInformation:
-        pass
-
-    def set_user_information(self) -> 'WrappedRedvoxPacketApi1000':
-        pass
-
-    def new_user_information(self) -> _user_information.UserInformation:
-        pass
+        return self._user_information
 
     def get_device_information(self) -> _device_information.DeviceInformation:
-        pass
-
-    def set_device_information(self) -> 'WrappedRedvoxPacketApi1000':
-        pass
-
-    def new_device_information(self) -> _device_information.DeviceInformation:
-        pass
+        return self._device_information
 
     def get_packet_information(self) -> _packet_information.PacketInformation:
-        pass
-
-    def set_packet_information(self) -> 'WrappedRedvoxPacketApi1000':
-        pass
-
-    def new_packet_information(self) -> _packet_information.PacketInformation:
-        pass
+        return self._packet_information
 
     def get_server_information(self) -> _server_information.ServerInformation:
-        pass
+        return self._server_information
 
-    def set_server_information(self) -> 'WrappedRedvoxPacketApi1000':
-        pass
+    def get_sensor_channels(self) -> _sensor_channels.SensorChannels:
+        return self._sensor_channels
 
-    def new_server_information(self) -> _server_information.ServerInformation:
-        pass
-
-    def get_sensor_channels(self) -> None:
-        pass
-
-    def set_sensor_channels(self) -> 'WrappedRedvoxPacketApi1000':
-        pass
-
-    def new_sensor_channels(self) -> 'WrappedRedvoxPacketApi1000':
-        pass
