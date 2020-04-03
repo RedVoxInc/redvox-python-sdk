@@ -22,7 +22,8 @@ from typing import List, Dict, Optional, Tuple
 from fastkml import kml, styles
 from fastkml.geometry import Point
 from redvox.api900 import reader
-from redvox.common.constants import EPSILON, DEG_TO_RAD, MG_DIV_BY_RT, AVG_SEA_LEVEL_PRESSURE_KPA, EARTH_RADIUS_M
+from redvox.common.constants import EPSILON, DEG_TO_RAD, AVG_SEA_LEVEL_PRESSURE_KPA, EARTH_RADIUS_M, \
+    STANDARD_TEMPERATURE_K, MOLAR_MASS_AIR_KG_PER_MOL, GRAVITY_M_PER_S2, UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 
 # instruments have only so much accuracy, so if something has a distance less than the following values
 #  from a given point, we could feasibly consider it to be close enough to be at the given point.
@@ -419,12 +420,12 @@ class LocationAnalyzer:
             # fuse statistical dataframes together
             print_station_df(self.get_stats_dataframes(), os_type)
 
-    def print_to_csv(self, path: str, os_type: Optional[str] = None):
+    def print_to_csv(self, path: str, os_type: Optional[str] = None, debug: Optional[bool] = False):
         """
         print dataframes to csv files in path
         :param path: string containing full path and file name
         :param os_type: string denoting the os of the stations to output, default None
-        :return:
+        :param debug: if true, output debug statements, default False
         """
         # fuse all dataframes together
         result = self.get_all_dataframes()
@@ -435,7 +436,8 @@ class LocationAnalyzer:
         else:
             os_type = "all"
             result.to_csv(path)
-        print("Printed {} station data to {}.".format(os_type, path))
+        if debug:
+            print("Printed {} station data to {}.".format(os_type, path))
 
 
 def get_all_ios_station(station_df: pd.DataFrame) -> pd.DataFrame:
@@ -521,12 +523,21 @@ def load_position_data(w_p: List[reader.WrappedRedvoxPacket]) -> GPSDataHolder:
     return gps_dfh
 
 
-def compute_barometric_height(barometric_pressure: float, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA) -> float:
+def compute_barometric_height(barometric_pressure: float, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA,
+                              standard_temp: float = STANDARD_TEMPERATURE_K,
+                              molar_air_mass: float = MOLAR_MASS_AIR_KG_PER_MOL,
+                              gravity: float = GRAVITY_M_PER_S2,
+                              gas_constant: float = UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2) -> float:
     """
     compute height of a single point using a station's barometric and sea-level pressure
     barometric equation from https://www.math24.net/barometric-formula/
     :param barometric_pressure: pressure at a station in kPa
-    :param sea_pressure: pressure at sea level in kPa
+    :param sea_pressure: pressure at sea level in kPa, default AVG_SEA_LEVEL_PRESSURE_KPA
+    :param standard_temp: surface temperature in K, default STANDARD_TEMPERATURE_K
+    :param molar_air_mass: molar mass of air in kg/mol, default MOLAR_MASS_AIR_KG_PER_MOL
+    :param gravity: the acceleration of gravity in m/s2, default GRAVITY_M_PER_S2
+    :param gas_constant: the universal gas constant in (kg * m2)/(K * mol * s2),
+                            default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
     :return: height of station in meters
     """
     # formula and derivations:
@@ -542,16 +553,25 @@ def compute_barometric_height(barometric_pressure: float, sea_pressure: float = 
         sea_pressure = EPSILON
     if barometric_pressure == 0.0:
         barometric_pressure = EPSILON
-    barometric_height = np.log(sea_pressure / barometric_pressure) / MG_DIV_BY_RT
+    barometric_height = np.log(sea_pressure / barometric_pressure) / (
+            (molar_air_mass * gravity) / (standard_temp * gas_constant))
     return barometric_height
 
 
-def compute_barometric_height_array(barometric_pressure: np.array, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA) \
-        -> np.array:
+def compute_barometric_height_array(barometric_pressure: np.array, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA,
+                                    standard_temp: float = STANDARD_TEMPERATURE_K,
+                                    molar_air_mass: float = MOLAR_MASS_AIR_KG_PER_MOL,
+                                    gravity: float = GRAVITY_M_PER_S2,
+                                    gas_constant: float = UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2) -> np.array:
     """
     compute height of many points using each station's barometric and sea-level pressure
     :param barometric_pressure: array of pressures at stations in kPa
-    :param sea_pressure: pressure at sea level in kPa
+    :param sea_pressure: pressure at sea level in kPa, default AVG_SEA_LEVEL_PRESSURE_KPA
+    :param standard_temp: surface temperature in K, default STANDARD_TEMPERATURE_K
+    :param molar_air_mass: molar mass of air in kg/mol, default MOLAR_MASS_AIR_KG_PER_MOL
+    :param gravity: the acceleration of gravity in m/s2, default GRAVITY_M_PER_S2
+    :param gas_constant: the universal gas constant in (kg * m2)/(K * mol * s2),
+                            default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
     :return: the height of each station in meters
     """
     # due to log function, we can't let sea_pressure or barometric_pressure be 0
@@ -560,7 +580,8 @@ def compute_barometric_height_array(barometric_pressure: np.array, sea_pressure:
     for index in range(len(barometric_pressure)):
         if barometric_pressure[index] == 0.0:
             barometric_pressure[index] = EPSILON
-    barometric_height = np.log(sea_pressure / barometric_pressure) / MG_DIV_BY_RT
+    barometric_height = np.log(sea_pressure / barometric_pressure) / (
+            (molar_air_mass * gravity) / (standard_temp * gas_constant))
     return barometric_height
 
 

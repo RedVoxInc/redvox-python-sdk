@@ -9,6 +9,7 @@ from typing import List, Optional, Tuple
 import numpy as np
 
 from redvox.api900.reader import WrappedRedvoxPacket
+from redvox.api900.reader_utils import empty_array
 from redvox.api900.timesync import tri_message_stats
 from redvox.common import date_time_utils as dt
 from redvox.common import file_statistics as fh
@@ -87,10 +88,12 @@ class TimeSyncData:
             # check mach_time_zero for changes if it exists.  if it changed, sync will not work.
             if self.mach_time_zero is not None and self.mach_time_zero != wrapped_packet.mach_time_zero():
                 print("Warning: packet {} has a different mach time zero than previous packets.".format(i + 1))
+                print("Old mach time zero: {}.  New mach time zero: {}".format(self.mach_time_zero,
+                                                                               wrapped_packet.mach_time_zero()))
                 print("Please review input data; it must be from the same device and uninterrupted.")
                 print("TimeSyncData cannot continue processing input data.  Quitting.")
                 return
-            elif wrapped_packet.mach_time_zero() is not None:
+            elif wrapped_packet.mach_time_zero() is not None and self.mach_time_zero is None:
                 self.mach_time_zero = wrapped_packet.mach_time_zero()
             self.server_acquisition_times[i] = wrapped_packet.server_timestamp_epoch_microseconds_utc()
             self.rev_start_times[i] = wrapped_packet.app_file_start_timestamp_epoch_microseconds_utc()
@@ -213,7 +216,8 @@ class TimeSyncData:
             # There is no sync channel.  write empty or 0 values to the correct properties
             self.latencies[index] = 0.0
             self.offsets[index] = 0.0
-            self.tri_message_coeffs.append(())
+            self.tri_message_coeffs.append((empty_array(), empty_array(), empty_array(),
+                                            empty_array(), empty_array(), empty_array()))
             # noinspection PyTypeChecker
             self.latency_stats.add(0, 0, 0)
             # noinspection PyTypeChecker
