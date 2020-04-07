@@ -8,6 +8,11 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.8.1 (2020-04-02)
+
+* TriMessageStats will now append empty arrays in a tuple to tri_message_coeffs when the time sync sensor is empty or doesn't exist.
+* Functions compute_barometric_height and compute _barometric_height_array take additional optional arguments: surface temperature in K, molar mass of air in kg/mol, acceleration of gravity in m/s2 and the universal gas constant in (kg * m2)/(K * mol * s2)
+
 ### 2.8.0 (2020-03-31)
 
 * Added a migration module that allows users to slowly begin migrating API 900 data towards API 1000. A flag can be set either through the API or by setting an environment variable `ENABLE_MIGRATIONS="1"`. When enabled, all getters for numeric types will return floating point values (the only numeric type in API 1000).
