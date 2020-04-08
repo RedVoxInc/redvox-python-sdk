@@ -1,8 +1,8 @@
-import redvox.api1000.common as common
+import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 import redvox.api1000.wrapped_redvox_packet.sensor_channels.image_channel as image_channel
 import redvox.api1000.wrapped_redvox_packet.sensor_channels.location_channel as location_channel
-import redvox.api1000.wrapped_redvox_packet.sensor_channels.microphone_channel as microphone_channel
+import redvox.api1000.wrapped_redvox_packet.sensor_channels.audio_channel as microphone_channel
 import redvox.api1000.wrapped_redvox_packet.sensor_channels.single_channel as single_channel
 import redvox.api1000.wrapped_redvox_packet.sensor_channels.xyz_channel as xyz_channel
 
@@ -10,8 +10,7 @@ import redvox.api1000.wrapped_redvox_packet.sensor_channels.xyz_channel as xyz_c
 class SensorChannels(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels):
         super().__init__(proto)
-        self._microphone_channel: microphone_channel.MicrophoneChannel = microphone_channel.MicrophoneChannel(
-            proto.microphone_channel)
+        self._microphone_channel: microphone_channel.AudioChannel = microphone_channel.AudioChannel(proto.audio_channel)
         self._barometer_channel: single_channel.SingleChannel = single_channel.SingleChannel(proto.barometer_channel)
         self._location_channel: location_channel.LocationChannel = location_channel.LocationChannel(proto.location_channel)
         self._accelerometer_channel: xyz_channel.XyzChannel = xyz_channel.XyzChannel(proto.accelerometer_channel)
@@ -25,7 +24,7 @@ class SensorChannels(common.ProtoBase):
     def new() -> 'SensorChannels':
         return SensorChannels(redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels())
 
-    def get_microphone_channel(self) -> microphone_channel.MicrophoneChannel:
+    def get_audio_channel(self) -> microphone_channel.AudioChannel:
         return self._microphone_channel
 
     def get_barometer_channel(self) -> single_channel.SingleChannel:

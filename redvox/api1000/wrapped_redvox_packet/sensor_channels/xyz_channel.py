@@ -1,15 +1,14 @@
-import redvox.api1000.common as common
-import redvox.api1000.errors as errors
+import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
 class XyzChannel(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.XyzChannel):
         super().__init__(proto)
-        self._sample_ts_us: common.Samples = common.Samples(self._proto.sample_ts_us, self._proto.sample_rate_statistics)
-        self._x_samples: common.Samples = common.Samples(self._proto.x_samples, self._proto.x_sample_statistics)
-        self._y_samples: common.Samples = common.Samples(self._proto.y_samples, self._proto.y_sample_statistics)
-        self._z_samples: common.Samples = common.Samples(self._proto.z_samples, self._proto.z_sample_statistics)
+        self._timestamps: common.Payload = common.Payload(proto.timestamps)
+        self._x_samples: common.Payload = common.Payload(proto.x_samples)
+        self._y_samples: common.Payload = common.Payload(proto.y_samples)
+        self._z_samples: common.Payload = common.Payload(proto.z_samples)
 
     @staticmethod
     def new() -> 'XyzChannel':
@@ -23,18 +22,16 @@ class XyzChannel(common.ProtoBase):
         self._proto.sensor_description = sensor_description
         return self
 
-    def get_sample_ts_us(self) -> common.Samples:
-        return self._sample_ts_us
+    def get_timestamps(self) -> common.Payload:
+        return self._timestamps
 
-    def get_mean_sample_rate_hz(self) -> float:
-        return common.mean_sample_rate_hz_from_sample_ts_us(self.get_sample_ts_us().get_samples())
-
-    def get_x_samples(self) -> common.Samples:
+    def get_x_samples(self) -> common.Payload:
         return self._x_samples
 
-    def get_y_samples(self) -> common.Samples:
+    def get_y_samples(self) -> common.Payload:
         return self._y_samples
 
-    def get_z_samples(self) -> common.Samples:
+    def get_z_samples(self) -> common.Payload:
         return self._z_samples
+
 

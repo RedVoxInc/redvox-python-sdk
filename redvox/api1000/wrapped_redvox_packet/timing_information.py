@@ -1,6 +1,6 @@
 from typing import List
 
-import redvox.api1000.common as common
+import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
@@ -11,6 +11,14 @@ class SynchExchange(common.ProtoBase):
     @staticmethod
     def new() -> 'SynchExchange':
         return SynchExchange(redvox_api_1000_pb2.RedvoxPacket1000.TimingInformation.SynchExchange())
+
+    def get_unit(self) -> common.Unit:
+        return common.Unit.from_proto(self._proto.unit)
+
+    def set_unit(self, unit: common.Unit) -> 'SynchExchange':
+        common.check_type(unit, [common.Unit])
+        self._proto.unit = unit.into_proto()
+        return self
 
     def get_a1(self) -> float:
         return self._proto.a1
@@ -69,52 +77,60 @@ class TimingInformation(common.ProtoBase):
     def new() -> 'TimingInformation':
         return TimingInformation(redvox_api_1000_pb2.RedvoxPacket1000.TimingInformation())
 
-    def get_packet_start_ts_us_wall(self) -> float:
-        return self._proto.packet_start_ts_us_wall
+    def get_unit(self) -> common.Unit:
+        return common.Unit.from_proto(self._proto.unit)
 
-    def set_packet_start_ts_us_wall(self, packet_start_ts_us_wall: float) -> 'TimingInformation':
-        common.check_type(packet_start_ts_us_wall, [int, float])
-        self._proto.packet_start_ts_us_wall = packet_start_ts_us_wall
+    def set_unit(self, unit: common.Unit) -> 'TimingInformation':
+        common.check_type(unit, [common.Unit])
+        self._proto.unit = unit.into_proto()
         return self
 
-    def get_packet_start_ts_us_mach(self) -> float:
-        return self._proto.packet_start_ts_us_mach
+    def get_packet_start_os_timestamp(self) -> float:
+        return self._proto.packet_start_os_timestamp
 
-    def set_packet_start_ts_us_mach(self, packet_start_ts_us_mach: float) -> 'TimingInformation':
-        common.check_type(packet_start_ts_us_mach, [int, float])
-        self._proto.packet_start_ts_us_mach = packet_start_ts_us_mach
+    def set_packet_start_os_timestamp(self, packet_start_os_timestamp) -> 'TimingInformation':
+        common.check_type(packet_start_os_timestamp, [int, float])
+        self._proto.packet_start_os_timestamp = packet_start_os_timestamp
         return self
 
-    def get_packet_end_ts_us_wall(self) -> float:
-        return self._proto.packet_end_ts_us_wall
+    def get_packet_start_mach_timestamp(self) -> float:
+        return self._proto.packet_start_mach_timestamp
 
-    def set_packet_end_ts_us_wall(self, packet_end_ts_us_wall: float) -> 'TimingInformation':
-        common.check_type(packet_end_ts_us_wall, [int, float])
-        self._proto.packet_end_ts_us_wall = packet_end_ts_us_wall
+    def set_packet_start_mach_timestamp(self, packet_start_mach_timestamp: float) -> 'TimingInformation':
+        common.check_type(packet_start_mach_timestamp, [int, float])
+        self._proto.packet_start_mach_timestamp = packet_start_mach_timestamp
         return self
 
-    def get_packet_end_ts_us_mach(self) -> float:
-        return self._proto.packet_end_ts_us_mach
+    def get_packet_end_os_timestamp(self) -> float:
+        return self._proto.packet_end_os_timestamp
 
-    def set_packet_end_ts_us_mach(self, packet_end_ts_us_mach: float) -> 'TimingInformation':
-        common.check_type(packet_end_ts_us_mach, [int, float])
-        self._proto.packet_end_ts_us_mach = packet_end_ts_us_mach
+    def set_packet_end_os_timestamp(self, packet_end_os_timestamp: float) -> 'TimingInformation':
+        common.check_type(packet_end_os_timestamp, [int, float])
+        self._proto.packet_end_os_timestamp = packet_end_os_timestamp
         return self
 
-    def get_server_acquisition_arrival_ts_us(self) -> float:
-        return self._proto.server_acquisition_arrival_ts_us
+    def get_packet_end_mach_timestamp(self) -> float:
+        return self._proto.packet_end_mach_timestamp
 
-    def set_server_acquisition_arrival_ts_us(self, server_acquisition_arrival_ts_us: float) -> 'TimingInformation':
-        common.check_type(server_acquisition_arrival_ts_us, [int, float])
-        self._proto.server_acquisition_arrival_ts_us = server_acquisition_arrival_ts_us
+    def set_packet_end_mach_timestamp(self, packet_end_mach_timestamp: float) -> 'TimingInformation':
+        common.check_type(packet_end_mach_timestamp, [int, float])
+        self._proto.packet_end_mach_timestamp = packet_end_mach_timestamp
         return self
 
-    def get_app_start_ts_us_mach(self) -> float:
-        return self._proto.app_start_ts_us_mach
+    def get_server_acquisition_arrival_timestamp(self) -> float:
+        return self._proto.server_acquisition_arrival_timestamp
 
-    def set_app_start_ts_us_mach(self, app_start_ts_us_mach: float) -> 'TimingInformation':
-        common.check_type(app_start_ts_us_mach, [int, float])
-        self._proto.app_start_ts_us_mach = app_start_ts_us_mach
+    def set_server_acquisition_arrival_timestamp(self, server_acquisition_arrival_timestamp: float) -> 'TimingInformation':
+        common.check_type(server_acquisition_arrival_timestamp, [int, float])
+        self._proto.server_acquisition_arrival_timestamp = server_acquisition_arrival_timestamp
+        return self
+
+    def get_app_start_mach_timestamp(self) -> float:
+        return self._proto.app_start_mach_timestamp
+
+    def set_app_start_mach_timestamp(self, app_start_mach_timestamp: float) -> 'TimingInformation':
+        common.check_type(app_start_mach_timestamp, [int, float])
+        self._proto.app_start_mach_timestamp = app_start_mach_timestamp
         return self
 
     def get_synch_exchanges(self) -> List[SynchExchange]:
@@ -124,17 +140,17 @@ class TimingInformation(common.ProtoBase):
         pass
 
     def get_best_latency(self) -> float:
-        return self._proto.best_latency_us
+        return self._proto.best_latency
 
-    def set_best_latency_us(self, best_latency_us: float) -> 'TimingInformation':
-        common.check_type(best_latency_us, [int, float])
-        self._proto.best_latency_us = best_latency_us
+    def set_best_latency(self, best_latency: float) -> 'TimingInformation':
+        common.check_type(best_latency, [int, float])
+        self._proto.best_latency= best_latency
         return self
 
     def get_best_offset(self) -> float:
-        return self._proto.best_offset_us
+        return self._proto.best_offset
 
-    def set_best_offset_us(self, best_offset_us: float) -> 'TimingInformation':
-        common.check_type(best_offset_us, [int, float])
-        self._proto.best_offset_us = best_offset_us
+    def set_best_offset(self, best_offset: float) -> 'TimingInformation':
+        common.check_type(best_offset, [int, float])
+        self._proto.best_offset = best_offset
         return self

@@ -2,14 +2,14 @@ import unittest
 
 import numpy as np
 
-import redvox.api1000.common as common
-import redvox.api1000.wrapped_redvox_packet.sensor_channels.microphone_channel as microphone_channel
+import redvox.api1000.wrapped_redvox_packet.common as common
+import redvox.api1000.wrapped_redvox_packet.sensor_channels.audio_channel as microphone_channel
 
 
 class TestCommonProtoBase(unittest.TestCase):
     def setUp(self) -> None:
-        self.empty_microphone_channel: microphone_channel.MicrophoneChannel = microphone_channel.MicrophoneChannel.new()
-        self.non_empty_microphone_channel: microphone_channel.MicrophoneChannel = microphone_channel.MicrophoneChannel.new()
+        self.empty_microphone_channel: microphone_channel.AudioChannel = microphone_channel.AudioChannel.new()
+        self.non_empty_microphone_channel: microphone_channel.AudioChannel = microphone_channel.AudioChannel.new()
         self.non_empty_microphone_channel.set_sensor_description("foo")
         self.non_empty_microphone_channel.set_sample_rate_hz(10.0)
         self.non_empty_microphone_channel.set_first_sample_ts_us(1)

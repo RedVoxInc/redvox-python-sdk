@@ -1,5 +1,8 @@
 /**
 * This file contains the protobuf message definitions for RedVox API 1000 data and network communications.
+* All times in microseconds.
+* Start and end OS and machine times in UTC relative to the Unix epoch (1970/01/01/0Z).
+* Location (lat, lon, height) relative to WGS 84
 */
 
 syntax = "proto3";
@@ -8,41 +11,42 @@ option java_package = "io.redvox.redvox_api1000";
 
 message RedvoxPacket1000 {
     // Top level packet fields
-    double api = 1;                                     // The API version, should always be 1000
-    UserInformation user_information = 2;               // User information
-    DeviceInformation device_information = 3;           // Device information
-    PacketInformation packet_information = 4;           // Packet information
-    TimingInformation timing_information = 5;           // Timing information
+    double api = 1;                             // The API version, should always be 1000
+    UserInformation user_information = 2;       // User information
+    StationInformation station_information = 3; // Station information
+    PacketInformation packet_information = 4;   // Packet information
+    TimingInformation timing_information = 5;   // Timing information
     ServerInformation server_information = 6;
-    SensorChannels sensor_channels = 7;                 // Sensor channels
-    map<string, string> metadata = 8;                   // A map from string to string for including untyped metadata
+    SensorChannels sensor_channels = 7;         // Sensor channels
+    map<string, string> metadata = 8;           // A map from string to string for including untyped metadata
 
     // --------- The rest of this message contains embedded message types
 
     message UserInformation {
-        string auth_email = 1;                          // The e-mail the user used to authenticate with
-        string auth_token = 2;                          // The JWT token used for authentication
-        string firebase_token = 3;                      // The assigned firebase token
-        map<string, string> metadata = 4;               // A map from string to string for including untyped metadata
+        string auth_email = 1;              // The e-mail the user used to authenticate with
+        string auth_token = 2;              // The JWT token used for authentication
+        string firebase_token = 3;          // The assigned firebase token
+        map<string, string> metadata = 4;   // A map from string to string for including untyped metadata
     }
 
-    message DeviceInformation {
-        string device_id = 1;                           // The user selectable device id
-        string device_uuid = 2;                         // The app provided UUID
-        string device_make = 3;                         // Make of the device
-        string device_model = 4;                        // Model of the device
-        OsType device_os = 5;                           // OS of the device
-        string device_os_version = 6;                   // OS version of the device
-        string device_app_version = 7;                  // App version on the device
+    message StationInformation {
+        string id = 1;                                  // The user selectable station id
+        string uuid = 2;                                // The app provided UUID
+        string make = 3;                                // Make of the station
+        string model = 4;                               // Model of the station
+        OsType os = 5;                                  // OS of the station
+        string os_version = 6;                          // OS version of the station
+        string app_version = 7;                         // App version on the station
         AppSettings app_settings = 8;                   // A copy of the App's settings
         NetworkType network_type = 9;                   // Type of network connection
-        SummaryStatistics network_strength_db = 10;     // A value representing the strength of the network connection
-        SummaryStatistics device_temp_c = 11;           // Temperature of the device in degrees centigrade
-        SummaryStatistics device_battery_percent = 12;  // Device battery level as a percentage between 0% and 100%
-        SummaryStatistics available_ram_bytes = 13;     // Available RAM in bytes
-        SummaryStatistics available_disk_bytes = 14;    // Available disk space in bytes
-        SummaryStatistics cpu_utilization = 15;         // CPU utilization
-        map<string, string> metadata = 16;              // A map from string to string for including untyped metadata
+        Payload station_information_timestamps = 10;
+        Payload network_strength = 11;     // A value representing the strength of the network connection
+        Payload temperature = 12;
+        Payload battery = 13;
+        Payload available_ram = 14;
+        Payload available_disk = 15;
+        Payload cpu_utilization = 16;
+        map<string, string> metadata = 17;              // A map from string to string for including untyped metadata
 
         enum NetworkType {
             WIFI = 0;
@@ -58,7 +62,7 @@ message RedvoxPacket1000 {
         }
 
         message AppSettings {
-            AudioSamplingRate audio_sampling_rate = 1;
+            AudioSamplingRate audio_sampling_rate_hz = 1;
             AudioSourceTuning audio_source_tuning = 2;
             repeated InputSensor additional_input_sensors = 3;
             bool automatically_record = 4;
@@ -84,6 +88,8 @@ message RedvoxPacket1000 {
                 HZ_80 = 0;
                 HZ_800 = 1;
                 HZ_8000 = 2;
+                HZ_16000 = 3;
+                HZ_48000 = 4;
             }
 
             enum AudioSourceTuning {
@@ -106,22 +112,23 @@ message RedvoxPacket1000 {
     }
 
     message PacketInformation {
-        bool is_backfilled = 1;                            // Field for if this packet has been backfilled or not
-        bool is_private = 2;                               // Field for if this packet is private to the user or not
-        map<string, string> metadata = 3;                  // A map from string to string for including untyped metadata
+        bool is_backfilled = 1;             // Field for if this packet has been backfilled or not
+        bool is_private = 2;                // Field for if this packet is private to the user or not
+        map<string, string> metadata = 3;   // A map from string to string for including untyped metadata
     }
 
     message TimingInformation {
-        double packet_start_ts_us_wall = 1;                // Start timestamp of the packet using the wall clock (corresponding to first microphone sample)
-        double packet_start_ts_us_mach = 2;                // Start timestamp of the packet using machine time (corresponding to the first microphone sample)
-        double packet_end_ts_us_wall = 3;                  // End timestamp of the packet using the wall clock (corresponding to the last microphone sample)
-        double packet_end_ts_us_mach = 4;                  // End timestamp of the packet using machine time (corresponding to the last microphone sample)
-        double server_acquisition_arrival_ts_us = 5;       // Timestamp that the packet arrived at the acquisition server
-        double app_start_ts_us_mach = 6;                   // The start of the app as machine time
-        repeated SynchExchange synch_exchanges = 7;        // An array of synchronization params from the synch server
-        double best_latency_us = 8;                        // The best latency as determined from the synch params
-        double best_offset_us = 9;                         // The best offset as determined from the synch params
-        map<string, string> metadata = 10;                   // A map from string to string for including untyped metadata
+        double packet_start_os_timestamp = 1;               // Start timestamp of the packet using the os clock (corresponding to first audio sample)
+        double packet_start_mach_timestamp = 2;             // Start timestamp of the packet using machine time (corresponding to the first audio sample)
+        double packet_end_os_timestamp = 3;                 // End timestamp of the packet using the os clock (corresponding to the last audio sample)
+        double packet_end_mach_timestamp = 4;               // End timestamp of the packet using machine time (corresponding to the last audio sample)
+        double server_acquisition_arrival_timestamp = 5;    // Timestamp that the packet arrived at the acquisition server
+        double app_start_mach_timestamp = 6;                // The start of the app as machine time
+        repeated SynchExchange synch_exchanges = 7;     // An array of synchronization params from the synch server
+        double best_latency = 8;                     // The best latency as determined from the synch params
+        double best_offset = 9;                      // The best offset as determined from the synch params
+        Unit unit = 10;
+        map<string, string> metadata = 11;              // A map from string to string for including untyped metadata
 
         message SynchExchange {
             double a1 = 1;
@@ -130,69 +137,65 @@ message RedvoxPacket1000 {
             double b1 = 4;
             double b2 = 5;
             double b3 = 6;
-            map<string, string> metadata = 7;                   // A map from string to string for including untyped metadata
+            Unit unit = 7;
+            map<string, string> metadata = 8;   // A map from string to string for including untyped metadata
         }
     }
 
     message ServerInformation {
-        string auth_server_url = 1;
-        string synch_server_url = 2;
-        string acquisition_server_url = 3;
-        map<string, string> metadata = 4;                   // A map from string to string for including untyped metadata
+        string auth_server_url = 1;         // The URL of the authentication server
+        string synch_server_url = 2;        // The URL of the synch server
+        string acquisition_server_url = 3;  // The URL of the acquisition server
+        map<string, string> metadata = 4;   // A map from string to string for including untyped metadata
     }
 
     message SensorChannels {
-        MicrophoneChannel microphone_channel = 1;          // The microphone channel
-        SingleChannel barometer_channel = 2;               // The barometer channel
-        LocationChannel location_channel = 3;              // The location channel
-        XyzChannel accelerometer_channel = 4;              // The accelerometer channel
-        XyzChannel gyroscope_channel = 5;                  // The gyroscope channel
-        XyzChannel magnetometer_channel = 6;               // The magnetometer channel
-        SingleChannel light_channel = 7;                   // The light channel
-        SingleChannel infrared_channel = 8;                // The infrared channel
-        ImageChannel image_channel = 9;                    // The image channel
-        map<string, string> metadata = 10;                 // A map from string to string for including untyped metadata
+        AudioChannel audio_channel = 1;         // The audio channel
+        SingleChannel barometer_channel = 2;    // The barometer channel
+        LocationChannel location_channel = 3;   // The location channel
+        XyzChannel accelerometer_channel = 4;   // The accelerometer channel
+        XyzChannel gyroscope_channel = 5;       // The gyroscope channel
+        XyzChannel magnetometer_channel = 6;    // The magnetometer channel
+        SingleChannel light_channel = 7;        // The light channel
+        SingleChannel infrared_channel = 8;     // The infrared channel
+        ImageChannel image_channel = 9;         // The image channel
+        map<string, string> metadata = 10;      // A map from string to string for including untyped metadata
 
-        message MicrophoneChannel {
-            string sensor_description = 1;                      // The name or description of the microphone sensor
-            double first_sample_ts_us = 2;                      // Timestamp of the first microphone sample
-            double sample_rate_hz = 3;                          // Microphone sample rate in Hz
-            bool is_scrambled = 4;                              // If audio data has been scrambled to remove voice
-            repeated double samples = 5;                        // List of microphone samples
-            SummaryStatistics sample_statistics = 6;            // Statistics for microphone samples
-            map<string, string> metadata = 7;                   // A map from string to string for including untyped metadata
+        message AudioChannel {
+            string sensor_description = 1;              // The name or description of the audio sensor
+            double first_sample_timestamp = 2;              // Timestamp of the first audio sample
+            double sample_rate_hz = 3;                  // Microphone sample rate in Hz
+            bool is_scrambled = 4;                      // If audio data has been scrambled to remove voice
+            Payload samples = 5;                // List of audio samples
+            map<string, string> metadata = 6;           // A map from string to string for including untyped metadata
         }
 
         message SingleChannel {
-            string sensor_description = 1;                      // The name or description of the sensor
-            double mean_sample_rate_hz = 2;                     // The mean sample rate in Hz
-            repeated double sample_ts_us = 3;                   // A list of timestamps, one for each sample
-            repeated double samples = 4;                        // A list of samples
-            SummaryStatistics sample_rate_statistics = 5;       // Statistics for sample timestamps
-            SummaryStatistics sample_statistics = 6;            // Statistics for samples
-            map<string, string> metadata = 7;                   // A map from string to string for including untyped metadata
+            string sensor_description = 1;                  // The name or description of the sensor
+            Payload timestamps = 2;
+            Payload samples = 3;
+            map<string, string> metadata = 4;               // A map from string to string for including untyped metadata
         }
 
         message LocationChannel {
             string sensor_description = 1;                      // The name or description of the sensor
-            double mean_sample_rate_hz = 2;                     // The mean sample rate in Hz
-            repeated double sample_ts_us = 3;                   // A list of timestamps, one for each sample
-            repeated double latitude_samples = 4;               // A list of latitude samples
-            repeated double longitude_samples = 5;              // A list of longitude samples
-            repeated double altitude_samples = 6;               // A list of altitude samples
-            repeated double speed_samples = 7;                  // A list of speed samples
-            repeated double accuracy_samples = 8;               // A list of accuracy samples
-            bool location_permissions_granted = 9;              // Have location permissions been granted by the user?
-            bool location_services_requested = 10;              // Has location services been requested by the user?
-            bool location_services_enabled = 11;                // Are location services enabled and working?
-            LocationProvider location_provider = 12;            // Location provider enumeration
-            SummaryStatistics sample_rate_statistics = 13;      // Statistics for sample timestamps
-            SummaryStatistics latitude_sample_statistics = 14;  // Statistics for latitude samples
-            SummaryStatistics longitude_sample_statistics = 15; // Statistics for longitude samples
-            SummaryStatistics altitude_sample_statistics = 16;  // Statistics for altitude samples
-            SummaryStatistics speed_sample_statistics = 17;     // Statistics for speed samples
-            SummaryStatistics accuracy_sample_statistics = 18;  // Statistics for accuracy samples
-            map<string, string> metadata = 19;                  // A map from string to string for including untyped metadata
+            Payload timestamps = 2;
+            Payload latitude_samples = 3;               // A list of latitude samples
+            Payload longitude_samples = 4;              // A list of longitude samples
+            Payload altitude_samples = 5;               // A list of altitude samples
+            Payload speed_samples = 6;                  // A list of speed samples
+            Payload bearing_samples = 7;
+            Payload horizontal_accuracy_samples = 8;    // A list of accuracy samples
+            Payload vertical_accuracy_samples = 9;
+            Payload speed_accuracy_samples = 10;
+            Payload bearing_accuracy_samples = 11;
+
+            bool location_permissions_granted = 12;             // Have location permissions been granted by the user?
+            bool location_services_requested = 13;              // Has location services been requested by the user?
+            bool location_services_enabled = 14;                // Are location services enabled and working?
+            LocationProvider location_provider = 15;            // Location provider enumeration
+
+            map<string, string> metadata = 26;                              // A map from string to string for including untyped metadata
 
             enum LocationProvider {
                 NONE = 0;
@@ -203,62 +206,97 @@ message RedvoxPacket1000 {
         }
 
         message XyzChannel {
-            string sensor_description = 1;                      // The name or description of the sensor
-            double mean_sample_rate_hz = 2;                     // The mean sample rate in Hz
-            repeated double sample_ts_us = 3;                   // A list of timestamps, one for each sample
-            repeated double x_samples = 4;                      // A list of samples for the X-channel
-            repeated double y_samples = 5;                      // A list of samples for the Y-channel
-            repeated double z_samples = 6;                      // A list of samples for the Z-channel
-            SummaryStatistics sample_rate_statistics = 7;       // Statistics for sample timestamps
-            SummaryStatistics x_sample_statistics = 8;          // Statistics for X-channel
-            SummaryStatistics y_sample_statistics = 9;          // Statistics for Y-channel
-            SummaryStatistics z_sample_statistics = 10;         // Statistics for Z-channel
-            map<string, string> metadata = 11;                  // A map from string to string for including untyped metadata
+            string sensor_description = 1;                  // The name or description of the sensor
+            Payload timestamps = 2;
+            Payload x_samples = 4;                  // A list of samples for the X-channel
+            Payload y_samples = 5;                  // A list of samples for the Y-channel
+            Payload z_samples = 6;                  // A list of samples for the Z-channel
+            map<string, string> metadata = 11;              // A map from string to string for including untyped metadata
         }
 
         message ImageChannel {
-            string sensor_description = 1;                      // The name or description of the sensor
-            double mean_sample_rate_hz = 2;                     // The mean sample rate in Hz
-            repeated double sample_ts_us = 3;                   // A list of timestamps, one for each sample
-            repeated bytes samples = 4;                         // A list of bytes each representing a single image
-            SummaryStatistics sample_rate_statistics = 5;       // Statistics for sample timestamps
-            map<string, string> metadata = 6;                   // A map from string to string for including untyped metadata
+            string sensor_description = 1;                  // The name or description of the sensor
+            double mean_sample_rate_hz = 2;                 // The mean sample rate in Hz
+            repeated double sample_ts_us = 3;               // A list of timestamps, one for each sample
+            repeated bytes samples = 4;                     // A list of bytes each representing a single image
+            SummaryStatistics sample_rate_statistics = 5;   // Statistics for sample timestamps
+            map<string, string> metadata = 6;               // A map from string to string for including untyped metadata
         }
     }
 
+    message Payload {
+        Unit unit = 1;
+        repeated double values = 2;
+        SummaryStatistics value_statistics = 3;
+        map<string, string> metadata = 4;
+    }
+
+    enum Unit {
+        METERS_PER_SECOND_SQUARED = 0;
+        KILOPASCAL = 1;
+        RADIANS_PER_SECOND = 2;
+        DECIMAL_DEGREES = 3;
+        METERS = 4;
+        METERS_PER_SECOND = 5;
+        MICROTESLA = 6;
+        LSB_PLUS_MINUS_COUNTS = 7;
+        MICROSECONDS_SINCE_UNIX_EPOCH = 8;
+        DECIBEL = 9;
+        DEGREES_CELSIUS = 10;
+        BYTE = 11;
+        PERCENTAGE = 12;
+    }
+
     message SummaryStatistics {
-        double count = 1;                                       // The total count of values included in the statistics
-        double mean = 2;                                        // The mean of the values
-        double median = 3;                                      // The median of the values
-        double mode = 4;                                        // The mode of the values
-        double variance = 5;                                    // The variance of the values
-        double min = 6;                                         // The minimum value
-        double max = 7;                                         // The maximum value
-        double range = 8;                                       // The range of the values
-        map<string, string> metadata = 9;                       // A map from string to string for including untyped metadata
+        double count = 1;                   // The total count of values included in the statistics
+        double mean = 2;                    // The mean of the values
+        double median = 3;                  // The median of the values
+        double mode = 4;                    // The mode of the values
+        double variance = 5;                // The variance of the values
+        double min = 6;                     // The minimum value
+        double max = 7;                     // The maximum value
+        double range = 8;                   // The range of the values
+        map<string, string> metadata = 9;   // A map from string to string for including untyped metadata
     }
 }
 
+// Message type for providing E2E encryption.
+// The header is encrypted via RedVox keys.
+// The body is encrypted via user keys.
+// Each payload consists of bytes from the following transformations
+//   Serialization: Object -> serialize to bytes -> LZ4 frame compress -> encrypt -> payload bytes
+//   Deserialization: Payload bytes -> decrypt -> LZ4 frame decompress -> deserialize from bytes -> object
+message EncryptedRedvoxPacket1000 {
+    bytes header = 1;   // redvox encrypt(compress(EncryptedRedvoxPacket1000.Header))
+    bytes packet = 2;   // user encrypt(compress(RedvoxPacketApi1000))
+
+    message Header {
+        string station_id = 1;
+        string station_uuid = 2;
+        string auth_token = 3;
+        string auth_email = 4;
+    }
+}
 
 // Message for sending RedVox data to a redvox.io data acquisition service.
 message AcquisitionRequest {
-    bytes compressed_redvox_packet_1000 = 1;                // The compressed packet to send.
-    int64 checksum = 2;                                     // A checksum of the bytes in field 1.
+    bytes compressed_redvox_packet_1000 = 1;    // The compressed packet to send.
+    int64 checksum = 2;                         // A checksum of the bytes in field 1.
 }
 
 // Response from data acquisition services.
 message AcquisitionResponse {
-    ResponseType response_type = 1;                         // Response type (as above)
-    int64 checksum = 2;                                     // Checksum computed by server
-    string details = 3;                                     // Any other error details
-    bool resend = 4;                                        // If set, client to should attempt to resend the file
-                                                            // otherwise, don't resend the file.
+    ResponseType response_type = 1; // Response type (as above)
+    int64 checksum = 2;             // Checksum computed by server
+    string details = 3;             // Any other error details
+    bool resend = 4;                // If set, client to should attempt to resend the file
+                                    // otherwise, don't resend the file.
 
-    enum ResponseType {                                     // Server response types
-        OK = 0;                             // No issues with packet
-        AUTH_ERROR = 1;                     // An authentication error has occurred
-        DATA_ERROR = 2;                     // An error with the data decoding or data quality
-        OTHER_ERROR = 3;                    // Any other errors
+    enum ResponseType {
+        OK = 0;             // No issues with packet
+        AUTH_ERROR = 1;     // An authentication error has occurred
+        DATA_ERROR = 2;     // An error with the data decoding or data quality
+        OTHER_ERROR = 3;    // Any other errors
     }
 }
 

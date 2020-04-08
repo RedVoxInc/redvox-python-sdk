@@ -5,12 +5,12 @@ This module provides a high level API for creating, reading, and editing RedVox 
 import os.path
 from typing import Optional
 
-import redvox.api1000.common as common
-import redvox.api1000.wrapped_redvox_packet.device_information as _device_information
+import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.errors as errors
 import redvox.api1000.wrapped_redvox_packet.packet_information as _packet_information
 import redvox.api1000.wrapped_redvox_packet.sensor_channels.sensor_channels as _sensor_channels
 import redvox.api1000.wrapped_redvox_packet.server_information as _server_information
+import redvox.api1000.wrapped_redvox_packet.station_information as _station_information
 import redvox.api1000.wrapped_redvox_packet.timing_information as _timing_information
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 import redvox.api1000.wrapped_redvox_packet.user_information as _user_information
@@ -23,8 +23,8 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
         self._user_information: _user_information.UserInformation = _user_information.UserInformation(
             redvox_proto.user_information)
 
-        self._device_information: _device_information.DeviceInformation = _device_information.DeviceInformation(
-            redvox_proto.device_information)
+        self._station_information: _station_information.StationInformation = _station_information.StationInformation(
+            redvox_proto.station_information)
 
         self._packet_information: _packet_information.PacketInformation = _packet_information.PacketInformation(
             redvox_proto.packet_information)
@@ -65,11 +65,11 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
             return WrappedRedvoxPacketApi1000.from_compressed_bytes(compressed_bytes)
 
     def default_filename(self, extension: Optional[str] = None) -> str:
-        device_id: str = self.get_device_id()
+        device_id: str = self.get_station_information().get_id()
         device_id_len: int = len(device_id)
         if device_id_len < 10:
             device_id = f"{'0' * (10 - device_id_len)}{device_id}"
-        ts_s: int = round(self.get_packet_start_ts_us_mach() / 1_000_000.0)
+        ts_s: int = round(self.get_timing_information().get_packet_start_mach_timestamp() / 1_000_000.0)
 
         filename: str = f"{device_id}_{ts_s}_m"
 
@@ -110,8 +110,8 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def get_user_information(self) -> _user_information.UserInformation:
         return self._user_information
 
-    def get_device_information(self) -> _device_information.DeviceInformation:
-        return self._device_information
+    def get_station_information(self) -> _station_information.StationInformation:
+        return self._station_information
 
     def get_packet_information(self) -> _packet_information.PacketInformation:
         return self._packet_information

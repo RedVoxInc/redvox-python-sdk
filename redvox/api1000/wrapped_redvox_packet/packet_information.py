@@ -1,4 +1,4 @@
-import redvox.api1000.common as common
+import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
