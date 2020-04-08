@@ -78,25 +78,31 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
 
         return filename
 
-    def write_compressed_to_file(self, base_dir: str, filename: Optional[str] = None):
+    def write_compressed_to_file(self, base_dir: str, filename: Optional[str] = None) -> str:
         if filename is None:
-            filename: str = self.default_filename(".rdvxz")
+            filename: str = self.default_filename("rdvxz")
 
         if not os.path.isdir(base_dir):
             raise errors.WrappedRedvoxPacketApi1000Error(f"Base directory={base_dir} does not exist.")
 
-        with open(os.path.join(base_dir, filename), "wb") as compressed_out:
+        out_path: str = os.path.join(base_dir, filename)
+        with open(out_path, "wb") as compressed_out:
             compressed_out.write(self.as_compressed_bytes())
 
-    def write_json_to_file(self, base_dir: str, filename: Optional[str] = None):
+        return out_path
+
+    def write_json_to_file(self, base_dir: str, filename: Optional[str] = None) -> str:
         if filename is None:
-            filename: str = self.default_filename(".json")
+            filename: str = self.default_filename("json")
 
         if not os.path.isdir(base_dir):
             raise errors.WrappedRedvoxPacketApi1000Error(f"Base directory={base_dir} does not exist.")
 
-        with open(os.path.join(base_dir, filename), "w") as json_out:
+        out_path: str = os.path.join(base_dir, filename)
+        with open(out_path, "w") as json_out:
             json_out.write(self.as_json())
+
+        return out_path
 
     # Top-level packet fields
     def get_api(self) -> float:
