@@ -1,5 +1,5 @@
 import enum
-from typing import List
+from typing import List, Optional
 
 import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
@@ -18,6 +18,21 @@ class AudioSamplingRate(enum.Enum):
 
     def into_proto(self) -> redvox_api_1000_pb2.RedvoxPacket1000.StationInformation.AppSettings.AudioSamplingRate:
         return redvox_api_1000_pb2.RedvoxPacket1000.StationInformation.AppSettings.AudioSamplingRate.Value(self.name)
+
+    @staticmethod
+    def from_sampling_rate(sampling_rate: float) -> Optional['AudioSamplingRate']:
+        if sampling_rate == 80.0:
+            return AudioSamplingRate['HZ_80']
+        elif sampling_rate == 800.0:
+            return AudioSamplingRate['HZ_800']
+        elif sampling_rate == 8000.0:
+            return AudioSamplingRate['HZ_8000']
+        elif sampling_rate == 16000.0:
+            return AudioSamplingRate['HZ_16000']
+        elif sampling_rate == 48000.0:
+            return AudioSamplingRate['HZ_48000']
+        else:
+            return None
 
 
 class AudioSourceTuning(enum.Enum):
