@@ -47,5 +47,3 @@ class AudioChannel(common.ProtoBase):
 
     def get_samples(self) -> common.Payload:
         return self._samples
-
-

@@ -4,6 +4,7 @@ This module provides a high level API for creating, reading, and editing RedVox 
 
 import os.path
 from typing import Optional
+from google.protobuf import json_format
 
 import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.errors as errors
@@ -63,6 +64,32 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
         with open(rdvxz_path, "rb") as rdvxz_in:
             compressed_bytes: bytes = rdvxz_in.read()
             return WrappedRedvoxPacketApi1000.from_compressed_bytes(compressed_bytes)
+
+    @staticmethod
+    def from_json_1000(redvox_packet_json: str) -> redvox_api_1000_pb2.RedvoxPacket1000:
+        """
+        read json packet representing an API 1000 packet
+        :param redvox_packet_json: contains the json representing the packet
+        :return: Python instance of an encoded API1000 packet
+        """
+        return json_format.Parse(redvox_packet_json, redvox_api_1000_pb2.RedvoxPacket1000())
+
+    def read_json_file_1000(self, path: str) -> 'WrappedRedvoxPacketApi1000':
+        """
+        read json from a file representing an api 1000 packet
+        :param path: the path to the file to read
+        :return: wrapped redvox packet api 1000
+        """
+        with open(path, "r") as json_in:
+            return WrappedRedvoxPacketApi1000(self.from_json_1000(json_in.read()))
+
+    def read_json_string_1000(self, json: str) -> 'WrappedRedvoxPacketApi1000':
+        """
+        read json representing an api 1000 packet
+        :param json: string containing the json representing the packet
+        :return: wrapped redvox packet api 1000
+        """
+        return WrappedRedvoxPacketApi1000(self.from_json_1000(json))
 
     def default_filename(self, extension: Optional[str] = None) -> str:
         device_id: str = self.get_station_information().get_id()
