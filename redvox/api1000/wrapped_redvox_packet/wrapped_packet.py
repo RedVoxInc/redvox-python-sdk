@@ -40,13 +40,20 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
 
     @staticmethod
     def new() -> 'WrappedRedvoxPacketApi1000':
+        """
+        Returns a new default instance of a WrappedRedvoxPacketApi1000.
+        :return: A new default instance of a WrappedRedvoxPacketApi1000.
+        """
         return WrappedRedvoxPacketApi1000(redvox_api_1000_pb2.RedvoxPacket1000())
 
     @staticmethod
     def from_compressed_bytes(data: bytes) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(data, bytes):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"Expected bytes, but instead received {type(data)}")
-
+        """
+        Deserializes the byte content of an API M encoded .rdvxz file.
+        :param data: The compressed bytes to deserialize.
+        :return: An instance of a WrappedRedvoxPacketAPi1000.
+        """
+        common.check_type(data, [bytes])
         uncompressed_data: bytes = common.lz4_decompress(data)
         proto: redvox_api_1000_pb2.RedvoxPacket1000 = redvox_api_1000_pb2.RedvoxPacket1000()
         proto.ParseFromString(uncompressed_data)
@@ -54,8 +61,12 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
 
     @staticmethod
     def from_compressed_path(rdvxz_path: str) -> 'WrappedRedvoxPacketApi1000':
-        if not isinstance(rdvxz_path, str):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"Expected a string, but instead received {type(rdvxz_path)}")
+        """
+        Deserialize an API M encoded .rdvxz file from the specified file system path.
+        :param rdvxz_path: Path to the API M encoded file.
+        :return: An instance of a WrappedRedvoxPacketApi1000.
+        """
+        common.check_type(rdvxz_path, [str])
 
         if not os.path.isfile(rdvxz_path):
             raise errors.WrappedRedvoxPacketApi1000Error(f"Path to file={rdvxz_path} does not exist.")
@@ -65,13 +76,18 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
             return WrappedRedvoxPacketApi1000.from_compressed_bytes(compressed_bytes)
 
     def default_filename(self, extension: Optional[str] = None) -> str:
-        device_id: str = self.get_station_information().get_id()
-        device_id_len: int = len(device_id)
-        if device_id_len < 10:
-            device_id = f"{'0' * (10 - device_id_len)}{device_id}"
+        """
+        Returns the default filename for a given packet.
+        :param extension: An (optional) file extension to add to the default file name.
+        :return: The default filename for this packet.
+        """
+        station_id: str = self.get_station_information().get_id()
+        station_id_len: int = len(station_id)
+        if station_id_len < 10:
+            station_id = f"{'0' * (10 - station_id_len)}{station_id}"
         ts_s: int = round(self.get_timing_information().get_packet_start_mach_timestamp() / 1_000_000.0)
 
-        filename: str = f"{device_id}_{ts_s}_m"
+        filename: str = f"{station_id}_{ts_s}_m"
 
         if extension is not None:
             filename = f"{filename}.{extension}"
