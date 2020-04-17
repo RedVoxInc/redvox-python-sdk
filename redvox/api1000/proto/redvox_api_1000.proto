@@ -1,27 +1,28 @@
 /**
-* This file contains the protobuf message definitions for RedVox API 1000 data and network communications.
-* All times in microseconds.
-* Start and end OS and machine times in UTC relative to the Unix epoch (1970/01/01/0Z).
-* Location (lat, lon, height) relative to WGS 84
+* This file contains the protobuf message definitions for RedVox API 1000 (M) data and network communications.
+*
+* Standards and related documentation for API M is available at:
+*   - https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/README.md
 */
 
 syntax = "proto3";
-package redvox_api1000;
-option java_package = "io.redvox.redvox_api1000";
+package redvox_api_m;
+option java_package = "io.redvox.redvox_api_m";
 
-message RedvoxPacket1000 {
+message RedvoxPacketM {
     // Top level packet fields
     double api = 1;                             // The API version, should always be 1000
-    UserInformation user_information = 2;       // User information
-    StationInformation station_information = 3; // Station information
-    PacketInformation packet_information = 4;   // Packet information
-    TimingInformation timing_information = 5;   // Timing information
-    ServerInformation server_information = 6;
-    SensorChannels sensor_channels = 7;         // Sensor channels
+    UserInformation user_information = 2;       // Station owner/authentication information
+    StationInformation station_information = 3; // Station metadata/metrics
+    PacketInformation packet_information = 4;   // Packet flags
+    TimingInformation timing_information = 5;   // Timing information, synch exchanges
+    ServerInformation server_information = 6;   // Server information/urls
+    Sensors sensors = 7;                        // Sensors
     map<string, string> metadata = 8;           // A map from string to string for including untyped metadata
 
     // --------- The rest of this message contains embedded message types
 
+    // This message encapsulates station owner information and related authentication information
     message UserInformation {
         string auth_email = 1;              // The e-mail the user used to authenticate with
         string auth_token = 2;              // The JWT token used for authentication
@@ -29,6 +30,7 @@ message RedvoxPacket1000 {
         map<string, string> metadata = 4;   // A map from string to string for including untyped metadata
     }
 
+    // This message contains station metadata and related station state metrics
     message StationInformation {
         string id = 1;                                  // The user selectable station id
         string uuid = 2;                                // The app provided UUID
@@ -38,22 +40,10 @@ message RedvoxPacket1000 {
         string os_version = 6;                          // OS version of the station
         string app_version = 7;                         // App version on the station
         AppSettings app_settings = 8;                   // A copy of the App's settings
-        NetworkType network_type = 9;                   // Type of network connection
-        Payload station_information_timestamps = 10;
-        Payload network_strength = 11;     // A value representing the strength of the network connection
-        Payload temperature = 12;
-        Payload battery = 13;
-        Payload available_ram = 14;
-        Payload available_disk = 15;
-        Payload cpu_utilization = 16;
-        map<string, string> metadata = 17;              // A map from string to string for including untyped metadata
+        StationMetrics station_metrics = 9;             // Detail station performance metrics
+        map<string, string> metadata = 10; // A map from string to string for including untyped metadata
 
-        enum NetworkType {
-            WIFI = 0;
-            CELLULAR = 1;
-            NONE = 2;
-        }
-
+        // An enumeration specifying the available operating system types
         enum OsType {
             ANDROID = 0;
             IOS = 1;
@@ -61,28 +51,86 @@ message RedvoxPacket1000 {
             WINDOWS = 3;
         }
 
+        // Collection of station state and performance metrics
+        message StationMetrics {
+            Payload station_information_timestamps = 1;         // Timestamps associated with following sensor state metrics
+            repeated NetworkType network_type = 2;              // Type of network connection
+            repeated CellServiceState cell_service_state = 3;   // State of the cellular service
+            Payload network_strength = 4;                       // A value representing the strength of the network connection in decibels
+            Payload temperature = 5;                            // Internal temperature of station in degrees Celsius
+            Payload battery = 6;                                // Remaining percentage of station's battery
+            Payload battery_current = 7;                        // Current in microamperes
+            Payload available_ram = 8;                          // Available ram in bytes
+            Payload available_disk = 9;                         // Available disk space in bytes
+            Payload cpu_utilization = 10;                       // CPU utilization as a percentage
+            repeated PowerState power_state = 11;               // Power state enumeration
+            WifiWakeLock wifi_wake_lock = 12;                   // If a wifi wake lock is being utilized
+            map<string, string> metadata = 13;                  // A map from string to string for including untyped metadata
+
+            // An enumeration specifying the available network types
+            enum NetworkType {
+                NO_NETWORK = 0;
+                WIFI = 1;
+                CELLULAR = 2;
+            }
+
+            // Type of WiFi wake lock un use
+            enum WifiWakeLock {
+                NONE = 0;
+                HIGH_PERF = 1;
+                LOW_LATENCY = 2;
+                OTHER = 3;
+            }
+
+            // State of the cellular service
+            enum CellServiceState {
+                UNKNOWN = 0;        // State is unknown
+                EMERGENCY = 1;      // Only emergency calls
+                NOMINAL = 2;        // Everything is working fine
+                OUT_OF_SERVICE = 3; // Cell is searching for service, no available networks
+                POWER_OFF = 4;      // Cellular radio is powered off
+            }
+
+            // The state of power supply to station
+            enum PowerState {
+                UNPLUGGED = 0;
+                CHARGING = 1;
+                CHARGED = 2;
+            }
+        }
+
+        // A message the encapsulates the state of the app settings
         message AppSettings {
-            AudioSamplingRate audio_sampling_rate_hz = 1;
-            AudioSourceTuning audio_source_tuning = 2;
-            repeated InputSensor additional_input_sensors = 3;
-            bool automatically_record = 4;
-            bool launch_at_power_up = 5;
-            string redvox_id = 6;
-            bool push_to_server = 7;
-            bool publish_data_as_private = 8;
-            bool scramble_voice_data = 9;
-            bool provide_backfill = 10;
-            bool use_custom_time_sync_server = 11;
-            string time_sync_server_url = 12;
-            bool use_custom_data_server = 13;
-            string data_server_url = 14;
-            bool auto_delete_data_files = 15;
-            double storage_space_allowance = 16;
-            bool use_sd_card_for_data_storage = 17;
-            bool use_location_services = 18;
-            double use_latitude = 19;
-            double use_longitude = 20;
-            map<string, string> metadata = 21;                   // A map from string to string for including untyped metadata
+            AudioSamplingRate audio_sampling_rate = 1;          // The selected audio sampling rate
+            AudioSourceTuning audio_source_tuning = 2;          // The selected audio source tuning
+            repeated InputSensor additional_input_sensors = 3;  // Additional input sensors
+            bool automatically_record = 4;                      // Station automatically records on start
+            bool launch_at_power_up = 5;                        // App automatically starts on station
+            string station_id = 6;                              // User selectable station id
+            bool push_to_server = 7;                            // Is station data pushed to server?
+            bool publish_data_as_private = 8;                   // Is station data published as private?
+            bool scramble_audio_data = 9;                       // Is station audio data scrambled?
+            bool provide_backfill = 10;                         // Should station backfill unsent data?
+            bool remove_sensor_dc_offset = 11;                  // Does station remove DC offset?
+            FftOverlap fft_overlap = 12;                        // Station FFT overlap
+            bool use_custom_time_sync_server = 13;              // Should station use custom time synch server?
+            string time_sync_server_url = 14;                   // URL of custom time synch server
+            bool use_custom_data_server = 15;                   // Should station use custom data server?
+            string data_server_url = 16;                        // URL of custom data server
+            bool auto_delete_data_files = 17;                   // Should station auto delete data?
+            double storage_space_allowance = 18;                // Station data allowance in bytes
+            bool use_sd_card_for_data_storage = 19;             // Should station use SD card for storage?
+            bool use_location_services = 20;                    // Should station use location services?
+            double use_latitude = 21;                           // User set latitude decimal degrees
+            double use_longitude = 22;                          // User set longitude decimal degrees
+            double use_altitude = 23;                           // User set altitude meters
+            map<string, string> metadata = 24;                  // A map from string to string for including untyped metadata
+
+            enum FftOverlap {
+                PERCENT_25 = 0;
+                PERCENT_50 = 1;
+                PERCENT_75 = 2;
+            }
 
             enum AudioSamplingRate {
                 HZ_80 = 0;
@@ -93,30 +141,40 @@ message RedvoxPacket1000 {
             }
 
             enum AudioSourceTuning {
-                INFRASOUND = 0;
-                LOW_AUDIO = 1;
-                AUDIO = 2;
+                INFRASOUND_TUNING = 0;
+                LOW_AUDIO_TUNING = 1;
+                AUDIO_TUNING = 2;
             }
 
             enum InputSensor {
-                BAROMETER = 0;
-                ACCELEROMETER = 1;
-                ACCELEROMETER_FAST = 2;
-                MAGNETOMETER = 3;
-                MAGNETOMETER_FAST = 4;
+                ACCELEROMETER = 0;
+                AMBIENT_TEMPERATURE = 1;
+                AUDIO = 2;
+                COMPRESSED_AUDIO = 3;
+                GRAVITY = 4;
                 GYROSCOPE = 5;
-                GYROSCOPE_FAST = 6;
-                LUMINOSITY = 7;
+                IMAGE = 6;
+                LIGHT = 7;
+                LINEAR_ACCELERATION = 8;
+                LOCATION = 9;
+                MAGNETOMETER = 10;
+                ORIENTATION = 11;
+                PRESSURE = 12;
+                PROXIMITY = 13;
+                RELATIVE_HUMIDITY = 14;
+                ROTATION_VECTOR = 15;
             }
         }
     }
 
+    // Packet metadata flags
     message PacketInformation {
         bool is_backfilled = 1;             // Field for if this packet has been backfilled or not
         bool is_private = 2;                // Field for if this packet is private to the user or not
         map<string, string> metadata = 3;   // A map from string to string for including untyped metadata
     }
 
+    // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/keeping_time.md
     message TimingInformation {
         double packet_start_os_timestamp = 1;               // Start timestamp of the packet using the os clock (corresponding to first audio sample)
         double packet_start_mach_timestamp = 2;             // Start timestamp of the packet using machine time (corresponding to the first audio sample)
@@ -124,12 +182,15 @@ message RedvoxPacket1000 {
         double packet_end_mach_timestamp = 4;               // End timestamp of the packet using machine time (corresponding to the last audio sample)
         double server_acquisition_arrival_timestamp = 5;    // Timestamp that the packet arrived at the acquisition server
         double app_start_mach_timestamp = 6;                // The start of the app as machine time
-        repeated SynchExchange synch_exchanges = 7;     // An array of synchronization params from the synch server
-        double best_latency = 8;                     // The best latency as determined from the synch params
-        double best_offset = 9;                      // The best offset as determined from the synch params
-        Unit unit = 10;
-        map<string, string> metadata = 11;              // A map from string to string for including untyped metadata
+        repeated SynchExchange synch_exchanges = 7;         // An array of synchronization params from the synch server
+        double best_latency = 8;                            // The best latency as determined from the synch params in microseconds
+        double best_offset = 9;                             // The best offset as determined from the synch params in microseconds
+        double score = 10;                                  // The overall timing score
+        TimingScoreMethod score_method = 11;                // Method used to provide score
+        Unit unit = 12;                                     // A unit describing the time (should always be MICROSECONDS_SINCE_UNIX_EPOCH)
+        map<string, string> metadata = 13;                  // A map from string to string for including untyped metadata
 
+        // Type-safe synchronization exchange values
         message SynchExchange {
             double a1 = 1;
             double a2 = 2;
@@ -140,8 +201,14 @@ message RedvoxPacket1000 {
             Unit unit = 7;
             map<string, string> metadata = 8;   // A map from string to string for including untyped metadata
         }
+
+        // Method used to score timing metrics
+        enum TimingScoreMethod {
+            UNKNOWN = 0;
+        }
     }
 
+    // Collection of related service URLs
     message ServerInformation {
         string auth_server_url = 1;         // The URL of the authentication server
         string synch_server_url = 2;        // The URL of the synch server
@@ -149,54 +216,106 @@ message RedvoxPacket1000 {
         map<string, string> metadata = 4;   // A map from string to string for including untyped metadata
     }
 
-    message SensorChannels {
-        AudioChannel audio_channel = 1;         // The audio channel
-        SingleChannel barometer_channel = 2;    // The barometer channel
-        LocationChannel location_channel = 3;   // The location channel
-        XyzChannel accelerometer_channel = 4;   // The accelerometer channel
-        XyzChannel gyroscope_channel = 5;       // The gyroscope channel
-        XyzChannel magnetometer_channel = 6;    // The magnetometer channel
-        SingleChannel light_channel = 7;        // The light channel
-        SingleChannel infrared_channel = 8;     // The infrared channel
-        ImageChannel image_channel = 9;         // The image channel
-        map<string, string> metadata = 10;      // A map from string to string for including untyped metadata
+    // Collection of available sensor types
+    // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/standard_sensor_units.md
+    message Sensors {
+        Xyz accelerometer = 1;                  // meters/second^2
+        Single ambient_temperature = 2;         // degrees Celsius
+        Audio audio = 3;                        // normalized counts
+        CompressedAudio compressed_audio = 4;   // bytes (codec specific)
+        Xyz gravity = 5;                        // meters/second^2
+        Xyz gyroscope = 6;                      // radians/second
+        ImageChannel image = 7;                 // bytes (codec specific)
+        Single light = 8;                       // lux
+        Xyz linear_acceleration = 9;            // meters/second^2
+        Location location = 10;                 // See standard
+        Xyz magnetometer = 11;                  // microtesla
+        Xyz orientation = 12;                   // radians
+        Single pressure = 13;                   // kilopascal
+        Single proximity =14;                   // on, off, cm
+        Single relative_humidity = 15;          // percentage
+        Xyz rotation_vector = 16;               // Unitless
 
-        message AudioChannel {
-            string sensor_description = 1;              // The name or description of the audio sensor
-            double first_sample_timestamp = 2;              // Timestamp of the first audio sample
-            double sample_rate_hz = 3;                  // Microphone sample rate in Hz
-            bool is_scrambled = 4;                      // If audio data has been scrambled to remove voice
+        map<string, string> metadata = 17;      // A map from string to string for including untyped metadata
+
+        // This message describes a stable audio channel
+        // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/storing_audio_data.md
+        message Audio {
+            string sensor_description = 1;      // The name or description of the audio sensor
+            double first_sample_timestamp = 2;  // Timestamp of the first audio sample
+            double sample_rate = 3;             // Microphone sample rate in Hz
+            bool is_scrambled = 4;              // If audio data has been scrambled to remove voice
             Payload samples = 5;                // List of audio samples
-            map<string, string> metadata = 6;           // A map from string to string for including untyped metadata
+            map<string, string> metadata = 6;   // A map from string to string for including untyped metadata
         }
 
-        message SingleChannel {
-            string sensor_description = 1;                  // The name or description of the sensor
-            Payload timestamps = 2;
-            Payload samples = 3;
-            map<string, string> metadata = 4;               // A map from string to string for including untyped metadata
+        message CompressedAudio {
+            string sensor_description = 1;      // The name or description of the audio sensor
+            double first_sample_timestamp = 2;  // Timestamp of the first audio sample
+            double sample_rate = 3;             // Microphone sample rate in Hz
+            bool is_scrambled = 4;              // If audio data has been scrambled to remove voice
+            bytes audio_bytes = 5;
+            AudioCodec audio_codec = 6;
+            map<string, string> metadata = 7;   // A map from string to string for including untyped metadata
+
+            enum AudioCodec {
+                // TODO
+                TODO = 0;
+            }
         }
 
-        message LocationChannel {
-            string sensor_description = 1;                      // The name or description of the sensor
-            Payload timestamps = 2;
+        // A single channel of data
+        // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/storing_single_channel_data.md
+        message Single {
+            string sensor_description = 1;      // The name or description of the sensor
+            Payload timestamps = 2;             // List of timestamps per sample and associated stats
+            Payload samples = 3;                // List of samples and associated stats
+            double mean_sample_rate = 4;        // Mean sample rate in Hz
+            double stdev_sample_rate = 5;       // Standard deviation of sample rate in Hz
+            map<string, string> metadata = 6;   // A map from string to string for including untyped metadata
+        }
+
+        // Location channels
+        // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/storing_location_data.md
+        message Location {
+            string sensor_description = 1;              // The name or description of the sensor
+            Payload timestamps = 2;                     // Timestamps and stats
             Payload latitude_samples = 3;               // A list of latitude samples
             Payload longitude_samples = 4;              // A list of longitude samples
             Payload altitude_samples = 5;               // A list of altitude samples
             Payload speed_samples = 6;                  // A list of speed samples
-            Payload bearing_samples = 7;
-            Payload horizontal_accuracy_samples = 8;    // A list of accuracy samples
-            Payload vertical_accuracy_samples = 9;
-            Payload speed_accuracy_samples = 10;
-            Payload bearing_accuracy_samples = 11;
+            Payload bearing_samples = 7;                // A list of bearing samples
+            Payload horizontal_accuracy_samples = 8;    // A list of horizontal accuracy samples
+            Payload vertical_accuracy_samples = 9;      // A list of vertical accuracy samples
+            Payload speed_accuracy_samples = 10;        // A list of speed accuracy samples
+            Payload bearing_accuracy_samples = 11;      // A list of bearing accuracy samples
 
-            bool location_permissions_granted = 12;             // Have location permissions been granted by the user?
-            bool location_services_requested = 13;              // Has location services been requested by the user?
-            bool location_services_enabled = 14;                // Are location services enabled and working?
-            LocationProvider location_provider = 15;            // Location provider enumeration
+            double mean_sample_rate = 12;                // Mean sample rate in Hz
+            double stdev_sample_rate = 13;               // Standard deviation of sample rate in Hz
 
-            map<string, string> metadata = 26;                              // A map from string to string for including untyped metadata
+            double best_latitude = 14;                  // The best latitude
+            double best_longitude = 15;                 // The best longitude
+            double best_altitude = 16;                  // The best altitude
+            double best_speed = 17;                     // The nest speed
+            double best_bearing = 18;                   // The best bearing
+            double score = 19;                          // An overall location QA score
 
+            LocationScoreMethod location_score_method = 20; // Method used to find location score
+
+            bool location_permissions_granted = 21;     // Have location permissions been granted by the user?
+            bool location_services_requested = 22;      // Has location services been requested by the user?
+            bool location_services_enabled = 23;        // Are location services enabled and working?
+            LocationProvider location_provider = 24;    // Location provider enumeration
+
+            map<string, string> metadata = 25;          // A map from string to string for including untyped metadata
+
+            // An enumeration for the various scoring methods for the "best of" metrics
+            enum LocationScoreMethod {
+                // TODO
+                TODO = 0;
+            }
+
+            // An enumeration of location providers
             enum LocationProvider {
                 NONE = 0;
                 USER = 1;
@@ -205,32 +324,48 @@ message RedvoxPacket1000 {
             }
         }
 
-        message XyzChannel {
-            string sensor_description = 1;                  // The name or description of the sensor
-            Payload timestamps = 2;
-            Payload x_samples = 4;                  // A list of samples for the X-channel
-            Payload y_samples = 5;                  // A list of samples for the Y-channel
-            Payload z_samples = 6;                  // A list of samples for the Z-channel
-            map<string, string> metadata = 11;              // A map from string to string for including untyped metadata
+        // Message representing data channels with X, Y, and Z components
+        // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/storing_xyz_channel_data.md
+        message Xyz {
+            string sensor_description = 1;      // The name or description of the sensor
+            Payload timestamps = 2;             // List of timestamps per sample
+            Payload x_samples = 4;              // A list of samples for the X-channel
+            Payload y_samples = 5;              // A list of samples for the Y-channel
+            Payload z_samples = 6;              // A list of samples for the Z-channel
+            double mean_sample_rate = 7;        // Mean sample rate in Hz
+            double stdev_sample_rate = 8;       // Standard deviation of sample rate in Hz
+            map<string, string> metadata = 9;   // A map from string to string for including untyped metadata
         }
 
+        // Image/video channel
+        // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/storing_image_data.md
         message ImageChannel {
-            string sensor_description = 1;                  // The name or description of the sensor
-            double mean_sample_rate_hz = 2;                 // The mean sample rate in Hz
-            repeated double sample_ts_us = 3;               // A list of timestamps, one for each sample
-            repeated bytes samples = 4;                     // A list of bytes each representing a single image
-            SummaryStatistics sample_rate_statistics = 5;   // Statistics for sample timestamps
-            map<string, string> metadata = 6;               // A map from string to string for including untyped metadata
+            string sensor_description = 1;      // The name or description of the sensor
+            Payload timestamps = 2;             // Timestamps per sample
+            repeated bytes samples = 3;         // A list of bytes each representing a single image
+            ImageCodec image_codec = 6;         // The image codec being used
+            map<string, string> metadata = 7;   // A map from string to string for including untyped metadata
+
+            // Codec used to encode the image
+            enum ImageCodec {
+                PNG = 0;
+                JPG = 1;
+                BMP = 2;
+            }
         }
     }
 
+    // Combines a unit, sample values, and value statistics
+    // This is meant to be generic, and as such is used for both timestamps and
+    // data payloads.
     message Payload {
-        Unit unit = 1;
-        repeated double values = 2;
-        SummaryStatistics value_statistics = 3;
-        map<string, string> metadata = 4;
+        Unit unit = 1;                          // Unit of payload values
+        repeated double values = 2;             // Values in payload
+        SummaryStatistics value_statistics = 3; // Statistics of stored values
+        map<string, string> metadata = 4;       // A map from string to string for including untyped metadata
     }
 
+    // Enumeration of API M supported units
     enum Unit {
         METERS_PER_SECOND_SQUARED = 0;
         KILOPASCAL = 1;
@@ -245,8 +380,13 @@ message RedvoxPacket1000 {
         DEGREES_CELSIUS = 10;
         BYTE = 11;
         PERCENTAGE = 12;
+        RADIANS = 13;
+        MICROAMPERES = 14;
+        CENTIMETERS = 15;
+        NORMALIZED_COUNTS = 16;
     }
 
+    // Common statistics stored with payloads
     message SummaryStatistics {
         double count = 1;                   // The total count of values included in the statistics
         double mean = 2;                    // The mean of the values
@@ -259,6 +399,8 @@ message RedvoxPacket1000 {
         map<string, string> metadata = 9;   // A map from string to string for including untyped metadata
     }
 }
+
+// --------- E2E Encryption
 
 // Message type for providing E2E encryption.
 // The header is encrypted via RedVox keys.
@@ -278,10 +420,12 @@ message EncryptedRedvoxPacket1000 {
     }
 }
 
+// --------- Message types for communicating with RedVox data acquisition servers
 // Message for sending RedVox data to a redvox.io data acquisition service.
 message AcquisitionRequest {
-    bytes compressed_redvox_packet_1000 = 1;    // The compressed packet to send.
-    int64 checksum = 2;                         // A checksum of the bytes in field 1.
+    bytes payload = 1;      // The compressed packet to send.
+    bool is_encrypted = 2;  // Set if the payload is encrypted
+    int64 checksum = 3;     // A checksum of the bytes in field 1.
 }
 
 // Response from data acquisition services.
@@ -300,14 +444,25 @@ message AcquisitionResponse {
     }
 }
 
+// --------- Message types for communicating with RedVox v3 time synchronization service
 message SynchRequest {
-    uint64 seq_id = 1;
-    uint32 sub_seq_id = 2;
+    string station_id = 1;
+    string station_uuid = 2;
+    uint32 seq_id = 3;
+    uint32 sub_seq_id = 4;
 }
 
 message SynchResponse {
-    uint64 seq_id = 1;
-    uint32 sub_seq_id = 2;
-    uint64 recv_ts_us = 3;
-    uint64 send_ts_us = 4;
+    string station_id = 1;
+    string station_uuid = 2;
+    uint32 seq_id = 3;
+    uint32 sub_seq_id = 4;
+    uint64 recv_ts_us = 5;
+    uint64 send_ts_us = 6;
 }
+
+// --------- Message types for custom logging
+// TODO
+
+// --------- Message types for command, control, and communication
+// TODO

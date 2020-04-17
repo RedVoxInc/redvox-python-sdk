@@ -77,6 +77,15 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
             return WrappedRedvoxPacketApi1000.from_compressed_bytes(compressed_bytes)
 
     @staticmethod
+    def from_json(json: str) -> 'WrappedRedvoxPacketApi1000':
+        return WrappedRedvoxPacketApi1000(json_format.Parse(json, redvox_api_1000_pb2.RedvoxPacket1000()))
+
+    @staticmethod
+    def from_json_path(path: str) -> 'WrappedRedvoxPacketApi1000':
+        with open(path, "r") as json_in:
+            return WrappedRedvoxPacketApi1000.from_json(json_in.read())
+
+    @staticmethod
     def from_json_1000(redvox_packet_json: str) -> redvox_api_1000_pb2.RedvoxPacket1000:
         """
         read json packet representing an API 1000 packet
