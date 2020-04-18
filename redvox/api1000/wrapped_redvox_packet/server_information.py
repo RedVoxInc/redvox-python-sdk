@@ -3,12 +3,12 @@ import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
 class ServerInformation(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.ServerInformation):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.ServerInformation):
         super().__init__(proto)
 
     @staticmethod
     def new() -> 'ServerInformation':
-        return ServerInformation(redvox_api_1000_pb2.RedvoxPacket1000.ServerInformation())
+        return ServerInformation(redvox_api_1000_pb2.RedvoxPacketM.ServerInformation())
 
     def get_auth_server_url(self) -> str:
         return self._proto.auth_server_url

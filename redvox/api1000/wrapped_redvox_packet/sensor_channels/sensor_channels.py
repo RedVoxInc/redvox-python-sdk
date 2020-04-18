@@ -8,7 +8,7 @@ import redvox.api1000.wrapped_redvox_packet.sensor_channels.xyz_channel as xyz_c
 
 
 class SensorChannels(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SensorChannels):
         super().__init__(proto)
         self._microphone_channel: microphone_channel.AudioChannel = microphone_channel.AudioChannel(proto.audio_channel)
         self._barometer_channel: single_channel.SingleChannel = single_channel.SingleChannel(proto.barometer_channel)
@@ -22,7 +22,7 @@ class SensorChannels(common.ProtoBase):
 
     @staticmethod
     def new() -> 'SensorChannels':
-        return SensorChannels(redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels())
+        return SensorChannels(redvox_api_1000_pb2.RedvoxPacketM.SensorChannels())
 
     def get_audio_channel(self) -> microphone_channel.AudioChannel:
         return self._microphone_channel

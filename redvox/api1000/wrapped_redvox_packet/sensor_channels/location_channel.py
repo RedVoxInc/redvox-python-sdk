@@ -12,7 +12,7 @@ class LocationProvider(enum.Enum):
 
 
 class LocationChannel(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.LocationChannel):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.LocationChannel):
         super().__init__(proto)
         self._timestamps: common.Payload = common.Payload(proto.timestamps)
         self._latitude_samples: common.Payload = common.Payload(proto.latitude_samples)
@@ -27,7 +27,7 @@ class LocationChannel(common.ProtoBase):
 
     @staticmethod
     def new() -> 'LocationChannel':
-        return LocationChannel(redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.LocationChannel())
+        return LocationChannel(redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.LocationChannel())
 
     def get_sensor_description(self) -> str:
         return self._proto.sensor_description
@@ -96,6 +96,6 @@ class LocationChannel(common.ProtoBase):
 
     def set_location_provider(self, location_provider: LocationProvider) -> 'LocationChannel':
         common.check_type(location_provider, [LocationProvider])
-        self._proto.location_provider = redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.LocationChannel \
+        self._proto.location_provider = redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.LocationChannel \
             .LocationProvider.Value(location_provider.name)
         return self

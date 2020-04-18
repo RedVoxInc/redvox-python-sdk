@@ -3,7 +3,7 @@ import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
 class XyzChannel(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.XyzChannel):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.XyzChannel):
         super().__init__(proto)
         self._timestamps: common.Payload = common.Payload(proto.timestamps)
         self._x_samples: common.Payload = common.Payload(proto.x_samples)
@@ -12,7 +12,7 @@ class XyzChannel(common.ProtoBase):
 
     @staticmethod
     def new() -> 'XyzChannel':
-        return XyzChannel(redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.XyzChannel())
+        return XyzChannel(redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.XyzChannel())
 
     def get_sensor_description(self) -> str:
         return self._proto.sensor_description

@@ -3,9 +3,9 @@ import redvox.api1000.wrapped_redvox_packet.common as common
 
 
 class ImageChannel(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.ImageChannel):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.ImageChannel):
         super().__init__(proto)
 
     @staticmethod
     def new() -> 'ImageChannel':
-        return ImageChannel(redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.ImageChannel())
+        return ImageChannel(redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.ImageChannel())

@@ -3,12 +3,12 @@ import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
 class PacketInformation(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.PacketInformation):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.PacketInformation):
         super().__init__(proto)
 
     @staticmethod
     def new() -> 'PacketInformation':
-        return PacketInformation(redvox_api_1000_pb2.RedvoxPacket1000.PacketInformation())
+        return PacketInformation(redvox_api_1000_pb2.RedvoxPacketM.PacketInformation())
 
     def get_is_backfilled(self) -> bool:
         return self._proto.is_backfilled

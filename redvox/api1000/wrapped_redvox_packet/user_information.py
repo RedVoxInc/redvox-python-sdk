@@ -3,12 +3,12 @@ import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
 class UserInformation(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.UserInformation):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.UserInformation):
         super().__init__(proto)
 
     @staticmethod
     def new() -> 'UserInformation':
-        return UserInformation(redvox_api_1000_pb2.RedvoxPacket1000.UserInformation())
+        return UserInformation(redvox_api_1000_pb2.RedvoxPacketM.UserInformation())
 
     def get_auth_email(self) -> str:
         return self._proto.auth_email

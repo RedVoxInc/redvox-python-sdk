@@ -15,15 +15,15 @@ import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 NAN: float = float("NaN")
 
-PROTO_TYPES = Union[redvox_api_1000_pb2.RedvoxPacket1000,
-                    redvox_api_1000_pb2.RedvoxPacket1000.StationInformation,
-                    redvox_api_1000_pb2.RedvoxPacket1000.StationInformation.AppSettings,
-                    redvox_api_1000_pb2.RedvoxPacket1000.SummaryStatistics,
-                    redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.AudioChannel,
-                    redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.SingleChannel,
-                    redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.XyzChannel,
-                    redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.LocationChannel,
-                    redvox_api_1000_pb2.RedvoxPacket1000.UserInformation]
+PROTO_TYPES = Union[redvox_api_1000_pb2.RedvoxPacketM,
+                    redvox_api_1000_pb2.RedvoxPacketM.StationInformation,
+                    redvox_api_1000_pb2.RedvoxPacketM.StationInformation.AppSettings,
+                    redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics,
+                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.AudioChannel,
+                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.SingleChannel,
+                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.XyzChannel,
+                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.LocationChannel,
+                    redvox_api_1000_pb2.RedvoxPacketM.UserInformation]
 
 EMPTY_ARRAY: np.ndarray = np.array([])
 
@@ -44,11 +44,11 @@ class Unit(enum.Enum):
     PERCENTAGE: int = 12
 
     @staticmethod
-    def from_proto(unit: redvox_api_1000_pb2.RedvoxPacket1000.Unit) -> 'Unit':
+    def from_proto(unit: redvox_api_1000_pb2.RedvoxPacketM.Unit) -> 'Unit':
         return Unit(unit)
 
-    def into_proto(self) -> redvox_api_1000_pb2.RedvoxPacket1000.Unit:
-        return redvox_api_1000_pb2.RedvoxPacket1000.Unit.Value(self.name)
+    def into_proto(self) -> redvox_api_1000_pb2.RedvoxPacketM.Unit:
+        return redvox_api_1000_pb2.RedvoxPacketM.Unit.Value(self.name)
 
 
 def check_type(value: Any,
@@ -174,12 +174,12 @@ class Metadata:
 
 
 class SummaryStatistics(ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SummaryStatistics):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics):
         super().__init__(proto)
 
     @staticmethod
     def new() -> 'SummaryStatistics':
-        proto: redvox_api_1000_pb2.RedvoxPacket1000.SummaryStatistics = redvox_api_1000_pb2.RedvoxPacket1000.SummaryStatistics()
+        proto: redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics = redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics()
         return SummaryStatistics(proto)
 
     def get_count(self) -> float:
@@ -271,7 +271,7 @@ class SummaryStatistics(ProtoBase):
 
 
 class Payload(ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.Payload):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.Payload):
         super().__init__(proto)
         self._summary_statistics: SummaryStatistics = SummaryStatistics(proto.value_statistics)
 

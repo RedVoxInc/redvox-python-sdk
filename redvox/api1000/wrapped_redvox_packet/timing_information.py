@@ -1,3 +1,4 @@
+import enum
 from typing import List
 
 import redvox.api1000.wrapped_redvox_packet.common as common
@@ -5,12 +6,12 @@ import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
 
 
 class SynchExchange(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.TimingInformation.SynchExchange):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.SynchExchange):
         super().__init__(proto)
 
     @staticmethod
     def new() -> 'SynchExchange':
-        return SynchExchange(redvox_api_1000_pb2.RedvoxPacket1000.TimingInformation.SynchExchange())
+        return SynchExchange(redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.SynchExchange())
 
     def get_unit(self) -> common.Unit:
         return common.Unit.from_proto(self._proto.unit)
@@ -69,13 +70,24 @@ class SynchExchange(common.ProtoBase):
         return self
 
 
+class TimingScoreMethod(enum.Enum):
+    UNKNOWN = 0
+
+    @staticmethod
+    def from_proto(score_method: redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod) -> 'TimingScoreMethod':
+        return TimingScoreMethod(score_method)
+
+    def into_proto(self) -> redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod:
+        return redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(self.name)
+
+
 class TimingInformation(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.TimingInformation):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.TimingInformation):
         super().__init__(proto)
 
     @staticmethod
     def new() -> 'TimingInformation':
-        return TimingInformation(redvox_api_1000_pb2.RedvoxPacket1000.TimingInformation())
+        return TimingInformation(redvox_api_1000_pb2.RedvoxPacketM.TimingInformation())
 
     def get_unit(self) -> common.Unit:
         return common.Unit.from_proto(self._proto.unit)

@@ -3,14 +3,14 @@ import redvox.api1000.wrapped_redvox_packet.common as common
 
 
 class AudioChannel(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.AudioChannel):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.AudioChannel):
         super().__init__(proto)
         self._samples: common.Payload = common.Payload(proto.samples)
 
     @staticmethod
     def new() -> 'AudioChannel':
-        proto: redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.AudioChannel \
-            = redvox_api_1000_pb2.RedvoxPacket1000.SensorChannels.AudioChannel()
+        proto: redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.AudioChannel \
+            = redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.AudioChannel()
         return AudioChannel(proto)
 
     def get_sensor_description(self) -> str:
