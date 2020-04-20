@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='redvox_api_m',
   syntax='proto3',
   serialized_options=_b('\n\026io.redvox.redvox_api_m'),
-  serialized_pb=_b('\n#src/redvox_api_m/redvox_api_m.proto\x12\x0credvox_api_m\"\xf1W\n\rRedvoxPacketM\x12\x0b\n\x03\x61pi\x18\x01 \x01(\x02\x12\x45\n\x10user_information\x18\x02 \x01(\x0b\x32+.redvox_api_m.RedvoxPacketM.UserInformation\x12K\n\x13station_information\x18\x03 \x01(\x0b\x32..redvox_api_m.RedvoxPacketM.StationInformation\x12I\n\x12packet_information\x18\x04 \x01(\x0b\x32-.redvox_api_m.RedvoxPacketM.PacketInformation\x12I\n\x12timing_information\x18\x05 \x01(\x0b\x32-.redvox_api_m.RedvoxPacketM.TimingInformation\x12I\n\x12server_information\x18\x06 \x01(\x0b\x32-.redvox_api_m.RedvoxPacketM.ServerInformation\x12\x34\n\x07sensors\x18\x07 \x01(\x0b\x32#.redvox_api_m.RedvoxPacketM.Sensors\x12;\n\x08metadata\x18\x08 \x03(\x0b\x32).redvox_api_m.RedvoxPacketM.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xcf\x01\n\x0fUserInformation\x12\x12\n\nauth_email\x18\x01 \x01(\t\x12\x12\n\nauth_token\x18\x02 \x01(\t\x12\x16\n\x0e\x66irebase_token\x18\x03 \x01(\t\x12K\n\x08metadata\x18\x04 \x03(\x0b\x32\x39.redvox_api_m.RedvoxPacketM.UserInformation.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xe8\x1b\n\x12StationInformation\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04uuid\x18\x02 \x01(\t\x12\x0c\n\x04make\x18\x03 \x01(\t\x12\r\n\x05model\x18\x04 \x01(\t\x12\x41\n\x02os\x18\x05 \x01(\x0e\x32\x35.redvox_api_m.RedvoxPacketM.StationInformation.OsType\x12\x12\n\nos_version\x18\x06 \x01(\t\x12\x13\n\x0b\x61pp_version\x18\x07 \x01(\t\x12P\n\x0c\x61pp_settings\x18\x08 \x01(\x0b\x32:.redvox_api_m.RedvoxPacketM.StationInformation.AppSettings\x12V\n\x0fstation_metrics\x18\t \x01(\x0b\x32=.redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics\x12N\n\x08metadata\x18\n \x03(\x0b\x32<.redvox_api_m.RedvoxPacketM.StationInformation.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xe5\n\n\x0eStationMetrics\x12Q\n\x1estation_information_timestamps\x18\x01 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12_\n\x0cnetwork_type\x18\x02 \x03(\x0e\x32I.redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics.NetworkType\x12j\n\x12\x63\x65ll_service_state\x18\x03 \x03(\x0e\x32N.redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState\x12\x43\n\x10network_strength\x18\x04 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12>\n\x0btemperature\x18\x05 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12:\n\x07\x62\x61ttery\x18\x06 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x42\n\x0f\x62\x61ttery_current\x18\x07 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12@\n\ravailable_ram\x18\x08 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x41\n\x0e\x61vailable_disk\x18\t \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x42\n\x0f\x63pu_utilization\x18\n \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12]\n\x0bpower_state\x18\x0b \x03(\x0e\x32H.redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics.PowerState\x12\x62\n\x0ewifi_wake_lock\x18\x0c \x01(\x0e\x32J.redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock\x12]\n\x08metadata\x18\r \x03(\x0b\x32K.redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"5\n\x0bNetworkType\x12\x0e\n\nNO_NETWORK\x10\x00\x12\x08\n\x04WIFI\x10\x01\x12\x0c\n\x08\x43\x45LLULAR\x10\x02\"C\n\x0cWifiWakeLock\x12\x08\n\x04NONE\x10\x00\x12\r\n\tHIGH_PERF\x10\x01\x12\x0f\n\x0bLOW_LATENCY\x10\x02\x12\t\n\x05OTHER\x10\x03\"^\n\x10\x43\x65llServiceState\x12\x0b\n\x07UNKNOWN\x10\x00\x12\r\n\tEMERGENCY\x10\x01\x12\x0b\n\x07NOMINAL\x10\x02\x12\x12\n\x0eOUT_OF_SERVICE\x10\x03\x12\r\n\tPOWER_OFF\x10\x04\"6\n\nPowerState\x12\r\n\tUNPLUGGED\x10\x00\x12\x0c\n\x08\x43HARGING\x10\x01\x12\x0b\n\x07\x43HARGED\x10\x02\x1a\xe3\x0c\n\x0b\x41ppSettings\x12i\n\x13\x61udio_sampling_rate\x18\x01 \x01(\x0e\x32L.redvox_api_m.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate\x12i\n\x13\x61udio_source_tuning\x18\x02 \x01(\x0e\x32L.redvox_api_m.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning\x12h\n\x18\x61\x64\x64itional_input_sensors\x18\x03 \x03(\x0e\x32\x46.redvox_api_m.RedvoxPacketM.StationInformation.AppSettings.InputSensor\x12\x1c\n\x14\x61utomatically_record\x18\x04 \x01(\x08\x12\x1a\n\x12launch_at_power_up\x18\x05 \x01(\x08\x12\x12\n\nstation_id\x18\x06 \x01(\t\x12\x16\n\x0epush_to_server\x18\x07 \x01(\x08\x12\x1f\n\x17publish_data_as_private\x18\x08 \x01(\x08\x12\x1b\n\x13scramble_audio_data\x18\t \x01(\x08\x12\x18\n\x10provide_backfill\x18\n \x01(\x08\x12\x1f\n\x17remove_sensor_dc_offset\x18\x0b \x01(\x08\x12Z\n\x0b\x66\x66t_overlap\x18\x0c \x01(\x0e\x32\x45.redvox_api_m.RedvoxPacketM.StationInformation.AppSettings.FftOverlap\x12#\n\x1buse_custom_time_sync_server\x18\r \x01(\x08\x12\x1c\n\x14time_sync_server_url\x18\x0e \x01(\t\x12\x1e\n\x16use_custom_data_server\x18\x0f \x01(\x08\x12\x17\n\x0f\x64\x61ta_server_url\x18\x10 \x01(\t\x12\x1e\n\x16\x61uto_delete_data_files\x18\x11 \x01(\x08\x12\x1f\n\x17storage_space_allowance\x18\x12 \x01(\x02\x12$\n\x1cuse_sd_card_for_data_storage\x18\x13 \x01(\x08\x12\x1d\n\x15use_location_services\x18\x14 \x01(\x08\x12\x14\n\x0cuse_latitude\x18\x15 \x01(\x02\x12\x15\n\ruse_longitude\x18\x16 \x01(\x02\x12\x14\n\x0cuse_altitude\x18\x17 \x01(\x02\x12Z\n\x08metadata\x18\x18 \x03(\x0b\x32H.redvox_api_m.RedvoxPacketM.StationInformation.AppSettings.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"<\n\nFftOverlap\x12\x0e\n\nPERCENT_25\x10\x00\x12\x0e\n\nPERCENT_50\x10\x01\x12\x0e\n\nPERCENT_75\x10\x02\"S\n\x11\x41udioSamplingRate\x12\t\n\x05HZ_80\x10\x00\x12\n\n\x06HZ_800\x10\x01\x12\x0b\n\x07HZ_8000\x10\x02\x12\x0c\n\x08HZ_16000\x10\x03\x12\x0c\n\x08HZ_48000\x10\x04\"R\n\x11\x41udioSourceTuning\x12\x15\n\x11INFRASOUND_TUNING\x10\x00\x12\x14\n\x10LOW_AUDIO_TUNING\x10\x01\x12\x10\n\x0c\x41UDIO_TUNING\x10\x02\"\x9f\x02\n\x0bInputSensor\x12\x11\n\rACCELEROMETER\x10\x00\x12\x17\n\x13\x41MBIENT_TEMPERATURE\x10\x01\x12\t\n\x05\x41UDIO\x10\x02\x12\x14\n\x10\x43OMPRESSED_AUDIO\x10\x03\x12\x0b\n\x07GRAVITY\x10\x04\x12\r\n\tGYROSCOPE\x10\x05\x12\t\n\x05IMAGE\x10\x06\x12\t\n\x05LIGHT\x10\x07\x12\x17\n\x13LINEAR_ACCELERATION\x10\x08\x12\x0c\n\x08LOCATION\x10\t\x12\x10\n\x0cMAGNETOMETER\x10\n\x12\x0f\n\x0bORIENTATION\x10\x0b\x12\x0c\n\x08PRESSURE\x10\x0c\x12\r\n\tPROXIMITY\x10\r\x12\x15\n\x11RELATIVE_HUMIDITY\x10\x0e\x12\x13\n\x0fROTATION_VECTOR\x10\x0f\"6\n\x06OsType\x12\x0b\n\x07\x41NDROID\x10\x00\x12\x07\n\x03IOS\x10\x01\x12\t\n\x05LINUX\x10\x02\x12\x0b\n\x07WINDOWS\x10\x03\x1a\xbe\x01\n\x11PacketInformation\x12\x15\n\ris_backfilled\x18\x01 \x01(\x08\x12\x12\n\nis_private\x18\x02 \x01(\x08\x12M\n\x08metadata\x18\x03 \x03(\x0b\x32;.redvox_api_m.RedvoxPacketM.PacketInformation.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xc0\x07\n\x11TimingInformation\x12!\n\x19packet_start_os_timestamp\x18\x01 \x01(\x01\x12#\n\x1bpacket_start_mach_timestamp\x18\x02 \x01(\x01\x12\x1f\n\x17packet_end_os_timestamp\x18\x03 \x01(\x01\x12!\n\x19packet_end_mach_timestamp\x18\x04 \x01(\x01\x12,\n$server_acquisition_arrival_timestamp\x18\x05 \x01(\x01\x12 \n\x18\x61pp_start_mach_timestamp\x18\x06 \x01(\x01\x12T\n\x0fsynch_exchanges\x18\x07 \x03(\x0b\x32;.redvox_api_m.RedvoxPacketM.TimingInformation.SynchExchange\x12\x14\n\x0c\x62\x65st_latency\x18\x08 \x01(\x02\x12\x13\n\x0b\x62\x65st_offset\x18\t \x01(\x02\x12\r\n\x05score\x18\n \x01(\x02\x12U\n\x0cscore_method\x18\x0b \x01(\x0e\x32?.redvox_api_m.RedvoxPacketM.TimingInformation.TimingScoreMethod\x12.\n\x04unit\x18\x0c \x01(\x0e\x32 .redvox_api_m.RedvoxPacketM.Unit\x12M\n\x08metadata\x18\r \x03(\x0b\x32;.redvox_api_m.RedvoxPacketM.TimingInformation.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x95\x02\n\rSynchExchange\x12\n\n\x02\x61\x31\x18\x01 \x01(\x01\x12\n\n\x02\x61\x32\x18\x02 \x01(\x01\x12\n\n\x02\x61\x33\x18\x03 \x01(\x01\x12\n\n\x02\x62\x31\x18\x04 \x01(\x01\x12\n\n\x02\x62\x32\x18\x05 \x01(\x01\x12\n\n\x02\x62\x33\x18\x06 \x01(\x01\x12.\n\x04unit\x18\x07 \x01(\x0e\x32 .redvox_api_m.RedvoxPacketM.Unit\x12[\n\x08metadata\x18\x08 \x03(\x0b\x32I.redvox_api_m.RedvoxPacketM.TimingInformation.SynchExchange.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\" \n\x11TimingScoreMethod\x12\x0b\n\x07UNKNOWN\x10\x00\x1a\xe6\x01\n\x11ServerInformation\x12\x17\n\x0f\x61uth_server_url\x18\x01 \x01(\t\x12\x18\n\x10synch_server_url\x18\x02 \x01(\t\x12\x1e\n\x16\x61\x63quisition_server_url\x18\x03 \x01(\t\x12M\n\x08metadata\x18\x04 \x03(\x0b\x32;.redvox_api_m.RedvoxPacketM.ServerInformation.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xc7!\n\x07Sensors\x12>\n\raccelerometer\x18\x01 \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12G\n\x13\x61mbient_temperature\x18\x02 \x01(\x0b\x32*.redvox_api_m.RedvoxPacketM.Sensors.Single\x12\x38\n\x05\x61udio\x18\x03 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.Sensors.Audio\x12M\n\x10\x63ompressed_audio\x18\x04 \x01(\x0b\x32\x33.redvox_api_m.RedvoxPacketM.Sensors.CompressedAudio\x12\x38\n\x07gravity\x18\x05 \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12:\n\tgyroscope\x18\x06 \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12\x38\n\x05image\x18\x07 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.Sensors.Image\x12\x39\n\x05light\x18\x08 \x01(\x0b\x32*.redvox_api_m.RedvoxPacketM.Sensors.Single\x12\x44\n\x13linear_acceleration\x18\t \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12>\n\x08location\x18\n \x01(\x0b\x32,.redvox_api_m.RedvoxPacketM.Sensors.Location\x12=\n\x0cmagnetometer\x18\x0b \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12<\n\x0borientation\x18\x0c \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12<\n\x08pressure\x18\r \x01(\x0b\x32*.redvox_api_m.RedvoxPacketM.Sensors.Single\x12=\n\tproximity\x18\x0e \x01(\x0b\x32*.redvox_api_m.RedvoxPacketM.Sensors.Single\x12\x45\n\x11relative_humidity\x18\x0f \x01(\x0b\x32*.redvox_api_m.RedvoxPacketM.Sensors.Single\x12@\n\x0frotation_vector\x18\x10 \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12\x43\n\x08metadata\x18\x11 \x03(\x0b\x32\x31.redvox_api_m.RedvoxPacketM.Sensors.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xa6\x02\n\x05\x41udio\x12\x1a\n\x12sensor_description\x18\x01 \x01(\t\x12\x1e\n\x16\x66irst_sample_timestamp\x18\x02 \x01(\x01\x12\x13\n\x0bsample_rate\x18\x03 \x01(\x02\x12\x14\n\x0cis_scrambled\x18\x04 \x01(\x08\x12:\n\x07samples\x18\x05 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12I\n\x08metadata\x18\x06 \x03(\x0b\x32\x37.redvox_api_m.RedvoxPacketM.Sensors.Audio.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x80\x03\n\x0f\x43ompressedAudio\x12\x1a\n\x12sensor_description\x18\x01 \x01(\t\x12\x1e\n\x16\x66irst_sample_timestamp\x18\x02 \x01(\x01\x12\x13\n\x0bsample_rate\x18\x03 \x01(\x02\x12\x14\n\x0cis_scrambled\x18\x04 \x01(\x08\x12\x13\n\x0b\x61udio_bytes\x18\x05 \x01(\x0c\x12S\n\x0b\x61udio_codec\x18\x06 \x01(\x0e\x32>.redvox_api_m.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec\x12S\n\x08metadata\x18\x07 \x03(\x0b\x32\x41.redvox_api_m.RedvoxPacketM.Sensors.CompressedAudio.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x16\n\nAudioCodec\x12\x08\n\x04TODO\x10\x00\x1a\x9c\x02\n\x06Single\x12\x1a\n\x12sensor_description\x18\x01 \x01(\t\x12=\n\ntimestamps\x18\x02 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.TimingPayload\x12:\n\x07samples\x18\x03 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12J\n\x08metadata\x18\x04 \x03(\x0b\x32\x38.redvox_api_m.RedvoxPacketM.Sensors.Single.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xf7\n\n\x08Location\x12\x1a\n\x12sensor_description\x18\x01 \x01(\t\x12=\n\ntimestamps\x18\x02 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.TimingPayload\x12\x43\n\x10latitude_samples\x18\x03 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x44\n\x11longitude_samples\x18\x04 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x43\n\x10\x61ltitude_samples\x18\x05 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12@\n\rspeed_samples\x18\x06 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x42\n\x0f\x62\x65\x61ring_samples\x18\x07 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12N\n\x1bhorizontal_accuracy_samples\x18\x08 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12L\n\x19vertical_accuracy_samples\x18\t \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12I\n\x16speed_accuracy_samples\x18\n \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12K\n\x18\x62\x65\x61ring_accuracy_samples\x18\x0b \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x15\n\rbest_latitude\x18\x0e \x01(\x02\x12\x16\n\x0e\x62\x65st_longitude\x18\x0f \x01(\x02\x12\x15\n\rbest_altitude\x18\x10 \x01(\x02\x12\x12\n\nbest_speed\x18\x11 \x01(\x02\x12\x14\n\x0c\x62\x65st_bearing\x18\x12 \x01(\x02\x12\r\n\x05score\x18\x13 \x01(\x02\x12_\n\x15location_score_method\x18\x14 \x01(\x0e\x32@.redvox_api_m.RedvoxPacketM.Sensors.Location.LocationScoreMethod\x12$\n\x1clocation_permissions_granted\x18\x15 \x01(\x08\x12#\n\x1blocation_services_requested\x18\x16 \x01(\x08\x12!\n\x19location_services_enabled\x18\x17 \x01(\x08\x12X\n\x11location_provider\x18\x18 \x01(\x0e\x32=.redvox_api_m.RedvoxPacketM.Sensors.Location.LocationProvider\x12L\n\x08metadata\x18\x19 \x03(\x0b\x32:.redvox_api_m.RedvoxPacketM.Sensors.Location.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x1f\n\x13LocationScoreMethod\x12\x08\n\x04TODO\x10\x00\"<\n\x10LocationProvider\x12\x08\n\x04NONE\x10\x00\x12\x08\n\x04USER\x10\x01\x12\x07\n\x03GPS\x10\x02\x12\x0b\n\x07NETWORK\x10\x03\x1a\x94\x03\n\x03Xyz\x12\x1a\n\x12sensor_description\x18\x01 \x01(\t\x12=\n\ntimestamps\x18\x02 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.TimingPayload\x12<\n\tx_samples\x18\x04 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12<\n\ty_samples\x18\x05 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12<\n\tz_samples\x18\x06 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12G\n\x08metadata\x18\x07 \x03(\x0b\x32\x35.redvox_api_m.RedvoxPacketM.Sensors.Xyz.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xe3\x02\n\x05Image\x12\x1a\n\x12sensor_description\x18\x01 \x01(\t\x12=\n\ntimestamps\x18\x02 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.TimingPayload\x12\x0f\n\x07samples\x18\x03 \x03(\x0c\x12I\n\x0bimage_codec\x18\x06 \x01(\x0e\x32\x34.redvox_api_m.RedvoxPacketM.Sensors.Image.ImageCodec\x12I\n\x08metadata\x18\x07 \x03(\x0b\x32\x37.redvox_api_m.RedvoxPacketM.Sensors.Image.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\'\n\nImageCodec\x12\x07\n\x03PNG\x10\x00\x12\x07\n\x03JPG\x10\x01\x12\x07\n\x03\x42MP\x10\x02\x1a\x94\x02\n\rSamplePayload\x12.\n\x04unit\x18\x01 \x01(\x0e\x32 .redvox_api_m.RedvoxPacketM.Unit\x12\x0e\n\x06values\x18\x02 \x03(\x02\x12G\n\x10value_statistics\x18\x03 \x01(\x0b\x32-.redvox_api_m.RedvoxPacketM.SummaryStatistics\x12I\n\x08metadata\x18\x04 \x03(\x0b\x32\x37.redvox_api_m.RedvoxPacketM.SamplePayload.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xc9\x02\n\rTimingPayload\x12.\n\x04unit\x18\x01 \x01(\x0e\x32 .redvox_api_m.RedvoxPacketM.Unit\x12\x0e\n\x06values\x18\x02 \x03(\x01\x12G\n\x10value_statistics\x18\x03 \x01(\x0b\x32-.redvox_api_m.RedvoxPacketM.SummaryStatistics\x12\x18\n\x10mean_sample_rate\x18\x04 \x01(\x02\x12\x19\n\x11stdev_sample_rate\x18\x05 \x01(\x02\x12I\n\x08metadata\x18\x06 \x03(\x0b\x32\x37.redvox_api_m.RedvoxPacketM.TimingPayload.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x89\x02\n\x11SummaryStatistics\x12\r\n\x05\x63ount\x18\x01 \x01(\x02\x12\x0c\n\x04mean\x18\x02 \x01(\x02\x12\x0e\n\x06median\x18\x03 \x01(\x02\x12\x0c\n\x04mode\x18\x04 \x01(\x02\x12\x10\n\x08variance\x18\x05 \x01(\x02\x12\x0b\n\x03min\x18\x06 \x01(\x02\x12\x0b\n\x03max\x18\x07 \x01(\x02\x12\r\n\x05range\x18\x08 \x01(\x02\x12M\n\x08metadata\x18\t \x03(\x0b\x32;.redvox_api_m.RedvoxPacketM.SummaryStatistics.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xd6\x02\n\x04Unit\x12\x1d\n\x19METERS_PER_SECOND_SQUARED\x10\x00\x12\x0e\n\nKILOPASCAL\x10\x01\x12\x16\n\x12RADIANS_PER_SECOND\x10\x02\x12\x13\n\x0f\x44\x45\x43IMAL_DEGREES\x10\x03\x12\n\n\x06METERS\x10\x04\x12\x15\n\x11METERS_PER_SECOND\x10\x05\x12\x0e\n\nMICROTESLA\x10\x06\x12\x19\n\x15LSB_PLUS_MINUS_COUNTS\x10\x07\x12!\n\x1dMICROSECONDS_SINCE_UNIX_EPOCH\x10\x08\x12\x0b\n\x07\x44\x45\x43IBEL\x10\t\x12\x13\n\x0f\x44\x45GREES_CELSIUS\x10\n\x12\x08\n\x04\x42YTE\x10\x0b\x12\x0e\n\nPERCENTAGE\x10\x0c\x12\x0b\n\x07RADIANS\x10\r\x12\x10\n\x0cMICROAMPERES\x10\x0e\x12\x0f\n\x0b\x43\x45NTIMETERS\x10\x0f\x12\x15\n\x11NORMALIZED_COUNTS\x10\x10\"\x97\x01\n\x19\x45ncryptedRedvoxPacket1000\x12\x0e\n\x06header\x18\x01 \x01(\x0c\x12\x0e\n\x06packet\x18\x02 \x01(\x0c\x1aZ\n\x06Header\x12\x12\n\nstation_id\x18\x01 \x01(\t\x12\x14\n\x0cstation_uuid\x18\x02 \x01(\t\x12\x12\n\nauth_token\x18\x03 \x01(\t\x12\x12\n\nauth_email\x18\x04 \x01(\t\"M\n\x12\x41\x63quisitionRequest\x12\x0f\n\x07payload\x18\x01 \x01(\x0c\x12\x14\n\x0cis_encrypted\x18\x02 \x01(\x08\x12\x10\n\x08\x63hecksum\x18\x03 \x01(\x03\"\xd8\x01\n\x13\x41\x63quisitionResponse\x12\x45\n\rresponse_type\x18\x01 \x01(\x0e\x32..redvox_api_m.AcquisitionResponse.ResponseType\x12\x10\n\x08\x63hecksum\x18\x02 \x01(\x03\x12\x0f\n\x07\x64\x65tails\x18\x03 \x01(\t\x12\x0e\n\x06resend\x18\x04 \x01(\x08\"G\n\x0cResponseType\x12\x06\n\x02OK\x10\x00\x12\x0e\n\nAUTH_ERROR\x10\x01\x12\x0e\n\nDATA_ERROR\x10\x02\x12\x0f\n\x0bOTHER_ERROR\x10\x03\"\\\n\x0cSynchRequest\x12\x12\n\nstation_id\x18\x01 \x01(\t\x12\x14\n\x0cstation_uuid\x18\x02 \x01(\t\x12\x0e\n\x06seq_id\x18\x03 \x01(\r\x12\x12\n\nsub_seq_id\x18\x04 \x01(\r\"\x85\x01\n\rSynchResponse\x12\x12\n\nstation_id\x18\x01 \x01(\t\x12\x14\n\x0cstation_uuid\x18\x02 \x01(\t\x12\x0e\n\x06seq_id\x18\x03 \x01(\r\x12\x12\n\nsub_seq_id\x18\x04 \x01(\r\x12\x12\n\nrecv_ts_us\x18\x05 \x01(\x04\x12\x12\n\nsend_ts_us\x18\x06 \x01(\x04\x42\x18\n\x16io.redvox.redvox_api_mb\x06proto3')
+  serialized_pb=_b('\n#src/redvox_api_m/redvox_api_m.proto\x12\x0credvox_api_m\"\xddW\n\rRedvoxPacketM\x12\x0b\n\x03\x61pi\x18\x01 \x01(\x02\x12\x45\n\x10user_information\x18\x02 \x01(\x0b\x32+.redvox_api_m.RedvoxPacketM.UserInformation\x12K\n\x13station_information\x18\x03 \x01(\x0b\x32..redvox_api_m.RedvoxPacketM.StationInformation\x12I\n\x12packet_information\x18\x04 \x01(\x0b\x32-.redvox_api_m.RedvoxPacketM.PacketInformation\x12I\n\x12timing_information\x18\x05 \x01(\x0b\x32-.redvox_api_m.RedvoxPacketM.TimingInformation\x12I\n\x12server_information\x18\x06 \x01(\x0b\x32-.redvox_api_m.RedvoxPacketM.ServerInformation\x12\x34\n\x07sensors\x18\x07 \x01(\x0b\x32#.redvox_api_m.RedvoxPacketM.Sensors\x12;\n\x08metadata\x18\x08 \x03(\x0b\x32).redvox_api_m.RedvoxPacketM.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xcf\x01\n\x0fUserInformation\x12\x12\n\nauth_email\x18\x01 \x01(\t\x12\x12\n\nauth_token\x18\x02 \x01(\t\x12\x16\n\x0e\x66irebase_token\x18\x03 \x01(\t\x12K\n\x08metadata\x18\x04 \x03(\x0b\x32\x39.redvox_api_m.RedvoxPacketM.UserInformation.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xd4\x1b\n\x12StationInformation\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04uuid\x18\x02 \x01(\t\x12\x0c\n\x04make\x18\x03 \x01(\t\x12\r\n\x05model\x18\x04 \x01(\t\x12\x41\n\x02os\x18\x05 \x01(\x0e\x32\x35.redvox_api_m.RedvoxPacketM.StationInformation.OsType\x12\x12\n\nos_version\x18\x06 \x01(\t\x12\x13\n\x0b\x61pp_version\x18\x07 \x01(\t\x12P\n\x0c\x61pp_settings\x18\x08 \x01(\x0b\x32:.redvox_api_m.RedvoxPacketM.StationInformation.AppSettings\x12V\n\x0fstation_metrics\x18\t \x01(\x0b\x32=.redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics\x12N\n\x08metadata\x18\n \x03(\x0b\x32<.redvox_api_m.RedvoxPacketM.StationInformation.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xd1\n\n\x0eStationMetrics\x12=\n\ntimestamps\x18\x01 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12_\n\x0cnetwork_type\x18\x02 \x03(\x0e\x32I.redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics.NetworkType\x12j\n\x12\x63\x65ll_service_state\x18\x03 \x03(\x0e\x32N.redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState\x12\x43\n\x10network_strength\x18\x04 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12>\n\x0btemperature\x18\x05 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12:\n\x07\x62\x61ttery\x18\x06 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x42\n\x0f\x62\x61ttery_current\x18\x07 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12@\n\ravailable_ram\x18\x08 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x41\n\x0e\x61vailable_disk\x18\t \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x42\n\x0f\x63pu_utilization\x18\n \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12]\n\x0bpower_state\x18\x0b \x03(\x0e\x32H.redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics.PowerState\x12\x62\n\x0ewifi_wake_lock\x18\x0c \x01(\x0e\x32J.redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock\x12]\n\x08metadata\x18\r \x03(\x0b\x32K.redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"5\n\x0bNetworkType\x12\x0e\n\nNO_NETWORK\x10\x00\x12\x08\n\x04WIFI\x10\x01\x12\x0c\n\x08\x43\x45LLULAR\x10\x02\"C\n\x0cWifiWakeLock\x12\x08\n\x04NONE\x10\x00\x12\r\n\tHIGH_PERF\x10\x01\x12\x0f\n\x0bLOW_LATENCY\x10\x02\x12\t\n\x05OTHER\x10\x03\"^\n\x10\x43\x65llServiceState\x12\x0b\n\x07UNKNOWN\x10\x00\x12\r\n\tEMERGENCY\x10\x01\x12\x0b\n\x07NOMINAL\x10\x02\x12\x12\n\x0eOUT_OF_SERVICE\x10\x03\x12\r\n\tPOWER_OFF\x10\x04\"6\n\nPowerState\x12\r\n\tUNPLUGGED\x10\x00\x12\x0c\n\x08\x43HARGING\x10\x01\x12\x0b\n\x07\x43HARGED\x10\x02\x1a\xe3\x0c\n\x0b\x41ppSettings\x12i\n\x13\x61udio_sampling_rate\x18\x01 \x01(\x0e\x32L.redvox_api_m.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate\x12i\n\x13\x61udio_source_tuning\x18\x02 \x01(\x0e\x32L.redvox_api_m.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning\x12h\n\x18\x61\x64\x64itional_input_sensors\x18\x03 \x03(\x0e\x32\x46.redvox_api_m.RedvoxPacketM.StationInformation.AppSettings.InputSensor\x12\x1c\n\x14\x61utomatically_record\x18\x04 \x01(\x08\x12\x1a\n\x12launch_at_power_up\x18\x05 \x01(\x08\x12\x12\n\nstation_id\x18\x06 \x01(\t\x12\x16\n\x0epush_to_server\x18\x07 \x01(\x08\x12\x1f\n\x17publish_data_as_private\x18\x08 \x01(\x08\x12\x1b\n\x13scramble_audio_data\x18\t \x01(\x08\x12\x18\n\x10provide_backfill\x18\n \x01(\x08\x12\x1f\n\x17remove_sensor_dc_offset\x18\x0b \x01(\x08\x12Z\n\x0b\x66\x66t_overlap\x18\x0c \x01(\x0e\x32\x45.redvox_api_m.RedvoxPacketM.StationInformation.AppSettings.FftOverlap\x12#\n\x1buse_custom_time_sync_server\x18\r \x01(\x08\x12\x1c\n\x14time_sync_server_url\x18\x0e \x01(\t\x12\x1e\n\x16use_custom_data_server\x18\x0f \x01(\x08\x12\x17\n\x0f\x64\x61ta_server_url\x18\x10 \x01(\t\x12\x1e\n\x16\x61uto_delete_data_files\x18\x11 \x01(\x08\x12\x1f\n\x17storage_space_allowance\x18\x12 \x01(\x02\x12$\n\x1cuse_sd_card_for_data_storage\x18\x13 \x01(\x08\x12\x1d\n\x15use_location_services\x18\x14 \x01(\x08\x12\x14\n\x0cuse_latitude\x18\x15 \x01(\x02\x12\x15\n\ruse_longitude\x18\x16 \x01(\x02\x12\x14\n\x0cuse_altitude\x18\x17 \x01(\x02\x12Z\n\x08metadata\x18\x18 \x03(\x0b\x32H.redvox_api_m.RedvoxPacketM.StationInformation.AppSettings.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"<\n\nFftOverlap\x12\x0e\n\nPERCENT_25\x10\x00\x12\x0e\n\nPERCENT_50\x10\x01\x12\x0e\n\nPERCENT_75\x10\x02\"S\n\x11\x41udioSamplingRate\x12\t\n\x05HZ_80\x10\x00\x12\n\n\x06HZ_800\x10\x01\x12\x0b\n\x07HZ_8000\x10\x02\x12\x0c\n\x08HZ_16000\x10\x03\x12\x0c\n\x08HZ_48000\x10\x04\"R\n\x11\x41udioSourceTuning\x12\x15\n\x11INFRASOUND_TUNING\x10\x00\x12\x14\n\x10LOW_AUDIO_TUNING\x10\x01\x12\x10\n\x0c\x41UDIO_TUNING\x10\x02\"\x9f\x02\n\x0bInputSensor\x12\x11\n\rACCELEROMETER\x10\x00\x12\x17\n\x13\x41MBIENT_TEMPERATURE\x10\x01\x12\t\n\x05\x41UDIO\x10\x02\x12\x14\n\x10\x43OMPRESSED_AUDIO\x10\x03\x12\x0b\n\x07GRAVITY\x10\x04\x12\r\n\tGYROSCOPE\x10\x05\x12\t\n\x05IMAGE\x10\x06\x12\t\n\x05LIGHT\x10\x07\x12\x17\n\x13LINEAR_ACCELERATION\x10\x08\x12\x0c\n\x08LOCATION\x10\t\x12\x10\n\x0cMAGNETOMETER\x10\n\x12\x0f\n\x0bORIENTATION\x10\x0b\x12\x0c\n\x08PRESSURE\x10\x0c\x12\r\n\tPROXIMITY\x10\r\x12\x15\n\x11RELATIVE_HUMIDITY\x10\x0e\x12\x13\n\x0fROTATION_VECTOR\x10\x0f\"6\n\x06OsType\x12\x0b\n\x07\x41NDROID\x10\x00\x12\x07\n\x03IOS\x10\x01\x12\t\n\x05LINUX\x10\x02\x12\x0b\n\x07WINDOWS\x10\x03\x1a\xbe\x01\n\x11PacketInformation\x12\x15\n\ris_backfilled\x18\x01 \x01(\x08\x12\x12\n\nis_private\x18\x02 \x01(\x08\x12M\n\x08metadata\x18\x03 \x03(\x0b\x32;.redvox_api_m.RedvoxPacketM.PacketInformation.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xc0\x07\n\x11TimingInformation\x12!\n\x19packet_start_os_timestamp\x18\x01 \x01(\x01\x12#\n\x1bpacket_start_mach_timestamp\x18\x02 \x01(\x01\x12\x1f\n\x17packet_end_os_timestamp\x18\x03 \x01(\x01\x12!\n\x19packet_end_mach_timestamp\x18\x04 \x01(\x01\x12,\n$server_acquisition_arrival_timestamp\x18\x05 \x01(\x01\x12 \n\x18\x61pp_start_mach_timestamp\x18\x06 \x01(\x01\x12T\n\x0fsynch_exchanges\x18\x07 \x03(\x0b\x32;.redvox_api_m.RedvoxPacketM.TimingInformation.SynchExchange\x12\x14\n\x0c\x62\x65st_latency\x18\x08 \x01(\x02\x12\x13\n\x0b\x62\x65st_offset\x18\t \x01(\x02\x12\r\n\x05score\x18\n \x01(\x02\x12U\n\x0cscore_method\x18\x0b \x01(\x0e\x32?.redvox_api_m.RedvoxPacketM.TimingInformation.TimingScoreMethod\x12.\n\x04unit\x18\x0c \x01(\x0e\x32 .redvox_api_m.RedvoxPacketM.Unit\x12M\n\x08metadata\x18\r \x03(\x0b\x32;.redvox_api_m.RedvoxPacketM.TimingInformation.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x95\x02\n\rSynchExchange\x12\n\n\x02\x61\x31\x18\x01 \x01(\x01\x12\n\n\x02\x61\x32\x18\x02 \x01(\x01\x12\n\n\x02\x61\x33\x18\x03 \x01(\x01\x12\n\n\x02\x62\x31\x18\x04 \x01(\x01\x12\n\n\x02\x62\x32\x18\x05 \x01(\x01\x12\n\n\x02\x62\x33\x18\x06 \x01(\x01\x12.\n\x04unit\x18\x07 \x01(\x0e\x32 .redvox_api_m.RedvoxPacketM.Unit\x12[\n\x08metadata\x18\x08 \x03(\x0b\x32I.redvox_api_m.RedvoxPacketM.TimingInformation.SynchExchange.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\" \n\x11TimingScoreMethod\x12\x0b\n\x07UNKNOWN\x10\x00\x1a\xe6\x01\n\x11ServerInformation\x12\x17\n\x0f\x61uth_server_url\x18\x01 \x01(\t\x12\x18\n\x10synch_server_url\x18\x02 \x01(\t\x12\x1e\n\x16\x61\x63quisition_server_url\x18\x03 \x01(\t\x12M\n\x08metadata\x18\x04 \x03(\x0b\x32;.redvox_api_m.RedvoxPacketM.ServerInformation.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xc7!\n\x07Sensors\x12>\n\raccelerometer\x18\x01 \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12G\n\x13\x61mbient_temperature\x18\x02 \x01(\x0b\x32*.redvox_api_m.RedvoxPacketM.Sensors.Single\x12\x38\n\x05\x61udio\x18\x03 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.Sensors.Audio\x12M\n\x10\x63ompressed_audio\x18\x04 \x01(\x0b\x32\x33.redvox_api_m.RedvoxPacketM.Sensors.CompressedAudio\x12\x38\n\x07gravity\x18\x05 \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12:\n\tgyroscope\x18\x06 \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12\x38\n\x05image\x18\x07 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.Sensors.Image\x12\x39\n\x05light\x18\x08 \x01(\x0b\x32*.redvox_api_m.RedvoxPacketM.Sensors.Single\x12\x44\n\x13linear_acceleration\x18\t \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12>\n\x08location\x18\n \x01(\x0b\x32,.redvox_api_m.RedvoxPacketM.Sensors.Location\x12=\n\x0cmagnetometer\x18\x0b \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12<\n\x0borientation\x18\x0c \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12<\n\x08pressure\x18\r \x01(\x0b\x32*.redvox_api_m.RedvoxPacketM.Sensors.Single\x12=\n\tproximity\x18\x0e \x01(\x0b\x32*.redvox_api_m.RedvoxPacketM.Sensors.Single\x12\x45\n\x11relative_humidity\x18\x0f \x01(\x0b\x32*.redvox_api_m.RedvoxPacketM.Sensors.Single\x12@\n\x0frotation_vector\x18\x10 \x01(\x0b\x32\'.redvox_api_m.RedvoxPacketM.Sensors.Xyz\x12\x43\n\x08metadata\x18\x11 \x03(\x0b\x32\x31.redvox_api_m.RedvoxPacketM.Sensors.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xa6\x02\n\x05\x41udio\x12\x1a\n\x12sensor_description\x18\x01 \x01(\t\x12\x1e\n\x16\x66irst_sample_timestamp\x18\x02 \x01(\x01\x12\x13\n\x0bsample_rate\x18\x03 \x01(\x02\x12\x14\n\x0cis_scrambled\x18\x04 \x01(\x08\x12:\n\x07samples\x18\x05 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12I\n\x08metadata\x18\x06 \x03(\x0b\x32\x37.redvox_api_m.RedvoxPacketM.Sensors.Audio.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x80\x03\n\x0f\x43ompressedAudio\x12\x1a\n\x12sensor_description\x18\x01 \x01(\t\x12\x1e\n\x16\x66irst_sample_timestamp\x18\x02 \x01(\x01\x12\x13\n\x0bsample_rate\x18\x03 \x01(\x02\x12\x14\n\x0cis_scrambled\x18\x04 \x01(\x08\x12\x13\n\x0b\x61udio_bytes\x18\x05 \x01(\x0c\x12S\n\x0b\x61udio_codec\x18\x06 \x01(\x0e\x32>.redvox_api_m.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec\x12S\n\x08metadata\x18\x07 \x03(\x0b\x32\x41.redvox_api_m.RedvoxPacketM.Sensors.CompressedAudio.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x16\n\nAudioCodec\x12\x08\n\x04TODO\x10\x00\x1a\x9c\x02\n\x06Single\x12\x1a\n\x12sensor_description\x18\x01 \x01(\t\x12=\n\ntimestamps\x18\x02 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.TimingPayload\x12:\n\x07samples\x18\x03 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12J\n\x08metadata\x18\x04 \x03(\x0b\x32\x38.redvox_api_m.RedvoxPacketM.Sensors.Single.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xf7\n\n\x08Location\x12\x1a\n\x12sensor_description\x18\x01 \x01(\t\x12=\n\ntimestamps\x18\x02 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.TimingPayload\x12\x43\n\x10latitude_samples\x18\x03 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x44\n\x11longitude_samples\x18\x04 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x43\n\x10\x61ltitude_samples\x18\x05 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12@\n\rspeed_samples\x18\x06 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x42\n\x0f\x62\x65\x61ring_samples\x18\x07 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12N\n\x1bhorizontal_accuracy_samples\x18\x08 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12L\n\x19vertical_accuracy_samples\x18\t \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12I\n\x16speed_accuracy_samples\x18\n \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12K\n\x18\x62\x65\x61ring_accuracy_samples\x18\x0b \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12\x15\n\rbest_latitude\x18\x0e \x01(\x02\x12\x16\n\x0e\x62\x65st_longitude\x18\x0f \x01(\x02\x12\x15\n\rbest_altitude\x18\x10 \x01(\x02\x12\x12\n\nbest_speed\x18\x11 \x01(\x02\x12\x14\n\x0c\x62\x65st_bearing\x18\x12 \x01(\x02\x12\r\n\x05score\x18\x13 \x01(\x02\x12_\n\x15location_score_method\x18\x14 \x01(\x0e\x32@.redvox_api_m.RedvoxPacketM.Sensors.Location.LocationScoreMethod\x12$\n\x1clocation_permissions_granted\x18\x15 \x01(\x08\x12#\n\x1blocation_services_requested\x18\x16 \x01(\x08\x12!\n\x19location_services_enabled\x18\x17 \x01(\x08\x12X\n\x11location_provider\x18\x18 \x01(\x0e\x32=.redvox_api_m.RedvoxPacketM.Sensors.Location.LocationProvider\x12L\n\x08metadata\x18\x19 \x03(\x0b\x32:.redvox_api_m.RedvoxPacketM.Sensors.Location.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x1f\n\x13LocationScoreMethod\x12\x08\n\x04TODO\x10\x00\"<\n\x10LocationProvider\x12\x08\n\x04NONE\x10\x00\x12\x08\n\x04USER\x10\x01\x12\x07\n\x03GPS\x10\x02\x12\x0b\n\x07NETWORK\x10\x03\x1a\x94\x03\n\x03Xyz\x12\x1a\n\x12sensor_description\x18\x01 \x01(\t\x12=\n\ntimestamps\x18\x02 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.TimingPayload\x12<\n\tx_samples\x18\x04 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12<\n\ty_samples\x18\x05 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12<\n\tz_samples\x18\x06 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.SamplePayload\x12G\n\x08metadata\x18\x07 \x03(\x0b\x32\x35.redvox_api_m.RedvoxPacketM.Sensors.Xyz.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xe3\x02\n\x05Image\x12\x1a\n\x12sensor_description\x18\x01 \x01(\t\x12=\n\ntimestamps\x18\x02 \x01(\x0b\x32).redvox_api_m.RedvoxPacketM.TimingPayload\x12\x0f\n\x07samples\x18\x03 \x03(\x0c\x12I\n\x0bimage_codec\x18\x06 \x01(\x0e\x32\x34.redvox_api_m.RedvoxPacketM.Sensors.Image.ImageCodec\x12I\n\x08metadata\x18\x07 \x03(\x0b\x32\x37.redvox_api_m.RedvoxPacketM.Sensors.Image.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\'\n\nImageCodec\x12\x07\n\x03PNG\x10\x00\x12\x07\n\x03JPG\x10\x01\x12\x07\n\x03\x42MP\x10\x02\x1a\x94\x02\n\rSamplePayload\x12.\n\x04unit\x18\x01 \x01(\x0e\x32 .redvox_api_m.RedvoxPacketM.Unit\x12\x0e\n\x06values\x18\x02 \x03(\x02\x12G\n\x10value_statistics\x18\x03 \x01(\x0b\x32-.redvox_api_m.RedvoxPacketM.SummaryStatistics\x12I\n\x08metadata\x18\x04 \x03(\x0b\x32\x37.redvox_api_m.RedvoxPacketM.SamplePayload.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xc9\x02\n\rTimingPayload\x12.\n\x04unit\x18\x01 \x01(\x0e\x32 .redvox_api_m.RedvoxPacketM.Unit\x12\x0e\n\x06values\x18\x02 \x03(\x01\x12G\n\x10value_statistics\x18\x03 \x01(\x0b\x32-.redvox_api_m.RedvoxPacketM.SummaryStatistics\x12\x18\n\x10mean_sample_rate\x18\x04 \x01(\x02\x12\x19\n\x11stdev_sample_rate\x18\x05 \x01(\x02\x12I\n\x08metadata\x18\x06 \x03(\x0b\x32\x37.redvox_api_m.RedvoxPacketM.TimingPayload.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x89\x02\n\x11SummaryStatistics\x12\r\n\x05\x63ount\x18\x01 \x01(\x02\x12\x0c\n\x04mean\x18\x02 \x01(\x02\x12\x0e\n\x06median\x18\x03 \x01(\x02\x12\x0c\n\x04mode\x18\x04 \x01(\x02\x12\x10\n\x08variance\x18\x05 \x01(\x02\x12\x0b\n\x03min\x18\x06 \x01(\x02\x12\x0b\n\x03max\x18\x07 \x01(\x02\x12\r\n\x05range\x18\x08 \x01(\x02\x12M\n\x08metadata\x18\t \x03(\x0b\x32;.redvox_api_m.RedvoxPacketM.SummaryStatistics.MetadataEntry\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xd6\x02\n\x04Unit\x12\x1d\n\x19METERS_PER_SECOND_SQUARED\x10\x00\x12\x0e\n\nKILOPASCAL\x10\x01\x12\x16\n\x12RADIANS_PER_SECOND\x10\x02\x12\x13\n\x0f\x44\x45\x43IMAL_DEGREES\x10\x03\x12\n\n\x06METERS\x10\x04\x12\x15\n\x11METERS_PER_SECOND\x10\x05\x12\x0e\n\nMICROTESLA\x10\x06\x12\x19\n\x15LSB_PLUS_MINUS_COUNTS\x10\x07\x12!\n\x1dMICROSECONDS_SINCE_UNIX_EPOCH\x10\x08\x12\x0b\n\x07\x44\x45\x43IBEL\x10\t\x12\x13\n\x0f\x44\x45GREES_CELSIUS\x10\n\x12\x08\n\x04\x42YTE\x10\x0b\x12\x0e\n\nPERCENTAGE\x10\x0c\x12\x0b\n\x07RADIANS\x10\r\x12\x10\n\x0cMICROAMPERES\x10\x0e\x12\x0f\n\x0b\x43\x45NTIMETERS\x10\x0f\x12\x15\n\x11NORMALIZED_COUNTS\x10\x10\"\x97\x01\n\x19\x45ncryptedRedvoxPacket1000\x12\x0e\n\x06header\x18\x01 \x01(\x0c\x12\x0e\n\x06packet\x18\x02 \x01(\x0c\x1aZ\n\x06Header\x12\x12\n\nstation_id\x18\x01 \x01(\t\x12\x14\n\x0cstation_uuid\x18\x02 \x01(\t\x12\x12\n\nauth_token\x18\x03 \x01(\t\x12\x12\n\nauth_email\x18\x04 \x01(\t\"M\n\x12\x41\x63quisitionRequest\x12\x0f\n\x07payload\x18\x01 \x01(\x0c\x12\x14\n\x0cis_encrypted\x18\x02 \x01(\x08\x12\x10\n\x08\x63hecksum\x18\x03 \x01(\x03\"\xd8\x01\n\x13\x41\x63quisitionResponse\x12\x45\n\rresponse_type\x18\x01 \x01(\x0e\x32..redvox_api_m.AcquisitionResponse.ResponseType\x12\x10\n\x08\x63hecksum\x18\x02 \x01(\x03\x12\x0f\n\x07\x64\x65tails\x18\x03 \x01(\t\x12\x0e\n\x06resend\x18\x04 \x01(\x08\"G\n\x0cResponseType\x12\x06\n\x02OK\x10\x00\x12\x0e\n\nAUTH_ERROR\x10\x01\x12\x0e\n\nDATA_ERROR\x10\x02\x12\x0f\n\x0bOTHER_ERROR\x10\x03\"\\\n\x0cSynchRequest\x12\x12\n\nstation_id\x18\x01 \x01(\t\x12\x14\n\x0cstation_uuid\x18\x02 \x01(\t\x12\x0e\n\x06seq_id\x18\x03 \x01(\r\x12\x12\n\nsub_seq_id\x18\x04 \x01(\r\"\x85\x01\n\rSynchResponse\x12\x12\n\nstation_id\x18\x01 \x01(\t\x12\x14\n\x0cstation_uuid\x18\x02 \x01(\t\x12\x0e\n\x06seq_id\x18\x03 \x01(\r\x12\x12\n\nsub_seq_id\x18\x04 \x01(\r\x12\x12\n\nrecv_ts_us\x18\x05 \x01(\x04\x12\x12\n\nsend_ts_us\x18\x06 \x01(\x04\x42\x18\n\x16io.redvox.redvox_api_mb\x06proto3')
 )
 
 
@@ -45,8 +45,8 @@ _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS_NETWORKTYPE = _descriptor.EnumD
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2424,
-  serialized_end=2477,
+  serialized_start=2404,
+  serialized_end=2457,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS_NETWORKTYPE)
 
@@ -75,8 +75,8 @@ _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS_WIFIWAKELOCK = _descriptor.Enum
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2479,
-  serialized_end=2546,
+  serialized_start=2459,
+  serialized_end=2526,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS_WIFIWAKELOCK)
 
@@ -109,8 +109,8 @@ _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS_CELLSERVICESTATE = _descriptor.
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2548,
-  serialized_end=2642,
+  serialized_start=2528,
+  serialized_end=2622,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS_CELLSERVICESTATE)
 
@@ -135,8 +135,8 @@ _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS_POWERSTATE = _descriptor.EnumDe
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2644,
-  serialized_end=2698,
+  serialized_start=2624,
+  serialized_end=2678,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS_POWERSTATE)
 
@@ -161,8 +161,8 @@ _REDVOXPACKETM_STATIONINFORMATION_APPSETTINGS_FFTOVERLAP = _descriptor.EnumDescr
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=3817,
-  serialized_end=3877,
+  serialized_start=3797,
+  serialized_end=3857,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_STATIONINFORMATION_APPSETTINGS_FFTOVERLAP)
 
@@ -195,8 +195,8 @@ _REDVOXPACKETM_STATIONINFORMATION_APPSETTINGS_AUDIOSAMPLINGRATE = _descriptor.En
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=3879,
-  serialized_end=3962,
+  serialized_start=3859,
+  serialized_end=3942,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_STATIONINFORMATION_APPSETTINGS_AUDIOSAMPLINGRATE)
 
@@ -221,8 +221,8 @@ _REDVOXPACKETM_STATIONINFORMATION_APPSETTINGS_AUDIOSOURCETUNING = _descriptor.En
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=3964,
-  serialized_end=4046,
+  serialized_start=3944,
+  serialized_end=4026,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_STATIONINFORMATION_APPSETTINGS_AUDIOSOURCETUNING)
 
@@ -299,8 +299,8 @@ _REDVOXPACKETM_STATIONINFORMATION_APPSETTINGS_INPUTSENSOR = _descriptor.EnumDesc
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=4049,
-  serialized_end=4336,
+  serialized_start=4029,
+  serialized_end=4316,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_STATIONINFORMATION_APPSETTINGS_INPUTSENSOR)
 
@@ -329,8 +329,8 @@ _REDVOXPACKETM_STATIONINFORMATION_OSTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=4338,
-  serialized_end=4392,
+  serialized_start=4318,
+  serialized_end=4372,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_STATIONINFORMATION_OSTYPE)
 
@@ -347,8 +347,8 @@ _REDVOXPACKETM_TIMINGINFORMATION_TIMINGSCOREMETHOD = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=5516,
-  serialized_end=5548,
+  serialized_start=5496,
+  serialized_end=5528,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_TIMINGINFORMATION_TIMINGSCOREMETHOD)
 
@@ -365,8 +365,8 @@ _REDVOXPACKETM_SENSORS_COMPRESSEDAUDIO_AUDIOCODEC = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=7603,
-  serialized_end=7625,
+  serialized_start=7583,
+  serialized_end=7605,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_SENSORS_COMPRESSEDAUDIO_AUDIOCODEC)
 
@@ -383,8 +383,8 @@ _REDVOXPACKETM_SENSORS_LOCATION_LOCATIONSCOREMETHOD = _descriptor.EnumDescriptor
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=9221,
-  serialized_end=9252,
+  serialized_start=9201,
+  serialized_end=9232,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_SENSORS_LOCATION_LOCATIONSCOREMETHOD)
 
@@ -413,8 +413,8 @@ _REDVOXPACKETM_SENSORS_LOCATION_LOCATIONPROVIDER = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=9254,
-  serialized_end=9314,
+  serialized_start=9234,
+  serialized_end=9294,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_SENSORS_LOCATION_LOCATIONPROVIDER)
 
@@ -439,8 +439,8 @@ _REDVOXPACKETM_SENSORS_IMAGE_IMAGECODEC = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=10040,
-  serialized_end=10079,
+  serialized_start=10020,
+  serialized_end=10059,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_SENSORS_IMAGE_IMAGECODEC)
 
@@ -521,8 +521,8 @@ _REDVOXPACKETM_UNIT = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=10961,
-  serialized_end=11303,
+  serialized_start=10941,
+  serialized_end=11283,
 )
 _sym_db.RegisterEnumDescriptor(_REDVOXPACKETM_UNIT)
 
@@ -551,8 +551,8 @@ _ACQUISITIONRESPONSE_RESPONSETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=11684,
-  serialized_end=11755,
+  serialized_start=11664,
+  serialized_end=11735,
 )
 _sym_db.RegisterEnumDescriptor(_ACQUISITIONRESPONSE_RESPONSETYPE)
 
@@ -764,7 +764,7 @@ _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='station_information_timestamps', full_name='redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics.station_information_timestamps', index=0,
+      name='timestamps', full_name='redvox_api_m.RedvoxPacketM.StationInformation.StationMetrics.timestamps', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -871,7 +871,7 @@ _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=1317,
-  serialized_end=2698,
+  serialized_end=2678,
 )
 
 _REDVOXPACKETM_STATIONINFORMATION_APPSETTINGS_METADATAENTRY = _descriptor.Descriptor(
@@ -1102,8 +1102,8 @@ _REDVOXPACKETM_STATIONINFORMATION_APPSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2701,
-  serialized_end=4336,
+  serialized_start=2681,
+  serialized_end=4316,
 )
 
 _REDVOXPACKETM_STATIONINFORMATION = _descriptor.Descriptor(
@@ -1197,7 +1197,7 @@ _REDVOXPACKETM_STATIONINFORMATION = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=832,
-  serialized_end=4392,
+  serialized_end=4372,
 )
 
 _REDVOXPACKETM_PACKETINFORMATION_METADATAENTRY = _descriptor.Descriptor(
@@ -1277,8 +1277,8 @@ _REDVOXPACKETM_PACKETINFORMATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4395,
-  serialized_end=4585,
+  serialized_start=4375,
+  serialized_end=4565,
 )
 
 _REDVOXPACKETM_TIMINGINFORMATION_METADATAENTRY = _descriptor.Descriptor(
@@ -1430,8 +1430,8 @@ _REDVOXPACKETM_TIMINGINFORMATION_SYNCHEXCHANGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5237,
-  serialized_end=5514,
+  serialized_start=5217,
+  serialized_end=5494,
 )
 
 _REDVOXPACKETM_TIMINGINFORMATION = _descriptor.Descriptor(
@@ -1545,8 +1545,8 @@ _REDVOXPACKETM_TIMINGINFORMATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4588,
-  serialized_end=5548,
+  serialized_start=4568,
+  serialized_end=5528,
 )
 
 _REDVOXPACKETM_SERVERINFORMATION_METADATAENTRY = _descriptor.Descriptor(
@@ -1633,8 +1633,8 @@ _REDVOXPACKETM_SERVERINFORMATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5551,
-  serialized_end=5781,
+  serialized_start=5531,
+  serialized_end=5761,
 )
 
 _REDVOXPACKETM_SENSORS_METADATAENTRY = _descriptor.Descriptor(
@@ -1772,8 +1772,8 @@ _REDVOXPACKETM_SENSORS_AUDIO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6944,
-  serialized_end=7238,
+  serialized_start=6924,
+  serialized_end=7218,
 )
 
 _REDVOXPACKETM_SENSORS_COMPRESSEDAUDIO_METADATAENTRY = _descriptor.Descriptor(
@@ -1882,8 +1882,8 @@ _REDVOXPACKETM_SENSORS_COMPRESSEDAUDIO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7241,
-  serialized_end=7625,
+  serialized_start=7221,
+  serialized_end=7605,
 )
 
 _REDVOXPACKETM_SENSORS_SINGLE_METADATAENTRY = _descriptor.Descriptor(
@@ -1970,8 +1970,8 @@ _REDVOXPACKETM_SENSORS_SINGLE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7628,
-  serialized_end=7912,
+  serialized_start=7608,
+  serialized_end=7892,
 )
 
 _REDVOXPACKETM_SENSORS_LOCATION_METADATAENTRY = _descriptor.Descriptor(
@@ -2193,8 +2193,8 @@ _REDVOXPACKETM_SENSORS_LOCATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7915,
-  serialized_end=9314,
+  serialized_start=7895,
+  serialized_end=9294,
 )
 
 _REDVOXPACKETM_SENSORS_XYZ_METADATAENTRY = _descriptor.Descriptor(
@@ -2295,8 +2295,8 @@ _REDVOXPACKETM_SENSORS_XYZ = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9317,
-  serialized_end=9721,
+  serialized_start=9297,
+  serialized_end=9701,
 )
 
 _REDVOXPACKETM_SENSORS_IMAGE_METADATAENTRY = _descriptor.Descriptor(
@@ -2391,8 +2391,8 @@ _REDVOXPACKETM_SENSORS_IMAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9724,
-  serialized_end=10079,
+  serialized_start=9704,
+  serialized_end=10059,
 )
 
 _REDVOXPACKETM_SENSORS = _descriptor.Descriptor(
@@ -2533,8 +2533,8 @@ _REDVOXPACKETM_SENSORS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5784,
-  serialized_end=10079,
+  serialized_start=5764,
+  serialized_end=10059,
 )
 
 _REDVOXPACKETM_SAMPLEPAYLOAD_METADATAENTRY = _descriptor.Descriptor(
@@ -2621,8 +2621,8 @@ _REDVOXPACKETM_SAMPLEPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10082,
-  serialized_end=10358,
+  serialized_start=10062,
+  serialized_end=10338,
 )
 
 _REDVOXPACKETM_TIMINGPAYLOAD_METADATAENTRY = _descriptor.Descriptor(
@@ -2723,8 +2723,8 @@ _REDVOXPACKETM_TIMINGPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10361,
-  serialized_end=10690,
+  serialized_start=10341,
+  serialized_end=10670,
 )
 
 _REDVOXPACKETM_SUMMARYSTATISTICS_METADATAENTRY = _descriptor.Descriptor(
@@ -2846,8 +2846,8 @@ _REDVOXPACKETM_SUMMARYSTATISTICS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10693,
-  serialized_end=10958,
+  serialized_start=10673,
+  serialized_end=10938,
 )
 
 _REDVOXPACKETM = _descriptor.Descriptor(
@@ -2927,7 +2927,7 @@ _REDVOXPACKETM = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=54,
-  serialized_end=11303,
+  serialized_end=11283,
 )
 
 
@@ -2978,8 +2978,8 @@ _ENCRYPTEDREDVOXPACKET1000_HEADER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11367,
-  serialized_end=11457,
+  serialized_start=11347,
+  serialized_end=11437,
 )
 
 _ENCRYPTEDREDVOXPACKET1000 = _descriptor.Descriptor(
@@ -3015,8 +3015,8 @@ _ENCRYPTEDREDVOXPACKET1000 = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11306,
-  serialized_end=11457,
+  serialized_start=11286,
+  serialized_end=11437,
 )
 
 
@@ -3060,8 +3060,8 @@ _ACQUISITIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11459,
-  serialized_end=11536,
+  serialized_start=11439,
+  serialized_end=11516,
 )
 
 
@@ -3113,8 +3113,8 @@ _ACQUISITIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11539,
-  serialized_end=11755,
+  serialized_start=11519,
+  serialized_end=11735,
 )
 
 
@@ -3165,8 +3165,8 @@ _SYNCHREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11757,
-  serialized_end=11849,
+  serialized_start=11737,
+  serialized_end=11829,
 )
 
 
@@ -3231,8 +3231,8 @@ _SYNCHRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11852,
-  serialized_end=11985,
+  serialized_start=11832,
+  serialized_end=11965,
 )
 
 _REDVOXPACKETM_METADATAENTRY.containing_type = _REDVOXPACKETM
@@ -3241,7 +3241,7 @@ _REDVOXPACKETM_USERINFORMATION.fields_by_name['metadata'].message_type = _REDVOX
 _REDVOXPACKETM_USERINFORMATION.containing_type = _REDVOXPACKETM
 _REDVOXPACKETM_STATIONINFORMATION_METADATAENTRY.containing_type = _REDVOXPACKETM_STATIONINFORMATION
 _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS_METADATAENTRY.containing_type = _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS
-_REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS.fields_by_name['station_information_timestamps'].message_type = _REDVOXPACKETM_SAMPLEPAYLOAD
+_REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS.fields_by_name['timestamps'].message_type = _REDVOXPACKETM_SAMPLEPAYLOAD
 _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS.fields_by_name['network_type'].enum_type = _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS_NETWORKTYPE
 _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS.fields_by_name['cell_service_state'].enum_type = _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS_CELLSERVICESTATE
 _REDVOXPACKETM_STATIONINFORMATION_STATIONMETRICS.fields_by_name['network_strength'].message_type = _REDVOXPACKETM_SAMPLEPAYLOAD
