@@ -1,5 +1,5 @@
 import redvox.api1000.wrapped_redvox_packet.common as common
-import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
+import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_1000_pb2
 
 
 class SingleChannel(common.ProtoBase):

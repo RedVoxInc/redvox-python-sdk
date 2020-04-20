@@ -9,21 +9,20 @@ from google.protobuf import json_format
 import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.errors as errors
 import redvox.api1000.wrapped_redvox_packet.packet_information as _packet_information
-import redvox.api1000.wrapped_redvox_packet.sensor_channels.sensor_channels as _sensor_channels
 import redvox.api1000.wrapped_redvox_packet.server_information as _server_information
 import redvox.api1000.wrapped_redvox_packet.station_information as _station_information
 import redvox.api1000.wrapped_redvox_packet.timing_information as _timing_information
-import redvox.api1000.proto.redvox_api_1000_pb2 as redvox_api_1000_pb2
+import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.wrapped_redvox_packet.user_information as _user_information
 
 
-class WrappedRedvoxPacketApi1000(common.ProtoBase):
-    def __init__(self, redvox_proto: redvox_api_1000_pb2.RedvoxPacketM):
+class WrappedRedvoxPacketM(common.ProtoBase):
+    def __init__(self, redvox_proto: redvox_api_m_pb2.RedvoxPacketM):
         super().__init__(redvox_proto)
 
         self._user_information: _user_information.UserInformation = _user_information.UserInformation(
             redvox_proto.user_information)
-
+        
         self._station_information: _station_information.StationInformation = _station_information.StationInformation(
             redvox_proto.station_information)
 
@@ -36,19 +35,19 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
         self._server_information: _server_information.ServerInformation = _server_information.ServerInformation(
             redvox_proto.server_information)
 
-        self._sensor_channels: _sensor_channels.SensorChannels = _sensor_channels.SensorChannels(
+        self._sensors: _sensor_channels.SensorChannels = _sensor_channels.SensorChannels(
             redvox_proto.sensor_channels)
 
     @staticmethod
-    def new() -> 'WrappedRedvoxPacketApi1000':
+    def new() -> 'WrappedRedvoxPacketM':
         """
         Returns a new default instance of a WrappedRedvoxPacketApi1000.
         :return: A new default instance of a WrappedRedvoxPacketApi1000.
         """
-        return WrappedRedvoxPacketApi1000(redvox_api_1000_pb2.RedvoxPacketM())
+        return WrappedRedvoxPacketM(redvox_api_m_pb2.RedvoxPacketM())
 
     @staticmethod
-    def from_compressed_bytes(data: bytes) -> 'WrappedRedvoxPacketApi1000':
+    def from_compressed_bytes(data: bytes) -> 'WrappedRedvoxPacketM':
         """
         Deserializes the byte content of an API M encoded .rdvxz file.
         :param data: The compressed bytes to deserialize.
@@ -56,12 +55,12 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
         """
         common.check_type(data, [bytes])
         uncompressed_data: bytes = common.lz4_decompress(data)
-        proto: redvox_api_1000_pb2.RedvoxPacketM = redvox_api_1000_pb2.RedvoxPacketM()
+        proto: redvox_api_m_pb2.RedvoxPacketM = redvox_api_m_pb2.RedvoxPacketM()
         proto.ParseFromString(uncompressed_data)
-        return WrappedRedvoxPacketApi1000(proto)
+        return WrappedRedvoxPacketM(proto)
 
     @staticmethod
-    def from_compressed_path(rdvxz_path: str) -> 'WrappedRedvoxPacketApi1000':
+    def from_compressed_path(rdvxz_path: str) -> 'WrappedRedvoxPacketM':
         """
         Deserialize an API M encoded .rdvxz file from the specified file system path.
         :param rdvxz_path: Path to the API M encoded file.
@@ -74,42 +73,42 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
 
         with open(rdvxz_path, "rb") as rdvxz_in:
             compressed_bytes: bytes = rdvxz_in.read()
-            return WrappedRedvoxPacketApi1000.from_compressed_bytes(compressed_bytes)
+            return WrappedRedvoxPacketM.from_compressed_bytes(compressed_bytes)
 
     @staticmethod
-    def from_json(json: str) -> 'WrappedRedvoxPacketApi1000':
-        return WrappedRedvoxPacketApi1000(json_format.Parse(json, redvox_api_1000_pb2.RedvoxPacketM()))
+    def from_json(json: str) -> 'WrappedRedvoxPacketM':
+        return WrappedRedvoxPacketM(json_format.Parse(json, redvox_api_m_pb2.RedvoxPacketM()))
 
     @staticmethod
-    def from_json_path(path: str) -> 'WrappedRedvoxPacketApi1000':
+    def from_json_path(path: str) -> 'WrappedRedvoxPacketM':
         with open(path, "r") as json_in:
-            return WrappedRedvoxPacketApi1000.from_json(json_in.read())
+            return WrappedRedvoxPacketM.from_json(json_in.read())
 
     @staticmethod
-    def from_json_1000(redvox_packet_json: str) -> redvox_api_1000_pb2.RedvoxPacketM:
+    def from_json_1000(redvox_packet_json: str) -> redvox_api_m_pb2.RedvoxPacketM:
         """
         read json packet representing an API 1000 packet
         :param redvox_packet_json: contains the json representing the packet
         :return: Python instance of an encoded API1000 packet
         """
-        return json_format.Parse(redvox_packet_json, redvox_api_1000_pb2.RedvoxPacketM())
+        return json_format.Parse(redvox_packet_json, redvox_api_m_pb2.RedvoxPacketM())
 
-    def read_json_file_1000(self, path: str) -> 'WrappedRedvoxPacketApi1000':
+    def read_json_file_1000(self, path: str) -> 'WrappedRedvoxPacketM':
         """
         read json from a file representing an api 1000 packet
         :param path: the path to the file to read
         :return: wrapped redvox packet api 1000
         """
         with open(path, "r") as json_in:
-            return WrappedRedvoxPacketApi1000(self.from_json_1000(json_in.read()))
+            return WrappedRedvoxPacketM(self.from_json_1000(json_in.read()))
 
-    def read_json_string_1000(self, json: str) -> 'WrappedRedvoxPacketApi1000':
+    def read_json_string_1000(self, json: str) -> 'WrappedRedvoxPacketM':
         """
         read json representing an api 1000 packet
         :param json: string containing the json representing the packet
         :return: wrapped redvox packet api 1000
         """
-        return WrappedRedvoxPacketApi1000(self.from_json_1000(json))
+        return WrappedRedvoxPacketM(self.from_json_1000(json))
 
     def default_filename(self, extension: Optional[str] = None) -> str:
         """
@@ -160,7 +159,7 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
     def get_api(self) -> float:
         return self._proto.api
 
-    def set_api(self, api: float) -> 'WrappedRedvoxPacketApi1000':
+    def set_api(self, api: float) -> 'WrappedRedvoxPacketM':
         common.check_type(api, [int, float])
         self._proto.api = api
         return self
@@ -181,5 +180,5 @@ class WrappedRedvoxPacketApi1000(common.ProtoBase):
         return self._server_information
 
     def get_sensor_channels(self) -> _sensor_channels.SensorChannels:
-        return self._sensor_channels
+        return self._sensors
 
