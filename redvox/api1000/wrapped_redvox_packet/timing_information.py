@@ -166,3 +166,19 @@ class TimingInformation(common.ProtoBase):
         common.check_type(best_offset, [int, float])
         self._proto.best_offset = best_offset
         return self
+
+    def get_score(self) -> float:
+        return self._proto.score
+
+    def set_score(self, score: float) -> 'TimingInformation':
+        common.check_type(score, [float])
+        self._proto.score = score
+        return self
+
+    def get_score_method(self) -> TimingScoreMethod:
+        return TimingScoreMethod(self._proto.score_method)
+
+    def set_score_method(self, score_method: TimingScoreMethod) -> 'TimingInformation':
+        common.check_type(score_method, [TimingScoreMethod])
+        self._proto.os = redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
+        return self
