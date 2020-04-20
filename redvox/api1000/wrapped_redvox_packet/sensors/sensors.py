@@ -34,26 +34,47 @@ class Sensors(common.ProtoBase):
     def new() -> 'Sensors':
         return Sensors(redvox_api_m_pb2.RedvoxPacketM.Sensors())
 
-    def get_audio_channel(self) -> audio.Audio:
-        return self._audio
-
-    def get_barometer_channel(self) -> single.Single:
-        return self._pressure
-
-    def get_location_channel(self) -> location.Location:
-        return self._location
-
-    def get_accelerometer_channel(self) -> xyz.Xyz:
+    def get_accelerometer(self) -> xyz.Xyz:
         return self._accelerometer
 
-    def get_gyroscope_channel(self) -> xyz.Xyz:
+    def get_ambient_temperature(self) -> single.Single:
+        return self._ambient_temperature
+
+    def get_audio(self) -> audio.Audio:
+        return self._audio
+
+    def get_compressed_audio(self) -> audio.CompressedAudio:
+        return self._compressed_audio
+
+    def get_gravity(self) -> xyz.Xyz:
+        return self._gravity
+
+    def get_gyroscope(self) -> xyz.Xyz:
         return self._gyroscope
 
-    def get_magnetometer_channel(self) -> xyz.Xyz:
+    def get_image(self) -> image.Image:
+        return self._image
+
+    def get_light(self) -> single.Single:
+        return self._light
+
+    def get_linear_acceleration(self) -> xyz.Xyz:
+        return self._linear_acceleration
+
+    def get_location(self) -> location.Location:
+        return self._location
+
+    def get_magnetometer(self) -> xyz.Xyz:
         return self._magnetometer
 
-    def get_light_channel(self) -> single.Single:
-        return self._light
+    def get_orientation(self) -> xyz.Xyz:
+        return self._orientation
+
+    def get_pressure(self) -> single.Single:
+        return self._pressure
 
     def get_proximity(self) -> single.Single:
         return self._proximity
+
+    def get_relative_humidity(self) -> single.Single:
+        return self._relative_humidity
