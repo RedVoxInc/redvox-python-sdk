@@ -361,12 +361,12 @@ message RedvoxPacketM {
     // Combines a unit, sample values, and value statistics
     // Used to store collections of samples, their unit, and the statistics for those samples.
     message TimingPayload {
-        Unit unit = 1;                          // Unit of payload values
-        repeated double values = 2;             // Values in payload
-        SummaryStatistics value_statistics = 3; // Statistics of stored values
-        float mean_sample_rate = 4;             // Mean sample rate in Hz
-        float stdev_sample_rate = 5;            // Standard deviation of sample rate in Hz
-        map<string, string> metadata = 6;       // A map from string to string for including untyped metadata
+        Unit unit = 1; // Unit of payload values
+        repeated double timestamps = 2; // Values in payload
+        SummaryStatistics timestamp_statistics = 3; // Statistics of stored values
+        float mean_sample_rate = 4; // Mean sample rate in Hz
+        float stdev_sample_rate = 5; // Standard deviation of sample rate in Hz
+        map<string, string> metadata = 6; // A map from string to string for including untyped metadata
     }
 
     // Enumeration of API M supported units

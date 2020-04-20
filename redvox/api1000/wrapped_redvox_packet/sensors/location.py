@@ -14,16 +14,16 @@ class LocationProvider(enum.Enum):
 class Location(common.ProtoBase):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Location):
         super().__init__(proto)
-        self._timestamps: common.Payload = common.Payload(proto.timestamps)
-        self._latitude_samples: common.Payload = common.Payload(proto.latitude_samples)
-        self._longitude_samples: common.Payload = common.Payload(proto.longitude_samples)
-        self._altitude_samples: common.Payload = common.Payload(proto.altitude_samples)
-        self._speed_samples: common.Payload = common.Payload(proto.speed_samples)
-        self._bearing_samples: common.Payload = common.Payload(proto.bearing_samples)
-        self._horizontal_accuracy_samples: common.Payload = common.Payload(proto.horizontal_accuracy_samples)
-        self._vertical_accuracy_samples: common.Payload = common.Payload(proto.vertical_accuracy_samples)
-        self._speed_accuracy_samples: common.Payload = common.Payload(proto.speed_accuracy_samples)
-        self._bearing_accuracy_samples: common.Payload = common.Payload(proto.bearing_accuracy_samples)
+        self._timestamps: common.SamplePayload = common.SamplePayload(proto.timestamps)
+        self._latitude_samples: common.SamplePayload = common.SamplePayload(proto.latitude_samples)
+        self._longitude_samples: common.SamplePayload = common.SamplePayload(proto.longitude_samples)
+        self._altitude_samples: common.SamplePayload = common.SamplePayload(proto.altitude_samples)
+        self._speed_samples: common.SamplePayload = common.SamplePayload(proto.speed_samples)
+        self._bearing_samples: common.SamplePayload = common.SamplePayload(proto.bearing_samples)
+        self._horizontal_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.horizontal_accuracy_samples)
+        self._vertical_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.vertical_accuracy_samples)
+        self._speed_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.speed_accuracy_samples)
+        self._bearing_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.bearing_accuracy_samples)
 
     @staticmethod
     def new() -> 'Location':
@@ -37,34 +37,34 @@ class Location(common.ProtoBase):
         self._proto.sensor_description = sensor_description
         return self
 
-    def get_timestamps(self) -> common.Payload:
+    def get_timestamps(self) -> common.SamplePayload:
         return self._timestamps
 
-    def get_latitude_samples(self) -> common.Payload:
+    def get_latitude_samples(self) -> common.SamplePayload:
         return self._latitude_samples
 
-    def get_longitude_samples(self) -> common.Payload:
+    def get_longitude_samples(self) -> common.SamplePayload:
         return self._longitude_samples
 
-    def get_altitude_samples(self) -> common.Payload:
+    def get_altitude_samples(self) -> common.SamplePayload:
         return self._altitude_samples
 
-    def get_speed_samples(self) -> common.Payload:
+    def get_speed_samples(self) -> common.SamplePayload:
         return self._speed_samples
 
-    def get_bearing_samples(self) -> common.Payload:
+    def get_bearing_samples(self) -> common.SamplePayload:
         return self._bearing_samples
 
-    def get_horizontal_accuracy_samples(self) -> common.Payload:
+    def get_horizontal_accuracy_samples(self) -> common.SamplePayload:
         return self._horizontal_accuracy_samples
 
-    def get_vertical_accuracy_samples(self) -> common.Payload:
+    def get_vertical_accuracy_samples(self) -> common.SamplePayload:
         return self._vertical_accuracy_samples
 
-    def get_speed_accuracy_samples(self) -> common.Payload:
+    def get_speed_accuracy_samples(self) -> common.SamplePayload:
         return self._speed_accuracy_samples
 
-    def get_bearing_accuracy_samples(self) -> common.Payload:
+    def get_bearing_accuracy_samples(self) -> common.SamplePayload:
         return self._bearing_accuracy_samples
 
     def get_location_permissions_granted(self) -> bool:

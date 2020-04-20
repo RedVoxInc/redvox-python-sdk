@@ -352,14 +352,14 @@ class PowerState(enum.Enum):
 class StationMetrics(common.ProtoBase):
     def __init__(self, station_metrics_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics):
         super().__init__(station_metrics_proto)
-        self._station_information_timestamps = common.Payload(station_metrics_proto.station_information_timestamps)
-        self._network_strength: common.Payload = common.Payload(station_metrics_proto.network_strength)
-        self._temperature: common.Payload = common.Payload(station_metrics_proto.temperature)
-        self._battery: common.Payload = common.Payload(station_metrics_proto.battery)
-        self._battery_current: common.Payload = common.Payload(station_metrics_proto.battery_current)
-        self._available_ram: common.Payload = common.Payload(station_metrics_proto.available_ram)
-        self._available_disk: common.Payload = common.Payload(station_metrics_proto.available_disk)
-        self._cpu_utilization: common.Payload = common.Payload(station_metrics_proto.cpu_utilization)
+        self._timestamps = common.SamplePayload(station_metrics_proto.timestamps)
+        self._network_strength: common.SamplePayload = common.SamplePayload(station_metrics_proto.network_strength)
+        self._temperature: common.SamplePayload = common.SamplePayload(station_metrics_proto.temperature)
+        self._battery: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery)
+        self._battery_current: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery_current)
+        self._available_ram: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_ram)
+        self._available_disk: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_disk)
+        self._cpu_utilization: common.SamplePayload = common.SamplePayload(station_metrics_proto.cpu_utilization)
 
     def get_network_type(self) -> List[NetworkType]:
         network_type: List[
@@ -397,28 +397,28 @@ class StationMetrics(common.ProtoBase):
         self._proto.power_state[:] = power_states
         return self
 
-    def get_station_information_timestamps(self) -> common.Payload:
-        return self._station_information_timestamps
+    def get_timestamps(self) -> common.SamplePayload:
+        return self._timestamps
 
-    def get_network_strength(self) -> common.Payload:
+    def get_network_strength(self) -> common.SamplePayload:
         return self._network_strength
 
-    def get_temperature(self) -> common.Payload:
+    def get_temperature(self) -> common.SamplePayload:
         return self._temperature
 
-    def get_battery(self) -> common.Payload:
+    def get_battery(self) -> common.SamplePayload:
         return self._battery
 
-    def get_battery_current(self) -> common.Payload:
+    def get_battery_current(self) -> common.SamplePayload:
         return self._battery_current
 
-    def get_available_ram(self) -> common.Payload:
+    def get_available_ram(self) -> common.SamplePayload:
         return self._available_ram
 
-    def get_available_disk(self) -> common.Payload:
+    def get_available_disk(self) -> common.SamplePayload:
         return self._available_disk
 
-    def get_cpu_utilization(self) -> common.Payload:
+    def get_cpu_utilization(self) -> common.SamplePayload:
         return self._cpu_utilization
 
     def get_wifi_wake_loc(self) -> WifiWakeLock:

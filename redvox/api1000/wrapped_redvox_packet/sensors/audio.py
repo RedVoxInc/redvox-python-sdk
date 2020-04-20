@@ -5,7 +5,7 @@ import redvox.api1000.wrapped_redvox_packet.common as common
 class Audio(common.ProtoBase):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio):
         super().__init__(proto)
-        self._samples: common.Payload = common.Payload(proto.samples)
+        self._samples: common.SamplePayload = common.SamplePayload(proto.samples)
 
     @staticmethod
     def new() -> 'Audio':
@@ -45,7 +45,7 @@ class Audio(common.ProtoBase):
         self._proto.is_scrambled = is_scrambled
         return self
 
-    def get_samples(self) -> common.Payload:
+    def get_samples(self) -> common.SamplePayload:
         return self._samples
 
 

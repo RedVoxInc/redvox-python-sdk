@@ -3,7 +3,7 @@ Provides common classes and methods for interacting with API 1000 protobuf data.
 """
 
 import enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from google.protobuf.json_format import MessageToDict, MessageToJson
 import lz4.frame
@@ -12,6 +12,7 @@ import scipy.stats
 
 import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_1000_pb2
+import redvox.common.date_time_utils as dt_utils
 
 NAN: float = float("NaN")
 
@@ -19,10 +20,12 @@ PROTO_TYPES = Union[redvox_api_1000_pb2.RedvoxPacketM,
                     redvox_api_1000_pb2.RedvoxPacketM.StationInformation,
                     redvox_api_1000_pb2.RedvoxPacketM.StationInformation.AppSettings,
                     redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics,
-                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.Audio,
-                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.Single,
-                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.Xyz,
-                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.Location,
+                    redvox_api_1000_pb2.RedvoxPacketM.Sensors.Audio,
+                    redvox_api_1000_pb2.RedvoxPacketM.Sensors.CompressedAudio,
+                    redvox_api_1000_pb2.RedvoxPacketM.Sensors.Image,
+                    redvox_api_1000_pb2.RedvoxPacketM.Sensors.Single,
+                    redvox_api_1000_pb2.RedvoxPacketM.Sensors.Xyz,
+                    redvox_api_1000_pb2.RedvoxPacketM.Sensors.Location,
                     redvox_api_1000_pb2.RedvoxPacketM.UserInformation]
 
 EMPTY_ARRAY: np.ndarray = np.array([])
@@ -270,15 +273,15 @@ class SummaryStatistics(ProtoBase):
         self._proto.range = self._proto.max - self._proto.min
 
 
-class Payload(ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.Payload):
+class SamplePayload(ProtoBase):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SamplePayload):
         super().__init__(proto)
         self._summary_statistics: SummaryStatistics = SummaryStatistics(proto.value_statistics)
 
     def get_unit(self) -> Unit:
         return Unit.from_proto(self._proto.unit)
 
-    def set_unit(self, unit: Unit) -> 'Payload':
+    def set_unit(self, unit: Unit) -> 'SamplePayload':
         check_type(unit, [Unit])
         self._proto.unit = unit.into_proto()
         return self
@@ -289,7 +292,7 @@ class Payload(ProtoBase):
     def get_values(self) -> np.ndarray:
         return np.array(self._proto.values)
 
-    def set_values(self, values: np.ndarray, update_value_statistics: bool = False) -> 'Payload':
+    def set_values(self, values: np.ndarray, update_value_statistics: bool = False) -> 'SamplePayload':
         check_type(values, [np.ndarray])
         self._proto.values[:] = list(values)
 
@@ -298,7 +301,7 @@ class Payload(ProtoBase):
 
         return self
 
-    def append_value(self, value: float, update_value_statistics: bool = False) -> 'Payload':
+    def append_value(self, value: float, update_value_statistics: bool = False) -> 'SamplePayload':
         check_type(value, [int, float])
         self._proto.values.append(value)
 
@@ -307,7 +310,7 @@ class Payload(ProtoBase):
 
         return self
 
-    def append_values(self, values: np.ndarray, update_value_statistics: bool = False) -> 'Payload':
+    def append_values(self, values: np.ndarray, update_value_statistics: bool = False) -> 'SamplePayload':
         check_type(values, [np.ndarray])
         self._proto.values.extend(list(values))
 
@@ -316,7 +319,7 @@ class Payload(ProtoBase):
 
         return self
 
-    def clear_values(self, update_value_statistics: bool = False) -> 'Payload':
+    def clear_values(self, update_value_statistics: bool = False) -> 'SamplePayload':
         self._proto.values[:] = []
 
         if update_value_statistics:
@@ -326,3 +329,112 @@ class Payload(ProtoBase):
 
     def get_summary_statistics(self) -> SummaryStatistics:
         return self._summary_statistics
+
+
+def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:
+    """
+    Calculates the mean sample rate in Hz and standard deviation of the sampling rate.
+    :param timestamps:
+    :return: A tuple containing (mean_sample_rate, stdev_sample_rate)
+    """
+    sample_interval: np.ndarray = np.diff(timestamps)
+    mean_sample_interval: float = sample_interval.mean()
+    stdev_sample_interval: float = sample_interval.std()
+
+    if mean_sample_interval <= 0:
+        return 0.0, 0.0
+
+    mean_sample_rate: float = 1.0 / dt_utils.microseconds_to_seconds(mean_sample_interval)
+    stdev_sample_rate: float = mean_sample_rate**2 * dt_utils.microseconds_to_seconds(stdev_sample_interval)
+
+    return mean_sample_rate, stdev_sample_rate
+
+
+class TimingPayload(ProtoBase):
+    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.TimingPayload):
+        super().__init__(proto)
+        self._timestamp_statistics: SummaryStatistics = SummaryStatistics(proto.timestamp_statistics)
+
+    def update_timing_statistics_from_timestamps(self) -> 'TimingPayload':
+        timestamps: np.ndarray = self.get_timestamps()
+        self._timestamp_statistics.update_from_values(timestamps)
+        sampling_tuple: Tuple[float, float] = sampling_rate_statistics(timestamps)
+        mean_sampling_rate: float = sampling_tuple[0]
+        stdev_sampling_rate: float = sampling_tuple[1]
+        self._proto.mean_sample_rate = mean_sampling_rate
+        self._proto.stdev_sample_rate = stdev_sampling_rate
+        return self
+
+    def get_unit(self) -> Unit:
+        return Unit.from_proto(self._proto.unit)
+
+    def set_unit(self, unit: Unit) -> 'TimingPayload':
+        check_type(unit, [Unit])
+        self._proto.unit = unit.into_proto()
+        return self
+
+    def get_timestamps_count(self) -> int:
+        return len(self._proto.timestamps)
+
+    def get_timestamps(self) -> np.ndarray:
+        return np.array(self._proto.timestamps)
+
+    def set_timestamps(self, timestamps: np.ndarray, update_value_statistics: bool = False) -> 'TimingPayload':
+        check_type(timestamps, [np.ndarray])
+        self._proto.values[:] = list(timestamps)
+
+        if update_value_statistics:
+            self.update_timing_statistics_from_timestamps()
+
+        return self
+
+    def append_timestamp(self, timestamp: float, update_value_statistics: bool = False) -> 'TimingPayload':
+        check_type(timestamp, [int, float])
+        self._proto.values.append(timestamp)
+
+        if update_value_statistics:
+            self.update_timing_statistics_from_timestamps()
+
+        return self
+
+    def append_timestamps(self, values: np.ndarray, update_value_statistics: bool = False) -> 'TimingPayload':
+        check_type(values, [np.ndarray])
+        self._proto.values.extend(list(values))
+
+        if update_value_statistics:
+            self.update_timing_statistics_from_timestamps()
+
+        return self
+
+    def clear_timestamps(self, update_value_statistics: bool = False) -> 'TimingPayload':
+        self._proto.values[:] = []
+
+        if update_value_statistics:
+            self.update_timing_statistics_from_timestamps()
+
+        return self
+
+    def get_timestamp_statistics(self) -> SummaryStatistics:
+        return self._timestamp_statistics
+
+    def get_mean_sample_rate(self) -> float:
+        return self._proto.mean_sample_rate
+
+    def set_mean_sample_rate(self, mean_sample_rate: float) -> 'TimingPayload':
+        check_type(mean_sample_rate, [int, float])
+        if mean_sample_rate < 0:
+            raise errors.ApiMError("mean_sample_rate must be strictly positive")
+
+        self._proto.mean_sample_rate = mean_sample_rate
+        return self
+
+    def get_stdev_sample_rate(self) -> float:
+        return self._proto.stdev_sample_rate
+
+    def set_stdev_sample_rate(self, stdev_sample_rate: float) -> 'TimingPayload':
+        check_type(stdev_sample_rate, [int, float])
+        if stdev_sample_rate < 0:
+            raise errors.ApiMError("stdev_sample_rate must be strictly positive")
+
+        self._proto.stdev_sample_rate = stdev_sample_rate
+        return self
