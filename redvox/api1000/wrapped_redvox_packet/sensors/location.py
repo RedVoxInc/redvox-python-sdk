@@ -1,6 +1,6 @@
 import enum
 
-import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_1000_pb2
+import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.wrapped_redvox_packet.common as common
 
 
@@ -11,8 +11,8 @@ class LocationProvider(enum.Enum):
     NETWORK: int = 3
 
 
-class LocationChannel(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.LocationChannel):
+class Location(common.ProtoBase):
+    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Location):
         super().__init__(proto)
         self._timestamps: common.Payload = common.Payload(proto.timestamps)
         self._latitude_samples: common.Payload = common.Payload(proto.latitude_samples)
@@ -26,13 +26,13 @@ class LocationChannel(common.ProtoBase):
         self._bearing_accuracy_samples: common.Payload = common.Payload(proto.bearing_accuracy_samples)
 
     @staticmethod
-    def new() -> 'LocationChannel':
-        return LocationChannel(redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.LocationChannel())
+    def new() -> 'Location':
+        return Location(redvox_api_m_pb2.RedvoxPacketM.Sensors.Location())
 
     def get_sensor_description(self) -> str:
         return self._proto.sensor_description
 
-    def set_sensor_description(self, sensor_description: str) -> 'LocationChannel':
+    def set_sensor_description(self, sensor_description: str) -> 'Location':
         common.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self
@@ -70,7 +70,7 @@ class LocationChannel(common.ProtoBase):
     def get_location_permissions_granted(self) -> bool:
         return self._proto.location_permissions_granted
 
-    def set_location_permissions_granted(self, location_permissions_granted: bool) -> 'LocationChannel':
+    def set_location_permissions_granted(self, location_permissions_granted: bool) -> 'Location':
         common.check_type(location_permissions_granted, [bool])
         self._proto.location_permissions_granted = location_permissions_granted
         return self
@@ -78,7 +78,7 @@ class LocationChannel(common.ProtoBase):
     def get_location_services_requested(self) -> bool:
         return self._proto.location_services_requested
 
-    def set_location_services_requested(self, location_services_requested: bool) -> 'LocationChannel':
+    def set_location_services_requested(self, location_services_requested: bool) -> 'Location':
         common.check_type(location_services_requested, [bool])
         self._proto.location_services_requested = location_services_requested
         return self
@@ -86,7 +86,7 @@ class LocationChannel(common.ProtoBase):
     def get_location_services_enabled(self) -> bool:
         return self._proto.location_services_enabled
 
-    def set_location_services_enabled(self, location_services_enabled: bool) -> 'LocationChannel':
+    def set_location_services_enabled(self, location_services_enabled: bool) -> 'Location':
         common.check_type(location_services_enabled, [bool])
         self._proto.location_services_enabled = location_services_enabled
         return self
@@ -94,8 +94,8 @@ class LocationChannel(common.ProtoBase):
     def get_location_provider(self) -> LocationProvider:
         return LocationProvider(self._proto.location_provider)
 
-    def set_location_provider(self, location_provider: LocationProvider) -> 'LocationChannel':
+    def set_location_provider(self, location_provider: LocationProvider) -> 'Location':
         common.check_type(location_provider, [LocationProvider])
-        self._proto.location_provider = redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.LocationChannel \
+        self._proto.location_provider = redvox_api_m_pb2.RedvoxPacketM.Sensors.Location \
             .LocationProvider.Value(location_provider.name)
         return self

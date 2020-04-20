@@ -219,24 +219,24 @@ message RedvoxPacketM {
     // Collection of available sensor types
     // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/standard_sensor_units.md
     message Sensors {
-        Xyz accelerometer = 1;                  // meters/second^2
-        Single ambient_temperature = 2;         // degrees Celsius
-        Audio audio = 3;                        // normalized counts
-        CompressedAudio compressed_audio = 4;   // bytes (codec specific)
-        Xyz gravity = 5;                        // meters/second^2
-        Xyz gyroscope = 6;                      // radians/second
-        ImageChannel image = 7;                 // bytes (codec specific)
-        Single light = 8;                       // lux
-        Xyz linear_acceleration = 9;            // meters/second^2
-        Location location = 10;                 // See standard
-        Xyz magnetometer = 11;                  // microtesla
-        Xyz orientation = 12;                   // radians
-        Single pressure = 13;                   // kilopascal
-        Single proximity =14;                   // on, off, cm
-        Single relative_humidity = 15;          // percentage
-        Xyz rotation_vector = 16;               // Unitless
+        Xyz accelerometer = 1; // meters/second^2
+        Single ambient_temperature = 2; // degrees Celsius
+        Audio audio = 3; // normalized counts
+        CompressedAudio compressed_audio = 4; // bytes (codec specific)
+        Xyz gravity = 5; // meters/second^2
+        Xyz gyroscope = 6; // radians/second
+        Image image = 7; // bytes (codec specific)
+        Single light = 8; // lux
+        Xyz linear_acceleration = 9; // meters/second^2
+        Location location = 10; // See standard
+        Xyz magnetometer = 11; // microtesla
+        Xyz orientation = 12; // radians
+        Single pressure = 13; // kilopascal
+        Single proximity =14; // on, off, cm
+        Single relative_humidity = 15; // percentage
+        Xyz rotation_vector = 16; // Unitless
 
-        map<string, string> metadata = 17;      // A map from string to string for including untyped metadata
+        map<string, string> metadata = 17; // A map from string to string for including untyped metadata
 
         // This message describes a stable audio channel
         // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/storing_audio_data.md
@@ -333,7 +333,7 @@ message RedvoxPacketM {
 
         // Image/video channel
         // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/storing_image_data.md
-        message ImageChannel {
+        message Image {
             string sensor_description = 1; // The name or description of the sensor
             TimingPayload timestamps = 2; // Timestamps per sample
             repeated bytes samples = 3; // A list of bytes each representing a single image

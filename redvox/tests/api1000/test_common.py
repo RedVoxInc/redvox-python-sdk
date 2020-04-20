@@ -8,8 +8,8 @@ import redvox.api1000.wrapped_redvox_packet.sensor_channels.audio_channel as mic
 
 class TestCommonProtoBase(unittest.TestCase):
     def setUp(self) -> None:
-        self.empty_microphone_channel: microphone_channel.AudioChannel = microphone_channel.AudioChannel.new()
-        self.non_empty_microphone_channel: microphone_channel.AudioChannel = microphone_channel.AudioChannel.new()
+        self.empty_microphone_channel: microphone_channel.Audio = microphone_channel.Audio.new()
+        self.non_empty_microphone_channel: microphone_channel.Audio = microphone_channel.Audio.new()
         self.non_empty_microphone_channel.set_sensor_description("foo")
         self.non_empty_microphone_channel.set_sample_rate_hz(10.0)
         self.non_empty_microphone_channel.set_first_sample_timestamp(1)

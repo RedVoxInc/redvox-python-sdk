@@ -3,41 +3,41 @@ This module provides custom exception types for API 1000 related errors.
 """
 
 
-class Api1000Error(Exception):
+class ApiMError(Exception):
     def __init__(self, message: str):
-        super().__init__(f"Api1000Error: {message}")
+        super().__init__(f"ApiMError: {message}")
 
 
-class SummaryStatisticsError(Api1000Error):
+class SummaryStatisticsError(ApiMError):
     def __init__(self, message: str):
         super().__init__(f"SummaryStatisticsError: {message}")
 
 
-class MicrophoneChannelError(Api1000Error):
+class MicrophoneChannelError(ApiMError):
     def __init__(self, message: str):
         super().__init__(f"MicrophoneChannelError: {message}")
 
 
-class SingleChannelError(Api1000Error):
+class SingleChannelError(ApiMError):
     def __init__(self, message: str):
         super().__init__(f"SingleChannelError: {message}")
 
 
-class XyzChannelError(Api1000Error):
+class XyzChannelError(ApiMError):
     def __init__(self, message: str):
         super().__init__(f"XyzChannelError: {message}")
 
 
-class LocationChannelError(Api1000Error):
+class LocationChannelError(ApiMError):
     def __init__(self, message: str):
         super().__init__(f"LocationChannelError: {message}")
 
 
-class Api1000TypeError(Api1000Error):
+class ApiMTypeError(ApiMError):
     def __init__(self, message: str):
-        super().__init__(f"Api1000TypeError: {message}")
+        super().__init__(f"ApiMTypeError: {message}")
 
 
-class WrappedRedvoxPacketApi1000Error(Api1000Error):
+class WrappedRedvoxPacketMError(ApiMError):
     def __init__(self, message: str):
-        super().__init__(f"WrappedRedvoxPacketApi1000Error: {message}")
+        super().__init__(f"WrappedRedvoxPacketMError: {message}")

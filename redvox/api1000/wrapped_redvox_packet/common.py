@@ -19,10 +19,10 @@ PROTO_TYPES = Union[redvox_api_1000_pb2.RedvoxPacketM,
                     redvox_api_1000_pb2.RedvoxPacketM.StationInformation,
                     redvox_api_1000_pb2.RedvoxPacketM.StationInformation.AppSettings,
                     redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics,
-                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.AudioChannel,
-                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.SingleChannel,
-                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.XyzChannel,
-                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.LocationChannel,
+                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.Audio,
+                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.Single,
+                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.Xyz,
+                    redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.Location,
                     redvox_api_1000_pb2.RedvoxPacketM.UserInformation]
 
 EMPTY_ARRAY: np.ndarray = np.array([])
@@ -53,7 +53,7 @@ class Unit(enum.Enum):
 
 def check_type(value: Any,
                valid_types: List[Any],
-               exception: Optional[Callable[[str], errors.Api1000Error]] = None,
+               exception: Optional[Callable[[str], errors.ApiMError]] = None,
                additional_info: Optional[str] = None) -> None:
     for valid_type in valid_types:
         if isinstance(value, valid_type):
@@ -69,7 +69,7 @@ def check_type(value: Any,
     if exception is not None:
         raise exception(message)
     else:
-        raise errors.Api1000TypeError(message)
+        raise errors.ApiMTypeError(message)
 
 
 def none_or_empty(value: Optional[Union[List, str, np.ndarray]]) -> bool:

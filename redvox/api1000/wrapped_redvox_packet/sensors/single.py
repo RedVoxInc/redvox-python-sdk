@@ -1,21 +1,21 @@
 import redvox.api1000.wrapped_redvox_packet.common as common
-import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_1000_pb2
+import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
 
-class SingleChannel(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.SingleChannel):
+class Single(common.ProtoBase):
+    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Single):
         super().__init__(proto)
         self._timestamps: common.Payload = common.Payload(proto.timestamps)
         self._samples: common.Payload = common.Payload(proto.samples)
 
     @staticmethod
-    def new() -> 'SingleChannel':
-        return SingleChannel(redvox_api_1000_pb2.RedvoxPacketM.SensorChannels.SingleChannel())
+    def new() -> 'Single':
+        return Single(redvox_api_m_pb2.RedvoxPacketM.Sensors.Single())
 
     def get_sensor_description(self) -> str:
         return self._proto.sensor_description
 
-    def set_sensor_description(self, sensor_description: str) -> 'SingleChannel':
+    def set_sensor_description(self, sensor_description: str) -> 'Single':
         common.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self

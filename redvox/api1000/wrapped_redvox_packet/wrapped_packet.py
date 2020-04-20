@@ -6,13 +6,14 @@ import os.path
 from typing import Optional
 from google.protobuf import json_format
 
-import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.errors as errors
+import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
+import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.wrapped_redvox_packet.packet_information as _packet_information
+import redvox.api1000.wrapped_redvox_packet.sensors.sensors as _sensors
 import redvox.api1000.wrapped_redvox_packet.server_information as _server_information
 import redvox.api1000.wrapped_redvox_packet.station_information as _station_information
 import redvox.api1000.wrapped_redvox_packet.timing_information as _timing_information
-import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.wrapped_redvox_packet.user_information as _user_information
 
 
@@ -22,7 +23,7 @@ class WrappedRedvoxPacketM(common.ProtoBase):
 
         self._user_information: _user_information.UserInformation = _user_information.UserInformation(
             redvox_proto.user_information)
-        
+
         self._station_information: _station_information.StationInformation = _station_information.StationInformation(
             redvox_proto.station_information)
 
@@ -35,8 +36,7 @@ class WrappedRedvoxPacketM(common.ProtoBase):
         self._server_information: _server_information.ServerInformation = _server_information.ServerInformation(
             redvox_proto.server_information)
 
-        self._sensors: _sensor_channels.SensorChannels = _sensor_channels.SensorChannels(
-            redvox_proto.sensor_channels)
+        self._sensors: _sensors.Sensors = _sensors.Sensors(redvox_proto.sensors)
 
     @staticmethod
     def new() -> 'WrappedRedvoxPacketM':
@@ -60,55 +60,39 @@ class WrappedRedvoxPacketM(common.ProtoBase):
         return WrappedRedvoxPacketM(proto)
 
     @staticmethod
-    def from_compressed_path(rdvxz_path: str) -> 'WrappedRedvoxPacketM':
+    def from_compressed_path(rdvxm_path: str) -> 'WrappedRedvoxPacketM':
         """
         Deserialize an API M encoded .rdvxz file from the specified file system path.
-        :param rdvxz_path: Path to the API M encoded file.
+        :param rdvxm_path: Path to the API M encoded file.
         :return: An instance of a WrappedRedvoxPacketApi1000.
         """
-        common.check_type(rdvxz_path, [str])
+        common.check_type(rdvxm_path, [str])
 
-        if not os.path.isfile(rdvxz_path):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"Path to file={rdvxz_path} does not exist.")
+        if not os.path.isfile(rdvxm_path):
+            raise errors.WrappedRedvoxPacketMError(f"Path to file={rdvxm_path} does not exist.")
 
-        with open(rdvxz_path, "rb") as rdvxz_in:
+        with open(rdvxm_path, "rb") as rdvxz_in:
             compressed_bytes: bytes = rdvxz_in.read()
             return WrappedRedvoxPacketM.from_compressed_bytes(compressed_bytes)
 
     @staticmethod
-    def from_json(json: str) -> 'WrappedRedvoxPacketM':
-        return WrappedRedvoxPacketM(json_format.Parse(json, redvox_api_m_pb2.RedvoxPacketM()))
-
-    @staticmethod
-    def from_json_path(path: str) -> 'WrappedRedvoxPacketM':
-        with open(path, "r") as json_in:
-            return WrappedRedvoxPacketM.from_json(json_in.read())
-
-    @staticmethod
-    def from_json_1000(redvox_packet_json: str) -> redvox_api_m_pb2.RedvoxPacketM:
+    def from_json(json_str: str) -> 'WrappedRedvoxPacketM':
         """
         read json packet representing an API 1000 packet
-        :param redvox_packet_json: contains the json representing the packet
-        :return: Python instance of an encoded API1000 packet
+        :param json_str: contains the json representing the packet
+        :return: An instance of a WrappedRedvoxPacketM
         """
-        return json_format.Parse(redvox_packet_json, redvox_api_m_pb2.RedvoxPacketM())
+        return WrappedRedvoxPacketM(json_format.Parse(json_str, redvox_api_m_pb2.RedvoxPacketM()))
 
-    def read_json_file_1000(self, path: str) -> 'WrappedRedvoxPacketM':
+    @staticmethod
+    def from_json_path(json_path: str) -> 'WrappedRedvoxPacketM':
         """
         read json from a file representing an api 1000 packet
-        :param path: the path to the file to read
+        :param json_path: the path to the file to read
         :return: wrapped redvox packet api 1000
         """
-        with open(path, "r") as json_in:
-            return WrappedRedvoxPacketM(self.from_json_1000(json_in.read()))
-
-    def read_json_string_1000(self, json: str) -> 'WrappedRedvoxPacketM':
-        """
-        read json representing an api 1000 packet
-        :param json: string containing the json representing the packet
-        :return: wrapped redvox packet api 1000
-        """
-        return WrappedRedvoxPacketM(self.from_json_1000(json))
+        with open(json_path, "r") as json_in:
+            return WrappedRedvoxPacketM.from_json(json_in.read())
 
     def default_filename(self, extension: Optional[str] = None) -> str:
         """
@@ -120,9 +104,9 @@ class WrappedRedvoxPacketM(common.ProtoBase):
         station_id_len: int = len(station_id)
         if station_id_len < 10:
             station_id = f"{'0' * (10 - station_id_len)}{station_id}"
-        ts_s: int = round(self.get_timing_information().get_packet_start_mach_timestamp() / 1_000_000.0)
+        timestamp: int = round(self.get_timing_information().get_packet_start_mach_timestamp())
 
-        filename: str = f"{station_id}_{ts_s}_m"
+        filename: str = f"{station_id}_{timestamp}"
 
         if extension is not None:
             filename = f"{filename}.{extension}"
@@ -131,10 +115,10 @@ class WrappedRedvoxPacketM(common.ProtoBase):
 
     def write_compressed_to_file(self, base_dir: str, filename: Optional[str] = None) -> str:
         if filename is None:
-            filename: str = self.default_filename("rdvxz")
+            filename = self.default_filename("rdvxm")
 
         if not os.path.isdir(base_dir):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"Base directory={base_dir} does not exist.")
+            raise errors.WrappedRedvoxPacketMError(f"Base directory={base_dir} does not exist.")
 
         out_path: str = os.path.join(base_dir, filename)
         with open(out_path, "wb") as compressed_out:
@@ -144,10 +128,10 @@ class WrappedRedvoxPacketM(common.ProtoBase):
 
     def write_json_to_file(self, base_dir: str, filename: Optional[str] = None) -> str:
         if filename is None:
-            filename: str = self.default_filename("json")
+            filename = self.default_filename("m.json")
 
         if not os.path.isdir(base_dir):
-            raise errors.WrappedRedvoxPacketApi1000Error(f"Base directory={base_dir} does not exist.")
+            raise errors.WrappedRedvoxPacketMError(f"Base directory={base_dir} does not exist.")
 
         out_path: str = os.path.join(base_dir, filename)
         with open(out_path, "w") as json_out:
@@ -179,6 +163,5 @@ class WrappedRedvoxPacketM(common.ProtoBase):
     def get_server_information(self) -> _server_information.ServerInformation:
         return self._server_information
 
-    def get_sensor_channels(self) -> _sensor_channels.SensorChannels:
+    def get_sensors(self) -> _sensors.Sensors:
         return self._sensors
-
