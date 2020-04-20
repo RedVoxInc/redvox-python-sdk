@@ -308,10 +308,10 @@ class NetworkType(enum.Enum):
 
 
 class WifiWakeLock(enum.Enum):
-    NONE = 0
-    HIGH_PERF = 1
-    LOW_LATENCY = 2
-    OTHER = 3
+    NONE: int = 0
+    HIGH_PERF: int = 1
+    LOW_LATENCY: int = 2
+    OTHER: int = 3
 
     @staticmethod
     def from_proto(wifi_wake_lock: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock) -> 'WifiWakeLock':
@@ -322,11 +322,11 @@ class WifiWakeLock(enum.Enum):
 
 
 class CellServiceState(enum.Enum):
-    UNKNOWN = 0
-    EMERGENCY = 1
-    NOMINAL = 2
-    OUT_OF_SERVICE = 3
-    POWER_OFF = 4
+    UNKNOWN: int = 0
+    EMERGENCY: int = 1
+    NOMINAL: int = 2
+    OUT_OF_SERVICE: int = 3
+    POWER_OFF: int = 4
 
     @staticmethod
     def from_proto(cell_service_state: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState) -> 'CellServiceState':
@@ -337,9 +337,9 @@ class CellServiceState(enum.Enum):
 
 
 class PowerState(enum.Enum):
-    UNPLUGGED = 0
-    CHARGING = 1
-    CHARGED = 2
+    UNPLUGGED: int = 0
+    CHARGING: int = 1
+    CHARGED: int = 2
 
     @staticmethod
     def from_proto(power_state: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState) -> 'PowerState':
@@ -352,7 +352,7 @@ class PowerState(enum.Enum):
 class StationMetrics(common.ProtoBase):
     def __init__(self, station_metrics_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics):
         super().__init__(station_metrics_proto)
-        self._timestamps = common.SamplePayload(station_metrics_proto.timestamps)
+        self._timestamps = common.TimingPayload(station_metrics_proto.timestamps)
         self._network_strength: common.SamplePayload = common.SamplePayload(station_metrics_proto.network_strength)
         self._temperature: common.SamplePayload = common.SamplePayload(station_metrics_proto.temperature)
         self._battery: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery)
@@ -360,6 +360,9 @@ class StationMetrics(common.ProtoBase):
         self._available_ram: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_ram)
         self._available_disk: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_disk)
         self._cpu_utilization: common.SamplePayload = common.SamplePayload(station_metrics_proto.cpu_utilization)
+
+    def get_timestamps(self) -> common.TimingPayload:
+        return self._timestamps
 
     def get_network_type(self) -> List[NetworkType]:
         network_type: List[
@@ -396,9 +399,6 @@ class StationMetrics(common.ProtoBase):
                 pow_state.name), power_state))
         self._proto.power_state[:] = power_states
         return self
-
-    def get_timestamps(self) -> common.SamplePayload:
-        return self._timestamps
 
     def get_network_strength(self) -> common.SamplePayload:
         return self._network_strength

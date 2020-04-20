@@ -53,7 +53,7 @@ message RedvoxPacketM {
 
         // Collection of station state and performance metrics
         message StationMetrics {
-            SamplePayload timestamps = 1; // Timestamps associated with following sensor state metrics
+            TimingPayload timestamps = 1; // Timestamps associated with following sensor state metrics
             repeated NetworkType network_type = 2; // Type of network connection
             repeated CellServiceState cell_service_state = 3; // State of the cellular service
             SamplePayload network_strength = 4; // A value representing the strength of the network connection in decibels

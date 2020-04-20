@@ -5,7 +5,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 class Single(common.ProtoBase):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Single):
         super().__init__(proto)
-        self._timestamps: common.SamplePayload = common.SamplePayload(proto.timestamps)
+        self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
         self._samples: common.SamplePayload = common.SamplePayload(proto.samples)
 
     @staticmethod
@@ -20,7 +20,7 @@ class Single(common.ProtoBase):
         self._proto.sensor_description = sensor_description
         return self
 
-    def get_timestamps(self) -> common.SamplePayload:
+    def get_timestamps(self) -> common.TimingPayload:
         return self._timestamps
 
     def get_samples(self) -> common.SamplePayload:

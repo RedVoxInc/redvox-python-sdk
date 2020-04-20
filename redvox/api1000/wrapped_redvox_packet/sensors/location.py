@@ -14,7 +14,7 @@ class LocationProvider(enum.Enum):
 class Location(common.ProtoBase):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Location):
         super().__init__(proto)
-        self._timestamps: common.SamplePayload = common.SamplePayload(proto.timestamps)
+        self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
         self._latitude_samples: common.SamplePayload = common.SamplePayload(proto.latitude_samples)
         self._longitude_samples: common.SamplePayload = common.SamplePayload(proto.longitude_samples)
         self._altitude_samples: common.SamplePayload = common.SamplePayload(proto.altitude_samples)
@@ -37,7 +37,7 @@ class Location(common.ProtoBase):
         self._proto.sensor_description = sensor_description
         return self
 
-    def get_timestamps(self) -> common.SamplePayload:
+    def get_timestamps(self) -> common.TimingPayload:
         return self._timestamps
 
     def get_latitude_samples(self) -> common.SamplePayload:

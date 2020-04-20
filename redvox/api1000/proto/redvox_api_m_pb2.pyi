@@ -324,7 +324,7 @@ class RedvoxPacketM(google___protobuf___message___Message):
             wifi_wake_lock = ... # type: RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock
 
             @property
-            def timestamps(self) -> RedvoxPacketM.SamplePayload: ...
+            def timestamps(self) -> RedvoxPacketM.TimingPayload: ...
 
             @property
             def network_strength(self) -> RedvoxPacketM.SamplePayload: ...
@@ -352,7 +352,7 @@ class RedvoxPacketM(google___protobuf___message___Message):
 
             def __init__(self,
                 *,
-                timestamps : typing___Optional[RedvoxPacketM.SamplePayload] = None,
+                timestamps : typing___Optional[RedvoxPacketM.TimingPayload] = None,
                 network_type : typing___Optional[typing___Iterable[RedvoxPacketM.StationInformation.StationMetrics.NetworkType]] = None,
                 cell_service_state : typing___Optional[typing___Iterable[RedvoxPacketM.StationInformation.StationMetrics.CellServiceState]] = None,
                 network_strength : typing___Optional[RedvoxPacketM.SamplePayload] = None,

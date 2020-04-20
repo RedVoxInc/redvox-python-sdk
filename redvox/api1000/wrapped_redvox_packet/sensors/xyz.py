@@ -5,7 +5,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 class Xyz(common.ProtoBase):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz):
         super().__init__(proto)
-        self._timestamps: common.SamplePayload = common.SamplePayload(proto.timestamps)
+        self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
         self._x_samples: common.SamplePayload = common.SamplePayload(proto.x_samples)
         self._y_samples: common.SamplePayload = common.SamplePayload(proto.y_samples)
         self._z_samples: common.SamplePayload = common.SamplePayload(proto.z_samples)
@@ -22,7 +22,7 @@ class Xyz(common.ProtoBase):
         self._proto.sensor_description = sensor_description
         return self
 
-    def get_timestamps(self) -> common.SamplePayload:
+    def get_timestamps(self) -> common.TimingPayload:
         return self._timestamps
 
     def get_x_samples(self) -> common.SamplePayload:
