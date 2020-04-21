@@ -1,8 +1,8 @@
 import enum
 from typing import List
 
-import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_1000_pb2
+import redvox.api1000.wrapped_redvox_packet.common as common
 
 
 class SynchExchange(common.ProtoBase):
@@ -11,7 +11,9 @@ class SynchExchange(common.ProtoBase):
 
     @staticmethod
     def new() -> 'SynchExchange':
-        return SynchExchange(redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.SynchExchange())
+        exchange = SynchExchange(redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.SynchExchange())
+        exchange.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+        return exchange
 
     def get_unit(self) -> common.Unit:
         return common.Unit.from_proto(self._proto.unit)
@@ -74,7 +76,8 @@ class TimingScoreMethod(enum.Enum):
     UNKNOWN = 0
 
     @staticmethod
-    def from_proto(score_method: redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod) -> 'TimingScoreMethod':
+    def from_proto(
+            score_method: redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod) -> 'TimingScoreMethod':
         return TimingScoreMethod(score_method)
 
     def into_proto(self) -> redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod:
@@ -132,7 +135,8 @@ class TimingInformation(common.ProtoBase):
     def get_server_acquisition_arrival_timestamp(self) -> float:
         return self._proto.server_acquisition_arrival_timestamp
 
-    def set_server_acquisition_arrival_timestamp(self, server_acquisition_arrival_timestamp: float) -> 'TimingInformation':
+    def set_server_acquisition_arrival_timestamp(self,
+                                                 server_acquisition_arrival_timestamp: float) -> 'TimingInformation':
         common.check_type(server_acquisition_arrival_timestamp, [int, float])
         self._proto.server_acquisition_arrival_timestamp = server_acquisition_arrival_timestamp
         return self
@@ -146,17 +150,26 @@ class TimingInformation(common.ProtoBase):
         return self
 
     def get_synch_exchanges(self) -> List[SynchExchange]:
-        pass
+        return list(map(lambda exchange_proto: SynchExchange(exchange_proto), self._proto.synch_exchanges))
 
     def set_synch_exchanges(self, synch_exchanges: List[SynchExchange]) -> 'TimingInformation':
-        pass
+        self.clear_synch_exchanges()
+        return self.append_synch_exchanges(synch_exchanges)
+
+    def append_synch_exchanges(self, synch_exchanges: List[SynchExchange]) -> 'TimingInformation':
+        self._proto.synch_exchanges.extend(list(map(lambda exchange: exchange.get_proto(), synch_exchanges)))
+        return self
+
+    def clear_synch_exchanges(self) -> 'TimingInformation':
+        self._proto.ClearField("synch_exchanges")
+        return self
 
     def get_best_latency(self) -> float:
         return self._proto.best_latency
 
     def set_best_latency(self, best_latency: float) -> 'TimingInformation':
         common.check_type(best_latency, [int, float])
-        self._proto.best_latency= best_latency
+        self._proto.best_latency = best_latency
         return self
 
     def get_best_offset(self) -> float:

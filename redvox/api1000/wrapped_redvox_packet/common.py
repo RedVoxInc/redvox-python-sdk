@@ -3,7 +3,7 @@ Provides common classes and methods for interacting with API 1000 protobuf data.
 """
 
 import enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Tuple, Union
 
 from google.protobuf.json_format import MessageToDict, MessageToJson
 import lz4.frame
@@ -273,6 +273,58 @@ class SummaryStatistics(ProtoBase):
         self._proto.range = self._proto.max - self._proto.min
 
 
+# T = TypeVar('T')
+# P = TypeVar('P')
+#
+#
+# class RepeatedProto(Generic[T, P]):
+#     def __init__(self,
+#                  repeated_field,
+#                  from_proto: Optional[Callable[[P], T]] = None,
+#                  to_proto: Optional[Callable[[T], P]] = None):
+#
+#         self._repeated_field = repeated_field
+#         self._from_proto = from_proto
+#         self._to_proto = to_proto
+#
+#     def get_count(self) -> int:
+#         return len(self._repeated_field)
+#
+#     def get_values(self) -> List[T]:
+#         if self._from_proto is None:
+#             return list(self._repeated_field)
+#         else:
+#             return list(map(self._from_proto, list(self._repeated_field)))
+#
+#     def set_values(self, values: List[T]) -> 'RepeatedProto':
+#         if self._to_proto is None:
+#             self._repeated_field[:] = values
+#         else:
+#             self._repeated_field[:] = list(map(self._to_proto, values))
+#
+#         return self
+#
+#     def append_value(self, value: T) -> 'RepeatedProto':
+#         if self._to_proto is None:
+#             self._repeated_field.append(value)
+#         else:
+#             self._repeated_field.append(self._to_proto(value))
+#         return self
+#
+#     def append_values(self, values: List[T]) -> 'RepeatedProto':
+#         if self._to_proto is None:
+#             self._repeated_field.extend(values)
+#         else:
+#             as_proto: List[P] = list(map(self._to_proto, values))
+#             self._repeated_field.extend(as_proto)
+#
+#         return self
+#
+#     def clear_values(self) -> 'RepeatedProto':
+#         self._repeated_field[:] = []
+#         return self
+
+
 class SamplePayload(ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SamplePayload):
         super().__init__(proto)
@@ -345,7 +397,7 @@ def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:
         return 0.0, 0.0
 
     mean_sample_rate: float = 1.0 / dt_utils.microseconds_to_seconds(mean_sample_interval)
-    stdev_sample_rate: float = mean_sample_rate**2 * dt_utils.microseconds_to_seconds(stdev_sample_interval)
+    stdev_sample_rate: float = mean_sample_rate ** 2 * dt_utils.microseconds_to_seconds(stdev_sample_interval)
 
     return mean_sample_rate, stdev_sample_rate
 
