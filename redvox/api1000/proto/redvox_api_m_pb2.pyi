@@ -72,6 +72,7 @@ class RedvoxPacketM(google___protobuf___message___Message):
         MICROAMPERES = typing___cast('RedvoxPacketM.Unit', 14)
         CENTIMETERS = typing___cast('RedvoxPacketM.Unit', 15)
         NORMALIZED_COUNTS = typing___cast('RedvoxPacketM.Unit', 16)
+        LUX = typing___cast('RedvoxPacketM.Unit', 17)
     METERS_PER_SECOND_SQUARED = typing___cast('RedvoxPacketM.Unit', 0)
     KILOPASCAL = typing___cast('RedvoxPacketM.Unit', 1)
     RADIANS_PER_SECOND = typing___cast('RedvoxPacketM.Unit', 2)
@@ -89,6 +90,7 @@ class RedvoxPacketM(google___protobuf___message___Message):
     MICROAMPERES = typing___cast('RedvoxPacketM.Unit', 14)
     CENTIMETERS = typing___cast('RedvoxPacketM.Unit', 15)
     NORMALIZED_COUNTS = typing___cast('RedvoxPacketM.Unit', 16)
+    LUX = typing___cast('RedvoxPacketM.Unit', 17)
 
     class MetadataEntry(google___protobuf___message___Message):
         DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...

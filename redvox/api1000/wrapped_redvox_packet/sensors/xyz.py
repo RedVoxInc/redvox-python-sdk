@@ -14,6 +14,13 @@ class Xyz(common.ProtoBase):
     def new() -> 'Xyz':
         return Xyz(redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz())
 
+    def set_unit_xyz(self, unit: common.Unit) -> 'Xyz':
+        common.check_type(unit, [common.Unit])
+        self._x_samples.set_unit(unit)
+        self._y_samples.set_unit(unit)
+        self._z_samples.set_unit(unit)
+        return self
+
     def get_sensor_description(self) -> str:
         return self._proto.sensor_description
 

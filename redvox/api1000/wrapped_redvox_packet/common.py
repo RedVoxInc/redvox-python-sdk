@@ -32,19 +32,24 @@ EMPTY_ARRAY: np.ndarray = np.array([])
 
 
 class Unit(enum.Enum):
-    METERS_PER_SECOND_SQUARED: int = 0
-    KILOPASCAL: int = 1
-    RADIANS_PER_SECOND: int = 2
-    DECIMAL_DEGREES: int = 3
-    METERS: int = 4
-    METERS_PER_SECOND: int = 5
-    MICROTESLA: int = 6
-    LSB_PLUS_MINUS_COUNTS: int = 7
-    MICROSECONDS_SINCE_UNIX_EPOCH: int = 8
-    DECIBEL: int = 9
-    DEGREES_CELSIUS: int = 10
-    BYTE: int = 11
-    PERCENTAGE: int = 12
+    METERS_PER_SECOND_SQUARED = 0
+    KILOPASCAL = 1
+    RADIANS_PER_SECOND = 2
+    DECIMAL_DEGREES = 3
+    METERS = 4
+    METERS_PER_SECOND = 5
+    MICROTESLA = 6
+    LSB_PLUS_MINUS_COUNTS = 7
+    MICROSECONDS_SINCE_UNIX_EPOCH = 8
+    DECIBEL = 9
+    DEGREES_CELSIUS = 10
+    BYTE = 11
+    PERCENTAGE = 12
+    RADIANS = 13
+    MICROAMPERES = 14
+    CENTIMETERS = 15
+    NORMALIZED_COUNTS = 16
+    LUX = 17
 
     @staticmethod
     def from_proto(unit: redvox_api_1000_pb2.RedvoxPacketM.Unit) -> 'Unit':

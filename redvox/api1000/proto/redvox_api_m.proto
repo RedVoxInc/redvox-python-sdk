@@ -388,6 +388,7 @@ message RedvoxPacketM {
         MICROAMPERES = 14;
         CENTIMETERS = 15;
         NORMALIZED_COUNTS = 16;
+        LUX = 17;
     }
 
     // Common statistics stored with payloads
