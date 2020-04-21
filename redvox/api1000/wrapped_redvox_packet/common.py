@@ -404,7 +404,7 @@ class TimingPayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.TimingPayload]):
 
     def set_timestamps(self, timestamps: np.ndarray, update_value_statistics: bool = False) -> 'TimingPayload':
         check_type(timestamps, [np.ndarray])
-        self._proto.values[:] = list(timestamps)
+        self._proto.timestamps[:] = list(timestamps)
 
         if update_value_statistics:
             self.update_timing_statistics_from_timestamps()
@@ -413,7 +413,7 @@ class TimingPayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.TimingPayload]):
 
     def append_timestamp(self, timestamp: float, update_value_statistics: bool = False) -> 'TimingPayload':
         check_type(timestamp, [int, float])
-        self._proto.values.append(timestamp)
+        self._proto.timestamps.append(timestamp)
 
         if update_value_statistics:
             self.update_timing_statistics_from_timestamps()
@@ -422,7 +422,7 @@ class TimingPayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.TimingPayload]):
 
     def append_timestamps(self, values: np.ndarray, update_value_statistics: bool = False) -> 'TimingPayload':
         check_type(values, [np.ndarray])
-        self._proto.values.extend(list(values))
+        self._proto.timestamps.extend(list(values))
 
         if update_value_statistics:
             self.update_timing_statistics_from_timestamps()
@@ -430,7 +430,7 @@ class TimingPayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.TimingPayload]):
         return self
 
     def clear_timestamps(self, update_value_statistics: bool = False) -> 'TimingPayload':
-        self._proto.values[:] = []
+        self._proto.timestamps[:] = []
 
         if update_value_statistics:
             self.update_timing_statistics_from_timestamps()

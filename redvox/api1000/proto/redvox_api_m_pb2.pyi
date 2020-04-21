@@ -185,10 +185,12 @@ class RedvoxPacketM(google___protobuf___message___Message):
             IOS = typing___cast('RedvoxPacketM.StationInformation.OsType', 1)
             LINUX = typing___cast('RedvoxPacketM.StationInformation.OsType', 2)
             WINDOWS = typing___cast('RedvoxPacketM.StationInformation.OsType', 3)
+            UNKNOWN_OS = typing___cast('RedvoxPacketM.StationInformation.OsType', 4)
         ANDROID = typing___cast('RedvoxPacketM.StationInformation.OsType', 0)
         IOS = typing___cast('RedvoxPacketM.StationInformation.OsType', 1)
         LINUX = typing___cast('RedvoxPacketM.StationInformation.OsType', 2)
         WINDOWS = typing___cast('RedvoxPacketM.StationInformation.OsType', 3)
+        UNKNOWN_OS = typing___cast('RedvoxPacketM.StationInformation.OsType', 4)
 
         class MetadataEntry(google___protobuf___message___Message):
             DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...

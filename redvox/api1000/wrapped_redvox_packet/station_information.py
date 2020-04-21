@@ -444,6 +444,7 @@ class OsType(enum.Enum):
     IOS: int = 1
     LINUX: int = 2
     WINDOWS: int = 3
+    UNKNOWN_OS: int = 4
 
     @staticmethod
     def from_proto(os_type: redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType) -> 'OsType':
