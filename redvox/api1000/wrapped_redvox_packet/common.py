@@ -102,13 +102,6 @@ def is_protobuf_repeated_numerical_type(values: Any) -> bool:
     return isinstance(value, np.floating) or isinstance(value, np.integer)
 
 
-def mean_sample_rate_hz_from_sample_ts_us(sample_ts_us: np.ndarray) -> float:
-    sample_ts_s: np.ndarray = sample_ts_us / 1_000_000.0
-    diffs: np.ndarray = np.diff(sample_ts_s)
-    sample_rates_hz: np.ndarray = 1.0 / diffs
-    return sample_rates_hz.mean()
-
-
 def lz4_compress(data: bytes) -> bytes:
     return lz4.frame.compress(data, compression_level=16, return_bytearray=True)
 
@@ -117,12 +110,16 @@ def lz4_decompress(data: bytes) -> bytes:
     return lz4.frame.decompress(data, True)
 
 
-class ProtoBase:
-    def __init__(self, proto):
-        self._proto = proto
+T = TypeVar('T')
+P = TypeVar('P')
+
+
+class ProtoBase(Generic[P]):
+    def __init__(self, proto: P):
+        self._proto: P = proto
         self._metadata: 'Metadata' = Metadata(self._proto.metadata)
 
-    def get_proto(self) -> PROTO_TYPES:
+    def get_proto(self) -> P:
         return self._proto
 
     def get_metadata(self) -> 'Metadata':
@@ -181,7 +178,7 @@ class Metadata:
         return self
 
 
-class SummaryStatistics(ProtoBase):
+class SummaryStatistics(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics]):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics):
         super().__init__(proto)
 
@@ -278,7 +275,7 @@ class SummaryStatistics(ProtoBase):
         self._proto.range = self._proto.max - self._proto.min
 
 
-class SamplePayload(ProtoBase):
+class SamplePayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SamplePayload]):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SamplePayload):
         super().__init__(proto)
         self._summary_statistics: SummaryStatistics = SummaryStatistics(proto.value_statistics)
@@ -355,35 +352,35 @@ def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:
     return mean_sample_rate, stdev_sample_rate
 
 
-class ProtoRepeatedMessage:
+class ProtoRepeatedMessage(Generic[P, T]):
     def __init__(self,
                  parent_proto,
                  repeated_field_proto,
                  repeated_field_name: str,
-                 from_proto: Callable,
-                 to_proto: Callable):
+                 from_proto: Callable[[P], T],
+                 to_proto: Callable[[T], P]):
         self._parent_proto = parent_proto
         self._repeated_field_proto = repeated_field_proto
         self._repeated_field_name = repeated_field_name
-        self._from_proto = from_proto
-        self._to_proto = to_proto
+        self._from_proto: Callable[[P], T] = from_proto
+        self._to_proto: Callable[[T], P] = to_proto
 
     def get_count(self) -> int:
         return len(self._repeated_field_proto)
 
-    def get_values(self) -> List:
+    def get_values(self) -> List[T]:
         return list(map(self._from_proto, self._repeated_field_proto))
 
-    def set_values(self, values: List) -> 'ProtoRepeatedMessage':
+    def set_values(self, values: List[T]) -> 'ProtoRepeatedMessage[P, T]':
         self.clear_values()
         self.append_values(values)
         return self
 
-    def append_values(self, values: List) -> 'ProtoRepeatedMessage':
+    def append_values(self, values: List[T]) -> 'ProtoRepeatedMessage[P, T]':
         self._repeated_field_proto.extend(list(map(self._to_proto, values)))
         return self
 
-    def clear_values(self) -> 'ProtoRepeatedMessage':
+    def clear_values(self) -> 'ProtoRepeatedMessage[P, T]':
         self._parent_proto.ClearField(self._repeated_field_name)
         return self
 
@@ -392,7 +389,7 @@ class ProtoRepeatedScalar:
     pass
 
 
-class TimingPayload(ProtoBase):
+class TimingPayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.TimingPayload]):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.TimingPayload):
         super().__init__(proto)
         self._timestamp_statistics: SummaryStatistics = SummaryStatistics(proto.timestamp_statistics)

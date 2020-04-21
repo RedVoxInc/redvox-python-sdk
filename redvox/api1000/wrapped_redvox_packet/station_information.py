@@ -9,6 +9,8 @@ _CELL_SERVICE_STATE_FIELD_NAME: str = "cell_service_state"
 _POWER_STATE_FIELD_NAME: str = "power_state"
 _ADDITIONAL_INPUT_SENSORS_FIELD_NAME: str = "additional_input_sensors"
 
+InputSensorProto = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor
+
 
 class AudioSamplingRate(enum.Enum):
     HZ_80: int = 0
@@ -96,10 +98,11 @@ class FftOverlap(enum.Enum):
         return redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap.Value(self.name)
 
 
-class AppSettings(common.ProtoBase):
+class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings):
         super().__init__(proto)
-        self._additional_input_sensors: common.ProtoRepeatedMessage = common.ProtoRepeatedMessage(
+        self._additional_input_sensors: common.ProtoRepeatedMessage[InputSensorProto, InputSensor] =\
+            common.ProtoRepeatedMessage(
             proto,
             proto.additional_input_sensors,
             _ADDITIONAL_INPUT_SENSORS_FIELD_NAME,
@@ -360,7 +363,7 @@ class PowerState(enum.Enum):
         return redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState.Value(self.name)
 
 
-class StationMetrics(common.ProtoBase):
+class StationMetrics(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics]):
     def __init__(self, station_metrics_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics):
         super().__init__(station_metrics_proto)
         self._timestamps = common.TimingPayload(station_metrics_proto.timestamps)
@@ -450,7 +453,7 @@ class OsType(enum.Enum):
         return redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType.Value(self.name)
 
 
-class StationInformation(common.ProtoBase):
+class StationInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation]):
     def __init__(self, station_information_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation):
         super().__init__(station_information_proto)
         self._app_settings: AppSettings = AppSettings(station_information_proto.app_settings)

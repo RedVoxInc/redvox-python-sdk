@@ -2,7 +2,7 @@ import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
 
-class Single(common.ProtoBase):
+class Single(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Single]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Single):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)

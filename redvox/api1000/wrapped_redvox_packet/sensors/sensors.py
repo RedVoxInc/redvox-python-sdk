@@ -29,7 +29,7 @@ _PROXIMITY_FIELD_NAME: str = "proximity"
 _RELATIVE_HUMIDITY_FIELD_NAME: str = "relative_humidity"
 
 
-class Sensors(common.ProtoBase):
+class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
     def __init__(self, sensors_proto: redvox_api_m_pb2.RedvoxPacketM.Sensors):
         super().__init__(sensors_proto)
         self._accelerometer: xyz.Xyz = xyz.Xyz(sensors_proto.accelerometer)

@@ -2,7 +2,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.wrapped_redvox_packet.common as common
 
 
-class UserInformation(common.ProtoBase):
+class UserInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.UserInformation]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.UserInformation):
         super().__init__(proto)
 

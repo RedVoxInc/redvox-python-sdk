@@ -2,7 +2,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.wrapped_redvox_packet.common as common
 
 
-class Audio(common.ProtoBase):
+class Audio(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio):
         super().__init__(proto)
         self._samples: common.SamplePayload = common.SamplePayload(proto.samples)
@@ -49,7 +49,7 @@ class Audio(common.ProtoBase):
         return self._samples
 
 
-class CompressedAudio(common.ProtoBase):
+class CompressedAudio(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio):
         super().__init__(proto)
         # TODO
