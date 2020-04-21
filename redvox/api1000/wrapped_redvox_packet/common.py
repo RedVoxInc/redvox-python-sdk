@@ -16,18 +16,6 @@ import redvox.common.date_time_utils as dt_utils
 
 NAN: float = float("NaN")
 
-PROTO_TYPES = Union[redvox_api_1000_pb2.RedvoxPacketM,
-                    redvox_api_1000_pb2.RedvoxPacketM.StationInformation,
-                    redvox_api_1000_pb2.RedvoxPacketM.StationInformation.AppSettings,
-                    redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics,
-                    redvox_api_1000_pb2.RedvoxPacketM.Sensors.Audio,
-                    redvox_api_1000_pb2.RedvoxPacketM.Sensors.CompressedAudio,
-                    redvox_api_1000_pb2.RedvoxPacketM.Sensors.Image,
-                    redvox_api_1000_pb2.RedvoxPacketM.Sensors.Single,
-                    redvox_api_1000_pb2.RedvoxPacketM.Sensors.Xyz,
-                    redvox_api_1000_pb2.RedvoxPacketM.Sensors.Location,
-                    redvox_api_1000_pb2.RedvoxPacketM.UserInformation]
-
 EMPTY_ARRAY: np.ndarray = np.array([])
 
 
@@ -110,38 +98,6 @@ def lz4_decompress(data: bytes) -> bytes:
     return lz4.frame.decompress(data, True)
 
 
-T = TypeVar('T')
-P = TypeVar('P')
-
-
-class ProtoBase(Generic[P]):
-    def __init__(self, proto: P):
-        self._proto: P = proto
-        self._metadata: 'Metadata' = Metadata(self._proto.metadata)
-
-    def get_proto(self) -> P:
-        return self._proto
-
-    def get_metadata(self) -> 'Metadata':
-        return self._metadata
-
-    def as_json(self) -> str:
-        return MessageToJson(self._proto, True)
-
-    def as_dict(self) -> Dict:
-        return MessageToDict(self._proto, True)
-
-    def as_bytes(self) -> bytes:
-        return self._proto.SerializeToString()
-
-    def as_compressed_bytes(self) -> bytes:
-        data: bytes = self.as_bytes()
-        return lz4_compress(data)
-
-    def __str__(self):
-        return self.as_json()
-
-
 class Metadata:
     def __init__(self, metadata_proto):
         self._metadata_proto = metadata_proto
@@ -176,6 +132,38 @@ class Metadata:
     def clear_metadata(self) -> 'Metadata':
         self._metadata_proto.clear()
         return self
+
+
+T = TypeVar('T')
+P = TypeVar('P')
+
+
+class ProtoBase(Generic[P]):
+    def __init__(self, proto: P):
+        self._proto: P = proto
+        self._metadata: Metadata = Metadata(self._proto.metadata)
+
+    def get_proto(self) -> P:
+        return self._proto
+
+    def get_metadata(self) -> Metadata:
+        return self._metadata
+
+    def as_json(self) -> str:
+        return MessageToJson(self._proto, True)
+
+    def as_dict(self) -> Dict:
+        return MessageToDict(self._proto, True)
+
+    def as_bytes(self) -> bytes:
+        return self._proto.SerializeToString()
+
+    def as_compressed_bytes(self) -> bytes:
+        data: bytes = self.as_bytes()
+        return lz4_compress(data)
+
+    def __str__(self):
+        return self.as_json()
 
 
 class SummaryStatistics(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics]):
@@ -383,10 +371,6 @@ class ProtoRepeatedMessage(Generic[P, T]):
     def clear_values(self) -> 'ProtoRepeatedMessage[P, T]':
         self._parent_proto.ClearField(self._repeated_field_name)
         return self
-
-
-class ProtoRepeatedScalar:
-    pass
 
 
 class TimingPayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.TimingPayload]):
