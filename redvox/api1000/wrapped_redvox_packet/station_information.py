@@ -4,6 +4,11 @@ from typing import List, Optional
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.wrapped_redvox_packet.common as common
 
+_NETWORK_TYPE_FIELD_NAME: str = "network_type"
+_CELL_SERVICE_STATE_FIELD_NAME: str = "cell_service_state"
+_POWER_STATE_FIELD_NAME: str = "power_state"
+_ADDITIONAL_INPUT_SENSORS_FIELD_NAME: str = "additional_input_sensors"
+
 
 class AudioSamplingRate(enum.Enum):
     HZ_80: int = 0
@@ -13,7 +18,8 @@ class AudioSamplingRate(enum.Enum):
     HZ_48000: int = 4
 
     @staticmethod
-    def from_proto(audio_sample_rate: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate) -> 'AudioSamplingRate':
+    def from_proto(
+            audio_sample_rate: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate) -> 'AudioSamplingRate':
         return AudioSamplingRate(audio_sample_rate)
 
     def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate:
@@ -41,7 +47,8 @@ class AudioSourceTuning(enum.Enum):
     AUDIO_TUNING: int = 2
 
     @staticmethod
-    def from_proto(audio_source_tuning: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning) -> 'AudioSourceTuning':
+    def from_proto(
+            audio_source_tuning: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning) -> 'AudioSourceTuning':
         return AudioSourceTuning(audio_source_tuning)
 
     def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning:
@@ -67,7 +74,8 @@ class InputSensor(enum.Enum):
     ROTATION_VECTOR = 15
 
     @staticmethod
-    def from_proto(input_sensor: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor) -> 'InputSensor':
+    def from_proto(
+            input_sensor: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor) -> 'InputSensor':
         return InputSensor(input_sensor)
 
     def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor:
@@ -80,7 +88,8 @@ class FftOverlap(enum.Enum):
     PERCENT_75 = 2
 
     @staticmethod
-    def from_proto(fft_overlap: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap) -> 'FftOverlap':
+    def from_proto(
+            fft_overlap: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap) -> 'FftOverlap':
         return FftOverlap(fft_overlap)
 
     def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap:
@@ -90,6 +99,13 @@ class FftOverlap(enum.Enum):
 class AppSettings(common.ProtoBase):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings):
         super().__init__(proto)
+        self._additional_input_sensors: common.ProtoRepeatedMessage = common.ProtoRepeatedMessage(
+            proto,
+            proto.additional_input_sensors,
+            _ADDITIONAL_INPUT_SENSORS_FIELD_NAME,
+            InputSensor.from_proto,
+            InputSensor.into_proto
+        )
 
     @staticmethod
     def new() -> 'AppSettings':
@@ -115,17 +131,8 @@ class AppSettings(common.ProtoBase):
             audio_source_tuning.name)
         return self
 
-    def get_additional_input_sensors(self) -> List[InputSensor]:
-        additional_input_sensors: List[
-            redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor] = self._proto.additional_input_sensors
-        return list(map(lambda sensor: InputSensor(sensor), additional_input_sensors))
-
-    def set_additional_input_sensors(self, additional_input_sensors: List[InputSensor]) -> 'AppSettings':
-        proto_sensors: List[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor] = list(map(
-            lambda sensor: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor.Value(
-                sensor.name), additional_input_sensors))
-        self._proto.additional_input_sensors[:] = proto_sensors
-        return self
+    def get_additional_input_sensors(self) -> common.ProtoRepeatedMessage:
+        return self._additional_input_sensors
 
     def get_fft_overlap(self) -> FftOverlap:
         return FftOverlap(self._proto.fft_overlap)
@@ -300,7 +307,8 @@ class NetworkType(enum.Enum):
     CELLULAR: int = 2
 
     @staticmethod
-    def from_proto(network_type: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType) -> 'NetworkType':
+    def from_proto(
+            network_type: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType) -> 'NetworkType':
         return NetworkType(network_type)
 
     def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType:
@@ -314,7 +322,8 @@ class WifiWakeLock(enum.Enum):
     OTHER: int = 3
 
     @staticmethod
-    def from_proto(wifi_wake_lock: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock) -> 'WifiWakeLock':
+    def from_proto(
+            wifi_wake_lock: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock) -> 'WifiWakeLock':
         return WifiWakeLock(wifi_wake_lock)
 
     def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock:
@@ -329,7 +338,8 @@ class CellServiceState(enum.Enum):
     POWER_OFF: int = 4
 
     @staticmethod
-    def from_proto(cell_service_state: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState) -> 'CellServiceState':
+    def from_proto(
+            cell_service_state: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState) -> 'CellServiceState':
         return CellServiceState(cell_service_state)
 
     def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState:
@@ -342,7 +352,8 @@ class PowerState(enum.Enum):
     CHARGED: int = 2
 
     @staticmethod
-    def from_proto(power_state: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState) -> 'PowerState':
+    def from_proto(
+            power_state: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState) -> 'PowerState':
         return PowerState(power_state)
 
     def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState:
@@ -353,6 +364,20 @@ class StationMetrics(common.ProtoBase):
     def __init__(self, station_metrics_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics):
         super().__init__(station_metrics_proto)
         self._timestamps = common.TimingPayload(station_metrics_proto.timestamps)
+        self._network_type: common.ProtoRepeatedMessage = common.ProtoRepeatedMessage(
+            station_metrics_proto,
+            station_metrics_proto.network_type,
+            _NETWORK_TYPE_FIELD_NAME,
+            NetworkType.from_proto,
+            NetworkType.into_proto
+        )
+        self._cell_service_state: common.ProtoRepeatedMessage = common.ProtoRepeatedMessage(
+            station_metrics_proto,
+            station_metrics_proto.cell_service_state,
+            _CELL_SERVICE_STATE_FIELD_NAME,
+            CellServiceState.from_proto,
+            CellServiceState.into_proto
+        )
         self._network_strength: common.SamplePayload = common.SamplePayload(station_metrics_proto.network_strength)
         self._temperature: common.SamplePayload = common.SamplePayload(station_metrics_proto.temperature)
         self._battery: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery)
@@ -360,45 +385,22 @@ class StationMetrics(common.ProtoBase):
         self._available_ram: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_ram)
         self._available_disk: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_disk)
         self._cpu_utilization: common.SamplePayload = common.SamplePayload(station_metrics_proto.cpu_utilization)
+        self._power_state: common.ProtoRepeatedMessage = common.ProtoRepeatedMessage(
+            station_metrics_proto,
+            station_metrics_proto.power_state,
+            _POWER_STATE_FIELD_NAME,
+            PowerState.from_proto,
+            PowerState.into_proto
+        )
 
     def get_timestamps(self) -> common.TimingPayload:
         return self._timestamps
 
-    def get_network_type(self) -> List[NetworkType]:
-        network_type: List[
-            redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType] = self._proto.network_type
-        return list(map(lambda network: NetworkType(network), network_type))
+    def get_network_type(self) -> common.ProtoRepeatedMessage:
+        return self._network_type
 
-    def set_network_type(self, network_type: List[NetworkType]) -> 'StationMetrics':
-        network_types: List[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType] = list(map(
-            lambda net_type: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType.Value(
-                net_type.name), network_type))
-        self._proto.network_type[:] = network_types
-        return self
-
-    def get_cell_service_state(self) -> List[CellServiceState]:
-        cell_service_state: List[
-            redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState] = self._proto.cell_service_state
-        return list(map(lambda cell_service: CellServiceState(cell_service), cell_service_state))
-
-    def set_cell_service_state(self, cell_service_state: List[CellServiceState]) -> 'StationMetrics':
-        cell_states: List[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState] = list(map(
-            lambda cell_serv: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState.Value(
-                cell_serv.name), cell_service_state))
-        self._proto.cell_service_state[:] = cell_states
-        return self
-
-    def get_power_state(self) -> List[PowerState]:
-        power_state: List[
-            redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState] = self._proto.power_state
-        return list(map(lambda pow_state: PowerState(pow_state), power_state))
-
-    def set_power_state(self, power_state: List[PowerState]) -> 'StationMetrics':
-        power_states: List[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState] = list(map(
-            lambda pow_state: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState.Value(
-                pow_state.name), power_state))
-        self._proto.power_state[:] = power_states
-        return self
+    def get_cell_service_state(self) -> common.ProtoRepeatedMessage:
+        return self._cell_service_state
 
     def get_network_strength(self) -> common.SamplePayload:
         return self._network_strength
@@ -423,6 +425,9 @@ class StationMetrics(common.ProtoBase):
 
     def get_wifi_wake_loc(self) -> WifiWakeLock:
         return WifiWakeLock(self._proto.wifi_wake_lock)
+
+    def get_power_state(self) -> common.ProtoRepeatedMessage:
+        return self._power_state
 
     def set_wifi_wake_loc(self, wifi_wake_loc: WifiWakeLock) -> 'StationMetrics':
         common.check_type(wifi_wake_loc, [WifiWakeLock])
