@@ -4,6 +4,8 @@ from typing import List
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_1000_pb2
 import redvox.api1000.wrapped_redvox_packet.common as common
 
+_SYNCH_EXCHANGES_FIELD_NAME: str = "synch_exchanges"
+
 
 class SynchExchange(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.SynchExchange):
@@ -87,6 +89,13 @@ class TimingScoreMethod(enum.Enum):
 class TimingInformation(common.ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.TimingInformation):
         super().__init__(proto)
+        self._synch_exchanges: common.ProtoRepeatedMessage = common.ProtoRepeatedMessage(
+            proto,
+            proto.synch_exchanges,
+            _SYNCH_EXCHANGES_FIELD_NAME,
+            lambda exchange_proto: SynchExchange(exchange_proto),
+            SynchExchange.get_proto
+        )
 
     @staticmethod
     def new() -> 'TimingInformation':
@@ -149,20 +158,8 @@ class TimingInformation(common.ProtoBase):
         self._proto.app_start_mach_timestamp = app_start_mach_timestamp
         return self
 
-    def get_synch_exchanges(self) -> List[SynchExchange]:
-        return list(map(lambda exchange_proto: SynchExchange(exchange_proto), self._proto.synch_exchanges))
-
-    def set_synch_exchanges(self, synch_exchanges: List[SynchExchange]) -> 'TimingInformation':
-        self.clear_synch_exchanges()
-        return self.append_synch_exchanges(synch_exchanges)
-
-    def append_synch_exchanges(self, synch_exchanges: List[SynchExchange]) -> 'TimingInformation':
-        self._proto.synch_exchanges.extend(list(map(lambda exchange: exchange.get_proto(), synch_exchanges)))
-        return self
-
-    def clear_synch_exchanges(self) -> 'TimingInformation':
-        self._proto.ClearField("synch_exchanges")
-        return self
+    def get_synch_exchanges(self) -> common.ProtoRepeatedMessage:
+        return self._synch_exchanges
 
     def get_best_latency(self) -> float:
         return self._proto.best_latency

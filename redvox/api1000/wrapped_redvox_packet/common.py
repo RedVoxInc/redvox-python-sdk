@@ -355,6 +355,43 @@ def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:
     return mean_sample_rate, stdev_sample_rate
 
 
+class ProtoRepeatedMessage:
+    def __init__(self,
+                 parent_proto,
+                 repeated_field_proto,
+                 repeated_field_name: str,
+                 from_proto: Callable,
+                 to_proto: Callable):
+        self._parent_proto = parent_proto
+        self._repeated_field_proto = repeated_field_proto
+        self._repeated_field_name = repeated_field_name
+        self._from_proto = from_proto
+        self._to_proto = to_proto
+
+    def get_count(self) -> int:
+        return len(self._repeated_field_proto)
+
+    def get_values(self) -> List:
+        return list(map(self._from_proto, self._repeated_field_proto))
+
+    def set_values(self, values: List) -> 'ProtoRepeatedMessage':
+        self.clear_values()
+        self.append_values(values)
+        return self
+
+    def append_values(self, values: List) -> 'ProtoRepeatedMessage':
+        self._repeated_field_proto.extend(list(map(self._to_proto, values)))
+        return self
+
+    def clear_values(self) -> 'ProtoRepeatedMessage':
+        self._parent_proto.ClearField(self._repeated_field_name)
+        return self
+
+
+class ProtoRepeatedScalar:
+    pass
+
+
 class TimingPayload(ProtoBase):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.TimingPayload):
         super().__init__(proto)
