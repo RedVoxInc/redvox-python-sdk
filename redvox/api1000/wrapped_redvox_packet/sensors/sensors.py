@@ -26,7 +26,7 @@ _MAGNETOMETER_FIELD_NAME: str = "magnetometer"
 _ORIENTATION_FIELD_NAME: str = "orientation"
 _PRESSURE_FIELD_NAME: str = "pressure"
 _PROXIMITY_FIELD_NAME: str = "proximity"
-_RELATIVE_HUMIDITY_FIELD_NAME: str = "relative_humidty"
+_RELATIVE_HUMIDITY_FIELD_NAME: str = "relative_humidity"
 
 
 class Sensors(common.ProtoBase):
