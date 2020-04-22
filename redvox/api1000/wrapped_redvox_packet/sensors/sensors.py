@@ -55,8 +55,9 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
     def has_accelerometer(self) -> bool:
         return self._proto.HasField(_ACCELEROMETER_FIELD_NAME)
 
-    def get_accelerometer(self) -> Optional[xyz.Xyz]:
+    def get_accelerometer(self) -> xyz.Xyz:
         return self._accelerometer if self.has_accelerometer() else None
+        # return self._accelerometer
 
     def new_accelerometer(self) -> xyz.Xyz:
         accelerometer: xyz.Xyz = xyz.Xyz.new()
@@ -97,25 +98,24 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self
 
     def has_audio(self) -> bool:
-        return self._proto.HasField(_AUDIO_FIELD_NAME)
+        return self.get_proto().HasField(_AUDIO_FIELD_NAME)
 
     def get_audio(self) -> Optional[audio.Audio]:
         return self._audio if self.has_audio() else None
 
     def new_audio(self) -> audio.Audio:
-        _audio: audio.Audio = audio.Audio.new()
-        _audio.get_samples().set_unit(common.Unit.LSB_PLUS_MINUS_COUNTS)
-        _audio = self.set_audio(_audio)._audio
-        return _audio
+        self.remove_audio()
+        self.get_proto().audio.SetInParent()
+        self._audio = audio.Audio(self.get_proto().audio)
+        return self.get_audio()
 
     def set_audio(self, _audio: audio.Audio) -> 'Sensors':
         common.check_type(_audio, [audio.Audio])
-        self._proto.audio.CopyFrom(_audio._proto)
+        self.get_proto().audio.CopyFrom(_audio._proto)
         return self
 
-    def remove_audio(self) -> 'Sensors':
-        self._proto.ClearField(_AUDIO_FIELD_NAME)
-        return self
+    def remove_audio(self):
+        self.get_proto().ClearField(_AUDIO_FIELD_NAME)
 
     def has_compress_audio(self) -> bool:
         return self._proto.HasField(_COMPRESSED_AUDIO_FIELD_NAME)
@@ -386,5 +386,4 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
     def remove_relative_humidity(self) -> 'Sensors':
         self._proto.ClearField(_RELATIVE_HUMIDITY_FIELD_NAME)
         return self
-
 

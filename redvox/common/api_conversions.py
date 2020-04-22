@@ -3,6 +3,7 @@ from typing import List
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType, StationInformation, StationMetrics
 from redvox.api1000.wrapped_redvox_packet.timing_information import SynchExchange
+from redvox.api1000.wrapped_redvox_packet.sensors.audio import Audio
 import redvox.api1000.wrapped_redvox_packet.common as common_m
 import redvox.common.date_time_utils as dt_utls
 import redvox.api900.reader as reader_900
@@ -141,12 +142,14 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
     # Microphone / Audio
     mic_sensor = wrapped_packet_900.microphone_sensor()
     if mic_sensor is not None:
-        wrapped_packet.get_sensors().new_audio()\
+
+        wrapped_packet.get_sensors().new_audio() \
             .set_first_sample_timestamp(mic_sensor.first_sample_timestamp_epoch_microseconds_utc())\
             .set_is_scrambled(wrapped_packet_900.is_scrambled())\
             .set_sample_rate(mic_sensor.sample_rate_hz())\
-            .set_sensor_description(mic_sensor.sensor_name())\
-            .get_samples().set_values(mic_sensor.payload_values(), update_value_statistics=True)
+            .set_sensor_description(mic_sensor.sensor_name()) \
+            .get_samples().append_values(mic_sensor.payload_values(), update_value_statistics=True)
+
 
     return wrapped_packet
 
@@ -160,9 +163,9 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
 def main():
     packet: reader_900.WrappedRedvoxPacket = reader_900.read_rdvxz_file("/home/opq/Downloads/1637680002_1587497128130.rdvxz")
     packet_m: WrappedRedvoxPacketM = convert_api_900_to_1000(packet)
-    print(packet_m.get_sensors().get_audio().get_samples().get_values())
-    print(packet_m.get_proto().sensors.audio.samples.values)
-
+    print(packet_m)
+    packet_m.get_sensors().remove_audio()
+    print(packet_m)
 
 
 if __name__ == "__main__":
