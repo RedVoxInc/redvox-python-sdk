@@ -378,7 +378,7 @@ class PowerState(enum.Enum):
 class StationMetrics(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics]):
     def __init__(self, station_metrics_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics):
         super().__init__(station_metrics_proto)
-        self._timestamps = common.TimingPayload(station_metrics_proto.timestamps)
+        self._timestamps = common.TimingPayload(station_metrics_proto.timestamps).set_default_unit()
         self._network_type: common.ProtoRepeatedMessage = common.ProtoRepeatedMessage(
             station_metrics_proto,
             station_metrics_proto.network_type,
@@ -393,13 +393,20 @@ class StationMetrics(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInfo
             CellServiceState.from_proto,
             CellServiceState.into_proto
         )
-        self._network_strength: common.SamplePayload = common.SamplePayload(station_metrics_proto.network_strength)
-        self._temperature: common.SamplePayload = common.SamplePayload(station_metrics_proto.temperature)
-        self._battery: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery)
-        self._battery_current: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery_current)
-        self._available_ram: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_ram)
-        self._available_disk: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_disk)
-        self._cpu_utilization: common.SamplePayload = common.SamplePayload(station_metrics_proto.cpu_utilization)
+        self._network_strength: common.SamplePayload = common.SamplePayload(station_metrics_proto.network_strength)\
+            .set_unit(common.Unit.DECIBEL)
+        self._temperature: common.SamplePayload = common.SamplePayload(station_metrics_proto.temperature)\
+            .set_unit(common.Unit.DEGREES_CELSIUS)
+        self._battery: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery)\
+            .set_unit(common.Unit.PERCENTAGE)
+        self._battery_current: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery_current)\
+            .set_unit(common.Unit.MICROAMPERES)
+        self._available_ram: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_ram)\
+            .set_unit(common.Unit.BYTE)
+        self._available_disk: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_disk) \
+            .set_unit(common.Unit.BYTE)
+        self._cpu_utilization: common.SamplePayload = common.SamplePayload(station_metrics_proto.cpu_utilization)\
+            .set_unit(common.Unit.PERCENTAGE)
         self._power_state: common.ProtoRepeatedMessage = common.ProtoRepeatedMessage(
             station_metrics_proto,
             station_metrics_proto.power_state,
