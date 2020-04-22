@@ -164,7 +164,7 @@ def main():
     packet: reader_900.WrappedRedvoxPacket = reader_900.read_rdvxz_file("/home/opq/Downloads/1637680002_1587497128130.rdvxz")
     packet_m: WrappedRedvoxPacketM = convert_api_900_to_1000(packet)
     print(packet_m)
-    packet_m.get_sensors().remove_audio()
+    packet_m.get_sensors().remove_audjonaio()
     print(packet_m)
 
 

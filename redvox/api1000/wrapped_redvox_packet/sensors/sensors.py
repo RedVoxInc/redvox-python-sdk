@@ -60,11 +60,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         # return self._accelerometer
 
     def new_accelerometer(self) -> xyz.Xyz:
-        accelerometer: xyz.Xyz = xyz.Xyz.new()
-        accelerometer.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        accelerometer.set_unit_xyz(common.Unit.METERS_PER_SECOND_SQUARED)
-        self.set_accelerometer(accelerometer)
-        return accelerometer
+        self.remove_accelerometer()
+        self.get_proto().accelerometer.SetInParent()
+        self._accelerometer = xyz.Xyz(self.get_proto().accelerometer)
+        return self._accelerometer
 
     def set_accelerometer(self, accelerometer: xyz.Xyz) -> 'Sensors':
         common.check_type(accelerometer, [xyz.Xyz])
@@ -82,11 +81,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._ambient_temperature if self.has_ambient_temperature() else None
 
     def new_ambient_temperature(self) -> single.Single:
-        ambient_temperature: single.Single = single.Single.new()
-        ambient_temperature.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        ambient_temperature.get_samples().set_unit(common.Unit.DEGREES_CELSIUS)
-        self.set_ambient_temperature(ambient_temperature)
-        return ambient_temperature
+        self.remove_ambient_temperature()
+        self.get_proto().ambient_temperature.SetInParent()
+        self._ambient_temperature = single.Single(self.get_proto().ambient_temperature)
+        return self._ambient_temperature
 
     def set_ambient_temperature(self, ambient_temperature: single.Single) -> 'Sensors':
         common.check_type(ambient_temperature, [single.Single])
@@ -107,15 +105,16 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_audio()
         self.get_proto().audio.SetInParent()
         self._audio = audio.Audio(self.get_proto().audio)
-        return self.get_audio()
+        return self._audio
 
     def set_audio(self, _audio: audio.Audio) -> 'Sensors':
         common.check_type(_audio, [audio.Audio])
         self.get_proto().audio.CopyFrom(_audio._proto)
         return self
 
-    def remove_audio(self):
+    def remove_audio(self) -> 'Sensors':
         self.get_proto().ClearField(_AUDIO_FIELD_NAME)
+        return self
 
     def has_compress_audio(self) -> bool:
         return self._proto.HasField(_COMPRESSED_AUDIO_FIELD_NAME)
@@ -124,10 +123,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._compressed_audio if self.has_compress_audio() else None
 
     def new_compressed_audio(self) -> audio.CompressedAudio:
-        _audio: audio.CompressedAudio = audio.CompressedAudio.new()
-        # _audio.get_samples().set_unit(common.Unit.LSB_PLUS_MINUS_COUNTS)
-        # self.set_audio(_audio)
-        return _audio
+        self.remove_compressed_audio()
+        self.get_proto().compressed_audio.SetInParent()
+        self._compressed_audio = audio.CompressedAudio(self.get_proto().compressed_audio)
+        return self._compressed_audio
 
     def set_compressed_audio(self, compressed_audio: audio.CompressedAudio) -> 'Sensors':
         common.check_type(compressed_audio, [audio.Audio])
@@ -145,11 +144,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._gravity if self.has_gravity() else None
 
     def new_gravity(self) -> xyz.Xyz:
-        gravity: xyz.Xyz = xyz.Xyz.new()
-        gravity.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        gravity.set_unit_xyz(common.Unit.METERS_PER_SECOND_SQUARED)
-        self.set_gravity(gravity)
-        return gravity
+        self.remove_gravity()
+        self.get_proto().gravity.SetInParent()
+        self._gravity = xyz.Xyz(self.get_proto().gravity)
+        return self._gravity
 
     def set_gravity(self, gravity: xyz.Xyz) -> 'Sensors':
         common.check_type(gravity, [xyz.Xyz])
@@ -167,11 +165,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._gyroscope if self.has_gyroscope() else None
 
     def new_gyroscope(self) -> xyz.Xyz:
-        gyroscope: xyz.Xyz = xyz.Xyz.new()
-        gyroscope.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        gyroscope.set_unit_xyz(common.Unit.RADIANS_PER_SECOND)
-        self.set_gyroscope(gyroscope)
-        return gyroscope
+        self.remove_gyroscope()
+        self.get_proto().gyroscope.SetInParent()
+        self._gyroscope = xyz.Xyz(self.get_proto().gyroscope)
+        return self._gyroscope
 
     def set_gyroscope(self, gyroscope: xyz.Xyz) -> 'Sensors':
         common.check_type(gyroscope, [xyz.Xyz])
@@ -189,10 +186,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._image if self.has_image() else None
 
     def new_image(self) -> image.Image:
-        _image: image.Image = image.Image.new()
-        # _image.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        self.set_image(_image)
-        return _image
+        self.remove_image()
+        self.get_proto().image.SetInParent()
+        self._image = image.Image(self.get_proto().image)
+        return self._image
 
     def set_image(self, _image: image.Image) -> 'Sensors':
         common.check_type(_image, [image.Image])
@@ -210,11 +207,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._light if self.has_light() else None
 
     def new_light(self) -> single.Single:
-        light: single.Single = single.Single.new()
-        light.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        light.get_samples().set_unit(common.Unit.LUX)
-        self.set_light(light)
-        return light
+        self.remove_light()
+        self.get_proto().light.SetInParent()
+        self._light = single.Single(self.get_proto().light)
+        return self._light
 
     def set_light(self, light: single.Single) -> 'Sensors':
         common.check_type(light, [single.Single])
@@ -232,11 +228,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._linear_acceleration if self.has_linear_acceleration() else None
 
     def new_linear_acceleration(self) -> xyz.Xyz:
-        linear_acceleration: xyz.Xyz = xyz.Xyz.new()
-        linear_acceleration.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        linear_acceleration.set_unit_xyz(common.Unit.METERS_PER_SECOND_SQUARED)
-        self.set_linear_acceleration(linear_acceleration)
-        return linear_acceleration
+        self.remove_linear_acceleration()
+        self.get_proto().linear_acceleration.SetInParent()
+        self._linear_acceleration = xyz.Xyz(self.get_proto().linear_acceleration)
+        return self._linear_acceleration
 
     def set_linear_acceleration(self, linear_acceleration: xyz.Xyz) -> 'Sensors':
         common.check_type(linear_acceleration, [xyz.Xyz])
@@ -254,19 +249,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._location if self.has_location() else None
 
     def new_location(self) -> location.Location:
-        _location: location.Location = location.Location.new()
-        _location.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        _location.get_latitude_samples().set_unit(common.Unit.DECIMAL_DEGREES)
-        _location.get_longitude_samples().set_unit(common.Unit.DECIMAL_DEGREES)
-        _location.get_altitude_samples().set_unit(common.Unit.METERS)
-        _location.get_speed_samples().set_unit(common.Unit.METERS_PER_SECOND)
-        _location.get_bearing_samples().set_unit(common.Unit.DECIMAL_DEGREES)
-        _location.get_horizontal_accuracy_samples().set_unit(common.Unit.METERS)
-        _location.get_vertical_accuracy_samples().set_unit(common.Unit.METERS)
-        _location.get_speed_accuracy_samples().set_unit(common.Unit.METERS_PER_SECOND)
-        _location.get_bearing_accuracy_samples().set_unit(common.Unit.DECIMAL_DEGREES)
-        self.set_location(_location)
-        return _location
+        self.remove_location()
+        self.get_proto().location.SetInParent()
+        self._location = location.Location(self.get_proto().location)
+        return self._location
 
     def set_location(self, _location: location.Location) -> 'Sensors':
         common.check_type(_location, [location.Location])
@@ -284,11 +270,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._magnetometer if self.has_magnetometer() else None
 
     def new_magnetometer(self) -> xyz.Xyz:
-        magnetometer: xyz.Xyz = xyz.Xyz.new()
-        magnetometer.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        magnetometer.set_unit_xyz(common.Unit.MICROTESLA)
-        self.set_magnetometer(magnetometer)
-        return magnetometer
+        self.remove_magnetometer()
+        self.get_proto().magnetometer.SetInParent()
+        self._magnetometer = xyz.Xyz(self.get_proto().magnetometer)
+        return self._magnetometer
 
     def set_magnetometer(self, magnetometer: xyz.Xyz) -> 'Sensors':
         common.check_type(magnetometer, [xyz.Xyz])
@@ -306,11 +291,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._orientation if self.has_orientation() else None
 
     def new_orientation(self) -> xyz.Xyz:
-        orientation: xyz.Xyz = xyz.Xyz.new()
-        orientation.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        orientation.set_unit_xyz(common.Unit.RADIANS)
-        self.set_orientation(orientation)
-        return orientation
+        self.remove_orientation()
+        self.get_proto().orientation.SetInParent()
+        self._orientation = xyz.Xyz(self.get_proto().orientation)
+        return self._orientation
 
     def set_orientation(self, orientation: xyz.Xyz) -> 'Sensors':
         common.check_type(orientation, [xyz.Xyz])
@@ -328,11 +312,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._pressure if self.has_pressure() else None
 
     def new_pressure(self) -> single.Single:
-        pressure: single.Single = single.Single.new()
-        pressure.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        pressure.get_samples().set_unit(common.Unit.KILOPASCAL)
-        self.set_pressure(pressure)
-        return pressure
+        self.remove_pressure()
+        self.get_proto().pressure.SetInParent()
+        self._pressure = single.Single(self.get_proto().pressure)
+        return self._pressure
 
     def set_pressure(self, pressure: single.Single) -> 'Sensors':
         common.check_type(pressure, [single.Single])
@@ -350,11 +333,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._proximity if self.has_proximity() else None
 
     def new_proximity(self) -> single.Single:
-        proximity: single.Single = single.Single.new()
-        proximity.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        proximity.get_samples().set_unit(common.Unit.CENTIMETERS)
-        self.set_proximity(proximity)
-        return proximity
+        self.remove_proximity()
+        self.get_proto().proximity.SetInParent()
+        self._proximity = single.Single(self.get_proto().proximity)
+        return self._proximity
 
     def set_proximity(self, proximity: single.Single) -> 'Sensors':
         common.check_type(proximity, [single.Single])
@@ -372,11 +354,10 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._relative_humidity if self.has_relative_humidity() else None
 
     def new_relative_humidity(self) -> single.Single:
-        relative_humidity: single.Single = single.Single.new()
-        relative_humidity.get_timestamps().set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-        relative_humidity.get_samples().set_unit(common.Unit.PERCENTAGE)
-        self.set_relative_humidity(relative_humidity)
-        return relative_humidity
+        self.remove_relative_humidity()
+        self.get_proto().relative_humidity.SetInParent()
+        self._relative_humidity = single.Single(self.get_proto().relative_humidity)
+        return self._relative_humidity
 
     def set_relative_humidity(self, relative_humidity: single.Single) -> 'Sensors':
         common.check_type(relative_humidity, [single.Single])
