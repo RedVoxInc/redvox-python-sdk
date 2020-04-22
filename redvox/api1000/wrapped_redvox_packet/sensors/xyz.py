@@ -4,7 +4,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 from typing import List
 
 
-class Xyz(common.ProtoBase):
+class Xyz(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)

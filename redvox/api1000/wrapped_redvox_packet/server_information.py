@@ -4,7 +4,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_1000_pb2
 from typing import List
 
 
-class ServerInformation(common.ProtoBase):
+class ServerInformation(common.ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.ServerInformation]):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.ServerInformation):
         super().__init__(proto)
 

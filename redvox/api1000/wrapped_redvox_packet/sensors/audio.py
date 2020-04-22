@@ -5,7 +5,7 @@ from redvox.api1000.wrapped_redvox_packet.station_information import AudioSampli
 from typing import List
 
 
-class Audio(common.ProtoBase):
+class Audio(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio):
         super().__init__(proto)
         self._samples: common.SamplePayload = common.SamplePayload(proto.samples)
@@ -68,7 +68,7 @@ def validate_audio(audio_sensor: Audio) -> List[str]:
     return errors_list
 
 
-class CompressedAudio(common.ProtoBase):
+class CompressedAudio(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio):
         super().__init__(proto)
         # TODO

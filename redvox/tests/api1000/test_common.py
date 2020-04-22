@@ -15,6 +15,7 @@ class TestCommonProtoBase(unittest.TestCase):
         mic_data.set_values(np.array([], dtype=np.int))
         self.non_empty_microphone_channel.set_samples(mic_data)
         self.non_empty_microphone_channel.set_sensor_description("foo")
+        self.non_empty_microphone_channel.set_sample_rate(10.0)
         self.non_empty_microphone_channel.set_sample_rate(80.0)
         self.non_empty_microphone_channel.set_first_sample_timestamp(1)
         # self.non_empty_microphone_channel.get_samples().set_samples(np.array(list(range(10))))

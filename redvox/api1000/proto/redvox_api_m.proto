@@ -49,6 +49,7 @@ message RedvoxPacketM {
             IOS = 1;
             LINUX = 2;
             WINDOWS = 3;
+            UNKNOWN_OS = 4;
         }
 
         // Collection of station state and performance metrics

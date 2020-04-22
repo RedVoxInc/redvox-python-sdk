@@ -13,7 +13,7 @@ class LocationProvider(enum.Enum):
     NETWORK: int = 3
 
 
-class Location(common.ProtoBase):
+class Location(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Location]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Location):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)

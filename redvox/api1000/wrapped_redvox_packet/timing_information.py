@@ -1,19 +1,20 @@
 import enum
 from typing import List
 
-import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_1000_pb2
+import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.wrapped_redvox_packet.common as common
 
 _SYNCH_EXCHANGES_FIELD_NAME: str = "synch_exchanges"
+SynchExchangeProto = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange
 
 
-class SynchExchange(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.SynchExchange):
+class SynchExchange(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange]):
+    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange):
         super().__init__(proto)
 
     @staticmethod
     def new() -> 'SynchExchange':
-        exchange = SynchExchange(redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.SynchExchange())
+        exchange = SynchExchange(redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange())
         exchange.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
         return exchange
 
@@ -99,27 +100,28 @@ class TimingScoreMethod(enum.Enum):
 
     @staticmethod
     def from_proto(
-            score_method: redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod) -> 'TimingScoreMethod':
+            score_method: redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod) -> 'TimingScoreMethod':
         return TimingScoreMethod(score_method)
 
-    def into_proto(self) -> redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod:
-        return redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(self.name)
+    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod:
+        return redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(self.name)
 
 
-class TimingInformation(common.ProtoBase):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.TimingInformation):
+class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation]):
+    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation):
         super().__init__(proto)
-        self._synch_exchanges: common.ProtoRepeatedMessage = common.ProtoRepeatedMessage(
-            proto,
-            proto.synch_exchanges,
-            _SYNCH_EXCHANGES_FIELD_NAME,
-            lambda exchange_proto: SynchExchange(exchange_proto),
-            SynchExchange.get_proto
-        )
+        self._synch_exchanges: common.ProtoRepeatedMessage[SynchExchangeProto, SynchExchange] = \
+            common.ProtoRepeatedMessage(
+                proto,
+                proto.synch_exchanges,
+                _SYNCH_EXCHANGES_FIELD_NAME,
+                lambda exchange_proto: SynchExchange(exchange_proto),
+                lambda exchange: exchange.get_proto()
+            )
 
     @staticmethod
     def new() -> 'TimingInformation':
-        return TimingInformation(redvox_api_1000_pb2.RedvoxPacketM.TimingInformation())
+        return TimingInformation(redvox_api_m_pb2.RedvoxPacketM.TimingInformation())
 
     def get_unit(self) -> common.Unit:
         return common.Unit.from_proto(self._proto.unit)
@@ -210,7 +212,7 @@ class TimingInformation(common.ProtoBase):
 
     def set_score_method(self, score_method: TimingScoreMethod) -> 'TimingInformation':
         common.check_type(score_method, [TimingScoreMethod])
-        self._proto.os = redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
+        self._proto.os = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
         return self
 
 

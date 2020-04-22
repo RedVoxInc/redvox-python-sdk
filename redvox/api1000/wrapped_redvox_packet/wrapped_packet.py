@@ -17,7 +17,7 @@ import redvox.api1000.wrapped_redvox_packet.timing_information as _timing_inform
 import redvox.api1000.wrapped_redvox_packet.user_information as _user_information
 
 
-class WrappedRedvoxPacketM(common.ProtoBase):
+class WrappedRedvoxPacketM(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM]):
     def __init__(self, redvox_proto: redvox_api_m_pb2.RedvoxPacketM):
         super().__init__(redvox_proto)
 
