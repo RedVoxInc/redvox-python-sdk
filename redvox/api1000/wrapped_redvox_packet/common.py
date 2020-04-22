@@ -396,6 +396,9 @@ class TimingPayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.TimingPayload]):
         super().__init__(proto)
         self._timestamp_statistics: SummaryStatistics = SummaryStatistics(proto.timestamp_statistics)
 
+    def set_default_unit(self) -> 'TimingPayload':
+        return self.set_unit(Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+
     def update_timing_statistics_from_timestamps(self) -> 'TimingPayload':
         timestamps: np.ndarray = self.get_timestamps()
         self._timestamp_statistics.update_from_values(timestamps)

@@ -4,6 +4,7 @@ from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPac
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType, StationInformation, StationMetrics
 from redvox.api1000.wrapped_redvox_packet.timing_information import SynchExchange
 from redvox.api1000.wrapped_redvox_packet.sensors.audio import Audio
+from redvox.api1000.wrapped_redvox_packet.sensors.sensors import Sensors
 import redvox.api1000.wrapped_redvox_packet.common as common_m
 import redvox.common.date_time_utils as dt_utls
 import redvox.api900.reader as reader_900
@@ -95,11 +96,11 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
 
     # StationMetrics - We know a couple
     station_metrics: StationMetrics = station_information.get_station_metrics()
-    station_metrics.get_timestamps().append_timestamp(wrapped_packet_900.app_file_start_timestamp_machine())\
+    station_metrics.get_timestamps().append_timestamp(wrapped_packet_900.app_file_start_timestamp_machine()) \
         .set_unit(common_m.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
-    station_metrics.get_temperature().append_value(wrapped_packet_900.device_temperature_c())\
+    station_metrics.get_temperature().append_value(wrapped_packet_900.device_temperature_c()) \
         .set_unit(common_m.Unit.DEGREES_CELSIUS)
-    station_metrics.get_battery().append_value(wrapped_packet_900.battery_level_percent())\
+    station_metrics.get_battery().append_value(wrapped_packet_900.battery_level_percent()) \
         .set_unit(common_m.Unit.PERCENTAGE)
 
     # Packet information
@@ -138,18 +139,25 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
         .set_synch_server_url(wrapped_packet_900.time_synchronization_server()) \
         .set_acquisition_server_url(wrapped_packet_900.acquisition_server())
 
-    # Sensor
+    # Sensors
+    sensors: Sensors = wrapped_packet.get_sensors()
     # Microphone / Audio
     mic_sensor = wrapped_packet_900.microphone_sensor()
     if mic_sensor is not None:
-
-        wrapped_packet.get_sensors().new_audio() \
-            .set_first_sample_timestamp(mic_sensor.first_sample_timestamp_epoch_microseconds_utc())\
-            .set_is_scrambled(wrapped_packet_900.is_scrambled())\
-            .set_sample_rate(mic_sensor.sample_rate_hz())\
+        sensors.new_audio() \
+            .set_first_sample_timestamp(mic_sensor.first_sample_timestamp_epoch_microseconds_utc()) \
+            .set_is_scrambled(wrapped_packet_900.is_scrambled()) \
+            .set_sample_rate(mic_sensor.sample_rate_hz()) \
             .set_sensor_description(mic_sensor.sensor_name()) \
             .get_samples().append_values(mic_sensor.payload_values(), update_value_statistics=True)
 
+    # Barometer
+    barometer_sensor = wrapped_packet_900.barometer_sensor()
+    if barometer_sensor is not None:
+        pressure_sensor = sensors.new_pressure()
+        pressure_sensor.set_sensor_description(barometer_sensor.sensor_name())
+        pressure_sensor.get_timestamps().set_timestamps(barometer_sensor.timestamps_microseconds_utc(), True)
+        pressure_sensor.get_samples().set_values(barometer_sensor.payload_values(), True)
 
     return wrapped_packet
 
@@ -161,10 +169,9 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
 
 
 def main():
-    packet: reader_900.WrappedRedvoxPacket = reader_900.read_rdvxz_file("/home/opq/Downloads/1637680002_1587497128130.rdvxz")
+    packet: reader_900.WrappedRedvoxPacket = reader_900.read_rdvxz_file(
+        "/home/opq/Downloads/1637680002_1587497128130.rdvxz")
     packet_m: WrappedRedvoxPacketM = convert_api_900_to_1000(packet)
-    print(packet_m)
-    packet_m.get_sensors().remove_audjonaio()
     print(packet_m)
 
 

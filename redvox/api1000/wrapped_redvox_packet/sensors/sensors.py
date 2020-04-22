@@ -63,6 +63,8 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_accelerometer()
         self.get_proto().accelerometer.SetInParent()
         self._accelerometer = xyz.Xyz(self.get_proto().accelerometer)
+        self._accelerometer.get_timestamps().set_default_unit()
+        self._accelerometer.set_unit_xyz(common.Unit.METERS_PER_SECOND_SQUARED)
         return self._accelerometer
 
     def set_accelerometer(self, accelerometer: xyz.Xyz) -> 'Sensors':
@@ -84,6 +86,8 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_ambient_temperature()
         self.get_proto().ambient_temperature.SetInParent()
         self._ambient_temperature = single.Single(self.get_proto().ambient_temperature)
+        self._ambient_temperature.get_timestamps().set_default_unit()
+        self._ambient_temperature.get_samples().set_unit(common.Unit.DEGREES_CELSIUS)
         return self._ambient_temperature
 
     def set_ambient_temperature(self, ambient_temperature: single.Single) -> 'Sensors':
@@ -105,6 +109,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_audio()
         self.get_proto().audio.SetInParent()
         self._audio = audio.Audio(self.get_proto().audio)
+        self._audio.get_samples().set_unit(common.Unit.LSB_PLUS_MINUS_COUNTS)
         return self._audio
 
     def set_audio(self, _audio: audio.Audio) -> 'Sensors':
@@ -147,6 +152,8 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_gravity()
         self.get_proto().gravity.SetInParent()
         self._gravity = xyz.Xyz(self.get_proto().gravity)
+        self._gravity.get_timestamps().set_default_unit()
+        self._gravity.set_unit_xyz(common.Unit.METERS_PER_SECOND_SQUARED)
         return self._gravity
 
     def set_gravity(self, gravity: xyz.Xyz) -> 'Sensors':
@@ -168,6 +175,8 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_gyroscope()
         self.get_proto().gyroscope.SetInParent()
         self._gyroscope = xyz.Xyz(self.get_proto().gyroscope)
+        self._gravity.get_timestamps().set_default_unit()
+        self._gravity.set_unit_xyz(common.Unit.RADIANS_PER_SECOND)
         return self._gyroscope
 
     def set_gyroscope(self, gyroscope: xyz.Xyz) -> 'Sensors':
@@ -210,6 +219,8 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_light()
         self.get_proto().light.SetInParent()
         self._light = single.Single(self.get_proto().light)
+        self._light.get_timestamps().set_default_unit()
+        self._light.get_samples().set_unit(common.Unit.LUX)
         return self._light
 
     def set_light(self, light: single.Single) -> 'Sensors':
@@ -231,6 +242,8 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_linear_acceleration()
         self.get_proto().linear_acceleration.SetInParent()
         self._linear_acceleration = xyz.Xyz(self.get_proto().linear_acceleration)
+        self._linear_acceleration.get_timestamps().set_default_unit()
+        self._linear_acceleration.set_unit_xyz(common.Unit.METERS_PER_SECOND_SQUARED)
         return self._linear_acceleration
 
     def set_linear_acceleration(self, linear_acceleration: xyz.Xyz) -> 'Sensors':
@@ -252,6 +265,16 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_location()
         self.get_proto().location.SetInParent()
         self._location = location.Location(self.get_proto().location)
+        self._location.get_timestamps().set_default_unit()
+        self._location.get_latitude_samples().set_unit(common.Unit.DECIMAL_DEGREES)
+        self._location.get_longitude_samples().set_unit(common.Unit.DECIMAL_DEGREES)
+        self._location.get_altitude_samples().set_unit(common.Unit.METERS)
+        self._location.get_speed_samples().set_unit(common.Unit.METERS_PER_SECOND)
+        self._location.get_bearing_samples().set_unit(common.Unit.DECIMAL_DEGREES)
+        self._location.get_horizontal_accuracy_samples().set_unit(common.Unit.METERS)
+        self._location.get_vertical_accuracy_samples().set_unit(common.Unit.METERS)
+        self._location.get_speed_accuracy_samples().set_unit(common.Unit.METERS_PER_SECOND)
+        self._location.get_bearing_accuracy_samples().set_unit(common.Unit.DECIMAL_DEGREES)
         return self._location
 
     def set_location(self, _location: location.Location) -> 'Sensors':
@@ -273,6 +296,8 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_magnetometer()
         self.get_proto().magnetometer.SetInParent()
         self._magnetometer = xyz.Xyz(self.get_proto().magnetometer)
+        self._magnetometer.get_timestamps().set_default_unit()
+        self._magnetometer.set_unit_xyz(common.Unit.MICROTESLA)
         return self._magnetometer
 
     def set_magnetometer(self, magnetometer: xyz.Xyz) -> 'Sensors':
@@ -294,6 +319,8 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_orientation()
         self.get_proto().orientation.SetInParent()
         self._orientation = xyz.Xyz(self.get_proto().orientation)
+        self._orientation.get_timestamps().set_default_unit()
+        self._orientation.set_unit_xyz(common.Unit.RADIANS)
         return self._orientation
 
     def set_orientation(self, orientation: xyz.Xyz) -> 'Sensors':
@@ -315,6 +342,8 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_pressure()
         self.get_proto().pressure.SetInParent()
         self._pressure = single.Single(self.get_proto().pressure)
+        self._pressure.get_timestamps().set_default_unit()
+        self._pressure.get_samples().set_unit(common.Unit.KILOPASCAL)
         return self._pressure
 
     def set_pressure(self, pressure: single.Single) -> 'Sensors':
@@ -336,6 +365,8 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_proximity()
         self.get_proto().proximity.SetInParent()
         self._proximity = single.Single(self.get_proto().proximity)
+        self._proximity.get_timestamps().set_default_unit()
+        self._proximity.get_samples().set_unit(common.Unit.CENTIMETERS)
         return self._proximity
 
     def set_proximity(self, proximity: single.Single) -> 'Sensors':
@@ -357,6 +388,8 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_relative_humidity()
         self.get_proto().relative_humidity.SetInParent()
         self._relative_humidity = single.Single(self.get_proto().relative_humidity)
+        self._relative_humidity.get_timestamps().set_default_unit()
+        self._relative_humidity.get_samples().set_unit(common.Unit.PERCENTAGE)
         return self._relative_humidity
 
     def set_relative_humidity(self, relative_humidity: single.Single) -> 'Sensors':
