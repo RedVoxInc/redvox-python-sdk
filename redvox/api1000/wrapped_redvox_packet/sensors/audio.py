@@ -29,12 +29,12 @@ class Audio(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio]):
         self._proto.first_sample_timestamp = first_sample_timestamp
         return self
 
-    def get_sample_rate_hz(self) -> float:
-        return self._proto.sample_rate_hz
+    def get_sample_rate(self) -> float:
+        return self._proto.sample_rate
 
-    def set_sample_rate_hz(self, sample_rate_hz: float) -> 'Audio':
-        common.check_type(sample_rate_hz, [int, float])
-        self._proto.sample_rate_hz = sample_rate_hz
+    def set_sample_rate(self, sample_rate: float) -> 'Audio':
+        common.check_type(sample_rate, [int, float])
+        self._proto.sample_rate = sample_rate
         return self
 
     def get_is_scrambled(self) -> bool:

@@ -247,7 +247,7 @@ class SummaryStatistics(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SummaryStati
         self._proto.range = range_value
         return self
 
-    def update_from_values(self, values: np.ndarray):
+    def update_from_values(self, values: np.ndarray) -> 'SummaryStatistics':
         check_type(values, [np.ndarray])
 
         if none_or_empty(values):
@@ -261,6 +261,7 @@ class SummaryStatistics(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SummaryStati
         self._proto.min = values.min()
         self._proto.max = values.max()
         self._proto.range = self._proto.max - self._proto.min
+        return self
 
 
 class SamplePayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SamplePayload]):
@@ -360,9 +361,7 @@ class ProtoRepeatedMessage(Generic[P, T]):
         return list(map(self._from_proto, self._repeated_field_proto))
 
     def set_values(self, values: List[T]) -> 'ProtoRepeatedMessage[P, T]':
-        self.clear_values()
-        self.append_values(values)
-        return self
+        return self.clear_values().append_values(values)
 
     def append_values(self, values: List[T]) -> 'ProtoRepeatedMessage[P, T]':
         self._repeated_field_proto.extend(list(map(self._to_proto, values)))

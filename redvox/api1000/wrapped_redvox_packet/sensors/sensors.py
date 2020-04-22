@@ -105,7 +105,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
     def new_audio(self) -> audio.Audio:
         _audio: audio.Audio = audio.Audio.new()
         _audio.get_samples().set_unit(common.Unit.LSB_PLUS_MINUS_COUNTS)
-        self.set_audio(_audio)
+        _audio = self.set_audio(_audio)._audio
         return _audio
 
     def set_audio(self, _audio: audio.Audio) -> 'Sensors':
