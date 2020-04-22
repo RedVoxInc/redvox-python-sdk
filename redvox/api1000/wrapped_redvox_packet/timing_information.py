@@ -74,6 +74,26 @@ class SynchExchange(common.ProtoBase):
         return self
 
 
+def validate_synch_exchange(sync: SynchExchange) -> List[str]:
+    errors_list = []
+    # assume 0 (default) is an invalid value
+    if sync.get_a1() == 0:
+        errors_list.append("Sync exchange a1 value is 0")
+    if sync.get_a2() == 0:
+        errors_list.append("Sync exchange a2 value is 0")
+    if sync.get_a3() == 0:
+        errors_list.append("Sync exchange a3 value is 0")
+    if sync.get_b1() == 0:
+        errors_list.append("Sync exchange b1 value is 0")
+    if sync.get_b2() == 0:
+        errors_list.append("Sync exchange b2 value is 0")
+    if sync.get_b3() == 0:
+        errors_list.append("Sync exchange b3 value is 0")
+    if sync.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
+        errors_list.append("Sync exchange unit is not microseconds since unix epoch")
+    return errors_list
+
+
 class TimingScoreMethod(enum.Enum):
     UNKNOWN = 0
 
@@ -192,3 +212,28 @@ class TimingInformation(common.ProtoBase):
         common.check_type(score_method, [TimingScoreMethod])
         self._proto.os = redvox_api_1000_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
         return self
+
+
+def validate_timing_information(timing: TimingInformation) -> List[str]:
+    errors_list = []
+    synch_vals = timing.get_synch_exchanges().get_values()
+    # if we have synchronization values, we can validate them
+    # otherwise we can just return an empty list since there's no point in validating nothing
+    if len(synch_vals) > 0:
+        for sync_exch in synch_vals:
+            errors_list.append(validate_synch_exchange(sync_exch))
+        if timing.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
+            errors_list.append("Timing information unit is not microseconds since unix epoch")
+        if timing.get_packet_start_os_timestamp() == 0:
+            errors_list.append("Timing information os start timestamp is 0")
+        if timing.get_packet_start_mach_timestamp() == 0:
+            errors_list.append("Timing information mach start timestamp is 0")
+        if timing.get_packet_end_os_timestamp() == 0:
+            errors_list.append("Timing information os end timestamp is 0")
+        if timing.get_packet_end_mach_timestamp() == 0:
+            errors_list.append("Timing information mach end timestamp is 0")
+        if timing.get_app_start_mach_timestamp() == 0:
+            errors_list.append("Timing information app mach start timestamp is 0")
+        if timing.get_server_acquisition_arrival_timestamp() == 0:
+            errors_list.append("Timing information server acquisition arrival timestamp is 0")
+    return errors_list

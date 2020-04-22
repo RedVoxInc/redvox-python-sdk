@@ -3,21 +3,29 @@ import unittest
 import numpy as np
 
 import redvox.api1000.wrapped_redvox_packet.common as common
-import redvox.api1000.wrapped_redvox_packet.sensor_channels.audio_channel as microphone_channel
+import redvox.api1000.wrapped_redvox_packet.sensors.audio as microphone_channel
 
 
 class TestCommonProtoBase(unittest.TestCase):
     def setUp(self) -> None:
         self.empty_microphone_channel: microphone_channel.Audio = microphone_channel.Audio.new()
         self.non_empty_microphone_channel: microphone_channel.Audio = microphone_channel.Audio.new()
+        mic_data = common.SamplePayload.new()
+        mic_data.set_unit(common.Unit['DECIBEL'])
+        mic_data.set_values(np.array([], dtype=np.int))
+        self.non_empty_microphone_channel.set_samples(mic_data)
         self.non_empty_microphone_channel.set_sensor_description("foo")
-        self.non_empty_microphone_channel.set_sample_rate_hz(10.0)
+        self.non_empty_microphone_channel.set_sample_rate(80.0)
         self.non_empty_microphone_channel.set_first_sample_timestamp(1)
         # self.non_empty_microphone_channel.get_samples().set_samples(np.array(list(range(10))))
         self.non_empty_microphone_channel.get_metadata().set_metadata({"foo": "bar"})
 
     def test_get_proto_empty(self):
         pass
+
+    def test_validate_audio(self):
+        error_list = microphone_channel.validate_audio(self.non_empty_microphone_channel)
+        self.assertEqual(error_list, [])
 
 
 class TestCommonSamples(unittest.TestCase):

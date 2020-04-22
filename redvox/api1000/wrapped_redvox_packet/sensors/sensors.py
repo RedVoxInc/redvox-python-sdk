@@ -2,7 +2,7 @@
 This module encapsulates available sensor types.
 """
 
-from typing import Optional
+from typing import Optional, List
 
 import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
@@ -388,3 +388,13 @@ class Sensors(common.ProtoBase):
         return self
 
 
+def validate_sensors(sensors_list: Sensors) -> List[str]:
+    errors_list = []
+    if not sensors_list.has_audio() and not sensors_list.has_compress_audio():
+        errors_list.append("Sensors list missing audio sensor")
+    else:
+        if sensors_list.has_audio():
+            errors_list.extend(audio.validate_audio(sensors_list.get_audio()))
+        if sensors_list.has_compress_audio():
+            errors_list.extend(audio.validate_compress_audio(sensors_list.get_compressed_audio()))
+    return errors_list

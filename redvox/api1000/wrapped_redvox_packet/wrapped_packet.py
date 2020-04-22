@@ -3,7 +3,7 @@ This module provides a high level API for creating, reading, and editing RedVox 
 """
 
 import os.path
-from typing import Optional
+from typing import Optional, List
 from google.protobuf import json_format
 
 import redvox.api1000.errors as errors
@@ -165,3 +165,14 @@ class WrappedRedvoxPacketM(common.ProtoBase):
 
     def get_sensors(self) -> _sensors.Sensors:
         return self._sensors
+
+
+def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -> List[str]:
+    errors_list = _user_information.validate_user_information(wrapped_packet.get_user_information())
+    errors_list.extend(_station_information.validate_station_information(wrapped_packet.get_station_information()))
+    errors_list.extend(_timing_information.validate_timing_information(wrapped_packet.get_timing_information()))
+    errors_list.extend(_server_information.validate_server_information(wrapped_packet.get_server_information()))
+    errors_list.extend(_sensors.validate_sensors(wrapped_packet.get_sensors()))
+    if wrapped_packet.get_api() != 1000:
+        errors_list.append("Wrapped packet api is not 1000")
+    return errors_list
