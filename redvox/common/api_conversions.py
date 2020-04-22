@@ -304,6 +304,7 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
 
     battery_metrics = station_information_m.get_station_metrics().get_battery()
     battery_percent: float = battery_metrics.get_values()[-1] if battery_metrics.get_values_count() > 0 else 0.0
+    wrapped_packet_900.set_battery_level_percent(battery_percent)
     temp_metrics = station_information_m.get_station_metrics().get_temperature()
     device_temp: float = temp_metrics.get_values()[-1] if temp_metrics.get_values_count() > 0 else 0.0
     wrapped_packet_900.set_device_temperature_c(device_temp)
@@ -351,7 +352,6 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
     if location_m is not None:
         location_900 = reader_900.LocationSensor()
         location_900.set_sensor_name(location_m.get_sensor_description())
-        location_900.set_metadata_as_dict(location_m.get_metadata().get_metadata())
         location_900.set_timestamps_microseconds_utc(location_m.get_timestamps().get_timestamps().astype(np.int64))
         location_900.set_payload_values(location_m.get_latitude_samples().get_values(),
                                         location_m.get_longitude_samples().get_values(),
@@ -359,6 +359,12 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
                                         location_m.get_speed_samples().get_values(),
                                         location_m.get_horizontal_accuracy_samples().get_values())
         wrapped_packet_900.set_location_sensor(location_900)
+        md = location_m.get_metadata().get_metadata()
+        md["useLocation"] = "T" if location_m.get_location_services_enabled() else "F"
+        md["desiredLocation"] = "T" if location_m.get_location_services_requested() else "F"
+        md["permissionLocation"] = "T" if location_m.get_location_permissions_granted() else "F"
+        md["enabledLocation"] = "T" if location_m.get_location_provider() == LocationProvider.GPS else "F"
+        location_900.set_metadata_as_dict(md)
 
     # Synch exchanges
     synch_exchanges_m = timing_info_m.get_synch_exchanges()
