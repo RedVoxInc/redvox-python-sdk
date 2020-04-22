@@ -61,6 +61,14 @@ def to_rdvxz(paths: List[str], out_dir: Optional[str] = None) -> bool:
     return True
 
 
+def to_api_1000(paths: List[str], out_dir: Optional[str] = None) -> bool:
+    pass
+
+
+def to_api_900(paths: List[str], out_dir: Optional[str] = None) -> bool:
+    pass
+
+
 def print_stdout(paths: List[str]) -> bool:
     """
     Prints the contends of rdvxz files to sdtout.

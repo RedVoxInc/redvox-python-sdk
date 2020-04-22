@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType, StationInformation, StationMetrics
@@ -6,6 +6,7 @@ from redvox.api1000.wrapped_redvox_packet.timing_information import SynchExchang
 from redvox.api1000.wrapped_redvox_packet.sensors.sensors import Sensors
 import redvox.api1000.wrapped_redvox_packet.common as common_m
 import redvox.common.date_time_utils as dt_utls
+from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 import redvox.api900.reader as reader_900
 import redvox
 
@@ -191,6 +192,31 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
         location_m.get_horizontal_accuracy_samples().set_values(location_sensor_900.payload_values_accuracy(), True)
         location_m.get_metadata().set_metadata(location_sensor_900.metadata_as_dict())
         # TODO interpret 900 metadata into proper fields here
+
+        def _extract_meta_bool(meta: Dict[str, str], key: str) -> bool:
+            if key not in meta:
+                return False
+
+            return meta[key] == "T"
+
+        loc_meta_900 = location_sensor_900.metadata_as_dict()
+        use_location = _extract_meta_bool(loc_meta_900, "useLocation")
+        desired_location = _extract_meta_bool(loc_meta_900, "desiredLocation")
+        permission_location = _extract_meta_bool(loc_meta_900, "permissionLocation")
+        enabled_location = _extract_meta_bool(loc_meta_900, "enabledLocation")
+
+        if desired_location:
+            location_m.set_location_provider(LocationProvider.USER)
+        elif enabled_location:
+            location_m.set_location_provider(LocationProvider.GPS)
+        elif use_location and desired_location and permission_location:
+            location_m.set_location_provider(LocationProvider.NETWORK)
+        else:
+            location_m.set_location_provider(LocationProvider.NONE)
+
+        location_m.set_location_permissions_granted(permission_location)
+        location_m.set_location_services_enabled(use_location)
+        location_m.set_location_services_requested(desired_location)
 
     # Time Synchronization
     # This was already added to the timing information
