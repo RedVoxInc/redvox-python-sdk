@@ -53,7 +53,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return Sensors(redvox_api_m_pb2.RedvoxPacketM.Sensors())
 
     def has_accelerometer(self) -> bool:
-        return self._proto.HasField(_ACCELEROMETER_FIELD_NAME)
+        return self.get_proto().HasField(_ACCELEROMETER_FIELD_NAME)
 
     def get_accelerometer(self) -> xyz.Xyz:
         return self._accelerometer if self.has_accelerometer() else None
@@ -67,15 +67,15 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_accelerometer(self, accelerometer: xyz.Xyz) -> 'Sensors':
         common.check_type(accelerometer, [xyz.Xyz])
-        self._proto.accelerometer.CopyFrom(accelerometer._proto)
+        self.get_proto().accelerometer.CopyFrom(accelerometer.get_proto())
         return self
 
     def remove_accelerometer(self) -> 'Sensors':
-        self._proto.ClearField(_ACCELEROMETER_FIELD_NAME)
+        self.get_proto().ClearField(_ACCELEROMETER_FIELD_NAME)
         return self
 
     def has_ambient_temperature(self) -> bool:
-        return self._proto.HasField(_AMBIENT_TEMPERATURE_FIELD_NAME)
+        return self.get_proto().HasField(_AMBIENT_TEMPERATURE_FIELD_NAME)
 
     def get_ambient_temperature(self) -> Optional[single.Single]:
         return self._ambient_temperature if self.has_ambient_temperature() else None
@@ -88,11 +88,11 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_ambient_temperature(self, ambient_temperature: single.Single) -> 'Sensors':
         common.check_type(ambient_temperature, [single.Single])
-        self._proto.ambient_temperature.CopyFrom(ambient_temperature._proto)
+        self.get_proto().ambient_temperature.CopyFrom(ambient_temperature.get_proto())
         return self
 
     def remove_ambient_temperature(self) -> 'Sensors':
-        self._proto.ClearField(_AMBIENT_TEMPERATURE_FIELD_NAME)
+        self.get_proto().ClearField(_AMBIENT_TEMPERATURE_FIELD_NAME)
         return self
 
     def has_audio(self) -> bool:
@@ -109,7 +109,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_audio(self, _audio: audio.Audio) -> 'Sensors':
         common.check_type(_audio, [audio.Audio])
-        self.get_proto().audio.CopyFrom(_audio._proto)
+        self.get_proto().audio.CopyFrom(_audio.get_proto())
         return self
 
     def remove_audio(self) -> 'Sensors':
@@ -117,7 +117,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self
 
     def has_compress_audio(self) -> bool:
-        return self._proto.HasField(_COMPRESSED_AUDIO_FIELD_NAME)
+        return self.get_proto().HasField(_COMPRESSED_AUDIO_FIELD_NAME)
 
     def get_compressed_audio(self) -> Optional[audio.CompressedAudio]:
         return self._compressed_audio if self.has_compress_audio() else None
@@ -130,15 +130,15 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_compressed_audio(self, compressed_audio: audio.CompressedAudio) -> 'Sensors':
         common.check_type(compressed_audio, [audio.Audio])
-        self._proto.audio.CopyFrom(compressed_audio._proto)
+        self.get_proto().audio.CopyFrom(compressed_audio.get_proto())
         return self
 
     def remove_compressed_audio(self) -> 'Sensors':
-        self._proto.ClearField(_COMPRESSED_AUDIO_FIELD_NAME)
+        self.get_proto().ClearField(_COMPRESSED_AUDIO_FIELD_NAME)
         return self
 
     def has_gravity(self) -> bool:
-        return self._proto.HasField(_GRAVITY_FIELD_NAME)
+        return self.get_proto().HasField(_GRAVITY_FIELD_NAME)
 
     def get_gravity(self) -> Optional[xyz.Xyz]:
         return self._gravity if self.has_gravity() else None
@@ -151,15 +151,15 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_gravity(self, gravity: xyz.Xyz) -> 'Sensors':
         common.check_type(gravity, [xyz.Xyz])
-        self._proto.gravity.CopyFrom(gravity._proto)
+        self.get_proto().gravity.CopyFrom(gravity.get_proto())
         return self
 
     def remove_gravity(self) -> 'Sensors':
-        self._proto.ClearField(_GRAVITY_FIELD_NAME)
+        self.get_proto().ClearField(_GRAVITY_FIELD_NAME)
         return self
 
     def has_gyroscope(self) -> bool:
-        return self._proto.HasField(_GYROSCOPE_FIELD_NAME)
+        return self.get_proto().HasField(_GYROSCOPE_FIELD_NAME)
 
     def get_gyroscope(self) -> Optional[xyz.Xyz]:
         return self._gyroscope if self.has_gyroscope() else None
@@ -172,15 +172,15 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_gyroscope(self, gyroscope: xyz.Xyz) -> 'Sensors':
         common.check_type(gyroscope, [xyz.Xyz])
-        self._proto.gyroscope.CopyFrom(gyroscope._proto)
+        self.get_proto().gyroscope.CopyFrom(gyroscope.get_proto())
         return self
 
     def remove_gyroscope(self) -> 'Sensors':
-        self._proto.ClearField(_GYROSCOPE_FIELD_NAME)
+        self.get_proto().ClearField(_GYROSCOPE_FIELD_NAME)
         return self
 
     def has_image(self) -> bool:
-        return self._proto.HasField(_IMAGE_FIELD_NAME)
+        return self.get_proto().HasField(_IMAGE_FIELD_NAME)
 
     def get_image(self) -> Optional[image.Image]:
         return self._image if self.has_image() else None
@@ -193,15 +193,15 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_image(self, _image: image.Image) -> 'Sensors':
         common.check_type(_image, [image.Image])
-        self._proto.image.CopyFrom(_image._proto)
+        self.get_proto().image.CopyFrom(_image.get_proto())
         return self
 
     def remove_image(self) -> 'Sensors':
-        self._proto.ClearField(_IMAGE_FIELD_NAME)
+        self.get_proto().ClearField(_IMAGE_FIELD_NAME)
         return self
 
     def has_light(self) -> bool:
-        return self._proto.HasField(_LIGHT_FIELD_NAME)
+        return self.get_proto().HasField(_LIGHT_FIELD_NAME)
 
     def get_light(self) -> Optional[single.Single]:
         return self._light if self.has_light() else None
@@ -214,15 +214,15 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_light(self, light: single.Single) -> 'Sensors':
         common.check_type(light, [single.Single])
-        self._proto.light.CopyFrom(light._proto)
+        self.get_proto().light.CopyFrom(light.get_proto())
         return self
 
     def remove_light(self) -> 'Sensors':
-        self._proto.ClearField(_LIGHT_FIELD_NAME)
+        self.get_proto().ClearField(_LIGHT_FIELD_NAME)
         return self
 
     def has_linear_acceleration(self) -> bool:
-        return self._proto.HasField(_LINEAR_ACCELERATION_FIELD_NAME)
+        return self.get_proto().HasField(_LINEAR_ACCELERATION_FIELD_NAME)
 
     def get_linear_acceleration(self) -> Optional[xyz.Xyz]:
         return self._linear_acceleration if self.has_linear_acceleration() else None
@@ -235,15 +235,15 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_linear_acceleration(self, linear_acceleration: xyz.Xyz) -> 'Sensors':
         common.check_type(linear_acceleration, [xyz.Xyz])
-        self._proto.linear_acceleration.CopyFrom(linear_acceleration._proto)
+        self.get_proto().linear_acceleration.CopyFrom(linear_acceleration.get_proto())
         return self
 
     def remove_linear_acceleration(self) -> 'Sensors':
-        self._proto.ClearField(_LINEAR_ACCELERATION_FIELD_NAME)
+        self.get_proto().ClearField(_LINEAR_ACCELERATION_FIELD_NAME)
         return self
 
     def has_location(self) -> bool:
-        return self._proto.HasField(_LOCATION_FIELD_NAME)
+        return self.get_proto().HasField(_LOCATION_FIELD_NAME)
 
     def get_location(self) -> Optional[location.Location]:
         return self._location if self.has_location() else None
@@ -256,15 +256,15 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_location(self, _location: location.Location) -> 'Sensors':
         common.check_type(_location, [location.Location])
-        self._proto.location.CopyFrom(_location._proto)
+        self.get_proto().location.CopyFrom(_location.get_proto())
         return self
 
     def remove_location(self) -> 'Sensors':
-        self._proto.ClearField(_LOCATION_FIELD_NAME)
+        self.get_proto().ClearField(_LOCATION_FIELD_NAME)
         return self
 
     def has_magnetometer(self) -> bool:
-        return self._proto.HasField(_MAGNETOMETER_FIELD_NAME)
+        return self.get_proto().HasField(_MAGNETOMETER_FIELD_NAME)
 
     def get_magnetometer(self) -> Optional[xyz.Xyz]:
         return self._magnetometer if self.has_magnetometer() else None
@@ -277,15 +277,15 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_magnetometer(self, magnetometer: xyz.Xyz) -> 'Sensors':
         common.check_type(magnetometer, [xyz.Xyz])
-        self._proto.magnetometer.CopyFrom(magnetometer._proto)
+        self.get_proto().magnetometer.CopyFrom(magnetometer.get_proto())
         return self
 
     def remove_magnetometer(self) -> 'Sensors':
-        self._proto.ClearField(_MAGNETOMETER_FIELD_NAME)
+        self.get_proto().ClearField(_MAGNETOMETER_FIELD_NAME)
         return self
 
     def has_orientation(self) -> bool:
-        return self._proto.HasField(_ORIENTATION_FIELD_NAME)
+        return self.get_proto().HasField(_ORIENTATION_FIELD_NAME)
 
     def get_orientation(self) -> Optional[xyz.Xyz]:
         return self._orientation if self.has_orientation() else None
@@ -298,15 +298,15 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_orientation(self, orientation: xyz.Xyz) -> 'Sensors':
         common.check_type(orientation, [xyz.Xyz])
-        self._proto.orientation.CopyFrom(orientation._proto)
+        self.get_proto().orientation.CopyFrom(orientation.get_proto())
         return self
 
     def remove_orientation(self) -> 'Sensors':
-        self._proto.ClearField(_ORIENTATION_FIELD_NAME)
+        self.get_proto().ClearField(_ORIENTATION_FIELD_NAME)
         return self
 
     def has_pressure(self) -> bool:
-        return self._proto.HasField(_PRESSURE_FIELD_NAME)
+        return self.get_proto().HasField(_PRESSURE_FIELD_NAME)
 
     def get_pressure(self) -> Optional[single.Single]:
         return self._pressure if self.has_pressure() else None
@@ -319,15 +319,15 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_pressure(self, pressure: single.Single) -> 'Sensors':
         common.check_type(pressure, [single.Single])
-        self._proto.pressure.CopyFrom(pressure._proto)
+        self.get_proto().pressure.CopyFrom(pressure.get_proto())
         return self
 
     def remove_pressure(self) -> 'Sensors':
-        self._proto.ClearField(_PRESSURE_FIELD_NAME)
+        self.get_proto().ClearField(_PRESSURE_FIELD_NAME)
         return self
 
     def has_proximity(self) -> bool:
-        return self._proto.HasField(_PROXIMITY_FIELD_NAME)
+        return self.get_proto().HasField(_PROXIMITY_FIELD_NAME)
 
     def get_proximity(self) -> Optional[single.Single]:
         return self._proximity if self.has_proximity() else None
@@ -340,15 +340,15 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_proximity(self, proximity: single.Single) -> 'Sensors':
         common.check_type(proximity, [single.Single])
-        self._proto.proximity.CopyFrom(proximity._proto)
+        self.get_proto().proximity.CopyFrom(proximity.get_proto())
         return self
 
     def remove_proximity(self) -> 'Sensors':
-        self._proto.ClearField(_PROXIMITY_FIELD_NAME)
+        self.get_proto().ClearField(_PROXIMITY_FIELD_NAME)
         return self
 
     def has_relative_humidity(self) -> bool:
-        return self._proto.HasField(_RELATIVE_HUMIDITY_FIELD_NAME)
+        return self.get_proto().HasField(_RELATIVE_HUMIDITY_FIELD_NAME)
 
     def get_relative_humidity(self) -> Optional[single.Single]:
         return self._relative_humidity if self.has_relative_humidity() else None
@@ -361,11 +361,11 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
     def set_relative_humidity(self, relative_humidity: single.Single) -> 'Sensors':
         common.check_type(relative_humidity, [single.Single])
-        self._proto.relative_humidity.CopyFrom(relative_humidity._proto)
+        self.get_proto().relative_humidity.CopyFrom(relative_humidity.get_proto())
         return self
 
     def remove_relative_humidity(self) -> 'Sensors':
-        self._proto.ClearField(_RELATIVE_HUMIDITY_FIELD_NAME)
+        self.get_proto().ClearField(_RELATIVE_HUMIDITY_FIELD_NAME)
         return self
 
 
