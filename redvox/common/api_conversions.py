@@ -11,9 +11,15 @@ import redvox
 
 import numpy as np
 
+_NORMALIZATION_CONSTANT: int = 0x7FFFFF
 
-def _normalize_audio_sample(sample: int) -> float:
-    pass
+
+def _normalize_audio_count(count: int) -> float:
+    return float(count) / float(_NORMALIZATION_CONSTANT)
+
+
+def _denormalize_audio_count(norm: float) -> int:
+    return round(norm * float(_NORMALIZATION_CONSTANT))
 
 
 def _migrate_synch_exchanges_900_to_1000(synch_exchanges: np.ndarray) -> List[SynchExchange]:
@@ -102,7 +108,7 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
 
     # StationMetrics - We know a couple
     station_metrics: StationMetrics = station_information.get_station_metrics()
-    station_metrics.get_timestamps()\
+    station_metrics.get_timestamps() \
         .append_timestamp(wrapped_packet_900.app_file_start_timestamp_machine())
     station_metrics.get_temperature().append_value(wrapped_packet_900.device_temperature_c())
     station_metrics.get_battery().append_value(wrapped_packet_900.battery_level_percent())
@@ -148,12 +154,13 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
     # Microphone / Audio
     mic_sensor_900: Optional[reader_900.MicrophoneSensor] = wrapped_packet_900.microphone_sensor()
     if mic_sensor_900 is not None:
+        normalized_audio: List[float] = list(map(_normalize_audio_count, mic_sensor_900.payload_values()))
         sensors_m.new_audio() \
             .set_first_sample_timestamp(mic_sensor_900.first_sample_timestamp_epoch_microseconds_utc()) \
             .set_is_scrambled(wrapped_packet_900.is_scrambled()) \
             .set_sample_rate(mic_sensor_900.sample_rate_hz()) \
             .set_sensor_description(mic_sensor_900.sensor_name()) \
-            .get_samples().append_values(mic_sensor_900.payload_values(), update_value_statistics=True)
+            .get_samples().set_values(np.array(normalized_audio), update_value_statistics=True)
 
     # Barometer
     barometer_sensor_900: Optional[reader_900.BarometerSensor] = wrapped_packet_900.barometer_sensor()
@@ -242,7 +249,7 @@ def main():
     packet: reader_900.WrappedRedvoxPacket = reader_900.read_rdvxz_file(
         "/home/opq/Downloads/1637680002_1587497128130.rdvxz")
     packet_m: WrappedRedvoxPacketM = convert_api_900_to_1000(packet)
-    print(packet_m.get_station_information().get_station_metrics())
+    print(packet_m.get_sensors().get_audio())
 
 
 if __name__ == "__main__":
