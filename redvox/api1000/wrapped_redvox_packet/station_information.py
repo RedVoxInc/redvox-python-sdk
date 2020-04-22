@@ -115,22 +115,22 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return AppSettings(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings())
 
     def get_audio_sampling_rate(self) -> AudioSamplingRate:
-        return AudioSamplingRate(self._proto.audio_sampling_rate)
+        return AudioSamplingRate(self.get_proto().audio_sampling_rate)
 
     def set_audio_sampling_rate(self, audio_sampling_rate: AudioSamplingRate) -> 'AppSettings':
         common.check_type(audio_sampling_rate, [AudioSamplingRate])
 
-        self._proto.audio_sampling_rate = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
+        self.get_proto().audio_sampling_rate = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
             audio_sampling_rate.name)
         return self
 
     def get_audio_source_tuning(self) -> AudioSourceTuning:
-        return AudioSourceTuning(self._proto.audio_source_tuning)
+        return AudioSourceTuning(self.get_proto().audio_source_tuning)
 
     def set_audio_source_tuning(self, audio_source_tuning: AudioSourceTuning) -> 'AppSettings':
         common.check_type(audio_source_tuning, [AudioSourceTuning])
 
-        self._proto.audio_source_tuning = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
+        self.get_proto().audio_source_tuning = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
             audio_source_tuning.name)
         return self
 
@@ -138,169 +138,169 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self._additional_input_sensors
 
     def get_fft_overlap(self) -> FftOverlap:
-        return FftOverlap(self._proto.fft_overlap)
+        return FftOverlap(self.get_proto().fft_overlap)
 
     def set_fft_overlap(self, fft_overlap: FftOverlap) -> 'AppSettings':
         common.check_type(fft_overlap, [FftOverlap])
 
-        self._proto.fft_overlap = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap.Value(
+        self.get_proto().fft_overlap = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap.Value(
             fft_overlap.name)
         return self
 
     def get_automatically_record(self) -> bool:
-        return self._proto.automatically_record
+        return self.get_proto().automatically_record
 
     def set_automatically_record(self, automatically_record: bool) -> 'AppSettings':
         common.check_type(automatically_record, [bool])
-        self._proto.automatically_record = automatically_record
+        self.get_proto().automatically_record = automatically_record
         return self
 
     def get_launch_at_power_up(self) -> bool:
-        return self._proto.launch_at_power_up
+        return self.get_proto().launch_at_power_up
 
     def set_launch_at_power_up(self, launch_at_power_up: bool) -> 'AppSettings':
         common.check_type(launch_at_power_up, [bool])
-        self._proto.launch_at_power_up = launch_at_power_up
+        self.get_proto().launch_at_power_up = launch_at_power_up
         return self
 
     def get_station_id(self) -> str:
-        return self._proto.station_id
+        return self.get_proto().station_id
 
     def set_station_id(self, station_id: str) -> 'AppSettings':
         common.check_type(station_id, [str])
-        self._proto.station_id = station_id
+        self.get_proto().station_id = station_id
         return self
 
     def get_push_to_server(self) -> bool:
-        return self._proto.push_to_server
+        return self.get_proto().push_to_server
 
     def set_push_to_server(self, push_to_server: bool) -> 'AppSettings':
         common.check_type(push_to_server, [bool])
-        self._proto.push_to_server = push_to_server
+        self.get_proto().push_to_server = push_to_server
         return self
 
     def get_publish_data_as_private(self) -> bool:
-        return self._proto.publish_data_as_private
+        return self.get_proto().publish_data_as_private
 
     def set_publish_data_as_private(self, publish_data_as_private: bool) -> 'AppSettings':
         common.check_type(publish_data_as_private, [bool])
-        self._proto.publish_data_as_private = publish_data_as_private
+        self.get_proto().publish_data_as_private = publish_data_as_private
         return self
 
     def get_scramble_audio_data(self) -> bool:
-        return self._proto.scramble_audio_data
+        return self.get_proto().scramble_audio_data
 
     def set_scramble_audio_data(self, scramble_audio_data: bool) -> 'AppSettings':
         common.check_type(scramble_audio_data, [bool])
-        self._proto.scramble_audio_data = scramble_audio_data
+        self.get_proto().scramble_audio_data = scramble_audio_data
         return self
 
     def get_provide_backfill(self) -> bool:
-        return self._proto.provide_backfill
+        return self.get_proto().provide_backfill
 
     def set_provide_backfill(self, provide_backfill: bool) -> 'AppSettings':
         common.check_type(provide_backfill, [bool])
-        self._proto.provide_backfill = provide_backfill
+        self.get_proto().provide_backfill = provide_backfill
         return self
 
     def get_remove_sensor_dc_offset(self) -> bool:
-        return self._proto.remove_sensor_dc_offset
+        return self.get_proto().remove_sensor_dc_offset
 
     def set_remove_sensor_dc_offset(self, remove_sensor_dc_offset: bool) -> 'AppSettings':
         common.check_type(remove_sensor_dc_offset, [bool])
-        self._proto.remove_sensor_dc_offset = remove_sensor_dc_offset
+        self.get_proto().remove_sensor_dc_offset = remove_sensor_dc_offset
         return self
 
     def get_use_custom_time_sync_server(self) -> bool:
-        return self._proto.use_custom_time_sync_server
+        return self.get_proto().use_custom_time_sync_server
 
     def set_use_custom_time_sync_server(self, use_custom_time_sync_server: bool) -> 'AppSettings':
         common.check_type(use_custom_time_sync_server, [bool])
-        self._proto.use_custom_time_sync_server = use_custom_time_sync_server
+        self.get_proto().use_custom_time_sync_server = use_custom_time_sync_server
         return self
 
     def get_time_sync_server_url(self) -> str:
-        return self._proto.time_sync_server_url
+        return self.get_proto().time_sync_server_url
 
     def set_time_sync_server_url(self, time_sync_server_url: str) -> 'AppSettings':
         common.check_type(time_sync_server_url, [str])
-        self._proto.time_sync_server_url = time_sync_server_url
+        self.get_proto().time_sync_server_url = time_sync_server_url
         return self
 
     def get_use_custom_data_server(self) -> bool:
-        return self._proto.use_custom_data_server
+        return self.get_proto().use_custom_data_server
 
     def set_use_custom_data_server(self, use_custom_data_server: bool) -> 'AppSettings':
         common.check_type(use_custom_data_server, [bool])
-        self._proto.use_custom_data_server = use_custom_data_server
+        self.get_proto().use_custom_data_server = use_custom_data_server
         return self
 
     def get_data_server_url(self) -> str:
-        return self._proto.data_server_url
+        return self.get_proto().data_server_url
 
     def set_data_server_url(self, data_server_url: str) -> 'AppSettings':
         common.check_type(data_server_url, [str])
-        self._proto.data_server_url = data_server_url
+        self.get_proto().data_server_url = data_server_url
         return self
 
     def get_auto_delete_data_files(self) -> bool:
-        return self._proto.auto_delete_data_files
+        return self.get_proto().auto_delete_data_files
 
     def set_auto_delete_data_files(self, auto_delete_data_files: bool) -> 'AppSettings':
         common.check_type(auto_delete_data_files, [bool])
-        self._proto.auto_delete_data_files = auto_delete_data_files
+        self.get_proto().auto_delete_data_files = auto_delete_data_files
         return self
 
     def get_storage_space_allowance(self) -> float:
-        return self._proto.storage_space_allowance
+        return self.get_proto().storage_space_allowance
 
     def set_storage_space_allowance(self, storage_space_allowance: float) -> 'AppSettings':
         common.check_type(storage_space_allowance, [int, float])
 
-        self._proto.storage_space_allowance = storage_space_allowance
+        self.get_proto().storage_space_allowance = storage_space_allowance
         return self
 
     def get_use_sd_card_for_data_storage(self) -> bool:
-        return self._proto.use_sd_card_for_data_storage
+        return self.get_proto().use_sd_card_for_data_storage
 
     def set_use_sd_card_for_data_storage(self, use_sd_card_for_data_storage: bool) -> 'AppSettings':
         common.check_type(use_sd_card_for_data_storage, [bool])
-        self._proto.use_sd_card_for_data_storage = use_sd_card_for_data_storage
+        self.get_proto().use_sd_card_for_data_storage = use_sd_card_for_data_storage
         return self
 
     def get_use_location_services(self) -> bool:
-        return self._proto.use_location_services
+        return self.get_proto().use_location_services
 
     def set_use_location_services(self, use_location_services: bool) -> 'AppSettings':
         common.check_type(use_location_services, [bool])
-        self._proto.use_location_services = use_location_services
+        self.get_proto().use_location_services = use_location_services
         return self
 
     def get_use_latitude(self) -> float:
-        return self._proto.use_latitude
+        return self.get_proto().use_latitude
 
     def set_use_latitude(self, use_latitude: float) -> 'AppSettings':
         common.check_type(use_latitude, [int, float])
 
-        self._proto.use_latitude = use_latitude
+        self.get_proto().use_latitude = use_latitude
         return self
 
     def get_use_longitude(self) -> float:
-        return self._proto.use_longitude
+        return self.get_proto().use_longitude
 
     def set_use_longitude(self, use_longitude: float) -> 'AppSettings':
         common.check_type(use_longitude, [int, float])
 
-        self._proto.use_longitude = use_longitude
+        self.get_proto().use_longitude = use_longitude
         return self
 
     def get_use_altitude(self) -> float:
-        return self._proto.use_altitude
+        return self.get_proto().use_altitude
 
     def set_use_altitude(self, use_altitude: float) -> 'AppSettings':
         common.check_type(use_altitude, [int, float])
 
-        self._proto.use_altitude = use_altitude
+        self.get_proto().use_altitude = use_altitude
         return self
 
 
@@ -439,14 +439,14 @@ class StationMetrics(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInfo
         return self._cpu_utilization
 
     def get_wifi_wake_loc(self) -> WifiWakeLock:
-        return WifiWakeLock(self._proto.wifi_wake_lock)
+        return WifiWakeLock(self.get_proto().wifi_wake_lock)
 
     def get_power_state(self) -> common.ProtoRepeatedMessage:
         return self._power_state
 
     def set_wifi_wake_loc(self, wifi_wake_loc: WifiWakeLock) -> 'StationMetrics':
         common.check_type(wifi_wake_loc, [WifiWakeLock])
-        self._proto.wifi_wake_loc = redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock.Value(
+        self.get_proto().wifi_wake_loc = redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock.Value(
             wifi_wake_loc.name)
         return self
 
@@ -483,59 +483,59 @@ class StationInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Station
         return StationInformation(redvox_api_m_pb2.RedvoxPacketM.StationInformation())
 
     def get_id(self) -> str:
-        return self._proto.id
+        return self.get_proto().id
 
     def set_id(self, _id: str) -> 'StationInformation':
         common.check_type(_id, [str])
-        self._proto.id = _id
+        self.get_proto().id = _id
         return self
 
     def get_uuid(self) -> str:
-        return self._proto.uuid
+        return self.get_proto().uuid
 
     def set_uuid(self, uuid: str) -> 'StationInformation':
         common.check_type(uuid, [str])
-        self._proto.uuid = uuid
+        self.get_proto().uuid = uuid
         return self
 
     def get_make(self) -> str:
-        return self._proto.make
+        return self.get_proto().make
 
     def set_make(self, make: str) -> 'StationInformation':
         common.check_type(make, [str])
-        self._proto.make = make
+        self.get_proto().make = make
         return self
 
     def get_model(self) -> str:
-        return self._proto.model
+        return self.get_proto().model
 
     def set_model(self, model: str) -> 'StationInformation':
         common.check_type(model, [str])
-        self._proto.model = model
+        self.get_proto().model = model
         return self
 
     def get_os(self) -> OsType:
-        return OsType(self._proto.os)
+        return OsType(self.get_proto().os)
 
     def set_os(self, os: OsType) -> 'StationInformation':
         common.check_type(os, [OsType])
-        self._proto.os = redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType.Value(os.name)
+        self.get_proto().os = redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType.Value(os.name)
         return self
 
     def get_os_version(self) -> str:
-        return self._proto.os_version
+        return self.get_proto().os_version
 
     def set_os_version(self, os_version: str) -> 'StationInformation':
         common.check_type(os_version, [str])
-        self._proto.os_version = os_version
+        self.get_proto().os_version = os_version
         return self
 
     def get_app_version(self) -> str:
-        return self._proto.app_version
+        return self.get_proto().app_version
 
     def set_app_version(self, app_version: str) -> 'StationInformation':
         common.check_type(app_version, [str])
-        self._proto.app_version = app_version
+        self.get_proto().app_version = app_version
         return self
 
     def get_app_settings(self) -> AppSettings:
