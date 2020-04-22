@@ -3,6 +3,8 @@ import enum
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.wrapped_redvox_packet.common as common
 
+from typing import List
+
 
 class LocationProvider(enum.Enum):
     NONE: int = 0
@@ -99,3 +101,19 @@ class Location(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Location]
         self._proto.location_provider = redvox_api_m_pb2.RedvoxPacketM.Sensors.Location \
             .LocationProvider.Value(location_provider.name)
         return self
+
+
+def validate_location(loc_sensor: Location) -> List[str]:
+    errors_list = common.validate_timing_payload(loc_sensor.get_timestamps())
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_latitude_samples()))
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_longitude_samples()))
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_altitude_samples()))
+    # any of the below can be turned off as needed
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_samples()))
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_bearing_samples()))
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_horizontal_accuracy_samples()))
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_vertical_accuracy_samples()))
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_accuracy_samples()))
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_bearing_accuracy_samples()))
+
+    return errors_list

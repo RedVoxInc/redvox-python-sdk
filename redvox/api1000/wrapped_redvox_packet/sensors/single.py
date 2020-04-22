@@ -1,6 +1,8 @@
 import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
+from typing import List
+
 
 class Single(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Single]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Single):
@@ -25,3 +27,9 @@ class Single(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Single]):
 
     def get_samples(self) -> common.SamplePayload:
         return self._samples
+
+
+def validate_single(single_sensor: Single) -> List[str]:
+    errors_list = common.validate_timing_payload(single_sensor.get_timestamps())
+    errors_list.extend(common.validate_sample_payload(single_sensor.get_samples()))
+    return errors_list

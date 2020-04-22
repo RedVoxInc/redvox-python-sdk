@@ -304,6 +304,18 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self
 
 
+def validate_app_settings(app: AppSettings) -> List[str]:
+    errors_list = []
+    if (InputSensor.AUDIO not in app.get_additional_input_sensors()
+            and InputSensor.COMPRESSED_AUDIO not in app.get_additional_input_sensors()):
+        errors_list.append("App settings missing audio sensor from additional input sensors")
+    if app.get_audio_sampling_rate() not in AudioSamplingRate:
+        errors_list.append("App settings audio sample rate is not a valid sample rate")
+    if app.get_station_id() == "":
+        errors_list.append("App settings station id is missing")
+    return errors_list
+
+
 class NetworkType(enum.Enum):
     NO_NETWORK: int = 0
     WIFI: int = 1
@@ -439,6 +451,12 @@ class StationMetrics(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInfo
         return self
 
 
+def validate_station_metrics(station_metrics: StationMetrics) -> List[str]:
+    # only check if timestamps are valid right now
+    # todo: determine if other stuff needs to be validated as well
+    return common.validate_timing_payload(station_metrics.get_timestamps())
+
+
 class OsType(enum.Enum):
     ANDROID: int = 0
     IOS: int = 1
@@ -525,3 +543,13 @@ class StationInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Station
 
     def get_station_metrics(self) -> StationMetrics:
         return self._station_metrics
+
+
+def validate_station_information(station_info: StationInformation) -> List[str]:
+    errors_list = validate_app_settings(station_info.get_app_settings())
+    errors_list.extend(validate_station_metrics(station_info.get_station_metrics()))
+    if station_info.get_id() == "":
+        errors_list.append("Station information station id missing")
+    if station_info.get_uuid() == "":
+        errors_list.append("Station information station uuid missing")
+    return errors_list

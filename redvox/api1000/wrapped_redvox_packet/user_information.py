@@ -1,6 +1,8 @@
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.wrapped_redvox_packet.common as common
 
+from typing import List
+
 
 class UserInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.UserInformation]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.UserInformation):
@@ -33,3 +35,10 @@ class UserInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.UserInform
         common.check_type(firebase_token, [str])
         self._proto.firebase_token = firebase_token
         return self
+
+
+def validate_user_information(user_info: UserInformation) -> List[str]:
+    errors_list = []
+    if user_info.get_firebase_token() == "":
+        errors_list.append("User information firebase token missing")
+    return errors_list

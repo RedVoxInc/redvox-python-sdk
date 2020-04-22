@@ -264,6 +264,13 @@ class SummaryStatistics(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SummaryStati
         return self
 
 
+def validate_summary_statistics(stats: SummaryStatistics) -> List[str]:
+    errors_list = []
+    if stats.get_count() < 1:
+        errors_list.append("Less than 1 element detected; statistics are invalid.")
+    return errors_list
+
+
 class SamplePayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SamplePayload]):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SamplePayload):
         super().__init__(proto)
@@ -320,6 +327,18 @@ class SamplePayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SamplePayload]):
 
     def get_summary_statistics(self) -> SummaryStatistics:
         return self._summary_statistics
+
+
+def validate_sample_payload(sample_payload: SamplePayload) -> List[str]:
+    errors_list = []
+    # if not sample_payload.get_proto().HasField("unit"):
+    #     errors_list.append("Sample payload unit type is missing")
+    if sample_payload.get_unit() not in Unit.__members__.values():
+        errors_list.append("Sample payload unit type is unknown")
+    # if not sample_payload.get_proto().HasField("values") or
+    if sample_payload.get_values_count() < 1:
+        errors_list.append("Sample payload values are missing")
+    return errors_list
 
 
 def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:
@@ -460,3 +479,15 @@ class TimingPayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.TimingPayload]):
 
         self._proto.stdev_sample_rate = stdev_sample_rate
         return self
+
+
+def validate_timing_payload(timing_payload: TimingPayload) -> List[str]:
+    errors_list = []
+    # if not timing_payload.get_proto().HasField("unit"):
+    #     errors_list.append("Timing payload unit type is missing")
+    if timing_payload.get_unit() != Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
+        errors_list.append("Timing payload units are not in microseconds since unix epoch")
+    # if timing_payload.get_proto().HasField("timestamps"):
+    if timing_payload.get_timestamps_count() < 1:
+        errors_list.append("Timing payload timestamps are missing")
+    return errors_list
