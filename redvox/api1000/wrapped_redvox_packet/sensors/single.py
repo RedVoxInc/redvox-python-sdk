@@ -31,5 +31,6 @@ class Single(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Single]):
 
 def validate_single(single_sensor: Single) -> List[str]:
     errors_list = common.validate_timing_payload(single_sensor.get_timestamps())
-    errors_list.extend(common.validate_sample_payload(single_sensor.get_samples()))
+    errors_list.extend(common.validate_sample_payload(single_sensor.get_samples(),
+                                                      single_sensor.get_sensor_description()))
     return errors_list

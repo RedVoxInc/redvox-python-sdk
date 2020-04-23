@@ -175,8 +175,8 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         self.remove_gyroscope()
         self.get_proto().gyroscope.SetInParent()
         self._gyroscope = xyz.Xyz(self.get_proto().gyroscope)
-        self._gravity.get_timestamps().set_default_unit()
-        self._gravity.set_unit_xyz(common.Unit.RADIANS_PER_SECOND)
+        self._gyroscope.get_timestamps().set_default_unit()
+        self._gyroscope.set_unit_xyz(common.Unit.RADIANS_PER_SECOND)
         return self._gyroscope
 
     def set_gyroscope(self, gyroscope: xyz.Xyz) -> 'Sensors':
@@ -412,4 +412,30 @@ def validate_sensors(sensors_list: Sensors) -> List[str]:
             errors_list.extend(audio.validate_audio(sensors_list.get_audio()))
         if sensors_list.has_compress_audio():
             errors_list.extend(audio.validate_compress_audio(sensors_list.get_compressed_audio()))
+    if sensors_list.has_accelerometer():
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_accelerometer()))
+    if sensors_list.has_ambient_temperature():
+        errors_list.extend(single.validate_single(sensors_list.get_ambient_temperature()))
+    if sensors_list.has_gravity():
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_gravity()))
+    if sensors_list.has_gyroscope():
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_gyroscope()))
+    if sensors_list.has_image():
+        errors_list.extend(image.validate_image(sensors_list.get_image()))
+    if sensors_list.has_light():
+        errors_list.extend(single.validate_single(sensors_list.get_light()))
+    if sensors_list.has_linear_acceleration():
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_linear_acceleration()))
+    if sensors_list.has_location():
+        errors_list.extend(location.validate_location(sensors_list.get_location()))
+    if sensors_list.has_magnetometer():
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_magnetometer()))
+    if sensors_list.has_orientation():
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_orientation()))
+    if sensors_list.has_pressure():
+        errors_list.extend(single.validate_single(sensors_list.get_pressure()))
+    if sensors_list.has_proximity():
+        errors_list.extend(single.validate_single(sensors_list.get_proximity()))
+    if sensors_list.has_relative_humidity():
+        errors_list.extend(single.validate_single(sensors_list.get_relative_humidity()))
     return errors_list
