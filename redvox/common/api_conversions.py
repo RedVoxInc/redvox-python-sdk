@@ -190,8 +190,6 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
         location_m.get_altitude_samples().set_values(location_sensor_900.payload_values_altitude(), True)
         location_m.get_speed_samples().set_values(location_sensor_900.payload_values_speed(), True)
         location_m.get_horizontal_accuracy_samples().set_values(location_sensor_900.payload_values_accuracy(), True)
-        location_m.get_metadata().set_metadata(location_sensor_900.metadata_as_dict())
-        # TODO interpret 900 metadata into proper fields here
 
         def _extract_meta_bool(meta: Dict[str, str], key: str) -> bool:
             if key not in meta:
@@ -217,6 +215,19 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
         location_m.set_location_permissions_granted(permission_location)
         location_m.set_location_services_enabled(use_location)
         location_m.set_location_services_requested(desired_location)
+
+        # Once we're done here, we should remove the original metadata
+        if "useLocation" in loc_meta_900:
+            del loc_meta_900["useLocation"]
+        if "desiredLocation" in loc_meta_900:
+            del loc_meta_900["desiredLocation"]
+        if "permissionLocation" in loc_meta_900:
+            del loc_meta_900["permissionLocation"]
+        if "enabledLocation" in loc_meta_900:
+            del loc_meta_900["enabledLocation"]
+        if "machTimeZero" in loc_meta_900:
+            del loc_meta_900["machTimeZero"]
+        location_m.get_metadata().set_metadata(loc_meta_900)
 
     # Time Synchronization
     # This was already added to the timing information
@@ -363,7 +374,7 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
         md["useLocation"] = "T" if location_m.get_location_services_enabled() else "F"
         md["desiredLocation"] = "T" if location_m.get_location_services_requested() else "F"
         md["permissionLocation"] = "T" if location_m.get_location_permissions_granted() else "F"
-        md["enabledLocation"] = "T" if location_m.get_location_provider() == LocationProvider.GPS else "F"
+        md["enabledLocation"] = "T" if location_m.get_location_provider() == LocationProvider.GPS else "FD"
         location_900.set_metadata_as_dict(md)
 
     # Synch exchanges
