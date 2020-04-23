@@ -461,19 +461,3 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
         wrapped_packet_900.set_infrared_sensor(proximity_900)
 
     return wrapped_packet_900
-
-
-def main():
-    packet: reader_900.WrappedRedvoxPacket = reader_900.read_rdvxz_file(
-        "/home/opq/Downloads/1637680002_1587497128130.rdvxz")
-    packet_m: WrappedRedvoxPacketM = convert_api_900_to_1000(packet)
-
-    # for issue in packet_m.validate():
-    #     print(issue)
-
-    # packet_900: reader_900.WrappedRedvoxPacket = convert_api_1000_to_900(packet_m)
-    # print(packet_900)
-
-
-if __name__ == "__main__":
-    main()
