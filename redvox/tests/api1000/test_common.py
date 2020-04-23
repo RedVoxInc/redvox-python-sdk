@@ -3,32 +3,23 @@ import unittest
 import numpy as np
 
 import redvox.api1000.wrapped_redvox_packet.common as common
-import redvox.api1000.wrapped_redvox_packet.sensors.audio as microphone_channel
+import redvox.api1000.wrapped_redvox_packet.sensors.audio as microphone
 
 
 class TestCommonProtoBase(unittest.TestCase):
     def setUp(self) -> None:
-        self.empty_microphone_channel: microphone_channel.Audio = microphone_channel.Audio.new()
-        self.non_empty_microphone_channel: microphone_channel.Audio = microphone_channel.Audio.new()
-        mic_data = common.SamplePayload.new()
-        mic_data.set_unit(common.Unit['DECIBEL'])
-        mic_data.set_values(np.array([100.0, 50, 10.25], dtype=np.int))
-        self.non_empty_microphone_channel.set_samples(mic_data)
+        self.empty_microphone_channel: microphone.Audio = microphone.Audio.new()
+        self.non_empty_microphone_channel: microphone.Audio = microphone.Audio.new()
+        self.non_empty_microphone_channel.get_samples().set_unit(common.Unit['DECIBEL'])
+        self.non_empty_microphone_channel.get_samples().set_values(np.array([100.0, 50, 10.25], dtype=np.int))
         self.non_empty_microphone_channel.set_sensor_description("foo")
         self.non_empty_microphone_channel.set_sample_rate(10.0)
-        self.non_empty_microphone_channel.set_sample_rate(80.0)
         self.non_empty_microphone_channel.set_first_sample_timestamp(1)
         # self.non_empty_microphone_channel.get_samples().set_samples(np.array(list(range(10))))
         self.non_empty_microphone_channel.get_metadata().set_metadata({"foo": "bar"})
 
     def test_get_proto_empty(self):
         pass
-
-    def test_validate_audio(self):
-        error_list = microphone_channel.validate_audio(self.non_empty_microphone_channel)
-        self.assertEqual(error_list, [])
-        error_list = microphone_channel.validate_audio(self.empty_microphone_channel)
-        self.assertNotEqual(error_list, [])
 
 
 class TestCommonSamples(unittest.TestCase):
@@ -37,22 +28,26 @@ class TestCommonSamples(unittest.TestCase):
         self.non_empty_common_payload.set_unit(common.Unit.METERS)
         self.non_empty_common_payload.set_values(np.array([10, 20, 30, 40]), True)
         self.empty_common_payload = common.SamplePayload.new()
+
+    def test_validate_common_payload(self):
+        error_list = common.validate_sample_payload(self.non_empty_common_payload)
+        self.assertEqual(error_list, [])
+        error_list = common.validate_sample_payload(self.empty_common_payload)
+        self.assertNotEqual(error_list, [])
+
+
+class TestCommonTiming(unittest.TestCase):
+    def setUp(self) -> None:
         self.non_empty_time_payload = common.TimingPayload.new()
         self.non_empty_time_payload.set_default_unit()
         self.non_empty_time_payload.set_timestamps(np.array([1000, 2000, 3500, 5000]), True)
         self.empty_time_payload = common.TimingPayload.new()
 
-    def test_validate_common_payload(self):
-        error_list = common.validate_sample_payload(self.non_empty_common_payload)
-        self.assertEqual(error_list, [])
+    def test_validate_timing_payload(self):
         error_list = common.validate_timing_payload(self.non_empty_time_payload)
         self.assertEqual(error_list, [])
-        error_list = common.validate_sample_payload(self.empty_common_payload)
-        self.assertNotEqual(error_list, [])
         error_list = common.validate_timing_payload(self.empty_time_payload)
         self.assertNotEqual(error_list, [])
-
-    pass
 
 
 class TestCommonMetadata(unittest.TestCase):
@@ -61,7 +56,16 @@ class TestCommonMetadata(unittest.TestCase):
 
 class TestSummaryStatistics(unittest.TestCase):
     def setUp(self) -> None:
-        pass
+        self.data_values = np.array([10, 20, 30, 40])
+        self.empty_stats = common.SummaryStatistics.new()
+        self.non_empty_stats = common.SummaryStatistics.new()
+        self.non_empty_stats.update_from_values(self.data_values)
+
+    def test_validate_summary_statistics(self):
+        error_list = common.validate_summary_statistics(self.non_empty_stats)
+        self.assertEqual(error_list, [])
+        error_list = common.validate_summary_statistics(self.empty_stats)
+        self.assertNotEqual(error_list, [])
 
 
 class TestCommonMethods(unittest.TestCase):

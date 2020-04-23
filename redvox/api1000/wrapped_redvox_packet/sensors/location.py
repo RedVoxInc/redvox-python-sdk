@@ -105,15 +105,45 @@ class Location(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Location]
 
 def validate_location(loc_sensor: Location) -> List[str]:
     errors_list = common.validate_timing_payload(loc_sensor.get_timestamps())
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_latitude_samples()))
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_longitude_samples()))
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_altitude_samples()))
-    # any of the below can be turned off as needed
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_samples()))
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_bearing_samples()))
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_horizontal_accuracy_samples()))
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_vertical_accuracy_samples()))
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_accuracy_samples()))
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_bearing_accuracy_samples()))
+    if loc_sensor.get_latitude_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
+        errors_list.append("Location sensor latitude units are not decimal degrees")
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_latitude_samples(), "Latitude"))
+
+    if loc_sensor.get_longitude_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
+        errors_list.append("Location sensor longitude units are not decimal degrees")
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_longitude_samples(), "Longitude"))
+
+    if loc_sensor.get_altitude_samples().get_unit() != common.Unit.METERS:
+        errors_list.append("Location sensor altitude units are not meters")
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_altitude_samples(), "Altitude"))
+
+    # todo: any of the below can be turned off as needed
+    if loc_sensor.get_speed_samples().get_unit() != common.Unit.METERS_PER_SECOND:
+        errors_list.append("Location sensor speed units are not meters per second")
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_samples(), "Speed"))
+
+    if loc_sensor.get_bearing_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
+        errors_list.append("Location sensor bearing units are not decimal degrees")
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_bearing_samples(), "Bearing"))
+
+    if loc_sensor.get_horizontal_accuracy_samples().get_unit() != common.Unit.METERS:
+        errors_list.append("Location sensor horizontal accuracy units are not meters")
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_horizontal_accuracy_samples(),
+                                                      "Horizontal Accuracy"))
+
+    if loc_sensor.get_vertical_accuracy_samples().get_unit() != common.Unit.METERS:
+        errors_list.append("Location sensor vertical accuracy units are not meters")
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_vertical_accuracy_samples(),
+                                                      "Vertical Accuracy"))
+
+    if loc_sensor.get_speed_accuracy_samples().get_unit() != common.Unit.METERS_PER_SECOND:
+        errors_list.append("Location sensor speed accuracy units are not meters per second")
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_accuracy_samples(),
+                                                      "Speed Accuracy"))
+
+    if loc_sensor.get_bearing_accuracy_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
+        errors_list.append("Location sensor bearing accuracy units are not decimal degrees")
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_bearing_accuracy_samples(),
+                                                      "Bearing Accuracy"))
 
     return errors_list

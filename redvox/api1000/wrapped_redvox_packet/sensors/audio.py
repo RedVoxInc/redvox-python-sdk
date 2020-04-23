@@ -58,7 +58,7 @@ class Audio(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio]):
 
 
 def validate_audio(audio_sensor: Audio) -> List[str]:
-    errors_list = common.validate_sample_payload(audio_sensor.get_samples())
+    errors_list = common.validate_sample_payload(audio_sensor.get_samples(), "Audio")
     if audio_sensor.get_first_sample_timestamp() == 0:
         errors_list.append("Audio first sample timestamp is default value")
     # if not audio_sensor.get_proto().HasField("sample_rate"):

@@ -3,7 +3,7 @@ Provides common classes and methods for interacting with API 1000 protobuf data.
 """
 
 import enum
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Tuple, Union
+from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Tuple, Union, Optional
 
 from google.protobuf.json_format import MessageToDict, MessageToJson
 import lz4.frame
@@ -267,7 +267,7 @@ class SummaryStatistics(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SummaryStati
 def validate_summary_statistics(stats: SummaryStatistics) -> List[str]:
     errors_list = []
     if stats.get_count() < 1:
-        errors_list.append("Less than 1 element detected; statistics are invalid.")
+        errors_list.append("Summary statistics contains less than 1 element")
     return errors_list
 
 
@@ -333,7 +333,7 @@ class SamplePayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SamplePayload]):
         return self._summary_statistics
 
 
-def validate_sample_payload(sample_payload: SamplePayload) -> List[str]:
+def validate_sample_payload(sample_payload: SamplePayload, payload_name: Optional[str] = None) -> List[str]:
     errors_list = []
     # if not sample_payload.get_proto().HasField("unit"):
     #     errors_list.append("Sample payload unit type is missing")
@@ -341,7 +341,7 @@ def validate_sample_payload(sample_payload: SamplePayload) -> List[str]:
         errors_list.append("Sample payload unit type is unknown")
     # if not sample_payload.get_proto().HasField("values") or
     if sample_payload.get_values_count() < 1:
-        errors_list.append("Sample payload values are missing")
+        errors_list.append(f"{payload_name if payload_name else 'Sample'} payload values are missing")
     return errors_list
 
 
