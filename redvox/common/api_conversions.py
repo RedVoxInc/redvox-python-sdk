@@ -90,9 +90,6 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
     # Top-level metadata
     wrapped_packet_m.set_api(1000.0)
 
-    wrapped_packet_m.get_metadata().set_metadata(wrapped_packet_900.metadata_as_dict())
-    wrapped_packet_m.get_metadata().append_metadata("migrated_from_api_900", f"v{redvox.VERSION}")
-
     # User information
     wrapped_packet_m.get_user_information() \
         .set_auth_email(wrapped_packet_900.authenticated_email()) \
@@ -285,6 +282,16 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
         proximity_m.get_timestamps().set_timestamps(proximity_900.timestamps_microseconds_utc(), True)
         proximity_m.get_samples().set_values(proximity_900.payload_values(), True)
         proximity_m.get_metadata().set_metadata(proximity_900.metadata_as_dict())
+
+    # Removed any other API 900 top-level metadata now that its been used
+    meta = wrapped_packet_900.metadata_as_dict()
+    if "machTimeZero" in meta:
+        del meta["machTimeZero"]
+    if "bestOffset" in meta:
+        del meta["bestOffset"]
+    if "bestLatency" in meta:
+        del meta["bestLatency"]
+    wrapped_packet_m.get_metadata().append_metadata("migrated_from_api_900", f"v{redvox.VERSION}")
 
     return wrapped_packet_m
 
