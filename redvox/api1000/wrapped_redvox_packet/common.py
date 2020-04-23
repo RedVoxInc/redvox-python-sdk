@@ -276,6 +276,10 @@ class SamplePayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SamplePayload]):
         super().__init__(proto)
         self._summary_statistics: SummaryStatistics = SummaryStatistics(proto.value_statistics)
 
+    @staticmethod
+    def new() -> 'SamplePayload':
+        return SamplePayload(redvox_api_1000_pb2.RedvoxPacketM.SamplePayload())
+
     def get_unit(self) -> Unit:
         return Unit.from_proto(self._proto.unit)
 
@@ -395,6 +399,10 @@ class TimingPayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.TimingPayload]):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.TimingPayload):
         super().__init__(proto)
         self._timestamp_statistics: SummaryStatistics = SummaryStatistics(proto.timestamp_statistics)
+
+    @staticmethod
+    def new() -> 'TimingPayload':
+        return TimingPayload(redvox_api_1000_pb2.RedvoxPacketM.TimingPayload())
 
     def set_default_unit(self) -> 'TimingPayload':
         return self.set_unit(Unit.MICROSECONDS_SINCE_UNIX_EPOCH)

@@ -403,6 +403,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
 
 
 def validate_sensors(sensors_list: Sensors) -> List[str]:
+    # audio is the only sensor that every packet must have
     errors_list = []
     if not sensors_list.has_audio() and not sensors_list.has_compress_audio():
         errors_list.append("Sensors list missing audio sensor")

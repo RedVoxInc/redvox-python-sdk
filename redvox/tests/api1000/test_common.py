@@ -10,11 +10,10 @@ class TestCommonProtoBase(unittest.TestCase):
     def setUp(self) -> None:
         self.empty_microphone_channel: microphone_channel.Audio = microphone_channel.Audio.new()
         self.non_empty_microphone_channel: microphone_channel.Audio = microphone_channel.Audio.new()
-        # todo: how to set mic data now?
-        # mic_data = common.SamplePayload()
-        # mic_data.set_unit(common.Unit['DECIBEL'])
-        # mic_data.set_values(np.array([], dtype=np.int))
-        # self.non_empty_microphone_channel.set_samples(mic_data)
+        mic_data = common.SamplePayload.new()
+        mic_data.set_unit(common.Unit['DECIBEL'])
+        mic_data.set_values(np.array([100.0, 50, 10.25], dtype=np.int))
+        self.non_empty_microphone_channel.set_samples(mic_data)
         self.non_empty_microphone_channel.set_sensor_description("foo")
         self.non_empty_microphone_channel.set_sample_rate(10.0)
         self.non_empty_microphone_channel.set_sample_rate(80.0)
@@ -28,9 +27,31 @@ class TestCommonProtoBase(unittest.TestCase):
     def test_validate_audio(self):
         error_list = microphone_channel.validate_audio(self.non_empty_microphone_channel)
         self.assertEqual(error_list, [])
+        error_list = microphone_channel.validate_audio(self.empty_microphone_channel)
+        self.assertNotEqual(error_list, [])
 
 
 class TestCommonSamples(unittest.TestCase):
+    def setUp(self) -> None:
+        self.non_empty_common_payload = common.SamplePayload.new()
+        self.non_empty_common_payload.set_unit(common.Unit.METERS)
+        self.non_empty_common_payload.set_values(np.array([10, 20, 30, 40]), True)
+        self.empty_common_payload = common.SamplePayload.new()
+        self.non_empty_time_payload = common.TimingPayload.new()
+        self.non_empty_time_payload.set_default_unit()
+        self.non_empty_time_payload.set_timestamps(np.array([1000, 2000, 3500, 5000]), True)
+        self.empty_time_payload = common.TimingPayload.new()
+
+    def test_validate_common_payload(self):
+        error_list = common.validate_sample_payload(self.non_empty_common_payload)
+        self.assertEqual(error_list, [])
+        error_list = common.validate_timing_payload(self.non_empty_time_payload)
+        self.assertEqual(error_list, [])
+        error_list = common.validate_sample_payload(self.empty_common_payload)
+        self.assertNotEqual(error_list, [])
+        error_list = common.validate_timing_payload(self.empty_time_payload)
+        self.assertNotEqual(error_list, [])
+
     pass
 
 
