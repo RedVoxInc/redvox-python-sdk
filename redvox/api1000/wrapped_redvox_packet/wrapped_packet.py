@@ -139,6 +139,9 @@ class WrappedRedvoxPacketM(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM]):
 
         return out_path
 
+    def validate(self) -> List[str]:
+        return validate_wrapped_packet(self)
+
     # Top-level packet fields
     def get_api(self) -> float:
         return self._proto.api

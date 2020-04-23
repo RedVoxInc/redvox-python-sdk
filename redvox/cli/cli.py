@@ -69,7 +69,27 @@ def determine_exit(status: bool) -> None:
     sys.exit(1)
 
 
-def to_json_args(args) -> None:
+def rdvxz_to_rdvxm(args) -> None:
+    if not check_files(args.rdvxz_paths, ".rdvxz"):
+        determine_exit(False)
+
+    if not check_out_dir(args.out_dir):
+        determine_exit(False)
+
+    determine_exit(conversions.rdvxz_to_rdvxm(args.rdvxz_paths, args.out_dir))
+
+
+def rdvxm_to_rdvxz(args) -> None:
+    if not check_files(args.rdvxm_paths, ".rdvxm"):
+        determine_exit(False)
+
+    if not check_out_dir(args.out_dir):
+        determine_exit(False)
+
+    determine_exit(conversions.rdvxm_to_rdvxz(args.rdvxm_paths, args.out_dir))
+
+
+def rdvxz_to_json_args(args) -> None:
     """
     Wrapper function that calls the to_json conversion.
     :param args: Args from argparse.
@@ -80,10 +100,24 @@ def to_json_args(args) -> None:
     if not check_out_dir(args.out_dir):
         determine_exit(False)
 
-    determine_exit(conversions.to_json(args.rdvxz_paths, args.out_dir))
+    determine_exit(conversions.rdvxz_to_json(args.rdvxz_paths, args.out_dir))
 
 
-def to_rdvxz_args(args) -> None:
+def rdvxm_to_json_args(args) -> None:
+    """
+    Wrapper function that calls the to_json conversion.
+    :param args: Args from argparse.
+    """
+    if not check_files(args.rdvxm_paths, ".rdvxm"):
+        determine_exit(False)
+
+    if not check_out_dir(args.out_dir):
+        determine_exit(False)
+
+    determine_exit(conversions.rdvxm_to_json(args.rdvxm_paths, args.out_dir))
+
+
+def json_to_rdvxz_args(args) -> None:
     """
     Wrapper function that calls the to_rdvxz conversion.
     :param args: Args from argparse.
@@ -94,10 +128,24 @@ def to_rdvxz_args(args) -> None:
     if not check_out_dir(args.out_dir):
         determine_exit(False)
 
-    determine_exit(conversions.to_rdvxz(args.json_paths, args.out_dir))
+    determine_exit(conversions.json_to_rdvxz(args.json_paths, args.out_dir))
 
 
-def print_stdout_args(args) -> None:
+def json_to_rdvxm_args(args) -> None:
+    """
+    Wrapper function that calls the to_rdvxm conversion.
+    :param args: Args from argparse.
+    """
+    if not check_files(args.json_paths, ".json"):
+        determine_exit(False)
+
+    if not check_out_dir(args.out_dir):
+        determine_exit(False)
+
+    determine_exit(conversions.json_to_rdvxm(args.json_paths, args.out_dir))
+
+
+def rdvxz_print_stdout_args(args) -> None:
     """
     Wrapper function that calls the print to stdout.
     :param args: Args from argparse.
@@ -105,7 +153,25 @@ def print_stdout_args(args) -> None:
     if not check_files(args.rdvxz_paths, ".rdvxz"):
         determine_exit(False)
 
-    determine_exit(conversions.print_stdout(args.rdvxz_paths))
+    determine_exit(conversions.rdvxz_print_stdout(args.rdvxz_paths))
+
+
+def rdvxm_print_stdout_args(args) -> None:
+    """
+    Wrapper function that calls the print to stdout.
+    :param args: Args from argparse.
+    """
+    if not check_files(args.rdvxm_paths, ".rdvxm"):
+        determine_exit(False)
+
+    determine_exit(conversions.rdvxm_print_stdout(args.rdvxm_paths))
+
+
+def validate_rdvxm_args(args) -> None:
+    if not check_files(args.rdvxm_paths, ".rdvxm"):
+        determine_exit(False)
+
+    determine_exit(conversions.validate_rdvxm(args.rdvxm_paths))
 
 
 def data_req_args(args) -> None:
@@ -145,35 +211,98 @@ def main():
     sub_parser.required = True
     sub_parser.dest = "command"
 
+    # rdvxz -> rdvxm
+    rdvxz_to_rdvxm_parser = sub_parser.add_parser("rdvxz_to_rdvxm",
+                                                  help="Convert rdvxz (API 900) to rdvxm (API 1000/M) files")
+    rdvxz_to_rdvxm_parser.add_argument("rdvxz_paths",
+                                       help="One or more rdvxz files to convert to json files",
+                                       nargs="+")
+    rdvxz_to_rdvxm_parser.add_argument("--out_dir",
+                                       "-o",
+                                       help="Optional output directory (will use same directory as source files by "
+                                            "default)")
+    rdvxz_to_rdvxm_parser.set_defaults(func=rdvxz_to_rdvxm)
+
+    # rdvxm -> rdvxz
+    rdvxm_to_rdvxz_parser = sub_parser.add_parser("rdvxm_to_rdvxz",
+                                                  help="Convert rdvxm (API 1000/M) to rdvxx (API 900) files")
+    rdvxm_to_rdvxz_parser.add_argument("rdvxm_paths",
+                                       help="One or more rdvxm files to convert to json files",
+                                       nargs="+")
+    rdvxm_to_rdvxz_parser.add_argument("--out_dir",
+                                       "-o",
+                                       help="Optional output directory (will use same directory as source files by "
+                                            "default)")
+    rdvxm_to_rdvxz_parser.set_defaults(func=rdvxm_to_rdvxz)
+
     # rdvxz -> json
-    to_json_parser = sub_parser.add_parser("to_json",
-                                           help="Convert rdvxz files to json files")
-    to_json_parser.add_argument("rdvxz_paths",
-                                help="One or more rdvxz files to convert to json files",
-                                nargs="+")
-    to_json_parser.add_argument("--out_dir",
-                                "-o",
-                                help="Optional output directory (will use same directory as source files by default)")
-    to_json_parser.set_defaults(func=to_json_args)
+    rdvxz_to_json_parser = sub_parser.add_parser("rdvxz_to_json",
+                                                 help="Convert rdvxz files to json files")
+    rdvxz_to_json_parser.add_argument("rdvxz_paths",
+                                      help="One or more rdvxz files to convert to json files",
+                                      nargs="+")
+    rdvxz_to_json_parser.add_argument("--out_dir",
+                                      "-o",
+                                      help="Optional output directory (will use same directory as source files by "
+                                           "default)")
+    rdvxz_to_json_parser.set_defaults(func=rdvxz_to_json_args)
+
+    rdvxm_to_json_parser = sub_parser.add_parser("rdvxm_to_json",
+                                                 help="Convert rdvxm files to json files")
+    rdvxm_to_json_parser.add_argument("rdvxm_paths",
+                                      help="One or more rdvxm files to convert to json files",
+                                      nargs="+")
+    rdvxm_to_json_parser.add_argument("--out_dir",
+                                      "-o",
+                                      help="Optional output directory (will use same directory as source files by "
+                                           "default)")
+    rdvxm_to_json_parser.set_defaults(func=rdvxm_to_json_args)
 
     # json -> rdvxz
-    to_rdvxz_parser = sub_parser.add_parser("to_rdvxz",
-                                            help="Convert json files to rdvxz files")
-    to_rdvxz_parser.add_argument("json_paths",
-                                 help="One or more json files to convert to rdvxz files",
-                                 nargs="+")
-    to_rdvxz_parser.add_argument("--out_dir",
-                                 "-o",
-                                 help="Optional output directory (will use same directory as source files by default)")
-    to_rdvxz_parser.set_defaults(func=to_rdvxz_args)
+    json_to_rdvxz_parser = sub_parser.add_parser("json_to_rdvxz",
+                                                 help="Convert json files to rdvxz files")
+    json_to_rdvxz_parser.add_argument("json_paths",
+                                      help="One or more json files to convert to rdvxz files",
+                                      nargs="+")
+    json_to_rdvxz_parser.add_argument("--out_dir",
+                                      "-o",
+                                      help="Optional output directory (will use same directory as source files by "
+                                           "default)")
+    json_to_rdvxz_parser.set_defaults(func=json_to_rdvxz_args)
+
+    json_to_rdvxm_parser = sub_parser.add_parser("json_to_rdvxm",
+                                                 help="Convert json files to rdvxm files")
+    json_to_rdvxm_parser.add_argument("json_paths",
+                                      help="One or more json files to convert to rdvxm files",
+                                      nargs="+")
+    json_to_rdvxm_parser.add_argument("--out_dir",
+                                      "-o",
+                                      help="Optional output directory (will use same directory as source files by "
+                                           "default)")
+    json_to_rdvxm_parser.set_defaults(func=json_to_rdvxm_args)
 
     # print
-    print_parser = sub_parser.add_parser("print",
-                                         help="Print contents of rdvxz files to stdout")
-    print_parser.add_argument("rdvxz_paths",
-                              help="One or more rdvxz files to print",
-                              nargs="+")
-    print_parser.set_defaults(func=print_stdout_args)
+    rdvxz_print_parser = sub_parser.add_parser("printz",
+                                               help="Print contents of rdvxz files to stdout")
+    rdvxz_print_parser.add_argument("rdvxz_paths",
+                                    help="One or more rdvxz files to print",
+                                    nargs="+")
+    rdvxz_print_parser.set_defaults(func=rdvxz_print_stdout_args)
+
+    rdvxm_print_parser = sub_parser.add_parser("printm",
+                                               help="Print contents of rdvxm files to stdout")
+    rdvxm_print_parser.add_argument("rdvxm_paths",
+                                    help="One or more rdvxm files to print",
+                                    nargs="+")
+    rdvxm_print_parser.set_defaults(func=rdvxm_print_stdout_args)
+
+    # validation
+    rdvxm_validation_parser = sub_parser.add_parser("validatem",
+                                                    help="Validate the structure of API M files")
+    rdvxm_validation_parser.add_argument("rdvxm_paths",
+                                         help="One or more rdvxm files to print",
+                                         nargs="+")
+    rdvxm_validation_parser.set_defaults(func=validate_rdvxm_args)
 
     # data_req
     data_req_parser = sub_parser.add_parser("data_req",

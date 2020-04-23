@@ -468,8 +468,11 @@ def main():
         "/home/opq/Downloads/1637680002_1587497128130.rdvxz")
     packet_m: WrappedRedvoxPacketM = convert_api_900_to_1000(packet)
 
-    packet_900: reader_900.WrappedRedvoxPacket = convert_api_1000_to_900(packet_m)
-    print(packet_900)
+    # for issue in packet_m.validate():
+    #     print(issue)
+
+    # packet_900: reader_900.WrappedRedvoxPacket = convert_api_1000_to_900(packet_m)
+    # print(packet_900)
 
 
 if __name__ == "__main__":

@@ -306,8 +306,8 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
 
 def validate_app_settings(app: AppSettings) -> List[str]:
     errors_list = []
-    if (InputSensor.AUDIO not in app.get_additional_input_sensors()
-            and InputSensor.COMPRESSED_AUDIO not in app.get_additional_input_sensors()):
+    if (InputSensor.AUDIO not in app.get_additional_input_sensors().get_values()
+            and InputSensor.COMPRESSED_AUDIO not in app.get_additional_input_sensors().get_values()):
         errors_list.append("App settings missing audio sensor from additional input sensors")
     if app.get_audio_sampling_rate() not in AudioSamplingRate:
         errors_list.append("App settings audio sample rate is not a valid sample rate")
