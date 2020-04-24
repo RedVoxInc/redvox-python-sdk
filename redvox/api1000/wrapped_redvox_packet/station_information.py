@@ -415,6 +415,10 @@ class StationMetrics(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInfo
             PowerState.into_proto
         )
 
+    @staticmethod
+    def new() -> 'StationMetrics':
+        return StationMetrics(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics())
+
     def get_timestamps(self) -> common.TimingPayload:
         return self._timestamps
 

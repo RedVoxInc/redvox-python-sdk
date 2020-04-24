@@ -21,6 +21,9 @@ class SynchExchange(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInform
     def get_unit(self) -> common.Unit:
         return common.Unit.from_proto(self._proto.unit)
 
+    def set_default_unit(self) -> 'SynchExchange':
+        return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+
     def set_unit(self, unit: common.Unit) -> 'SynchExchange':
         common.check_type(unit, [common.Unit])
         self._proto.unit = unit.into_proto()
@@ -126,6 +129,9 @@ class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingIn
     def get_unit(self) -> common.Unit:
         return common.Unit.from_proto(self._proto.unit)
 
+    def set_default_unit(self) -> 'TimingInformation':
+        return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+
     def set_unit(self, unit: common.Unit) -> 'TimingInformation':
         common.check_type(unit, [common.Unit])
         self._proto.unit = unit.into_proto()
@@ -223,19 +229,19 @@ def validate_timing_information(timing: TimingInformation) -> List[str]:
     # otherwise we can just return an empty list since there's no point in validating nothing
     if len(synch_vals) > 0:
         for sync_exch in synch_vals:
-            errors_list.append(validate_synch_exchange(sync_exch))
-        if timing.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
-            errors_list.append("Timing information unit is not microseconds since unix epoch")
-        if timing.get_packet_start_os_timestamp() == 0:
-            errors_list.append("Timing information os start timestamp is 0")
-        if timing.get_packet_start_mach_timestamp() == 0:
-            errors_list.append("Timing information mach start timestamp is 0")
-        if timing.get_packet_end_os_timestamp() == 0:
-            errors_list.append("Timing information os end timestamp is 0")
-        if timing.get_packet_end_mach_timestamp() == 0:
-            errors_list.append("Timing information mach end timestamp is 0")
-        if timing.get_app_start_mach_timestamp() == 0:
-            errors_list.append("Timing information app mach start timestamp is 0")
-        if timing.get_server_acquisition_arrival_timestamp() == 0:
-            errors_list.append("Timing information server acquisition arrival timestamp is 0")
+            errors_list.extend(validate_synch_exchange(sync_exch))
+    if timing.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
+        errors_list.append("Timing information unit is not microseconds since unix epoch")
+    if timing.get_packet_start_os_timestamp() == 0:
+        errors_list.append("Timing information os start timestamp is 0")
+    if timing.get_packet_start_mach_timestamp() == 0:
+        errors_list.append("Timing information mach start timestamp is 0")
+    if timing.get_packet_end_os_timestamp() == 0:
+        errors_list.append("Timing information os end timestamp is 0")
+    if timing.get_packet_end_mach_timestamp() == 0:
+        errors_list.append("Timing information mach end timestamp is 0")
+    if timing.get_app_start_mach_timestamp() == 0:
+        errors_list.append("Timing information app mach start timestamp is 0")
+        # if timing.get_server_acquisition_arrival_timestamp() == 0:
+        #     errors_list.append("Timing information server acquisition arrival timestamp is 0")
     return errors_list
