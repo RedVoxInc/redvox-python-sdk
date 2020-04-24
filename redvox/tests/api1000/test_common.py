@@ -85,30 +85,157 @@ class TestCommonMetadata(unittest.TestCase):
         self.assertEqual(meta_data, {})
 
 
-class TestCommonSamples(unittest.TestCase):
+class TestCommonSample(unittest.TestCase):
     def setUp(self) -> None:
-        self.non_empty_common_payload = common.SamplePayload.new()
-        self.non_empty_common_payload.set_unit(common.Unit.METERS)
-        self.non_empty_common_payload.set_values(np.array([10, 20, 30, 40]), True)
-        self.empty_common_payload = common.SamplePayload.new()
+        self.empty_sample_payload = common.SamplePayload.new()
+        self.non_empty_sample_payload = common.SamplePayload.new()
+        self.non_empty_sample_payload.set_unit(common.Unit.METERS)
+        self.non_empty_sample_payload.set_values(np.array([10, 20, 30, 40]), True)
 
-    def test_validate_common_payload(self):
-        error_list = common.validate_sample_payload(self.non_empty_common_payload)
+    def test_get_set_unit(self):
+        unit = self.non_empty_sample_payload.get_unit()
+        self.assertEqual(unit, common.Unit.METERS)
+        zero_unit = self.empty_sample_payload.get_unit()
+        self.assertEqual(zero_unit, common.Unit.METERS_PER_SECOND_SQUARED)
+        self.empty_sample_payload.set_unit(common.Unit.METERS)
+        zero_unit = self.empty_sample_payload.get_unit()
+        self.assertEqual(zero_unit, common.Unit.METERS)
+
+    def test_get_values_count(self):
+        value_count = self.non_empty_sample_payload.get_values_count()
+        self.assertEqual(value_count, 4)
+        zero_count = self.empty_sample_payload.get_values_count()
+        self.assertEqual(zero_count, 0)
+
+    def test_get_set_values(self):
+        values = self.non_empty_sample_payload.get_values()
+        self.assertEqual(values[0], 10)
+        self.assertEqual(len(values), 4)
+        zero_values = self.empty_sample_payload.get_values()
+        self.assertEqual(len(zero_values), 0)
+        self.empty_sample_payload.set_values(np.array([5, 4, 3, 2, 1]))
+        zero_values = self.empty_sample_payload.get_values()
+        self.assertEqual(zero_values[0], 5)
+        self.assertEqual(len(zero_values), 5)
+
+    def test_append_value(self):
+        self.non_empty_sample_payload.append_value(50, True)
+        values = self.non_empty_sample_payload.get_values()
+        self.assertEqual(values[-1], 50)
+        self.assertEqual(len(values), 5)
+
+    def test_append_values(self):
+        self.non_empty_sample_payload.append_values(np.array([50, 60, 70]), True)
+        values = self.non_empty_sample_payload.get_values()
+        self.assertEqual(values[-1], 70)
+        self.assertEqual(len(values), 7)
+
+    def test_clear_values(self):
+        self.non_empty_sample_payload.clear_values()
+        zero_values = self.non_empty_sample_payload.get_values()
+        self.assertEqual(len(zero_values), 0)
+        zero_count = self.non_empty_sample_payload.get_values_count()
+        self.assertEqual(zero_count, 0)
+
+    def test_get_summary_statistics(self):
+        stats = self.non_empty_sample_payload.get_summary_statistics()
+        self.assertEqual(stats.get_count(), 4)
+        self.assertEqual(stats.get_mean(), 25)
+        zero_stats = self.empty_sample_payload.get_summary_statistics()
+        self.assertEqual(zero_stats.get_count(), 0)
+        self.assertEqual(zero_stats.get_mean(), 0)
+
+    def test_validate_sample_payload(self):
+        error_list = common.validate_sample_payload(self.non_empty_sample_payload)
         self.assertEqual(error_list, [])
-        error_list = common.validate_sample_payload(self.empty_common_payload)
+        error_list = common.validate_sample_payload(self.empty_sample_payload)
         self.assertNotEqual(error_list, [])
 
 
 class TestCommonTiming(unittest.TestCase):
     def setUp(self) -> None:
+        self.empty_time_payload = common.TimingPayload.new()
         self.non_empty_time_payload = common.TimingPayload.new()
         self.non_empty_time_payload.set_default_unit()
         self.non_empty_time_payload.set_timestamps(np.array([1000, 2000, 3500, 5000]), True)
-        self.empty_time_payload = common.TimingPayload.new()
+
+    def test_get_set_unit(self):
+        unit = self.non_empty_time_payload.get_unit()
+        self.assertEqual(unit, common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+        zero_unit = self.empty_time_payload.get_unit()
+        self.assertEqual(zero_unit, common.Unit.METERS_PER_SECOND_SQUARED)
+        self.empty_time_payload.set_unit(common.Unit.METERS)
+        zero_unit = self.empty_time_payload.get_unit()
+        self.assertEqual(zero_unit, common.Unit.METERS)
+
+    def test_get_timestamps_count(self):
+        count = self.non_empty_time_payload.get_timestamps_count()
+        self.assertEqual(count, 4)
+        zero_count = self.empty_time_payload.get_timestamps_count()
+        self.assertEqual(zero_count, 0)
+
+    def test_get_set_timestamps(self):
+        timestamps = self.non_empty_time_payload.get_timestamps()
+        self.assertEqual(timestamps[0], 1000)
+        self.assertEqual(len(timestamps), 4)
+        zero_timestamps = self.empty_time_payload.get_timestamps()
+        self.assertEqual(len(zero_timestamps), 0)
+        self.empty_time_payload.set_timestamps(np.array([100, 500, 900, 2000]))
+        zero_timestamps = self.empty_time_payload.get_timestamps()
+        self.assertEqual(zero_timestamps[0], 100)
+        self.assertEqual(len(zero_timestamps), 4)
+
+    def test_append_timestamp(self):
+        self.non_empty_time_payload.append_timestamp(6700, True)
+        values = self.non_empty_time_payload.get_timestamps()
+        self.assertEqual(values[-1], 6700)
+        self.assertEqual(len(values), 5)
+
+    def test_append_timestamps(self):
+        self.non_empty_time_payload.append_timestamps(np.array([6500, 8200, 9900]), True)
+        values = self.non_empty_time_payload.get_timestamps()
+        self.assertEqual(values[-1], 9900)
+        self.assertEqual(len(values), 7)
+
+    def test_clear_timestamps(self):
+        self.non_empty_time_payload.clear_timestamps()
+        zero_values = self.non_empty_time_payload.get_timestamps()
+        self.assertEqual(len(zero_values), 0)
+        zero_count = self.non_empty_time_payload.get_timestamps_count()
+        self.assertEqual(zero_count, 0)
+
+    def test_get_timestamp_statistics(self):
+        stats = self.non_empty_time_payload.get_timestamp_statistics()
+        self.assertEqual(stats.get_count(), 4)
+        self.assertEqual(stats.get_mean(), 2875)
+        zero_stats = self.empty_time_payload.get_timestamp_statistics()
+        self.assertEqual(zero_stats.get_count(), 0)
+        self.assertEqual(zero_stats.get_mean(), 0)
+
+    def test_get_set_mean_sample_rate(self):
+        sample_rate = self.non_empty_time_payload.get_mean_sample_rate()
+        self.assertEqual(sample_rate, 750)
+        zero_sample_rate = self.empty_time_payload.get_mean_sample_rate()
+        self.assertEqual(zero_sample_rate, 0)
+        self.empty_time_payload.set_mean_sample_rate(1000)
+        zero_sample_rate = self.empty_time_payload.get_mean_sample_rate()
+        self.assertEqual(zero_sample_rate, 1000)
+
+    def test_get_set_stdev_sample_rate(self):
+        sample_rate = self.non_empty_time_payload.get_stdev_sample_rate()
+        self.assertAlmostEqual(sample_rate, 132.58, 2)
+        zero_sample_rate = self.empty_time_payload.get_stdev_sample_rate()
+        self.assertEqual(zero_sample_rate, 0)
+        self.empty_time_payload.set_stdev_sample_rate(1000)
+        zero_sample_rate = self.empty_time_payload.get_stdev_sample_rate()
+        self.assertEqual(zero_sample_rate, 1000)
 
     def test_validate_timing_payload(self):
         error_list = common.validate_timing_payload(self.non_empty_time_payload)
         self.assertEqual(error_list, [])
+        self.non_empty_time_payload.set_timestamps(np.array([40, 20, 99]))
+        error_list = common.validate_timing_payload(self.non_empty_time_payload)
+        self.assertNotEqual(error_list, [])
         error_list = common.validate_timing_payload(self.empty_time_payload)
         self.assertNotEqual(error_list, [])
 

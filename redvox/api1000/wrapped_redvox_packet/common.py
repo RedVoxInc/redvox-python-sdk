@@ -345,25 +345,6 @@ def validate_sample_payload(sample_payload: SamplePayload, payload_name: Optiona
     return errors_list
 
 
-def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:
-    """
-    Calculates the mean sample rate in Hz and standard deviation of the sampling rate.
-    :param timestamps:
-    :return: A tuple containing (mean_sample_rate, stdev_sample_rate)
-    """
-    sample_interval: np.ndarray = np.diff(timestamps)
-    mean_sample_interval: float = sample_interval.mean()
-    stdev_sample_interval: float = sample_interval.std()
-
-    if mean_sample_interval <= 0:
-        return 0.0, 0.0
-
-    mean_sample_rate: float = 1.0 / dt_utils.microseconds_to_seconds(mean_sample_interval)
-    stdev_sample_rate: float = mean_sample_rate ** 2 * dt_utils.microseconds_to_seconds(stdev_sample_interval)
-
-    return mean_sample_rate, stdev_sample_rate
-
-
 class ProtoRepeatedMessage(Generic[P, T]):
     def __init__(self,
                  parent_proto,
@@ -393,6 +374,25 @@ class ProtoRepeatedMessage(Generic[P, T]):
     def clear_values(self) -> 'ProtoRepeatedMessage[P, T]':
         self._parent_proto.ClearField(self._repeated_field_name)
         return self
+
+
+def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:
+    """
+    Calculates the mean sample rate in Hz and standard deviation of the sampling rate.
+    :param timestamps:
+    :return: A tuple containing (mean_sample_rate, stdev_sample_rate)
+    """
+    sample_interval: np.ndarray = np.diff(timestamps)
+    mean_sample_interval: float = sample_interval.mean()
+    stdev_sample_interval: float = sample_interval.std()
+
+    if mean_sample_interval <= 0:
+        return 0.0, 0.0
+
+    mean_sample_rate: float = 1.0 / dt_utils.microseconds_to_seconds(mean_sample_interval)
+    stdev_sample_rate: float = mean_sample_rate ** 2 * dt_utils.microseconds_to_seconds(stdev_sample_interval)
+
+    return mean_sample_rate, stdev_sample_rate
 
 
 class TimingPayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.TimingPayload]):
@@ -501,4 +501,9 @@ def validate_timing_payload(timing_payload: TimingPayload) -> List[str]:
     # if timing_payload.get_proto().HasField("timestamps"):
     if timing_payload.get_timestamps_count() < 1:
         errors_list.append("Timing payload timestamps are missing")
+    else:
+        # we have timestamps, but we have to confirm they always increase in value
+        timestamps = timing_payload.get_timestamps()
+        if any(timestamps[i] >= timestamps[i + 1] for i in range(len(timestamps) - 1)):
+            errors_list.append("Timing payload contains timestamps in non-ascending order")
     return errors_list

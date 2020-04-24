@@ -87,12 +87,20 @@ def validate_synch_exchange(sync: SynchExchange) -> List[str]:
         errors_list.append("Sync exchange a2 value is 0")
     if sync.get_a3() == 0:
         errors_list.append("Sync exchange a3 value is 0")
+    if sync.get_a1() >= sync.get_a2():
+        errors_list.append("Sync exchange a1 is greater than or equal to a2")
+    if sync.get_a2() > sync.get_a3():
+        errors_list.append("Sync exchange a2 is greater than a3")
     if sync.get_b1() == 0:
         errors_list.append("Sync exchange b1 value is 0")
     if sync.get_b2() == 0:
         errors_list.append("Sync exchange b2 value is 0")
     if sync.get_b3() == 0:
         errors_list.append("Sync exchange b3 value is 0")
+    if sync.get_b1() > sync.get_b2():
+        errors_list.append("Sync exchange b1 value is greater than b2")
+    if sync.get_b2() >= sync.get_b3():
+        errors_list.append("Sync exchange b2 value is greater than or equal to b3")
     if sync.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
         errors_list.append("Sync exchange unit is not microseconds since unix epoch")
     return errors_list
@@ -242,6 +250,10 @@ def validate_timing_information(timing: TimingInformation) -> List[str]:
         errors_list.append("Timing information mach end timestamp is 0")
     if timing.get_app_start_mach_timestamp() == 0:
         errors_list.append("Timing information app mach start timestamp is 0")
+    if timing.get_packet_start_os_timestamp() > timing.get_packet_end_os_timestamp():
+        errors_list.append("Timing information os end timestamp is less than start timestamp")
+    if timing.get_packet_start_mach_timestamp() > timing.get_packet_end_mach_timestamp():
+        errors_list.append("Timing information mach end timestamp is less than start timestamp")
         # if timing.get_server_acquisition_arrival_timestamp() == 0:
         #     errors_list.append("Timing information server acquisition arrival timestamp is 0")
     return errors_list

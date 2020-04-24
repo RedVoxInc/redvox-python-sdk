@@ -17,6 +17,12 @@ class TestSyncExchange(unittest.TestCase):
     def test_validate_sync(self):
         error_list = timing.validate_synch_exchange(self.non_empty_sync_exchange)
         self.assertEqual(error_list, [])
+        self.non_empty_sync_exchange.set_a2(500)
+        self.non_empty_sync_exchange.set_a3(100)
+        self.non_empty_sync_exchange.set_b2(500)
+        self.non_empty_sync_exchange.set_b3(100)
+        error_list = timing.validate_synch_exchange(self.non_empty_sync_exchange)
+        self.assertNotEqual(error_list, [])
         error_list = timing.validate_synch_exchange(self.empty_sync_exchange)
         self.assertNotEqual(error_list, [])
 
