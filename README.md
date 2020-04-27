@@ -8,6 +8,10 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.8.2 (2020-04-27)
+
+* Add workaround for accessing `mach_time_zero` in incorrectly constructed Android packets
+
 ### 2.8.1 (2020-04-02)
 
 * TriMessageStats will now append empty arrays in a tuple to tri_message_coeffs when the time sync sensor is empty or doesn't exist.

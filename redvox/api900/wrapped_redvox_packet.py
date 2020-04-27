@@ -780,7 +780,20 @@ class WrappedRedvoxPacket:
         :return: The mach time zero from the metadata if it exists.
         """
         try:
-            return migrations.maybe_get_float(int(self.metadata_as_dict()["machTimeZero"]))
+            # First, try to extract metadata from the correct location
+            top_level_metadata: typing.Dict[str, str] = self.metadata_as_dict()
+            if "machTimeZero" in top_level_metadata:
+                return migrations.maybe_get_float(int(top_level_metadata["machTimeZero"]))
+
+            # If that fails, some Androids stored it in the Location metadata
+            location_sensor = self.location_sensor()
+            if location_sensor is not None:
+                location_metadata: typing.Dict[str, str] = location_sensor.metadata_as_dict()
+                if "machTimeZero" in location_metadata:
+                    return migrations.maybe_get_float(int(location_metadata["machTimeZero"]))
+
+            # Finally, if it hasn't been found, it's probably a really old packet that doesn't contain this field
+            return None
         except (KeyError, ValueError):
             return None
 
