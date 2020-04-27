@@ -1,10 +1,11 @@
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-import redvox.api1000.wrapped_redvox_packet.common as common
 
 from typing import List
 
+import redvox.api1000.common.generic
 
-class Image(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Image]):
+
+class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Image]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Image):
         super().__init__(proto)
 

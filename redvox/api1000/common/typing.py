@@ -1,0 +1,39 @@
+from typing import Any, List, Optional, Callable
+
+from redvox.api1000 import errors as errors
+
+
+def check_type(value: Any,
+               valid_types: List[Any],
+               exception: Optional[Callable[[str], errors.ApiMError]] = None,
+               additional_info: Optional[str] = None) -> None:
+    """
+    This provides some rudimentary type checking when setting API M data.
+    This allows type errors to be a bit more consumable to users compared to errors thrown by the protobuf library. If
+    the type check passes, nothing happens. If the type check fails, a customizable runtime exception is raised.
+    :param value: The value to check the type of.
+    :param valid_types: A list of valid types that the value may be.
+    :param exception: An (optional) exception class which works with any exception that accepts a string as a single
+                      argument. An ApiMError is raised by default.
+    :param additional_info: Additional (optional) information to include in the error message. No additional information
+                            is provided by default.
+    """
+
+    # In order to keep this fast, check all types right away amd short circuit return if all good. Only if there are
+    # issues should we perform any error management.
+    for valid_type in valid_types:
+        if isinstance(value, valid_type):
+            return None
+
+    # There are type check issues
+    type_names: List[str] = list(map(lambda _valid_type: f"'{_valid_type.__name__}'", valid_types))
+    message: str = f"Expected type(s) {' or '.join(type_names)}," \
+                   f" but found '{type(value).__name__}'."
+
+    if additional_info is not None:
+        message += f" ({additional_info})"
+
+    if exception is not None:
+        raise exception(message)
+    else:
+        raise errors.ApiMTypeError(message)

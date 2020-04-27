@@ -6,9 +6,12 @@ import os.path
 from typing import Optional, List
 from google.protobuf import json_format
 
+import redvox.api1000.common.lz4
+import redvox.api1000.common.typing
 import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-import redvox.api1000.wrapped_redvox_packet.common as common
+import redvox.api1000.common.common as common
+import redvox.api1000.common.generic
 import redvox.api1000.wrapped_redvox_packet.packet_information as _packet_information
 import redvox.api1000.wrapped_redvox_packet.sensors.sensors as _sensors
 import redvox.api1000.wrapped_redvox_packet.server_information as _server_information
@@ -17,7 +20,8 @@ import redvox.api1000.wrapped_redvox_packet.timing_information as _timing_inform
 import redvox.api1000.wrapped_redvox_packet.user_information as _user_information
 
 
-class WrappedRedvoxPacketM(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM]):
+class WrappedRedvoxPacketM(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM]):
     def __init__(self, redvox_proto: redvox_api_m_pb2.RedvoxPacketM):
         super().__init__(redvox_proto)
 
@@ -53,8 +57,8 @@ class WrappedRedvoxPacketM(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM]):
         :param data: The compressed bytes to deserialize.
         :return: An instance of a WrappedRedvoxPacketAPi1000.
         """
-        common.check_type(data, [bytes])
-        uncompressed_data: bytes = common.lz4_decompress(data)
+        redvox.api1000.common.typing.check_type(data, [bytes])
+        uncompressed_data: bytes = redvox.api1000.common.lz4.decompress(data)
         proto: redvox_api_m_pb2.RedvoxPacketM = redvox_api_m_pb2.RedvoxPacketM()
         proto.ParseFromString(uncompressed_data)
         return WrappedRedvoxPacketM(proto)
@@ -66,7 +70,7 @@ class WrappedRedvoxPacketM(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM]):
         :param rdvxm_path: Path to the API M encoded file.
         :return: An instance of a WrappedRedvoxPacketApi1000.
         """
-        common.check_type(rdvxm_path, [str])
+        redvox.api1000.common.typing.check_type(rdvxm_path, [str])
 
         if not os.path.isfile(rdvxm_path):
             raise errors.WrappedRedvoxPacketMError(f"Path to file={rdvxm_path} does not exist.")
@@ -147,7 +151,7 @@ class WrappedRedvoxPacketM(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM]):
         return self._proto.api
 
     def set_api(self, api: float) -> 'WrappedRedvoxPacketM':
-        common.check_type(api, [int, float])
+        redvox.api1000.common.typing.check_type(api, [int, float])
         self._proto.api = api
         return self
 

@@ -1,9 +1,12 @@
 import enum
 
+import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-import redvox.api1000.wrapped_redvox_packet.common as common
+import redvox.api1000.common.common as common
 
 from typing import List
+
+import redvox.api1000.common.generic
 
 
 class LocationProvider(enum.Enum):
@@ -13,7 +16,8 @@ class LocationProvider(enum.Enum):
     NETWORK: int = 3
 
 
-class Location(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Location]):
+class Location(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Location]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Location):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
@@ -35,7 +39,7 @@ class Location(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Location]
         return self._proto.sensor_description
 
     def set_sensor_description(self, sensor_description: str) -> 'Location':
-        common.check_type(sensor_description, [str])
+        redvox.api1000.common.typing.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self
 
@@ -73,7 +77,7 @@ class Location(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Location]
         return self._proto.location_permissions_granted
 
     def set_location_permissions_granted(self, location_permissions_granted: bool) -> 'Location':
-        common.check_type(location_permissions_granted, [bool])
+        redvox.api1000.common.typing.check_type(location_permissions_granted, [bool])
         self._proto.location_permissions_granted = location_permissions_granted
         return self
 
@@ -81,7 +85,7 @@ class Location(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Location]
         return self._proto.location_services_requested
 
     def set_location_services_requested(self, location_services_requested: bool) -> 'Location':
-        common.check_type(location_services_requested, [bool])
+        redvox.api1000.common.typing.check_type(location_services_requested, [bool])
         self._proto.location_services_requested = location_services_requested
         return self
 
@@ -89,7 +93,7 @@ class Location(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Location]
         return self._proto.location_services_enabled
 
     def set_location_services_enabled(self, location_services_enabled: bool) -> 'Location':
-        common.check_type(location_services_enabled, [bool])
+        redvox.api1000.common.typing.check_type(location_services_enabled, [bool])
         self._proto.location_services_enabled = location_services_enabled
         return self
 
@@ -97,7 +101,7 @@ class Location(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Location]
         return LocationProvider(self._proto.location_provider)
 
     def set_location_provider(self, location_provider: LocationProvider) -> 'Location':
-        common.check_type(location_provider, [LocationProvider])
+        redvox.api1000.common.typing.check_type(location_provider, [LocationProvider])
         self._proto.location_provider = redvox_api_m_pb2.RedvoxPacketM.Sensors.Location \
             .LocationProvider.Value(location_provider.name)
         return self

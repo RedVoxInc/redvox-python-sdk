@@ -1,18 +1,18 @@
 """
-Provides common classes and methods for interacting with API 1000 protobuf data.
+Provides common classes and methods for interacting with various API 1000 protobuf data.
 """
 
 import enum
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Tuple, Union, Optional
+from typing import List, Tuple, Union, Optional
 
-from google.protobuf.json_format import MessageToDict, MessageToJson
-import lz4.frame
 import numpy as np
 import scipy.stats
 
 import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_1000_pb2
 import redvox.common.date_time_utils as dt_utils
+from redvox.api1000.common.generic import ProtoBase
+from redvox.api1000.common.typing import check_type
 
 NAN: float = float("NaN")
 
@@ -20,6 +20,9 @@ EMPTY_ARRAY: np.ndarray = np.array([])
 
 
 class Unit(enum.Enum):
+    """
+    Standard units expected to be used within API M.
+    """
     METERS_PER_SECOND_SQUARED = 0
     KILOPASCAL = 1
     RADIANS_PER_SECOND = 2
@@ -41,31 +44,19 @@ class Unit(enum.Enum):
 
     @staticmethod
     def from_proto(unit: redvox_api_1000_pb2.RedvoxPacketM.Unit) -> 'Unit':
+        """
+        Convert's the protobuf unit into a common.Unit.
+        :param unit: Protobuf unit enumeration to convert.
+        :return: An instance of Unit.
+        """
         return Unit(unit)
 
     def into_proto(self) -> redvox_api_1000_pb2.RedvoxPacketM.Unit:
+        """
+        Converts this instance of common.Unit into the protobuf equivelent.
+        :return:
+        """
         return redvox_api_1000_pb2.RedvoxPacketM.Unit.Value(self.name)
-
-
-def check_type(value: Any,
-               valid_types: List[Any],
-               exception: Optional[Callable[[str], errors.ApiMError]] = None,
-               additional_info: Optional[str] = None) -> None:
-    for valid_type in valid_types:
-        if isinstance(value, valid_type):
-            return None
-
-    type_names: List[str] = list(map(lambda valid_type: f"'{valid_type.__name__}'", valid_types))
-    message: str = f"Expected type(s) {' or '.join(type_names)}," \
-                   f" but found '{type(value).__name__}'."
-
-    if additional_info is not None:
-        message += f" ({additional_info})"
-
-    if exception is not None:
-        raise exception(message)
-    else:
-        raise errors.ApiMTypeError(message)
 
 
 def none_or_empty(value: Optional[Union[List, str, np.ndarray]]) -> bool:
@@ -75,104 +66,14 @@ def none_or_empty(value: Optional[Union[List, str, np.ndarray]]) -> bool:
     return len(value) == 0
 
 
-def is_protobuf_numerical_type(value: Any) -> bool:
-    return isinstance(value, int) or isinstance(value, float)
-
-
-def is_protobuf_repeated_numerical_type(values: Any) -> bool:
-    if not isinstance(values, np.ndarray):
-        return False
-
-    if len(values) == 0:
-        return True
-
-    value = values.flat[0]
-    return isinstance(value, np.floating) or isinstance(value, np.integer)
-
-
-def lz4_compress(data: bytes) -> bytes:
-    return lz4.frame.compress(data, compression_level=16, return_bytearray=True)
-
-
-def lz4_decompress(data: bytes) -> bytes:
-    return lz4.frame.decompress(data, True)
-
-
-class Metadata:
-    def __init__(self, metadata_proto):
-        self._metadata_proto = metadata_proto
-
-    def get_metadata_count(self) -> int:
-        return len(self._metadata_proto)
-
-    def get_metadata(self) -> Dict[str, str]:
-        metadata_dict: Dict[str, str] = dict()
-        for key, value in self._metadata_proto.items():
-            metadata_dict[key] = value
-        return metadata_dict
-
-    def set_metadata(self, metadata: Dict[str, str]) -> 'Metadata':
-        for key, value in metadata.items():
-            check_type(key, [str])
-            check_type(value, [str])
-
-        self._metadata_proto.clear()
-        for key, value in metadata.items():
-            self._metadata_proto[key] = value
-
-        return self
-
-    def append_metadata(self, key: str, value: str) -> 'Metadata':
-        check_type(key, [str])
-        check_type(value, [str])
-
-        self._metadata_proto[key] = value
-        return self
-
-    def clear_metadata(self) -> 'Metadata':
-        self._metadata_proto.clear()
-        return self
-
-
-T = TypeVar('T')
-P = TypeVar('P')
-
-
-class ProtoBase(Generic[P]):
-    def __init__(self, proto: P):
-        self._proto: P = proto
-        self._metadata: Metadata = Metadata(self._proto.metadata)
-
-    def get_proto(self) -> P:
-        return self._proto
-
-    def get_metadata(self) -> Metadata:
-        return self._metadata
-
-    def as_json(self) -> str:
-        return MessageToJson(self._proto, True)
-
-    def as_dict(self) -> Dict:
-        return MessageToDict(self._proto, True)
-
-    def as_bytes(self) -> bytes:
-        return self._proto.SerializeToString()
-
-    def as_compressed_bytes(self) -> bytes:
-        data: bytes = self.as_bytes()
-        return lz4_compress(data)
-
-    def __str__(self):
-        return self.as_json()
-
-
 class SummaryStatistics(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics]):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics):
         super().__init__(proto)
 
     @staticmethod
     def new() -> 'SummaryStatistics':
-        proto: redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics = redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics()
+        proto: redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics = \
+            redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics()
         return SummaryStatistics(proto)
 
     def get_count(self) -> float:
@@ -258,7 +159,9 @@ class SummaryStatistics(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SummaryStati
         self._proto.median = np.median(values)
         self._proto.mode = scipy.stats.mode(values)[0]
         self._proto.variance = values.var()
+        # noinspection PyArgumentList
         self._proto.min = values.min()
+        # noinspection PyArgumentList
         self._proto.max = values.max()
         self._proto.range = self._proto.max - self._proto.min
         return self
@@ -343,37 +246,6 @@ def validate_sample_payload(sample_payload: SamplePayload, payload_name: Optiona
     if sample_payload.get_values_count() < 1:
         errors_list.append(f"{payload_name if payload_name else 'Sample'} payload values are missing")
     return errors_list
-
-
-class ProtoRepeatedMessage(Generic[P, T]):
-    def __init__(self,
-                 parent_proto,
-                 repeated_field_proto,
-                 repeated_field_name: str,
-                 from_proto: Callable[[P], T],
-                 to_proto: Callable[[T], P]):
-        self._parent_proto = parent_proto
-        self._repeated_field_proto = repeated_field_proto
-        self._repeated_field_name = repeated_field_name
-        self._from_proto: Callable[[P], T] = from_proto
-        self._to_proto: Callable[[T], P] = to_proto
-
-    def get_count(self) -> int:
-        return len(self._repeated_field_proto)
-
-    def get_values(self) -> List[T]:
-        return list(map(self._from_proto, self._repeated_field_proto))
-
-    def set_values(self, values: List[T]) -> 'ProtoRepeatedMessage[P, T]':
-        return self.clear_values().append_values(values)
-
-    def append_values(self, values: List[T]) -> 'ProtoRepeatedMessage[P, T]':
-        self._repeated_field_proto.extend(list(map(self._to_proto, values)))
-        return self
-
-    def clear_values(self) -> 'ProtoRepeatedMessage[P, T]':
-        self._parent_proto.ClearField(self._repeated_field_name)
-        return self
 
 
 def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:

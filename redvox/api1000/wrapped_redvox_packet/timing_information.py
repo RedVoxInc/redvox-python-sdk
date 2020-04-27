@@ -1,14 +1,17 @@
 import enum
 from typing import List
 
+import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-import redvox.api1000.wrapped_redvox_packet.common as common
+import redvox.api1000.common.common as common
+import redvox.api1000.common.generic
 
 _SYNCH_EXCHANGES_FIELD_NAME: str = "synch_exchanges"
 SynchExchangeProto = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange
 
 
-class SynchExchange(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange]):
+class SynchExchange(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange):
         super().__init__(proto)
 
@@ -25,7 +28,7 @@ class SynchExchange(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInform
         return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
     def set_unit(self, unit: common.Unit) -> 'SynchExchange':
-        common.check_type(unit, [common.Unit])
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
         self._proto.unit = unit.into_proto()
         return self
 
@@ -33,7 +36,7 @@ class SynchExchange(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInform
         return self._proto.a1
 
     def set_a1(self, a1: float) -> 'SynchExchange':
-        common.check_type(a1, [int, float])
+        redvox.api1000.common.typing.check_type(a1, [int, float])
         self._proto.a1 = a1
         return self
 
@@ -41,7 +44,7 @@ class SynchExchange(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInform
         return self._proto.a2
 
     def set_a2(self, a2: float) -> 'SynchExchange':
-        common.check_type(a2, [int, float])
+        redvox.api1000.common.typing.check_type(a2, [int, float])
         self._proto.a2 = a2
         return self
 
@@ -49,7 +52,7 @@ class SynchExchange(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInform
         return self._proto.a3
 
     def set_a3(self, a3: float) -> 'SynchExchange':
-        common.check_type(a3, [int, float])
+        redvox.api1000.common.typing.check_type(a3, [int, float])
         self._proto.a3 = a3
         return self
 
@@ -57,7 +60,7 @@ class SynchExchange(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInform
         return self._proto.b1
 
     def set_b1(self, b1: float) -> 'SynchExchange':
-        common.check_type(b1, [int, float])
+        redvox.api1000.common.typing.check_type(b1, [int, float])
         self._proto.b1 = b1
         return self
 
@@ -65,7 +68,7 @@ class SynchExchange(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInform
         return self._proto.b2
 
     def set_b2(self, b2: float) -> 'SynchExchange':
-        common.check_type(b2, [int, float])
+        redvox.api1000.common.typing.check_type(b2, [int, float])
         self._proto.b2 = b2
         return self
 
@@ -73,7 +76,7 @@ class SynchExchange(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInform
         return self._proto.b3
 
     def set_b3(self, b3: float) -> 'SynchExchange':
-        common.check_type(b3, [int, float])
+        redvox.api1000.common.typing.check_type(b3, [int, float])
         self._proto.b3 = b3
         return self
 
@@ -118,11 +121,12 @@ class TimingScoreMethod(enum.Enum):
         return redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(self.name)
 
 
-class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation]):
+class TimingInformation(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation):
         super().__init__(proto)
-        self._synch_exchanges: common.ProtoRepeatedMessage[SynchExchangeProto, SynchExchange] = \
-            common.ProtoRepeatedMessage(
+        self._synch_exchanges: redvox.api1000.common.generic.ProtoRepeatedMessage[SynchExchangeProto, SynchExchange] = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
                 proto,
                 proto.synch_exchanges,
                 _SYNCH_EXCHANGES_FIELD_NAME,
@@ -141,7 +145,7 @@ class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingIn
         return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
     def set_unit(self, unit: common.Unit) -> 'TimingInformation':
-        common.check_type(unit, [common.Unit])
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
         self._proto.unit = unit.into_proto()
         return self
 
@@ -149,7 +153,7 @@ class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingIn
         return self._proto.packet_start_os_timestamp
 
     def set_packet_start_os_timestamp(self, packet_start_os_timestamp) -> 'TimingInformation':
-        common.check_type(packet_start_os_timestamp, [int, float])
+        redvox.api1000.common.typing.check_type(packet_start_os_timestamp, [int, float])
         self._proto.packet_start_os_timestamp = packet_start_os_timestamp
         return self
 
@@ -157,7 +161,7 @@ class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingIn
         return self._proto.packet_start_mach_timestamp
 
     def set_packet_start_mach_timestamp(self, packet_start_mach_timestamp: float) -> 'TimingInformation':
-        common.check_type(packet_start_mach_timestamp, [int, float])
+        redvox.api1000.common.typing.check_type(packet_start_mach_timestamp, [int, float])
         self._proto.packet_start_mach_timestamp = packet_start_mach_timestamp
         return self
 
@@ -165,7 +169,7 @@ class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingIn
         return self._proto.packet_end_os_timestamp
 
     def set_packet_end_os_timestamp(self, packet_end_os_timestamp: float) -> 'TimingInformation':
-        common.check_type(packet_end_os_timestamp, [int, float])
+        redvox.api1000.common.typing.check_type(packet_end_os_timestamp, [int, float])
         self._proto.packet_end_os_timestamp = packet_end_os_timestamp
         return self
 
@@ -173,7 +177,7 @@ class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingIn
         return self._proto.packet_end_mach_timestamp
 
     def set_packet_end_mach_timestamp(self, packet_end_mach_timestamp: float) -> 'TimingInformation':
-        common.check_type(packet_end_mach_timestamp, [int, float])
+        redvox.api1000.common.typing.check_type(packet_end_mach_timestamp, [int, float])
         self._proto.packet_end_mach_timestamp = packet_end_mach_timestamp
         return self
 
@@ -182,7 +186,7 @@ class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingIn
 
     def set_server_acquisition_arrival_timestamp(self,
                                                  server_acquisition_arrival_timestamp: float) -> 'TimingInformation':
-        common.check_type(server_acquisition_arrival_timestamp, [int, float])
+        redvox.api1000.common.typing.check_type(server_acquisition_arrival_timestamp, [int, float])
         self._proto.server_acquisition_arrival_timestamp = server_acquisition_arrival_timestamp
         return self
 
@@ -190,18 +194,18 @@ class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingIn
         return self._proto.app_start_mach_timestamp
 
     def set_app_start_mach_timestamp(self, app_start_mach_timestamp: float) -> 'TimingInformation':
-        common.check_type(app_start_mach_timestamp, [int, float])
+        redvox.api1000.common.typing.check_type(app_start_mach_timestamp, [int, float])
         self._proto.app_start_mach_timestamp = app_start_mach_timestamp
         return self
 
-    def get_synch_exchanges(self) -> common.ProtoRepeatedMessage:
+    def get_synch_exchanges(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
         return self._synch_exchanges
 
     def get_best_latency(self) -> float:
         return self._proto.best_latency
 
     def set_best_latency(self, best_latency: float) -> 'TimingInformation':
-        common.check_type(best_latency, [int, float])
+        redvox.api1000.common.typing.check_type(best_latency, [int, float])
         self._proto.best_latency = best_latency
         return self
 
@@ -209,7 +213,7 @@ class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingIn
         return self._proto.best_offset
 
     def set_best_offset(self, best_offset: float) -> 'TimingInformation':
-        common.check_type(best_offset, [int, float])
+        redvox.api1000.common.typing.check_type(best_offset, [int, float])
         self._proto.best_offset = best_offset
         return self
 
@@ -217,7 +221,7 @@ class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingIn
         return self._proto.score
 
     def set_score(self, score: float) -> 'TimingInformation':
-        common.check_type(score, [float])
+        redvox.api1000.common.typing.check_type(score, [float])
         self._proto.score = score
         return self
 
@@ -225,7 +229,7 @@ class TimingInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingIn
         return TimingScoreMethod(self._proto.score_method)
 
     def set_score_method(self, score_method: TimingScoreMethod) -> 'TimingInformation':
-        common.check_type(score_method, [TimingScoreMethod])
+        redvox.api1000.common.typing.check_type(score_method, [TimingScoreMethod])
         self._proto.os = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
         return self
 

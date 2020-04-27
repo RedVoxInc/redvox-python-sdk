@@ -1,10 +1,14 @@
+import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-import redvox.api1000.wrapped_redvox_packet.common as common
+import redvox.api1000.common.common as common
 
 from typing import List
 
+import redvox.api1000.common.generic
 
-class UserInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.UserInformation]):
+
+class UserInformation(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.UserInformation]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.UserInformation):
         super().__init__(proto)
 
@@ -16,7 +20,7 @@ class UserInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.UserInform
         return self._proto.auth_email
 
     def set_auth_email(self, auth_email: str) -> 'UserInformation':
-        common.check_type(auth_email, [str])
+        redvox.api1000.common.typing.check_type(auth_email, [str])
         self._proto.auth_email = auth_email
         return self
 
@@ -24,7 +28,7 @@ class UserInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.UserInform
         return self._proto.auth_token
 
     def set_auth_token(self, auth_token: str) -> 'UserInformation':
-        common.check_type(auth_token, [str])
+        redvox.api1000.common.typing.check_type(auth_token, [str])
         self._proto.auth_token = auth_token
         return self
 
@@ -32,7 +36,7 @@ class UserInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.UserInform
         return self._proto.firebase_token
 
     def set_firebase_token(self, firebase_token: str) -> 'UserInformation':
-        common.check_type(firebase_token, [str])
+        redvox.api1000.common.typing.check_type(firebase_token, [str])
         self._proto.firebase_token = firebase_token
         return self
 

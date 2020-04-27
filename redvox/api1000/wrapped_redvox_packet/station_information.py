@@ -1,8 +1,10 @@
 import enum
 from typing import List, Optional
 
+import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-import redvox.api1000.wrapped_redvox_packet.common as common
+import redvox.api1000.common.common as common
+import redvox.api1000.common.generic
 
 _NETWORK_TYPE_FIELD_NAME: str = "network_type"
 _CELL_SERVICE_STATE_FIELD_NAME: str = "cell_service_state"
@@ -98,11 +100,12 @@ class FftOverlap(enum.Enum):
         return redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap.Value(self.name)
 
 
-class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
+class AppSettings(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings):
         super().__init__(proto)
-        self._additional_input_sensors: common.ProtoRepeatedMessage[InputSensorProto, InputSensor] =\
-            common.ProtoRepeatedMessage(
+        self._additional_input_sensors: redvox.api1000.common.generic.ProtoRepeatedMessage[InputSensorProto, InputSensor] =\
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
             proto,
             proto.additional_input_sensors,
             _ADDITIONAL_INPUT_SENSORS_FIELD_NAME,
@@ -118,7 +121,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return AudioSamplingRate(self.get_proto().audio_sampling_rate)
 
     def set_audio_sampling_rate(self, audio_sampling_rate: AudioSamplingRate) -> 'AppSettings':
-        common.check_type(audio_sampling_rate, [AudioSamplingRate])
+        redvox.api1000.common.typing.check_type(audio_sampling_rate, [AudioSamplingRate])
 
         self.get_proto().audio_sampling_rate = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
             audio_sampling_rate.name)
@@ -128,20 +131,20 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return AudioSourceTuning(self.get_proto().audio_source_tuning)
 
     def set_audio_source_tuning(self, audio_source_tuning: AudioSourceTuning) -> 'AppSettings':
-        common.check_type(audio_source_tuning, [AudioSourceTuning])
+        redvox.api1000.common.typing.check_type(audio_source_tuning, [AudioSourceTuning])
 
         self.get_proto().audio_source_tuning = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
             audio_source_tuning.name)
         return self
 
-    def get_additional_input_sensors(self) -> common.ProtoRepeatedMessage:
+    def get_additional_input_sensors(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
         return self._additional_input_sensors
 
     def get_fft_overlap(self) -> FftOverlap:
         return FftOverlap(self.get_proto().fft_overlap)
 
     def set_fft_overlap(self, fft_overlap: FftOverlap) -> 'AppSettings':
-        common.check_type(fft_overlap, [FftOverlap])
+        redvox.api1000.common.typing.check_type(fft_overlap, [FftOverlap])
 
         self.get_proto().fft_overlap = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap.Value(
             fft_overlap.name)
@@ -151,7 +154,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().automatically_record
 
     def set_automatically_record(self, automatically_record: bool) -> 'AppSettings':
-        common.check_type(automatically_record, [bool])
+        redvox.api1000.common.typing.check_type(automatically_record, [bool])
         self.get_proto().automatically_record = automatically_record
         return self
 
@@ -159,7 +162,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().launch_at_power_up
 
     def set_launch_at_power_up(self, launch_at_power_up: bool) -> 'AppSettings':
-        common.check_type(launch_at_power_up, [bool])
+        redvox.api1000.common.typing.check_type(launch_at_power_up, [bool])
         self.get_proto().launch_at_power_up = launch_at_power_up
         return self
 
@@ -167,7 +170,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().station_id
 
     def set_station_id(self, station_id: str) -> 'AppSettings':
-        common.check_type(station_id, [str])
+        redvox.api1000.common.typing.check_type(station_id, [str])
         self.get_proto().station_id = station_id
         return self
 
@@ -175,7 +178,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().push_to_server
 
     def set_push_to_server(self, push_to_server: bool) -> 'AppSettings':
-        common.check_type(push_to_server, [bool])
+        redvox.api1000.common.typing.check_type(push_to_server, [bool])
         self.get_proto().push_to_server = push_to_server
         return self
 
@@ -183,7 +186,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().publish_data_as_private
 
     def set_publish_data_as_private(self, publish_data_as_private: bool) -> 'AppSettings':
-        common.check_type(publish_data_as_private, [bool])
+        redvox.api1000.common.typing.check_type(publish_data_as_private, [bool])
         self.get_proto().publish_data_as_private = publish_data_as_private
         return self
 
@@ -191,7 +194,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().scramble_audio_data
 
     def set_scramble_audio_data(self, scramble_audio_data: bool) -> 'AppSettings':
-        common.check_type(scramble_audio_data, [bool])
+        redvox.api1000.common.typing.check_type(scramble_audio_data, [bool])
         self.get_proto().scramble_audio_data = scramble_audio_data
         return self
 
@@ -199,7 +202,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().provide_backfill
 
     def set_provide_backfill(self, provide_backfill: bool) -> 'AppSettings':
-        common.check_type(provide_backfill, [bool])
+        redvox.api1000.common.typing.check_type(provide_backfill, [bool])
         self.get_proto().provide_backfill = provide_backfill
         return self
 
@@ -207,7 +210,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().remove_sensor_dc_offset
 
     def set_remove_sensor_dc_offset(self, remove_sensor_dc_offset: bool) -> 'AppSettings':
-        common.check_type(remove_sensor_dc_offset, [bool])
+        redvox.api1000.common.typing.check_type(remove_sensor_dc_offset, [bool])
         self.get_proto().remove_sensor_dc_offset = remove_sensor_dc_offset
         return self
 
@@ -215,7 +218,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().use_custom_time_sync_server
 
     def set_use_custom_time_sync_server(self, use_custom_time_sync_server: bool) -> 'AppSettings':
-        common.check_type(use_custom_time_sync_server, [bool])
+        redvox.api1000.common.typing.check_type(use_custom_time_sync_server, [bool])
         self.get_proto().use_custom_time_sync_server = use_custom_time_sync_server
         return self
 
@@ -223,7 +226,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().time_sync_server_url
 
     def set_time_sync_server_url(self, time_sync_server_url: str) -> 'AppSettings':
-        common.check_type(time_sync_server_url, [str])
+        redvox.api1000.common.typing.check_type(time_sync_server_url, [str])
         self.get_proto().time_sync_server_url = time_sync_server_url
         return self
 
@@ -231,7 +234,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().use_custom_data_server
 
     def set_use_custom_data_server(self, use_custom_data_server: bool) -> 'AppSettings':
-        common.check_type(use_custom_data_server, [bool])
+        redvox.api1000.common.typing.check_type(use_custom_data_server, [bool])
         self.get_proto().use_custom_data_server = use_custom_data_server
         return self
 
@@ -239,7 +242,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().data_server_url
 
     def set_data_server_url(self, data_server_url: str) -> 'AppSettings':
-        common.check_type(data_server_url, [str])
+        redvox.api1000.common.typing.check_type(data_server_url, [str])
         self.get_proto().data_server_url = data_server_url
         return self
 
@@ -247,7 +250,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().auto_delete_data_files
 
     def set_auto_delete_data_files(self, auto_delete_data_files: bool) -> 'AppSettings':
-        common.check_type(auto_delete_data_files, [bool])
+        redvox.api1000.common.typing.check_type(auto_delete_data_files, [bool])
         self.get_proto().auto_delete_data_files = auto_delete_data_files
         return self
 
@@ -255,7 +258,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().storage_space_allowance
 
     def set_storage_space_allowance(self, storage_space_allowance: float) -> 'AppSettings':
-        common.check_type(storage_space_allowance, [int, float])
+        redvox.api1000.common.typing.check_type(storage_space_allowance, [int, float])
 
         self.get_proto().storage_space_allowance = storage_space_allowance
         return self
@@ -264,7 +267,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().use_sd_card_for_data_storage
 
     def set_use_sd_card_for_data_storage(self, use_sd_card_for_data_storage: bool) -> 'AppSettings':
-        common.check_type(use_sd_card_for_data_storage, [bool])
+        redvox.api1000.common.typing.check_type(use_sd_card_for_data_storage, [bool])
         self.get_proto().use_sd_card_for_data_storage = use_sd_card_for_data_storage
         return self
 
@@ -272,7 +275,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().use_location_services
 
     def set_use_location_services(self, use_location_services: bool) -> 'AppSettings':
-        common.check_type(use_location_services, [bool])
+        redvox.api1000.common.typing.check_type(use_location_services, [bool])
         self.get_proto().use_location_services = use_location_services
         return self
 
@@ -280,7 +283,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().use_latitude
 
     def set_use_latitude(self, use_latitude: float) -> 'AppSettings':
-        common.check_type(use_latitude, [int, float])
+        redvox.api1000.common.typing.check_type(use_latitude, [int, float])
 
         self.get_proto().use_latitude = use_latitude
         return self
@@ -289,7 +292,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().use_longitude
 
     def set_use_longitude(self, use_longitude: float) -> 'AppSettings':
-        common.check_type(use_longitude, [int, float])
+        redvox.api1000.common.typing.check_type(use_longitude, [int, float])
 
         self.get_proto().use_longitude = use_longitude
         return self
@@ -298,7 +301,7 @@ class AppSettings(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInforma
         return self.get_proto().use_altitude
 
     def set_use_altitude(self, use_altitude: float) -> 'AppSettings':
-        common.check_type(use_altitude, [int, float])
+        redvox.api1000.common.typing.check_type(use_altitude, [int, float])
 
         self.get_proto().use_altitude = use_altitude
         return self
@@ -375,18 +378,19 @@ class PowerState(enum.Enum):
         return redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState.Value(self.name)
 
 
-class StationMetrics(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics]):
+class StationMetrics(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics]):
     def __init__(self, station_metrics_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics):
         super().__init__(station_metrics_proto)
         self._timestamps = common.TimingPayload(station_metrics_proto.timestamps).set_default_unit()
-        self._network_type: common.ProtoRepeatedMessage = common.ProtoRepeatedMessage(
+        self._network_type: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
             station_metrics_proto,
             station_metrics_proto.network_type,
             _NETWORK_TYPE_FIELD_NAME,
             NetworkType.from_proto,
             NetworkType.into_proto
         )
-        self._cell_service_state: common.ProtoRepeatedMessage = common.ProtoRepeatedMessage(
+        self._cell_service_state: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
             station_metrics_proto,
             station_metrics_proto.cell_service_state,
             _CELL_SERVICE_STATE_FIELD_NAME,
@@ -407,7 +411,7 @@ class StationMetrics(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInfo
             .set_unit(common.Unit.BYTE)
         self._cpu_utilization: common.SamplePayload = common.SamplePayload(station_metrics_proto.cpu_utilization)\
             .set_unit(common.Unit.PERCENTAGE)
-        self._power_state: common.ProtoRepeatedMessage = common.ProtoRepeatedMessage(
+        self._power_state: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
             station_metrics_proto,
             station_metrics_proto.power_state,
             _POWER_STATE_FIELD_NAME,
@@ -422,10 +426,10 @@ class StationMetrics(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInfo
     def get_timestamps(self) -> common.TimingPayload:
         return self._timestamps
 
-    def get_network_type(self) -> common.ProtoRepeatedMessage:
+    def get_network_type(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
         return self._network_type
 
-    def get_cell_service_state(self) -> common.ProtoRepeatedMessage:
+    def get_cell_service_state(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
         return self._cell_service_state
 
     def get_network_strength(self) -> common.SamplePayload:
@@ -452,11 +456,11 @@ class StationMetrics(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInfo
     def get_wifi_wake_loc(self) -> WifiWakeLock:
         return WifiWakeLock(self.get_proto().wifi_wake_lock)
 
-    def get_power_state(self) -> common.ProtoRepeatedMessage:
+    def get_power_state(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
         return self._power_state
 
     def set_wifi_wake_loc(self, wifi_wake_loc: WifiWakeLock) -> 'StationMetrics':
-        common.check_type(wifi_wake_loc, [WifiWakeLock])
+        redvox.api1000.common.typing.check_type(wifi_wake_loc, [WifiWakeLock])
         self.get_proto().wifi_wake_loc = redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock.Value(
             wifi_wake_loc.name)
         return self
@@ -483,7 +487,8 @@ class OsType(enum.Enum):
         return redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType.Value(self.name)
 
 
-class StationInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation]):
+class StationInformation(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation]):
     def __init__(self, station_information_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation):
         super().__init__(station_information_proto)
         self._app_settings: AppSettings = AppSettings(station_information_proto.app_settings)
@@ -497,7 +502,7 @@ class StationInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Station
         return self.get_proto().id
 
     def set_id(self, _id: str) -> 'StationInformation':
-        common.check_type(_id, [str])
+        redvox.api1000.common.typing.check_type(_id, [str])
         self.get_proto().id = _id
         return self
 
@@ -505,7 +510,7 @@ class StationInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Station
         return self.get_proto().uuid
 
     def set_uuid(self, uuid: str) -> 'StationInformation':
-        common.check_type(uuid, [str])
+        redvox.api1000.common.typing.check_type(uuid, [str])
         self.get_proto().uuid = uuid
         return self
 
@@ -513,7 +518,7 @@ class StationInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Station
         return self.get_proto().make
 
     def set_make(self, make: str) -> 'StationInformation':
-        common.check_type(make, [str])
+        redvox.api1000.common.typing.check_type(make, [str])
         self.get_proto().make = make
         return self
 
@@ -521,7 +526,7 @@ class StationInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Station
         return self.get_proto().model
 
     def set_model(self, model: str) -> 'StationInformation':
-        common.check_type(model, [str])
+        redvox.api1000.common.typing.check_type(model, [str])
         self.get_proto().model = model
         return self
 
@@ -529,7 +534,7 @@ class StationInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Station
         return OsType(self.get_proto().os)
 
     def set_os(self, os: OsType) -> 'StationInformation':
-        common.check_type(os, [OsType])
+        redvox.api1000.common.typing.check_type(os, [OsType])
         self.get_proto().os = redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType.Value(os.name)
         return self
 
@@ -537,7 +542,7 @@ class StationInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Station
         return self.get_proto().os_version
 
     def set_os_version(self, os_version: str) -> 'StationInformation':
-        common.check_type(os_version, [str])
+        redvox.api1000.common.typing.check_type(os_version, [str])
         self.get_proto().os_version = os_version
         return self
 
@@ -545,7 +550,7 @@ class StationInformation(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Station
         return self.get_proto().app_version
 
     def set_app_version(self, app_version: str) -> 'StationInformation':
-        common.check_type(app_version, [str])
+        redvox.api1000.common.typing.check_type(app_version, [str])
         self.get_proto().app_version = app_version
         return self
 

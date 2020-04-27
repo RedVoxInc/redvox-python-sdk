@@ -4,7 +4,7 @@ from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPac
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType, StationInformation, StationMetrics
 from redvox.api1000.wrapped_redvox_packet.timing_information import SynchExchange
 from redvox.api1000.wrapped_redvox_packet.sensors.sensors import Sensors
-import redvox.api1000.wrapped_redvox_packet.common as common_m
+import redvox.api1000.common.common as common_m
 import redvox.common.date_time_utils as dt_utls
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 import redvox.api900.reader as reader_900

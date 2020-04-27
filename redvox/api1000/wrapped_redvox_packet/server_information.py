@@ -1,10 +1,14 @@
-import redvox.api1000.wrapped_redvox_packet.common as common
+import redvox.api1000.common.common as common
+import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_1000_pb2
 
 from typing import List
 
+import redvox.api1000.common.generic
 
-class ServerInformation(common.ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.ServerInformation]):
+
+class ServerInformation(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.ServerInformation]):
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.ServerInformation):
         super().__init__(proto)
 
@@ -16,7 +20,7 @@ class ServerInformation(common.ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.Serve
         return self._proto.auth_server_url
 
     def set_auth_server_url(self, auth_server_url: str) -> 'ServerInformation':
-        common.check_type(auth_server_url, [str])
+        redvox.api1000.common.typing.check_type(auth_server_url, [str])
         self._proto.auth_server_url = auth_server_url
         return self
 
@@ -24,7 +28,7 @@ class ServerInformation(common.ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.Serve
         return self._proto.synch_server_url
 
     def set_synch_server_url(self, synch_server_url: str) -> 'ServerInformation':
-        common.check_type(synch_server_url, [str])
+        redvox.api1000.common.typing.check_type(synch_server_url, [str])
         self._proto.synch_server_url = synch_server_url
         return self
 
@@ -32,7 +36,7 @@ class ServerInformation(common.ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.Serve
         return self._proto.acquisition_server_url
 
     def set_acquisition_server_url(self, acquisition_server_url: str) -> 'ServerInformation':
-        common.check_type(acquisition_server_url, [str])
+        redvox.api1000.common.typing.check_type(acquisition_server_url, [str])
         self._proto.acquisition_server_url = acquisition_server_url
         return self
 

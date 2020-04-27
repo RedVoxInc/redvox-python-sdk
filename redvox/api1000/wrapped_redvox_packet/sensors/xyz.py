@@ -1,10 +1,13 @@
-import redvox.api1000.wrapped_redvox_packet.common as common
+import redvox.api1000.common.common as common
+import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
 from typing import List
 
+import redvox.api1000.common.generic
 
-class Xyz(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz]):
+
+class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
@@ -17,7 +20,7 @@ class Xyz(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz]):
         return Xyz(redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz())
 
     def set_unit_xyz(self, unit: common.Unit) -> 'Xyz':
-        common.check_type(unit, [common.Unit])
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
         self._x_samples.set_unit(unit)
         self._y_samples.set_unit(unit)
         self._z_samples.set_unit(unit)
@@ -27,7 +30,7 @@ class Xyz(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz]):
         return self._proto.sensor_description
 
     def set_sensor_description(self, sensor_description: str) -> 'Xyz':
-        common.check_type(sensor_description, [str])
+        redvox.api1000.common.typing.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self
 

@@ -1,5 +1,4 @@
 import unittest
-import redvox.api1000.wrapped_redvox_packet.common as common
 import redvox.api1000.wrapped_redvox_packet.sensors.image as image
 
 

@@ -24,13 +24,13 @@ class TestCli(unittest.TestCase):
             os.remove(test_file)
 
     def test_to_json_single(self):
-        os.system("python3 -m redvox.cli.cli to_json %s" % test_data("test_a.rdvxz"))
+        os.system("python3 -m redvox.cli.cli rdvxz_to_json %s" % test_data("test_a.rdvxz"))
         self.assertTrue(os.path.isfile(test_data("test_a.json")))
         self.assertEqual(reader.read_rdvxz_file(test_data("test_a.rdvxz")),
                          reader.read_json_file(test_data("test_a.json")))
 
     def test_to_json_multi(self):
-        os.system("python3 -m redvox.cli.cli to_json %s/*.rdvxz" % TEST_DATA_DIR)
+        os.system("python3 -m redvox.cli.cli rdvxz_to_json %s/*.rdvxz" % TEST_DATA_DIR)
         self.assertTrue(os.path.isfile(test_data("test_a.json")))
         self.assertTrue(os.path.isfile(test_data("test_b.json")))
         self.assertEqual(reader.read_rdvxz_file(test_data("test_a.rdvxz")),
@@ -39,13 +39,13 @@ class TestCli(unittest.TestCase):
                          reader.read_json_file(test_data("test_b.json")))
 
     def test_to_rdvxz_single(self):
-        os.system("python3 -m redvox.cli.cli to_rdvxz %s" % test_data("test_c.json"))
+        os.system("python3 -m redvox.cli.cli json_to_rdvxz %s" % test_data("test_c.json"))
         self.assertTrue(os.path.isfile(test_data("test_c.rdvxz")))
         self.assertEqual(reader.read_rdvxz_file(test_data("test_c.rdvxz")),
                          reader.read_json_file(test_data("test_c.json")))
 
     def test_to_rdvxz_multi(self):
-        os.system("python3 -m redvox.cli.cli to_rdvxz %s/*.json" % TEST_DATA_DIR)
+        os.system("python3 -m redvox.cli.cli json_to_rdvxz %s/*.json" % TEST_DATA_DIR)
         self.assertTrue(os.path.isfile(test_data("test_c.rdvxz")))
         self.assertTrue(os.path.isfile(test_data("test_d.rdvxz")))
         self.assertEqual(reader.read_rdvxz_file(test_data("test_c.rdvxz")),
@@ -54,12 +54,12 @@ class TestCli(unittest.TestCase):
                          reader.read_json_file(test_data("test_d.json")))
 
     def test_print_single(self):
-        output: str = subprocess.check_output("python3 -m redvox.cli.cli print %s" % test_data("test_a.rdvxz"),
+        output: str = subprocess.check_output("python3 -m redvox.cli.cli printz %s" % test_data("test_a.rdvxz"),
                                               shell=True).decode()
         self.assertTrue("api: 900" in output)
 
     def test_print_multi(self):
-        output: str = subprocess.check_output("python3 -m redvox.cli.cli print %s/*.rdvxz" % TEST_DATA_DIR,
+        output: str = subprocess.check_output("python3 -m redvox.cli.cli printz %s/*.rdvxz" % TEST_DATA_DIR,
                                               shell=True).decode()
         self.assertEqual(len(list(filter(lambda line: line.startswith("api: 900"),
                                     output.split("\n")))),
@@ -71,15 +71,15 @@ class TestCli(unittest.TestCase):
         self.assertTrue("usage" in output)
 
     def test_cmd_no_args(self):
-        process = subprocess.Popen("python3 -m redvox.cli.cli to_json", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+        process = subprocess.Popen("python3 -m redvox.cli.cli rdvxz_to_json", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
         output = process.communicate()[0].decode()
         self.assertTrue("usage" in output)
 
-        process = subprocess.Popen("python3 -m redvox.cli.cli to_rdvxz", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+        process = subprocess.Popen("python3 -m redvox.cli.cli json_to_rdvxz", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
         output = process.communicate()[0].decode()
         self.assertTrue("usage" in output)
 
-        process = subprocess.Popen("python3 -m redvox.cli.cli print", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+        process = subprocess.Popen("python3 -m redvox.cli.cli printz", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
         output = process.communicate()[0].decode()
         self.assertTrue("usage" in output)
 
@@ -89,18 +89,18 @@ class TestCli(unittest.TestCase):
         self.assertTrue("usage" in output)
 
     def test_bad_path(self):
-        process = subprocess.Popen("python3 -m redvox.cli.cli to_json bad", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+        process = subprocess.Popen("python3 -m redvox.cli.cli rdvxz_to_json bad", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
         output = process.communicate()[0].decode()
         self.assertTrue("Invalid path bad" in output)
 
-        process = subprocess.Popen("python3 -m redvox.cli.cli to_rdvxz bad", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+        process = subprocess.Popen("python3 -m redvox.cli.cli json_to_rdvxz bad", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
         output = process.communicate()[0].decode()
         self.assertTrue("Invalid path bad" in output)
 
-        process = subprocess.Popen("python3 -m redvox.cli.cli print bad", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+        process = subprocess.Popen("python3 -m redvox.cli.cli printz bad", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
         output = process.communicate()[0].decode()
         self.assertTrue("Invalid path bad" in output)
 
-        process = subprocess.Popen("python3 -m redvox.cli.cli to_rdvxz *.whatever", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+        process = subprocess.Popen("python3 -m redvox.cli.cli json_to_rdvxz *.whatever", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
         output = process.communicate()[0].decode()
         self.assertTrue("Invalid path *.whatever" in output)

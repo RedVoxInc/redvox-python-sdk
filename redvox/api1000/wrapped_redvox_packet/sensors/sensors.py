@@ -4,8 +4,10 @@ This module encapsulates available sensor types.
 
 from typing import Optional, List
 
-import redvox.api1000.wrapped_redvox_packet.common as common
+import redvox.api1000.common.common as common
+import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
+import redvox.api1000.common.generic
 import redvox.api1000.wrapped_redvox_packet.sensors.audio as audio
 import redvox.api1000.wrapped_redvox_packet.sensors.image as image
 import redvox.api1000.wrapped_redvox_packet.sensors.location as location
@@ -29,7 +31,7 @@ _PROXIMITY_FIELD_NAME: str = "proximity"
 _RELATIVE_HUMIDITY_FIELD_NAME: str = "relative_humidity"
 
 
-class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
+class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
     def __init__(self, sensors_proto: redvox_api_m_pb2.RedvoxPacketM.Sensors):
         super().__init__(sensors_proto)
         self._accelerometer: xyz.Xyz = xyz.Xyz(sensors_proto.accelerometer)
@@ -68,7 +70,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._accelerometer
 
     def set_accelerometer(self, accelerometer: xyz.Xyz) -> 'Sensors':
-        common.check_type(accelerometer, [xyz.Xyz])
+        redvox.api1000.common.typing.check_type(accelerometer, [xyz.Xyz])
         self.get_proto().accelerometer.CopyFrom(accelerometer.get_proto())
         return self
 
@@ -91,7 +93,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._ambient_temperature
 
     def set_ambient_temperature(self, ambient_temperature: single.Single) -> 'Sensors':
-        common.check_type(ambient_temperature, [single.Single])
+        redvox.api1000.common.typing.check_type(ambient_temperature, [single.Single])
         self.get_proto().ambient_temperature.CopyFrom(ambient_temperature.get_proto())
         return self
 
@@ -113,7 +115,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._audio
 
     def set_audio(self, _audio: audio.Audio) -> 'Sensors':
-        common.check_type(_audio, [audio.Audio])
+        redvox.api1000.common.typing.check_type(_audio, [audio.Audio])
         self.get_proto().audio.CopyFrom(_audio.get_proto())
         return self
 
@@ -134,7 +136,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._compressed_audio
 
     def set_compressed_audio(self, compressed_audio: audio.CompressedAudio) -> 'Sensors':
-        common.check_type(compressed_audio, [audio.Audio])
+        redvox.api1000.common.typing.check_type(compressed_audio, [audio.Audio])
         self.get_proto().audio.CopyFrom(compressed_audio.get_proto())
         return self
 
@@ -157,7 +159,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._gravity
 
     def set_gravity(self, gravity: xyz.Xyz) -> 'Sensors':
-        common.check_type(gravity, [xyz.Xyz])
+        redvox.api1000.common.typing.check_type(gravity, [xyz.Xyz])
         self.get_proto().gravity.CopyFrom(gravity.get_proto())
         return self
 
@@ -180,7 +182,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._gyroscope
 
     def set_gyroscope(self, gyroscope: xyz.Xyz) -> 'Sensors':
-        common.check_type(gyroscope, [xyz.Xyz])
+        redvox.api1000.common.typing.check_type(gyroscope, [xyz.Xyz])
         self.get_proto().gyroscope.CopyFrom(gyroscope.get_proto())
         return self
 
@@ -201,7 +203,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._image
 
     def set_image(self, _image: image.Image) -> 'Sensors':
-        common.check_type(_image, [image.Image])
+        redvox.api1000.common.typing.check_type(_image, [image.Image])
         self.get_proto().image.CopyFrom(_image.get_proto())
         return self
 
@@ -224,7 +226,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._light
 
     def set_light(self, light: single.Single) -> 'Sensors':
-        common.check_type(light, [single.Single])
+        redvox.api1000.common.typing.check_type(light, [single.Single])
         self.get_proto().light.CopyFrom(light.get_proto())
         return self
 
@@ -247,7 +249,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._linear_acceleration
 
     def set_linear_acceleration(self, linear_acceleration: xyz.Xyz) -> 'Sensors':
-        common.check_type(linear_acceleration, [xyz.Xyz])
+        redvox.api1000.common.typing.check_type(linear_acceleration, [xyz.Xyz])
         self.get_proto().linear_acceleration.CopyFrom(linear_acceleration.get_proto())
         return self
 
@@ -278,7 +280,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._location
 
     def set_location(self, _location: location.Location) -> 'Sensors':
-        common.check_type(_location, [location.Location])
+        redvox.api1000.common.typing.check_type(_location, [location.Location])
         self.get_proto().location.CopyFrom(_location.get_proto())
         return self
 
@@ -301,7 +303,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._magnetometer
 
     def set_magnetometer(self, magnetometer: xyz.Xyz) -> 'Sensors':
-        common.check_type(magnetometer, [xyz.Xyz])
+        redvox.api1000.common.typing.check_type(magnetometer, [xyz.Xyz])
         self.get_proto().magnetometer.CopyFrom(magnetometer.get_proto())
         return self
 
@@ -324,7 +326,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._orientation
 
     def set_orientation(self, orientation: xyz.Xyz) -> 'Sensors':
-        common.check_type(orientation, [xyz.Xyz])
+        redvox.api1000.common.typing.check_type(orientation, [xyz.Xyz])
         self.get_proto().orientation.CopyFrom(orientation.get_proto())
         return self
 
@@ -347,7 +349,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._pressure
 
     def set_pressure(self, pressure: single.Single) -> 'Sensors':
-        common.check_type(pressure, [single.Single])
+        redvox.api1000.common.typing.check_type(pressure, [single.Single])
         self.get_proto().pressure.CopyFrom(pressure.get_proto())
         return self
 
@@ -370,7 +372,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._proximity
 
     def set_proximity(self, proximity: single.Single) -> 'Sensors':
-        common.check_type(proximity, [single.Single])
+        redvox.api1000.common.typing.check_type(proximity, [single.Single])
         self.get_proto().proximity.CopyFrom(proximity.get_proto())
         return self
 
@@ -393,7 +395,7 @@ class Sensors(common.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
         return self._relative_humidity
 
     def set_relative_humidity(self, relative_humidity: single.Single) -> 'Sensors':
-        common.check_type(relative_humidity, [single.Single])
+        redvox.api1000.common.typing.check_type(relative_humidity, [single.Single])
         self.get_proto().relative_humidity.CopyFrom(relative_humidity.get_proto())
         return self
 

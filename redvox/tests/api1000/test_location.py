@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import redvox.api1000.wrapped_redvox_packet.common as common
+import redvox.api1000.common.common as common
 import redvox.api1000.wrapped_redvox_packet.sensors.location as location
 
 
