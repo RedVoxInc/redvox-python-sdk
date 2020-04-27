@@ -282,6 +282,12 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         self.example_packet.set_mach_time_zero(100)
         self.assertEqual(100, self.example_packet.mach_time_zero())
 
+    def test_mach_time_zero_incorrect_location(self):
+        self.assertEqual(None, self.example_packet.mach_time_zero())
+        self.example_packet.location_sensor().set_metadata_as_dict({"machTimeZero": "200"})
+        self.assertEqual(200, self.example_packet.mach_time_zero())
+
+
     def test_best_latency(self):
         self.assertEqual(self.example_packet.best_latency(), None)
         self.example_packet.set_best_latency(100)
@@ -562,6 +568,8 @@ class TestWrappedRedvoxPacket(unittest.TestCase):
         self.assertEqual(self.example_packet, reader.read_json_file(test_data("0000000001_1552075743960.json")))
         os.remove(test_data("test.json"))
         os.remove(test_data("0000000001_1552075743960.json"))
+
+
 
 
 
