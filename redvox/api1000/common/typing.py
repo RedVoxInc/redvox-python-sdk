@@ -1,3 +1,7 @@
+"""
+This module contains routines for type checking and inspection.
+"""
+
 from typing import Any, List, Optional, Callable, Union
 
 import numpy as np
@@ -42,6 +46,11 @@ def check_type(value: Any,
 
 
 def none_or_empty(value: Optional[Union[List, str, np.ndarray]]) -> bool:
+    """
+    Checks if the given value is None or empty.
+    :param value: The value to check.
+    :return: True if the value is None or empty, False otherwise.
+    """
     if value is None:
         return True
 

@@ -60,19 +60,35 @@ class Unit(enum.Enum):
 
 
 class SummaryStatistics(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics]):
+    """
+    Encapsulates the API M SummaryStatistics protobuf message type and provides automatic stat updates from values.
+    """
     def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics):
         super().__init__(proto)
 
     @staticmethod
     def new() -> 'SummaryStatistics':
+        """
+        Returns a new SummaryStatistics instance backed by a default SummaryStatistics protobuf message.
+        :return: A new SummaryStatistics instance backed by a default SummaryStatistics protobuf message.
+        """
         proto: redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics = \
             redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics()
         return SummaryStatistics(proto)
 
     def get_count(self) -> float:
+        """
+        Returns the count of values that were used to calculate these statistics.
+        :return: The count of values that were used to calculate these statistics.
+        """
         return self._proto.count
 
     def set_count(self, count: float) -> 'SummaryStatistics':
+        """
+        Sets the count of values that were used to calculate these statistics.
+        :param count:
+        :return:
+        """
         check_type(count, [int, float])
 
         self._proto.count = count
