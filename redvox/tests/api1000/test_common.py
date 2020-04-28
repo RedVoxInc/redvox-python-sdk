@@ -6,6 +6,7 @@ import redvox.api1000.common.lz4
 import redvox.api1000.common.common as common
 import redvox.api1000.common.generic
 import redvox.api1000.common.metadata
+import redvox.api1000.common.typing
 import redvox.api1000.wrapped_redvox_packet.sensors.audio as microphone
 
 
@@ -338,19 +339,19 @@ class TestSummaryStatistics(unittest.TestCase):
 
 class TestCommonMethods(unittest.TestCase):
     def test_none_or_empty_none(self):
-        self.assertTrue(common.none_or_empty(None))
+        self.assertTrue(redvox.api1000.common.typing.none_or_empty(None))
 
     def test_none_or_empty_str(self):
-        self.assertTrue(common.none_or_empty(""))
-        self.assertFalse(common.none_or_empty("foo"))
+        self.assertTrue(redvox.api1000.common.typing.none_or_empty(""))
+        self.assertFalse(redvox.api1000.common.typing.none_or_empty("foo"))
 
     def test_none_or_empty_list(self):
-        self.assertTrue(common.none_or_empty([]))
-        self.assertFalse(common.none_or_empty([1]))
+        self.assertTrue(redvox.api1000.common.typing.none_or_empty([]))
+        self.assertFalse(redvox.api1000.common.typing.none_or_empty([1]))
 
     def test_none_or_empty_array(self):
-        self.assertTrue(common.none_or_empty(common.EMPTY_ARRAY))
-        self.assertFalse(common.none_or_empty(np.array([1])))
+        self.assertTrue(redvox.api1000.common.typing.none_or_empty(common.EMPTY_ARRAY))
+        self.assertFalse(redvox.api1000.common.typing.none_or_empty(np.array([1])))
 
     def test_lz4_compress_decompress(self):
         data = list(range(1000))

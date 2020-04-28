@@ -1,4 +1,6 @@
-from typing import Any, List, Optional, Callable
+from typing import Any, List, Optional, Callable, Union
+
+import numpy as np
 
 from redvox.api1000 import errors as errors
 
@@ -37,3 +39,10 @@ def check_type(value: Any,
         raise exception(message)
     else:
         raise errors.ApiMTypeError(message)
+
+
+def none_or_empty(value: Optional[Union[List, str, np.ndarray]]) -> bool:
+    if value is None:
+        return True
+
+    return len(value) == 0

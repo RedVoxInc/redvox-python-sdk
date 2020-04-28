@@ -3,7 +3,7 @@ Provides common classes and methods for interacting with various API 1000 protob
 """
 
 import enum
-from typing import List, Tuple, Union, Optional
+from typing import List, Tuple, Optional
 
 import numpy as np
 import scipy.stats
@@ -12,7 +12,7 @@ import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_1000_pb2
 import redvox.common.date_time_utils as dt_utils
 from redvox.api1000.common.generic import ProtoBase
-from redvox.api1000.common.typing import check_type
+from redvox.api1000.common.typing import check_type, none_or_empty
 
 NAN: float = float("NaN")
 
@@ -57,13 +57,6 @@ class Unit(enum.Enum):
         :return:
         """
         return redvox_api_1000_pb2.RedvoxPacketM.Unit.Value(self.name)
-
-
-def none_or_empty(value: Optional[Union[List, str, np.ndarray]]) -> bool:
-    if value is None:
-        return True
-
-    return len(value) == 0
 
 
 class SummaryStatistics(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics]):
