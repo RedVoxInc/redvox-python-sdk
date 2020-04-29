@@ -10,7 +10,7 @@ import redvox.api1000.common.lz4
 import redvox.api1000.common.typing
 import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-import redvox.api1000.common.common as common
+# import redvox.api1000.common.common as common
 import redvox.api1000.common.generic
 import redvox.api1000.wrapped_redvox_packet.packet_information as _packet_information
 import redvox.api1000.wrapped_redvox_packet.sensors.sensors as _sensors
@@ -178,7 +178,7 @@ def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -> List[str]:
     errors_list = _user_information.validate_user_information(wrapped_packet.get_user_information())
     errors_list.extend(_station_information.validate_station_information(wrapped_packet.get_station_information()))
     errors_list.extend(_timing_information.validate_timing_information(wrapped_packet.get_timing_information()))
-    errors_list.extend(_server_information.validate_server_information(wrapped_packet.get_server_information()))
+    # errors_list.extend(_server_information.validate_server_information(wrapped_packet.get_server_information()))
     errors_list.extend(_sensors.validate_sensors(wrapped_packet.get_sensors()))
     if wrapped_packet.get_api() != 1000:
         errors_list.append("Wrapped packet api is not 1000")

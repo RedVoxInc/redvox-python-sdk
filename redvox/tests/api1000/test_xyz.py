@@ -4,7 +4,7 @@ import redvox.api1000.common.common as common
 import redvox.api1000.wrapped_redvox_packet.sensors.xyz as xyz
 
 
-class TestSingle(unittest.TestCase):
+class TestXyz(unittest.TestCase):
     def setUp(self) -> None:
         self.empty_xyz_sensor: xyz.Xyz = xyz.Xyz.new()
         self.non_empty_xyz_sensor: xyz.Xyz = xyz.Xyz.new()
@@ -18,7 +18,7 @@ class TestSingle(unittest.TestCase):
         self.non_empty_xyz_sensor.get_z_samples().set_unit(common.Unit.METERS_PER_SECOND_SQUARED)
         self.non_empty_xyz_sensor.get_z_samples().set_values(np.array([0, 1, 2, 3]), True)
 
-    def test_validate_single(self):
+    def test_validate_xyz(self):
         error_list = xyz.validate_xyz(self.non_empty_xyz_sensor)
         self.assertEqual(error_list, [])
         error_list = xyz.validate_xyz(self.empty_xyz_sensor)

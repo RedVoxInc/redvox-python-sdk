@@ -60,6 +60,7 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
 
 
 def validate_audio(audio_sensor: Audio) -> List[str]:
+    # todo: add default audio unit, normalization factor if needed
     errors_list = common.validate_sample_payload(audio_sensor.get_samples(), "Audio")
     if audio_sensor.get_first_sample_timestamp() == 0:
         errors_list.append("Audio first sample timestamp is default value")
