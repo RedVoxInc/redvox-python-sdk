@@ -64,7 +64,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         return list(self.get_proto().samples)
 
     def set_samples(self, images: List[bytes]) -> 'Image':
-        check_type(images, [List[bytes]])
+        # check_type(images, [List[bytes]])
         self._proto.samples[:] = images
         return self
 
@@ -82,8 +82,27 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         self._proto.samples[:] = []
         return self
 
+    def get_num_images(self) -> int:
+        return len(self.get_samples())
 
-# todo: finish when image sensor is finished
+    def write_image(self, out_file: str, index: int = 0):
+        """
+        Prints the image at index in the data as out_file.image_codec, where image_codec is defined by the sensor
+        :param out_file: the name of the output file
+        :param index: the index of the image to print
+        """
+        # invalid indices get converted to the closest valid index
+        if index < 0:
+            index = 0
+        elif index >= self.get_num_images():
+            index = self.get_num_images() - 1
+        # append the image codec to the file name
+        out_file = out_file + "." + self.get_image_codec().name.lower()
+        with open(out_file, 'wb') as image_out:
+            data_as_bytes: bytes = self.get_samples()[index]
+            image_out.write(data_as_bytes)
+
+
 def validate_image(image_sensor: Image) -> List[str]:
     errors_list = common.validate_timing_payload(image_sensor.get_timestamps())
     if image_sensor.get_image_codec() not in ImageCodec.__members__.values():
