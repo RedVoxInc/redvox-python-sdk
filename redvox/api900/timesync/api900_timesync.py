@@ -229,16 +229,19 @@ class TimeSyncData:
         :param mach_time_zeros: machine time zero of all packets from sensor
         :return: True if sensor settings do not change
         """
+        # set the sample rate and mach time zero
         self.sample_rate_hz = sample_rates[0]
         self.mach_time_zero = mach_time_zeros[0]
-        for i in range(1, len(sample_rates)):
-            if self.sample_rate_hz != sample_rates[i]:
-                print("ERROR: sample rate in data packets has changed.")
-                return False
-            # process only non-nan mach time zeros
-            if not np.isnan(self.mach_time_zero) and self.mach_time_zero != mach_time_zeros[i]:
-                print("ERROR: mach time zero in data packets has changed.")
-                return False
+        if len(sample_rates) > 1:
+            # if there's more than 1 value, we need to compare them
+            for i in range(1, len(sample_rates)):
+                if self.sample_rate_hz != sample_rates[i]:
+                    print("ERROR: sample rate in data packets has changed.")
+                    return False
+                # process only non-nan mach time zeros
+                if not np.isnan(self.mach_time_zero) and self.mach_time_zero != mach_time_zeros[i]:
+                    print("ERROR: mach time zero in data packets has changed.")
+                    return False
         return True
 
     def find_bad_packets(self):

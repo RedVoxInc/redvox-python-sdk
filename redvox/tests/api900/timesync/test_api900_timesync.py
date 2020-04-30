@@ -38,6 +38,9 @@ class RedVoxTimesyncTests(unittest.TestCase):
     def test_validate_sensors(self):
         valid_sensor_settings = api900_timesync.validate_sensors(self.wrapped_packets_fs)
         self.assertTrue(valid_sensor_settings)
+        one_packet = self.wrapped_packets_fs[0]
+        valid_one_sensor = api900_timesync.validate_sensors([one_packet])
+        self.assertTrue(valid_one_sensor)
 
     def test_find_bad_packets(self):
         self.assertEqual(len(self.time_sync_data.bad_packets), 0)
