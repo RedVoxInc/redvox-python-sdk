@@ -20,6 +20,8 @@ class TimeSyncData:
     """
     Stores latencies, revised start times, time sync server offsets, and difference in adjusted machine time and
     acquisition server time
+    Note that inputs to this must be continuous data; any change in sensor mach_time_zero or sample_rate
+    requires a new TimeSyncData object
     ALL times in microseconds
     properties:
         rev_start_times: revised machine start times (per packet)
@@ -72,33 +74,29 @@ class TimeSyncData:
         Sets the time statistics between machine, time server, and acquisition server for the packets given.
         :param wrapped_packets: wrapped packets with same sample rate
         """
-        self.sample_rate_hz = wrapped_packets[0].microphone_sensor().sample_rate_hz()  # sample rate of all packets
         self.server_acquisition_times = np.zeros(len(wrapped_packets))  # array of server acquisition times
-        self.mach_time_zero = None
-        self.rev_start_times = np.zeros(len(wrapped_packets))  # array of app start times
+        self.rev_start_times = np.zeros(len(wrapped_packets))   # array of app start times
         self.num_tri_messages = np.zeros(len(wrapped_packets))  # number of tri-message exchanges per packet
         self.latencies = np.zeros(len(wrapped_packets))  # array of minimum latencies
         self.offsets = np.zeros(len(wrapped_packets))  # array of offset applied to machine time to get sync time
         self.num_packets = len(wrapped_packets)  # number of packets in list
         self.tri_message_coeffs = []  # a list of tri-message coefficients
-        self.bad_packets = []  # list of packets that contain invalid data
+        self.bad_packets = []   # list of packets that contain invalid data
+        sample_rates = np.zeros(len(wrapped_packets))       # list of sample rates, should all be the same
+        mach_time_zeros = np.zeros(len(wrapped_packets))    # list of mach time zeros, should all the be same
 
         # get the server acquisition time, app start time, and tri message stats
         for i, wrapped_packet in enumerate(wrapped_packets):
-            # check mach_time_zero for changes if it exists.  if it changed, sync will not work.
-            if self.mach_time_zero is not None and self.mach_time_zero != wrapped_packet.mach_time_zero():
-                print("Warning: packet {} has a different mach time zero than previous packets.".format(i + 1))
-                print("Old mach time zero: {}.  New mach time zero: {}".format(self.mach_time_zero,
-                                                                               wrapped_packet.mach_time_zero()))
-                print("Please review input data; it must be from the same device and uninterrupted.")
-                print("TimeSyncData cannot continue processing input data.  Quitting.")
-                return
-            elif wrapped_packet.mach_time_zero() is not None and self.mach_time_zero is None:
-                self.mach_time_zero = wrapped_packet.mach_time_zero()
+            # pass the mach_time_zero and sample_rate into arrays
+            sample_rates[i] = wrapped_packet.microphone_sensor().sample_rate_hz()
+            mach_time_zeros[i] = wrapped_packet.mach_time_zero()
             self.server_acquisition_times[i] = wrapped_packet.server_timestamp_epoch_microseconds_utc()
             self.rev_start_times[i] = wrapped_packet.app_file_start_timestamp_epoch_microseconds_utc()
             self._compute_tri_message_stats(wrapped_packet, i)
 
+        # check sample rate and mach time zero (if it exists) for changes.  if it changed, sync will not work.
+        if not self._validate_sensor_settings(sample_rates, mach_time_zeros):
+            raise Exception("ERROR: Sensor settings changed; separate data based on changes and re-analyze")
         self.find_bad_packets()
         self.evaluate_latencies_and_offsets()
         # set the packet duration
@@ -223,6 +221,26 @@ class TimeSyncData:
             # noinspection PyTypeChecker
             self.offset_stats.add(0, 0, 0)
 
+    def _validate_sensor_settings(self, sample_rates: np.array, mach_time_zeros: np.array) -> bool:
+        """
+        Examine all sample rates and mach time zeros to ensure that sensor settings do not change
+        Sets the sample rate and mach time zero if there is no change
+        :param sample_rates: sample rates of all packets from sensor
+        :param mach_time_zeros: machine time zero of all packets from sensor
+        :return: True if sensor settings do not change
+        """
+        self.sample_rate_hz = sample_rates[0]
+        self.mach_time_zero = mach_time_zeros[0]
+        for i in range(1, len(sample_rates)):
+            if self.sample_rate_hz != sample_rates[i]:
+                print("ERROR: sample rate in data packets has changed.")
+                return False
+            # process only non-nan mach time zeros
+            if not np.isnan(self.mach_time_zero) and self.mach_time_zero != mach_time_zeros[i]:
+                print("ERROR: mach time zero in data packets has changed.")
+                return False
+        return True
+
     def find_bad_packets(self):
         """
         Find bad packets and mark them using the bad_packets property
@@ -335,6 +353,36 @@ class TimeSyncData:
         return self.rev_start_times[self.best_latency_index]
 
 
+def validate_sensors(wrapped_packets: List[WrappedRedvoxPacket]) -> bool:
+    """
+    Examine all sample rates and mach time zeros to ensure that sensor settings do not change
+    :param wrapped_packets: a list of wrapped redvox packets to read
+    :return: True if sensor settings do not change
+    """
+    # check that we have packets to read
+    num_packets = len(wrapped_packets)
+    if num_packets < 1:
+        print("ERROR: no data to validate.")
+        return False
+    # if we have more than one packet, we need to validate the data
+    elif num_packets > 1:
+        sample_rates = np.zeros(num_packets)
+        mach_time_zeros = np.zeros(num_packets)
+        for j, wrapped_packet in enumerate(wrapped_packets):
+            sample_rates[j] = wrapped_packet.microphone_sensor().sample_rate_hz()
+            mach_time_zeros[j] = wrapped_packet.mach_time_zero()
+        for i in range(1, len(sample_rates)):
+            if sample_rates[0] != sample_rates[i]:
+                print("ERROR: sample rate in data packets has changed.")
+                return False
+            # process only non-nan mach time zeros
+            if not np.isnan(mach_time_zeros[0]) and mach_time_zeros[0] != mach_time_zeros[i]:
+                print("ERROR: mach time zero in data packets has changed.")
+                return False
+    # we get here if all packets have the same sample rate and mach time zero
+    return True
+
+
 def update_evenly_sampled_time_array(tsd: TimeSyncData, num_samples: float = None,
                                      time_start_array: np.array = None) -> np.ndarray:
     """
@@ -352,17 +400,16 @@ def update_evenly_sampled_time_array(tsd: TimeSyncData, num_samples: float = Non
     if time_start_array is None:
         # replace the time_start_array with values from tsd; convert tsd times to seconds
         time_start_array = tsd.rev_start_times / dt.MICROSECONDS_IN_SECOND
-
     num_files = tsd.num_packets
-    if num_samples is None:
-        num_samples = fh.get_num_points_from_sample_rate(tsd.sample_rate_hz)
-    t_dt = 1.0 / tsd.sample_rate_hz
-
     # the TimeSyncData must have the same number of packets as the number of elements in time_start_array
     if num_files != len(time_start_array):
         # alert the user, then quit
         raise Exception("ERROR: Attempted to update a time array that doesn't contain "
                         "the same number of elements as the TimeSyncData!")
+
+    if num_samples is None:
+        num_samples = fh.get_num_points_from_sample_rate(tsd.sample_rate_hz)
+    t_dt = 1.0 / tsd.sample_rate_hz
 
     # Use TimeSyncData object to find best start index.
     # Samples before will be the number of decoders before a0 times the number of samples in a file.
