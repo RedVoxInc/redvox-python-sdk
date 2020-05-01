@@ -39,6 +39,7 @@ class TimeSyncData:
         mach_time_zero: the start time of the app in machine time
         num_tri_messages: number of tri-message exchanges (per packet)
         tri_message_coeffs: list of 6-tuples containing the tri-message exchange coefficients (up to 1 tuple per packet)
+        best_tri_msg_indices: the index of the best tri-message for each of the tri_message_coeffs tuples
         acquire_travel_time: calculated time it took packet to reach server (up to 1 per packet)
         bad_packets: indices of packets with an undefined or 0 latency
     """
@@ -64,6 +65,7 @@ class TimeSyncData:
             self.mach_time_zero: Optional[float] = None
             self.num_tri_messages: np.ndarray = np.ndarray((0, 0))
             self.tri_message_coeffs: List[Tuple] = []
+            self.best_tri_msg_indices: List[int] = []
             self.acquire_travel_time: np.ndarray = np.ndarray((0, 0))
             self.bad_packets: List[int] = []
         else:
@@ -190,6 +192,8 @@ class TimeSyncData:
                                       self.num_tri_messages[index] * 2)
                 # set the best latency and offset based on the packet's metadata, or tri-message stats if no metadata
                 latency: Optional[float] = packet.best_latency()
+                # pass the location of the best calculated latency
+                self.best_tri_msg_indices.append(tms.best_latency_index)
                 if latency is None:
                     # no metadata
                     self.latencies[index] = tms.best_latency
@@ -201,25 +205,20 @@ class TimeSyncData:
                     self.offsets[index] = tms.best_offset
                 else:
                     self.offsets[index] = offset
-            else:
-                # There are no exchanges to read.  write empty or 0 values to the correct properties
-                self.latencies[index] = 0.0
-                self.offsets[index] = 0.0
-                self.tri_message_coeffs.append(())
-                # noinspection PyTypeChecker
-                self.latency_stats.add(0, 0, 0)
-                # noinspection PyTypeChecker
-                self.offset_stats.add(0, 0, 0)
-        else:
-            # There is no sync channel.  write empty or 0 values to the correct properties
-            self.latencies[index] = 0.0
-            self.offsets[index] = 0.0
-            self.tri_message_coeffs.append((empty_array(), empty_array(), empty_array(),
-                                            empty_array(), empty_array(), empty_array()))
-            # noinspection PyTypeChecker
-            self.latency_stats.add(0, 0, 0)
-            # noinspection PyTypeChecker
-            self.offset_stats.add(0, 0, 0)
+                # everything has been computed, time to return
+                return
+        # If here, there are no exchanges to read or there is no sync channel.
+        # write default or empty values to the correct properties
+        self.latencies[index] = 0.0
+        self.offsets[index] = 0.0
+        self.tri_message_coeffs.append((empty_array(), empty_array(), empty_array(),
+                                        empty_array(), empty_array(), empty_array()))
+        # pass the location of the best latency
+        self.best_tri_msg_indices.append(-1)
+        # noinspection PyTypeChecker
+        self.latency_stats.add(0, 0, 0)
+        # noinspection PyTypeChecker
+        self.offset_stats.add(0, 0, 0)
 
     def _validate_sensor_settings(self, sample_rates: np.array, mach_time_zeros: np.array) -> bool:
         """
