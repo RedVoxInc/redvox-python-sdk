@@ -157,6 +157,11 @@ def _identify_gaps(wrapped_redvox_packets,
             gaps.add(i)
             print("time gap")
             truth_len = _packet_len_s(wrapped_redvox_packets[i])
+        prev_mach_time_zero = prev_packet.mach_time_zero()
+        next_mach_time_zero = next_packet.mach_time_zero()
+        if next_mach_time_zero != prev_mach_time_zero:
+            gaps.add(i)
+            print("mach time zero gap")
 
     return sorted(list(gaps))
 

@@ -51,7 +51,7 @@ class TimeSyncData:
         """
         self.latency_stats: stats_helper.StatsContainer = stats_helper.StatsContainer("latency")
         self.offset_stats: stats_helper.StatsContainer = stats_helper.StatsContainer("offset")
-        if wrapped_packets is None:
+        if wrapped_packets is None or len(wrapped_packets) < 1:
             self.rev_start_times: np.ndarray = np.ndarray((0, 0))
             self.server_acquisition_times: np.ndarray = np.ndarray((0, 0))
             self.latencies: np.ndarray = np.ndarray((0, 0))
@@ -82,7 +82,8 @@ class TimeSyncData:
         self.latencies = np.zeros(len(wrapped_packets))  # array of minimum latencies
         self.offsets = np.zeros(len(wrapped_packets))  # array of offset applied to machine time to get sync time
         self.num_packets = len(wrapped_packets)  # number of packets in list
-        self.tri_message_coeffs = []  # a list of tri-message coefficients
+        self.tri_message_coeffs = []    # a list of tri-message coefficients
+        self.best_tri_msg_indices = []  # a list of the best latency index in each set of tri-message coefficients
         self.bad_packets = []   # list of packets that contain invalid data
         sample_rates = np.zeros(len(wrapped_packets))       # list of sample rates, should all be the same
         mach_time_zeros = np.zeros(len(wrapped_packets))    # list of mach time zeros, should all the be same
