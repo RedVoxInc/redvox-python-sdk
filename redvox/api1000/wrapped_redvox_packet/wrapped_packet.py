@@ -173,10 +173,80 @@ class WrappedRedvoxPacketM(
     def get_sensors(self) -> _sensors.Sensors:
         return self._sensors
 
+    def update_timestamps(self, delta_offset: float = None) -> 'WrappedRedvoxPacketM':
+        if delta_offset is None:
+            delta_offset = self.get_timing_information().get_best_offset()
+        redvox.api1000.common.typing.check_type(delta_offset, [float])
+        # create new wrapped packet to hold changed data
+        updated = WrappedRedvoxPacketM(self.get_proto())
+        if self.get_proto().HasField("timing_information"):
+            # update timing information timestamps
+            updated.get_timing_information().set_packet_start_mach_timestamp(
+                self.get_timing_information().get_packet_start_mach_timestamp() + delta_offset)
+            updated.get_timing_information().set_packet_end_mach_timestamp(
+                self.get_timing_information().get_packet_end_mach_timestamp() + delta_offset)
+            updated.get_timing_information().set_packet_start_os_timestamp(
+                self.get_timing_information().get_packet_start_os_timestamp() + delta_offset)
+            updated.get_timing_information().set_packet_end_os_timestamp(
+                self.get_timing_information().get_packet_end_os_timestamp() + delta_offset)
+            updated.get_timing_information().set_app_start_mach_timestamp(
+                self.get_timing_information().get_app_start_mach_timestamp() + delta_offset)
+        if self.get_sensors().get_proto().HasField("audio"):
+            # update audio first sample timestamp
+            updated.get_sensors().get_audio().set_first_sample_timestamp(
+                self.get_sensors().get_audio().get_first_sample_timestamp() + delta_offset)
+        # if self.get_sensors().get_proto().HasField("compressed_audio"):
+            # update compressed audio first sample timestamp
+        # update timestamp payloads
+        if self.get_station_information().get_station_metrics().get_proto().HasField("timestamps"):
+            updated.get_station_information().get_station_metrics().get_timestamps().set_timestamps(
+                self.get_station_information().get_station_metrics().get_timestamps().get_timestamps() + delta_offset,
+                True)
+        if self.get_sensors().get_accelerometer().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_accelerometer().get_timestamps().set_timestamps(
+                self.get_sensors().get_accelerometer().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_ambient_temperature().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_ambient_temperature().get_timestamps().set_timestamps(
+                self.get_sensors().get_ambient_temperature().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_gravity().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_gravity().get_timestamps().set_timestamps(
+                self.get_sensors().get_gravity().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_gyroscope().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_gyroscope().get_timestamps().set_timestamps(
+                self.get_sensors().get_gyroscope().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_image().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_image().get_timestamps().set_timestamps(
+                self.get_sensors().get_image().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_light().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_light().get_timestamps().set_timestamps(
+                self.get_sensors().get_light().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_linear_acceleration().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_linear_acceleration().get_timestamps().set_timestamps(
+                self.get_sensors().get_linear_acceleration().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_location().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_location().get_timestamps().set_timestamps(
+                self.get_sensors().get_location().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_magnetometer().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_magnetometer().get_timestamps().set_timestamps(
+                self.get_sensors().get_magnetometer().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_orientation().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_orientation().get_timestamps().set_timestamps(
+                self.get_sensors().get_orientation().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_pressure().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_pressure().get_timestamps().set_timestamps(
+                self.get_sensors().get_pressure().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_proximity().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_proximity().get_timestamps().set_timestamps(
+                self.get_sensors().get_proximity().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_relative_humidity().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_relative_humidity().get_timestamps().set_timestamps(
+                self.get_sensors().get_relative_humidity().get_timestamps().get_timestamps() + delta_offset, True)
+        return updated
+
 
 def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -> List[str]:
-    errors_list = _user_information.validate_user_information(wrapped_packet.get_user_information())
-    errors_list.extend(_station_information.validate_station_information(wrapped_packet.get_station_information()))
+    # errors_list = _user_information.validate_user_information(wrapped_packet.get_user_information())
+    errors_list = _station_information.validate_station_information(wrapped_packet.get_station_information())
     errors_list.extend(_timing_information.validate_timing_information(wrapped_packet.get_timing_information()))
     # errors_list.extend(_server_information.validate_server_information(wrapped_packet.get_server_information()))
     errors_list.extend(_sensors.validate_sensors(wrapped_packet.get_sensors()))
