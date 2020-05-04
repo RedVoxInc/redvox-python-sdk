@@ -9,7 +9,7 @@ class TestAudio(unittest.TestCase):
         self.empty_microphone_sensor: microphone.Audio = microphone.Audio.new()
         self.non_empty_microphone_sensor: microphone.Audio = microphone.Audio.new()
         self.non_empty_microphone_sensor.get_samples().set_unit(common.Unit.LSB_PLUS_MINUS_COUNTS)
-        self.non_empty_microphone_sensor.get_samples().set_values(np.array([100.0, 50, 10.25], dtype=np.int))
+        self.non_empty_microphone_sensor.get_samples().set_values(np.array([1.000, .50, .1025], dtype=np.float))
         self.non_empty_microphone_sensor.set_sensor_description("foo")
         self.non_empty_microphone_sensor.set_sample_rate(80.0)
         self.non_empty_microphone_sensor.set_first_sample_timestamp(1)
