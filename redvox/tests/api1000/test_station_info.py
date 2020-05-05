@@ -32,7 +32,7 @@ class TestStationMetrics(unittest.TestCase):
         self.assertNotEqual(error_list, [])
 
 
-class TestServerInfo(unittest.TestCase):
+class TestStationInfo(unittest.TestCase):
     def setUp(self) -> None:
         self.empty_station_info: station.StationInformation = station.StationInformation.new()
         self.non_empty_station_info: station.StationInformation = station.StationInformation.new()

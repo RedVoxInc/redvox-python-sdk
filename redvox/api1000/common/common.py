@@ -9,7 +9,7 @@ import numpy as np
 import scipy.stats
 
 import redvox.api1000.errors as errors
-import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_1000_pb2
+import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.common.date_time_utils as dt_utils
 from redvox.api1000.common.generic import ProtoBase
 from redvox.api1000.common.typing import check_type, none_or_empty
@@ -43,27 +43,27 @@ class Unit(enum.Enum):
     LUX = 17
 
     @staticmethod
-    def from_proto(unit: redvox_api_1000_pb2.RedvoxPacketM.Unit) -> 'Unit':
+    def from_proto(unit: redvox_api_m_pb2.RedvoxPacketM.Unit) -> 'Unit':
         """
-        Convert's the protobuf unit into a common.Unit.
+        Converts the protobuf unit into a common.Unit.
         :param unit: Protobuf unit enumeration to convert.
         :return: An instance of Unit.
         """
         return Unit(unit)
 
-    def into_proto(self) -> redvox_api_1000_pb2.RedvoxPacketM.Unit:
+    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.Unit:
         """
-        Converts this instance of common.Unit into the protobuf equivelent.
+        Converts this instance of common.Unit into the protobuf equivalent.
         :return:
         """
-        return redvox_api_1000_pb2.RedvoxPacketM.Unit.Value(self.name)
+        return redvox_api_m_pb2.RedvoxPacketM.Unit.Value(self.name)
 
 
-class SummaryStatistics(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics]):
+class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatistics]):
     """
     Encapsulates the API M SummaryStatistics protobuf message type and provides automatic stat updates from values.
     """
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics):
+    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.SummaryStatistics):
         super().__init__(proto)
 
     @staticmethod
@@ -72,8 +72,8 @@ class SummaryStatistics(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SummaryStati
         Returns a new SummaryStatistics instance backed by a default SummaryStatistics protobuf message.
         :return: A new SummaryStatistics instance backed by a default SummaryStatistics protobuf message.
         """
-        proto: redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics = \
-            redvox_api_1000_pb2.RedvoxPacketM.SummaryStatistics()
+        proto: redvox_api_m_pb2.RedvoxPacketM.SummaryStatistics = \
+            redvox_api_m_pb2.RedvoxPacketM.SummaryStatistics()
         return SummaryStatistics(proto)
 
     def get_count(self) -> float:
@@ -183,14 +183,14 @@ def validate_summary_statistics(stats: SummaryStatistics) -> List[str]:
     return errors_list
 
 
-class SamplePayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SamplePayload]):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.SamplePayload):
+class SamplePayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SamplePayload]):
+    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.SamplePayload):
         super().__init__(proto)
         self._summary_statistics: SummaryStatistics = SummaryStatistics(proto.value_statistics)
 
     @staticmethod
     def new() -> 'SamplePayload':
-        return SamplePayload(redvox_api_1000_pb2.RedvoxPacketM.SamplePayload())
+        return SamplePayload(redvox_api_m_pb2.RedvoxPacketM.SamplePayload())
 
     def get_unit(self) -> Unit:
         return Unit.from_proto(self._proto.unit)
@@ -245,13 +245,15 @@ class SamplePayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.SamplePayload]):
         return self._summary_statistics
 
 
-def validate_sample_payload(sample_payload: SamplePayload, payload_name: Optional[str] = None) -> List[str]:
+def validate_sample_payload(sample_payload: SamplePayload, payload_name: Optional[str] = None,
+                            payload_unit: Optional[Unit] = None) -> List[str]:
     errors_list = []
-    # if not sample_payload.get_proto().HasField("unit"):
-    #     errors_list.append("Sample payload unit type is missing")
-    if sample_payload.get_unit() not in Unit.__members__.values():
-        errors_list.append("Sample payload unit type is unknown")
-    # if not sample_payload.get_proto().HasField("values") or
+    if payload_unit is None:
+        if sample_payload.get_unit() not in Unit.__members__.values():
+            errors_list.append(f"{payload_name if payload_name else 'Sample'} payload unit type is unknown")
+    else:
+        if sample_payload.get_unit() != payload_unit:
+            errors_list.append(f"{payload_name if payload_name else 'Sample'} payload unit type is not {payload_unit}")
     if sample_payload.get_values_count() < 1:
         errors_list.append(f"{payload_name if payload_name else 'Sample'} payload values are missing")
     return errors_list
@@ -276,14 +278,14 @@ def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:
     return mean_sample_rate, stdev_sample_rate
 
 
-class TimingPayload(ProtoBase[redvox_api_1000_pb2.RedvoxPacketM.TimingPayload]):
-    def __init__(self, proto: redvox_api_1000_pb2.RedvoxPacketM.TimingPayload):
+class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
+    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingPayload):
         super().__init__(proto)
         self._timestamp_statistics: SummaryStatistics = SummaryStatistics(proto.timestamp_statistics)
 
     @staticmethod
     def new() -> 'TimingPayload':
-        return TimingPayload(redvox_api_1000_pb2.RedvoxPacketM.TimingPayload())
+        return TimingPayload(redvox_api_m_pb2.RedvoxPacketM.TimingPayload())
 
     def set_default_unit(self) -> 'TimingPayload':
         return self.set_unit(Unit.MICROSECONDS_SINCE_UNIX_EPOCH)

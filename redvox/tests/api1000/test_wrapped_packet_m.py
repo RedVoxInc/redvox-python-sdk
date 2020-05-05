@@ -36,8 +36,8 @@ class TestWrappedPacket(unittest.TestCase):
         self.non_empty_packet_info.get_timing_information().set_packet_end_os_timestamp(1)
         self.non_empty_packet_info.get_timing_information().set_packet_start_mach_timestamp(1)
         self.non_empty_packet_info.get_timing_information().set_packet_end_mach_timestamp(1)
-        self.non_empty_packet_info.get_server_information().set_auth_server_url("https://fake.auth.foo")
-        self.non_empty_packet_info.get_server_information().set_acquisition_server_url("wss://fake.acquire.foo")
+        # self.non_empty_packet_info.get_server_information().set_auth_server_url("https://fake.auth.foo")
+        # self.non_empty_packet_info.get_server_information().set_acquisition_server_url("wss://fake.acquire.foo")
         self.non_empty_packet_info.get_sensors().new_audio()
         self.non_empty_packet_info.get_sensors().get_audio().get_samples().set_values(np.array([100.0, 50, 10.25],
                                                                                                dtype=np.int))

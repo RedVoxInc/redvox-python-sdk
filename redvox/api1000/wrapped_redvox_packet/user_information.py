@@ -1,8 +1,8 @@
 import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-import redvox.api1000.common.common as common
+# import redvox.api1000.common.common as common
 
-from typing import List
+# from typing import List
 
 import redvox.api1000.common.generic
 
@@ -41,8 +41,8 @@ class UserInformation(
         return self
 
 
-def validate_user_information(user_info: UserInformation) -> List[str]:
-    errors_list = []
-    if user_info.get_firebase_token() == "":
-        errors_list.append("User information firebase token missing")
-    return errors_list
+# def validate_user_information(user_info: UserInformation) -> List[str]:
+#     errors_list = []
+#     if user_info.get_firebase_token() == "":
+#         errors_list.append("User information firebase token missing")
+#     return errors_list

@@ -2,7 +2,7 @@ import redvox.api1000.common.common as common
 import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
-from typing import List
+from typing import List, Optional
 
 import redvox.api1000.common.generic
 
@@ -33,8 +33,8 @@ class Single(
         return self._samples
 
 
-def validate_single(single_sensor: Single) -> List[str]:
+def validate_single(single_sensor: Single, payload_unit: Optional[common.Unit] = None) -> List[str]:
     errors_list = common.validate_timing_payload(single_sensor.get_timestamps())
     errors_list.extend(common.validate_sample_payload(single_sensor.get_samples(),
-                                                      single_sensor.get_sensor_description()))
+                                                      single_sensor.get_sensor_description(), payload_unit))
     return errors_list

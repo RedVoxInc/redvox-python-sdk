@@ -2,7 +2,7 @@ import redvox.api1000.common.common as common
 import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
-from typing import List
+from typing import List, Optional
 
 import redvox.api1000.common.generic
 
@@ -47,9 +47,12 @@ class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM
         return self._z_samples
 
 
-def validate_xyz(xyz_sensor: Xyz) -> List[str]:
+def validate_xyz(xyz_sensor: Xyz, payload_unit: Optional[common.Unit] = None) -> List[str]:
     errors_list = common.validate_timing_payload(xyz_sensor.get_timestamps())
-    errors_list.extend(common.validate_sample_payload(xyz_sensor.get_x_samples(), xyz_sensor.get_sensor_description()))
-    errors_list.extend(common.validate_sample_payload(xyz_sensor.get_y_samples(), xyz_sensor.get_sensor_description()))
-    errors_list.extend(common.validate_sample_payload(xyz_sensor.get_z_samples(), xyz_sensor.get_sensor_description()))
+    errors_list.extend(common.validate_sample_payload(xyz_sensor.get_x_samples(),
+                                                      xyz_sensor.get_sensor_description(), payload_unit))
+    errors_list.extend(common.validate_sample_payload(xyz_sensor.get_y_samples(),
+                                                      xyz_sensor.get_sensor_description(), payload_unit))
+    errors_list.extend(common.validate_sample_payload(xyz_sensor.get_z_samples(),
+                                                      xyz_sensor.get_sensor_description(), payload_unit))
     return errors_list

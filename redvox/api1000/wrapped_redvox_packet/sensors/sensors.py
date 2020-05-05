@@ -200,6 +200,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self.remove_image()
         self.get_proto().image.SetInParent()
         self._image = image.Image(self.get_proto().image)
+        self._image.set_image_codec(image.ImageCodec.PNG)
         return self._image
 
     def set_image(self, _image: image.Image) -> 'Sensors':
@@ -415,29 +416,30 @@ def validate_sensors(sensors_list: Sensors) -> List[str]:
         if sensors_list.has_compress_audio():
             errors_list.extend(audio.validate_compress_audio(sensors_list.get_compressed_audio()))
     if sensors_list.has_accelerometer():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_accelerometer()))
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_accelerometer(), common.Unit.METERS_PER_SECOND_SQUARED))
     if sensors_list.has_ambient_temperature():
-        errors_list.extend(single.validate_single(sensors_list.get_ambient_temperature()))
+        errors_list.extend(single.validate_single(sensors_list.get_ambient_temperature(), common.Unit.DEGREES_CELSIUS))
     if sensors_list.has_gravity():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_gravity()))
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_gravity(), common.Unit.METERS_PER_SECOND_SQUARED))
     if sensors_list.has_gyroscope():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_gyroscope()))
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_gyroscope(), common.Unit.RADIANS_PER_SECOND))
     if sensors_list.has_image():
         errors_list.extend(image.validate_image(sensors_list.get_image()))
     if sensors_list.has_light():
-        errors_list.extend(single.validate_single(sensors_list.get_light()))
+        errors_list.extend(single.validate_single(sensors_list.get_light(), common.Unit.LUX))
     if sensors_list.has_linear_acceleration():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_linear_acceleration()))
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_linear_acceleration(),
+                                            common.Unit.METERS_PER_SECOND_SQUARED))
     if sensors_list.has_location():
         errors_list.extend(location.validate_location(sensors_list.get_location()))
     if sensors_list.has_magnetometer():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_magnetometer()))
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_magnetometer(), common.Unit.MICROTESLA))
     if sensors_list.has_orientation():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_orientation()))
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_orientation(), common.Unit.RADIANS))
     if sensors_list.has_pressure():
-        errors_list.extend(single.validate_single(sensors_list.get_pressure()))
+        errors_list.extend(single.validate_single(sensors_list.get_pressure(), common.Unit.KILOPASCAL))
     if sensors_list.has_proximity():
-        errors_list.extend(single.validate_single(sensors_list.get_proximity()))
+        errors_list.extend(single.validate_single(sensors_list.get_proximity(), common.Unit.CENTIMETERS))
     if sensors_list.has_relative_humidity():
-        errors_list.extend(single.validate_single(sensors_list.get_relative_humidity()))
+        errors_list.extend(single.validate_single(sensors_list.get_relative_humidity(), common.Unit.PERCENTAGE))
     return errors_list
