@@ -8,6 +8,13 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.8.3 (2020-05-06)
+
+* Add `mach_time_zero` to TimeSyncData class
+* Add `best_tri_msg_indices` to TimeSyncData class to identify which tri-message exchange indicated the best latency and offset
+* Add validation checks to ensure that there is no change in sample rate or `mach_time_zero` in the analyzed packets
+* Add check for change in `mach_time_zero` when identifying gaps
+
 ### 2.8.2 (2020-04-27)
 
 * Add workaround for accessing `mach_time_zero` in incorrectly constructed Android packets
