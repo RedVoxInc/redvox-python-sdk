@@ -39,7 +39,7 @@ class TestWrappedPacket(unittest.TestCase):
         # self.non_empty_packet_info.get_server_information().set_auth_server_url("https://fake.auth.foo")
         # self.non_empty_packet_info.get_server_information().set_acquisition_server_url("wss://fake.acquire.foo")
         self.non_empty_packet_info.get_sensors().new_audio()
-        self.non_empty_packet_info.get_sensors().get_audio().get_samples().set_values(np.array([100.0, 50, 10.25],
+        self.non_empty_packet_info.get_sensors().get_audio().get_samples().set_values(np.array([1.000, .50, .1025],
                                                                                                dtype=np.int))
         self.non_empty_packet_info.get_sensors().get_audio().set_sample_rate(80.0)
         self.non_empty_packet_info.get_sensors().get_audio().set_first_sample_timestamp(1)
