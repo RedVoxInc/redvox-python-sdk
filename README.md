@@ -8,6 +8,10 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.8.4 (2020-05-07)
+
+* Add `--protocol` option to redvox-cli when making data request. This allows the data client to optionally connect over HTTP (mainly only useful for local testing)
+
 ### 2.8.3 (2020-05-06)
 
 * Add `mach_time_zero` to TimeSyncData class
