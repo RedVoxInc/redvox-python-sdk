@@ -169,6 +169,7 @@ def handle_ok_resp(resp: requests.Response,
 
 
 def make_data_req(out_dir: str,
+                  protocol: str,
                   host: str,
                   port: int,
                   email: str,
@@ -181,6 +182,7 @@ def make_data_req(out_dir: str,
     """
     Makes a data request to the RedVox data_server.
     :param out_dir: The output directory to store downloaded files.
+    :param protocol: One of either https or http.
     :param host: The host of the data server.
     :param port: The port of the data server.
     :param email: The email address of the redvox.io user.
@@ -198,7 +200,7 @@ def make_data_req(out_dir: str,
                                                   "end_ts_s": req_end_s,
                                                   "redvox_ids": redvox_ids,
                                                   "auth_token": auth_token}
-    url: str = f"https://{host}:{port}/req"
+    url: str = f"{protocol}://{host}:{port}/req"
 
     resp: requests.Response = requests.post(url, json=req)
 

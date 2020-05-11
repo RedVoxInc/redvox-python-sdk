@@ -183,6 +183,7 @@ def data_req_args(args) -> None:
         determine_exit(False)
 
     determine_exit(data_req.make_data_req(args.out_dir,
+                                          args.protocol,
                                           args.host,
                                           args.port,
                                           args.email,
@@ -327,6 +328,10 @@ def main():
                                  type=int,
                                  help="Data server port (default=443)",
                                  default=443)
+    data_req_parser.add_argument("--protocol",
+                                 help="One of either http or https (default https)",
+                                 choices=["https", "http"],
+                                 default="https")
     data_req_parser.add_argument("auth_token",
                                  help="An authentication token provided by RedVox required for accessing the data "
                                       "request service")
