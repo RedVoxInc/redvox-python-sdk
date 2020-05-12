@@ -10,3 +10,4 @@ redvox.egg-info/
 .mypy_cache
 .coverage
 htmlcov/
+.venv

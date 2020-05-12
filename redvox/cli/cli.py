@@ -126,7 +126,7 @@ def data_req_args(args) -> None:
                                           args.req_end_s,
                                           args.redvox_ids,
                                           args.retries,
-                                          args.auth_token))
+                                          args.secret_token))
 
 
 def main():
@@ -203,8 +203,8 @@ def main():
                                  help="One of either http or https (default https)",
                                  choices=["https", "http"],
                                  default="https")
-    data_req_parser.add_argument("auth_token",
-                                 help="An authentication token provided by RedVox required for accessing the data "
+    data_req_parser.add_argument("--secret_token",
+                                 help="A shared secret token provided by RedVox required for accessing the data "
                                       "request service")
     data_req_parser.add_argument("email",
                                  help="redvox.io account email")

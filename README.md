@@ -8,6 +8,11 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.8.5 (2020-05-11)
+
+* The auth_token CLI field for the data_req CLI command has been renamed to `secret_auth` to better reflect the fact that it is a shared secrete.  
+* CLI for data req now makes the shared secret auth key optional dependent on the settings of the remote server. 
+
 ### 2.8.4 (2020-05-07)
 
 * Add `--protocol` option to redvox-cli when making data request. This allows the data client to optionally connect over HTTP (mainly only useful for local testing)
