@@ -29,6 +29,7 @@ _ORIENTATION_FIELD_NAME: str = "orientation"
 _PRESSURE_FIELD_NAME: str = "pressure"
 _PROXIMITY_FIELD_NAME: str = "proximity"
 _RELATIVE_HUMIDITY_FIELD_NAME: str = "relative_humidity"
+_ROTATION_VECTOR: str = "rotation_vector"
 
 
 class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
@@ -49,6 +50,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._pressure: single.Single = single.Single(sensors_proto.pressure)
         self._proximity: single.Single = single.Single(sensors_proto.proximity)
         self._relative_humidity: single.Single = single.Single(sensors_proto.relative_humidity)
+        self._rotation_vector: xyz.Xyz = xyz.Xyz(sensors_proto.rotation_vector)
 
     @staticmethod
     def new() -> 'Sensors':
@@ -404,6 +406,29 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self.get_proto().ClearField(_RELATIVE_HUMIDITY_FIELD_NAME)
         return self
 
+    def has_rotation_vector(self) -> bool:
+        return self.get_proto().HasField(_ROTATION_VECTOR)
+
+    def get_rotation_vector(self) -> Optional[xyz.Xyz]:
+        return self._rotation_vector if self.has_rotation_vector() else None
+
+    def new_rotation_vector(self) -> xyz.Xyz:
+        self.remove_rotation_vector()
+        self.get_proto().rotation_vector.SetInParent()
+        self._rotation_vector = xyz.Xyz(self.get_proto().rotation_vector)
+        self._rotation_vector.get_timestamps().set_default_unit()
+        self._rotation_vector.set_unit_xyz(common.Unit.UNITLESS)
+        return self._rotation_vector
+
+    def set_rotation_vector(self, rotation_vector: xyz.Xyz) -> 'Sensors':
+        redvox.api1000.common.typing.check_type(rotation_vector, [xyz.Xyz])
+        self.get_proto().rotation_vector.CopyFrom(rotation_vector.get_proto())
+        return self
+
+    def remove_rotation_vector(self) -> 'Sensors':
+        self.get_proto().ClearField(_ROTATION_VECTOR)
+        return self
+
 
 def validate_sensors(sensors_list: Sensors) -> List[str]:
     # audio is the only sensor that every packet must have
@@ -442,4 +467,6 @@ def validate_sensors(sensors_list: Sensors) -> List[str]:
         errors_list.extend(single.validate_single(sensors_list.get_proximity(), common.Unit.CENTIMETERS))
     if sensors_list.has_relative_humidity():
         errors_list.extend(single.validate_single(sensors_list.get_relative_humidity(), common.Unit.PERCENTAGE))
+    if sensors_list.has_rotation_vector():
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_rotation_vector(), common.Unit.UNITLESS))
     return errors_list

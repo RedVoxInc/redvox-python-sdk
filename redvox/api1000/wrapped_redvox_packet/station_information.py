@@ -309,9 +309,6 @@ class AppSettings(
 
 def validate_app_settings(app: AppSettings) -> List[str]:
     errors_list = []
-    if (InputSensor.AUDIO not in app.get_additional_input_sensors().get_values()
-            and InputSensor.COMPRESSED_AUDIO not in app.get_additional_input_sensors().get_values()):
-        errors_list.append("App settings missing audio sensor from additional input sensors")
     if app.get_audio_sampling_rate() not in AudioSamplingRate:
         errors_list.append("App settings audio sample rate is not a valid sample rate")
     if app.get_station_id() == "":
@@ -453,16 +450,50 @@ class StationMetrics(
     def get_cpu_utilization(self) -> common.SamplePayload:
         return self._cpu_utilization
 
-    def get_wifi_wake_loc(self) -> WifiWakeLock:
-        return WifiWakeLock(self.get_proto().wifi_wake_lock)
-
     def get_power_state(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
         return self._power_state
+
+    def get_wifi_wake_loc(self) -> WifiWakeLock:
+        return WifiWakeLock(self.get_proto().wifi_wake_lock)
 
     def set_wifi_wake_loc(self, wifi_wake_loc: WifiWakeLock) -> 'StationMetrics':
         redvox.api1000.common.typing.check_type(wifi_wake_loc, [WifiWakeLock])
         self.get_proto().wifi_wake_loc = redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock.Value(
             wifi_wake_loc.name)
+        return self
+
+
+class ServiceUrls(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls]):
+    def __init__(self, service_urls_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls):
+        super().__init__(service_urls_proto)
+
+    @staticmethod
+    def new() -> 'ServiceUrls':
+        return ServiceUrls(redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls())
+
+    def get_auth_server(self) -> str:
+        return self.get_proto().auth_server
+
+    def set_auth_server(self, _auth_server: str) -> 'ServiceUrls':
+        redvox.api1000.common.typing.check_type(_auth_server, [str])
+        self.get_proto().auth_server = _auth_server
+        return self
+
+    def get_synch_server(self) -> str:
+        return self.get_proto().synch_server
+
+    def set_synch_server(self, _synch_server: str) -> 'ServiceUrls':
+        redvox.api1000.common.typing.check_type(_synch_server, [str])
+        self.get_proto().synch_server = _synch_server
+        return self
+
+    def get_acquisition_server(self) -> str:
+        return self.get_proto().acquisition_server
+
+    def set_acquisition_server(self, _acquisition_server: str) -> 'ServiceUrls':
+        redvox.api1000.common.typing.check_type(_acquisition_server, [str])
+        self.get_proto().acquisition_server = _acquisition_server
         return self
 
 
@@ -493,6 +524,7 @@ class StationInformation(
         super().__init__(station_information_proto)
         self._app_settings: AppSettings = AppSettings(station_information_proto.app_settings)
         self._station_metrics: StationMetrics = StationMetrics(station_information_proto.station_metrics)
+        self._service_urls: ServiceUrls = ServiceUrls(station_information_proto.service_urls)
 
     @staticmethod
     def new() -> 'StationInformation':
@@ -512,6 +544,14 @@ class StationInformation(
     def set_uuid(self, uuid: str) -> 'StationInformation':
         redvox.api1000.common.typing.check_type(uuid, [str])
         self.get_proto().uuid = uuid
+        return self
+
+    def get_auth_id(self) -> str:
+        return self.get_proto().auth_id
+
+    def set_auth_id(self, auth_id: str) -> 'StationInformation':
+        redvox.api1000.common.typing.check_type(auth_id, [str])
+        self.get_proto().auth_id = auth_id
         return self
 
     def get_make(self) -> str:
@@ -554,11 +594,22 @@ class StationInformation(
         self.get_proto().app_version = app_version
         return self
 
+    def get_is_private(self) -> bool:
+        return self.get_proto().is_private
+
+    def set_is_private(self, is_private: bool) -> 'StationInformation':
+        redvox.api1000.common.typing.check_type(is_private, [bool])
+        self.get_proto().is_private = is_private
+        return self
+
     def get_app_settings(self) -> AppSettings:
         return self._app_settings
 
     def get_station_metrics(self) -> StationMetrics:
         return self._station_metrics
+
+    def get_service_urls(self) -> ServiceUrls:
+        return self._service_urls
 
 
 def validate_station_information(station_info: StationInformation) -> List[str]:

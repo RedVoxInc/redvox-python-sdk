@@ -1,3 +1,4 @@
+import enum
 import numpy as np
 import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
@@ -51,6 +52,8 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         self._proto.is_scrambled = is_scrambled
         return self
 
+    # todo: get and set encoding; first define the values for encoding
+
     def get_samples(self) -> common.SamplePayload:
         return self._samples
 
@@ -70,26 +73,89 @@ def validate_audio(audio_sensor: Audio) -> List[str]:
             errors_list.append("Audio maximum value of samples cannot be greater than 1.0")
     if audio_sensor.get_first_sample_timestamp() == 0:
         errors_list.append("Audio first sample timestamp is default value")
-    # if not audio_sensor.get_proto().HasField("sample_rate"):
-    #     errors_list.append("Audio sample rate is missing")
     if AudioSamplingRate.from_sampling_rate(audio_sensor.get_sample_rate()) is None:
         errors_list.append("Audio sample rate is not a valid value")
     return errors_list
+
+
+class AudioCodec(enum.Enum):
+    TODO: int = 0
+
+    @staticmethod
+    def from_proto(audio_codec: redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec) -> 'AudioCodec':
+        return AudioCodec(audio_codec)
+
+    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec:
+        return redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec.Value(self.name)
 
 
 class CompressedAudio(
     redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio):
         super().__init__(proto)
-        # TODO
+
+    @staticmethod
+    def new() -> 'CompressedAudio':
+        proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio \
+            = redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio()
+        return CompressedAudio(proto)
+
+    def get_sensor_description(self) -> str:
+        return self._proto.sensor_description
+
+    def set_sensor_description(self, sensor_description: str) -> 'CompressedAudio':
+        redvox.api1000.common.typing.check_type(sensor_description, [str])
+        self._proto.sensor_description = sensor_description
+        return self
+
+    def get_first_sample_timestamp(self) -> float:
+        return self._proto.first_sample_timestamp
+
+    def set_first_sample_timestamp(self, first_sample_timestamp: float) -> 'CompressedAudio':
+        redvox.api1000.common.typing.check_type(first_sample_timestamp, [float, int])
+        self._proto.first_sample_timestamp = first_sample_timestamp
+        return self
+
+    def get_sample_rate(self) -> float:
+        return self._proto.sample_rate
+
+    def set_sample_rate(self, sample_rate: float) -> 'CompressedAudio':
+        redvox.api1000.common.typing.check_type(sample_rate, [int, float])
+        self._proto.sample_rate = sample_rate
+        return self
+
+    def get_is_scrambled(self) -> bool:
+        return self._proto.is_scrambled
+
+    def set_is_scrambled(self, is_scrambled: bool) -> 'CompressedAudio':
+        redvox.api1000.common.typing.check_type(is_scrambled, [bool])
+        self._proto.is_scrambled = is_scrambled
+        return self
+
+    def get_audio_bytes(self) -> bytes:
+        return self._proto.audio_bytes
+
+    def set_audio_bytes(self, audio_bytes: bytes) -> 'CompressedAudio':
+        redvox.api1000.common.typing.check_type(audio_bytes, [bytes])
+        self._proto.audio_bytes = audio_bytes
+        return self
+
+    def get_audio_codec(self) -> AudioCodec:
+        return self._proto.audio_codec
+
+    def set_audio_codec(self, audio_codec: AudioCodec) -> 'CompressedAudio':
+        redvox.api1000.common.typing.check_type(audio_codec, [AudioCodec])
+        self.get_proto().audio_codec = \
+            redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec.Value(audio_codec.name)
+        return self
 
 
 def validate_compress_audio(compress_audio: CompressedAudio) -> List[str]:
-    return []
-    # todo: complete when compressed audio is complete
-    # errors_list = common.validate_sample_payload(compress_audio.get_samples())
-    # if compress_audio.get_first_sample_timestamp() == 0:
-    #     errors_list.append("Audio first sample timestamp is default value")
-    # if AudioSamplingRate.from_sampling_rate(compress_audio.get_sample_rate()) is None:
-    #     errors_list.append("Audio sample rate is not a valid value")
-    # check audio codec
+    errors_list = []
+    if len(compress_audio.get_audio_bytes()) < 1:
+        errors_list.append("Compressed Audio sample audio bytes is empty.")
+    if compress_audio.get_first_sample_timestamp() == 0:
+        errors_list.append("Compressed Audio first sample timestamp is default value")
+    if AudioSamplingRate.from_sampling_rate(compress_audio.get_sample_rate()) is None:
+        errors_list.append("Compressed Audio sample rate is not a valid value")
+    return errors_list
