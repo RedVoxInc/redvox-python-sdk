@@ -8,6 +8,11 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.8.6 (2020-05-12)
+
+* Add small HTTP interface to upcoming RedVox cloud API
+* Added new sub-command to CLI `data_req_report` which takes a report ID and will download the report data for authenticated users
+
 ### 2.8.5 (2020-05-11)
 
 * The auth_token CLI field for the data_req CLI command has been renamed to `secret_auth` to better reflect the fact that it is a shared secrete.  
