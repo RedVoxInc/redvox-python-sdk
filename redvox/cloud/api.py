@@ -110,4 +110,26 @@ def validate_token(api_config: ApiConfig,
         return None
 
 
+@dataclass_json
+@dataclass
+class ReportDataReq:
+    auth_token: str
+    report_id: str
+    secret_token: Optional[str] = None
+
+
+@dataclass_json
+@dataclass
+class ReportDataResp:
+    signed_url: str
+
+
+def get_report_dist_signed_url(api_config: ApiConfig,
+                               report_data_req: ReportDataReq) -> Optional[ReportDataResp]:
+    url: str = api_config.url("/api/v1/report_data_req")
+    resp: requests.Response = requests.post(url, json=report_data_req.to_dict())
+    if resp.status_code == 200:
+        return ReportDataResp.from_dict(resp.json())
+    else:
+        return None
 
