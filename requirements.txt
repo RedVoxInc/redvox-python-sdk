@@ -3,10 +3,11 @@ fastkml>=0.11
 lxml>=4.5.0
 lz4>=3.0.2
 matplotlib>=3.2.1
-numpy>=1.18.2
+numpy>=1.18.4
 pandas>=1.0.3
 protobuf>=3.11.3
 requests>=2.23.0
 scipy>=1.4.1
-
+dataclasses >= 0.6
+dataclasses-json >= 0.4.2
 
