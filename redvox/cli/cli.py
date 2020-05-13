@@ -139,6 +139,18 @@ def data_req_report(protocol: str,
                     out_dir: str,
                     retries: int,
                     secret_token: Optional[str] = None) -> bool:
+    """
+    Uses the built-in cloud based HTTP API to generate a signed URL for report data and then downloads the report data.
+    :param protocol: Either http or https.
+    :param host: The data service host.
+    :param port: The data service port.
+    :param email: The email of the RedVox user.
+    :param password: The password of the RedVox user.
+    :param report_id: The full RedVox report id.
+    :param out_dir: The output directory to play the report distribution.
+    :param retries: Number of times to attempt to retry the download on failed attempts.
+    :param secret_token: The shared secret if utilized by the API server.
+    """
     api_config: cloud_api.ApiConfig = cloud_api.ApiConfig(protocol, host, port)
     auth_req: cloud_api.AuthenticationRequest = cloud_api.AuthenticationRequest(email, password)
     auth_resp: cloud_api.AuthenticationResponse = cloud_api.authenticate_user(api_config, auth_req)

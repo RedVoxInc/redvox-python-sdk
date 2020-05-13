@@ -207,7 +207,7 @@ def to_array(values: typing.Union[typing.List, numpy.ndarray]) -> numpy.ndarray:
     :param values: Values to convert into numpy array if values are in a list.
     :return: A numpy array of the passed in values.
     """
-    if isinstance(values, typing.List):
+    if isinstance(values, list):
         return numpy.array(values)
     return values
 
