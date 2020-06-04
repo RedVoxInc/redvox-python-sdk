@@ -8,6 +8,10 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.8.7 (2020-06-03)
+
+* Integrate ability to access extracted metadata from RedVox packets utilizing the cloud data API.
+
 ### 2.8.6 (2020-05-12)
 
 * Add small HTTP interface to upcoming RedVox cloud API
