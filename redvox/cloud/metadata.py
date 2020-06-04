@@ -167,6 +167,7 @@ class MetadataReq:
     auth_emails: List[str]
     station_ids: List[str]
     fields: List[str]
+    secret_token: Optional[str] = None
 
 
 @dataclass_json
