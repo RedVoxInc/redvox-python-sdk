@@ -303,8 +303,8 @@ def main():
     data_req_report_parser.add_argument("--port",
                                         "-p",
                                         type=int,
-                                        help="Data server port (default=443)",
-                                        default=443)
+                                        help="Data server port (default=8080)",
+                                        default=8080)
     data_req_report_parser.add_argument("--protocol",
                                         help="One of either http or https (default https)",
                                         choices=["https", "http"],
