@@ -7,6 +7,8 @@ from typing import List, Optional
 from dataclasses_json import dataclass_json
 import requests
 
+import redvox.cloud.metadata as metadata
+
 
 @dataclass
 class ApiConfig:
@@ -55,9 +57,11 @@ def authenticate_user(api_config: ApiConfig,
     :return: An instance of an authentication response.
     """
     url: str = api_config.url("/api/v1/auth")
+    # noinspection Mypy
     resp: requests.Response = requests.post(url, json=authentication_request.to_dict())
 
     if resp.status_code == 200:
+        # noinspection Mypy
         return AuthenticationResponse.from_dict(resp.json())
     else:
         return AuthenticationResponse(resp.status_code, None)
@@ -110,6 +114,7 @@ def get_timing_metadata(api_config: ApiConfig,
     :return: An instance of a timing response.
     """
     url: str = api_config.url("/api/v1/time")
+    # noinspection Mypy
     resp: requests.Response = requests.post(url, json=timing_req.to_dict())
     if resp.status_code == 200:
         return TimingMetaResponse(resp.json())
@@ -150,8 +155,10 @@ def validate_token(api_config: ApiConfig,
     :return: A ValidateTokenResp when the token is valid, None otherwise.
     """
     url: str = api_config.url("/api/v1/auth/validate_token")
+    # noinspection Mypy
     resp: requests.Response = requests.post(url, json=validate_token_req.to_dict())
     if resp.status_code == 200:
+        # noinspection Mypy
         return ValidateTokenResp.from_dict(resp.json())
     else:
         return None
@@ -186,9 +193,28 @@ def get_report_dist_signed_url(api_config: ApiConfig,
     :return: The response.
     """
     url: str = api_config.url("/api/v1/report_data_req")
+    # noinspection Mypy
     resp: requests.Response = requests.post(url, json=report_data_req.to_dict())
     if resp.status_code == 200:
+        # noinspection Mypy
         return ReportDataResp.from_dict(resp.json())
     else:
         return None
 
+
+def request_metadata(api_config: ApiConfig, packet_metadata_req: metadata.MetadataReq) -> Optional[
+        metadata.MetadataResp]:
+    """
+    Requests generic metadata from the cloud API.
+    :param api_config: An instance of the API config.
+    :param packet_metadata_req: An instance of a metadata request.
+    :return: A metadata response on successful call or None if there is an error.
+    """
+    url: str = api_config.url("/api/v1/metadata")
+    # noinspection Mypy
+    resp: requests.Response = requests.post(url, json=packet_metadata_req.to_dict())
+    if resp.status_code == 200:
+        # noinspection Mypy
+        return metadata.MetadataResp.from_dict(resp.json())
+    else:
+        return None
