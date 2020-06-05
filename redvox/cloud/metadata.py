@@ -1,10 +1,14 @@
 """
 This module contains classes and enums for working with generic RedVox packet metadata through the cloud API.
 """
+import requests
 from dataclasses import dataclass
 from typing import List, Optional
 
 from dataclasses_json import dataclass_json
+
+from redvox.cloud.api import ApiConfig
+from redvox.cloud.routes import RoutesV1
 
 
 @dataclass_json
@@ -157,6 +161,44 @@ class AvailableMetadata:
     ProximitySensor: str = "ProximitySensor"
     LocationSensor: str = "LocationSensor"
 
+    @staticmethod
+    def all_available_metadata() -> List[str]:
+        return [
+            AvailableMetadata.Api,
+            AvailableMetadata.StationId,
+            AvailableMetadata.StationUuid,
+            AvailableMetadata.AuthEmail,
+            AvailableMetadata.IsBackfilled,
+            AvailableMetadata.IsPrivate,
+            AvailableMetadata.IsScrambled,
+            AvailableMetadata.StationMake,
+            AvailableMetadata.StationModel,
+            AvailableMetadata.StationOs,
+            AvailableMetadata.StationOsVersion,
+            AvailableMetadata.StationAppVersion,
+            AvailableMetadata.BatteryLevel,
+            AvailableMetadata.StationTemperature,
+            AvailableMetadata.AcquisitionUrl,
+            AvailableMetadata.SynchUrl,
+            AvailableMetadata.AuthUrl,
+            AvailableMetadata.OsTs,
+            AvailableMetadata.MachTs,
+            AvailableMetadata.ServerTs,
+            AvailableMetadata.DataKey,
+            AvailableMetadata.MachTimeZero,
+            AvailableMetadata.BestLatency,
+            AvailableMetadata.BestOffset,
+            AvailableMetadata.AudioSensor,
+            AvailableMetadata.BarometerSensor,
+            AvailableMetadata.AccelerometerSensor,
+            AvailableMetadata.GyroscopeSensor,
+            AvailableMetadata.TimeSynchronizationSensor,
+            AvailableMetadata.MagnetometerSensor,
+            AvailableMetadata.LightSensor,
+            AvailableMetadata.ProximitySensor,
+            AvailableMetadata.LocationSensor,
+        ]
+
 
 @dataclass_json
 @dataclass
@@ -164,7 +206,6 @@ class MetadataReq:
     auth_token: str
     start_ts_s: int
     end_ts_s: int
-    auth_emails: List[str]
     station_ids: List[str]
     fields: List[str]
     secret_token: Optional[str] = None
@@ -174,3 +215,74 @@ class MetadataReq:
 @dataclass
 class MetadataResp:
     metadata: List[PacketMetadataResult]
+
+
+@dataclass_json
+@dataclass
+class TimingMetaRequest:
+    """
+    Request for timing metadata.
+    """
+    auth_token: str
+    start_ts_s: int
+    end_ts_s: int
+    station_ids: List[str]
+    secret_token: Optional[str] = None
+
+
+@dataclass_json
+@dataclass
+class TimingMeta:
+    """
+    Timing metadata extracted from an individual packet.
+    """
+    station_id: str
+    start_ts_os: float
+    start_ts_mach: float
+    server_ts: float
+    mach_time_zero: float
+    best_latency: float
+    best_offset: float
+
+
+@dataclass_json
+@dataclass
+class TimingMetaResponse:
+    """
+    Response of obtaining timing metadta.
+    """
+    items: List[TimingMeta]
+
+
+def request_timing_metadata(api_config: ApiConfig,
+                            timing_req: TimingMetaRequest) -> TimingMetaResponse:
+    """
+    Retrieve timing metadata.
+    :param api_config: An instance of the API configuration.
+    :param timing_req: An instance of a timing request.
+    :return: An instance of a timing response.
+    """
+    url: str = api_config.url(RoutesV1.TIMING_METADATA_REQ)
+    # noinspection Mypy
+    resp: requests.Response = requests.post(url, json=timing_req.to_dict())
+    if resp.status_code == 200:
+        return TimingMetaResponse(resp.json())
+    else:
+        return TimingMetaResponse(list())
+
+
+def request_metadata(api_config: ApiConfig, packet_metadata_req: MetadataReq) -> Optional[MetadataResp]:
+    """
+    Requests generic metadata from the cloud API.
+    :param api_config: An instance of the API config.
+    :param packet_metadata_req: An instance of a metadata request.
+    :return: A metadata response on successful call or None if there is an error.
+    """
+    url: str = api_config.url(RoutesV1.METADATA_REQ)
+    # noinspection Mypy
+    resp: requests.Response = requests.post(url, json=packet_metadata_req.to_dict())
+    if resp.status_code == 200:
+        # noinspection Mypy
+        return MetadataResp.from_dict(resp.json())
+    else:
+        return None

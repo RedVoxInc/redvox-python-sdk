@@ -2,12 +2,11 @@
 This module contains methods for interacting with the RedVox cloud based API.
 """
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Dict, Optional
 
-from dataclasses_json import dataclass_json
 import requests
 
-import redvox.cloud.metadata as metadata
+from redvox.cloud.routes import RoutesV1
 
 
 @dataclass
@@ -27,194 +26,27 @@ class ApiConfig:
         """
         return f"{self.protocol}://{self.host}:{self.port}{end_point}"
 
-
-@dataclass_json
-@dataclass
-class AuthenticationRequest:
-    """
-    An authentication request.
-    """
-    email: str
-    password: str
+    @staticmethod
+    def default() -> 'ApiConfig':
+        return ApiConfig("https", "redvox.io", 8080)
 
 
-@dataclass_json
-@dataclass
-class AuthenticationResponse:
-    """
-    An authentication response.
-    """
-    status: int
-    auth_token: Optional[str]
-
-
-def authenticate_user(api_config: ApiConfig,
-                      authentication_request: AuthenticationRequest) -> AuthenticationResponse:
-    """
-    Attempts to authenticate a RedVox user.
-    :param api_config: Api configuration.
-    :param authentication_request: An instance of an authentication request.
-    :return: An instance of an authentication response.
-    """
-    url: str = api_config.url("/api/v1/auth")
+def health_check(api_config: ApiConfig) -> bool:
+    url: str = api_config.url(RoutesV1.HEALTH_CHECK)
     # noinspection Mypy
-    resp: requests.Response = requests.post(url, json=authentication_request.to_dict())
+    resp: requests.Response = requests.get(url)
+    if resp.status_code == 200:
+        return True
 
+    return False
+
+
+def post_api_call(api_config: ApiConfig, route: str, body: Dict) -> Optional[Dict]:
+    url: str = api_config.url(route)
+    # noinspection Mypy
+    resp: requests.Response = requests.post(url, json=body)
     if resp.status_code == 200:
         # noinspection Mypy
-        return AuthenticationResponse.from_dict(resp.json())
-    else:
-        return AuthenticationResponse(resp.status_code, None)
-
-
-@dataclass_json
-@dataclass
-class TimingRequest:
-    """
-    Request for timing metadata.
-    """
-    auth_token: str
-    auth_id: str
-    start_ts_s: int
-    end_ts_s: int
-    station_ids: List[str]
-    secret_token: Optional[str] = None
-
-
-@dataclass_json
-@dataclass
-class TimingMeta:
-    """
-    Timing metadata extracted from an individual packet.
-    """
-    station_id: str
-    start_ts_os: float
-    start_ts_mach: float
-    server_ts: float
-    mach_time_zero: float
-    best_latency: float
-    best_offset: float
-
-
-@dataclass_json
-@dataclass
-class TimingMetaResponse:
-    """
-    Response of obtaining timing metadta.
-    """
-    items: List[TimingMeta]
-
-
-def get_timing_metadata(api_config: ApiConfig,
-                        timing_req: TimingRequest) -> TimingMetaResponse:
-    """
-    Retrieve timing metadata.
-    :param api_config: An instance of the API configuration.
-    :param timing_req: An instance of a timing request.
-    :return: An instance of a timing response.
-    """
-    url: str = api_config.url("/api/v1/time")
-    # noinspection Mypy
-    resp: requests.Response = requests.post(url, json=timing_req.to_dict())
-    if resp.status_code == 200:
-        return TimingMetaResponse(resp.json())
-    else:
-        return TimingMetaResponse(list())
-
-
-@dataclass_json
-@dataclass
-class ValidateTokenReq:
-    """
-    A token validation request.
-    """
-    auth_token: str
-
-
-@dataclass_json
-@dataclass
-class ValidateTokenResp:
-    """
-    A verified token response.
-    """
-    aud: str
-    exp: str
-    iat: str
-    iss: str
-    nbf: str
-    sub: str
-    tier: str
-
-
-def validate_token(api_config: ApiConfig,
-                   validate_token_req: ValidateTokenReq) -> Optional[ValidateTokenResp]:
-    """
-    Attempt to validate the provided auth token.
-    :param api_config: The Api config.
-    :param validate_token_req: A validation token req.
-    :return: A ValidateTokenResp when the token is valid, None otherwise.
-    """
-    url: str = api_config.url("/api/v1/auth/validate_token")
-    # noinspection Mypy
-    resp: requests.Response = requests.post(url, json=validate_token_req.to_dict())
-    if resp.status_code == 200:
-        # noinspection Mypy
-        return ValidateTokenResp.from_dict(resp.json())
-    else:
-        return None
-
-
-@dataclass_json
-@dataclass
-class ReportDataReq:
-    """
-    A request for a signed URL to a RedVox report distribution.
-    """
-    auth_token: str
-    report_id: str
-    secret_token: Optional[str] = None
-
-
-@dataclass_json
-@dataclass
-class ReportDataResp:
-    """
-    Response for a report signed URL.
-    """
-    signed_url: str
-
-
-def get_report_dist_signed_url(api_config: ApiConfig,
-                               report_data_req: ReportDataReq) -> Optional[ReportDataResp]:
-    """
-    Makes an API call to generate a signed URL of a RedVox report.
-    :param api_config: An API config.
-    :param report_data_req: The request.
-    :return: The response.
-    """
-    url: str = api_config.url("/api/v1/report_data_req")
-    # noinspection Mypy
-    resp: requests.Response = requests.post(url, json=report_data_req.to_dict())
-    if resp.status_code == 200:
-        # noinspection Mypy
-        return ReportDataResp.from_dict(resp.json())
-    else:
-        return None
-
-
-def request_metadata(api_config: ApiConfig, packet_metadata_req: metadata.MetadataReq) -> Optional[
-        metadata.MetadataResp]:
-    """
-    Requests generic metadata from the cloud API.
-    :param api_config: An instance of the API config.
-    :param packet_metadata_req: An instance of a metadata request.
-    :return: A metadata response on successful call or None if there is an error.
-    """
-    url: str = api_config.url("/api/v1/metadata")
-    # noinspection Mypy
-    resp: requests.Response = requests.post(url, json=packet_metadata_req.to_dict())
-    if resp.status_code == 200:
-        # noinspection Mypy
-        return metadata.MetadataResp.from_dict(resp.json())
+        return resp.json()
     else:
         return None
