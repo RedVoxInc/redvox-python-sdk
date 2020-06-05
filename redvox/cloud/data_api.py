@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from dataclasses_json import dataclass_json
 import requests
 
 from redvox.cloud.api import ApiConfig
+import redvox.cloud.data_io as data_io
 from redvox.cloud.routes import RoutesV1
 
 
@@ -27,6 +28,12 @@ class ReportDataResp:
     """
     signed_url: str
 
+    def download_buf(self) -> Optional[bytes]:
+        return data_io.get_file(self.signed_url, 3)
+
+    def download_fs(self, out_dir: str) -> Tuple[str, int]:
+        return data_io.download_file(self.signed_url, requests.Session(), out_dir, 3)
+
 
 @dataclass_json
 @dataclass
@@ -42,6 +49,9 @@ class DataRangeReq:
 @dataclass
 class DataRangeResp:
     signed_urls: List[str]
+
+    def download_fs(self, out_dir: str):
+        data_io.download_files_parallel(self.signed_urls, out_dir, 3)
 
 
 def request_report_data(api_config: ApiConfig,

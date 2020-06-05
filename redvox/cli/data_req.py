@@ -53,11 +53,6 @@ def make_data_req(out_dir: str,
         log.error("No signed urls returned")
         return False
 
-    process_pool: data_io.ProcessPool = data_io.ProcessPool(4,
-                                                            data_io.download_files,
-                                                            data_resp.signed_urls,
-                                                            out_dir,
-                                                            retries)
-    process_pool.run()
+    data_io.download_files_parallel(data_resp.signed_urls, out_dir, retries)
 
     return True

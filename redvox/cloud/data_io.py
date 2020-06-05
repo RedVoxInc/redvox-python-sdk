@@ -141,3 +141,12 @@ def download_files(urls: List[str], out_dir: str, retries: int) -> None:
     for url in urls:
         data_key, resp_len = download_file(url, session, out_dir, retries)
         log.info("Recv %s with len=%d", data_key, resp_len)
+
+
+def download_files_parallel(urls: List[str], out_dir: str, retries: int) -> None:
+    process_pool: ProcessPool = ProcessPool(4,
+                                            download_files,
+                                            urls,
+                                            out_dir,
+                                            retries)
+    process_pool.run()
