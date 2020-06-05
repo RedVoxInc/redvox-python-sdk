@@ -14,6 +14,9 @@ from redvox.cloud.routes import RoutesV1
 @dataclass_json
 @dataclass
 class AudioMetadata:
+    """
+    Metadata associated with audio sensors.
+    """
     sensor_name: Optional[str] = None
     sample_rate: Optional[float] = None
     first_sample_ts: Optional[int] = None
@@ -26,6 +29,10 @@ class AudioMetadata:
 @dataclass_json
 @dataclass
 class SingleMetadata:
+    """
+    Metadata associated with sensors that only contain a single dimensional channel of data
+        (barometer, light, proximity).
+    """
     sensor_name: Optional[str] = None
     timestamps_microseconds_utc_count: Optional[int] = None
     payload_count: Optional[int] = None
@@ -41,6 +48,9 @@ class SingleMetadata:
 @dataclass_json
 @dataclass
 class XyzMetadata:
+    """
+    Metadata for sensors that have 3-dimensions of data (accelerometer, gyroscope, magenetometer)
+    """
     sensor_name: Optional[str] = None
     timestamps_microseconds_utc_count: Optional[int] = None
     payload_count: Optional[int] = None
@@ -62,6 +72,9 @@ class XyzMetadata:
 @dataclass_json
 @dataclass
 class LocationMetadata:
+    """
+    Metadata associated with the location sensor.
+    """
     sensor_name: Optional[str] = None
     timestamps_microseconds_utc_count: Optional[int] = None
     payload_count: Optional[int] = None
@@ -89,6 +102,9 @@ class LocationMetadata:
 @dataclass_json
 @dataclass
 class PacketMetadataResult:
+    """
+    Metadata associated with RedVox API 900 packets.
+    """
     api: Optional[int] = None
     station_id: Optional[str] = None
     station_uuid: Optional[str] = None
@@ -127,6 +143,9 @@ class PacketMetadataResult:
 @dataclass_json
 @dataclass
 class AvailableMetadata:
+    """
+    Contains definitions for all available metadata that an be requested from the cloud api.
+    """
     Api: str = "Api"
     StationId: str = "StationId"
     StationUuid: str = "StationUuid"
@@ -163,6 +182,10 @@ class AvailableMetadata:
 
     @staticmethod
     def all_available_metadata() -> List[str]:
+        """
+        Returns a list of all available metadata definitions.
+        :return: A list of all available metadata definitions.
+        """
         return [
             AvailableMetadata.Api,
             AvailableMetadata.StationId,
@@ -203,6 +226,9 @@ class AvailableMetadata:
 @dataclass_json
 @dataclass
 class MetadataReq:
+    """
+    The definition of a metadata request. Fields should include the definitions defined by AvailableMetadata.
+    """
     auth_token: str
     start_ts_s: int
     end_ts_s: int
@@ -214,6 +240,9 @@ class MetadataReq:
 @dataclass_json
 @dataclass
 class MetadataResp:
+    """
+    Response of a metadata request.
+    """
     metadata: List[PacketMetadataResult]
 
 

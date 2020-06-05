@@ -1,8 +1,11 @@
-import bz2
+"""
+This module contains functions for downloading data from AWS S3 via signed URLs.
+"""
+
 import logging
 import multiprocessing
 import os
-from typing import Callable, Dict, List, Tuple, Union, Optional
+from typing import Callable, List, Tuple, Optional
 
 import numpy as np
 import requests
@@ -13,12 +16,12 @@ log = logging.getLogger(__name__)
 
 class ProcessPool:
     """
-    Creates a process pool used for fetching the files from S3.
+    Creates a process pool used for fetching files from S3.
     """
 
     def __init__(self,
                  num_processes: int,
-                 func: Callable[[List[str], str], None],
+                 func: Callable[[List[str], str, int], None],
                  data: List[str],
                  out_dir: str,
                  retries: int):
@@ -33,7 +36,7 @@ class ProcessPool:
         """
 
         self.num_processes: int = num_processes
-        self.func: Callable[[List[str]], None] = func
+        self.func: Callable[[List[str], str, int], None] = func
         self.data: List[List[str]] = list(map(list, np.array_split(np.array(data), num_processes)))
         self.out_dir = out_dir
         self.retries = retries
@@ -72,6 +75,13 @@ def find_between(start: str, end: str, contents: str) -> str:
 def get_file(url: str,
              retries: int,
              session: requests.Session = requests.Session()) -> Optional[bytes]:
+    """
+    Attempts to download a file with a configurable amount of retries.
+    :param url: The url to download.
+    :param retries: Number of retries.
+    :param session: An instance of a session.
+    :return: The bytes of the file.
+    """
     try:
         resp: requests.Response = session.get(url)
         if resp.status_code == 200:
@@ -144,6 +154,12 @@ def download_files(urls: List[str], out_dir: str, retries: int) -> None:
 
 
 def download_files_parallel(urls: List[str], out_dir: str, retries: int) -> None:
+    """
+    Distributes the file downloading across a process pool.
+    :param urls: The signed URLs to download.
+    :param out_dir: The output directory.
+    :param retries: The number of times to retry downloading a file on failure.
+    """
     process_pool: ProcessPool = ProcessPool(4,
                                             download_files,
                                             urls,

@@ -1,3 +1,7 @@
+"""
+This module contains classes and functions for interacting with the RedVox Cloud API authentication endpoints.
+"""
+
 from dataclasses import dataclass
 from typing import Optional
 
@@ -112,6 +116,12 @@ def validate_token(api_config: ApiConfig,
 
 def refresh_token(api_config: ApiConfig,
                   refresh_token_req: RefreshTokenReq) -> Optional[RefreshTokenResp]:
+    """
+    Attemp to refresh the given authentication token.
+    :param api_config: The Api config.
+    :param refresh_token_req: The request.
+    :return: An instance of a RefreshTokenResp.
+    """
     url: str = api_config.url(RoutesV1.REFRESH_TOKEN)
     # noinspection Mypy
     resp: requests.Response = requests.post(url, json=refresh_token_req.to_dict())
