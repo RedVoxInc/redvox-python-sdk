@@ -8,6 +8,11 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ### Changelog
 
+### 2.9.0 (2020-06-05)
+
+* Add full fledged cloud based API client. This client seamlessly manages authentication tokens behind the scenes.
+* Update CLI data request methods to make use of new cloud based client.
+
 ### 2.8.7 (2020-06-03)
 
 * Integrate ability to access extracted metadata from RedVox packets utilizing the cloud data API.
