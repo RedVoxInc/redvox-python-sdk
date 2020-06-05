@@ -9,6 +9,8 @@ import sys
 from typing import Dict, List, Optional
 
 import redvox.cloud.api as cloud_api
+import redvox.cloud.client as cloud_client
+import redvox.cloud.data_api as data_api
 import redvox.cli.conversions as conversions
 import redvox.cli.data_req as data_req
 
@@ -152,23 +154,19 @@ def data_req_report(protocol: str,
     :param secret_token: The shared secret if utilized by the API server.
     """
     api_config: cloud_api.ApiConfig = cloud_api.ApiConfig(protocol, host, port)
-    auth_req: cloud_api.AuthenticationRequest = cloud_api.AuthenticationRequest(email, password)
-    auth_resp: cloud_api.AuthenticationResponse = cloud_api.authenticate_user(api_config, auth_req)
+    client = cloud_client.CloudClient(email,
+                                      password,
+                                      api_conf=api_config,
+                                      secret_token=secret_token)
+    resp: Optional[data_api.ReportDataResp] = client.request_report_data(report_id)
+    client.close()
 
-    if auth_resp.status == 200:
-        auth_token: str = auth_resp.auth_token
-        signed_url_req: cloud_api.ReportDataReq = cloud_api.ReportDataReq(auth_token, report_id, secret_token)
-        signed_url_resp: cloud_api.ReportDataResp = cloud_api.get_report_dist_signed_url(api_config, signed_url_req)
-        if signed_url_resp is not None:
-            signed_url: str = signed_url_resp.signed_url
-            data_req.get_files([signed_url], out_dir, retries)
-            return True
-        else:
-            log.error("Response did not include the expected signed url")
-            return False
-    else:
-        log.error("Could not authenticate with authentication server")
-        return False
+    if resp:
+        resp.download_fs(out_dir, retries)
+        return True
+
+    log.error("Response was None")
+    return False
 
 
 def data_req_report_args(args) -> None:
@@ -258,8 +256,8 @@ def main():
     data_req_parser.add_argument("--port",
                                  "-p",
                                  type=int,
-                                 help="Data server port (default=443)",
-                                 default=443)
+                                 help="Data server port (default=8080)",
+                                 default=8080)
     data_req_parser.add_argument("--protocol",
                                  help="One of either http or https (default https)",
                                  choices=["https", "http"],

@@ -28,11 +28,11 @@ class ReportDataResp:
     """
     signed_url: str
 
-    def download_buf(self) -> Optional[bytes]:
-        return data_io.get_file(self.signed_url, 3)
+    def download_buf(self, retries: int = 3) -> Optional[bytes]:
+        return data_io.get_file(self.signed_url, retries)
 
-    def download_fs(self, out_dir: str) -> Tuple[str, int]:
-        return data_io.download_file(self.signed_url, requests.Session(), out_dir, 3)
+    def download_fs(self, out_dir: str, retries: int = 3) -> Tuple[str, int]:
+        return data_io.download_file(self.signed_url, requests.Session(), out_dir, retries)
 
 
 @dataclass_json
@@ -50,8 +50,8 @@ class DataRangeReq:
 class DataRangeResp:
     signed_urls: List[str]
 
-    def download_fs(self, out_dir: str):
-        data_io.download_files_parallel(self.signed_urls, out_dir, 3)
+    def download_fs(self, out_dir: str, retries: int = 3):
+        data_io.download_files_parallel(self.signed_urls, out_dir, retries)
 
 
 def request_report_data(api_config: ApiConfig,

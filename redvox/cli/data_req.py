@@ -48,6 +48,7 @@ def make_data_req(out_dir: str,
                                                                 api_conf=api_conf,
                                                                 secret_token=secret_token)
     data_resp: data_api.DataRangeResp = client.request_data_range(req_start_s, req_end_s, redvox_ids)
+    client.close()
 
     if len(data_resp.signed_urls) == 0:
         log.error("No signed urls returned")
