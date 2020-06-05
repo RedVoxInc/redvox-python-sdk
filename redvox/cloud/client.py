@@ -2,9 +2,9 @@ import threading
 from typing import List, Optional
 
 import redvox.cloud.api as api
-import redvox.cloud.auth as auth_api
-import redvox.cloud.data as data_api
-import redvox.cloud.metadata as metadata_api
+import redvox.cloud.auth_api as auth_api
+import redvox.cloud.data_api as data_api
+import redvox.cloud.metadata_api as metadata_api
 
 
 class CloudClient:
