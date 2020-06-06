@@ -3,7 +3,7 @@ This module contains classes and enums for working with generic RedVox packet me
 """
 import requests
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from dataclasses_json import dataclass_json
 
@@ -295,7 +295,10 @@ def request_timing_metadata(api_config: ApiConfig,
     # noinspection Mypy
     resp: requests.Response = requests.post(url, json=timing_req.to_dict())
     if resp.status_code == 200:
-        return TimingMetaResponse(resp.json())
+        json: List[Dict] = resp.json()
+        # noinspection Mypy
+        items: List[TimingMeta] = list(map(TimingMeta.from_dict, json))
+        return TimingMetaResponse(items)
     else:
         return TimingMetaResponse(list())
 

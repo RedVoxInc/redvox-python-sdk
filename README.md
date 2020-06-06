@@ -6,7 +6,11 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ![Bitbucket Pipelines branch](https://img.shields.io/bitbucket/pipelines/redvoxhi/redvox-api900-python-reader/master)
 
-### Changelog
+## Changelog
+
+### 2.9.1 (2020-06-05)
+
+* Fix bug where timing metadata was not converted into its associated data class.
 
 ### 2.9.0 (2020-06-05)
 
