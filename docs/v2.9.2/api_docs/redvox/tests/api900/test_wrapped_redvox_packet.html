@@ -1,0 +1,2936 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>redvox.tests.api900.test_wrapped_redvox_packet API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.tests.api900.test_wrapped_redvox_packet</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import os
+import unittest
+
+from redvox.api900 import reader
+from redvox.api900.exceptions import ReaderException
+import redvox.api900.migrations as migrations
+from redvox.tests import test_data, TEST_DATA_DIR
+
+import numpy
+
+
+class TestWrappedRedvoxPacket(unittest.TestCase):
+    def setUp(self):
+        self.example_packet = reader.read_rdvxz_file(test_data(&#34;example.rdvxz&#34;))
+        self.empty_packet = reader.WrappedRedvoxPacket()
+
+    def tearDown(self):
+        pass
+
+    def test_get_api(self):
+        self.assertEqual(900, self.example_packet.api())
+        self.assertEqual(0, self.empty_packet.api())
+
+    def test_set_api(self):
+        self.example_packet.set_api(901)
+        self.empty_packet.set_api(901)
+        self.assertEqual(901, self.example_packet.api())
+        self.assertEqual(901, self.empty_packet.api())
+
+    def test_get_redvox_id(self):
+        self.assertEqual(&#34;0000000001&#34;, self.example_packet.redvox_id())
+        self.assertEqual(&#34;&#34;, self.empty_packet.redvox_id())
+
+    def test_set_redvox_id(self):
+        self.example_packet.set_redvox_id(&#34;foo&#34;)
+        self.empty_packet.set_redvox_id(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.redvox_id())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.redvox_id())
+
+    def test_get_uuid(self):
+        self.assertEqual(&#34;123456789&#34;, self.example_packet.uuid())
+        self.assertEqual(&#34;&#34;, self.empty_packet.uuid())
+
+    def test_set_uuid(self):
+        self.example_packet.set_uuid(&#34;foo&#34;)
+        self.empty_packet.set_uuid(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.uuid())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.uuid())
+
+    def test_get_authenticated_email(self):
+        self.assertEqual(&#34;foo@bar.baz&#34;, self.example_packet.authenticated_email())
+        self.assertEqual(&#34;&#34;, self.empty_packet.authenticated_email())
+
+    def test_set_authenticated_email(self):
+        self.example_packet.set_authenticated_email(&#34;john.doe@gmail.com&#34;)
+        self.empty_packet.set_authenticated_email(&#34;john.doe@gmail.com&#34;)
+        self.assertEqual(&#34;john.doe@gmail.com&#34;, self.example_packet.authenticated_email())
+        self.assertEqual(&#34;john.doe@gmail.com&#34;, self.empty_packet.authenticated_email())
+
+    def test_get_authentication_token(self):
+        self.assertEqual(&#34;redacted-000000&#34;, self.example_packet.authentication_token())
+        self.assertEqual(&#34;&#34;, self.empty_packet.authentication_token())
+
+    def test_set_authentication_token(self):
+        self.example_packet.set_authentication_token(&#34;foo&#34;)
+        self.empty_packet.set_authentication_token(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.authentication_token())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.authentication_token())
+
+    def test_get_firebase_token(self):
+        self.assertEqual(&#34;example_firebase_token&#34;, self.example_packet.firebase_token())
+        self.assertEqual(&#34;&#34;, self.empty_packet.firebase_token())
+
+    def test_set_firebase_token(self):
+        self.example_packet.set_firebase_token(&#34;foo&#34;)
+        self.empty_packet.set_firebase_token(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.firebase_token())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.firebase_token())
+
+    def test_get_battery_level_percent(self):
+        self.assertAlmostEqual(77.5, self.example_packet.battery_level_percent())
+        self.assertEqual(0.0, self.empty_packet.battery_level_percent())
+
+    def test_set_battery_level_percent(self):
+        self.example_packet.set_battery_level_percent(100.0)
+        self.empty_packet.set_battery_level_percent(100.0)
+        self.assertAlmostEqual(100.0, self.example_packet.battery_level_percent())
+        self.assertAlmostEqual(100.0, self.empty_packet.battery_level_percent())
+
+    def test_get_device_temperature_c(self):
+        self.assertAlmostEqual(21.100000381469727, self.example_packet.device_temperature_c())
+        self.assertEqual(0.0, self.empty_packet.device_temperature_c())
+
+    def test_set_device_temperature_c(self):
+        self.example_packet.set_device_temperature_c(100.0)
+        self.empty_packet.set_device_temperature_c(100.0)
+        self.assertAlmostEqual(100.0, self.example_packet.device_temperature_c())
+        self.assertAlmostEqual(100.0, self.empty_packet.device_temperature_c())
+
+    def test_get_is_private(self):
+        self.assertTrue(self.example_packet.is_private())
+        self.assertFalse(self.empty_packet.is_private())
+
+    def test_set_is_private(self):
+        self.example_packet.set_is_private(False)
+        self.empty_packet.set_is_private(True)
+        self.assertFalse(self.example_packet.is_private())
+        self.assertTrue(self.empty_packet.is_private())
+
+    def test_get_is_backfilled(self):
+        self.assertFalse(self.example_packet.is_backfilled())
+        self.assertFalse(self.empty_packet.is_backfilled())
+
+    def test_set_is_backfilled(self):
+        self.example_packet.set_is_backfilled(True)
+        self.empty_packet.set_is_backfilled(True)
+        self.assertTrue(self.example_packet.is_backfilled())
+        self.assertTrue(self.empty_packet.is_backfilled())
+
+    def test_get_is_scrambled(self):
+        self.assertFalse(self.example_packet.is_scrambled())
+        self.assertFalse(self.empty_packet.is_scrambled())
+
+    def test_set_is_scrambled(self):
+        self.example_packet.set_is_scrambled(True)
+        self.empty_packet.set_is_scrambled(True)
+        self.assertTrue(self.example_packet.is_scrambled())
+        self.assertTrue(self.empty_packet.is_scrambled())
+
+    def test_get_device_make(self):
+        self.assertEqual(&#34;example_make&#34;, self.example_packet.device_make())
+        self.assertEqual(&#34;&#34;, self.empty_packet.device_make())
+
+    def test_set_device_make(self):
+        self.example_packet.set_device_make(&#34;foo&#34;)
+        self.empty_packet.set_device_make(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.device_make())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.device_make())
+
+    def test_get_device_model(self):
+        self.assertEqual(&#34;example_model&#34;, self.example_packet.device_model())
+        self.assertEqual(&#34;&#34;, self.empty_packet.device_model())
+
+    def test_set_device_model(self):
+        self.example_packet.set_device_model(&#34;foo&#34;)
+        self.empty_packet.set_device_model(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.device_model())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.device_model())
+
+    def test_get_device_os(self):
+        self.assertEqual(&#34;Android&#34;, self.example_packet.device_os())
+        self.assertEqual(&#34;&#34;, self.empty_packet.device_os())
+
+    def test_set_device_os(self):
+        self.example_packet.set_device_os(&#34;foo&#34;)
+        self.empty_packet.set_device_os(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.device_os())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.device_os())
+
+    def test_get_device_os_version(self):
+        self.assertEqual(&#34;8.0.0&#34;, self.example_packet.device_os_version())
+        self.assertEqual(&#34;&#34;, self.empty_packet.device_os_version())
+
+    def test_set_device_os_version(self):
+        self.example_packet.set_device_os_version(&#34;foo&#34;)
+        self.empty_packet.set_device_os_version(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.device_os_version())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.device_os_version())
+
+    def test_get_app_version(self):
+        self.assertEqual(&#34;2.4.2&#34;, self.example_packet.app_version())
+        self.assertEqual(&#34;&#34;, self.empty_packet.app_version())
+
+    def test_set_app_version(self):
+        self.example_packet.set_app_version(&#34;foo&#34;)
+        self.empty_packet.set_app_version(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.app_version())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.app_version())
+
+    def test_get_acquisition_server(self):
+        self.assertEqual(&#34;wss://redvox.io/acquisition/v900&#34;, self.example_packet.acquisition_server())
+        self.assertEqual(&#34;&#34;, self.empty_packet.acquisition_server())
+
+    def test_set_acquisition_server(self):
+        self.example_packet.set_acquisition_server(&#34;foo&#34;)
+        self.empty_packet.set_acquisition_server(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.acquisition_server())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.acquisition_server())
+
+    def test_get_time_synchronization_server(self):
+        self.assertEqual(&#34;wss://redvox.io/synch/v2&#34;, self.example_packet.time_synchronization_server())
+        self.assertEqual(&#34;&#34;, self.empty_packet.time_synchronization_server())
+
+    def test_set_time_synchronization_server(self):
+        self.example_packet.set_time_synchronization_server(&#34;foo&#34;)
+        self.empty_packet.set_time_synchronization_server(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.time_synchronization_server())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.time_synchronization_server())
+
+    def test_get_authentication_server(self):
+        self.assertEqual(&#34;https://redvox.io/login/mobile&#34;, self.example_packet.authentication_server())
+        self.assertEqual(&#34;&#34;, self.empty_packet.authentication_server())
+
+    def test_set_authentication_server(self):
+        self.example_packet.set_authentication_server(&#34;foo&#34;)
+        self.empty_packet.set_authentication_server(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.authentication_server())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.authentication_server())
+
+    def test_get_app_file_start_timestamp_epoch_microseconds_utc(self):
+        self.assertEqual(1552075743960135, self.example_packet.app_file_start_timestamp_epoch_microseconds_utc())
+        self.assertEqual(0, self.empty_packet.app_file_start_timestamp_epoch_microseconds_utc())
+
+    def test_set_app_file_start_timestamp_epoch_microseconds_utc(self):
+        self.example_packet.set_app_file_start_timestamp_epoch_microseconds_utc(100)
+        self.empty_packet.set_app_file_start_timestamp_epoch_microseconds_utc(100)
+        self.assertEqual(100, self.example_packet.app_file_start_timestamp_epoch_microseconds_utc())
+        self.assertEqual(100, self.empty_packet.app_file_start_timestamp_epoch_microseconds_utc())
+
+    def test_get_app_file_start_timestamp_machine(self):
+        self.assertEqual(1552075743960136, self.example_packet.app_file_start_timestamp_machine())
+        self.assertEqual(0, self.empty_packet.app_file_start_timestamp_machine())
+
+    def test_set_app_file_start_timestamp_machine(self):
+        self.example_packet.set_app_file_start_timestamp_machine(100)
+        self.empty_packet.set_app_file_start_timestamp_machine(100)
+        self.assertEqual(100, self.example_packet.app_file_start_timestamp_machine())
+        self.assertEqual(100, self.empty_packet.app_file_start_timestamp_machine())
+
+    def test_get_server_timestamp_epoch_microseconds_utc(self):
+        self.assertEqual(1552075743960139, self.example_packet.server_timestamp_epoch_microseconds_utc())
+        self.assertEqual(0, self.empty_packet.server_timestamp_epoch_microseconds_utc())
+
+    def test_set_server_timestamp_epoch_microseconds_utc(self):
+        self.example_packet.set_server_timestamp_epoch_microseconds_utc(100)
+        self.empty_packet.set_server_timestamp_epoch_microseconds_utc(100)
+        self.assertEqual(100, self.example_packet.server_timestamp_epoch_microseconds_utc())
+        self.assertEqual(100, self.empty_packet.server_timestamp_epoch_microseconds_utc())
+
+    def test_get_metadata(self):
+        self.assertEqual([&#34;bar&#34;, &#34;baz&#34;], self.example_packet.metadata())
+        self.assertEqual([], self.empty_packet.metadata())
+
+    def test_set_metadata(self):
+        self.example_packet.set_metadata([&#34;foo&#34;, &#34;bar&#34;])
+        self.empty_packet.set_metadata([&#34;foo&#34;, &#34;bar&#34;])
+        self.assertEqual([&#34;foo&#34;, &#34;bar&#34;], self.example_packet.metadata())
+        self.assertEqual([&#34;foo&#34;, &#34;bar&#34;], self.empty_packet.metadata())
+
+    def test_set_metadata_empty(self):
+        self.example_packet.set_metadata([])
+        self.assertEqual([], self.example_packet.metadata())
+
+    def test_set_metadata_single(self):
+        self.example_packet.set_metadata([&#34;foo&#34;])
+        self.assertEqual([&#34;foo&#34;], self.example_packet.metadata())
+
+    def test_get_metadata_as_dict(self):
+        self.assertEqual(&#34;baz&#34;, self.example_packet.metadata_as_dict()[&#34;bar&#34;])
+        self.assertEqual(0, len(self.empty_packet.metadata_as_dict()))
+
+    def test_get_metadata_as_dict_malformed(self):
+        self.example_packet.set_metadata([&#34;foo&#34;])
+        with self.assertRaises(ReaderException):
+            self.example_packet.metadata_as_dict()
+
+    def test_set_metadata_as_dict(self):
+        self.example_packet.set_metadata_as_dict({&#34;foo&#34;: &#34;bar&#34;})
+        self.assertEqual(&#34;bar&#34;, self.example_packet.metadata_as_dict()[&#34;foo&#34;])
+
+    def test_add_metadata(self):
+        self.example_packet.set_metadata_as_dict({&#34;foo&#34;: &#34;bar&#34;})
+        self.example_packet.add_metadata(&#34;baz&#34;, &#34;buz&#34;)
+        self.example_packet.add_metadata(&#34;1&#34;, 2)
+        self.assertEqual(self.example_packet.metadata_as_dict(),
+                         {&#34;foo&#34;: &#34;bar&#34;,
+                          &#34;baz&#34;: &#34;buz&#34;,
+                          &#34;1&#34;: &#34;2&#34;})
+
+    def test_mach_time_zero(self):
+        self.assertEqual(None, self.example_packet.mach_time_zero())
+        self.example_packet.set_mach_time_zero(100)
+        self.assertEqual(100, self.example_packet.mach_time_zero())
+
+    def test_mach_time_zero_incorrect_location(self):
+        self.assertEqual(None, self.example_packet.mach_time_zero())
+        self.example_packet.location_sensor().set_metadata_as_dict({&#34;machTimeZero&#34;: &#34;200&#34;})
+        self.assertEqual(200, self.example_packet.mach_time_zero())
+
+
+    def test_best_latency(self):
+        self.assertEqual(self.example_packet.best_latency(), None)
+        self.example_packet.set_best_latency(100)
+        self.assertEqual(self.example_packet.best_latency(), 100)
+
+    def test_best_offset(self):
+        self.assertEqual(self.example_packet.best_latency(), None)
+        self.example_packet.set_best_offset(100)
+        self.assertEqual(self.example_packet.best_offset(), 100)
+
+    def test_is_synch_corrected(self):
+        self.assertFalse(self.example_packet.is_synch_corrected())
+        self.example_packet.set_is_synch_corrected(False)
+        self.assertFalse(self.example_packet.is_synch_corrected())
+        self.example_packet.set_is_synch_corrected(True)
+        self.assertTrue(self.example_packet.is_synch_corrected())
+
+    def test_has_microphone_sensor(self):
+        self.assertTrue(self.example_packet.has_microphone_sensor())
+        self.assertFalse(self.empty_packet.has_microphone_sensor())
+
+    def test_get_microphone_sensor(self):
+        self.assertEqual(&#34;example_mic&#34;, self.example_packet.microphone_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.microphone_sensor())
+
+    def test_set_microphone_sensor(self):
+        sensor = reader.MicrophoneSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_microphone_sensor(sensor)
+        self.empty_packet.set_microphone_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.microphone_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.microphone_sensor().sensor_name())
+
+    def test_set_microphone_sensor_none(self):
+        self.example_packet.set_microphone_sensor(None)
+        self.empty_packet.set_microphone_sensor(None)
+        self.assertFalse(self.example_packet.has_microphone_sensor())
+        self.assertFalse(self.empty_packet.has_microphone_sensor())
+        self.assertIsNone(self.example_packet.microphone_sensor())
+        self.assertIsNone(self.empty_packet.microphone_sensor())
+
+    def test_has_barometer_sensor(self):
+        self.assertTrue(self.example_packet.has_barometer_sensor())
+        self.assertFalse(self.empty_packet.has_barometer_sensor())
+
+    def test_get_barometer_sensor(self):
+        self.assertEqual(&#34;example_barometer&#34;, self.example_packet.barometer_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.barometer_sensor())
+
+    def test_set_barometer_sensor(self):
+        sensor = reader.BarometerSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_barometer_sensor(sensor)
+        self.empty_packet.set_barometer_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.barometer_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.barometer_sensor().sensor_name())
+
+    def test_set_barometer_sensor_none(self):
+        self.example_packet.set_barometer_sensor(None)
+        self.empty_packet.set_barometer_sensor(None)
+        self.assertFalse(self.example_packet.has_barometer_sensor())
+        self.assertFalse(self.empty_packet.has_barometer_sensor())
+        self.assertIsNone(self.example_packet.barometer_sensor())
+        self.assertIsNone(self.empty_packet.barometer_sensor())
+
+    def test_has_location_sensor(self):
+        self.assertTrue(self.example_packet.has_location_sensor())
+        self.assertFalse(self.empty_packet.has_location_sensor())
+
+    def test_get_location_sensor(self):
+        self.assertEqual(&#34;example_gps&#34;, self.example_packet.location_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.location_sensor())
+
+    def test_set_location_sensor(self):
+        sensor = reader.LocationSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_location_sensor(sensor)
+        self.empty_packet.set_location_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.location_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.location_sensor().sensor_name())
+
+    def test_set_location_sensor_none(self):
+        self.example_packet.set_location_sensor(None)
+        self.empty_packet.set_location_sensor(None)
+        self.assertFalse(self.example_packet.has_location_sensor())
+        self.assertFalse(self.empty_packet.has_location_sensor())
+        self.assertIsNone(self.example_packet.location_sensor())
+        self.assertIsNone(self.empty_packet.location_sensor())
+
+    def test_has_time_synchronization_sensor(self):
+        self.assertTrue(self.example_packet.has_time_synchronization_sensor())
+        self.assertFalse(self.empty_packet.has_time_synchronization_sensor())
+
+    def test_get_time_synchronization_sensor(self):
+        self.assertEqual(7, len(self.example_packet.time_synchronization_sensor().payload_values()))
+        self.assertIsNone(self.empty_packet.time_synchronization_sensor())
+
+    def test_set_time_synchronization_sensor(self):
+        sensor = reader.TimeSynchronizationSensor().set_payload_values([1, 2, 3])
+        self.example_packet.set_time_synchronization_sensor(sensor)
+        self.empty_packet.set_time_synchronization_sensor(sensor)
+        self.assertTrue(numpy.array_equal(numpy.array([1, 2, 3]), self.example_packet.time_synchronization_sensor().payload_values()))
+        self.assertTrue(numpy.array_equal(numpy.array([1, 2, 3]), self.empty_packet.time_synchronization_sensor().payload_values()))
+
+    def test_set_time_synchronization_sensor_none(self):
+        self.example_packet.set_time_synchronization_sensor(None)
+        self.empty_packet.set_time_synchronization_sensor(None)
+        self.assertFalse(self.example_packet.has_time_synchronization_sensor())
+        self.assertFalse(self.empty_packet.has_time_synchronization_sensor())
+        self.assertIsNone(self.example_packet.time_synchronization_sensor())
+        self.assertIsNone(self.empty_packet.time_synchronization_sensor())
+
+    def test_has_accelerometer_sensor(self):
+        self.assertTrue(self.example_packet.has_accelerometer_sensor())
+        self.assertFalse(self.empty_packet.has_accelerometer_sensor())
+
+    def test_get_accelerometer_sensor(self):
+        self.assertEqual(&#34;example_accelerometer&#34;, self.example_packet.accelerometer_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.accelerometer_sensor())
+
+    def test_set_accelerometer_sensor(self):
+        sensor = reader.AccelerometerSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_accelerometer_sensor(sensor)
+        self.empty_packet.set_accelerometer_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.accelerometer_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.accelerometer_sensor().sensor_name())
+
+    def test_set_accelerometer_sensor_none(self):
+        self.example_packet.set_accelerometer_sensor(None)
+        self.empty_packet.set_accelerometer_sensor(None)
+        self.assertFalse(self.example_packet.has_accelerometer_sensor())
+        self.assertFalse(self.empty_packet.has_accelerometer_sensor())
+        self.assertIsNone(self.example_packet.accelerometer_sensor())
+        self.assertIsNone(self.empty_packet.accelerometer_sensor())
+
+    def test_has_magnetometer_sensor(self):
+        self.assertTrue(self.example_packet.has_magnetometer_sensor())
+        self.assertFalse(self.empty_packet.has_magnetometer_sensor())
+
+    def test_get_magnetometer_sensor(self):
+        self.assertEqual(&#34;example_magnetometer&#34;, self.example_packet.magnetometer_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.magnetometer_sensor())
+
+    def test_set_magnetometer_sensor(self):
+        sensor = reader.MagnetometerSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_magnetometer_sensor(sensor)
+        self.empty_packet.set_magnetometer_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.magnetometer_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.magnetometer_sensor().sensor_name())
+
+    def test_set_magnetometer_sensor_none(self):
+        self.example_packet.set_magnetometer_sensor(None)
+        self.empty_packet.set_magnetometer_sensor(None)
+        self.assertFalse(self.example_packet.has_magnetometer_sensor())
+        self.assertFalse(self.empty_packet.has_magnetometer_sensor())
+        self.assertIsNone(self.example_packet.magnetometer_sensor())
+        self.assertIsNone(self.empty_packet.magnetometer_sensor())
+
+    def test_has_gyroscope_sensor(self):
+        self.assertTrue(self.example_packet.has_gyroscope_sensor())
+        self.assertFalse(self.empty_packet.has_gyroscope_sensor())
+
+    def test_get_gyroscope_sensor(self):
+        self.assertEqual(&#34;example_gyroscope&#34;, self.example_packet.gyroscope_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.gyroscope_sensor())
+
+    def test_set_gyroscope_sensor(self):
+        sensor = reader.GyroscopeSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_gyroscope_sensor(sensor)
+        self.empty_packet.set_gyroscope_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.gyroscope_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.gyroscope_sensor().sensor_name())
+
+    def test_set_gyroscope_sensor_none(self):
+        self.example_packet.set_gyroscope_sensor(None)
+        self.empty_packet.set_gyroscope_sensor(None)
+        self.assertFalse(self.example_packet.has_gyroscope_sensor())
+        self.assertFalse(self.empty_packet.has_gyroscope_sensor())
+        self.assertIsNone(self.example_packet.gyroscope_sensor())
+        self.assertIsNone(self.empty_packet.gyroscope_sensor())
+
+    def test_has_light_sensor(self):
+        self.assertTrue(self.example_packet.has_light_sensor())
+        self.assertFalse(self.empty_packet.has_light_sensor())
+
+    def test_get_light_sensor(self):
+        self.assertEqual(&#34;example_light&#34;, self.example_packet.light_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.light_sensor())
+
+    def test_set_light_sensor(self):
+        sensor = reader.LightSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_light_sensor(sensor)
+        self.empty_packet.set_light_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.light_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.light_sensor().sensor_name())
+
+    def test_set_light_sensor_none(self):
+        self.example_packet.set_light_sensor(None)
+        self.empty_packet.set_light_sensor(None)
+        self.assertFalse(self.example_packet.has_light_sensor())
+        self.assertFalse(self.empty_packet.has_light_sensor())
+        self.assertIsNone(self.example_packet.light_sensor())
+        self.assertIsNone(self.empty_packet.light_sensor())
+
+    def test_has_infrared_sensor(self):
+        self.assertTrue(self.example_packet.has_infrared_sensor())
+        self.assertFalse(self.empty_packet.has_infrared_sensor())
+
+    def test_get_infrared_sensor(self):
+        self.assertEqual(&#34;example_infrared&#34;, self.example_packet.infrared_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.infrared_sensor())
+
+    def test_set_infrared_sensor(self):
+        sensor = reader.InfraredSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_infrared_sensor(sensor)
+        self.empty_packet.set_infrared_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.infrared_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.infrared_sensor().sensor_name())
+
+    def test_set_infrared_sensor_none(self):
+        self.example_packet.set_infrared_sensor(None)
+        self.empty_packet.set_infrared_sensor(None)
+        self.assertFalse(self.example_packet.has_infrared_sensor())
+        self.assertFalse(self.empty_packet.has_infrared_sensor())
+        self.assertIsNone(self.example_packet.infrared_sensor())
+        self.assertIsNone(self.empty_packet.infrared_sensor())
+
+    def test_to_json(self):
+        json = self.example_packet.to_json()
+        self.assertTrue(&#39;&#34;api&#34;: 900&#39; in json)
+
+    def test_compressed_buffer(self):
+        self.assertEqual(self.example_packet,
+                         reader.read_rdvxz_buffer(self.example_packet.compressed_buffer()))
+
+    def test_default_filename(self):
+        self.assertEqual(&#34;0000000001_1552075743960.rdvxz&#34;, self.example_packet.default_filename())
+        self.assertEqual(&#34;_0.rdvxz&#34;, self.empty_packet.default_filename())
+
+    def test_eq(self):
+        self.assertEqual(self.example_packet, self.example_packet)
+        self.assertEqual(self.empty_packet, self.empty_packet)
+        self.assertNotEqual(self.example_packet, self.empty_packet)
+
+        cloned = self.example_packet.clone()
+        self.assertEqual(self.example_packet, cloned)
+        cloned.set_is_private(False)
+
+        self.assertNotEqual(self.example_packet, cloned)
+        self.assertNotEqual(self.example_packet, self.example_packet.clone().microphone_sensor().set_sensor_name(&#34;foo&#34;))
+
+    def test_clone(self):
+        cloned = self.example_packet.clone()
+        self.assertTrue(self.example_packet == cloned)
+        self.assertEqual(0, len(self.example_packet.diff(cloned)))
+
+    def test_diff(self):
+        cloned_packet = self.example_packet.clone()
+        cloned_packet.set_api(901)
+        cloned_packet_2 = self.example_packet.clone()
+        cloned_packet_2.set_microphone_sensor(None)
+        self.assertEqual([], self.example_packet.diff(self.example_packet))
+        if migrations.are_migrations_enabled():
+            self.assertEqual([&#34;900.0 != 901.0&#34;], self.example_packet.diff(cloned_packet))
+        else:
+            self.assertEqual([&#34;900 != 901&#34;], self.example_packet.diff(cloned_packet))
+        self.assertTrue(len(self.example_packet.diff(cloned_packet_2)) &gt; 0)
+
+    def test_write_rdvxz(self):
+        self.example_packet.write_rdvxz(TEST_DATA_DIR, &#34;test.rdvxz&#34;)
+        self.example_packet.write_rdvxz(TEST_DATA_DIR)
+        self.assertEqual(self.example_packet, reader.read_rdvxz_file(test_data(&#34;test.rdvxz&#34;)))
+        self.assertEqual(self.example_packet, reader.read_rdvxz_file(test_data(&#34;0000000001_1552075743960.rdvxz&#34;)))
+        os.remove(test_data(&#34;test.rdvxz&#34;))
+        os.remove(test_data(&#34;0000000001_1552075743960.rdvxz&#34;))
+
+    def test_write_json(self):
+        self.example_packet.write_json(TEST_DATA_DIR, &#34;test.json&#34;)
+        self.example_packet.write_json(TEST_DATA_DIR)
+        self.assertEqual(self.example_packet, reader.read_json_file(test_data(&#34;test.json&#34;)))
+        self.assertEqual(self.example_packet, reader.read_json_file(test_data(&#34;0000000001_1552075743960.json&#34;)))
+        os.remove(test_data(&#34;test.json&#34;))
+        os.remove(test_data(&#34;0000000001_1552075743960.json&#34;))</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket"><code class="flex name class">
+<span>class <span class="ident">TestWrappedRedvoxPacket</span></span>
+<span>(</span><span>methodName='runTest')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class whose instances are single test cases.</p>
+<p>By default, the test code itself should be placed in a method named
+'runTest'.</p>
+<p>If the fixture may be used for many test cases, create as
+many test methods as are needed. When instantiating such a TestCase
+subclass, specify in the constructor arguments the name of the test method
+that the instance is to execute.</p>
+<p>Test authors should subclass TestCase for their own tests. Construction
+and deconstruction of the test's environment ('fixture') can be
+implemented by overriding the 'setUp' and 'tearDown' methods respectively.</p>
+<p>If it is necessary to override the <strong>init</strong> method, the base class
+<strong>init</strong> method must always be called. It is important that subclasses
+should not change the signature of their <strong>init</strong> method, since instances
+of the classes are instantiated automatically by parts of the framework
+in order to be run.</p>
+<p>When subclassing TestCase, you can set these attributes:
+* failureException: determines which exception will be raised when
+the instance's assertion methods fail; test methods raising this
+exception will be deemed to have 'failed' rather than 'errored'.
+* longMessage: determines whether long messages (including repr of
+objects used in assert methods) will be printed on failure in <em>addition</em>
+to any explicit message passed.
+* maxDiff: sets the maximum length of a diff in failure messages
+by assert methods using difflib. It is looked up as an instance
+attribute so can be configured by individual tests if required.</p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TestWrappedRedvoxPacket(unittest.TestCase):
+    def setUp(self):
+        self.example_packet = reader.read_rdvxz_file(test_data(&#34;example.rdvxz&#34;))
+        self.empty_packet = reader.WrappedRedvoxPacket()
+
+    def tearDown(self):
+        pass
+
+    def test_get_api(self):
+        self.assertEqual(900, self.example_packet.api())
+        self.assertEqual(0, self.empty_packet.api())
+
+    def test_set_api(self):
+        self.example_packet.set_api(901)
+        self.empty_packet.set_api(901)
+        self.assertEqual(901, self.example_packet.api())
+        self.assertEqual(901, self.empty_packet.api())
+
+    def test_get_redvox_id(self):
+        self.assertEqual(&#34;0000000001&#34;, self.example_packet.redvox_id())
+        self.assertEqual(&#34;&#34;, self.empty_packet.redvox_id())
+
+    def test_set_redvox_id(self):
+        self.example_packet.set_redvox_id(&#34;foo&#34;)
+        self.empty_packet.set_redvox_id(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.redvox_id())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.redvox_id())
+
+    def test_get_uuid(self):
+        self.assertEqual(&#34;123456789&#34;, self.example_packet.uuid())
+        self.assertEqual(&#34;&#34;, self.empty_packet.uuid())
+
+    def test_set_uuid(self):
+        self.example_packet.set_uuid(&#34;foo&#34;)
+        self.empty_packet.set_uuid(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.uuid())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.uuid())
+
+    def test_get_authenticated_email(self):
+        self.assertEqual(&#34;foo@bar.baz&#34;, self.example_packet.authenticated_email())
+        self.assertEqual(&#34;&#34;, self.empty_packet.authenticated_email())
+
+    def test_set_authenticated_email(self):
+        self.example_packet.set_authenticated_email(&#34;john.doe@gmail.com&#34;)
+        self.empty_packet.set_authenticated_email(&#34;john.doe@gmail.com&#34;)
+        self.assertEqual(&#34;john.doe@gmail.com&#34;, self.example_packet.authenticated_email())
+        self.assertEqual(&#34;john.doe@gmail.com&#34;, self.empty_packet.authenticated_email())
+
+    def test_get_authentication_token(self):
+        self.assertEqual(&#34;redacted-000000&#34;, self.example_packet.authentication_token())
+        self.assertEqual(&#34;&#34;, self.empty_packet.authentication_token())
+
+    def test_set_authentication_token(self):
+        self.example_packet.set_authentication_token(&#34;foo&#34;)
+        self.empty_packet.set_authentication_token(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.authentication_token())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.authentication_token())
+
+    def test_get_firebase_token(self):
+        self.assertEqual(&#34;example_firebase_token&#34;, self.example_packet.firebase_token())
+        self.assertEqual(&#34;&#34;, self.empty_packet.firebase_token())
+
+    def test_set_firebase_token(self):
+        self.example_packet.set_firebase_token(&#34;foo&#34;)
+        self.empty_packet.set_firebase_token(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.firebase_token())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.firebase_token())
+
+    def test_get_battery_level_percent(self):
+        self.assertAlmostEqual(77.5, self.example_packet.battery_level_percent())
+        self.assertEqual(0.0, self.empty_packet.battery_level_percent())
+
+    def test_set_battery_level_percent(self):
+        self.example_packet.set_battery_level_percent(100.0)
+        self.empty_packet.set_battery_level_percent(100.0)
+        self.assertAlmostEqual(100.0, self.example_packet.battery_level_percent())
+        self.assertAlmostEqual(100.0, self.empty_packet.battery_level_percent())
+
+    def test_get_device_temperature_c(self):
+        self.assertAlmostEqual(21.100000381469727, self.example_packet.device_temperature_c())
+        self.assertEqual(0.0, self.empty_packet.device_temperature_c())
+
+    def test_set_device_temperature_c(self):
+        self.example_packet.set_device_temperature_c(100.0)
+        self.empty_packet.set_device_temperature_c(100.0)
+        self.assertAlmostEqual(100.0, self.example_packet.device_temperature_c())
+        self.assertAlmostEqual(100.0, self.empty_packet.device_temperature_c())
+
+    def test_get_is_private(self):
+        self.assertTrue(self.example_packet.is_private())
+        self.assertFalse(self.empty_packet.is_private())
+
+    def test_set_is_private(self):
+        self.example_packet.set_is_private(False)
+        self.empty_packet.set_is_private(True)
+        self.assertFalse(self.example_packet.is_private())
+        self.assertTrue(self.empty_packet.is_private())
+
+    def test_get_is_backfilled(self):
+        self.assertFalse(self.example_packet.is_backfilled())
+        self.assertFalse(self.empty_packet.is_backfilled())
+
+    def test_set_is_backfilled(self):
+        self.example_packet.set_is_backfilled(True)
+        self.empty_packet.set_is_backfilled(True)
+        self.assertTrue(self.example_packet.is_backfilled())
+        self.assertTrue(self.empty_packet.is_backfilled())
+
+    def test_get_is_scrambled(self):
+        self.assertFalse(self.example_packet.is_scrambled())
+        self.assertFalse(self.empty_packet.is_scrambled())
+
+    def test_set_is_scrambled(self):
+        self.example_packet.set_is_scrambled(True)
+        self.empty_packet.set_is_scrambled(True)
+        self.assertTrue(self.example_packet.is_scrambled())
+        self.assertTrue(self.empty_packet.is_scrambled())
+
+    def test_get_device_make(self):
+        self.assertEqual(&#34;example_make&#34;, self.example_packet.device_make())
+        self.assertEqual(&#34;&#34;, self.empty_packet.device_make())
+
+    def test_set_device_make(self):
+        self.example_packet.set_device_make(&#34;foo&#34;)
+        self.empty_packet.set_device_make(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.device_make())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.device_make())
+
+    def test_get_device_model(self):
+        self.assertEqual(&#34;example_model&#34;, self.example_packet.device_model())
+        self.assertEqual(&#34;&#34;, self.empty_packet.device_model())
+
+    def test_set_device_model(self):
+        self.example_packet.set_device_model(&#34;foo&#34;)
+        self.empty_packet.set_device_model(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.device_model())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.device_model())
+
+    def test_get_device_os(self):
+        self.assertEqual(&#34;Android&#34;, self.example_packet.device_os())
+        self.assertEqual(&#34;&#34;, self.empty_packet.device_os())
+
+    def test_set_device_os(self):
+        self.example_packet.set_device_os(&#34;foo&#34;)
+        self.empty_packet.set_device_os(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.device_os())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.device_os())
+
+    def test_get_device_os_version(self):
+        self.assertEqual(&#34;8.0.0&#34;, self.example_packet.device_os_version())
+        self.assertEqual(&#34;&#34;, self.empty_packet.device_os_version())
+
+    def test_set_device_os_version(self):
+        self.example_packet.set_device_os_version(&#34;foo&#34;)
+        self.empty_packet.set_device_os_version(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.device_os_version())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.device_os_version())
+
+    def test_get_app_version(self):
+        self.assertEqual(&#34;2.4.2&#34;, self.example_packet.app_version())
+        self.assertEqual(&#34;&#34;, self.empty_packet.app_version())
+
+    def test_set_app_version(self):
+        self.example_packet.set_app_version(&#34;foo&#34;)
+        self.empty_packet.set_app_version(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.app_version())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.app_version())
+
+    def test_get_acquisition_server(self):
+        self.assertEqual(&#34;wss://redvox.io/acquisition/v900&#34;, self.example_packet.acquisition_server())
+        self.assertEqual(&#34;&#34;, self.empty_packet.acquisition_server())
+
+    def test_set_acquisition_server(self):
+        self.example_packet.set_acquisition_server(&#34;foo&#34;)
+        self.empty_packet.set_acquisition_server(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.acquisition_server())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.acquisition_server())
+
+    def test_get_time_synchronization_server(self):
+        self.assertEqual(&#34;wss://redvox.io/synch/v2&#34;, self.example_packet.time_synchronization_server())
+        self.assertEqual(&#34;&#34;, self.empty_packet.time_synchronization_server())
+
+    def test_set_time_synchronization_server(self):
+        self.example_packet.set_time_synchronization_server(&#34;foo&#34;)
+        self.empty_packet.set_time_synchronization_server(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.time_synchronization_server())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.time_synchronization_server())
+
+    def test_get_authentication_server(self):
+        self.assertEqual(&#34;https://redvox.io/login/mobile&#34;, self.example_packet.authentication_server())
+        self.assertEqual(&#34;&#34;, self.empty_packet.authentication_server())
+
+    def test_set_authentication_server(self):
+        self.example_packet.set_authentication_server(&#34;foo&#34;)
+        self.empty_packet.set_authentication_server(&#34;foo&#34;)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.authentication_server())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.authentication_server())
+
+    def test_get_app_file_start_timestamp_epoch_microseconds_utc(self):
+        self.assertEqual(1552075743960135, self.example_packet.app_file_start_timestamp_epoch_microseconds_utc())
+        self.assertEqual(0, self.empty_packet.app_file_start_timestamp_epoch_microseconds_utc())
+
+    def test_set_app_file_start_timestamp_epoch_microseconds_utc(self):
+        self.example_packet.set_app_file_start_timestamp_epoch_microseconds_utc(100)
+        self.empty_packet.set_app_file_start_timestamp_epoch_microseconds_utc(100)
+        self.assertEqual(100, self.example_packet.app_file_start_timestamp_epoch_microseconds_utc())
+        self.assertEqual(100, self.empty_packet.app_file_start_timestamp_epoch_microseconds_utc())
+
+    def test_get_app_file_start_timestamp_machine(self):
+        self.assertEqual(1552075743960136, self.example_packet.app_file_start_timestamp_machine())
+        self.assertEqual(0, self.empty_packet.app_file_start_timestamp_machine())
+
+    def test_set_app_file_start_timestamp_machine(self):
+        self.example_packet.set_app_file_start_timestamp_machine(100)
+        self.empty_packet.set_app_file_start_timestamp_machine(100)
+        self.assertEqual(100, self.example_packet.app_file_start_timestamp_machine())
+        self.assertEqual(100, self.empty_packet.app_file_start_timestamp_machine())
+
+    def test_get_server_timestamp_epoch_microseconds_utc(self):
+        self.assertEqual(1552075743960139, self.example_packet.server_timestamp_epoch_microseconds_utc())
+        self.assertEqual(0, self.empty_packet.server_timestamp_epoch_microseconds_utc())
+
+    def test_set_server_timestamp_epoch_microseconds_utc(self):
+        self.example_packet.set_server_timestamp_epoch_microseconds_utc(100)
+        self.empty_packet.set_server_timestamp_epoch_microseconds_utc(100)
+        self.assertEqual(100, self.example_packet.server_timestamp_epoch_microseconds_utc())
+        self.assertEqual(100, self.empty_packet.server_timestamp_epoch_microseconds_utc())
+
+    def test_get_metadata(self):
+        self.assertEqual([&#34;bar&#34;, &#34;baz&#34;], self.example_packet.metadata())
+        self.assertEqual([], self.empty_packet.metadata())
+
+    def test_set_metadata(self):
+        self.example_packet.set_metadata([&#34;foo&#34;, &#34;bar&#34;])
+        self.empty_packet.set_metadata([&#34;foo&#34;, &#34;bar&#34;])
+        self.assertEqual([&#34;foo&#34;, &#34;bar&#34;], self.example_packet.metadata())
+        self.assertEqual([&#34;foo&#34;, &#34;bar&#34;], self.empty_packet.metadata())
+
+    def test_set_metadata_empty(self):
+        self.example_packet.set_metadata([])
+        self.assertEqual([], self.example_packet.metadata())
+
+    def test_set_metadata_single(self):
+        self.example_packet.set_metadata([&#34;foo&#34;])
+        self.assertEqual([&#34;foo&#34;], self.example_packet.metadata())
+
+    def test_get_metadata_as_dict(self):
+        self.assertEqual(&#34;baz&#34;, self.example_packet.metadata_as_dict()[&#34;bar&#34;])
+        self.assertEqual(0, len(self.empty_packet.metadata_as_dict()))
+
+    def test_get_metadata_as_dict_malformed(self):
+        self.example_packet.set_metadata([&#34;foo&#34;])
+        with self.assertRaises(ReaderException):
+            self.example_packet.metadata_as_dict()
+
+    def test_set_metadata_as_dict(self):
+        self.example_packet.set_metadata_as_dict({&#34;foo&#34;: &#34;bar&#34;})
+        self.assertEqual(&#34;bar&#34;, self.example_packet.metadata_as_dict()[&#34;foo&#34;])
+
+    def test_add_metadata(self):
+        self.example_packet.set_metadata_as_dict({&#34;foo&#34;: &#34;bar&#34;})
+        self.example_packet.add_metadata(&#34;baz&#34;, &#34;buz&#34;)
+        self.example_packet.add_metadata(&#34;1&#34;, 2)
+        self.assertEqual(self.example_packet.metadata_as_dict(),
+                         {&#34;foo&#34;: &#34;bar&#34;,
+                          &#34;baz&#34;: &#34;buz&#34;,
+                          &#34;1&#34;: &#34;2&#34;})
+
+    def test_mach_time_zero(self):
+        self.assertEqual(None, self.example_packet.mach_time_zero())
+        self.example_packet.set_mach_time_zero(100)
+        self.assertEqual(100, self.example_packet.mach_time_zero())
+
+    def test_mach_time_zero_incorrect_location(self):
+        self.assertEqual(None, self.example_packet.mach_time_zero())
+        self.example_packet.location_sensor().set_metadata_as_dict({&#34;machTimeZero&#34;: &#34;200&#34;})
+        self.assertEqual(200, self.example_packet.mach_time_zero())
+
+
+    def test_best_latency(self):
+        self.assertEqual(self.example_packet.best_latency(), None)
+        self.example_packet.set_best_latency(100)
+        self.assertEqual(self.example_packet.best_latency(), 100)
+
+    def test_best_offset(self):
+        self.assertEqual(self.example_packet.best_latency(), None)
+        self.example_packet.set_best_offset(100)
+        self.assertEqual(self.example_packet.best_offset(), 100)
+
+    def test_is_synch_corrected(self):
+        self.assertFalse(self.example_packet.is_synch_corrected())
+        self.example_packet.set_is_synch_corrected(False)
+        self.assertFalse(self.example_packet.is_synch_corrected())
+        self.example_packet.set_is_synch_corrected(True)
+        self.assertTrue(self.example_packet.is_synch_corrected())
+
+    def test_has_microphone_sensor(self):
+        self.assertTrue(self.example_packet.has_microphone_sensor())
+        self.assertFalse(self.empty_packet.has_microphone_sensor())
+
+    def test_get_microphone_sensor(self):
+        self.assertEqual(&#34;example_mic&#34;, self.example_packet.microphone_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.microphone_sensor())
+
+    def test_set_microphone_sensor(self):
+        sensor = reader.MicrophoneSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_microphone_sensor(sensor)
+        self.empty_packet.set_microphone_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.microphone_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.microphone_sensor().sensor_name())
+
+    def test_set_microphone_sensor_none(self):
+        self.example_packet.set_microphone_sensor(None)
+        self.empty_packet.set_microphone_sensor(None)
+        self.assertFalse(self.example_packet.has_microphone_sensor())
+        self.assertFalse(self.empty_packet.has_microphone_sensor())
+        self.assertIsNone(self.example_packet.microphone_sensor())
+        self.assertIsNone(self.empty_packet.microphone_sensor())
+
+    def test_has_barometer_sensor(self):
+        self.assertTrue(self.example_packet.has_barometer_sensor())
+        self.assertFalse(self.empty_packet.has_barometer_sensor())
+
+    def test_get_barometer_sensor(self):
+        self.assertEqual(&#34;example_barometer&#34;, self.example_packet.barometer_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.barometer_sensor())
+
+    def test_set_barometer_sensor(self):
+        sensor = reader.BarometerSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_barometer_sensor(sensor)
+        self.empty_packet.set_barometer_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.barometer_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.barometer_sensor().sensor_name())
+
+    def test_set_barometer_sensor_none(self):
+        self.example_packet.set_barometer_sensor(None)
+        self.empty_packet.set_barometer_sensor(None)
+        self.assertFalse(self.example_packet.has_barometer_sensor())
+        self.assertFalse(self.empty_packet.has_barometer_sensor())
+        self.assertIsNone(self.example_packet.barometer_sensor())
+        self.assertIsNone(self.empty_packet.barometer_sensor())
+
+    def test_has_location_sensor(self):
+        self.assertTrue(self.example_packet.has_location_sensor())
+        self.assertFalse(self.empty_packet.has_location_sensor())
+
+    def test_get_location_sensor(self):
+        self.assertEqual(&#34;example_gps&#34;, self.example_packet.location_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.location_sensor())
+
+    def test_set_location_sensor(self):
+        sensor = reader.LocationSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_location_sensor(sensor)
+        self.empty_packet.set_location_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.location_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.location_sensor().sensor_name())
+
+    def test_set_location_sensor_none(self):
+        self.example_packet.set_location_sensor(None)
+        self.empty_packet.set_location_sensor(None)
+        self.assertFalse(self.example_packet.has_location_sensor())
+        self.assertFalse(self.empty_packet.has_location_sensor())
+        self.assertIsNone(self.example_packet.location_sensor())
+        self.assertIsNone(self.empty_packet.location_sensor())
+
+    def test_has_time_synchronization_sensor(self):
+        self.assertTrue(self.example_packet.has_time_synchronization_sensor())
+        self.assertFalse(self.empty_packet.has_time_synchronization_sensor())
+
+    def test_get_time_synchronization_sensor(self):
+        self.assertEqual(7, len(self.example_packet.time_synchronization_sensor().payload_values()))
+        self.assertIsNone(self.empty_packet.time_synchronization_sensor())
+
+    def test_set_time_synchronization_sensor(self):
+        sensor = reader.TimeSynchronizationSensor().set_payload_values([1, 2, 3])
+        self.example_packet.set_time_synchronization_sensor(sensor)
+        self.empty_packet.set_time_synchronization_sensor(sensor)
+        self.assertTrue(numpy.array_equal(numpy.array([1, 2, 3]), self.example_packet.time_synchronization_sensor().payload_values()))
+        self.assertTrue(numpy.array_equal(numpy.array([1, 2, 3]), self.empty_packet.time_synchronization_sensor().payload_values()))
+
+    def test_set_time_synchronization_sensor_none(self):
+        self.example_packet.set_time_synchronization_sensor(None)
+        self.empty_packet.set_time_synchronization_sensor(None)
+        self.assertFalse(self.example_packet.has_time_synchronization_sensor())
+        self.assertFalse(self.empty_packet.has_time_synchronization_sensor())
+        self.assertIsNone(self.example_packet.time_synchronization_sensor())
+        self.assertIsNone(self.empty_packet.time_synchronization_sensor())
+
+    def test_has_accelerometer_sensor(self):
+        self.assertTrue(self.example_packet.has_accelerometer_sensor())
+        self.assertFalse(self.empty_packet.has_accelerometer_sensor())
+
+    def test_get_accelerometer_sensor(self):
+        self.assertEqual(&#34;example_accelerometer&#34;, self.example_packet.accelerometer_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.accelerometer_sensor())
+
+    def test_set_accelerometer_sensor(self):
+        sensor = reader.AccelerometerSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_accelerometer_sensor(sensor)
+        self.empty_packet.set_accelerometer_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.accelerometer_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.accelerometer_sensor().sensor_name())
+
+    def test_set_accelerometer_sensor_none(self):
+        self.example_packet.set_accelerometer_sensor(None)
+        self.empty_packet.set_accelerometer_sensor(None)
+        self.assertFalse(self.example_packet.has_accelerometer_sensor())
+        self.assertFalse(self.empty_packet.has_accelerometer_sensor())
+        self.assertIsNone(self.example_packet.accelerometer_sensor())
+        self.assertIsNone(self.empty_packet.accelerometer_sensor())
+
+    def test_has_magnetometer_sensor(self):
+        self.assertTrue(self.example_packet.has_magnetometer_sensor())
+        self.assertFalse(self.empty_packet.has_magnetometer_sensor())
+
+    def test_get_magnetometer_sensor(self):
+        self.assertEqual(&#34;example_magnetometer&#34;, self.example_packet.magnetometer_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.magnetometer_sensor())
+
+    def test_set_magnetometer_sensor(self):
+        sensor = reader.MagnetometerSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_magnetometer_sensor(sensor)
+        self.empty_packet.set_magnetometer_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.magnetometer_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.magnetometer_sensor().sensor_name())
+
+    def test_set_magnetometer_sensor_none(self):
+        self.example_packet.set_magnetometer_sensor(None)
+        self.empty_packet.set_magnetometer_sensor(None)
+        self.assertFalse(self.example_packet.has_magnetometer_sensor())
+        self.assertFalse(self.empty_packet.has_magnetometer_sensor())
+        self.assertIsNone(self.example_packet.magnetometer_sensor())
+        self.assertIsNone(self.empty_packet.magnetometer_sensor())
+
+    def test_has_gyroscope_sensor(self):
+        self.assertTrue(self.example_packet.has_gyroscope_sensor())
+        self.assertFalse(self.empty_packet.has_gyroscope_sensor())
+
+    def test_get_gyroscope_sensor(self):
+        self.assertEqual(&#34;example_gyroscope&#34;, self.example_packet.gyroscope_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.gyroscope_sensor())
+
+    def test_set_gyroscope_sensor(self):
+        sensor = reader.GyroscopeSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_gyroscope_sensor(sensor)
+        self.empty_packet.set_gyroscope_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.gyroscope_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.gyroscope_sensor().sensor_name())
+
+    def test_set_gyroscope_sensor_none(self):
+        self.example_packet.set_gyroscope_sensor(None)
+        self.empty_packet.set_gyroscope_sensor(None)
+        self.assertFalse(self.example_packet.has_gyroscope_sensor())
+        self.assertFalse(self.empty_packet.has_gyroscope_sensor())
+        self.assertIsNone(self.example_packet.gyroscope_sensor())
+        self.assertIsNone(self.empty_packet.gyroscope_sensor())
+
+    def test_has_light_sensor(self):
+        self.assertTrue(self.example_packet.has_light_sensor())
+        self.assertFalse(self.empty_packet.has_light_sensor())
+
+    def test_get_light_sensor(self):
+        self.assertEqual(&#34;example_light&#34;, self.example_packet.light_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.light_sensor())
+
+    def test_set_light_sensor(self):
+        sensor = reader.LightSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_light_sensor(sensor)
+        self.empty_packet.set_light_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.light_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.light_sensor().sensor_name())
+
+    def test_set_light_sensor_none(self):
+        self.example_packet.set_light_sensor(None)
+        self.empty_packet.set_light_sensor(None)
+        self.assertFalse(self.example_packet.has_light_sensor())
+        self.assertFalse(self.empty_packet.has_light_sensor())
+        self.assertIsNone(self.example_packet.light_sensor())
+        self.assertIsNone(self.empty_packet.light_sensor())
+
+    def test_has_infrared_sensor(self):
+        self.assertTrue(self.example_packet.has_infrared_sensor())
+        self.assertFalse(self.empty_packet.has_infrared_sensor())
+
+    def test_get_infrared_sensor(self):
+        self.assertEqual(&#34;example_infrared&#34;, self.example_packet.infrared_sensor().sensor_name())
+        self.assertIsNone(self.empty_packet.infrared_sensor())
+
+    def test_set_infrared_sensor(self):
+        sensor = reader.InfraredSensor().set_sensor_name(&#34;foo&#34;)
+        self.example_packet.set_infrared_sensor(sensor)
+        self.empty_packet.set_infrared_sensor(sensor)
+        self.assertEqual(&#34;foo&#34;, self.example_packet.infrared_sensor().sensor_name())
+        self.assertEqual(&#34;foo&#34;, self.empty_packet.infrared_sensor().sensor_name())
+
+    def test_set_infrared_sensor_none(self):
+        self.example_packet.set_infrared_sensor(None)
+        self.empty_packet.set_infrared_sensor(None)
+        self.assertFalse(self.example_packet.has_infrared_sensor())
+        self.assertFalse(self.empty_packet.has_infrared_sensor())
+        self.assertIsNone(self.example_packet.infrared_sensor())
+        self.assertIsNone(self.empty_packet.infrared_sensor())
+
+    def test_to_json(self):
+        json = self.example_packet.to_json()
+        self.assertTrue(&#39;&#34;api&#34;: 900&#39; in json)
+
+    def test_compressed_buffer(self):
+        self.assertEqual(self.example_packet,
+                         reader.read_rdvxz_buffer(self.example_packet.compressed_buffer()))
+
+    def test_default_filename(self):
+        self.assertEqual(&#34;0000000001_1552075743960.rdvxz&#34;, self.example_packet.default_filename())
+        self.assertEqual(&#34;_0.rdvxz&#34;, self.empty_packet.default_filename())
+
+    def test_eq(self):
+        self.assertEqual(self.example_packet, self.example_packet)
+        self.assertEqual(self.empty_packet, self.empty_packet)
+        self.assertNotEqual(self.example_packet, self.empty_packet)
+
+        cloned = self.example_packet.clone()
+        self.assertEqual(self.example_packet, cloned)
+        cloned.set_is_private(False)
+
+        self.assertNotEqual(self.example_packet, cloned)
+        self.assertNotEqual(self.example_packet, self.example_packet.clone().microphone_sensor().set_sensor_name(&#34;foo&#34;))
+
+    def test_clone(self):
+        cloned = self.example_packet.clone()
+        self.assertTrue(self.example_packet == cloned)
+        self.assertEqual(0, len(self.example_packet.diff(cloned)))
+
+    def test_diff(self):
+        cloned_packet = self.example_packet.clone()
+        cloned_packet.set_api(901)
+        cloned_packet_2 = self.example_packet.clone()
+        cloned_packet_2.set_microphone_sensor(None)
+        self.assertEqual([], self.example_packet.diff(self.example_packet))
+        if migrations.are_migrations_enabled():
+            self.assertEqual([&#34;900.0 != 901.0&#34;], self.example_packet.diff(cloned_packet))
+        else:
+            self.assertEqual([&#34;900 != 901&#34;], self.example_packet.diff(cloned_packet))
+        self.assertTrue(len(self.example_packet.diff(cloned_packet_2)) &gt; 0)
+
+    def test_write_rdvxz(self):
+        self.example_packet.write_rdvxz(TEST_DATA_DIR, &#34;test.rdvxz&#34;)
+        self.example_packet.write_rdvxz(TEST_DATA_DIR)
+        self.assertEqual(self.example_packet, reader.read_rdvxz_file(test_data(&#34;test.rdvxz&#34;)))
+        self.assertEqual(self.example_packet, reader.read_rdvxz_file(test_data(&#34;0000000001_1552075743960.rdvxz&#34;)))
+        os.remove(test_data(&#34;test.rdvxz&#34;))
+        os.remove(test_data(&#34;0000000001_1552075743960.rdvxz&#34;))
+
+    def test_write_json(self):
+        self.example_packet.write_json(TEST_DATA_DIR, &#34;test.json&#34;)
+        self.example_packet.write_json(TEST_DATA_DIR)
+        self.assertEqual(self.example_packet, reader.read_json_file(test_data(&#34;test.json&#34;)))
+        self.assertEqual(self.example_packet, reader.read_json_file(test_data(&#34;0000000001_1552075743960.json&#34;)))
+        os.remove(test_data(&#34;test.json&#34;))
+        os.remove(test_data(&#34;0000000001_1552075743960.json&#34;))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>unittest.case.TestCase</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.setUp"><code class="name flex">
+<span>def <span class="ident">setUp</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Hook method for setting up the test fixture before exercising it.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setUp(self):
+    self.example_packet = reader.read_rdvxz_file(test_data(&#34;example.rdvxz&#34;))
+    self.empty_packet = reader.WrappedRedvoxPacket()</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.tearDown"><code class="name flex">
+<span>def <span class="ident">tearDown</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Hook method for deconstructing the test fixture after testing it.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tearDown(self):
+    pass</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_add_metadata"><code class="name flex">
+<span>def <span class="ident">test_add_metadata</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_add_metadata(self):
+    self.example_packet.set_metadata_as_dict({&#34;foo&#34;: &#34;bar&#34;})
+    self.example_packet.add_metadata(&#34;baz&#34;, &#34;buz&#34;)
+    self.example_packet.add_metadata(&#34;1&#34;, 2)
+    self.assertEqual(self.example_packet.metadata_as_dict(),
+                     {&#34;foo&#34;: &#34;bar&#34;,
+                      &#34;baz&#34;: &#34;buz&#34;,
+                      &#34;1&#34;: &#34;2&#34;})</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_best_latency"><code class="name flex">
+<span>def <span class="ident">test_best_latency</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_best_latency(self):
+    self.assertEqual(self.example_packet.best_latency(), None)
+    self.example_packet.set_best_latency(100)
+    self.assertEqual(self.example_packet.best_latency(), 100)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_best_offset"><code class="name flex">
+<span>def <span class="ident">test_best_offset</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_best_offset(self):
+    self.assertEqual(self.example_packet.best_latency(), None)
+    self.example_packet.set_best_offset(100)
+    self.assertEqual(self.example_packet.best_offset(), 100)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_clone"><code class="name flex">
+<span>def <span class="ident">test_clone</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_clone(self):
+    cloned = self.example_packet.clone()
+    self.assertTrue(self.example_packet == cloned)
+    self.assertEqual(0, len(self.example_packet.diff(cloned)))</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_compressed_buffer"><code class="name flex">
+<span>def <span class="ident">test_compressed_buffer</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_compressed_buffer(self):
+    self.assertEqual(self.example_packet,
+                     reader.read_rdvxz_buffer(self.example_packet.compressed_buffer()))</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_default_filename"><code class="name flex">
+<span>def <span class="ident">test_default_filename</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_default_filename(self):
+    self.assertEqual(&#34;0000000001_1552075743960.rdvxz&#34;, self.example_packet.default_filename())
+    self.assertEqual(&#34;_0.rdvxz&#34;, self.empty_packet.default_filename())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_diff"><code class="name flex">
+<span>def <span class="ident">test_diff</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_diff(self):
+    cloned_packet = self.example_packet.clone()
+    cloned_packet.set_api(901)
+    cloned_packet_2 = self.example_packet.clone()
+    cloned_packet_2.set_microphone_sensor(None)
+    self.assertEqual([], self.example_packet.diff(self.example_packet))
+    if migrations.are_migrations_enabled():
+        self.assertEqual([&#34;900.0 != 901.0&#34;], self.example_packet.diff(cloned_packet))
+    else:
+        self.assertEqual([&#34;900 != 901&#34;], self.example_packet.diff(cloned_packet))
+    self.assertTrue(len(self.example_packet.diff(cloned_packet_2)) &gt; 0)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_eq"><code class="name flex">
+<span>def <span class="ident">test_eq</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_eq(self):
+    self.assertEqual(self.example_packet, self.example_packet)
+    self.assertEqual(self.empty_packet, self.empty_packet)
+    self.assertNotEqual(self.example_packet, self.empty_packet)
+
+    cloned = self.example_packet.clone()
+    self.assertEqual(self.example_packet, cloned)
+    cloned.set_is_private(False)
+
+    self.assertNotEqual(self.example_packet, cloned)
+    self.assertNotEqual(self.example_packet, self.example_packet.clone().microphone_sensor().set_sensor_name(&#34;foo&#34;))</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_accelerometer_sensor"><code class="name flex">
+<span>def <span class="ident">test_get_accelerometer_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_accelerometer_sensor(self):
+    self.assertEqual(&#34;example_accelerometer&#34;, self.example_packet.accelerometer_sensor().sensor_name())
+    self.assertIsNone(self.empty_packet.accelerometer_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_acquisition_server"><code class="name flex">
+<span>def <span class="ident">test_get_acquisition_server</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_acquisition_server(self):
+    self.assertEqual(&#34;wss://redvox.io/acquisition/v900&#34;, self.example_packet.acquisition_server())
+    self.assertEqual(&#34;&#34;, self.empty_packet.acquisition_server())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_api"><code class="name flex">
+<span>def <span class="ident">test_get_api</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_api(self):
+    self.assertEqual(900, self.example_packet.api())
+    self.assertEqual(0, self.empty_packet.api())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_app_file_start_timestamp_epoch_microseconds_utc"><code class="name flex">
+<span>def <span class="ident">test_get_app_file_start_timestamp_epoch_microseconds_utc</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_app_file_start_timestamp_epoch_microseconds_utc(self):
+    self.assertEqual(1552075743960135, self.example_packet.app_file_start_timestamp_epoch_microseconds_utc())
+    self.assertEqual(0, self.empty_packet.app_file_start_timestamp_epoch_microseconds_utc())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_app_file_start_timestamp_machine"><code class="name flex">
+<span>def <span class="ident">test_get_app_file_start_timestamp_machine</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_app_file_start_timestamp_machine(self):
+    self.assertEqual(1552075743960136, self.example_packet.app_file_start_timestamp_machine())
+    self.assertEqual(0, self.empty_packet.app_file_start_timestamp_machine())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_app_version"><code class="name flex">
+<span>def <span class="ident">test_get_app_version</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_app_version(self):
+    self.assertEqual(&#34;2.4.2&#34;, self.example_packet.app_version())
+    self.assertEqual(&#34;&#34;, self.empty_packet.app_version())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_authenticated_email"><code class="name flex">
+<span>def <span class="ident">test_get_authenticated_email</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_authenticated_email(self):
+    self.assertEqual(&#34;foo@bar.baz&#34;, self.example_packet.authenticated_email())
+    self.assertEqual(&#34;&#34;, self.empty_packet.authenticated_email())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_authentication_server"><code class="name flex">
+<span>def <span class="ident">test_get_authentication_server</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_authentication_server(self):
+    self.assertEqual(&#34;https://redvox.io/login/mobile&#34;, self.example_packet.authentication_server())
+    self.assertEqual(&#34;&#34;, self.empty_packet.authentication_server())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_authentication_token"><code class="name flex">
+<span>def <span class="ident">test_get_authentication_token</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_authentication_token(self):
+    self.assertEqual(&#34;redacted-000000&#34;, self.example_packet.authentication_token())
+    self.assertEqual(&#34;&#34;, self.empty_packet.authentication_token())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_barometer_sensor"><code class="name flex">
+<span>def <span class="ident">test_get_barometer_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_barometer_sensor(self):
+    self.assertEqual(&#34;example_barometer&#34;, self.example_packet.barometer_sensor().sensor_name())
+    self.assertIsNone(self.empty_packet.barometer_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_battery_level_percent"><code class="name flex">
+<span>def <span class="ident">test_get_battery_level_percent</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_battery_level_percent(self):
+    self.assertAlmostEqual(77.5, self.example_packet.battery_level_percent())
+    self.assertEqual(0.0, self.empty_packet.battery_level_percent())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_make"><code class="name flex">
+<span>def <span class="ident">test_get_device_make</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_device_make(self):
+    self.assertEqual(&#34;example_make&#34;, self.example_packet.device_make())
+    self.assertEqual(&#34;&#34;, self.empty_packet.device_make())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_model"><code class="name flex">
+<span>def <span class="ident">test_get_device_model</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_device_model(self):
+    self.assertEqual(&#34;example_model&#34;, self.example_packet.device_model())
+    self.assertEqual(&#34;&#34;, self.empty_packet.device_model())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_os"><code class="name flex">
+<span>def <span class="ident">test_get_device_os</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_device_os(self):
+    self.assertEqual(&#34;Android&#34;, self.example_packet.device_os())
+    self.assertEqual(&#34;&#34;, self.empty_packet.device_os())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_os_version"><code class="name flex">
+<span>def <span class="ident">test_get_device_os_version</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_device_os_version(self):
+    self.assertEqual(&#34;8.0.0&#34;, self.example_packet.device_os_version())
+    self.assertEqual(&#34;&#34;, self.empty_packet.device_os_version())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_temperature_c"><code class="name flex">
+<span>def <span class="ident">test_get_device_temperature_c</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_device_temperature_c(self):
+    self.assertAlmostEqual(21.100000381469727, self.example_packet.device_temperature_c())
+    self.assertEqual(0.0, self.empty_packet.device_temperature_c())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_firebase_token"><code class="name flex">
+<span>def <span class="ident">test_get_firebase_token</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_firebase_token(self):
+    self.assertEqual(&#34;example_firebase_token&#34;, self.example_packet.firebase_token())
+    self.assertEqual(&#34;&#34;, self.empty_packet.firebase_token())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_gyroscope_sensor"><code class="name flex">
+<span>def <span class="ident">test_get_gyroscope_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_gyroscope_sensor(self):
+    self.assertEqual(&#34;example_gyroscope&#34;, self.example_packet.gyroscope_sensor().sensor_name())
+    self.assertIsNone(self.empty_packet.gyroscope_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_infrared_sensor"><code class="name flex">
+<span>def <span class="ident">test_get_infrared_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_infrared_sensor(self):
+    self.assertEqual(&#34;example_infrared&#34;, self.example_packet.infrared_sensor().sensor_name())
+    self.assertIsNone(self.empty_packet.infrared_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_is_backfilled"><code class="name flex">
+<span>def <span class="ident">test_get_is_backfilled</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_is_backfilled(self):
+    self.assertFalse(self.example_packet.is_backfilled())
+    self.assertFalse(self.empty_packet.is_backfilled())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_is_private"><code class="name flex">
+<span>def <span class="ident">test_get_is_private</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_is_private(self):
+    self.assertTrue(self.example_packet.is_private())
+    self.assertFalse(self.empty_packet.is_private())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_is_scrambled"><code class="name flex">
+<span>def <span class="ident">test_get_is_scrambled</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_is_scrambled(self):
+    self.assertFalse(self.example_packet.is_scrambled())
+    self.assertFalse(self.empty_packet.is_scrambled())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_light_sensor"><code class="name flex">
+<span>def <span class="ident">test_get_light_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_light_sensor(self):
+    self.assertEqual(&#34;example_light&#34;, self.example_packet.light_sensor().sensor_name())
+    self.assertIsNone(self.empty_packet.light_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_location_sensor"><code class="name flex">
+<span>def <span class="ident">test_get_location_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_location_sensor(self):
+    self.assertEqual(&#34;example_gps&#34;, self.example_packet.location_sensor().sensor_name())
+    self.assertIsNone(self.empty_packet.location_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_magnetometer_sensor"><code class="name flex">
+<span>def <span class="ident">test_get_magnetometer_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_magnetometer_sensor(self):
+    self.assertEqual(&#34;example_magnetometer&#34;, self.example_packet.magnetometer_sensor().sensor_name())
+    self.assertIsNone(self.empty_packet.magnetometer_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_metadata"><code class="name flex">
+<span>def <span class="ident">test_get_metadata</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_metadata(self):
+    self.assertEqual([&#34;bar&#34;, &#34;baz&#34;], self.example_packet.metadata())
+    self.assertEqual([], self.empty_packet.metadata())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_metadata_as_dict"><code class="name flex">
+<span>def <span class="ident">test_get_metadata_as_dict</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_metadata_as_dict(self):
+    self.assertEqual(&#34;baz&#34;, self.example_packet.metadata_as_dict()[&#34;bar&#34;])
+    self.assertEqual(0, len(self.empty_packet.metadata_as_dict()))</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_metadata_as_dict_malformed"><code class="name flex">
+<span>def <span class="ident">test_get_metadata_as_dict_malformed</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_metadata_as_dict_malformed(self):
+    self.example_packet.set_metadata([&#34;foo&#34;])
+    with self.assertRaises(ReaderException):
+        self.example_packet.metadata_as_dict()</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_microphone_sensor"><code class="name flex">
+<span>def <span class="ident">test_get_microphone_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_microphone_sensor(self):
+    self.assertEqual(&#34;example_mic&#34;, self.example_packet.microphone_sensor().sensor_name())
+    self.assertIsNone(self.empty_packet.microphone_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_redvox_id"><code class="name flex">
+<span>def <span class="ident">test_get_redvox_id</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_redvox_id(self):
+    self.assertEqual(&#34;0000000001&#34;, self.example_packet.redvox_id())
+    self.assertEqual(&#34;&#34;, self.empty_packet.redvox_id())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_server_timestamp_epoch_microseconds_utc"><code class="name flex">
+<span>def <span class="ident">test_get_server_timestamp_epoch_microseconds_utc</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_server_timestamp_epoch_microseconds_utc(self):
+    self.assertEqual(1552075743960139, self.example_packet.server_timestamp_epoch_microseconds_utc())
+    self.assertEqual(0, self.empty_packet.server_timestamp_epoch_microseconds_utc())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_time_synchronization_sensor"><code class="name flex">
+<span>def <span class="ident">test_get_time_synchronization_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_time_synchronization_sensor(self):
+    self.assertEqual(7, len(self.example_packet.time_synchronization_sensor().payload_values()))
+    self.assertIsNone(self.empty_packet.time_synchronization_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_time_synchronization_server"><code class="name flex">
+<span>def <span class="ident">test_get_time_synchronization_server</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_time_synchronization_server(self):
+    self.assertEqual(&#34;wss://redvox.io/synch/v2&#34;, self.example_packet.time_synchronization_server())
+    self.assertEqual(&#34;&#34;, self.empty_packet.time_synchronization_server())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_uuid"><code class="name flex">
+<span>def <span class="ident">test_get_uuid</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_uuid(self):
+    self.assertEqual(&#34;123456789&#34;, self.example_packet.uuid())
+    self.assertEqual(&#34;&#34;, self.empty_packet.uuid())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_accelerometer_sensor"><code class="name flex">
+<span>def <span class="ident">test_has_accelerometer_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_has_accelerometer_sensor(self):
+    self.assertTrue(self.example_packet.has_accelerometer_sensor())
+    self.assertFalse(self.empty_packet.has_accelerometer_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_barometer_sensor"><code class="name flex">
+<span>def <span class="ident">test_has_barometer_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_has_barometer_sensor(self):
+    self.assertTrue(self.example_packet.has_barometer_sensor())
+    self.assertFalse(self.empty_packet.has_barometer_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_gyroscope_sensor"><code class="name flex">
+<span>def <span class="ident">test_has_gyroscope_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_has_gyroscope_sensor(self):
+    self.assertTrue(self.example_packet.has_gyroscope_sensor())
+    self.assertFalse(self.empty_packet.has_gyroscope_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_infrared_sensor"><code class="name flex">
+<span>def <span class="ident">test_has_infrared_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_has_infrared_sensor(self):
+    self.assertTrue(self.example_packet.has_infrared_sensor())
+    self.assertFalse(self.empty_packet.has_infrared_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_light_sensor"><code class="name flex">
+<span>def <span class="ident">test_has_light_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_has_light_sensor(self):
+    self.assertTrue(self.example_packet.has_light_sensor())
+    self.assertFalse(self.empty_packet.has_light_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_location_sensor"><code class="name flex">
+<span>def <span class="ident">test_has_location_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_has_location_sensor(self):
+    self.assertTrue(self.example_packet.has_location_sensor())
+    self.assertFalse(self.empty_packet.has_location_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_magnetometer_sensor"><code class="name flex">
+<span>def <span class="ident">test_has_magnetometer_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_has_magnetometer_sensor(self):
+    self.assertTrue(self.example_packet.has_magnetometer_sensor())
+    self.assertFalse(self.empty_packet.has_magnetometer_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_microphone_sensor"><code class="name flex">
+<span>def <span class="ident">test_has_microphone_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_has_microphone_sensor(self):
+    self.assertTrue(self.example_packet.has_microphone_sensor())
+    self.assertFalse(self.empty_packet.has_microphone_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_time_synchronization_sensor"><code class="name flex">
+<span>def <span class="ident">test_has_time_synchronization_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_has_time_synchronization_sensor(self):
+    self.assertTrue(self.example_packet.has_time_synchronization_sensor())
+    self.assertFalse(self.empty_packet.has_time_synchronization_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_is_synch_corrected"><code class="name flex">
+<span>def <span class="ident">test_is_synch_corrected</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_is_synch_corrected(self):
+    self.assertFalse(self.example_packet.is_synch_corrected())
+    self.example_packet.set_is_synch_corrected(False)
+    self.assertFalse(self.example_packet.is_synch_corrected())
+    self.example_packet.set_is_synch_corrected(True)
+    self.assertTrue(self.example_packet.is_synch_corrected())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_mach_time_zero"><code class="name flex">
+<span>def <span class="ident">test_mach_time_zero</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_mach_time_zero(self):
+    self.assertEqual(None, self.example_packet.mach_time_zero())
+    self.example_packet.set_mach_time_zero(100)
+    self.assertEqual(100, self.example_packet.mach_time_zero())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_mach_time_zero_incorrect_location"><code class="name flex">
+<span>def <span class="ident">test_mach_time_zero_incorrect_location</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_mach_time_zero_incorrect_location(self):
+    self.assertEqual(None, self.example_packet.mach_time_zero())
+    self.example_packet.location_sensor().set_metadata_as_dict({&#34;machTimeZero&#34;: &#34;200&#34;})
+    self.assertEqual(200, self.example_packet.mach_time_zero())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_accelerometer_sensor"><code class="name flex">
+<span>def <span class="ident">test_set_accelerometer_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_accelerometer_sensor(self):
+    sensor = reader.AccelerometerSensor().set_sensor_name(&#34;foo&#34;)
+    self.example_packet.set_accelerometer_sensor(sensor)
+    self.empty_packet.set_accelerometer_sensor(sensor)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.accelerometer_sensor().sensor_name())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.accelerometer_sensor().sensor_name())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_accelerometer_sensor_none"><code class="name flex">
+<span>def <span class="ident">test_set_accelerometer_sensor_none</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_accelerometer_sensor_none(self):
+    self.example_packet.set_accelerometer_sensor(None)
+    self.empty_packet.set_accelerometer_sensor(None)
+    self.assertFalse(self.example_packet.has_accelerometer_sensor())
+    self.assertFalse(self.empty_packet.has_accelerometer_sensor())
+    self.assertIsNone(self.example_packet.accelerometer_sensor())
+    self.assertIsNone(self.empty_packet.accelerometer_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_acquisition_server"><code class="name flex">
+<span>def <span class="ident">test_set_acquisition_server</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_acquisition_server(self):
+    self.example_packet.set_acquisition_server(&#34;foo&#34;)
+    self.empty_packet.set_acquisition_server(&#34;foo&#34;)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.acquisition_server())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.acquisition_server())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_api"><code class="name flex">
+<span>def <span class="ident">test_set_api</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_api(self):
+    self.example_packet.set_api(901)
+    self.empty_packet.set_api(901)
+    self.assertEqual(901, self.example_packet.api())
+    self.assertEqual(901, self.empty_packet.api())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_app_file_start_timestamp_epoch_microseconds_utc"><code class="name flex">
+<span>def <span class="ident">test_set_app_file_start_timestamp_epoch_microseconds_utc</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_app_file_start_timestamp_epoch_microseconds_utc(self):
+    self.example_packet.set_app_file_start_timestamp_epoch_microseconds_utc(100)
+    self.empty_packet.set_app_file_start_timestamp_epoch_microseconds_utc(100)
+    self.assertEqual(100, self.example_packet.app_file_start_timestamp_epoch_microseconds_utc())
+    self.assertEqual(100, self.empty_packet.app_file_start_timestamp_epoch_microseconds_utc())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_app_file_start_timestamp_machine"><code class="name flex">
+<span>def <span class="ident">test_set_app_file_start_timestamp_machine</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_app_file_start_timestamp_machine(self):
+    self.example_packet.set_app_file_start_timestamp_machine(100)
+    self.empty_packet.set_app_file_start_timestamp_machine(100)
+    self.assertEqual(100, self.example_packet.app_file_start_timestamp_machine())
+    self.assertEqual(100, self.empty_packet.app_file_start_timestamp_machine())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_app_version"><code class="name flex">
+<span>def <span class="ident">test_set_app_version</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_app_version(self):
+    self.example_packet.set_app_version(&#34;foo&#34;)
+    self.empty_packet.set_app_version(&#34;foo&#34;)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.app_version())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.app_version())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_authenticated_email"><code class="name flex">
+<span>def <span class="ident">test_set_authenticated_email</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_authenticated_email(self):
+    self.example_packet.set_authenticated_email(&#34;john.doe@gmail.com&#34;)
+    self.empty_packet.set_authenticated_email(&#34;john.doe@gmail.com&#34;)
+    self.assertEqual(&#34;john.doe@gmail.com&#34;, self.example_packet.authenticated_email())
+    self.assertEqual(&#34;john.doe@gmail.com&#34;, self.empty_packet.authenticated_email())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_authentication_server"><code class="name flex">
+<span>def <span class="ident">test_set_authentication_server</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_authentication_server(self):
+    self.example_packet.set_authentication_server(&#34;foo&#34;)
+    self.empty_packet.set_authentication_server(&#34;foo&#34;)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.authentication_server())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.authentication_server())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_authentication_token"><code class="name flex">
+<span>def <span class="ident">test_set_authentication_token</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_authentication_token(self):
+    self.example_packet.set_authentication_token(&#34;foo&#34;)
+    self.empty_packet.set_authentication_token(&#34;foo&#34;)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.authentication_token())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.authentication_token())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_barometer_sensor"><code class="name flex">
+<span>def <span class="ident">test_set_barometer_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_barometer_sensor(self):
+    sensor = reader.BarometerSensor().set_sensor_name(&#34;foo&#34;)
+    self.example_packet.set_barometer_sensor(sensor)
+    self.empty_packet.set_barometer_sensor(sensor)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.barometer_sensor().sensor_name())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.barometer_sensor().sensor_name())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_barometer_sensor_none"><code class="name flex">
+<span>def <span class="ident">test_set_barometer_sensor_none</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_barometer_sensor_none(self):
+    self.example_packet.set_barometer_sensor(None)
+    self.empty_packet.set_barometer_sensor(None)
+    self.assertFalse(self.example_packet.has_barometer_sensor())
+    self.assertFalse(self.empty_packet.has_barometer_sensor())
+    self.assertIsNone(self.example_packet.barometer_sensor())
+    self.assertIsNone(self.empty_packet.barometer_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_battery_level_percent"><code class="name flex">
+<span>def <span class="ident">test_set_battery_level_percent</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_battery_level_percent(self):
+    self.example_packet.set_battery_level_percent(100.0)
+    self.empty_packet.set_battery_level_percent(100.0)
+    self.assertAlmostEqual(100.0, self.example_packet.battery_level_percent())
+    self.assertAlmostEqual(100.0, self.empty_packet.battery_level_percent())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_make"><code class="name flex">
+<span>def <span class="ident">test_set_device_make</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_device_make(self):
+    self.example_packet.set_device_make(&#34;foo&#34;)
+    self.empty_packet.set_device_make(&#34;foo&#34;)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.device_make())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.device_make())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_model"><code class="name flex">
+<span>def <span class="ident">test_set_device_model</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_device_model(self):
+    self.example_packet.set_device_model(&#34;foo&#34;)
+    self.empty_packet.set_device_model(&#34;foo&#34;)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.device_model())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.device_model())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_os"><code class="name flex">
+<span>def <span class="ident">test_set_device_os</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_device_os(self):
+    self.example_packet.set_device_os(&#34;foo&#34;)
+    self.empty_packet.set_device_os(&#34;foo&#34;)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.device_os())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.device_os())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_os_version"><code class="name flex">
+<span>def <span class="ident">test_set_device_os_version</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_device_os_version(self):
+    self.example_packet.set_device_os_version(&#34;foo&#34;)
+    self.empty_packet.set_device_os_version(&#34;foo&#34;)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.device_os_version())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.device_os_version())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_temperature_c"><code class="name flex">
+<span>def <span class="ident">test_set_device_temperature_c</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_device_temperature_c(self):
+    self.example_packet.set_device_temperature_c(100.0)
+    self.empty_packet.set_device_temperature_c(100.0)
+    self.assertAlmostEqual(100.0, self.example_packet.device_temperature_c())
+    self.assertAlmostEqual(100.0, self.empty_packet.device_temperature_c())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_firebase_token"><code class="name flex">
+<span>def <span class="ident">test_set_firebase_token</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_firebase_token(self):
+    self.example_packet.set_firebase_token(&#34;foo&#34;)
+    self.empty_packet.set_firebase_token(&#34;foo&#34;)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.firebase_token())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.firebase_token())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_gyroscope_sensor"><code class="name flex">
+<span>def <span class="ident">test_set_gyroscope_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_gyroscope_sensor(self):
+    sensor = reader.GyroscopeSensor().set_sensor_name(&#34;foo&#34;)
+    self.example_packet.set_gyroscope_sensor(sensor)
+    self.empty_packet.set_gyroscope_sensor(sensor)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.gyroscope_sensor().sensor_name())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.gyroscope_sensor().sensor_name())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_gyroscope_sensor_none"><code class="name flex">
+<span>def <span class="ident">test_set_gyroscope_sensor_none</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_gyroscope_sensor_none(self):
+    self.example_packet.set_gyroscope_sensor(None)
+    self.empty_packet.set_gyroscope_sensor(None)
+    self.assertFalse(self.example_packet.has_gyroscope_sensor())
+    self.assertFalse(self.empty_packet.has_gyroscope_sensor())
+    self.assertIsNone(self.example_packet.gyroscope_sensor())
+    self.assertIsNone(self.empty_packet.gyroscope_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_infrared_sensor"><code class="name flex">
+<span>def <span class="ident">test_set_infrared_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_infrared_sensor(self):
+    sensor = reader.InfraredSensor().set_sensor_name(&#34;foo&#34;)
+    self.example_packet.set_infrared_sensor(sensor)
+    self.empty_packet.set_infrared_sensor(sensor)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.infrared_sensor().sensor_name())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.infrared_sensor().sensor_name())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_infrared_sensor_none"><code class="name flex">
+<span>def <span class="ident">test_set_infrared_sensor_none</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_infrared_sensor_none(self):
+    self.example_packet.set_infrared_sensor(None)
+    self.empty_packet.set_infrared_sensor(None)
+    self.assertFalse(self.example_packet.has_infrared_sensor())
+    self.assertFalse(self.empty_packet.has_infrared_sensor())
+    self.assertIsNone(self.example_packet.infrared_sensor())
+    self.assertIsNone(self.empty_packet.infrared_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_is_backfilled"><code class="name flex">
+<span>def <span class="ident">test_set_is_backfilled</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_is_backfilled(self):
+    self.example_packet.set_is_backfilled(True)
+    self.empty_packet.set_is_backfilled(True)
+    self.assertTrue(self.example_packet.is_backfilled())
+    self.assertTrue(self.empty_packet.is_backfilled())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_is_private"><code class="name flex">
+<span>def <span class="ident">test_set_is_private</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_is_private(self):
+    self.example_packet.set_is_private(False)
+    self.empty_packet.set_is_private(True)
+    self.assertFalse(self.example_packet.is_private())
+    self.assertTrue(self.empty_packet.is_private())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_is_scrambled"><code class="name flex">
+<span>def <span class="ident">test_set_is_scrambled</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_is_scrambled(self):
+    self.example_packet.set_is_scrambled(True)
+    self.empty_packet.set_is_scrambled(True)
+    self.assertTrue(self.example_packet.is_scrambled())
+    self.assertTrue(self.empty_packet.is_scrambled())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_light_sensor"><code class="name flex">
+<span>def <span class="ident">test_set_light_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_light_sensor(self):
+    sensor = reader.LightSensor().set_sensor_name(&#34;foo&#34;)
+    self.example_packet.set_light_sensor(sensor)
+    self.empty_packet.set_light_sensor(sensor)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.light_sensor().sensor_name())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.light_sensor().sensor_name())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_light_sensor_none"><code class="name flex">
+<span>def <span class="ident">test_set_light_sensor_none</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_light_sensor_none(self):
+    self.example_packet.set_light_sensor(None)
+    self.empty_packet.set_light_sensor(None)
+    self.assertFalse(self.example_packet.has_light_sensor())
+    self.assertFalse(self.empty_packet.has_light_sensor())
+    self.assertIsNone(self.example_packet.light_sensor())
+    self.assertIsNone(self.empty_packet.light_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_location_sensor"><code class="name flex">
+<span>def <span class="ident">test_set_location_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_location_sensor(self):
+    sensor = reader.LocationSensor().set_sensor_name(&#34;foo&#34;)
+    self.example_packet.set_location_sensor(sensor)
+    self.empty_packet.set_location_sensor(sensor)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.location_sensor().sensor_name())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.location_sensor().sensor_name())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_location_sensor_none"><code class="name flex">
+<span>def <span class="ident">test_set_location_sensor_none</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_location_sensor_none(self):
+    self.example_packet.set_location_sensor(None)
+    self.empty_packet.set_location_sensor(None)
+    self.assertFalse(self.example_packet.has_location_sensor())
+    self.assertFalse(self.empty_packet.has_location_sensor())
+    self.assertIsNone(self.example_packet.location_sensor())
+    self.assertIsNone(self.empty_packet.location_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_magnetometer_sensor"><code class="name flex">
+<span>def <span class="ident">test_set_magnetometer_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_magnetometer_sensor(self):
+    sensor = reader.MagnetometerSensor().set_sensor_name(&#34;foo&#34;)
+    self.example_packet.set_magnetometer_sensor(sensor)
+    self.empty_packet.set_magnetometer_sensor(sensor)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.magnetometer_sensor().sensor_name())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.magnetometer_sensor().sensor_name())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_magnetometer_sensor_none"><code class="name flex">
+<span>def <span class="ident">test_set_magnetometer_sensor_none</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_magnetometer_sensor_none(self):
+    self.example_packet.set_magnetometer_sensor(None)
+    self.empty_packet.set_magnetometer_sensor(None)
+    self.assertFalse(self.example_packet.has_magnetometer_sensor())
+    self.assertFalse(self.empty_packet.has_magnetometer_sensor())
+    self.assertIsNone(self.example_packet.magnetometer_sensor())
+    self.assertIsNone(self.empty_packet.magnetometer_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_metadata"><code class="name flex">
+<span>def <span class="ident">test_set_metadata</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_metadata(self):
+    self.example_packet.set_metadata([&#34;foo&#34;, &#34;bar&#34;])
+    self.empty_packet.set_metadata([&#34;foo&#34;, &#34;bar&#34;])
+    self.assertEqual([&#34;foo&#34;, &#34;bar&#34;], self.example_packet.metadata())
+    self.assertEqual([&#34;foo&#34;, &#34;bar&#34;], self.empty_packet.metadata())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_metadata_as_dict"><code class="name flex">
+<span>def <span class="ident">test_set_metadata_as_dict</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_metadata_as_dict(self):
+    self.example_packet.set_metadata_as_dict({&#34;foo&#34;: &#34;bar&#34;})
+    self.assertEqual(&#34;bar&#34;, self.example_packet.metadata_as_dict()[&#34;foo&#34;])</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_metadata_empty"><code class="name flex">
+<span>def <span class="ident">test_set_metadata_empty</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_metadata_empty(self):
+    self.example_packet.set_metadata([])
+    self.assertEqual([], self.example_packet.metadata())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_metadata_single"><code class="name flex">
+<span>def <span class="ident">test_set_metadata_single</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_metadata_single(self):
+    self.example_packet.set_metadata([&#34;foo&#34;])
+    self.assertEqual([&#34;foo&#34;], self.example_packet.metadata())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_microphone_sensor"><code class="name flex">
+<span>def <span class="ident">test_set_microphone_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_microphone_sensor(self):
+    sensor = reader.MicrophoneSensor().set_sensor_name(&#34;foo&#34;)
+    self.example_packet.set_microphone_sensor(sensor)
+    self.empty_packet.set_microphone_sensor(sensor)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.microphone_sensor().sensor_name())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.microphone_sensor().sensor_name())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_microphone_sensor_none"><code class="name flex">
+<span>def <span class="ident">test_set_microphone_sensor_none</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_microphone_sensor_none(self):
+    self.example_packet.set_microphone_sensor(None)
+    self.empty_packet.set_microphone_sensor(None)
+    self.assertFalse(self.example_packet.has_microphone_sensor())
+    self.assertFalse(self.empty_packet.has_microphone_sensor())
+    self.assertIsNone(self.example_packet.microphone_sensor())
+    self.assertIsNone(self.empty_packet.microphone_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_redvox_id"><code class="name flex">
+<span>def <span class="ident">test_set_redvox_id</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_redvox_id(self):
+    self.example_packet.set_redvox_id(&#34;foo&#34;)
+    self.empty_packet.set_redvox_id(&#34;foo&#34;)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.redvox_id())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.redvox_id())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_server_timestamp_epoch_microseconds_utc"><code class="name flex">
+<span>def <span class="ident">test_set_server_timestamp_epoch_microseconds_utc</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_server_timestamp_epoch_microseconds_utc(self):
+    self.example_packet.set_server_timestamp_epoch_microseconds_utc(100)
+    self.empty_packet.set_server_timestamp_epoch_microseconds_utc(100)
+    self.assertEqual(100, self.example_packet.server_timestamp_epoch_microseconds_utc())
+    self.assertEqual(100, self.empty_packet.server_timestamp_epoch_microseconds_utc())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_time_synchronization_sensor"><code class="name flex">
+<span>def <span class="ident">test_set_time_synchronization_sensor</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_time_synchronization_sensor(self):
+    sensor = reader.TimeSynchronizationSensor().set_payload_values([1, 2, 3])
+    self.example_packet.set_time_synchronization_sensor(sensor)
+    self.empty_packet.set_time_synchronization_sensor(sensor)
+    self.assertTrue(numpy.array_equal(numpy.array([1, 2, 3]), self.example_packet.time_synchronization_sensor().payload_values()))
+    self.assertTrue(numpy.array_equal(numpy.array([1, 2, 3]), self.empty_packet.time_synchronization_sensor().payload_values()))</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_time_synchronization_sensor_none"><code class="name flex">
+<span>def <span class="ident">test_set_time_synchronization_sensor_none</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_time_synchronization_sensor_none(self):
+    self.example_packet.set_time_synchronization_sensor(None)
+    self.empty_packet.set_time_synchronization_sensor(None)
+    self.assertFalse(self.example_packet.has_time_synchronization_sensor())
+    self.assertFalse(self.empty_packet.has_time_synchronization_sensor())
+    self.assertIsNone(self.example_packet.time_synchronization_sensor())
+    self.assertIsNone(self.empty_packet.time_synchronization_sensor())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_time_synchronization_server"><code class="name flex">
+<span>def <span class="ident">test_set_time_synchronization_server</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_time_synchronization_server(self):
+    self.example_packet.set_time_synchronization_server(&#34;foo&#34;)
+    self.empty_packet.set_time_synchronization_server(&#34;foo&#34;)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.time_synchronization_server())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.time_synchronization_server())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_uuid"><code class="name flex">
+<span>def <span class="ident">test_set_uuid</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_set_uuid(self):
+    self.example_packet.set_uuid(&#34;foo&#34;)
+    self.empty_packet.set_uuid(&#34;foo&#34;)
+    self.assertEqual(&#34;foo&#34;, self.example_packet.uuid())
+    self.assertEqual(&#34;foo&#34;, self.empty_packet.uuid())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_to_json"><code class="name flex">
+<span>def <span class="ident">test_to_json</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_to_json(self):
+    json = self.example_packet.to_json()
+    self.assertTrue(&#39;&#34;api&#34;: 900&#39; in json)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_write_json"><code class="name flex">
+<span>def <span class="ident">test_write_json</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_write_json(self):
+    self.example_packet.write_json(TEST_DATA_DIR, &#34;test.json&#34;)
+    self.example_packet.write_json(TEST_DATA_DIR)
+    self.assertEqual(self.example_packet, reader.read_json_file(test_data(&#34;test.json&#34;)))
+    self.assertEqual(self.example_packet, reader.read_json_file(test_data(&#34;0000000001_1552075743960.json&#34;)))
+    os.remove(test_data(&#34;test.json&#34;))
+    os.remove(test_data(&#34;0000000001_1552075743960.json&#34;))</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_write_rdvxz"><code class="name flex">
+<span>def <span class="ident">test_write_rdvxz</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_write_rdvxz(self):
+    self.example_packet.write_rdvxz(TEST_DATA_DIR, &#34;test.rdvxz&#34;)
+    self.example_packet.write_rdvxz(TEST_DATA_DIR)
+    self.assertEqual(self.example_packet, reader.read_rdvxz_file(test_data(&#34;test.rdvxz&#34;)))
+    self.assertEqual(self.example_packet, reader.read_rdvxz_file(test_data(&#34;0000000001_1552075743960.rdvxz&#34;)))
+    os.remove(test_data(&#34;test.rdvxz&#34;))
+    os.remove(test_data(&#34;0000000001_1552075743960.rdvxz&#34;))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.tests.api900" href="index.html">redvox.tests.api900</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket">TestWrappedRedvoxPacket</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.setUp" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.setUp">setUp</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.tearDown" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.tearDown">tearDown</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_add_metadata" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_add_metadata">test_add_metadata</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_best_latency" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_best_latency">test_best_latency</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_best_offset" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_best_offset">test_best_offset</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_clone" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_clone">test_clone</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_compressed_buffer" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_compressed_buffer">test_compressed_buffer</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_default_filename" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_default_filename">test_default_filename</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_diff" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_diff">test_diff</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_eq" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_eq">test_eq</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_accelerometer_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_accelerometer_sensor">test_get_accelerometer_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_acquisition_server" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_acquisition_server">test_get_acquisition_server</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_api" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_api">test_get_api</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_app_file_start_timestamp_epoch_microseconds_utc" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_app_file_start_timestamp_epoch_microseconds_utc">test_get_app_file_start_timestamp_epoch_microseconds_utc</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_app_file_start_timestamp_machine" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_app_file_start_timestamp_machine">test_get_app_file_start_timestamp_machine</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_app_version" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_app_version">test_get_app_version</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_authenticated_email" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_authenticated_email">test_get_authenticated_email</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_authentication_server" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_authentication_server">test_get_authentication_server</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_authentication_token" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_authentication_token">test_get_authentication_token</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_barometer_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_barometer_sensor">test_get_barometer_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_battery_level_percent" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_battery_level_percent">test_get_battery_level_percent</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_make" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_make">test_get_device_make</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_model" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_model">test_get_device_model</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_os" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_os">test_get_device_os</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_os_version" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_os_version">test_get_device_os_version</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_temperature_c" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_device_temperature_c">test_get_device_temperature_c</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_firebase_token" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_firebase_token">test_get_firebase_token</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_gyroscope_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_gyroscope_sensor">test_get_gyroscope_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_infrared_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_infrared_sensor">test_get_infrared_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_is_backfilled" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_is_backfilled">test_get_is_backfilled</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_is_private" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_is_private">test_get_is_private</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_is_scrambled" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_is_scrambled">test_get_is_scrambled</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_light_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_light_sensor">test_get_light_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_location_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_location_sensor">test_get_location_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_magnetometer_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_magnetometer_sensor">test_get_magnetometer_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_metadata" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_metadata">test_get_metadata</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_metadata_as_dict" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_metadata_as_dict">test_get_metadata_as_dict</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_metadata_as_dict_malformed" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_metadata_as_dict_malformed">test_get_metadata_as_dict_malformed</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_microphone_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_microphone_sensor">test_get_microphone_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_redvox_id" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_redvox_id">test_get_redvox_id</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_server_timestamp_epoch_microseconds_utc" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_server_timestamp_epoch_microseconds_utc">test_get_server_timestamp_epoch_microseconds_utc</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_time_synchronization_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_time_synchronization_sensor">test_get_time_synchronization_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_time_synchronization_server" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_time_synchronization_server">test_get_time_synchronization_server</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_uuid" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_get_uuid">test_get_uuid</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_accelerometer_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_accelerometer_sensor">test_has_accelerometer_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_barometer_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_barometer_sensor">test_has_barometer_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_gyroscope_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_gyroscope_sensor">test_has_gyroscope_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_infrared_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_infrared_sensor">test_has_infrared_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_light_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_light_sensor">test_has_light_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_location_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_location_sensor">test_has_location_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_magnetometer_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_magnetometer_sensor">test_has_magnetometer_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_microphone_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_microphone_sensor">test_has_microphone_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_time_synchronization_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_has_time_synchronization_sensor">test_has_time_synchronization_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_is_synch_corrected" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_is_synch_corrected">test_is_synch_corrected</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_mach_time_zero" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_mach_time_zero">test_mach_time_zero</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_mach_time_zero_incorrect_location" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_mach_time_zero_incorrect_location">test_mach_time_zero_incorrect_location</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_accelerometer_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_accelerometer_sensor">test_set_accelerometer_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_accelerometer_sensor_none" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_accelerometer_sensor_none">test_set_accelerometer_sensor_none</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_acquisition_server" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_acquisition_server">test_set_acquisition_server</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_api" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_api">test_set_api</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_app_file_start_timestamp_epoch_microseconds_utc" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_app_file_start_timestamp_epoch_microseconds_utc">test_set_app_file_start_timestamp_epoch_microseconds_utc</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_app_file_start_timestamp_machine" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_app_file_start_timestamp_machine">test_set_app_file_start_timestamp_machine</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_app_version" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_app_version">test_set_app_version</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_authenticated_email" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_authenticated_email">test_set_authenticated_email</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_authentication_server" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_authentication_server">test_set_authentication_server</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_authentication_token" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_authentication_token">test_set_authentication_token</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_barometer_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_barometer_sensor">test_set_barometer_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_barometer_sensor_none" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_barometer_sensor_none">test_set_barometer_sensor_none</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_battery_level_percent" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_battery_level_percent">test_set_battery_level_percent</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_make" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_make">test_set_device_make</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_model" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_model">test_set_device_model</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_os" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_os">test_set_device_os</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_os_version" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_os_version">test_set_device_os_version</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_temperature_c" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_device_temperature_c">test_set_device_temperature_c</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_firebase_token" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_firebase_token">test_set_firebase_token</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_gyroscope_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_gyroscope_sensor">test_set_gyroscope_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_gyroscope_sensor_none" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_gyroscope_sensor_none">test_set_gyroscope_sensor_none</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_infrared_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_infrared_sensor">test_set_infrared_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_infrared_sensor_none" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_infrared_sensor_none">test_set_infrared_sensor_none</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_is_backfilled" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_is_backfilled">test_set_is_backfilled</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_is_private" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_is_private">test_set_is_private</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_is_scrambled" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_is_scrambled">test_set_is_scrambled</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_light_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_light_sensor">test_set_light_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_light_sensor_none" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_light_sensor_none">test_set_light_sensor_none</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_location_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_location_sensor">test_set_location_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_location_sensor_none" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_location_sensor_none">test_set_location_sensor_none</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_magnetometer_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_magnetometer_sensor">test_set_magnetometer_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_magnetometer_sensor_none" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_magnetometer_sensor_none">test_set_magnetometer_sensor_none</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_metadata" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_metadata">test_set_metadata</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_metadata_as_dict" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_metadata_as_dict">test_set_metadata_as_dict</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_metadata_empty" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_metadata_empty">test_set_metadata_empty</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_metadata_single" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_metadata_single">test_set_metadata_single</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_microphone_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_microphone_sensor">test_set_microphone_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_microphone_sensor_none" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_microphone_sensor_none">test_set_microphone_sensor_none</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_redvox_id" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_redvox_id">test_set_redvox_id</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_server_timestamp_epoch_microseconds_utc" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_server_timestamp_epoch_microseconds_utc">test_set_server_timestamp_epoch_microseconds_utc</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_time_synchronization_sensor" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_time_synchronization_sensor">test_set_time_synchronization_sensor</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_time_synchronization_sensor_none" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_time_synchronization_sensor_none">test_set_time_synchronization_sensor_none</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_time_synchronization_server" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_time_synchronization_server">test_set_time_synchronization_server</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_uuid" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_set_uuid">test_set_uuid</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_to_json" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_to_json">test_to_json</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_write_json" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_write_json">test_write_json</a></code></li>
+<li><code><a title="redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_write_rdvxz" href="#redvox.tests.api900.test_wrapped_redvox_packet.TestWrappedRedvoxPacket.test_write_rdvxz">test_write_rdvxz</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

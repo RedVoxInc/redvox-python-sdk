@@ -4,6 +4,7 @@ import redvox
 
 with open("requirements.txt", "r") as requirements_file:
     requirements = list(map(lambda line: line.strip(), requirements_file.readlines()))
+    requirements = list(filter(lambda line: (not line.startswith("#")) and len(line) > 0, requirements))
 
 setup(name=redvox.NAME,
       version=redvox.VERSION,

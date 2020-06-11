@@ -2,11 +2,16 @@
 
 This repository contains code for reading and working with the RedVox API 900 data format.
 
-See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/redvox-api900-docs.md for SDK documentation.
+See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.9.2/redvox-api900-docs.md for SDK documentation.
 
 ![Bitbucket Pipelines branch](https://img.shields.io/bitbucket/pipelines/redvoxhi/redvox-api900-python-reader/master)
 
 ## Changelog
+
+### 2.9.2 (2020-06-11)
+
+* Update dependencies (now dataclasses will only be pulled in on Python 3.6)
+* Add version information to CLI
 
 ### 2.9.1 (2020-06-05)
 
