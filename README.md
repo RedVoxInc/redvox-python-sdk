@@ -11,7 +11,6 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 ### 2.9.2 (2020-06-11)
 
 * Update dependencies (now dataclasses will only be pulled in on Python 3.6)
-* Add version information to CLI
 
 ### 2.9.1 (2020-06-05)
 
