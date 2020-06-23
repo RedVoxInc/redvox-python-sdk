@@ -22,16 +22,19 @@ class CloudClient:
                  username: str,
                  password: str,
                  api_conf: api.ApiConfig = api.ApiConfig.default(),
-                 secret_token: Optional[str] = None):
+                 secret_token: Optional[str] = None,
+                 refresh_token_interval: float = 60.0):
         """
         Instantiates this client.
         :param username: A RedVox username.
         :param password: A RedVox password.
         :param api_conf: An optional API endpoint configuration.
         :param secret_token: An optional shared secret that may be required by the API server.
+        :param refresh_token_interval: An optional interval in seconds that the auth token should be refreshed.
         """
         self.api_conf: api.ApiConfig = api_conf
         self.secret_token: Optional[str] = secret_token
+        self.refresh_token_interval: float = refresh_token_interval
 
         auth_resp: auth_api.AuthResp = self.authenticate_user(username, password)
 
@@ -40,7 +43,7 @@ class CloudClient:
 
         self.auth_token: str = auth_resp.auth_token
 
-        self.__refresh_timer = threading.Timer(60.0, self.__refresh_token)
+        self.__refresh_timer = threading.Timer(self.refresh_token_interval, self.__refresh_token)
         self.__refresh_timer.start()
 
     def __refresh_token(self):
@@ -49,10 +52,11 @@ class CloudClient:
         """
         try:
             self.auth_token = self.refresh_own_auth_token().auth_token
-            self.__refresh_timer = threading.Timer(60.0, self.__refresh_token)
+            self.__refresh_timer = threading.Timer(self.refresh_token_interval, self.__refresh_token)
             self.__refresh_timer.start()
         except:
-            pass
+            if self.__refresh_timer is not None:
+                self.__refresh_timer.cancel()
 
     def close(self):
         """

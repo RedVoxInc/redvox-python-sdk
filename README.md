@@ -8,6 +8,10 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ## Changelog
 
+### 2.9.3 (2020-06-23)
+
+* Make Cloud API refresh token interval configurable.
+
 ### 2.9.2 (2020-06-11)
 
 * Update dependencies (now dataclasses will only be pulled in on Python 3.6)
