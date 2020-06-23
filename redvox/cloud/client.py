@@ -57,14 +57,14 @@ class CloudClient:
             self.__refresh_timer = threading.Timer(self.refresh_token_interval, self.__refresh_token)
             self.__refresh_timer.start()
         except:
-            if self.__refresh_timer is not None:
-                self.__refresh_timer.cancel()
+            self.close()
 
     def close(self):
         """
         Terminates this client process by cancelling the refresh token timer.
         """
-        self.__refresh_timer.cancel()
+        if self.__refresh_timer is not None:
+            self.__refresh_timer.cancel()
 
     def health_check(self) -> bool:
         """
@@ -209,5 +209,6 @@ def cloud_client(username: str,
     try:
         yield client
     finally:
-        client.close()
+        if client is not None:
+            client.close()
 

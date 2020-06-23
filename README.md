@@ -8,7 +8,7 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ## Changelog
 
-### 2.9.4 (2020-06-23)
+### 2.9.5 (2020-06-23)
 
 * Make Cloud API refresh token interval configurable.
 * Allow Cloud API client to be used within "with" blocks for automatic closing of resources
