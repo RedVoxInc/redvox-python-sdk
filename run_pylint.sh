@@ -5,6 +5,10 @@ if ! [[ -x "$(command -v pylint)" ]]; then
   exit 1
 fi
 
+set -o nounset
+set -o errexit
+set -o xtrace
+
 pylint redvox.api900.sensors                && \
 pylint redvox.api900.timesync               && \
 pylint redvox.api900.concat                 && \

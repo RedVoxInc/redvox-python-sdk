@@ -5,6 +5,10 @@ if ! [[ -x "$(command -v coverage)" ]]; then
   exit 1
 fi
 
+set -o nounset
+set -o errexit
+set -o xtrace
+
 coverage run -m unittest discover
 coverage html
 

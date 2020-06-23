@@ -5,6 +5,10 @@ if ! [[ -x "$(command -v mypy)" ]]; then
   exit 1
 fi
 
+set -o nounset
+set -o errexit
+set -o xtrace
+
 mypy --config-file=.mypy.ini                    \
     -p redvox.common                            \
     -m redvox.api900.timesync.tri_message_stats \
