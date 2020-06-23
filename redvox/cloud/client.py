@@ -5,6 +5,7 @@ This client provides convenient access to RedVox metadata and data. This client 
 an up-to-date authentication token for making authenticated API requests.
 """
 
+import contextlib
 import threading
 from typing import List, Optional
 
@@ -18,6 +19,7 @@ class CloudClient:
     """
     The RedVox Cloud API client.
     """
+
     def __init__(self,
                  username: str,
                  password: str,
@@ -181,4 +183,31 @@ class CloudClient:
                                                                       self.secret_token)
 
         return data_api.request_range_data(self.api_conf, data_range_req)
+
+
+@contextlib.contextmanager
+def cloud_client(username: str,
+                 password: str,
+                 api_conf: api.ApiConfig = api.ApiConfig.default(),
+                 secret_token: Optional[str] = None,
+                 refresh_token_interval: float = 60.0):
+    """
+    Function that can be used within a "with" block to automatically handle the closing of open resources.
+    Creates and returns a CloudClient that will automatically be closed when exiting the with block or if an error
+    occurs.
+
+    See https://docs.python.org/3/library/contextlib.html for more info.
+
+    :param username: The Cloud API username.
+    :param password: The Cloud API password.
+    :param api_conf: The Cloud API endpoint configuration.
+    :param secret_token: An optional secret token.
+    :param refresh_token_interval: An optional token refresh interval
+    :return: A CloudClient.
+    """
+    client: CloudClient = CloudClient(username, password, api_conf, secret_token, refresh_token_interval)
+    try:
+        yield client
+    finally:
+        client.close()
 
