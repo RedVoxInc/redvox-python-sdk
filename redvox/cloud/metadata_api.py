@@ -3,11 +3,11 @@ This module contains classes and enums for working with generic RedVox packet me
 """
 import requests
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
 from dataclasses_json import dataclass_json
 
-from redvox.cloud.api import ApiConfig
+from redvox.cloud.api import ApiConfig, post_req
 from redvox.cloud.routes import RoutesV1
 
 
@@ -293,21 +293,20 @@ def request_timing_metadata(api_config: ApiConfig,
     :param session: An (optional) session for re-using an HTTP client.
     :return: An instance of a timing response.
     """
-    url: str = api_config.url(RoutesV1.TIMING_METADATA_REQ)
-    if session:
-        # noinspection Mypy
-        resp: requests.Response = session.post(url, json=timing_req.to_dict())
-    else:
-        # noinspection Mypy
-        resp = requests.post(url, json=timing_req.to_dict())
 
-    if resp.status_code == 200:
+    def handle_resp(resp) -> TimingMetaResponse:
         json: List[Dict] = resp.json()
         # noinspection Mypy
         items: List[TimingMeta] = list(map(TimingMeta.from_dict, json))
         return TimingMetaResponse(items)
-    else:
-        return TimingMetaResponse(list())
+
+    res: Optional[TimingMetaResponse] = post_req(api_config,
+                                                 RoutesV1.TIMING_METADATA_REQ,
+                                                 timing_req,
+                                                 handle_resp,
+                                                 session)
+
+    return res if res else TimingMetaResponse([])
 
 
 def request_metadata(api_config: ApiConfig,
@@ -320,16 +319,10 @@ def request_metadata(api_config: ApiConfig,
     :param session: An (optional) session for re-using an HTTP client.
     :return: A metadata response on successful call or None if there is an error.
     """
-    url: str = api_config.url(RoutesV1.METADATA_REQ)
-    if session:
-        # noinspection Mypy
-        resp: requests.Response = session.post(url, json=packet_metadata_req.to_dict())
-    else:
-        # noinspection Mypy
-        resp = requests.post(url, json=packet_metadata_req.to_dict())
-
-    if resp.status_code == 200:
-        # noinspection Mypy
-        return MetadataResp.from_dict(resp.json())
-    else:
-        return None
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], MetadataResp] = lambda resp: MetadataResp.from_dict(resp.json())
+    return post_req(api_config,
+                    RoutesV1.METADATA_REQ,
+                    packet_metadata_req,
+                    handle_resp,
+                    session)

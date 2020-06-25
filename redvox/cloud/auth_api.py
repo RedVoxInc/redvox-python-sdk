@@ -3,12 +3,12 @@ This module contains classes and functions for interacting with the RedVox Cloud
 """
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Callable, Optional
 
 from dataclasses_json import dataclass_json
 import requests
 
-from redvox.cloud.api import ApiConfig
+from redvox.cloud.api import ApiConfig, post_req
 from redvox.cloud.routes import RoutesV1
 
 
@@ -87,21 +87,15 @@ def authenticate_user(api_config: ApiConfig,
     :param session: An (optional) session for re-using an HTTP client.
     :return: An instance of an authentication response.
     """
-    url: str = api_config.url(RoutesV1.AUTH_USER)
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], AuthResp] = lambda resp: AuthResp.from_dict(resp.json())
+    res: Optional[AuthResp] = post_req(api_config,
+                                       RoutesV1.AUTH_USER,
+                                       authentication_request,
+                                       handle_resp,
+                                       session)
 
-    if session:
-        # noinspection Mypy
-        resp: requests.Response = session.post(url, json=authentication_request.to_dict())
-    else:
-        # noinspection Mypy
-        resp = requests.post(url, json=authentication_request.to_dict())
-
-
-    if resp.status_code == 200:
-        # noinspection Mypy
-        return AuthResp.from_dict(resp.json())
-    else:
-        return AuthResp(resp.status_code, None)
+    return res if res else AuthResp(401, None)
 
 
 def validate_token(api_config: ApiConfig,
@@ -114,20 +108,14 @@ def validate_token(api_config: ApiConfig,
     :param session: An (optional) session for re-using an HTTP client.
     :return: A ValidateTokenResp when the token is valid, None otherwise.
     """
-    url: str = api_config.url(RoutesV1.VALIDATE_TOKEN)
-
-    if session:
-        # noinspection Mypy
-        resp: requests.Response = session.post(url, json=validate_token_req.to_dict())
-    else:
-        # noinspection Mypy
-        resp = requests.post(url, json=validate_token_req.to_dict())
-
-    if resp.status_code == 200:
-        # noinspection Mypy
-        return ValidateTokenResp.from_dict(resp.json())
-    else:
-        return None
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], ValidateTokenResp] = lambda resp: ValidateTokenResp.from_dict(
+        resp.json())
+    return post_req(api_config,
+                    RoutesV1.VALIDATE_TOKEN,
+                    validate_token_req,
+                    handle_resp,
+                    session)
 
 
 def refresh_token(api_config: ApiConfig,
@@ -140,17 +128,10 @@ def refresh_token(api_config: ApiConfig,
     :param session: An (optional) session for re-using an HTTP client.
     :return: An instance of a RefreshTokenResp.
     """
-    url: str = api_config.url(RoutesV1.REFRESH_TOKEN)
-
-    if session:
-        # noinspection Mypy
-        resp: requests.Response = session.post(url, json=refresh_token_req.to_dict())
-    else:
-        # noinspection Mypy
-        resp = requests.post(url, json=refresh_token_req.to_dict())
-
-    if resp.status_code == 200:
-        # noinspection Mypy
-        return RefreshTokenResp.from_dict(resp.json())
-    else:
-        return None
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], RefreshTokenResp] = lambda resp: RefreshTokenResp.from_dict(resp.json())
+    return post_req(api_config,
+                    RoutesV1.REFRESH_TOKEN,
+                    refresh_token_req,
+                    handle_resp,
+                    session)

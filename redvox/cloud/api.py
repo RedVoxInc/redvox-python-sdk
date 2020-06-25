@@ -2,7 +2,7 @@
 This module contains methods for interacting with the RedVox cloud based API.
 """
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Callable, Dict, Optional
 
 import requests
 
@@ -29,6 +29,26 @@ class ApiConfig:
     @staticmethod
     def default() -> 'ApiConfig':
         return ApiConfig("https", "redvox.io", 8080)
+
+
+def post_req(api_config: ApiConfig,
+             route: str,
+             req: Any,
+             resp_transform: Callable[[requests.Response], Any],
+             session: Optional[requests.Session] = None) -> Optional[Any]:
+    url: str = api_config.url(route)
+    # noinspection Mypy
+    req_dict: Dict = req.to_dict()
+    if session:
+        resp: requests.Response = session.post(url, json=req_dict)
+    else:
+        resp = requests.post(url, json=req_dict)
+
+    if resp.status_code == 200:
+        # noinspection Mypy
+        return resp_transform(resp)
+    else:
+        return None
 
 
 def health_check(api_config: ApiConfig,
