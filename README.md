@@ -8,6 +8,12 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ## Changelog
 
+### 2.9.9 (2020-06-25)
+
+* Update dependencies
+* Encapsulate HTTP logic for HTTP Cloud Client
+* Add tests for Cloud Client
+
 ### 2.9.8 (2020-06-24)
 
 * Large metadata requests are now chunked by the client.
