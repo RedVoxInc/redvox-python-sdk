@@ -7,12 +7,30 @@ an up-to-date authentication token for making authenticated API requests.
 
 import contextlib
 import threading
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import redvox.cloud.api as api
 import redvox.cloud.auth_api as auth_api
+import redvox.common.constants as constants
 import redvox.cloud.data_api as data_api
 import redvox.cloud.metadata_api as metadata_api
+
+
+def chunk_time_range(start_ts: int,
+                     end_ts: int,
+                     max_chunk: int) -> List[Tuple[int, int]]:
+    chunks: List[Tuple[int, int]] = []
+
+    start: int = start_ts
+
+    while start + max_chunk < end_ts:
+        chunks.append((start, start + max_chunk - 1))
+        start += max_chunk
+
+    if start < end_ts:
+        chunks.append((start, end_ts))
+
+    return chunks
 
 
 class CloudClient:
@@ -25,7 +43,7 @@ class CloudClient:
                  password: str,
                  api_conf: api.ApiConfig = api.ApiConfig.default(),
                  secret_token: Optional[str] = None,
-                 refresh_token_interval: float = 60.0):
+                 refresh_token_interval: float = 600.0):
         """
         Instantiates this client.
         :param username: A RedVox username.
@@ -119,22 +137,35 @@ class CloudClient:
                          start_ts_s: int,
                          end_ts_s: int,
                          station_ids: List[str],
-                         metadata_to_include: List[str]) -> Optional[metadata_api.MetadataResp]:
+                         metadata_to_include: List[str],
+                         chunk_by_seconds: int = constants.SECONDS_PER_DAY) -> Optional[metadata_api.MetadataResp]:
         """
         Requests RedVox packet metadata.
         :param start_ts_s: Start epoch of request window.
         :param end_ts_s: End epoch of request window.
         :param station_ids: A list of station ids.
         :param metadata_to_include: A list of metadata fields to include (see: redvox.cloud.metadata.AvailableMetadata)
+        :param chunk_by_seconds: Split up longer requests into chunks of chunk_by_seconds size (default 86400s/1d)
         :return: A metadata result containing the requested metadata or None on error.
         """
-        metadata_req: metadata_api.MetadataReq = metadata_api.MetadataReq(self.auth_token,
-                                                                          start_ts_s,
-                                                                          end_ts_s,
-                                                                          station_ids,
-                                                                          metadata_to_include,
-                                                                          self.secret_token)
-        return metadata_api.request_metadata(self.api_conf, metadata_req)
+        time_chunks: List[Tuple[int, int]] = chunk_time_range(start_ts_s, end_ts_s, chunk_by_seconds)
+        metadata_resp: metadata_api.MetadataResp = metadata_api.MetadataResp([])
+
+        for start_ts, end_ts in time_chunks:
+            metadata_req: metadata_api.MetadataReq = metadata_api.MetadataReq(self.auth_token,
+                                                                              start_ts,
+                                                                              end_ts,
+                                                                              station_ids,
+                                                                              metadata_to_include,
+                                                                              self.secret_token)
+
+            chunked_resp: Optional[metadata_api.MetadataResp] = metadata_api.request_metadata(self.api_conf,
+                                                                                              metadata_req)
+
+            if chunked_resp:
+                metadata_resp.metadata.extend(chunked_resp.metadata)
+
+        return metadata_resp
 
     def request_timing_metadata(self,
                                 start_ts_s: int,
@@ -211,4 +242,3 @@ def cloud_client(username: str,
     finally:
         if client is not None:
             client.close()
-
