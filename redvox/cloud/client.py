@@ -176,22 +176,33 @@ class CloudClient:
     def request_timing_metadata(self,
                                 start_ts_s: int,
                                 end_ts_s: int,
-                                station_ids: List[str]) -> metadata_api.TimingMetaResponse:
+                                station_ids: List[str],
+                                chunk_by_seconds: int = constants.SECONDS_PER_DAY) -> metadata_api.TimingMetaResponse:
         """
         Requests timing metadata from RedVox packets.
         :param start_ts_s: Start epoch of the request.
         :param end_ts_s: End epoch of the request.
         :param station_ids: A list of station ids.
+        :param chunk_by_seconds: Split up longer requests into chunks of chunk_by_seconds size (default 86400s/1d)
         :return: A response containing the requested metadata.
         """
-        timing_req: metadata_api.TimingMetaRequest = metadata_api.TimingMetaRequest(self.auth_token,
-                                                                                    start_ts_s,
-                                                                                    end_ts_s,
-                                                                                    station_ids,
-                                                                                    self.secret_token)
-        return metadata_api.request_timing_metadata(self.api_conf,
-                                                    timing_req,
-                                                    session=self.__session)
+        time_chunks: List[Tuple[int, int]] = chunk_time_range(start_ts_s, end_ts_s, chunk_by_seconds)
+        metadata_resp: metadata_api.TimingMetaResponse = metadata_api.TimingMetaResponse([])
+
+        for start_ts, end_ts in time_chunks:
+            timing_req: metadata_api.TimingMetaRequest = metadata_api.TimingMetaRequest(self.auth_token,
+                                                                                        start_ts,
+                                                                                        end_ts,
+                                                                                        station_ids,
+                                                                                        self.secret_token)
+            chunked_resp: metadata_api.TimingMetaResponse = metadata_api.request_timing_metadata(self.api_conf,
+                                                                                                 timing_req,
+                                                                                                 session=self.__session)
+
+            if chunked_resp:
+                metadata_resp.items.extend(chunked_resp.items)
+
+        return metadata_resp
 
     def request_report_data(self, report_id: str) -> Optional[data_api.ReportDataResp]:
         """
@@ -250,4 +261,3 @@ def cloud_client(username: str,
     finally:
         if client is not None:
             client.close()
-
