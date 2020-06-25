@@ -8,10 +8,11 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ## Changelog
 
-### 2.9.6 (2020-06-24)
+### 2.9.7 (2020-06-24)
 
 * Large metadata requests are now chunked by the client.
 * Change refresh token interval from 1 minute to 10 minutes
+* Re-use HTTP client with keep-alive for more efficient HTTP requests
 
 ### 2.9.5 (2020-06-23)
 

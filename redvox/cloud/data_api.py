@@ -81,16 +81,24 @@ class DataRangeResp:
 
 
 def request_report_data(api_config: ApiConfig,
-                        report_data_req: ReportDataReq) -> Optional[ReportDataResp]:
+                        report_data_req: ReportDataReq,
+                        session: Optional[requests.Session] = None) -> Optional[ReportDataResp]:
     """
     Makes an API call to generate a signed URL of a RedVox report.
     :param api_config: An API config.
     :param report_data_req: The request.
+    :param session: An (optional) session for re-using an HTTP client.
     :return: The response.
     """
     url: str = api_config.url(RoutesV1.DATA_REPORT_REQ)
-    # noinspection Mypy
-    resp: requests.Response = requests.post(url, json=report_data_req.to_dict())
+
+    if session:
+        # noinspection Mypy
+        resp: requests.Response = session.post(url, json=report_data_req.to_dict())
+    else:
+        # noinspection Mypy
+        resp = requests.post(url, json=report_data_req.to_dict())
+
     if resp.status_code == 200:
         # noinspection Mypy
         return ReportDataResp.from_dict(resp.json())
@@ -99,16 +107,24 @@ def request_report_data(api_config: ApiConfig,
 
 
 def request_range_data(api_config: ApiConfig,
-                       data_range_req: DataRangeReq) -> DataRangeResp:
+                       data_range_req: DataRangeReq,
+                       session: Optional[requests.Session] = None) -> DataRangeResp:
     """
     Requests signed URLs for a range of RedVox packets.
     :param api_config: An API config.
     :param data_range_req: The request.
+    :param session: An (optional) session for re-using an HTTP client.
     :return: A DataRangeResp.
     """
     url: str = api_config.url(RoutesV1.DATA_RANGE_REQ)
-    # noinspection Mypy
-    resp: requests.Response = requests.post(url, json=data_range_req.to_dict())
+
+    if session:
+        # noinspection Mypy
+        resp: requests.Response = session.post(url, json=data_range_req.to_dict())
+    else:
+        # noinspection Mypy
+        resp = requests.post(url, json=data_range_req.to_dict())
+
     if resp.status_code == 200:
         # noinspection Mypy
         return DataRangeResp.from_dict(resp.json())

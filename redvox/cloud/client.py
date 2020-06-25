@@ -14,6 +14,7 @@ import redvox.cloud.auth_api as auth_api
 import redvox.common.constants as constants
 import redvox.cloud.data_api as data_api
 import redvox.cloud.metadata_api as metadata_api
+import requests
 
 
 def chunk_time_range(start_ts: int,
@@ -66,6 +67,8 @@ class CloudClient:
         self.__refresh_timer = threading.Timer(self.refresh_token_interval, self.__refresh_token)
         self.__refresh_timer.start()
 
+        self.__session: requests.Session = requests.Session()
+
     def __refresh_token(self):
         """
         Automatically refreshes this client's auth token in the background once per minute.
@@ -84,12 +87,15 @@ class CloudClient:
         if self.__refresh_timer is not None:
             self.__refresh_timer.cancel()
 
+        if self.__session is not None:
+            self.__session.close()
+
     def health_check(self) -> bool:
         """
         An API call that returns True if the API Cloud server is up and running or False otherwise.
         :return: True if the API Cloud server is up and running or False otherwise.
         """
-        return api.health_check(self.api_conf)
+        return api.health_check(self.api_conf, session=self.__session)
 
     def authenticate_user(self, username: str, password: str) -> auth_api.AuthResp:
         """
@@ -99,7 +105,7 @@ class CloudClient:
         :return: An authenticate response.
         """
         auth_req: auth_api.AuthReq = auth_api.AuthReq(username, password)
-        return auth_api.authenticate_user(self.api_conf, auth_req)
+        return auth_api.authenticate_user(self.api_conf, auth_req, session=self.__session)
 
     def validate_auth_token(self, auth_token: str) -> Optional[auth_api.ValidateTokenResp]:
         """
@@ -108,7 +114,7 @@ class CloudClient:
         :return: An authentication response with token details or None if token in invalid
         """
         token_req: auth_api.ValidateTokenReq = auth_api.ValidateTokenReq(auth_token)
-        return auth_api.validate_token(self.api_conf, token_req)
+        return auth_api.validate_token(self.api_conf, token_req, session=self.__session)
 
     def validate_own_auth_token(self) -> Optional[auth_api.ValidateTokenResp]:
         """
@@ -124,7 +130,7 @@ class CloudClient:
         :return: A new authentication token or None if the provide auth token is not valid.
         """
         refresh_token_req: auth_api.RefreshTokenReq = auth_api.RefreshTokenReq(auth_token)
-        return auth_api.refresh_token(self.api_conf, refresh_token_req)
+        return auth_api.refresh_token(self.api_conf, refresh_token_req, session=self.__session)
 
     def refresh_own_auth_token(self) -> Optional[auth_api.RefreshTokenResp]:
         """
@@ -160,7 +166,8 @@ class CloudClient:
                                                                               self.secret_token)
 
             chunked_resp: Optional[metadata_api.MetadataResp] = metadata_api.request_metadata(self.api_conf,
-                                                                                              metadata_req)
+                                                                                              metadata_req,
+                                                                                              session=self.__session)
 
             if chunked_resp:
                 metadata_resp.metadata.extend(chunked_resp.metadata)
@@ -183,7 +190,9 @@ class CloudClient:
                                                                                     end_ts_s,
                                                                                     station_ids,
                                                                                     self.secret_token)
-        return metadata_api.request_timing_metadata(self.api_conf, timing_req)
+        return metadata_api.request_timing_metadata(self.api_conf,
+                                                    timing_req,
+                                                    session=self.__session)
 
     def request_report_data(self, report_id: str) -> Optional[data_api.ReportDataResp]:
         """
@@ -194,7 +203,7 @@ class CloudClient:
         report_data_req: data_api.ReportDataReq = data_api.ReportDataReq(self.auth_token,
                                                                          report_id,
                                                                          self.secret_token)
-        return data_api.request_report_data(self.api_conf, report_data_req)
+        return data_api.request_report_data(self.api_conf, report_data_req, session=self.__session)
 
     def request_data_range(self,
                            start_ts_s: int,
@@ -213,7 +222,7 @@ class CloudClient:
                                                                       station_ids,
                                                                       self.secret_token)
 
-        return data_api.request_range_data(self.api_conf, data_range_req)
+        return data_api.request_range_data(self.api_conf, data_range_req, session=self.__session)
 
 
 @contextlib.contextmanager

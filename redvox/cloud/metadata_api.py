@@ -284,16 +284,23 @@ class TimingMetaResponse:
 
 
 def request_timing_metadata(api_config: ApiConfig,
-                            timing_req: TimingMetaRequest) -> TimingMetaResponse:
+                            timing_req: TimingMetaRequest,
+                            session: Optional[requests.Session] = None) -> TimingMetaResponse:
     """
     Retrieve timing metadata.
     :param api_config: An instance of the API configuration.
     :param timing_req: An instance of a timing request.
+    :param session: An (optional) session for re-using an HTTP client.
     :return: An instance of a timing response.
     """
     url: str = api_config.url(RoutesV1.TIMING_METADATA_REQ)
-    # noinspection Mypy
-    resp: requests.Response = requests.post(url, json=timing_req.to_dict())
+    if session:
+        # noinspection Mypy
+        resp: requests.Response = session.post(url, json=timing_req.to_dict())
+    else:
+        # noinspection Mypy
+        resp = requests.post(url, json=timing_req.to_dict())
+
     if resp.status_code == 200:
         json: List[Dict] = resp.json()
         # noinspection Mypy
@@ -303,16 +310,24 @@ def request_timing_metadata(api_config: ApiConfig,
         return TimingMetaResponse(list())
 
 
-def request_metadata(api_config: ApiConfig, packet_metadata_req: MetadataReq) -> Optional[MetadataResp]:
+def request_metadata(api_config: ApiConfig,
+                     packet_metadata_req: MetadataReq,
+                     session: Optional[requests.Session] = None) -> Optional[MetadataResp]:
     """
     Requests generic metadata from the cloud API.
     :param api_config: An instance of the API config.
     :param packet_metadata_req: An instance of a metadata request.
+    :param session: An (optional) session for re-using an HTTP client.
     :return: A metadata response on successful call or None if there is an error.
     """
     url: str = api_config.url(RoutesV1.METADATA_REQ)
-    # noinspection Mypy
-    resp: requests.Response = requests.post(url, json=packet_metadata_req.to_dict())
+    if session:
+        # noinspection Mypy
+        resp: requests.Response = session.post(url, json=packet_metadata_req.to_dict())
+    else:
+        # noinspection Mypy
+        resp = requests.post(url, json=packet_metadata_req.to_dict())
+
     if resp.status_code == 200:
         # noinspection Mypy
         return MetadataResp.from_dict(resp.json())

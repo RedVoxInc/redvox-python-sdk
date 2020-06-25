@@ -2,6 +2,7 @@
 This module contains methods for interacting with the RedVox cloud based API.
 """
 from dataclasses import dataclass
+from typing import Optional
 
 import requests
 
@@ -30,17 +31,22 @@ class ApiConfig:
         return ApiConfig("https", "redvox.io", 8080)
 
 
-def health_check(api_config: ApiConfig) -> bool:
+def health_check(api_config: ApiConfig,
+                 session: Optional[requests.Session] = None) -> bool:
     """
     Check that the Cloud API endpoint is up.
     :param api_config: The API config.
+    :param session: An (optional) session for re-using an HTTP client.
     :return: True if the endpoint is up, False otherwise.
     """
     url: str = api_config.url(RoutesV1.HEALTH_CHECK)
-    # noinspection Mypy
-    resp: requests.Response = requests.get(url)
+
+    if session:
+        resp: requests.Response = session.get(url)
+    else:
+        resp = requests.get(url)
+
     if resp.status_code == 200:
         return True
 
     return False
-

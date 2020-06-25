@@ -78,16 +78,24 @@ class RefreshTokenResp:
 
 
 def authenticate_user(api_config: ApiConfig,
-                      authentication_request: AuthReq) -> AuthResp:
+                      authentication_request: AuthReq,
+                      session: Optional[requests.Session] = None) -> AuthResp:
     """
     Attempts to authenticate a RedVox user.
     :param api_config: Api configuration.
     :param authentication_request: An instance of an authentication request.
+    :param session: An (optional) session for re-using an HTTP client.
     :return: An instance of an authentication response.
     """
     url: str = api_config.url(RoutesV1.AUTH_USER)
-    # noinspection Mypy
-    resp: requests.Response = requests.post(url, json=authentication_request.to_dict())
+
+    if session:
+        # noinspection Mypy
+        resp: requests.Response = session.post(url, json=authentication_request.to_dict())
+    else:
+        # noinspection Mypy
+        resp = requests.post(url, json=authentication_request.to_dict())
+
 
     if resp.status_code == 200:
         # noinspection Mypy
@@ -97,16 +105,24 @@ def authenticate_user(api_config: ApiConfig,
 
 
 def validate_token(api_config: ApiConfig,
-                   validate_token_req: ValidateTokenReq) -> Optional[ValidateTokenResp]:
+                   validate_token_req: ValidateTokenReq,
+                   session: Optional[requests.Session] = None) -> Optional[ValidateTokenResp]:
     """
     Attempt to validate the provided auth token.
     :param api_config: The Api config.
     :param validate_token_req: A validation token req.
+    :param session: An (optional) session for re-using an HTTP client.
     :return: A ValidateTokenResp when the token is valid, None otherwise.
     """
     url: str = api_config.url(RoutesV1.VALIDATE_TOKEN)
-    # noinspection Mypy
-    resp: requests.Response = requests.post(url, json=validate_token_req.to_dict())
+
+    if session:
+        # noinspection Mypy
+        resp: requests.Response = session.post(url, json=validate_token_req.to_dict())
+    else:
+        # noinspection Mypy
+        resp = requests.post(url, json=validate_token_req.to_dict())
+
     if resp.status_code == 200:
         # noinspection Mypy
         return ValidateTokenResp.from_dict(resp.json())
@@ -115,16 +131,24 @@ def validate_token(api_config: ApiConfig,
 
 
 def refresh_token(api_config: ApiConfig,
-                  refresh_token_req: RefreshTokenReq) -> Optional[RefreshTokenResp]:
+                  refresh_token_req: RefreshTokenReq,
+                  session: Optional[requests.Session] = None) -> Optional[RefreshTokenResp]:
     """
     Attemp to refresh the given authentication token.
     :param api_config: The Api config.
     :param refresh_token_req: The request.
+    :param session: An (optional) session for re-using an HTTP client.
     :return: An instance of a RefreshTokenResp.
     """
     url: str = api_config.url(RoutesV1.REFRESH_TOKEN)
-    # noinspection Mypy
-    resp: requests.Response = requests.post(url, json=refresh_token_req.to_dict())
+
+    if session:
+        # noinspection Mypy
+        resp: requests.Response = session.post(url, json=refresh_token_req.to_dict())
+    else:
+        # noinspection Mypy
+        resp = requests.post(url, json=refresh_token_req.to_dict())
+
     if resp.status_code == 200:
         # noinspection Mypy
         return RefreshTokenResp.from_dict(resp.json())

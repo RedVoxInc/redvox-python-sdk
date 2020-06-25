@@ -3,7 +3,7 @@ Provides library level metadata and constants.
 """
 
 NAME = "redvox"
-VERSION = "2.9.6"
+VERSION = "2.9.7"
 
 
 def version() -> str:
