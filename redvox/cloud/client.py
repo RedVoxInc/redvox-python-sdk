@@ -11,6 +11,7 @@ from typing import List, Optional, Tuple
 
 import redvox.cloud.api as api
 import redvox.cloud.auth_api as auth_api
+import redvox.cloud.errors as cloud_errors
 import redvox.common.constants as constants
 import redvox.cloud.data_api as data_api
 import redvox.cloud.metadata_api as metadata_api
@@ -44,7 +45,8 @@ class CloudClient:
                  password: str,
                  api_conf: api.ApiConfig = api.ApiConfig.default(),
                  secret_token: Optional[str] = None,
-                 refresh_token_interval: float = 600.0):
+                 refresh_token_interval: float = 600.0,
+                 timeout: Optional[float] = 10.0):
         """
         Instantiates this client.
         :param username: A RedVox username.
@@ -54,14 +56,28 @@ class CloudClient:
         :param refresh_token_interval: An optional interval in seconds that the auth token should be refreshed.
         """
 
+        if refresh_token_interval <= 0:
+            raise cloud_errors.CloudApiError("refresh_token_interval must be strictly > 0")
+
+        if timeout is not None and (timeout <= 0):
+            raise cloud_errors.CloudApiError("timeout must be strictly > 0")
+
         self.api_conf: api.ApiConfig = api_conf
         self.secret_token: Optional[str] = secret_token
         self.refresh_token_interval: float = refresh_token_interval
-        self.__session = requests.Session()  # This must be initialized before the auth req!
-        auth_resp: auth_api.AuthResp = self.authenticate_user(username, password)
+        self.timeout: Optional[float] = timeout
 
+        self.__session = requests.Session()  # This must be initialized before the auth req!
+        try:
+            auth_resp: auth_api.AuthResp = self.authenticate_user(username, password)
+        except cloud_errors.ApiConnectionError as e:
+            self.close()
+            raise e
+
+        self.__refresh_timer = None
         if auth_resp.status != 200 or auth_resp.auth_token is None or len(auth_resp.auth_token) == 0:
-            raise RuntimeError("Cloud API authentication error")
+            self.close()
+            raise cloud_errors.AuthenticationError()
 
         self.auth_token: str = auth_resp.auth_token
 
@@ -83,18 +99,24 @@ class CloudClient:
         """
         Terminates this client process by cancelling the refresh token timer.
         """
-        if self.__refresh_timer is not None:
-            self.__refresh_timer.cancel()
+        try:
+            if self.__refresh_timer is not None:
+                self.__refresh_timer.cancel()
+        except:
+            pass
 
-        if self.__session is not None:
-            self.__session.close()
+        try:
+            if self.__session is not None:
+                self.__session.close()
+        except:
+            pass
 
     def health_check(self) -> bool:
         """
         An API call that returns True if the API Cloud server is up and running or False otherwise.
         :return: True if the API Cloud server is up and running or False otherwise.
         """
-        return api.health_check(self.api_conf, session=self.__session)
+        return api.health_check(self.api_conf, session=self.__session, timeout=self.timeout)
 
     def authenticate_user(self, username: str, password: str) -> auth_api.AuthResp:
         """
@@ -104,7 +126,10 @@ class CloudClient:
         :return: An authenticate response.
         """
         auth_req: auth_api.AuthReq = auth_api.AuthReq(username, password)
-        return auth_api.authenticate_user(self.api_conf, auth_req, session=self.__session)
+        return auth_api.authenticate_user(self.api_conf,
+                                          auth_req,
+                                          session=self.__session,
+                                          timeout=self.timeout)
 
     def validate_auth_token(self, auth_token: str) -> Optional[auth_api.ValidateTokenResp]:
         """
@@ -113,7 +138,7 @@ class CloudClient:
         :return: An authentication response with token details or None if token in invalid
         """
         token_req: auth_api.ValidateTokenReq = auth_api.ValidateTokenReq(auth_token)
-        return auth_api.validate_token(self.api_conf, token_req, session=self.__session)
+        return auth_api.validate_token(self.api_conf, token_req, session=self.__session, timeout=self.timeout)
 
     def validate_own_auth_token(self) -> Optional[auth_api.ValidateTokenResp]:
         """
@@ -129,7 +154,10 @@ class CloudClient:
         :return: A new authentication token or None if the provide auth token is not valid.
         """
         refresh_token_req: auth_api.RefreshTokenReq = auth_api.RefreshTokenReq(auth_token)
-        return auth_api.refresh_token(self.api_conf, refresh_token_req, session=self.__session)
+        return auth_api.refresh_token(self.api_conf,
+                                      refresh_token_req,
+                                      session=self.__session,
+                                      timeout=self.timeout)
 
     def refresh_own_auth_token(self) -> Optional[auth_api.RefreshTokenResp]:
         """
@@ -166,7 +194,8 @@ class CloudClient:
 
             chunked_resp: Optional[metadata_api.MetadataResp] = metadata_api.request_metadata(self.api_conf,
                                                                                               metadata_req,
-                                                                                              session=self.__session)
+                                                                                              session=self.__session,
+                                                                                              timeout=self.timeout)
 
             if chunked_resp:
                 metadata_resp.metadata.extend(chunked_resp.metadata)
@@ -197,7 +226,8 @@ class CloudClient:
                                                                                         self.secret_token)
             chunked_resp: metadata_api.TimingMetaResponse = metadata_api.request_timing_metadata(self.api_conf,
                                                                                                  timing_req,
-                                                                                                 session=self.__session)
+                                                                                                 session=self.__session,
+                                                                                                 timeout=self.timeout)
 
             if chunked_resp:
                 metadata_resp.items.extend(chunked_resp.items)
@@ -213,7 +243,7 @@ class CloudClient:
         report_data_req: data_api.ReportDataReq = data_api.ReportDataReq(self.auth_token,
                                                                          report_id,
                                                                          self.secret_token)
-        return data_api.request_report_data(self.api_conf, report_data_req, session=self.__session)
+        return data_api.request_report_data(self.api_conf, report_data_req, session=self.__session, timeout=self.timeout)
 
     def request_data_range(self,
                            start_ts_s: int,
@@ -232,7 +262,7 @@ class CloudClient:
                                                                       station_ids,
                                                                       self.secret_token)
 
-        return data_api.request_range_data(self.api_conf, data_range_req, session=self.__session)
+        return data_api.request_range_data(self.api_conf, data_range_req, session=self.__session, timeout=self.timeout)
 
 
 @contextlib.contextmanager
@@ -240,7 +270,8 @@ def cloud_client(username: str,
                  password: str,
                  api_conf: api.ApiConfig = api.ApiConfig.default(),
                  secret_token: Optional[str] = None,
-                 refresh_token_interval: float = 600.0):
+                 refresh_token_interval: float = 600.0,
+                 timeout: float = 10.0):
     """
     Function that can be used within a "with" block to automatically handle the closing of open resources.
     Creates and returns a CloudClient that will automatically be closed when exiting the with block or if an error
@@ -255,7 +286,7 @@ def cloud_client(username: str,
     :param refresh_token_interval: An optional token refresh interval
     :return: A CloudClient.
     """
-    client: CloudClient = CloudClient(username, password, api_conf, secret_token, refresh_token_interval)
+    client: CloudClient = CloudClient(username, password, api_conf, secret_token, refresh_token_interval, timeout)
     try:
         yield client
     finally:

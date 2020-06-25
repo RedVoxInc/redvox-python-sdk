@@ -79,7 +79,8 @@ class RefreshTokenResp:
 
 def authenticate_user(api_config: ApiConfig,
                       authentication_request: AuthReq,
-                      session: Optional[requests.Session] = None) -> AuthResp:
+                      session: Optional[requests.Session] = None,
+                      timeout: Optional[float] = None) -> AuthResp:
     """
     Attempts to authenticate a RedVox user.
     :param api_config: Api configuration.
@@ -93,14 +94,16 @@ def authenticate_user(api_config: ApiConfig,
                                        RoutesV1.AUTH_USER,
                                        authentication_request,
                                        handle_resp,
-                                       session)
+                                       session,
+                                       timeout)
 
     return res if res else AuthResp(401, None)
 
 
 def validate_token(api_config: ApiConfig,
                    validate_token_req: ValidateTokenReq,
-                   session: Optional[requests.Session] = None) -> Optional[ValidateTokenResp]:
+                   session: Optional[requests.Session] = None,
+                   timeout: Optional[float] = None) -> Optional[ValidateTokenResp]:
     """
     Attempt to validate the provided auth token.
     :param api_config: The Api config.
@@ -115,12 +118,14 @@ def validate_token(api_config: ApiConfig,
                     RoutesV1.VALIDATE_TOKEN,
                     validate_token_req,
                     handle_resp,
-                    session)
+                    session,
+                    timeout)
 
 
 def refresh_token(api_config: ApiConfig,
                   refresh_token_req: RefreshTokenReq,
-                  session: Optional[requests.Session] = None) -> Optional[RefreshTokenResp]:
+                  session: Optional[requests.Session] = None,
+                  timeout: Optional[float] = None) -> Optional[RefreshTokenResp]:
     """
     Attemp to refresh the given authentication token.
     :param api_config: The Api config.
@@ -134,4 +139,5 @@ def refresh_token(api_config: ApiConfig,
                     RoutesV1.REFRESH_TOKEN,
                     refresh_token_req,
                     handle_resp,
-                    session)
+                    session,
+                    timeout)

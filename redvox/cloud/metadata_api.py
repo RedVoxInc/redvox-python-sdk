@@ -285,7 +285,8 @@ class TimingMetaResponse:
 
 def request_timing_metadata(api_config: ApiConfig,
                             timing_req: TimingMetaRequest,
-                            session: Optional[requests.Session] = None) -> TimingMetaResponse:
+                            session: Optional[requests.Session] = None,
+                            timeout: Optional[float] = None) -> TimingMetaResponse:
     """
     Retrieve timing metadata.
     :param api_config: An instance of the API configuration.
@@ -304,14 +305,16 @@ def request_timing_metadata(api_config: ApiConfig,
                                                  RoutesV1.TIMING_METADATA_REQ,
                                                  timing_req,
                                                  handle_resp,
-                                                 session)
+                                                 session,
+                                                 timeout)
 
     return res if res else TimingMetaResponse([])
 
 
 def request_metadata(api_config: ApiConfig,
                      packet_metadata_req: MetadataReq,
-                     session: Optional[requests.Session] = None) -> Optional[MetadataResp]:
+                     session: Optional[requests.Session] = None,
+                     timeout: Optional[float] = None) -> Optional[MetadataResp]:
     """
     Requests generic metadata from the cloud API.
     :param api_config: An instance of the API config.
@@ -325,4 +328,5 @@ def request_metadata(api_config: ApiConfig,
                     RoutesV1.METADATA_REQ,
                     packet_metadata_req,
                     handle_resp,
-                    session)
+                    session,
+                    timeout)

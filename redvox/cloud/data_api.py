@@ -82,7 +82,8 @@ class DataRangeResp:
 
 def request_report_data(api_config: ApiConfig,
                         report_data_req: ReportDataReq,
-                        session: Optional[requests.Session] = None) -> Optional[ReportDataResp]:
+                        session: Optional[requests.Session] = None,
+                        timeout: Optional[float] = None) -> Optional[ReportDataResp]:
     """
     Makes an API call to generate a signed URL of a RedVox report.
     :param api_config: An API config.
@@ -96,12 +97,14 @@ def request_report_data(api_config: ApiConfig,
                     RoutesV1.DATA_RANGE_REQ,
                     report_data_req,
                     handle_resp,
-                    session)
+                    session,
+                    timeout)
 
 
 def request_range_data(api_config: ApiConfig,
                        data_range_req: DataRangeReq,
-                       session: Optional[requests.Session] = None) -> DataRangeResp:
+                       session: Optional[requests.Session] = None,
+                       timeout: Optional[float] = None) -> DataRangeResp:
     """
     Requests signed URLs for a range of RedVox packets.
     :param api_config: An API config.
@@ -115,6 +118,7 @@ def request_range_data(api_config: ApiConfig,
                                             RoutesV1.DATA_RANGE_REQ,
                                             data_range_req,
                                             handle_resp,
-                                            session)
+                                            session,
+                                            timeout)
 
     return res if res else DataRangeResp([])
