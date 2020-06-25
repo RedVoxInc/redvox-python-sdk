@@ -53,10 +53,11 @@ class CloudClient:
         :param secret_token: An optional shared secret that may be required by the API server.
         :param refresh_token_interval: An optional interval in seconds that the auth token should be refreshed.
         """
+
         self.api_conf: api.ApiConfig = api_conf
         self.secret_token: Optional[str] = secret_token
         self.refresh_token_interval: float = refresh_token_interval
-
+        self.__session = requests.Session()  # This must be initialized before the auth req!
         auth_resp: auth_api.AuthResp = self.authenticate_user(username, password)
 
         if auth_resp.status != 200 or auth_resp.auth_token is None or len(auth_resp.auth_token) == 0:
@@ -66,8 +67,6 @@ class CloudClient:
 
         self.__refresh_timer = threading.Timer(self.refresh_token_interval, self.__refresh_token)
         self.__refresh_timer.start()
-
-        self.__session: requests.Session = requests.Session()
 
     def __refresh_token(self):
         """
@@ -230,7 +229,7 @@ def cloud_client(username: str,
                  password: str,
                  api_conf: api.ApiConfig = api.ApiConfig.default(),
                  secret_token: Optional[str] = None,
-                 refresh_token_interval: float = 60.0):
+                 refresh_token_interval: float = 600.0):
     """
     Function that can be used within a "with" block to automatically handle the closing of open resources.
     Creates and returns a CloudClient that will automatically be closed when exiting the with block or if an error
@@ -251,3 +250,4 @@ def cloud_client(username: str,
     finally:
         if client is not None:
             client.close()
+
