@@ -1,8 +1,8 @@
 import unittest
-from typing import Optional
+from typing import Optional, Tuple, List
 
 from redvox.cloud.api import ApiConfig
-from redvox.cloud.client import CloudClient, cloud_client
+from redvox.cloud.client import CloudClient, cloud_client, chunk_time_range
 import redvox.cloud.errors as cloud_errors
 import redvox.tests.cloud.cloud_test_utils as test_utils
 
@@ -16,6 +16,18 @@ class ClientTests(unittest.TestCase):
             print("Warning: cloud credentials not provided, will skip cloud API tests")
             print("If you want to enable tests, set the appropriate environment variables. Here's a template:")
             print(test_utils.cloud_env_template())
+
+    def test_chunk_time_range_smaller(self):
+        chunks: List[Tuple[int, int]] = chunk_time_range(0, 9, 10)
+        self.assertEqual([(0, 9)], chunks)
+
+    def test_chunk_time_range_equal(self):
+        chunks: List[Tuple[int, int]] = chunk_time_range(0, 10, 10)
+        self.assertEqual([(0, 10)], chunks)
+
+    def test_chunk_time_range_greater(self):
+        chunks: List[Tuple[int, int]] = chunk_time_range(0, 11, 10)
+        self.assertEqual([(0, 10), (10, 11)], chunks)
 
     def tearDown(self) -> None:
         if self.client:
@@ -100,3 +112,7 @@ class ClientTests(unittest.TestCase):
                 pass
         print(context.exception)
         self.assertTrue("timeout must be strictly > 0" in str(context.exception))
+
+    def test_health_check(self):
+        if self.client:
+            self.assertTrue(self.client.health_check())

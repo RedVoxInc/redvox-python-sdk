@@ -13,6 +13,9 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 * Update dependencies
 * Encapsulate HTTP logic for HTTP Cloud Client
 * Add tests for Cloud Client
+* Add configurable timeout
+* Add custom errors and better error handling
+* Fix bug where connection would not be closed on authentication error
 
 ### 2.9.8 (2020-06-24)
 

@@ -21,12 +21,19 @@ import requests
 def chunk_time_range(start_ts: int,
                      end_ts: int,
                      max_chunk: int) -> List[Tuple[int, int]]:
+
+    if end_ts <= start_ts:
+        raise cloud_errors.CloudApiError("start_ts must be < end_ts")
+
+    if max_chunk <= 0:
+        raise cloud_errors.CloudApiError("max_chunk must be > 0")
+
     chunks: List[Tuple[int, int]] = []
 
     start: int = start_ts
 
     while start + max_chunk < end_ts:
-        chunks.append((start, start + max_chunk - 1))
+        chunks.append((start, start + max_chunk))
         start += max_chunk
 
     if start < end_ts:
