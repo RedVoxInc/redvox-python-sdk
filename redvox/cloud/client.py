@@ -132,6 +132,12 @@ class CloudClient:
         :param password: The RedVox password.
         :return: An authenticate response.
         """
+        if len(username) == 0:
+            raise cloud_errors.CloudApiError("Username must be provided")
+
+        if len(password) == 0:
+            raise cloud_errors.CloudApiError("Password must be provided")
+
         auth_req: auth_api.AuthReq = auth_api.AuthReq(username, password)
         return auth_api.authenticate_user(self.api_conf,
                                           auth_req,
@@ -144,6 +150,9 @@ class CloudClient:
         :param auth_token: Authentication token to validate.
         :return: An authentication response with token details or None if token in invalid
         """
+        if len(auth_token) == 0:
+            raise cloud_errors.CloudApiError("auth_token must be provided")
+
         token_req: auth_api.ValidateTokenReq = auth_api.ValidateTokenReq(auth_token)
         return auth_api.validate_token(self.api_conf, token_req, session=self.__session, timeout=self.timeout)
 
@@ -160,6 +169,9 @@ class CloudClient:
         :param auth_token: The authentication token to verify.
         :return: A new authentication token or None if the provide auth token is not valid.
         """
+        if len(auth_token) == 0:
+            raise cloud_errors.CloudApiError("auth_token must be provided")
+
         refresh_token_req: auth_api.RefreshTokenReq = auth_api.RefreshTokenReq(auth_token)
         return auth_api.refresh_token(self.api_conf,
                                       refresh_token_req,
@@ -188,6 +200,18 @@ class CloudClient:
         :param chunk_by_seconds: Split up longer requests into chunks of chunk_by_seconds size (default 86400s/1d)
         :return: A metadata result containing the requested metadata or None on error.
         """
+        if end_ts_s <= start_ts_s:
+            raise cloud_errors.CloudApiError("start_ts_s must be < end_ts_s")
+
+        if len(station_ids) == 0:
+            raise cloud_errors.CloudApiError("At least one station_id must be included")
+
+        if len(metadata_to_include) == 0:
+            raise cloud_errors.CloudApiError("At least one metadata field must be included")
+
+        if chunk_by_seconds <= 0:
+            raise cloud_errors.CloudApiError("chunk_by_seconds must be > 0")
+
         time_chunks: List[Tuple[int, int]] = chunk_time_range(start_ts_s, end_ts_s, chunk_by_seconds)
         metadata_resp: metadata_api.MetadataResp = metadata_api.MetadataResp([])
 
@@ -222,6 +246,15 @@ class CloudClient:
         :param chunk_by_seconds: Split up longer requests into chunks of chunk_by_seconds size (default 86400s/1d)
         :return: A response containing the requested metadata.
         """
+        if end_ts_s <= start_ts_s:
+            raise cloud_errors.CloudApiError("start_ts_s must be < end_ts_s")
+
+        if len(station_ids) == 0:
+            raise cloud_errors.CloudApiError("At least one station_id must be included")
+
+        if chunk_by_seconds <= 0:
+            raise cloud_errors.CloudApiError("chunk_by_seconds must be > 0")
+
         time_chunks: List[Tuple[int, int]] = chunk_time_range(start_ts_s, end_ts_s, chunk_by_seconds)
         metadata_resp: metadata_api.TimingMetaResponse = metadata_api.TimingMetaResponse([])
 
@@ -247,6 +280,9 @@ class CloudClient:
         :param report_id: The report ID to request data for.
         :return: A response containing a signed URL of the report data.
         """
+        if len(report_id) == 0:
+            raise cloud_errors.CloudApiError("report_id must be included")
+
         report_data_req: data_api.ReportDataReq = data_api.ReportDataReq(self.auth_token,
                                                                          report_id,
                                                                          self.secret_token)
