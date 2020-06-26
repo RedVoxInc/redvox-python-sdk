@@ -94,7 +94,7 @@ def request_report_data(api_config: ApiConfig,
     # noinspection Mypy
     handle_resp: Callable[[requests.Response], ReportDataResp] = lambda resp: ReportDataResp.from_dict(resp.json())
     return post_req(api_config,
-                    RoutesV1.DATA_RANGE_REQ,
+                    RoutesV1.DATA_REPORT_REQ,
                     report_data_req,
                     handle_resp,
                     session,
