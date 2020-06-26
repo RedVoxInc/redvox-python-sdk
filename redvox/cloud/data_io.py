@@ -152,6 +152,8 @@ def download_files(urls: List[str], out_dir: str, retries: int) -> None:
         data_key, resp_len = download_file(url, session, out_dir, retries)
         log.info("Recv %s with len=%d", data_key, resp_len)
 
+    session.close()
+
 
 def download_files_parallel(urls: List[str], out_dir: str, retries: int) -> None:
     """

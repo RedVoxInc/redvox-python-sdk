@@ -263,6 +263,12 @@ class CloudClient:
         :param station_ids: A list of station ids.
         :return: A response containing a list of signed URLs for the RedVox packets.
         """
+        if end_ts_s <= start_ts_s:
+            raise cloud_errors.CloudApiError("start_ts_s must be < end_ts_s")
+
+        if len(station_ids) == 0:
+            raise cloud_errors.CloudApiError("At least one station_id must be provided")
+
         data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(self.auth_token,
                                                                       start_ts_s,
                                                                       end_ts_s,
