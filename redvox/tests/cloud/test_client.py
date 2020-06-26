@@ -205,3 +205,21 @@ class ClientTests(unittest.TestCase):
                 self.assertTrue("1637681011:868885745" in data)
                 self.assertEqual(num_resp, len(data["1637681011:868885745"]) + len(data["1637681014:1807255410"]))
 
+    def test_timing_meta_good(self):
+        if self.client:
+            resp = self.client.request_timing_metadata(1592956800,
+                                                       1592960400, ["1637681011",
+                                                                    "1637681014"])
+
+            self.assertIsNotNone(resp)
+            self.assertTrue(len(resp.items) > 0)
+
+    def test_timing_meta_good_chunked(self):
+        if self.client:
+            resp = self.client.request_timing_metadata(1592956800,
+                                                       1593043200, ["1637681011",
+                                                                    "1637681014"],
+                                                       chunk_by_seconds=3600)
+
+            self.assertIsNotNone(resp)
+            self.assertTrue(len(resp.items) > 0)
