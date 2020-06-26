@@ -30,6 +30,7 @@ class AuthResp:
     """
     status: int
     auth_token: Optional[str]
+    claims: Optional['ValidateTokenResp']
 
     def is_success(self) -> bool:
         return self.status == 200 and self.auth_token is not None and len(self.auth_token) > 0
@@ -75,6 +76,7 @@ class RefreshTokenResp:
     A token validation request.
     """
     auth_token: Optional[str]
+    claims: Optional[ValidateTokenResp]
 
 
 def authenticate_user(api_config: ApiConfig,
@@ -97,7 +99,7 @@ def authenticate_user(api_config: ApiConfig,
                                        session,
                                        timeout)
 
-    return res if res else AuthResp(401, None)
+    return res if res else AuthResp(401, None, None)
 
 
 def validate_token(api_config: ApiConfig,

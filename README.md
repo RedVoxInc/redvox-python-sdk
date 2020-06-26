@@ -8,6 +8,10 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ## Changelog
 
+### 2.9.10 (2020-06-25)
+
+* Authentication responses not return a copy of the claims for convenience
+
 ### 2.9.9 (2020-06-25)
 
 * Update dependencies

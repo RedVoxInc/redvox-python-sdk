@@ -341,3 +341,4 @@ def cloud_client(username: str,
     finally:
         if client is not None:
             client.close()
+

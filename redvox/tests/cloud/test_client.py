@@ -2,7 +2,6 @@ import unittest
 from typing import Optional, Tuple, List
 import hashlib
 import tempfile
-import glob
 
 from redvox.cloud.api import ApiConfig
 from redvox.cloud.client import CloudClient, cloud_client, chunk_time_range

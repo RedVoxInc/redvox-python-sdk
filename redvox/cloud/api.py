@@ -47,7 +47,6 @@ def post_req(api_config: ApiConfig,
             resp: requests.Response = session.post(url, json=req_dict, timeout=timeout)
         else:
             resp = requests.post(url, json=req_dict, timeout=timeout)
-
         if resp.status_code == 200:
             # noinspection Mypy
             return resp_transform(resp)
