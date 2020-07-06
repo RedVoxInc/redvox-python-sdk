@@ -7,7 +7,7 @@
 
 syntax = "proto3";
 package redvox_api_m;
-option java_package = "io.redvox.redvox_api_m";
+option java_package = "io.redvox.apis";
 
 message RedvoxPacketM {
     // Top level packet fields
