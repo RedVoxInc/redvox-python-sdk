@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>redvox.api900.sensors.xyz_unevenly_sampled_sensor API documentation</title>
+<meta name="description" content="This module contains classes and methods for working with xyz unevenly sensors." />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.api900.sensors.xyz_unevenly_sampled_sensor</code></h1>
+</header>
+<section id="section-intro">
+<p>This module contains classes and methods for working with xyz unevenly sensors.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+This module contains classes and methods for working with xyz unevenly sensors.
+&#34;&#34;&#34;
+
+import typing
+
+import numpy
+
+import redvox.api900.constants as constants
+from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
+from redvox.api900.sensors.unevenly_sampled_sensor import UnevenlySampledSensor
+
+
+class XyzUnevenlySampledSensor(UnevenlySampledSensor):
+    &#34;&#34;&#34;
+    This class subclasses the UnevenlySampledSensor class and provides methods for working with channels that provide
+    data in the X, Y, and Z dimensions.
+    &#34;&#34;&#34;
+
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel, x_type: int, y_type: int, z_type: int):
+        &#34;&#34;&#34;
+        Initializes this class.
+        :param unevenly_sampled_channel: An instance of an UnevenlySampledChannel.
+        :param x_type: The X channel type enum.
+        :param y_type: The Y channel type enum.
+        :param z_type: The Z channel type enum.
+        &#34;&#34;&#34;
+        super().__init__(unevenly_sampled_channel)
+        self._unevenly_sampled_channel.set_channel_types([x_type, y_type, z_type])
+        self._x_type = x_type
+        self._y_type = y_type
+        self._z_type = z_type
+
+    def _payload_values(self) -&gt; numpy.ndarray:
+        &#34;&#34;&#34;
+        Returns this channel&#39;s payload as an interleaved payload of the form
+        [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]].
+        :return: This channel&#39;s payload as an interleaved payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_multi_payload([
+            self._x_type,
+            self._y_type,
+            self._z_type
+        ])
+
+    def _set_payload_values(self,
+                            x_values: typing.Union[typing.List, numpy.ndarray],
+                            y_values: typing.Union[typing.List, numpy.ndarray],
+                            z_values: typing.Union[typing.List, numpy.ndarray],
+                            pl_type: constants.PayloadType) -&gt; &#39;XyzUnevenlySampledSensor&#39;:
+        &#34;&#34;&#34;
+        Sets the interleaved payload of this XYZ channel given the X, Y, Z values and payload type.
+        :param x_values: The x values.
+        :param y_values: The y values.
+        :param z_values: The z values.
+        :param pl_type: Payload type.
+        :return: An instance of the sensor.
+        &#34;&#34;&#34;
+        self._unevenly_sampled_channel.set_interleaved_payload([
+            x_values,
+            y_values,
+            z_values
+        ],
+                                                               pl_type)
+        return self
+
+    def payload_values_x(self) -&gt; numpy.ndarray:
+        &#34;&#34;&#34;
+        Returns the x-component of this channel&#39;s payload.
+        :return: The x-component of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_payload(self._x_type)
+
+    def payload_values_y(self) -&gt; numpy.ndarray:
+        &#34;&#34;&#34;
+        Returns the y-component of this channel&#39;s payload.
+        :return: The y-component of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_payload(self._y_type)
+
+    def payload_values_z(self) -&gt; numpy.ndarray:
+        &#34;&#34;&#34;
+        Returns the z-component of this channel&#39;s payload.
+        :return: The z-component of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_payload(self._z_type)
+
+    def payload_values_x_mean(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the x-component mean of this channel&#39;s payload.
+        :return: The x-component mean of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_mean(self._x_type)
+
+    def payload_values_y_mean(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the y-component mean of this channel&#39;s payload.
+        :return: The y-component mean of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_mean(self._y_type)
+
+    def payload_values_z_mean(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the z-component mean of this channel&#39;s payload.
+        :return: The z-component mean of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_mean(self._z_type)
+
+    def payload_values_x_median(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the x-component median of this channel&#39;s payload.
+        :return: The x-component median of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_median(self._x_type)
+
+    def payload_values_y_median(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the y-component median of this channel&#39;s payload.
+        :return: The y-component median of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_median(self._y_type)
+
+    def payload_values_z_median(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the z-component median of this channel&#39;s payload.
+        :return: The z-component median of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_median(self._z_type)
+
+    def payload_values_x_std(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the x-component standard deviation of this channel&#39;s payload.
+        :return: The x-component standard deviation of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_std(self._x_type)
+
+    def payload_values_y_std(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the y-component standard deviation of this channel&#39;s payload.
+        :return: The y-component standard deviation of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_std(self._y_type)
+
+    def payload_values_z_std(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the z-component standard deviation of this channel&#39;s payload.
+        :return: The z-component standard deviation of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_std(self._z_type)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor"><code class="flex name class">
+<span>class <span class="ident">XyzUnevenlySampledSensor</span></span>
+<span>(</span><span>unevenly_sampled_channel: <a title="redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel" href="unevenly_sampled_channel.html#redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel">UnevenlySampledChannel</a>, x_type: int, y_type: int, z_type: int)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class subclasses the UnevenlySampledSensor class and provides methods for working with channels that provide
+data in the X, Y, and Z dimensions.</p>
+<p>Initializes this class.
+:param unevenly_sampled_channel: An instance of an UnevenlySampledChannel.
+:param x_type: The X channel type enum.
+:param y_type: The Y channel type enum.
+:param z_type: The Z channel type enum.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class XyzUnevenlySampledSensor(UnevenlySampledSensor):
+    &#34;&#34;&#34;
+    This class subclasses the UnevenlySampledSensor class and provides methods for working with channels that provide
+    data in the X, Y, and Z dimensions.
+    &#34;&#34;&#34;
+
+    def __init__(self, unevenly_sampled_channel: UnevenlySampledChannel, x_type: int, y_type: int, z_type: int):
+        &#34;&#34;&#34;
+        Initializes this class.
+        :param unevenly_sampled_channel: An instance of an UnevenlySampledChannel.
+        :param x_type: The X channel type enum.
+        :param y_type: The Y channel type enum.
+        :param z_type: The Z channel type enum.
+        &#34;&#34;&#34;
+        super().__init__(unevenly_sampled_channel)
+        self._unevenly_sampled_channel.set_channel_types([x_type, y_type, z_type])
+        self._x_type = x_type
+        self._y_type = y_type
+        self._z_type = z_type
+
+    def _payload_values(self) -&gt; numpy.ndarray:
+        &#34;&#34;&#34;
+        Returns this channel&#39;s payload as an interleaved payload of the form
+        [[x_0, y_0, z_0], [x_1, y_1, z_1], ..., [x_n, y_n, z_n]].
+        :return: This channel&#39;s payload as an interleaved payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_multi_payload([
+            self._x_type,
+            self._y_type,
+            self._z_type
+        ])
+
+    def _set_payload_values(self,
+                            x_values: typing.Union[typing.List, numpy.ndarray],
+                            y_values: typing.Union[typing.List, numpy.ndarray],
+                            z_values: typing.Union[typing.List, numpy.ndarray],
+                            pl_type: constants.PayloadType) -&gt; &#39;XyzUnevenlySampledSensor&#39;:
+        &#34;&#34;&#34;
+        Sets the interleaved payload of this XYZ channel given the X, Y, Z values and payload type.
+        :param x_values: The x values.
+        :param y_values: The y values.
+        :param z_values: The z values.
+        :param pl_type: Payload type.
+        :return: An instance of the sensor.
+        &#34;&#34;&#34;
+        self._unevenly_sampled_channel.set_interleaved_payload([
+            x_values,
+            y_values,
+            z_values
+        ],
+                                                               pl_type)
+        return self
+
+    def payload_values_x(self) -&gt; numpy.ndarray:
+        &#34;&#34;&#34;
+        Returns the x-component of this channel&#39;s payload.
+        :return: The x-component of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_payload(self._x_type)
+
+    def payload_values_y(self) -&gt; numpy.ndarray:
+        &#34;&#34;&#34;
+        Returns the y-component of this channel&#39;s payload.
+        :return: The y-component of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_payload(self._y_type)
+
+    def payload_values_z(self) -&gt; numpy.ndarray:
+        &#34;&#34;&#34;
+        Returns the z-component of this channel&#39;s payload.
+        :return: The z-component of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_payload(self._z_type)
+
+    def payload_values_x_mean(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the x-component mean of this channel&#39;s payload.
+        :return: The x-component mean of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_mean(self._x_type)
+
+    def payload_values_y_mean(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the y-component mean of this channel&#39;s payload.
+        :return: The y-component mean of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_mean(self._y_type)
+
+    def payload_values_z_mean(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the z-component mean of this channel&#39;s payload.
+        :return: The z-component mean of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_mean(self._z_type)
+
+    def payload_values_x_median(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the x-component median of this channel&#39;s payload.
+        :return: The x-component median of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_median(self._x_type)
+
+    def payload_values_y_median(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the y-component median of this channel&#39;s payload.
+        :return: The y-component median of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_median(self._y_type)
+
+    def payload_values_z_median(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the z-component median of this channel&#39;s payload.
+        :return: The z-component median of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_median(self._z_type)
+
+    def payload_values_x_std(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the x-component standard deviation of this channel&#39;s payload.
+        :return: The x-component standard deviation of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_std(self._x_type)
+
+    def payload_values_y_std(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the y-component standard deviation of this channel&#39;s payload.
+        :return: The y-component standard deviation of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_std(self._y_type)
+
+    def payload_values_z_std(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the z-component standard deviation of this channel&#39;s payload.
+        :return: The z-component standard deviation of this channel&#39;s payload.
+        &#34;&#34;&#34;
+        return self._unevenly_sampled_channel.get_value_std(self._z_type)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor">UnevenlySampledSensor</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="redvox.api900.sensors.accelerometer_sensor.AccelerometerSensor" href="accelerometer_sensor.html#redvox.api900.sensors.accelerometer_sensor.AccelerometerSensor">AccelerometerSensor</a></li>
+<li><a title="redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor" href="gyroscope_sensor.html#redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor">GyroscopeSensor</a></li>
+<li><a title="redvox.api900.sensors.magnetometer_sensor.MagnetometerSensor" href="magnetometer_sensor.html#redvox.api900.sensors.magnetometer_sensor.MagnetometerSensor">MagnetometerSensor</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_x"><code class="name flex">
+<span>def <span class="ident">payload_values_x</span></span>(<span>self) -> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the x-component of this channel's payload.
+:return: The x-component of this channel's payload.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_values_x(self) -&gt; numpy.ndarray:
+    &#34;&#34;&#34;
+    Returns the x-component of this channel&#39;s payload.
+    :return: The x-component of this channel&#39;s payload.
+    &#34;&#34;&#34;
+    return self._unevenly_sampled_channel.get_payload(self._x_type)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_x_mean"><code class="name flex">
+<span>def <span class="ident">payload_values_x_mean</span></span>(<span>self) -> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the x-component mean of this channel's payload.
+:return: The x-component mean of this channel's payload.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_values_x_mean(self) -&gt; float:
+    &#34;&#34;&#34;
+    Returns the x-component mean of this channel&#39;s payload.
+    :return: The x-component mean of this channel&#39;s payload.
+    &#34;&#34;&#34;
+    return self._unevenly_sampled_channel.get_value_mean(self._x_type)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_x_median"><code class="name flex">
+<span>def <span class="ident">payload_values_x_median</span></span>(<span>self) -> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the x-component median of this channel's payload.
+:return: The x-component median of this channel's payload.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_values_x_median(self) -&gt; float:
+    &#34;&#34;&#34;
+    Returns the x-component median of this channel&#39;s payload.
+    :return: The x-component median of this channel&#39;s payload.
+    &#34;&#34;&#34;
+    return self._unevenly_sampled_channel.get_value_median(self._x_type)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_x_std"><code class="name flex">
+<span>def <span class="ident">payload_values_x_std</span></span>(<span>self) -> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the x-component standard deviation of this channel's payload.
+:return: The x-component standard deviation of this channel's payload.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_values_x_std(self) -&gt; float:
+    &#34;&#34;&#34;
+    Returns the x-component standard deviation of this channel&#39;s payload.
+    :return: The x-component standard deviation of this channel&#39;s payload.
+    &#34;&#34;&#34;
+    return self._unevenly_sampled_channel.get_value_std(self._x_type)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_y"><code class="name flex">
+<span>def <span class="ident">payload_values_y</span></span>(<span>self) -> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the y-component of this channel's payload.
+:return: The y-component of this channel's payload.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_values_y(self) -&gt; numpy.ndarray:
+    &#34;&#34;&#34;
+    Returns the y-component of this channel&#39;s payload.
+    :return: The y-component of this channel&#39;s payload.
+    &#34;&#34;&#34;
+    return self._unevenly_sampled_channel.get_payload(self._y_type)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_y_mean"><code class="name flex">
+<span>def <span class="ident">payload_values_y_mean</span></span>(<span>self) -> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the y-component mean of this channel's payload.
+:return: The y-component mean of this channel's payload.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_values_y_mean(self) -&gt; float:
+    &#34;&#34;&#34;
+    Returns the y-component mean of this channel&#39;s payload.
+    :return: The y-component mean of this channel&#39;s payload.
+    &#34;&#34;&#34;
+    return self._unevenly_sampled_channel.get_value_mean(self._y_type)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_y_median"><code class="name flex">
+<span>def <span class="ident">payload_values_y_median</span></span>(<span>self) -> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the y-component median of this channel's payload.
+:return: The y-component median of this channel's payload.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_values_y_median(self) -&gt; float:
+    &#34;&#34;&#34;
+    Returns the y-component median of this channel&#39;s payload.
+    :return: The y-component median of this channel&#39;s payload.
+    &#34;&#34;&#34;
+    return self._unevenly_sampled_channel.get_value_median(self._y_type)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_y_std"><code class="name flex">
+<span>def <span class="ident">payload_values_y_std</span></span>(<span>self) -> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the y-component standard deviation of this channel's payload.
+:return: The y-component standard deviation of this channel's payload.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_values_y_std(self) -&gt; float:
+    &#34;&#34;&#34;
+    Returns the y-component standard deviation of this channel&#39;s payload.
+    :return: The y-component standard deviation of this channel&#39;s payload.
+    &#34;&#34;&#34;
+    return self._unevenly_sampled_channel.get_value_std(self._y_type)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_z"><code class="name flex">
+<span>def <span class="ident">payload_values_z</span></span>(<span>self) -> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the z-component of this channel's payload.
+:return: The z-component of this channel's payload.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_values_z(self) -&gt; numpy.ndarray:
+    &#34;&#34;&#34;
+    Returns the z-component of this channel&#39;s payload.
+    :return: The z-component of this channel&#39;s payload.
+    &#34;&#34;&#34;
+    return self._unevenly_sampled_channel.get_payload(self._z_type)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_z_mean"><code class="name flex">
+<span>def <span class="ident">payload_values_z_mean</span></span>(<span>self) -> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the z-component mean of this channel's payload.
+:return: The z-component mean of this channel's payload.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_values_z_mean(self) -&gt; float:
+    &#34;&#34;&#34;
+    Returns the z-component mean of this channel&#39;s payload.
+    :return: The z-component mean of this channel&#39;s payload.
+    &#34;&#34;&#34;
+    return self._unevenly_sampled_channel.get_value_mean(self._z_type)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_z_median"><code class="name flex">
+<span>def <span class="ident">payload_values_z_median</span></span>(<span>self) -> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the z-component median of this channel's payload.
+:return: The z-component median of this channel's payload.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_values_z_median(self) -&gt; float:
+    &#34;&#34;&#34;
+    Returns the z-component median of this channel&#39;s payload.
+    :return: The z-component median of this channel&#39;s payload.
+    &#34;&#34;&#34;
+    return self._unevenly_sampled_channel.get_value_median(self._z_type)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_z_std"><code class="name flex">
+<span>def <span class="ident">payload_values_z_std</span></span>(<span>self) -> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the z-component standard deviation of this channel's payload.
+:return: The z-component standard deviation of this channel's payload.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_values_z_std(self) -&gt; float:
+    &#34;&#34;&#34;
+    Returns the z-component standard deviation of this channel&#39;s payload.
+    :return: The z-component standard deviation of this channel&#39;s payload.
+    &#34;&#34;&#34;
+    return self._unevenly_sampled_channel.get_value_std(self._z_type)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor">UnevenlySampledSensor</a></b></code>:
+<ul class="hlist">
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.diff" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.diff">diff</a></code></li>
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.metadata" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.metadata">metadata</a></code></li>
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.metadata_as_dict" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.metadata_as_dict">metadata_as_dict</a></code></li>
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.payload_type" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.payload_type">payload_type</a></code></li>
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.sample_interval_mean" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.sample_interval_mean">sample_interval_mean</a></code></li>
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.sample_interval_median" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.sample_interval_median">sample_interval_median</a></code></li>
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.sample_interval_std" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.sample_interval_std">sample_interval_std</a></code></li>
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.sensor_name" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.sensor_name">sensor_name</a></code></li>
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.set_metadata" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.set_metadata">set_metadata</a></code></li>
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.set_metadata_as_dict" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.set_metadata_as_dict">set_metadata_as_dict</a></code></li>
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.set_sensor_name" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.set_sensor_name">set_sensor_name</a></code></li>
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.set_timestamps_microseconds_utc" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.set_timestamps_microseconds_utc">set_timestamps_microseconds_utc</a></code></li>
+<li><code><a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.timestamps_microseconds_utc" href="unevenly_sampled_sensor.html#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.timestamps_microseconds_utc">timestamps_microseconds_utc</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.api900.sensors" href="index.html">redvox.api900.sensors</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor">XyzUnevenlySampledSensor</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_x" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_x">payload_values_x</a></code></li>
+<li><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_x_mean" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_x_mean">payload_values_x_mean</a></code></li>
+<li><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_x_median" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_x_median">payload_values_x_median</a></code></li>
+<li><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_x_std" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_x_std">payload_values_x_std</a></code></li>
+<li><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_y" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_y">payload_values_y</a></code></li>
+<li><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_y_mean" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_y_mean">payload_values_y_mean</a></code></li>
+<li><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_y_median" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_y_median">payload_values_y_median</a></code></li>
+<li><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_y_std" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_y_std">payload_values_y_std</a></code></li>
+<li><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_z" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_z">payload_values_z</a></code></li>
+<li><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_z_mean" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_z_mean">payload_values_z_mean</a></code></li>
+<li><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_z_median" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_z_median">payload_values_z_median</a></code></li>
+<li><code><a title="redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_z_std" href="#redvox.api900.sensors.xyz_unevenly_sampled_sensor.XyzUnevenlySampledSensor.payload_values_z_std">payload_values_z_std</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

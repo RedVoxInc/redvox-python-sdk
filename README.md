@@ -2,11 +2,74 @@
 
 This repository contains code for reading and working with the RedVox API 900 data format.
 
-See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.7.1/redvox-api900-docs.md for SDK documentation.
+See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.9.10/redvox-api900-docs.md for SDK documentation.
 
 ![Bitbucket Pipelines branch](https://img.shields.io/bitbucket/pipelines/redvoxhi/redvox-api900-python-reader/master)
 
-### Changelog
+## Changelog
+
+### 2.9.10 (2020-06-25)
+
+* Authentication responses not return a copy of the claims for convenience
+
+### 2.9.9 (2020-06-25)
+
+* Update dependencies
+* Encapsulate HTTP logic for HTTP Cloud Client
+* Add tests for Cloud Client
+* Add configurable timeout
+* Add custom errors and better error handling
+* Fix bug where connection would not be closed on authentication error
+
+### 2.9.8 (2020-06-24)
+
+* Large metadata requests are now chunked by the client.
+* Change refresh token interval from 1 minute to 10 minutes
+* Re-use HTTP client with keep-alive for more efficient HTTP requests
+* Add chunked response for timing metadata request
+
+### 2.9.5 (2020-06-23)
+
+* Make Cloud API refresh token interval configurable.
+* Allow Cloud API client to be used within "with" blocks for automatic closing of resources
+
+### 2.9.2 (2020-06-11)
+
+* Update dependencies (now dataclasses will only be pulled in on Python 3.6)
+
+### 2.9.1 (2020-06-05)
+
+* Fix bug where timing metadata was not converted into its associated data class.
+
+### 2.9.0 (2020-06-05)
+
+* Add full fledged cloud based API client. This client seamlessly manages authentication tokens behind the scenes.
+* Update CLI data request methods to make use of new cloud based client.
+
+### 2.8.7 (2020-06-03)
+
+* Integrate ability to access extracted metadata from RedVox packets utilizing the cloud data API.
+
+### 2.8.6 (2020-05-12)
+
+* Add small HTTP interface to upcoming RedVox cloud API
+* Added new sub-command to CLI `data_req_report` which takes a report ID and will download the report data for authenticated users
+
+### 2.8.5 (2020-05-11)
+
+* The auth_token CLI field for the data_req CLI command has been renamed to `secret_auth` to better reflect the fact that it is a shared secrete.  
+* CLI for data req now makes the shared secret auth key optional dependent on the settings of the remote server. 
+
+### 2.8.4 (2020-05-07)
+
+* Add `--protocol` option to redvox-cli when making data request. This allows the data client to optionally connect over HTTP (mainly only useful for local testing)
+
+### 2.8.3 (2020-05-06)
+
+* Add `mach_time_zero` to TimeSyncData class
+* Add `best_tri_msg_indices` to TimeSyncData class to identify which tri-message exchange indicated the best latency and offset
+* Add validation checks to ensure that there is no change in sample rate or `mach_time_zero` in the analyzed packets
+* Add check for change in `mach_time_zero` when identifying gaps
 
 ### 2.8.2 (2020-04-27)
 

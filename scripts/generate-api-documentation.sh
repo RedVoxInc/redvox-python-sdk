@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-set -o nounset
-set -o errexit
-set -o xtrace
 
 cd ..
 
@@ -17,5 +14,10 @@ if [[ -z ${VERSION} ]]; then
     echo "missing required version"
     exit 1
 fi
+
+set -o nounset
+set -o errexit
+set -o xtrace
+
 
 pdoc3 redvox --overwrite --html --html-dir docs/${VERSION}/api_docs -c show_type_annotations=True

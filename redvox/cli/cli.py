@@ -8,6 +8,9 @@ import os.path
 import sys
 from typing import Dict, List, Optional
 
+import redvox.cloud.api as cloud_api
+import redvox.cloud.client as cloud_client
+import redvox.cloud.data_api as data_api
 import redvox.cli.conversions as conversions
 import redvox.cli.data_req as data_req
 
@@ -183,6 +186,7 @@ def data_req_args(args) -> None:
         determine_exit(False)
 
     determine_exit(data_req.make_data_req(args.out_dir,
+                                          args.protocol,
                                           args.host,
                                           args.port,
                                           args.email,
@@ -191,7 +195,63 @@ def data_req_args(args) -> None:
                                           args.req_end_s,
                                           args.redvox_ids,
                                           args.retries,
-                                          args.auth_token))
+                                          args.secret_token))
+
+
+def data_req_report(protocol: str,
+                    host: str,
+                    port: int,
+                    email: str,
+                    password: str,
+                    report_id: str,
+                    out_dir: str,
+                    retries: int,
+                    secret_token: Optional[str] = None) -> bool:
+    """
+    Uses the built-in cloud based HTTP API to generate a signed URL for report data and then downloads the report data.
+    :param protocol: Either http or https.
+    :param host: The data service host.
+    :param port: The data service port.
+    :param email: The email of the RedVox user.
+    :param password: The password of the RedVox user.
+    :param report_id: The full RedVox report id.
+    :param out_dir: The output directory to play the report distribution.
+    :param retries: Number of times to attempt to retry the download on failed attempts.
+    :param secret_token: The shared secret if utilized by the API server.
+    """
+    api_config: cloud_api.ApiConfig = cloud_api.ApiConfig(protocol, host, port)
+    client = cloud_client.CloudClient(email,
+                                      password,
+                                      api_conf=api_config,
+                                      secret_token=secret_token)
+    resp: Optional[data_api.ReportDataResp] = client.request_report_data(report_id)
+    client.close()
+
+    if resp:
+        resp.download_fs(out_dir, retries)
+        return True
+
+    log.error("Response was None")
+    return False
+
+
+def data_req_report_args(args) -> None:
+    """
+    Wrapper function that calls the data_req_report.
+    :param args: Args from argparse.
+    """
+    if not check_out_dir(args.out_dir):
+        determine_exit(False)
+
+    determine_exit(data_req_report(args.protocol,
+                                   args.host,
+                                   args.port,
+                                   args.email,
+                                   args.password,
+                                   args.report_id,
+                                   args.out_dir,
+                                   args.retries,
+                                   args.secret_token))
 
 
 def main():
@@ -325,10 +385,14 @@ def main():
     data_req_parser.add_argument("--port",
                                  "-p",
                                  type=int,
-                                 help="Data server port (default=443)",
-                                 default=443)
-    data_req_parser.add_argument("auth_token",
-                                 help="An authentication token provided by RedVox required for accessing the data "
+                                 help="Data server port (default=8080)",
+                                 default=8080)
+    data_req_parser.add_argument("--protocol",
+                                 help="One of either http or https (default https)",
+                                 choices=["https", "http"],
+                                 default="https")
+    data_req_parser.add_argument("--secret_token",
+                                 help="A shared secret token provided by RedVox required for accessing the data "
                                       "request service")
     data_req_parser.add_argument("email",
                                  help="redvox.io account email")
@@ -344,6 +408,45 @@ def main():
                                  nargs="+",
                                  help="A list of RedVox ids delimited by a space")
     data_req_parser.set_defaults(func=data_req_args)
+
+    # data req report
+    data_req_report_parser = sub_parser.add_parser("data_req_report",
+                                                   help="Request bulk RedVox data from the RedVox servers")
+    data_req_report_parser.add_argument("--out_dir",
+                                        "-o",
+                                        help="The output directory that RedVox files will be written to (default=.)",
+                                        default=".")
+    data_req_report_parser.add_argument("--retries",
+                                        "-r",
+                                        help="The number of times the client should retry getting a file on failure "
+                                             "(default=1)",
+                                        default=1,
+                                        choices=set(range(0, 6)),
+                                        type=int)
+    data_req_report_parser.add_argument("--host",
+                                        "-H",
+                                        help="Data server host (default=redvox.io)",
+                                        default="redvox.io")
+    data_req_report_parser.add_argument("--port",
+                                        "-p",
+                                        type=int,
+                                        help="Data server port (default=8080)",
+                                        default=8080)
+    data_req_report_parser.add_argument("--protocol",
+                                        help="One of either http or https (default https)",
+                                        choices=["https", "http"],
+                                        default="https")
+    data_req_report_parser.add_argument("--secret_token",
+                                        help="A shared secret token provided by RedVox required for accessing the data "
+                                             "request service")
+    data_req_report_parser.add_argument("email",
+                                        help="redvox.io account email")
+    data_req_report_parser.add_argument("password",
+                                        help="redvox.io account password")
+    data_req_report_parser.add_argument("report_id",
+                                        type=str,
+                                        help="The full report id that data is being requested for")
+    data_req_report_parser.set_defaults(func=data_req_report_args)
 
     # Parse the args
     args = parser.parse_args()

@@ -1,0 +1,393 @@
+{
+  "api": 900,
+  "uuid": "123456789",
+  "redvoxId": "0000000001",
+  "authenticatedEmail": "foo@bar.baz",
+  "authenticationToken": "redacted-000000",
+  "isPrivate": true,
+  "deviceMake": "example_make",
+  "deviceModel": "example_model",
+  "deviceOs": "Android",
+  "deviceOsVersion": "8.0.0",
+  "appVersion": "2.4.2",
+  "acquisitionServer": "wss://redvox.io/acquisition/v900",
+  "timeSynchronizationServer": "wss://redvox.io/synch/v2",
+  "authenticationServer": "https://redvox.io/login/mobile",
+  "appFileStartTimestampEpochMicrosecondsUtc": "1552075743960135",
+  "appFileStartTimestampMachine": "1552075743960136",
+  "serverTimestampEpochMicrosecondsUtc": "1552075743960139",
+  "evenlySampledChannels": [
+    {
+      "sensorTypes": [
+        "MICROPHONE"
+      ],
+      "sensorName": "example_mic",
+      "sampleRateHz": 80.0,
+      "firstSampleTimestampEpochMicrosecondsUtc": "1552075743960137",
+      "int32Payload": {
+        "payload": [
+          -10,
+          0,
+          10,
+          20,
+          15,
+          -6,
+          0
+        ]
+      },
+      "valueMeans": [
+        4.142857142857143
+      ],
+      "valueStds": [
+        10.287698221365048
+      ],
+      "valueMedians": [
+        0.0
+      ],
+      "metadata": [
+        "foo",
+        "bar"
+      ]
+    }
+  ],
+  "unevenlySampledChannels": [
+    {
+      "sensorTypes": [
+        "BAROMETER"
+      ],
+      "sensorName": "example_barometer",
+      "timestampsMicrosecondsUtc": [
+        "0",
+        "5",
+        "11",
+        "15",
+        "22",
+        "27",
+        "31"
+      ],
+      "float64Payload": {
+        "payload": [
+          -10.0,
+          0.0,
+          10.0,
+          20.0,
+          15.0,
+          -6.0,
+          0.0
+        ]
+      },
+      "sampleIntervalMean": 5.166666666666667,
+      "sampleIntervalStd": 1.0671873729054748,
+      "sampleIntervalMedian": 5.0,
+      "valueMeans": [
+        4.142857142857143
+      ],
+      "valueStds": [
+        10.287698221365048
+      ],
+      "valueMedians": [
+        0.0
+      ]
+    },
+    {
+      "sensorTypes": [
+        "LATITUDE",
+        "LONGITUDE",
+        "ALTITUDE",
+        "SPEED",
+        "ACCURACY"
+      ],
+      "sensorName": "example_gps",
+      "timestampsMicrosecondsUtc": [
+        "1",
+        "2",
+        "3"
+      ],
+      "float64Payload": {
+        "payload": [
+          1.0,
+          4.0,
+          7.0,
+          10.0,
+          13.0,
+          2.0,
+          5.0,
+          8.0,
+          11.0,
+          14.0,
+          3.0,
+          6.0,
+          9.0,
+          12.0,
+          15.0
+        ]
+      },
+      "sampleIntervalMean": 1.0,
+      "sampleIntervalMedian": 1.0,
+      "valueMeans": [
+        2.0,
+        5.0,
+        8.0,
+        11.0,
+        14.0
+      ],
+      "valueStds": [
+        0.816496580927726,
+        0.816496580927726,
+        0.816496580927726,
+        0.816496580927726,
+        0.816496580927726
+      ],
+      "valueMedians": [
+        2.0,
+        5.0,
+        8.0,
+        11.0,
+        14.0
+      ]
+    },
+    {
+      "sensorTypes": [
+        "TIME_SYNCHRONIZATION"
+      ],
+      "int64Payload": {
+        "payload": [
+          "-10",
+          "0",
+          "10",
+          "20",
+          "15",
+          "-6",
+          "0"
+        ]
+      },
+      "valueMeans": [
+        4.142857142857143
+      ],
+      "valueStds": [
+        10.287698221365048
+      ],
+      "valueMedians": [
+        0.0
+      ]
+    },
+    {
+      "sensorTypes": [
+        "ACCELEROMETER_X",
+        "ACCELEROMETER_Y",
+        "ACCELEROMETER_Z"
+      ],
+      "sensorName": "example_accelerometer",
+      "timestampsMicrosecondsUtc": [
+        "1",
+        "2",
+        "3"
+      ],
+      "float64Payload": {
+        "payload": [
+          1.0,
+          4.0,
+          7.0,
+          2.0,
+          5.0,
+          8.0,
+          3.0,
+          6.0,
+          9.0
+        ]
+      },
+      "sampleIntervalMean": 1.0,
+      "sampleIntervalMedian": 1.0,
+      "valueMeans": [
+        2.0,
+        5.0,
+        8.0
+      ],
+      "valueStds": [
+        0.816496580927726,
+        0.816496580927726,
+        0.816496580927726
+      ],
+      "valueMedians": [
+        2.0,
+        5.0,
+        8.0
+      ]
+    },
+    {
+      "sensorTypes": [
+        "MAGNETOMETER_X",
+        "MAGNETOMETER_Y",
+        "MAGNETOMETER_Z"
+      ],
+      "sensorName": "example_magnetometer",
+      "timestampsMicrosecondsUtc": [
+        "1",
+        "2",
+        "3"
+      ],
+      "float64Payload": {
+        "payload": [
+          1.0,
+          4.0,
+          7.0,
+          2.0,
+          5.0,
+          8.0,
+          3.0,
+          6.0,
+          9.0
+        ]
+      },
+      "sampleIntervalMean": 1.0,
+      "sampleIntervalMedian": 1.0,
+      "valueMeans": [
+        2.0,
+        5.0,
+        8.0
+      ],
+      "valueStds": [
+        0.816496580927726,
+        0.816496580927726,
+        0.816496580927726
+      ],
+      "valueMedians": [
+        2.0,
+        5.0,
+        8.0
+      ]
+    },
+    {
+      "sensorTypes": [
+        "GYROSCOPE_X",
+        "GYROSCOPE_Y",
+        "GYROSCOPE_Z"
+      ],
+      "sensorName": "example_gyroscope",
+      "timestampsMicrosecondsUtc": [
+        "1",
+        "2",
+        "3"
+      ],
+      "float64Payload": {
+        "payload": [
+          1.0,
+          4.0,
+          7.0,
+          2.0,
+          5.0,
+          8.0,
+          3.0,
+          6.0,
+          9.0
+        ]
+      },
+      "sampleIntervalMean": 1.0,
+      "sampleIntervalMedian": 1.0,
+      "valueMeans": [
+        2.0,
+        5.0,
+        8.0
+      ],
+      "valueStds": [
+        0.816496580927726,
+        0.816496580927726,
+        0.816496580927726
+      ],
+      "valueMedians": [
+        2.0,
+        5.0,
+        8.0
+      ]
+    },
+    {
+      "sensorTypes": [
+        "LIGHT"
+      ],
+      "sensorName": "example_light",
+      "timestampsMicrosecondsUtc": [
+        "0",
+        "5",
+        "11",
+        "15",
+        "22",
+        "27",
+        "31"
+      ],
+      "float64Payload": {
+        "payload": [
+          -10.0,
+          0.0,
+          10.0,
+          20.0,
+          15.0,
+          -6.0,
+          0.0
+        ]
+      },
+      "sampleIntervalMean": 5.166666666666667,
+      "sampleIntervalStd": 1.0671873729054748,
+      "sampleIntervalMedian": 5.0,
+      "valueMeans": [
+        4.142857142857143
+      ],
+      "valueStds": [
+        10.287698221365048
+      ],
+      "valueMedians": [
+        0.0
+      ]
+    },
+    {
+      "sensorTypes": [
+        "INFRARED"
+      ],
+      "sensorName": "example_infrared",
+      "timestampsMicrosecondsUtc": [
+        "0",
+        "5",
+        "11",
+        "15",
+        "22",
+        "27",
+        "31"
+      ],
+      "float64Payload": {
+        "payload": [
+          -10.0,
+          0.0,
+          10.0,
+          20.0,
+          15.0,
+          -6.0,
+          0.0
+        ]
+      },
+      "sampleIntervalMean": 5.166666666666667,
+      "sampleIntervalStd": 1.0671873729054748,
+      "sampleIntervalMedian": 5.0,
+      "valueMeans": [
+        4.142857142857143
+      ],
+      "valueStds": [
+        10.287698221365048
+      ],
+      "valueMedians": [
+        0.0
+      ],
+      "metadata": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ]
+    }
+  ],
+  "metadata": [
+    "bar",
+    "baz"
+  ],
+  "firebaseToken": "example_firebase_token",
+  "batteryLevelPercent": 77.5,
+  "deviceTemperatureC": 21.100000381469727
+}

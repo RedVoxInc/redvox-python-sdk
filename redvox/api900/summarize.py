@@ -152,7 +152,7 @@ def _subsample(values: typing.Union[numpy.ndarray, typing.List], num_samples: in
     indexes = numpy.round(numpy.linspace(0, len(values) - 1, num_samples)).astype(int)
     if isinstance(values, numpy.ndarray):
         return numpy.take(values, indexes)
-    elif isinstance(values, typing.List):
+    elif isinstance(values, list):
         return [values[i] for i in indexes]
     else:
         raise RuntimeError("Non sequence type passed to subsample")

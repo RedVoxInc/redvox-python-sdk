@@ -4,6 +4,7 @@ import redvox
 
 with open("requirements.txt", "r") as requirements_file:
     requirements = list(map(lambda line: line.strip(), requirements_file.readlines()))
+    requirements = list(filter(lambda line: (not line.startswith("#")) and len(line) > 0, requirements))
 
 setup(name=redvox.NAME,
       version=redvox.VERSION,
@@ -24,6 +25,7 @@ setup(name=redvox.NAME,
                                       "redvox.api1000.wrapped_redvox_packet",
                                       "redvox.api1000.wrapped_redvox_packet.sensors",
                                       "redvox.cli",
+                                      "redvox.cloud",
                                       "redvox.common"],
                              exclude=['tests']),
       long_description=open('README.md').read(),

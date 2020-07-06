@@ -389,5 +389,5 @@
   ],
   "firebaseToken": "example_firebase_token",
   "batteryLevelPercent": 77.5,
-  "deviceTemperatureC": 21.100000381469727
+  "deviceTemperatureC": 21.1
 }
