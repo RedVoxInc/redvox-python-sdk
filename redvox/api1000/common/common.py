@@ -41,6 +41,7 @@ class Unit(enum.Enum):
     CENTIMETERS = 15
     NORMALIZED_COUNTS = 16
     LUX = 17
+    UNITLESS = 18
 
     @staticmethod
     def from_proto(unit: redvox_api_m_pb2.RedvoxPacketM.Unit) -> 'Unit':

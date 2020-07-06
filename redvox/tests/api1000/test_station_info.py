@@ -7,7 +7,7 @@ class TestAppSettings(unittest.TestCase):
     def setUp(self) -> None:
         self.empty_app_settings: station.AppSettings = station.AppSettings.new()
         self.non_empty_app_settings: station.AppSettings = station.AppSettings.new()
-        self.non_empty_app_settings.get_additional_input_sensors().append_values([station.InputSensor.AUDIO])
+        self.non_empty_app_settings.get_additional_input_sensors().append_values([station.InputSensor.PRESSURE])
         self.non_empty_app_settings.set_audio_sampling_rate(station.AudioSamplingRate["HZ_80"])
         self.non_empty_app_settings.set_station_id("test_station")
 

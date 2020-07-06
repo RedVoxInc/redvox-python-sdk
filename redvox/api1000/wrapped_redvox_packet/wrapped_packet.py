@@ -12,12 +12,9 @@ import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 # import redvox.api1000.common.common as common
 import redvox.api1000.common.generic
-import redvox.api1000.wrapped_redvox_packet.packet_information as _packet_information
 import redvox.api1000.wrapped_redvox_packet.sensors.sensors as _sensors
-import redvox.api1000.wrapped_redvox_packet.server_information as _server_information
 import redvox.api1000.wrapped_redvox_packet.station_information as _station_information
 import redvox.api1000.wrapped_redvox_packet.timing_information as _timing_information
-import redvox.api1000.wrapped_redvox_packet.user_information as _user_information
 
 
 class WrappedRedvoxPacketM(
@@ -25,20 +22,11 @@ class WrappedRedvoxPacketM(
     def __init__(self, redvox_proto: redvox_api_m_pb2.RedvoxPacketM):
         super().__init__(redvox_proto)
 
-        self._user_information: _user_information.UserInformation = _user_information.UserInformation(
-            redvox_proto.user_information)
-
         self._station_information: _station_information.StationInformation = _station_information.StationInformation(
             redvox_proto.station_information)
 
-        self._packet_information: _packet_information.PacketInformation = _packet_information.PacketInformation(
-            redvox_proto.packet_information)
-
         self._timing_information: _timing_information.TimingInformation = _timing_information.TimingInformation(
             redvox_proto.timing_information)
-
-        self._server_information: _server_information.ServerInformation = _server_information.ServerInformation(
-            redvox_proto.server_information)
 
         self._sensors: _sensors.Sensors = _sensors.Sensors(redvox_proto.sensors)
 
@@ -155,20 +143,11 @@ class WrappedRedvoxPacketM(
         self._proto.api = api
         return self
 
-    def get_user_information(self) -> _user_information.UserInformation:
-        return self._user_information
-
     def get_station_information(self) -> _station_information.StationInformation:
         return self._station_information
 
-    def get_packet_information(self) -> _packet_information.PacketInformation:
-        return self._packet_information
-
     def get_timing_information(self) -> _timing_information.TimingInformation:
         return self._timing_information
-
-    def get_server_information(self) -> _server_information.ServerInformation:
-        return self._server_information
 
     def get_sensors(self) -> _sensors.Sensors:
         return self._sensors
@@ -241,14 +220,15 @@ class WrappedRedvoxPacketM(
         if self.get_sensors().get_relative_humidity().get_proto().HasField("timestamps"):
             updated.get_sensors().get_relative_humidity().get_timestamps().set_timestamps(
                 self.get_sensors().get_relative_humidity().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_rotation_vector().get_proto().HasField("timestamps"):
+            updated.get_sensors().get_rotation_vector().get_timestamps().set_timestamps(
+                self.get_sensors().get_rotation_vector().get_timestamps().get_timestamps() + delta_offset, True)
         return updated
 
 
 def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -> List[str]:
-    # errors_list = _user_information.validate_user_information(wrapped_packet.get_user_information())
     errors_list = _station_information.validate_station_information(wrapped_packet.get_station_information())
     errors_list.extend(_timing_information.validate_timing_information(wrapped_packet.get_timing_information()))
-    # errors_list.extend(_server_information.validate_server_information(wrapped_packet.get_server_information()))
     errors_list.extend(_sensors.validate_sensors(wrapped_packet.get_sensors()))
     if wrapped_packet.get_api() != 1000:
         errors_list.append("Wrapped packet api is not 1000")
