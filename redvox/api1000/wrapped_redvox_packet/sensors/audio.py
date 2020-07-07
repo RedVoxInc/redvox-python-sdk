@@ -44,6 +44,14 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         self._proto.sample_rate = sample_rate
         return self
 
+    def get_bits_of_precision(self) -> float:
+        return self._proto.bits_of_precision
+
+    def set_bits_of_precision(self, bits_of_precision: float) -> 'Audio':
+        redvox.api1000.common.typing.check_type(bits_of_precision, [int, float])
+        self._proto.bits_of_precision = bits_of_precision
+        return self
+
     def get_is_scrambled(self) -> bool:
         return self._proto.is_scrambled
 
@@ -52,7 +60,13 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         self._proto.is_scrambled = is_scrambled
         return self
 
-    # todo: get and set encoding; first define the values for encoding
+    def get_encoding(self) -> str:
+        return self._proto.encoding
+
+    def set_encoding(self, encoding: str) -> 'Audio':
+        redvox.api1000.common.typing.check_type(encoding, [str])
+        self._proto.encoding = encoding
+        return self
 
     def get_samples(self) -> common.SamplePayload:
         return self._samples
