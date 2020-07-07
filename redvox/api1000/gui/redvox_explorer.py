@@ -2,9 +2,10 @@ import os
 from typing import List
 import sys
 
-from PySide2.QtWidgets import QApplication, QTreeWidget, QTreeWidgetItem
+from PySide2.QtCharts import QtCharts
+from PySide2.QtWidgets import QApplication, QTreeWidget, QTreeWidgetItem, QWidget, QVBoxLayout, QLabel
 
-from redvox.api1000.common.common import SamplePayload
+from redvox.api1000.common.common import SamplePayload, SummaryStatistics
 from redvox.api1000.common.metadata import Metadata
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
@@ -28,13 +29,32 @@ def make_sample_payload_item(sample_payload: SamplePayload) -> QTreeWidgetItem:
     sample_payload_item.addChildren([
         QTreeWidgetItem(["unit", sample_payload.get_unit().name]),
         make_values_item(list(sample_payload.get_values())),
+        make_summary_statistics(sample_payload.get_summary_statistics(), "value_statistics"),
         make_metadata_item(sample_payload.get_metadata())
     ])
     return sample_payload_item
 
 
+def make_summary_statistics(summary_statistics: SummaryStatistics, name: str = "value_statistics") -> QTreeWidgetItem:
+    summary_stats_item: QTreeWidgetItem = QTreeWidgetItem([name])
+    summary_stats_item.addChildren([
+        QTreeWidgetItem(["count", str(summary_statistics.get_count())]),
+        QTreeWidgetItem(["mean", str(summary_statistics.get_mean())]),
+        QTreeWidgetItem(["median", str(summary_statistics.get_median())]),
+        QTreeWidgetItem(["mode", str(summary_statistics.get_mode())]),
+        QTreeWidgetItem(["variance", str(summary_statistics.get_variance())]),
+        QTreeWidgetItem(["min", str(summary_statistics.get_min())]),
+        QTreeWidgetItem(["max", str(summary_statistics.get_max())]),
+        QTreeWidgetItem(["range", str(summary_statistics.get_range())]),
+        make_metadata_item(summary_statistics.get_metadata())
+    ])
+    return summary_stats_item
+
+
 def packet_details(wrapped_packet: WrappedRedvoxPacketM) -> None:
     app: QApplication = QApplication(sys.argv)
+    window: QWidget = QWidget()
+    layout: QVBoxLayout = QVBoxLayout()
 
     station_info = wrapped_packet.get_station_information()
 
@@ -76,6 +96,15 @@ def packet_details(wrapped_packet: WrappedRedvoxPacketM) -> None:
 
     ])
 
+    service_urls_item: QTreeWidgetItem = QTreeWidgetItem(["service_urls"])
+    service_urls = station_info.get_service_urls()
+    service_urls_item.addChildren([
+        QTreeWidgetItem(["auth_server", service_urls.get_auth_server()]),
+        QTreeWidgetItem(["synch_server", service_urls.get_synch_server()]),
+        QTreeWidgetItem(["acquisition_server", service_urls.get_acquisition_server()]),
+        make_metadata_item(service_urls.get_metadata())
+    ])
+
     station_info_item: QTreeWidgetItem = QTreeWidgetItem(["station_information"])
     station_info_item.addChildren([
         QTreeWidgetItem(["id", station_info.get_id()]),
@@ -83,13 +112,13 @@ def packet_details(wrapped_packet: WrappedRedvoxPacketM) -> None:
         QTreeWidgetItem(["auth_id", station_info.get_auth_id()]),
         QTreeWidgetItem(["make", station_info.get_make()]),
         QTreeWidgetItem(["model", station_info.get_model()]),
-        QTreeWidgetItem(["os", station_info.get_os()]),
+        QTreeWidgetItem(["os", station_info.get_os().name]),
         QTreeWidgetItem(["os_version", station_info.get_os_version()]),
         QTreeWidgetItem(["app_version", station_info.get_app_version()]),
         QTreeWidgetItem(["is_private", str(station_info.get_is_private())]),
         app_settings_item,
         station_metrics_item,
-        QTreeWidgetItem(["service_urls"]),
+        service_urls_item,
         make_metadata_item(station_info.get_metadata())
     ])
 
@@ -172,9 +201,25 @@ def packet_details(wrapped_packet: WrappedRedvoxPacketM) -> None:
 
     packet_tree.setHeaderLabels(["Field", "Value"])
     packet_tree.setColumnWidth(0, 400)
-    packet_tree.setMinimumWidth(800)
-    packet_tree.setMinimumHeight(600)
-    packet_tree.show()
+
+    # Plotter
+    chart = QtCharts.QChart()
+    series: QtCharts.QScatterSeries = QtCharts.QLineSeries()
+
+    for i, v in enumerate(wrapped_packet.get_sensors().get_audio().get_samples().get_values()):
+        series.append(i, v)
+
+    chart.addSeries(series)
+
+    # Layout, window stuffs
+    layout.addWidget(QLabel(f"{wrapped_packet.default_filename()}"))
+    layout.addWidget(packet_tree)
+    layout.addWidget(QtCharts.QChartView(chart))
+
+    window.setLayout(layout)
+    window.setMinimumWidth(800)
+    window.setMinimumHeight(600)
+    window.show()
 
     app.exec_()
 
