@@ -505,11 +505,16 @@ class DateIterator:
     def __init__(self,
                  start_timestamp_utc_s: int,
                  end_timestamp_utc_s: int):
-        self.start_dt = datetime.utcfromtimestamp(start_timestamp_utc_s)
-        self.end_dt = datetime.utcfromtimestamp(end_timestamp_utc_s)
-        self._one_day = timedelta(days=1)
 
-    def __iter__(self):
+        start_dt_full: datetime = datetime.utcfromtimestamp(start_timestamp_utc_s)
+        end_dt_full: datetime = datetime.utcfromtimestamp(end_timestamp_utc_s)
+
+        self.start_dt: datetime = datetime_from(start_dt_full.year, start_dt_full.month, start_dt_full.day)
+        self.end_dt: datetime = datetime_from(end_dt_full.year, end_dt_full.month, end_dt_full.day)
+
+        self._one_day: timedelta = timedelta(days=1)
+
+    def __iter__(self) -> 'DateIterator':
         return self
 
     def __next__(self) -> Tuple[str, str, str]:
