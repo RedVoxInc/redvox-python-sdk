@@ -151,6 +151,10 @@ class TestDateTime(unittest.TestCase):
     def test_weeks_to_days(self):
         self.assertEqual(dt.weeks_to_days(1), 7)
 
+    def test_date_iterator_incorrect_order(self):
+        date_it = dt.DateIterator(1593820800, 1593734400)
+        self.assertEqual(len(list(date_it)), 0)
+
     def test_date_iterator_single(self):
         date_it = dt.DateIterator(1554776642, 1554776643)
         self.assertEqual([("2019", "04", "09")],
@@ -173,4 +177,9 @@ class TestDateTime(unittest.TestCase):
         date_it = dt.DateIterator(1577759042, 1577845442)
         self.assertEqual([("2019", "12", "31"),
                           ("2020", "01", "01")],
+                         list(date_it))
+
+        date_it = dt.DateIterator(1593820680, 1593820920)
+        self.assertEqual([("2020", "07", "03"),
+                          ("2020", "07", "04")],
                          list(date_it))
