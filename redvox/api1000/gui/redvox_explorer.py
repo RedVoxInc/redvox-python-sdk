@@ -166,9 +166,9 @@ def packet_details(wrapped_packet: WrappedRedvoxPacketM) -> None:
             QTreeWidgetItem(["sensor_description", str(audio.get_sensor_description())]),
             QTreeWidgetItem(["first_sample_timestamp", str(audio.get_first_sample_timestamp())]),
             QTreeWidgetItem(["sample_rate", str(audio.get_sample_rate())]),
-            # QTreeWidgetItem(["bits_of_precision", str(audio.get_bits_of_precision())]), # TODO update with this
+            QTreeWidgetItem(["bits_of_precision", str(audio.get_bits_of_precision())]),
             QTreeWidgetItem(["is_scrambled", str(audio.get_is_scrambled())]),
-            # QTreeWidgetItem(["encoding", str(audio.get_enc())]), # TODO update with encoding
+            QTreeWidgetItem(["encoding", str(audio.get_encoding())]),
             make_sample_payload_item(audio.get_samples()),
             make_metadata_item(audio.get_metadata()),
         ])
