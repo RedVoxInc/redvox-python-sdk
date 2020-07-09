@@ -81,4 +81,6 @@ class FileExplorer(QTreeWidget):
     @Slot()
     def file_selected(self):
         idx: int = self.selectedIndexes()[0].row()
-        self.parentWidget().packet_explorer.update_from_packet(self.rdvxm_files[idx].read())
+        packet = self.rdvxm_files[idx].read()
+        self.parentWidget().packet_explorer.update_from_packet(packet)
+        # self.parentWidget().parentWidget().details_column.values_widget.update_with_values(list(packet.get_sensors().get_audio().get_samples().get_values()))

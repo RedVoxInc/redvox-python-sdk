@@ -14,24 +14,6 @@ def make_metadata_item(metadata: Metadata) -> QTreeWidgetItem:
     return metadata_item
 
 
-def make_values_item(values: List) -> QTreeWidgetItem:
-    values_item: QTreeWidgetItem = QTreeWidgetItem(["values", f"<cnt {len(values)}>"])
-    for i, value in enumerate(values):
-        values_item.addChild(QTreeWidgetItem([str(i), str(value)]))
-    return values_item
-
-
-def make_sample_payload_item(sample_payload: SamplePayload) -> QTreeWidgetItem:
-    sample_payload_item: QTreeWidgetItem = QTreeWidgetItem(["sample_payload"])
-    sample_payload_item.addChildren([
-        QTreeWidgetItem(["unit", sample_payload.get_unit().name]),
-        make_values_item(list(sample_payload.get_values())),
-        make_summary_statistics(sample_payload.get_summary_statistics(), "value_statistics"),
-        make_metadata_item(sample_payload.get_metadata())
-    ])
-    return sample_payload_item
-
-
 def make_summary_statistics(summary_statistics: SummaryStatistics, name: str = "value_statistics") -> QTreeWidgetItem:
     summary_stats_item: QTreeWidgetItem = QTreeWidgetItem([name])
     summary_stats_item.addChildren([
@@ -57,7 +39,35 @@ class PacketExplorer(QTreeWidget):
             "Value"
         ])
 
+        self.wrapped_packet: Optional[WrappedRedvoxPacketM] = None
+
+    def make_values_item(self, values_type: str, values_cnt: int) -> QTreeWidgetItem:
+        values_item: QTreeWidgetItem = QTreeWidgetItem([f"<{values_type} values>", f"<cnt {values_cnt}>"])
+        return values_item
+
+    def make_sample_payload_item(self, sensor_type: str, sample_payload: SamplePayload) -> QTreeWidgetItem:
+        sample_payload_item: QTreeWidgetItem = QTreeWidgetItem(["sample_payload"])
+        sample_payload_item.addChildren([
+            QTreeWidgetItem(["unit", sample_payload.get_unit().name]),
+            self.make_values_item(sensor_type, sample_payload.get_values_count()),
+            make_summary_statistics(sample_payload.get_summary_statistics(), "value_statistics"),
+            make_metadata_item(sample_payload.get_metadata())
+        ])
+        return sample_payload_item
+
+    def check_if_value_item(self, current: QTreeWidgetItem, previous: Optional[QTreeWidgetItem]):
+        text: str = current.text(0)
+        if " values>" in text:
+            values: List[float] = []
+
+            if text == "<audio values>":
+                values = list(self.wrapped_packet.get_sensors().get_audio().get_samples().get_values())
+
+            self.parentWidget().parentWidget().details_column.values_widget.update_from_values(values)
+            self.parentWidget().parentWidget().details_column.plot_widget.update_from_values(values)
+
     def update_from_packet(self, wrapped_packet: WrappedRedvoxPacketM) -> None:
+        self.wrapped_packet = wrapped_packet
         self.clear()
 
         station_info = wrapped_packet.get_station_information()
@@ -171,7 +181,7 @@ class PacketExplorer(QTreeWidget):
                 QTreeWidgetItem(["bits_of_precision", str(audio.get_bits_of_precision())]),
                 QTreeWidgetItem(["is_scrambled", str(audio.get_is_scrambled())]),
                 QTreeWidgetItem(["encoding", str(audio.get_encoding())]),
-                make_sample_payload_item(audio.get_samples()),
+                self.make_sample_payload_item("audio", audio.get_samples()),
                 make_metadata_item(audio.get_metadata()),
             ])
 
@@ -194,6 +204,8 @@ class PacketExplorer(QTreeWidget):
             QTreeWidgetItem(["rotation_vector"]),
             make_metadata_item(sensors.get_metadata()),
         ])
+
+        self.currentItemChanged.connect(self.check_if_value_item)
 
         self.insertTopLevelItem(0, QTreeWidgetItem(["api", str(wrapped_packet.get_api())]))
         self.insertTopLevelItem(1, station_info_item)
