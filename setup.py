@@ -20,8 +20,10 @@ setup(name=redvox.NAME,
                                       "redvox.api900.timesync",
                                       "redvox.api900.qa",
                                       "redvox.api1000",
-                                      "redvox.api1000.proto",
                                       "redvox.api1000.common",
+                                      "redvox.api1000.gui",
+                                      "redvox.api1000.gui.data_explorer",
+                                      "redvox.api1000.proto",
                                       "redvox.api1000.wrapped_redvox_packet",
                                       "redvox.api1000.wrapped_redvox_packet.sensors",
                                       "redvox.cli",
@@ -31,6 +33,9 @@ setup(name=redvox.NAME,
       long_description=open('README.md').read(),
       install_requires=requirements,
       entry_points={
-            'console_scripts': ['redvox-cli=redvox.cli.cli:main']
+            'console_scripts': [
+                'redvox-cli=redvox.cli.cli:main',
+                'redvox-gui=redvox.api1000.gui.redvox_gui:main'
+            ]
       },
       python_requires=">=3.6")
