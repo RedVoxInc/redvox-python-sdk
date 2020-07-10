@@ -1,9 +1,11 @@
+from datetime import datetime
 from typing import List, Optional
 
 from PySide2.QtWidgets import QTreeWidgetItem, QTreeWidget, QWidget
 
 from redvox.api1000.common.common import SamplePayload, SummaryStatistics
 from redvox.api1000.common.metadata import Metadata
+from redvox.api1000.gui.data_explorer.packet_details import DateTimes
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
 
@@ -59,12 +61,14 @@ class PacketExplorer(QTreeWidget):
         text: str = current.text(0)
         if " values>" in text:
             values: List[float] = []
-
             if text == "<audio values>":
-                values = list(self.wrapped_packet.get_sensors().get_audio().get_samples().get_values())
-
-            self.parentWidget().parentWidget().details_column.values_widget.update_from_values(values)
-            self.parentWidget().parentWidget().details_column.plot_widget.update_from_values(values)
+                audio = self.wrapped_packet.get_sensors().get_audio()
+                values = list(audio.get_samples().get_values())
+                dts = DateTimes.from_sr(audio.get_first_sample_timestamp(),
+                                        audio.get_sample_rate(),
+                                        audio.get_samples().get_values_count())
+                self.parentWidget().parentWidget().details_column.values_widget.update_from_values(values, dts)
+                self.parentWidget().parentWidget().details_column.plot_widget.update_from_values(values, dts)
 
     def update_from_packet(self, wrapped_packet: WrappedRedvoxPacketM) -> None:
         self.wrapped_packet = wrapped_packet
