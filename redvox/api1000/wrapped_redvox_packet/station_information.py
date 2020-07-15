@@ -15,11 +15,12 @@ InputSensorProto = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings
 
 
 class AudioSamplingRate(enum.Enum):
-    HZ_80: int = 0
-    HZ_800: int = 1
-    HZ_8000: int = 2
-    HZ_16000: int = 3
-    HZ_48000: int = 4
+    UNKNOWN_SAMPLING_RATE: int = 0
+    HZ_80: int = 1
+    HZ_800: int = 2
+    HZ_8000: int = 3
+    HZ_16000: int = 4
+    HZ_48000: int = 5
 
     @staticmethod
     def from_proto(
@@ -42,13 +43,14 @@ class AudioSamplingRate(enum.Enum):
         elif sampling_rate == 48000.0:
             return AudioSamplingRate['HZ_48000']
         else:
-            return None
+            return AudioSamplingRate['UNKNOWN_SAMPLING_RATE']
 
 
 class AudioSourceTuning(enum.Enum):
-    INFRASOUND_TUNING: int = 0
-    LOW_AUDIO_TUNING: int = 1
-    AUDIO_TUNING: int = 2
+    UNKNOWN_TUNING: int = 0
+    INFRASOUND_TUNING: int = 1
+    LOW_AUDIO_TUNING: int = 2
+    AUDIO_TUNING: int = 3
 
     @staticmethod
     def from_proto(
@@ -60,22 +62,23 @@ class AudioSourceTuning(enum.Enum):
 
 
 class InputSensor(enum.Enum):
-    ACCELEROMETER = 0
-    AMBIENT_TEMPERATURE = 1
-    AUDIO = 2
-    COMPRESSED_AUDIO = 3
-    GRAVITY = 4
-    GYROSCOPE = 5
-    IMAGE = 6
-    LIGHT = 7
-    LINEAR_ACCELERATION = 8
-    LOCATION = 9
-    MAGNETOMETER = 10
-    ORIENTATION = 11
-    PRESSURE = 12
-    PROXIMITY = 13
-    RELATIVE_HUMIDITY = 14
-    ROTATION_VECTOR = 15
+    UNKNOWN_SENSOR: int = 0
+    ACCELEROMETER = 1
+    AMBIENT_TEMPERATURE = 2
+    AUDIO = 3
+    COMPRESSED_AUDIO = 4
+    GRAVITY = 5
+    GYROSCOPE = 6
+    IMAGE = 7
+    LIGHT = 8
+    LINEAR_ACCELERATION = 9
+    LOCATION = 10
+    MAGNETOMETER = 11
+    ORIENTATION = 12
+    PRESSURE = 13
+    PROXIMITY = 14
+    RELATIVE_HUMIDITY = 15
+    ROTATION_VECTOR = 16
 
     @staticmethod
     def from_proto(
@@ -87,9 +90,10 @@ class InputSensor(enum.Enum):
 
 
 class FftOverlap(enum.Enum):
-    PERCENT_25 = 0
-    PERCENT_50 = 1
-    PERCENT_75 = 2
+    UNKNOWN: int = 0
+    PERCENT_25: int = 1
+    PERCENT_50: int = 2
+    PERCENT_75: int = 3
 
     @staticmethod
     def from_proto(
@@ -317,9 +321,11 @@ def validate_app_settings(app: AppSettings) -> List[str]:
 
 
 class NetworkType(enum.Enum):
-    NO_NETWORK: int = 0
-    WIFI: int = 1
-    CELLULAR: int = 2
+    UNKNOWN_NETWORK: int = 0
+    NO_NETWORK: int = 1
+    WIFI: int = 2
+    CELLULAR: int = 3
+    WIRED: int = 4
 
     @staticmethod
     def from_proto(
@@ -362,9 +368,10 @@ class CellServiceState(enum.Enum):
 
 
 class PowerState(enum.Enum):
-    UNPLUGGED: int = 0
-    CHARGING: int = 1
-    CHARGED: int = 2
+    UNKNOWN_POWER_STATE: int = 0
+    UNPLUGGED: int = 1
+    CHARGING: int = 2
+    CHARGED: int = 3
 
     @staticmethod
     def from_proto(
@@ -504,11 +511,12 @@ def validate_station_metrics(station_metrics: StationMetrics) -> List[str]:
 
 
 class OsType(enum.Enum):
-    ANDROID: int = 0
-    IOS: int = 1
-    LINUX: int = 2
-    WINDOWS: int = 3
-    UNKNOWN_OS: int = 4
+    UNKNOWN_OS: int = 0
+    ANDROID: int = 1
+    IOS: int = 2
+    OSX: int = 3
+    LINUX: int = 4
+    WINDOWS: int = 5
 
     @staticmethod
     def from_proto(os_type: redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType) -> 'OsType':
