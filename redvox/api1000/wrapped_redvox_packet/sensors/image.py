@@ -11,9 +11,10 @@ class ImageCodec(enum.Enum):
     """
     Image Codecs for image data
     """
-    PNG = 0
-    JPG = 1
-    BMP = 2
+    UNKNOWN: int = 0
+    PNG: int = 1
+    JPG: int = 2
+    BMP: int = 3
 
     @staticmethod
     def from_proto(codec: redvox_api_m_pb2.RedvoxPacketM.Sensors.Image.ImageCodec) -> 'ImageCodec':

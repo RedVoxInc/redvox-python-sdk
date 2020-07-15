@@ -93,7 +93,8 @@ def validate_audio(audio_sensor: Audio) -> List[str]:
 
 
 class AudioCodec(enum.Enum):
-    TODO: int = 0
+    UNKNOWN: int = 0
+    FLAC: int = 1
 
     @staticmethod
     def from_proto(audio_codec: redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec) -> 'AudioCodec':

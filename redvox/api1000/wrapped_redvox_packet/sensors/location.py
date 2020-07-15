@@ -10,10 +10,15 @@ import redvox.api1000.common.generic
 
 
 class LocationProvider(enum.Enum):
-    NONE: int = 0
-    USER: int = 1
-    GPS: int = 2
-    NETWORK: int = 3
+    UNKNOWN: int = 0
+    NONE: int = 1
+    USER: int = 2
+    GPS: int = 3
+    NETWORK: int = 4
+
+
+class LocationScoreMethod(enum.Enum):
+    UNKNOWN_METHOD: int = 0
 
 
 class Location(
@@ -26,7 +31,8 @@ class Location(
         self._altitude_samples: common.SamplePayload = common.SamplePayload(proto.altitude_samples)
         self._speed_samples: common.SamplePayload = common.SamplePayload(proto.speed_samples)
         self._bearing_samples: common.SamplePayload = common.SamplePayload(proto.bearing_samples)
-        self._horizontal_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.horizontal_accuracy_samples)
+        self._horizontal_accuracy_samples: common.SamplePayload = common.SamplePayload(
+            proto.horizontal_accuracy_samples)
         self._vertical_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.vertical_accuracy_samples)
         self._speed_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.speed_accuracy_samples)
         self._bearing_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.bearing_accuracy_samples)

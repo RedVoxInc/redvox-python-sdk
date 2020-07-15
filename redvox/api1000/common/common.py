@@ -23,25 +23,27 @@ class Unit(enum.Enum):
     """
     Standard units expected to be used within API M.
     """
-    METERS_PER_SECOND_SQUARED = 0
-    KILOPASCAL = 1
-    RADIANS_PER_SECOND = 2
-    DECIMAL_DEGREES = 3
-    METERS = 4
-    METERS_PER_SECOND = 5
-    MICROTESLA = 6
-    LSB_PLUS_MINUS_COUNTS = 7
-    MICROSECONDS_SINCE_UNIX_EPOCH = 8
-    DECIBEL = 9
-    DEGREES_CELSIUS = 10
-    BYTE = 11
-    PERCENTAGE = 12
-    RADIANS = 13
-    MICROAMPERES = 14
-    CENTIMETERS = 15
-    NORMALIZED_COUNTS = 16
-    LUX = 17
-    UNITLESS = 18
+    UNKNOWN: int = 0
+    METERS_PER_SECOND_SQUARED: int = 1
+    KILOPASCAL: int = 2
+    RADIANS_PER_SECOND: int = 3
+    DECIMAL_DEGREES: int = 4
+    METERS: int = 5
+    METERS_PER_SECOND: int = 6
+    MICROTESLA: int = 7
+    LSB_PLUS_MINUS_COUNTS: int = 8
+    MICROSECONDS_SINCE_UNIX_EPOCH: int = 9
+    DECIBEL: int = 10
+    DEGREES_CELSIUS: int = 11
+    BYTE: int = 12
+    PERCENTAGE: int = 13
+    RADIANS: int = 14
+    MICROAMPERES: int = 15
+    CENTIMETERS: int = 16
+    NORMALIZED_COUNTS: int = 17
+    LUX: int = 18
+    UNITLESS: int = 19
+    PCM: int = 20
 
     @staticmethod
     def from_proto(unit: redvox_api_m_pb2.RedvoxPacketM.Unit) -> 'Unit':

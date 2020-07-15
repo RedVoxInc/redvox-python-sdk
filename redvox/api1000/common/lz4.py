@@ -5,7 +5,7 @@ This module handles compression and decompression of API M data.
 import lz4.frame
 
 
-def compress(data: bytes, compression_level: int = 16) -> bytes:
+def compress(data: bytes, compression_level: int = 12) -> bytes:
     """
     Compresses the provided data using the LZ4 frame protocol.
     :param data: The bytes to compress.
