@@ -554,6 +554,14 @@ class StationInformation(
         self.get_proto().uuid = uuid
         return self
 
+    def get_description(self) -> str:
+        return self.get_proto().description
+
+    def set_description(self, description: str) -> 'StationInformation':
+        redvox.api1000.common.typing.check_type(description, [str])
+        self.get_proto().description = description
+        return self
+
     def get_auth_id(self) -> str:
         return self.get_proto().auth_id
 
