@@ -106,31 +106,13 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
         self._proto.mean = mean
         return self
 
-    def get_median(self) -> float:
-        return self._proto.median
+    def get_standard_deviation(self) -> float:
+        return self._proto.standard_deviation
 
-    def set_median(self, median: float) -> 'SummaryStatistics':
-        check_type(median, [int, float])
+    def set_variance(self, standard_deviation: float) -> 'SummaryStatistics':
+        check_type(standard_deviation, [int, float])
 
-        self._proto.median = median
-        return self
-
-    def get_mode(self) -> float:
-        return self._proto.mode
-
-    def set_mode(self, mode: float) -> 'SummaryStatistics':
-        check_type(mode, [int, float])
-
-        self._proto.mode = mode
-        return self
-
-    def get_variance(self) -> float:
-        return self._proto.variance
-
-    def set_variance(self, variance: float) -> 'SummaryStatistics':
-        check_type(variance, [int, float])
-
-        self._proto.variance = variance
+        self._proto.standard_deviation = standard_deviation
         return self
 
     def get_min(self) -> float:
