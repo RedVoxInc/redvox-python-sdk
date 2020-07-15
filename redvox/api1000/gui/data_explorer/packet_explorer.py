@@ -21,9 +21,7 @@ def make_summary_statistics(summary_statistics: SummaryStatistics, name: str = "
     summary_stats_item.addChildren([
         QTreeWidgetItem(["count", str(summary_statistics.get_count())]),
         QTreeWidgetItem(["mean", str(summary_statistics.get_mean())]),
-        QTreeWidgetItem(["median", str(summary_statistics.get_median())]),
-        QTreeWidgetItem(["mode", str(summary_statistics.get_mode())]),
-        QTreeWidgetItem(["variance", str(summary_statistics.get_variance())]),
+        QTreeWidgetItem(["standard_deviation", str(summary_statistics.get_standard_deviation())]),
         QTreeWidgetItem(["min", str(summary_statistics.get_min())]),
         QTreeWidgetItem(["max", str(summary_statistics.get_max())]),
         QTreeWidgetItem(["range", str(summary_statistics.get_range())]),
