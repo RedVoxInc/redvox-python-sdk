@@ -23,25 +23,27 @@ message RedvoxPacketM {
     message StationInformation {
         string id = 1;          // The user selectable station id
         string uuid = 2;        // The app provided UUID
-        string auth_id = 3;     // Authentication ID (user's email)
-        string make = 4;        // Make of the station
-        string model = 5;       // Model of the station
-        OsType os = 6;          // OS of the station
-        string os_version = 7;  // OS version of the station
-        string app_version = 8; // App version on the station
-        bool is_private = 9;    // If the station was set to record privately when this packet was recorded
-        AppSettings app_settings = 10;          // A copy of the App's settings
-        StationMetrics station_metrics = 11;    // Detail station performance metrics
-        ServiceUrls service_urls = 12;          // URLs of remote services utilized by this statation
-        map<string, string> metadata = 13;      // A map from string to string for including untyped metadata
+        string description = 3; // Human friendly description of station (i.e. ISLA_0)
+        string auth_id = 4;     // Authentication ID (user's email)
+        string make = 5;        // Make of the station
+        string model = 6;       // Model of the station
+        OsType os = 7;          // OS of the station
+        string os_version = 8;  // OS version of the station
+        string app_version = 9; // App version on the station
+        bool is_private = 10;    // If the station was set to record privately when this packet was recorded
+        AppSettings app_settings = 11;          // A copy of the App's settings
+        StationMetrics station_metrics = 12;    // Detail station performance metrics
+        ServiceUrls service_urls = 13;          // URLs of remote services utilized by this station
+        map<string, string> metadata = 14;      // A map from string to string for including untyped metadata
 
         // An enumeration specifying the available operating system types
         enum OsType {
-            ANDROID = 0;
-            IOS = 1;
-            LINUX = 2;
-            WINDOWS = 3;
-            UNKNOWN_OS = 4;
+            UNKNOWN_OS = 0;
+            ANDROID = 1;
+            IOS = 2;
+            OSX = 3;
+            LINUX = 4;
+            WINDOWS = 5;
         }
 
         // Collection of related service URLs
@@ -70,9 +72,11 @@ message RedvoxPacketM {
 
             // An enumeration specifying the available network types
             enum NetworkType {
-                NO_NETWORK = 0;
-                WIFI = 1;
-                CELLULAR = 2;
+                UNKNOWN_NETWORK = 0;
+                NO_NETWORK = 1;
+                WIFI = 2;
+                CELLULAR = 3;
+                WIRED = 4;
             }
 
             // Type of WiFi wake lock un use
@@ -94,9 +98,10 @@ message RedvoxPacketM {
 
             // The state of power supply to station
             enum PowerState {
-                UNPLUGGED = 0;
-                CHARGING = 1;
-                CHARGED = 2;
+                UNKNOWN_POWER_STATE = 0;
+                UNPLUGGED = 1;
+                CHARGING = 2;
+                CHARGED = 3;
             }
         }
 
@@ -128,42 +133,46 @@ message RedvoxPacketM {
             map<string, string> metadata = 24;                  // A map from string to string for including untyped metadata
 
             enum FftOverlap {
-                PERCENT_25 = 0;
-                PERCENT_50 = 1;
-                PERCENT_75 = 2;
+                UNKNOWN = 0;
+                PERCENT_25 = 1;
+                PERCENT_50 = 2;
+                PERCENT_75 = 3;
             }
 
             enum AudioSamplingRate {
-                HZ_80 = 0;
-                HZ_800 = 1;
-                HZ_8000 = 2;
-                HZ_16000 = 3;
-                HZ_48000 = 4;
+                UNKNOWN_SAMPLING_RATE = 0;
+                HZ_80 = 1;
+                HZ_800 = 2;
+                HZ_8000 = 3;
+                HZ_16000 = 4;
+                HZ_48000 = 5;
             }
 
             enum AudioSourceTuning {
-                INFRASOUND_TUNING = 0;
-                LOW_AUDIO_TUNING = 1;
-                AUDIO_TUNING = 2;
+                UNKNOWN_TUNING = 0;
+                INFRASOUND_TUNING = 1;
+                LOW_AUDIO_TUNING = 2;
+                AUDIO_TUNING = 3;
             }
 
             enum InputSensor {
-                ACCELEROMETER = 0;
-                AMBIENT_TEMPERATURE = 1;
-                AUDIO = 2;
-                COMPRESSED_AUDIO = 3;
-                GRAVITY = 4;
-                GYROSCOPE = 5;
-                IMAGE = 6;
-                LIGHT = 7;
-                LINEAR_ACCELERATION = 8;
-                LOCATION = 9;
-                MAGNETOMETER = 10;
-                ORIENTATION = 11;
-                PRESSURE = 12;
-                PROXIMITY = 13;
-                RELATIVE_HUMIDITY = 14;
-                ROTATION_VECTOR = 15;
+                UNKNOWN_SENSOR = 0;
+                ACCELEROMETER = 1;
+                AMBIENT_TEMPERATURE = 2;
+                AUDIO = 3;
+                COMPRESSED_AUDIO = 4;
+                GRAVITY = 5;
+                GYROSCOPE = 6;
+                IMAGE = 7;
+                LIGHT = 8;
+                LINEAR_ACCELERATION = 9;
+                LOCATION = 10;
+                MAGNETOMETER = 11;
+                ORIENTATION = 12;
+                PRESSURE = 13;
+                PROXIMITY = 14;
+                RELATIVE_HUMIDITY = 15;
+                ROTATION_VECTOR = 16;
             }
         }
     }
@@ -247,8 +256,8 @@ message RedvoxPacketM {
             map<string, string> metadata = 7;   // A map from string to string for including untyped metadata
 
             enum AudioCodec {
-                // TODO
-                TODO = 0;
+                UNKNOWN = 0;
+                FLAC = 1;
             }
         }
 
@@ -294,16 +303,16 @@ message RedvoxPacketM {
 
             // An enumeration for the various scoring methods for the "best of" metrics
             enum LocationScoreMethod {
-                // TODO
-                TODO = 0;
+                UNKNOWN_METHOD = 0;
             }
 
             // An enumeration of location providers
             enum LocationProvider {
-                NONE = 0;
-                USER = 1;
-                GPS = 2;
-                NETWORK = 3;
+                UNKNOWN = 0;
+                NONE = 1;
+                USER = 2;
+                GPS = 3;
+                NETWORK = 4;
             }
         }
 
@@ -329,9 +338,10 @@ message RedvoxPacketM {
 
             // Codec used to encode the image
             enum ImageCodec {
-                PNG = 0;
-                JPG = 1;
-                BMP = 2;
+                UNKNOWN = 0;
+                PNG = 1;
+                JPG = 2;
+                BMP = 3;
             }
         }
     }
@@ -358,38 +368,38 @@ message RedvoxPacketM {
 
     // Enumeration of API M supported units
     enum Unit {
-        METERS_PER_SECOND_SQUARED = 0;
-        KILOPASCAL = 1;
-        RADIANS_PER_SECOND = 2;
-        DECIMAL_DEGREES = 3;
-        METERS = 4;
-        METERS_PER_SECOND = 5;
-        MICROTESLA = 6;
-        LSB_PLUS_MINUS_COUNTS = 7;
-        MICROSECONDS_SINCE_UNIX_EPOCH = 8;
-        DECIBEL = 9;
-        DEGREES_CELSIUS = 10;
-        BYTE = 11;
-        PERCENTAGE = 12;
-        RADIANS = 13;
-        MICROAMPERES = 14;
-        CENTIMETERS = 15;
-        NORMALIZED_COUNTS = 16;
-        LUX = 17;
-        UNITLESS = 18;
+        UNKNOWN = 0;
+        METERS_PER_SECOND_SQUARED = 1;
+        KILOPASCAL = 2;
+        RADIANS_PER_SECOND = 3;
+        DECIMAL_DEGREES = 4;
+        METERS = 5;
+        METERS_PER_SECOND = 6;
+        MICROTESLA = 7;
+        LSB_PLUS_MINUS_COUNTS = 8;
+        MICROSECONDS_SINCE_UNIX_EPOCH = 9;
+        DECIBEL = 10;
+        DEGREES_CELSIUS = 11;
+        BYTE = 12;
+        PERCENTAGE = 13;
+        RADIANS = 14;
+        MICROAMPERES = 15;
+        CENTIMETERS = 16;
+        NORMALIZED_COUNTS = 17;
+        LUX = 18;
+        UNITLESS = 19;
+        PCM = 20;
     }
 
     // Common statistics stored with payloads
     message SummaryStatistics {
         float count = 1;                   // The total count of values included in the statistics
         float mean = 2;                    // The mean of the values
-        float median = 3;                  // The median of the values
-        float mode = 4;                    // The mode of the values
-        float variance = 5;                // The variance of the values
-        float min = 6;                     // The minimum value
-        float max = 7;                     // The maximum value
-        float range = 8;                   // The range of the values
-        map<string, string> metadata = 9;  // A map from string to string for including untyped metadata
+        float standard_deviation = 3;      // The standard deviation of the values
+        float min = 4;                     // The minimum value
+        float max = 5;                     // The maximum value
+        float range = 6;                   // The range of the values
+        map<string, string> metadata = 7;  // A map from string to string for including untyped metadata
     }
 }
 
@@ -433,10 +443,11 @@ message AcquisitionResponse {
                                     // otherwise, don't resend the file.
 
     enum ResponseType {
-        OK = 0;             // No issues with packet
-        AUTH_ERROR = 1;     // An authentication error has occurred
-        DATA_ERROR = 2;     // An error with the data decoding or data quality
-        OTHER_ERROR = 3;    // Any other errors
+        UNKNOWN = 0;
+        OK = 1;             // No issues with packet
+        AUTH_ERROR = 2;     // An authentication error has occurred
+        DATA_ERROR = 3;     // An error with the data decoding or data quality
+        OTHER_ERROR = 4;    // Any other errors
     }
 }
 

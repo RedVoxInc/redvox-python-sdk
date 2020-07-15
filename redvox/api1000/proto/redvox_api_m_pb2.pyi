@@ -26,7 +26,6 @@ from typing import (
     NewType as typing___NewType,
     Optional as typing___Optional,
     Text as typing___Text,
-    Union as typing___Union,
     cast as typing___cast,
 )
 
@@ -39,9 +38,6 @@ builtin___bool = bool
 builtin___bytes = bytes
 builtin___float = float
 builtin___int = int
-if sys.version_info < (3,):
-    builtin___buffer = buffer
-    builtin___unicode = unicode
 
 
 DESCRIPTOR: google___protobuf___descriptor___FileDescriptor = ...
@@ -53,44 +49,48 @@ class RedvoxPacketM(google___protobuf___message___Message):
     Unit: _Unit
     class _Unit(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.UnitValue]):
         DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-        METERS_PER_SECOND_SQUARED = typing___cast(RedvoxPacketM.UnitValue, 0)
-        KILOPASCAL = typing___cast(RedvoxPacketM.UnitValue, 1)
-        RADIANS_PER_SECOND = typing___cast(RedvoxPacketM.UnitValue, 2)
-        DECIMAL_DEGREES = typing___cast(RedvoxPacketM.UnitValue, 3)
-        METERS = typing___cast(RedvoxPacketM.UnitValue, 4)
-        METERS_PER_SECOND = typing___cast(RedvoxPacketM.UnitValue, 5)
-        MICROTESLA = typing___cast(RedvoxPacketM.UnitValue, 6)
-        LSB_PLUS_MINUS_COUNTS = typing___cast(RedvoxPacketM.UnitValue, 7)
-        MICROSECONDS_SINCE_UNIX_EPOCH = typing___cast(RedvoxPacketM.UnitValue, 8)
-        DECIBEL = typing___cast(RedvoxPacketM.UnitValue, 9)
-        DEGREES_CELSIUS = typing___cast(RedvoxPacketM.UnitValue, 10)
-        BYTE = typing___cast(RedvoxPacketM.UnitValue, 11)
-        PERCENTAGE = typing___cast(RedvoxPacketM.UnitValue, 12)
-        RADIANS = typing___cast(RedvoxPacketM.UnitValue, 13)
-        MICROAMPERES = typing___cast(RedvoxPacketM.UnitValue, 14)
-        CENTIMETERS = typing___cast(RedvoxPacketM.UnitValue, 15)
-        NORMALIZED_COUNTS = typing___cast(RedvoxPacketM.UnitValue, 16)
-        LUX = typing___cast(RedvoxPacketM.UnitValue, 17)
-        UNITLESS = typing___cast(RedvoxPacketM.UnitValue, 18)
-    METERS_PER_SECOND_SQUARED = typing___cast(RedvoxPacketM.UnitValue, 0)
-    KILOPASCAL = typing___cast(RedvoxPacketM.UnitValue, 1)
-    RADIANS_PER_SECOND = typing___cast(RedvoxPacketM.UnitValue, 2)
-    DECIMAL_DEGREES = typing___cast(RedvoxPacketM.UnitValue, 3)
-    METERS = typing___cast(RedvoxPacketM.UnitValue, 4)
-    METERS_PER_SECOND = typing___cast(RedvoxPacketM.UnitValue, 5)
-    MICROTESLA = typing___cast(RedvoxPacketM.UnitValue, 6)
-    LSB_PLUS_MINUS_COUNTS = typing___cast(RedvoxPacketM.UnitValue, 7)
-    MICROSECONDS_SINCE_UNIX_EPOCH = typing___cast(RedvoxPacketM.UnitValue, 8)
-    DECIBEL = typing___cast(RedvoxPacketM.UnitValue, 9)
-    DEGREES_CELSIUS = typing___cast(RedvoxPacketM.UnitValue, 10)
-    BYTE = typing___cast(RedvoxPacketM.UnitValue, 11)
-    PERCENTAGE = typing___cast(RedvoxPacketM.UnitValue, 12)
-    RADIANS = typing___cast(RedvoxPacketM.UnitValue, 13)
-    MICROAMPERES = typing___cast(RedvoxPacketM.UnitValue, 14)
-    CENTIMETERS = typing___cast(RedvoxPacketM.UnitValue, 15)
-    NORMALIZED_COUNTS = typing___cast(RedvoxPacketM.UnitValue, 16)
-    LUX = typing___cast(RedvoxPacketM.UnitValue, 17)
-    UNITLESS = typing___cast(RedvoxPacketM.UnitValue, 18)
+        UNKNOWN = typing___cast(RedvoxPacketM.UnitValue, 0)
+        METERS_PER_SECOND_SQUARED = typing___cast(RedvoxPacketM.UnitValue, 1)
+        KILOPASCAL = typing___cast(RedvoxPacketM.UnitValue, 2)
+        RADIANS_PER_SECOND = typing___cast(RedvoxPacketM.UnitValue, 3)
+        DECIMAL_DEGREES = typing___cast(RedvoxPacketM.UnitValue, 4)
+        METERS = typing___cast(RedvoxPacketM.UnitValue, 5)
+        METERS_PER_SECOND = typing___cast(RedvoxPacketM.UnitValue, 6)
+        MICROTESLA = typing___cast(RedvoxPacketM.UnitValue, 7)
+        LSB_PLUS_MINUS_COUNTS = typing___cast(RedvoxPacketM.UnitValue, 8)
+        MICROSECONDS_SINCE_UNIX_EPOCH = typing___cast(RedvoxPacketM.UnitValue, 9)
+        DECIBEL = typing___cast(RedvoxPacketM.UnitValue, 10)
+        DEGREES_CELSIUS = typing___cast(RedvoxPacketM.UnitValue, 11)
+        BYTE = typing___cast(RedvoxPacketM.UnitValue, 12)
+        PERCENTAGE = typing___cast(RedvoxPacketM.UnitValue, 13)
+        RADIANS = typing___cast(RedvoxPacketM.UnitValue, 14)
+        MICROAMPERES = typing___cast(RedvoxPacketM.UnitValue, 15)
+        CENTIMETERS = typing___cast(RedvoxPacketM.UnitValue, 16)
+        NORMALIZED_COUNTS = typing___cast(RedvoxPacketM.UnitValue, 17)
+        LUX = typing___cast(RedvoxPacketM.UnitValue, 18)
+        UNITLESS = typing___cast(RedvoxPacketM.UnitValue, 19)
+        PCM = typing___cast(RedvoxPacketM.UnitValue, 20)
+    UNKNOWN = typing___cast(RedvoxPacketM.UnitValue, 0)
+    METERS_PER_SECOND_SQUARED = typing___cast(RedvoxPacketM.UnitValue, 1)
+    KILOPASCAL = typing___cast(RedvoxPacketM.UnitValue, 2)
+    RADIANS_PER_SECOND = typing___cast(RedvoxPacketM.UnitValue, 3)
+    DECIMAL_DEGREES = typing___cast(RedvoxPacketM.UnitValue, 4)
+    METERS = typing___cast(RedvoxPacketM.UnitValue, 5)
+    METERS_PER_SECOND = typing___cast(RedvoxPacketM.UnitValue, 6)
+    MICROTESLA = typing___cast(RedvoxPacketM.UnitValue, 7)
+    LSB_PLUS_MINUS_COUNTS = typing___cast(RedvoxPacketM.UnitValue, 8)
+    MICROSECONDS_SINCE_UNIX_EPOCH = typing___cast(RedvoxPacketM.UnitValue, 9)
+    DECIBEL = typing___cast(RedvoxPacketM.UnitValue, 10)
+    DEGREES_CELSIUS = typing___cast(RedvoxPacketM.UnitValue, 11)
+    BYTE = typing___cast(RedvoxPacketM.UnitValue, 12)
+    PERCENTAGE = typing___cast(RedvoxPacketM.UnitValue, 13)
+    RADIANS = typing___cast(RedvoxPacketM.UnitValue, 14)
+    MICROAMPERES = typing___cast(RedvoxPacketM.UnitValue, 15)
+    CENTIMETERS = typing___cast(RedvoxPacketM.UnitValue, 16)
+    NORMALIZED_COUNTS = typing___cast(RedvoxPacketM.UnitValue, 17)
+    LUX = typing___cast(RedvoxPacketM.UnitValue, 18)
+    UNITLESS = typing___cast(RedvoxPacketM.UnitValue, 19)
+    PCM = typing___cast(RedvoxPacketM.UnitValue, 20)
     type___Unit = Unit
 
     class MetadataEntry(google___protobuf___message___Message):
@@ -103,12 +103,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
             key : typing___Optional[typing___Text] = None,
             value : typing___Optional[typing___Text] = None,
             ) -> None: ...
-        if sys.version_info >= (3,):
-            @classmethod
-            def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.MetadataEntry: ...
-        else:
-            @classmethod
-            def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.MetadataEntry: ...
         def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
     type___MetadataEntry = MetadataEntry
 
@@ -119,16 +113,18 @@ class RedvoxPacketM(google___protobuf___message___Message):
         OsType: _OsType
         class _OsType(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.StationInformation.OsTypeValue]):
             DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-            ANDROID = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 0)
-            IOS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 1)
-            LINUX = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 2)
-            WINDOWS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 3)
-            UNKNOWN_OS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 4)
-        ANDROID = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 0)
-        IOS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 1)
-        LINUX = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 2)
-        WINDOWS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 3)
-        UNKNOWN_OS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 4)
+            UNKNOWN_OS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 0)
+            ANDROID = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 1)
+            IOS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 2)
+            OSX = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 3)
+            LINUX = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 4)
+            WINDOWS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 5)
+        UNKNOWN_OS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 0)
+        ANDROID = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 1)
+        IOS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 2)
+        OSX = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 3)
+        LINUX = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 4)
+        WINDOWS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 5)
         type___OsType = OsType
 
         class MetadataEntry(google___protobuf___message___Message):
@@ -141,12 +137,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 key : typing___Optional[typing___Text] = None,
                 value : typing___Optional[typing___Text] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.StationInformation.MetadataEntry: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.StationInformation.MetadataEntry: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
         type___MetadataEntry = MetadataEntry
 
@@ -162,12 +152,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                     key : typing___Optional[typing___Text] = None,
                     value : typing___Optional[typing___Text] = None,
                     ) -> None: ...
-                if sys.version_info >= (3,):
-                    @classmethod
-                    def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.StationInformation.ServiceUrls.MetadataEntry: ...
-                else:
-                    @classmethod
-                    def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.StationInformation.ServiceUrls.MetadataEntry: ...
                 def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
             type___MetadataEntry = MetadataEntry
 
@@ -185,12 +169,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 acquisition_server : typing___Optional[typing___Text] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.StationInformation.ServiceUrls: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.StationInformation.ServiceUrls: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"acquisition_server",b"acquisition_server",u"auth_server",b"auth_server",u"metadata",b"metadata",u"synch_server",b"synch_server"]) -> None: ...
         type___ServiceUrls = ServiceUrls
 
@@ -201,12 +179,16 @@ class RedvoxPacketM(google___protobuf___message___Message):
             NetworkType: _NetworkType
             class _NetworkType(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue]):
                 DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-                NO_NETWORK = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 0)
-                WIFI = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 1)
-                CELLULAR = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 2)
-            NO_NETWORK = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 0)
-            WIFI = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 1)
-            CELLULAR = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 2)
+                UNKNOWN_NETWORK = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 0)
+                NO_NETWORK = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 1)
+                WIFI = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 2)
+                CELLULAR = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 3)
+                WIRED = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 4)
+            UNKNOWN_NETWORK = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 0)
+            NO_NETWORK = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 1)
+            WIFI = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 2)
+            CELLULAR = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 3)
+            WIRED = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.NetworkTypeValue, 4)
             type___NetworkType = NetworkType
 
             WifiWakeLockValue = typing___NewType('WifiWakeLockValue', builtin___int)
@@ -246,12 +228,14 @@ class RedvoxPacketM(google___protobuf___message___Message):
             PowerState: _PowerState
             class _PowerState(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue]):
                 DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-                UNPLUGGED = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 0)
-                CHARGING = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 1)
-                CHARGED = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 2)
-            UNPLUGGED = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 0)
-            CHARGING = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 1)
-            CHARGED = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 2)
+                UNKNOWN_POWER_STATE = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 0)
+                UNPLUGGED = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 1)
+                CHARGING = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 2)
+                CHARGED = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 3)
+            UNKNOWN_POWER_STATE = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 0)
+            UNPLUGGED = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 1)
+            CHARGING = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 2)
+            CHARGED = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 3)
             type___PowerState = PowerState
 
             class MetadataEntry(google___protobuf___message___Message):
@@ -264,12 +248,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                     key : typing___Optional[typing___Text] = None,
                     value : typing___Optional[typing___Text] = None,
                     ) -> None: ...
-                if sys.version_info >= (3,):
-                    @classmethod
-                    def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.StationInformation.StationMetrics.MetadataEntry: ...
-                else:
-                    @classmethod
-                    def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.StationInformation.StationMetrics.MetadataEntry: ...
                 def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
             type___MetadataEntry = MetadataEntry
 
@@ -321,12 +299,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 wifi_wake_lock : typing___Optional[type___RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLockValue] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.StationInformation.StationMetrics: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.StationInformation.StationMetrics: ...
             def HasField(self, field_name: typing_extensions___Literal[u"available_disk",b"available_disk",u"available_ram",b"available_ram",u"battery",b"battery",u"battery_current",b"battery_current",u"cpu_utilization",b"cpu_utilization",u"network_strength",b"network_strength",u"temperature",b"temperature",u"timestamps",b"timestamps"]) -> builtin___bool: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"available_disk",b"available_disk",u"available_ram",b"available_ram",u"battery",b"battery",u"battery_current",b"battery_current",u"cell_service_state",b"cell_service_state",u"cpu_utilization",b"cpu_utilization",u"metadata",b"metadata",u"network_strength",b"network_strength",u"network_type",b"network_type",u"power_state",b"power_state",u"temperature",b"temperature",u"timestamps",b"timestamps",u"wifi_wake_lock",b"wifi_wake_lock"]) -> None: ...
         type___StationMetrics = StationMetrics
@@ -338,12 +310,14 @@ class RedvoxPacketM(google___protobuf___message___Message):
             FftOverlap: _FftOverlap
             class _FftOverlap(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue]):
                 DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-                PERCENT_25 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 0)
-                PERCENT_50 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 1)
-                PERCENT_75 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 2)
-            PERCENT_25 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 0)
-            PERCENT_50 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 1)
-            PERCENT_75 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 2)
+                UNKNOWN = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 0)
+                PERCENT_25 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 1)
+                PERCENT_50 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 2)
+                PERCENT_75 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 3)
+            UNKNOWN = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 0)
+            PERCENT_25 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 1)
+            PERCENT_50 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 2)
+            PERCENT_75 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.FftOverlapValue, 3)
             type___FftOverlap = FftOverlap
 
             AudioSamplingRateValue = typing___NewType('AudioSamplingRateValue', builtin___int)
@@ -351,16 +325,18 @@ class RedvoxPacketM(google___protobuf___message___Message):
             AudioSamplingRate: _AudioSamplingRate
             class _AudioSamplingRate(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue]):
                 DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-                HZ_80 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 0)
-                HZ_800 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 1)
-                HZ_8000 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 2)
-                HZ_16000 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 3)
-                HZ_48000 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 4)
-            HZ_80 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 0)
-            HZ_800 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 1)
-            HZ_8000 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 2)
-            HZ_16000 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 3)
-            HZ_48000 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 4)
+                UNKNOWN_SAMPLING_RATE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 0)
+                HZ_80 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 1)
+                HZ_800 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 2)
+                HZ_8000 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 3)
+                HZ_16000 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 4)
+                HZ_48000 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 5)
+            UNKNOWN_SAMPLING_RATE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 0)
+            HZ_80 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 1)
+            HZ_800 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 2)
+            HZ_8000 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 3)
+            HZ_16000 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 4)
+            HZ_48000 = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRateValue, 5)
             type___AudioSamplingRate = AudioSamplingRate
 
             AudioSourceTuningValue = typing___NewType('AudioSourceTuningValue', builtin___int)
@@ -368,12 +344,14 @@ class RedvoxPacketM(google___protobuf___message___Message):
             AudioSourceTuning: _AudioSourceTuning
             class _AudioSourceTuning(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue]):
                 DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-                INFRASOUND_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 0)
-                LOW_AUDIO_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 1)
-                AUDIO_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 2)
-            INFRASOUND_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 0)
-            LOW_AUDIO_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 1)
-            AUDIO_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 2)
+                UNKNOWN_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 0)
+                INFRASOUND_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 1)
+                LOW_AUDIO_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 2)
+                AUDIO_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 3)
+            UNKNOWN_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 0)
+            INFRASOUND_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 1)
+            LOW_AUDIO_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 2)
+            AUDIO_TUNING = typing___cast(RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuningValue, 3)
             type___AudioSourceTuning = AudioSourceTuning
 
             InputSensorValue = typing___NewType('InputSensorValue', builtin___int)
@@ -381,38 +359,40 @@ class RedvoxPacketM(google___protobuf___message___Message):
             InputSensor: _InputSensor
             class _InputSensor(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.StationInformation.AppSettings.InputSensorValue]):
                 DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-                ACCELEROMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 0)
-                AMBIENT_TEMPERATURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 1)
-                AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 2)
-                COMPRESSED_AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 3)
-                GRAVITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 4)
-                GYROSCOPE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 5)
-                IMAGE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 6)
-                LIGHT = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 7)
-                LINEAR_ACCELERATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 8)
-                LOCATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 9)
-                MAGNETOMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 10)
-                ORIENTATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 11)
-                PRESSURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 12)
-                PROXIMITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 13)
-                RELATIVE_HUMIDITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 14)
-                ROTATION_VECTOR = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 15)
-            ACCELEROMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 0)
-            AMBIENT_TEMPERATURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 1)
-            AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 2)
-            COMPRESSED_AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 3)
-            GRAVITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 4)
-            GYROSCOPE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 5)
-            IMAGE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 6)
-            LIGHT = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 7)
-            LINEAR_ACCELERATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 8)
-            LOCATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 9)
-            MAGNETOMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 10)
-            ORIENTATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 11)
-            PRESSURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 12)
-            PROXIMITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 13)
-            RELATIVE_HUMIDITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 14)
-            ROTATION_VECTOR = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 15)
+                UNKNOWN_SENSOR = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 0)
+                ACCELEROMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 1)
+                AMBIENT_TEMPERATURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 2)
+                AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 3)
+                COMPRESSED_AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 4)
+                GRAVITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 5)
+                GYROSCOPE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 6)
+                IMAGE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 7)
+                LIGHT = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 8)
+                LINEAR_ACCELERATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 9)
+                LOCATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 10)
+                MAGNETOMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 11)
+                ORIENTATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 12)
+                PRESSURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 13)
+                PROXIMITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 14)
+                RELATIVE_HUMIDITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 15)
+                ROTATION_VECTOR = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 16)
+            UNKNOWN_SENSOR = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 0)
+            ACCELEROMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 1)
+            AMBIENT_TEMPERATURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 2)
+            AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 3)
+            COMPRESSED_AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 4)
+            GRAVITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 5)
+            GYROSCOPE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 6)
+            IMAGE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 7)
+            LIGHT = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 8)
+            LINEAR_ACCELERATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 9)
+            LOCATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 10)
+            MAGNETOMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 11)
+            ORIENTATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 12)
+            PRESSURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 13)
+            PROXIMITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 14)
+            RELATIVE_HUMIDITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 15)
+            ROTATION_VECTOR = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 16)
             type___InputSensor = InputSensor
 
             class MetadataEntry(google___protobuf___message___Message):
@@ -425,12 +405,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                     key : typing___Optional[typing___Text] = None,
                     value : typing___Optional[typing___Text] = None,
                     ) -> None: ...
-                if sys.version_info >= (3,):
-                    @classmethod
-                    def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.StationInformation.AppSettings.MetadataEntry: ...
-                else:
-                    @classmethod
-                    def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.StationInformation.AppSettings.MetadataEntry: ...
                 def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
             type___MetadataEntry = MetadataEntry
 
@@ -488,17 +462,12 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 use_altitude : typing___Optional[builtin___float] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.StationInformation.AppSettings: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.StationInformation.AppSettings: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"additional_input_sensors",b"additional_input_sensors",u"audio_sampling_rate",b"audio_sampling_rate",u"audio_source_tuning",b"audio_source_tuning",u"auto_delete_data_files",b"auto_delete_data_files",u"automatically_record",b"automatically_record",u"data_server_url",b"data_server_url",u"fft_overlap",b"fft_overlap",u"launch_at_power_up",b"launch_at_power_up",u"metadata",b"metadata",u"provide_backfill",b"provide_backfill",u"publish_data_as_private",b"publish_data_as_private",u"push_to_server",b"push_to_server",u"remove_sensor_dc_offset",b"remove_sensor_dc_offset",u"scramble_audio_data",b"scramble_audio_data",u"station_id",b"station_id",u"storage_space_allowance",b"storage_space_allowance",u"time_sync_server_url",b"time_sync_server_url",u"use_altitude",b"use_altitude",u"use_custom_data_server",b"use_custom_data_server",u"use_custom_time_sync_server",b"use_custom_time_sync_server",u"use_latitude",b"use_latitude",u"use_location_services",b"use_location_services",u"use_longitude",b"use_longitude",u"use_sd_card_for_data_storage",b"use_sd_card_for_data_storage"]) -> None: ...
         type___AppSettings = AppSettings
 
         id: typing___Text = ...
         uuid: typing___Text = ...
+        description: typing___Text = ...
         auth_id: typing___Text = ...
         make: typing___Text = ...
         model: typing___Text = ...
@@ -523,6 +492,7 @@ class RedvoxPacketM(google___protobuf___message___Message):
             *,
             id : typing___Optional[typing___Text] = None,
             uuid : typing___Optional[typing___Text] = None,
+            description : typing___Optional[typing___Text] = None,
             auth_id : typing___Optional[typing___Text] = None,
             make : typing___Optional[typing___Text] = None,
             model : typing___Optional[typing___Text] = None,
@@ -535,14 +505,8 @@ class RedvoxPacketM(google___protobuf___message___Message):
             service_urls : typing___Optional[type___RedvoxPacketM.StationInformation.ServiceUrls] = None,
             metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
             ) -> None: ...
-        if sys.version_info >= (3,):
-            @classmethod
-            def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.StationInformation: ...
-        else:
-            @classmethod
-            def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.StationInformation: ...
         def HasField(self, field_name: typing_extensions___Literal[u"app_settings",b"app_settings",u"service_urls",b"service_urls",u"station_metrics",b"station_metrics"]) -> builtin___bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"app_settings",b"app_settings",u"app_version",b"app_version",u"auth_id",b"auth_id",u"id",b"id",u"is_private",b"is_private",u"make",b"make",u"metadata",b"metadata",u"model",b"model",u"os",b"os",u"os_version",b"os_version",u"service_urls",b"service_urls",u"station_metrics",b"station_metrics",u"uuid",b"uuid"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"app_settings",b"app_settings",u"app_version",b"app_version",u"auth_id",b"auth_id",u"description",b"description",u"id",b"id",u"is_private",b"is_private",u"make",b"make",u"metadata",b"metadata",u"model",b"model",u"os",b"os",u"os_version",b"os_version",u"service_urls",b"service_urls",u"station_metrics",b"station_metrics",u"uuid",b"uuid"]) -> None: ...
     type___StationInformation = StationInformation
 
     class TimingInformation(google___protobuf___message___Message):
@@ -566,12 +530,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 key : typing___Optional[typing___Text] = None,
                 value : typing___Optional[typing___Text] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.TimingInformation.MetadataEntry: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.TimingInformation.MetadataEntry: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
         type___MetadataEntry = MetadataEntry
 
@@ -587,12 +545,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                     key : typing___Optional[typing___Text] = None,
                     value : typing___Optional[typing___Text] = None,
                     ) -> None: ...
-                if sys.version_info >= (3,):
-                    @classmethod
-                    def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.TimingInformation.SynchExchange.MetadataEntry: ...
-                else:
-                    @classmethod
-                    def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.TimingInformation.SynchExchange.MetadataEntry: ...
                 def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
             type___MetadataEntry = MetadataEntry
 
@@ -618,12 +570,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 unit : typing___Optional[type___RedvoxPacketM.UnitValue] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.TimingInformation.SynchExchange: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.TimingInformation.SynchExchange: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"a1",b"a1",u"a2",b"a2",u"a3",b"a3",u"b1",b"b1",u"b2",b"b2",u"b3",b"b3",u"metadata",b"metadata",u"unit",b"unit"]) -> None: ...
         type___SynchExchange = SynchExchange
 
@@ -661,12 +607,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
             unit : typing___Optional[type___RedvoxPacketM.UnitValue] = None,
             metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
             ) -> None: ...
-        if sys.version_info >= (3,):
-            @classmethod
-            def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.TimingInformation: ...
-        else:
-            @classmethod
-            def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.TimingInformation: ...
         def ClearField(self, field_name: typing_extensions___Literal[u"app_start_mach_timestamp",b"app_start_mach_timestamp",u"best_latency",b"best_latency",u"best_offset",b"best_offset",u"metadata",b"metadata",u"packet_end_mach_timestamp",b"packet_end_mach_timestamp",u"packet_end_os_timestamp",b"packet_end_os_timestamp",u"packet_start_mach_timestamp",b"packet_start_mach_timestamp",u"packet_start_os_timestamp",b"packet_start_os_timestamp",u"score",b"score",u"score_method",b"score_method",u"server_acquisition_arrival_timestamp",b"server_acquisition_arrival_timestamp",u"synch_exchanges",b"synch_exchanges",u"unit",b"unit"]) -> None: ...
     type___TimingInformation = TimingInformation
 
@@ -682,12 +622,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 key : typing___Optional[typing___Text] = None,
                 value : typing___Optional[typing___Text] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.MetadataEntry: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.MetadataEntry: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
         type___MetadataEntry = MetadataEntry
 
@@ -703,12 +637,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                     key : typing___Optional[typing___Text] = None,
                     value : typing___Optional[typing___Text] = None,
                     ) -> None: ...
-                if sys.version_info >= (3,):
-                    @classmethod
-                    def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.Audio.MetadataEntry: ...
-                else:
-                    @classmethod
-                    def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.Audio.MetadataEntry: ...
                 def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
             type___MetadataEntry = MetadataEntry
 
@@ -736,12 +664,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 samples : typing___Optional[type___RedvoxPacketM.SamplePayload] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.Audio: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.Audio: ...
             def HasField(self, field_name: typing_extensions___Literal[u"samples",b"samples"]) -> builtin___bool: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"bits_of_precision",b"bits_of_precision",u"encoding",b"encoding",u"first_sample_timestamp",b"first_sample_timestamp",u"is_scrambled",b"is_scrambled",u"metadata",b"metadata",u"sample_rate",b"sample_rate",u"samples",b"samples",u"sensor_description",b"sensor_description"]) -> None: ...
         type___Audio = Audio
@@ -753,8 +675,10 @@ class RedvoxPacketM(google___protobuf___message___Message):
             AudioCodec: _AudioCodec
             class _AudioCodec(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.Sensors.CompressedAudio.AudioCodecValue]):
                 DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-                TODO = typing___cast(RedvoxPacketM.Sensors.CompressedAudio.AudioCodecValue, 0)
-            TODO = typing___cast(RedvoxPacketM.Sensors.CompressedAudio.AudioCodecValue, 0)
+                UNKNOWN = typing___cast(RedvoxPacketM.Sensors.CompressedAudio.AudioCodecValue, 0)
+                FLAC = typing___cast(RedvoxPacketM.Sensors.CompressedAudio.AudioCodecValue, 1)
+            UNKNOWN = typing___cast(RedvoxPacketM.Sensors.CompressedAudio.AudioCodecValue, 0)
+            FLAC = typing___cast(RedvoxPacketM.Sensors.CompressedAudio.AudioCodecValue, 1)
             type___AudioCodec = AudioCodec
 
             class MetadataEntry(google___protobuf___message___Message):
@@ -767,12 +691,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                     key : typing___Optional[typing___Text] = None,
                     value : typing___Optional[typing___Text] = None,
                     ) -> None: ...
-                if sys.version_info >= (3,):
-                    @classmethod
-                    def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.CompressedAudio.MetadataEntry: ...
-                else:
-                    @classmethod
-                    def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.CompressedAudio.MetadataEntry: ...
                 def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
             type___MetadataEntry = MetadataEntry
 
@@ -796,12 +714,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 audio_codec : typing___Optional[type___RedvoxPacketM.Sensors.CompressedAudio.AudioCodecValue] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.CompressedAudio: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.CompressedAudio: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"audio_bytes",b"audio_bytes",u"audio_codec",b"audio_codec",u"first_sample_timestamp",b"first_sample_timestamp",u"is_scrambled",b"is_scrambled",u"metadata",b"metadata",u"sample_rate",b"sample_rate",u"sensor_description",b"sensor_description"]) -> None: ...
         type___CompressedAudio = CompressedAudio
 
@@ -817,12 +729,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                     key : typing___Optional[typing___Text] = None,
                     value : typing___Optional[typing___Text] = None,
                     ) -> None: ...
-                if sys.version_info >= (3,):
-                    @classmethod
-                    def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.Single.MetadataEntry: ...
-                else:
-                    @classmethod
-                    def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.Single.MetadataEntry: ...
                 def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
             type___MetadataEntry = MetadataEntry
 
@@ -844,12 +750,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 samples : typing___Optional[type___RedvoxPacketM.SamplePayload] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.Single: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.Single: ...
             def HasField(self, field_name: typing_extensions___Literal[u"samples",b"samples",u"timestamps",b"timestamps"]) -> builtin___bool: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"metadata",b"metadata",u"samples",b"samples",u"sensor_description",b"sensor_description",u"timestamps",b"timestamps"]) -> None: ...
         type___Single = Single
@@ -861,8 +761,8 @@ class RedvoxPacketM(google___protobuf___message___Message):
             LocationScoreMethod: _LocationScoreMethod
             class _LocationScoreMethod(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.Sensors.Location.LocationScoreMethodValue]):
                 DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-                TODO = typing___cast(RedvoxPacketM.Sensors.Location.LocationScoreMethodValue, 0)
-            TODO = typing___cast(RedvoxPacketM.Sensors.Location.LocationScoreMethodValue, 0)
+                UNKNOWN_METHOD = typing___cast(RedvoxPacketM.Sensors.Location.LocationScoreMethodValue, 0)
+            UNKNOWN_METHOD = typing___cast(RedvoxPacketM.Sensors.Location.LocationScoreMethodValue, 0)
             type___LocationScoreMethod = LocationScoreMethod
 
             LocationProviderValue = typing___NewType('LocationProviderValue', builtin___int)
@@ -870,14 +770,16 @@ class RedvoxPacketM(google___protobuf___message___Message):
             LocationProvider: _LocationProvider
             class _LocationProvider(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.Sensors.Location.LocationProviderValue]):
                 DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-                NONE = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 0)
-                USER = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 1)
-                GPS = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 2)
-                NETWORK = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 3)
-            NONE = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 0)
-            USER = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 1)
-            GPS = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 2)
-            NETWORK = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 3)
+                UNKNOWN = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 0)
+                NONE = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 1)
+                USER = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 2)
+                GPS = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 3)
+                NETWORK = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 4)
+            UNKNOWN = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 0)
+            NONE = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 1)
+            USER = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 2)
+            GPS = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 3)
+            NETWORK = typing___cast(RedvoxPacketM.Sensors.Location.LocationProviderValue, 4)
             type___LocationProvider = LocationProvider
 
             class MetadataEntry(google___protobuf___message___Message):
@@ -890,12 +792,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                     key : typing___Optional[typing___Text] = None,
                     value : typing___Optional[typing___Text] = None,
                     ) -> None: ...
-                if sys.version_info >= (3,):
-                    @classmethod
-                    def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.Location.MetadataEntry: ...
-                else:
-                    @classmethod
-                    def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.Location.MetadataEntry: ...
                 def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
             type___MetadataEntry = MetadataEntry
 
@@ -971,12 +867,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 location_provider : typing___Optional[type___RedvoxPacketM.Sensors.Location.LocationProviderValue] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.Location: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.Location: ...
             def HasField(self, field_name: typing_extensions___Literal[u"altitude_samples",b"altitude_samples",u"bearing_accuracy_samples",b"bearing_accuracy_samples",u"bearing_samples",b"bearing_samples",u"horizontal_accuracy_samples",b"horizontal_accuracy_samples",u"latitude_samples",b"latitude_samples",u"longitude_samples",b"longitude_samples",u"speed_accuracy_samples",b"speed_accuracy_samples",u"speed_samples",b"speed_samples",u"timestamps",b"timestamps",u"vertical_accuracy_samples",b"vertical_accuracy_samples"]) -> builtin___bool: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"altitude_samples",b"altitude_samples",u"bearing_accuracy_samples",b"bearing_accuracy_samples",u"bearing_samples",b"bearing_samples",u"best_altitude",b"best_altitude",u"best_bearing",b"best_bearing",u"best_latitude",b"best_latitude",u"best_longitude",b"best_longitude",u"best_speed",b"best_speed",u"horizontal_accuracy_samples",b"horizontal_accuracy_samples",u"latitude_samples",b"latitude_samples",u"location_permissions_granted",b"location_permissions_granted",u"location_provider",b"location_provider",u"location_score_method",b"location_score_method",u"location_services_enabled",b"location_services_enabled",u"location_services_requested",b"location_services_requested",u"longitude_samples",b"longitude_samples",u"metadata",b"metadata",u"score",b"score",u"sensor_description",b"sensor_description",u"speed_accuracy_samples",b"speed_accuracy_samples",u"speed_samples",b"speed_samples",u"timestamps",b"timestamps",u"vertical_accuracy_samples",b"vertical_accuracy_samples"]) -> None: ...
         type___Location = Location
@@ -993,12 +883,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                     key : typing___Optional[typing___Text] = None,
                     value : typing___Optional[typing___Text] = None,
                     ) -> None: ...
-                if sys.version_info >= (3,):
-                    @classmethod
-                    def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.Xyz.MetadataEntry: ...
-                else:
-                    @classmethod
-                    def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.Xyz.MetadataEntry: ...
                 def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
             type___MetadataEntry = MetadataEntry
 
@@ -1028,12 +912,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 z_samples : typing___Optional[type___RedvoxPacketM.SamplePayload] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.Xyz: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.Xyz: ...
             def HasField(self, field_name: typing_extensions___Literal[u"timestamps",b"timestamps",u"x_samples",b"x_samples",u"y_samples",b"y_samples",u"z_samples",b"z_samples"]) -> builtin___bool: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"metadata",b"metadata",u"sensor_description",b"sensor_description",u"timestamps",b"timestamps",u"x_samples",b"x_samples",u"y_samples",b"y_samples",u"z_samples",b"z_samples"]) -> None: ...
         type___Xyz = Xyz
@@ -1045,12 +923,14 @@ class RedvoxPacketM(google___protobuf___message___Message):
             ImageCodec: _ImageCodec
             class _ImageCodec(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.Sensors.Image.ImageCodecValue]):
                 DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-                PNG = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 0)
-                JPG = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 1)
-                BMP = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 2)
-            PNG = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 0)
-            JPG = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 1)
-            BMP = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 2)
+                UNKNOWN = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 0)
+                PNG = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 1)
+                JPG = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 2)
+                BMP = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 3)
+            UNKNOWN = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 0)
+            PNG = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 1)
+            JPG = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 2)
+            BMP = typing___cast(RedvoxPacketM.Sensors.Image.ImageCodecValue, 3)
             type___ImageCodec = ImageCodec
 
             class MetadataEntry(google___protobuf___message___Message):
@@ -1063,12 +943,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                     key : typing___Optional[typing___Text] = None,
                     value : typing___Optional[typing___Text] = None,
                     ) -> None: ...
-                if sys.version_info >= (3,):
-                    @classmethod
-                    def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.Image.MetadataEntry: ...
-                else:
-                    @classmethod
-                    def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.Image.MetadataEntry: ...
                 def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
             type___MetadataEntry = MetadataEntry
 
@@ -1090,12 +964,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 image_codec : typing___Optional[type___RedvoxPacketM.Sensors.Image.ImageCodecValue] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors.Image: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors.Image: ...
             def HasField(self, field_name: typing_extensions___Literal[u"timestamps",b"timestamps"]) -> builtin___bool: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"image_codec",b"image_codec",u"metadata",b"metadata",u"samples",b"samples",u"sensor_description",b"sensor_description",u"timestamps",b"timestamps"]) -> None: ...
         type___Image = Image
@@ -1172,12 +1040,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
             rotation_vector : typing___Optional[type___RedvoxPacketM.Sensors.Xyz] = None,
             metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
             ) -> None: ...
-        if sys.version_info >= (3,):
-            @classmethod
-            def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.Sensors: ...
-        else:
-            @classmethod
-            def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.Sensors: ...
         def HasField(self, field_name: typing_extensions___Literal[u"accelerometer",b"accelerometer",u"ambient_temperature",b"ambient_temperature",u"audio",b"audio",u"compressed_audio",b"compressed_audio",u"gravity",b"gravity",u"gyroscope",b"gyroscope",u"image",b"image",u"light",b"light",u"linear_acceleration",b"linear_acceleration",u"location",b"location",u"magnetometer",b"magnetometer",u"orientation",b"orientation",u"pressure",b"pressure",u"proximity",b"proximity",u"relative_humidity",b"relative_humidity",u"rotation_vector",b"rotation_vector"]) -> builtin___bool: ...
         def ClearField(self, field_name: typing_extensions___Literal[u"accelerometer",b"accelerometer",u"ambient_temperature",b"ambient_temperature",u"audio",b"audio",u"compressed_audio",b"compressed_audio",u"gravity",b"gravity",u"gyroscope",b"gyroscope",u"image",b"image",u"light",b"light",u"linear_acceleration",b"linear_acceleration",u"location",b"location",u"magnetometer",b"magnetometer",u"metadata",b"metadata",u"orientation",b"orientation",u"pressure",b"pressure",u"proximity",b"proximity",u"relative_humidity",b"relative_humidity",u"rotation_vector",b"rotation_vector"]) -> None: ...
     type___Sensors = Sensors
@@ -1194,12 +1056,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 key : typing___Optional[typing___Text] = None,
                 value : typing___Optional[typing___Text] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.SamplePayload.MetadataEntry: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.SamplePayload.MetadataEntry: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
         type___MetadataEntry = MetadataEntry
 
@@ -1219,12 +1075,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
             value_statistics : typing___Optional[type___RedvoxPacketM.SummaryStatistics] = None,
             metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
             ) -> None: ...
-        if sys.version_info >= (3,):
-            @classmethod
-            def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.SamplePayload: ...
-        else:
-            @classmethod
-            def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.SamplePayload: ...
         def HasField(self, field_name: typing_extensions___Literal[u"value_statistics",b"value_statistics"]) -> builtin___bool: ...
         def ClearField(self, field_name: typing_extensions___Literal[u"metadata",b"metadata",u"unit",b"unit",u"value_statistics",b"value_statistics",u"values",b"values"]) -> None: ...
     type___SamplePayload = SamplePayload
@@ -1241,12 +1091,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 key : typing___Optional[typing___Text] = None,
                 value : typing___Optional[typing___Text] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.TimingPayload.MetadataEntry: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.TimingPayload.MetadataEntry: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
         type___MetadataEntry = MetadataEntry
 
@@ -1270,12 +1114,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
             stdev_sample_rate : typing___Optional[builtin___float] = None,
             metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
             ) -> None: ...
-        if sys.version_info >= (3,):
-            @classmethod
-            def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.TimingPayload: ...
-        else:
-            @classmethod
-            def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.TimingPayload: ...
         def HasField(self, field_name: typing_extensions___Literal[u"timestamp_statistics",b"timestamp_statistics"]) -> builtin___bool: ...
         def ClearField(self, field_name: typing_extensions___Literal[u"mean_sample_rate",b"mean_sample_rate",u"metadata",b"metadata",u"stdev_sample_rate",b"stdev_sample_rate",u"timestamp_statistics",b"timestamp_statistics",u"timestamps",b"timestamps",u"unit",b"unit"]) -> None: ...
     type___TimingPayload = TimingPayload
@@ -1292,20 +1130,12 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 key : typing___Optional[typing___Text] = None,
                 value : typing___Optional[typing___Text] = None,
                 ) -> None: ...
-            if sys.version_info >= (3,):
-                @classmethod
-                def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.SummaryStatistics.MetadataEntry: ...
-            else:
-                @classmethod
-                def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.SummaryStatistics.MetadataEntry: ...
             def ClearField(self, field_name: typing_extensions___Literal[u"key",b"key",u"value",b"value"]) -> None: ...
         type___MetadataEntry = MetadataEntry
 
         count: builtin___float = ...
         mean: builtin___float = ...
-        median: builtin___float = ...
-        mode: builtin___float = ...
-        variance: builtin___float = ...
+        standard_deviation: builtin___float = ...
         min: builtin___float = ...
         max: builtin___float = ...
         range: builtin___float = ...
@@ -1317,21 +1147,13 @@ class RedvoxPacketM(google___protobuf___message___Message):
             *,
             count : typing___Optional[builtin___float] = None,
             mean : typing___Optional[builtin___float] = None,
-            median : typing___Optional[builtin___float] = None,
-            mode : typing___Optional[builtin___float] = None,
-            variance : typing___Optional[builtin___float] = None,
+            standard_deviation : typing___Optional[builtin___float] = None,
             min : typing___Optional[builtin___float] = None,
             max : typing___Optional[builtin___float] = None,
             range : typing___Optional[builtin___float] = None,
             metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
             ) -> None: ...
-        if sys.version_info >= (3,):
-            @classmethod
-            def FromString(cls, s: builtin___bytes) -> RedvoxPacketM.SummaryStatistics: ...
-        else:
-            @classmethod
-            def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM.SummaryStatistics: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"count",b"count",u"max",b"max",u"mean",b"mean",u"median",b"median",u"metadata",b"metadata",u"min",b"min",u"mode",b"mode",u"range",b"range",u"variance",b"variance"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"count",b"count",u"max",b"max",u"mean",b"mean",u"metadata",b"metadata",u"min",b"min",u"range",b"range",u"standard_deviation",b"standard_deviation"]) -> None: ...
     type___SummaryStatistics = SummaryStatistics
 
     api: builtin___float = ...
@@ -1356,12 +1178,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
         sensors : typing___Optional[type___RedvoxPacketM.Sensors] = None,
         metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
         ) -> None: ...
-    if sys.version_info >= (3,):
-        @classmethod
-        def FromString(cls, s: builtin___bytes) -> RedvoxPacketM: ...
-    else:
-        @classmethod
-        def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> RedvoxPacketM: ...
     def HasField(self, field_name: typing_extensions___Literal[u"sensors",b"sensors",u"station_information",b"station_information",u"timing_information",b"timing_information"]) -> builtin___bool: ...
     def ClearField(self, field_name: typing_extensions___Literal[u"api",b"api",u"metadata",b"metadata",u"sensors",b"sensors",u"station_information",b"station_information",u"timing_information",b"timing_information"]) -> None: ...
 type___RedvoxPacketM = RedvoxPacketM
@@ -1384,12 +1200,6 @@ class EncryptedRedvoxPacketM(google___protobuf___message___Message):
             firebase_token : typing___Optional[typing___Text] = None,
             auth_email : typing___Optional[typing___Text] = None,
             ) -> None: ...
-        if sys.version_info >= (3,):
-            @classmethod
-            def FromString(cls, s: builtin___bytes) -> EncryptedRedvoxPacketM.Header: ...
-        else:
-            @classmethod
-            def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> EncryptedRedvoxPacketM.Header: ...
         def ClearField(self, field_name: typing_extensions___Literal[u"auth_email",b"auth_email",u"auth_token",b"auth_token",u"firebase_token",b"firebase_token",u"station_id",b"station_id",u"station_uuid",b"station_uuid"]) -> None: ...
     type___Header = Header
 
@@ -1401,12 +1211,6 @@ class EncryptedRedvoxPacketM(google___protobuf___message___Message):
         header : typing___Optional[builtin___bytes] = None,
         packet : typing___Optional[builtin___bytes] = None,
         ) -> None: ...
-    if sys.version_info >= (3,):
-        @classmethod
-        def FromString(cls, s: builtin___bytes) -> EncryptedRedvoxPacketM: ...
-    else:
-        @classmethod
-        def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> EncryptedRedvoxPacketM: ...
     def ClearField(self, field_name: typing_extensions___Literal[u"header",b"header",u"packet",b"packet"]) -> None: ...
 type___EncryptedRedvoxPacketM = EncryptedRedvoxPacketM
 
@@ -1426,12 +1230,6 @@ class AcquisitionRequest(google___protobuf___message___Message):
         is_encrypted : typing___Optional[builtin___bool] = None,
         payload : typing___Optional[builtin___bytes] = None,
         ) -> None: ...
-    if sys.version_info >= (3,):
-        @classmethod
-        def FromString(cls, s: builtin___bytes) -> AcquisitionRequest: ...
-    else:
-        @classmethod
-        def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> AcquisitionRequest: ...
     def ClearField(self, field_name: typing_extensions___Literal[u"auth_token",b"auth_token",u"checksum",b"checksum",u"firebase_token",b"firebase_token",u"is_encrypted",b"is_encrypted",u"payload",b"payload"]) -> None: ...
 type___AcquisitionRequest = AcquisitionRequest
 
@@ -1442,14 +1240,16 @@ class AcquisitionResponse(google___protobuf___message___Message):
     ResponseType: _ResponseType
     class _ResponseType(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[AcquisitionResponse.ResponseTypeValue]):
         DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
-        OK = typing___cast(AcquisitionResponse.ResponseTypeValue, 0)
-        AUTH_ERROR = typing___cast(AcquisitionResponse.ResponseTypeValue, 1)
-        DATA_ERROR = typing___cast(AcquisitionResponse.ResponseTypeValue, 2)
-        OTHER_ERROR = typing___cast(AcquisitionResponse.ResponseTypeValue, 3)
-    OK = typing___cast(AcquisitionResponse.ResponseTypeValue, 0)
-    AUTH_ERROR = typing___cast(AcquisitionResponse.ResponseTypeValue, 1)
-    DATA_ERROR = typing___cast(AcquisitionResponse.ResponseTypeValue, 2)
-    OTHER_ERROR = typing___cast(AcquisitionResponse.ResponseTypeValue, 3)
+        UNKNOWN = typing___cast(AcquisitionResponse.ResponseTypeValue, 0)
+        OK = typing___cast(AcquisitionResponse.ResponseTypeValue, 1)
+        AUTH_ERROR = typing___cast(AcquisitionResponse.ResponseTypeValue, 2)
+        DATA_ERROR = typing___cast(AcquisitionResponse.ResponseTypeValue, 3)
+        OTHER_ERROR = typing___cast(AcquisitionResponse.ResponseTypeValue, 4)
+    UNKNOWN = typing___cast(AcquisitionResponse.ResponseTypeValue, 0)
+    OK = typing___cast(AcquisitionResponse.ResponseTypeValue, 1)
+    AUTH_ERROR = typing___cast(AcquisitionResponse.ResponseTypeValue, 2)
+    DATA_ERROR = typing___cast(AcquisitionResponse.ResponseTypeValue, 3)
+    OTHER_ERROR = typing___cast(AcquisitionResponse.ResponseTypeValue, 4)
     type___ResponseType = ResponseType
 
     response_type: type___AcquisitionResponse.ResponseTypeValue = ...
@@ -1464,12 +1264,6 @@ class AcquisitionResponse(google___protobuf___message___Message):
         details : typing___Optional[typing___Text] = None,
         resend : typing___Optional[builtin___bool] = None,
         ) -> None: ...
-    if sys.version_info >= (3,):
-        @classmethod
-        def FromString(cls, s: builtin___bytes) -> AcquisitionResponse: ...
-    else:
-        @classmethod
-        def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> AcquisitionResponse: ...
     def ClearField(self, field_name: typing_extensions___Literal[u"checksum",b"checksum",u"details",b"details",u"resend",b"resend",u"response_type",b"response_type"]) -> None: ...
 type___AcquisitionResponse = AcquisitionResponse
 
@@ -1487,12 +1281,6 @@ class SynchRequest(google___protobuf___message___Message):
         seq_id : typing___Optional[builtin___int] = None,
         sub_seq_id : typing___Optional[builtin___int] = None,
         ) -> None: ...
-    if sys.version_info >= (3,):
-        @classmethod
-        def FromString(cls, s: builtin___bytes) -> SynchRequest: ...
-    else:
-        @classmethod
-        def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> SynchRequest: ...
     def ClearField(self, field_name: typing_extensions___Literal[u"seq_id",b"seq_id",u"station_id",b"station_id",u"station_uuid",b"station_uuid",u"sub_seq_id",b"sub_seq_id"]) -> None: ...
 type___SynchRequest = SynchRequest
 
@@ -1514,11 +1302,5 @@ class SynchResponse(google___protobuf___message___Message):
         recv_ts_us : typing___Optional[builtin___int] = None,
         send_ts_us : typing___Optional[builtin___int] = None,
         ) -> None: ...
-    if sys.version_info >= (3,):
-        @classmethod
-        def FromString(cls, s: builtin___bytes) -> SynchResponse: ...
-    else:
-        @classmethod
-        def FromString(cls, s: typing___Union[builtin___bytes, builtin___buffer, builtin___unicode]) -> SynchResponse: ...
     def ClearField(self, field_name: typing_extensions___Literal[u"recv_ts_us",b"recv_ts_us",u"send_ts_us",b"send_ts_us",u"seq_id",b"seq_id",u"station_id",b"station_id",u"station_uuid",b"station_uuid",u"sub_seq_id",b"sub_seq_id"]) -> None: ...
 type___SynchResponse = SynchResponse
