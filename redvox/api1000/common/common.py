@@ -150,9 +150,7 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
 
         self._proto.count = len(values)
         self._proto.mean = values.mean()
-        self._proto.median = np.median(values)
-        self._proto.mode = scipy.stats.mode(values)[0]
-        self._proto.variance = values.var()
+        self._proto.standard_deviation = values.std()
         # noinspection PyArgumentList
         self._proto.min = values.min()
         # noinspection PyArgumentList

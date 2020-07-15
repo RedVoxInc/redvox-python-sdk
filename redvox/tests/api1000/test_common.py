@@ -269,32 +269,15 @@ class TestSummaryStatistics(unittest.TestCase):
         zero_mean = self.empty_stats.get_mean()
         self.assertEqual(zero_mean, 100)
 
-    def test_get_set_median(self):
-        median = self.non_empty_stats.get_median()
-        self.assertEqual(median, 25)
-        zero_median = self.empty_stats.get_median()
-        self.assertEqual(zero_median, 0)
-        self.empty_stats.set_median(100)
-        zero_median = self.empty_stats.get_median()
-        self.assertEqual(zero_median, 100)
-
-    def test_get_set_mode(self):
-        mode = self.non_empty_stats.get_mode()
-        self.assertEqual(mode, 10)
-        zero_mode = self.empty_stats.get_mode()
-        self.assertEqual(zero_mode, 0)
-        self.empty_stats.set_mode(100)
-        zero_mode = self.empty_stats.get_mode()
-        self.assertEqual(zero_mode, 100)
-
-    def test_get_set_variance(self):
-        variance = self.non_empty_stats.get_variance()
-        self.assertEqual(variance, 125)
-        zero_variance = self.empty_stats.get_variance()
-        self.assertEqual(zero_variance, 0)
-        self.empty_stats.set_variance(100)
-        zero_variance = self.empty_stats.get_variance()
-        self.assertEqual(zero_variance, 100)
+    # TODO: Redo with standard deviation instead
+    # def test_get_set_variance(self):
+    #     variance = self.non_empty_stats.get_variance()
+    #     self.assertEqual(variance, 125)
+    #     zero_variance = self.empty_stats.get_variance()
+    #     self.assertEqual(zero_variance, 0)
+    #     self.empty_stats.set_variance(100)
+    #     zero_variance = self.empty_stats.get_variance()
+    #     self.assertEqual(zero_variance, 100)
 
     def test_get_set_min(self):
         min_val = self.non_empty_stats.get_min()
