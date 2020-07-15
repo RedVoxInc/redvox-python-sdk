@@ -110,7 +110,7 @@ def validate_synch_exchange(sync: SynchExchange) -> List[str]:
 
 
 class TimingScoreMethod(enum.Enum):
-    UNKNOWN = 0
+    UNKNOWN: int = 0
 
     @staticmethod
     def from_proto(
