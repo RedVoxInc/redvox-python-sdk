@@ -12,6 +12,8 @@ API documentation: https://redvoxhi.bitbucket.io/redvox-sdk/v2.2.0/api_docs/redv
 
 # First, we import the RedVox API 900 reader.
 from redvox.api900 import reader
+import redvox
+print(redvox.version())
 
 # Now, let's load both a .rdvxz file
 wrapped_packet = reader.read_rdvxz_file("example_data/example.rdvxz")
