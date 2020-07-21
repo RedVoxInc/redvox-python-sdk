@@ -8,6 +8,14 @@ See: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/
 
 ## Changelog
 
+### 2.9.12 (2020-07-17)
+
+* Add support for 16 kHz audio streams
+
+### 2.9.11 (2020-07-07)
+
+* Fix bug where reading data that spanned across several days would leave out data towards end of time window
+
 ### 2.9.10 (2020-06-25)
 
 * Authentication responses not return a copy of the claims for convenience
