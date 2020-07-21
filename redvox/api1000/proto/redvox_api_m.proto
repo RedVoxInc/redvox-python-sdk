@@ -275,8 +275,8 @@ message RedvoxPacketM {
         message Location {
             string sensor_description = 1;      // The name or description of the sensor
             TimingPayload timestamps = 2;       // Timestamps and stats
-            SamplePayload latitude_samples = 3; // A list of latitude samples
-            SamplePayload longitude_samples = 4;// A list of longitude samples
+            DoubleSamplePayload latitude_samples = 3; // A list of latitude samples
+            DoubleSamplePayload longitude_samples = 4;// A list of longitude samples
             SamplePayload altitude_samples = 5; // A list of altitude samples
             SamplePayload speed_samples = 6;    // A list of speed samples
             SamplePayload bearing_samples = 7;  // A list of bearing samples
@@ -285,8 +285,8 @@ message RedvoxPacketM {
             SamplePayload speed_accuracy_samples = 10;      // A list of speed accuracy samples
             SamplePayload bearing_accuracy_samples = 11;    // A list of bearing accuracy samples
 
-            float best_latitude = 14;   // The best latitude
-            float best_longitude = 15;  // The best longitude
+            double best_latitude = 14;   // The best latitude
+            double best_longitude = 15;  // The best longitude
             float best_altitude = 16;   // The best altitude
             float best_speed = 17;      // The nest speed
             float best_bearing = 18;    // The best bearing
@@ -297,7 +297,7 @@ message RedvoxPacketM {
             bool location_permissions_granted = 21;     // Have location permissions been granted by the user?
             bool location_services_requested = 22;      // Has location services been requested by the user?
             bool location_services_enabled = 23;        // Are location services enabled and working?
-            LocationProvider location_provider = 24;    // Location provider enumeration
+            repeated LocationProvider location_provider = 24;    // Location provider enumeration
 
             map<string, string> metadata = 25; // A map from string to string for including untyped metadata
 
@@ -351,6 +351,13 @@ message RedvoxPacketM {
     message SamplePayload {
         Unit unit = 1;                          // Unit of payload values
         repeated float values = 2;              // Values in payload
+        SummaryStatistics value_statistics = 3; // Statistics of stored values
+        map<string, string> metadata = 4;       // A map from string to string for including untyped metadata
+    }
+
+    message DoubleSamplePayload {
+        Unit unit = 1;                          // Unit of payload values
+        repeated double values = 2;              // Values in payload
         SummaryStatistics value_statistics = 3; // Statistics of stored values
         map<string, string> metadata = 4;       // A map from string to string for including untyped metadata
     }
