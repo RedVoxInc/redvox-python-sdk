@@ -46,7 +46,7 @@ class PacketExplorer(QTreeWidget):
         return values_item
 
     def make_sample_payload_item(self, sensor_type: str, sample_payload: SamplePayload) -> QTreeWidgetItem:
-        sample_payload_item: QTreeWidgetItem = QTreeWidgetItem(["sample_payload"])
+        sample_payload_item: QTreeWidgetItem = QTreeWidgetItem([f"<{sensor_type}> sample_payload"])
         sample_payload_item.addChildren([
             QTreeWidgetItem(["unit", sample_payload.get_unit().name]),
             self.make_values_item(sensor_type, sample_payload.get_values_count()),
@@ -89,7 +89,7 @@ class PacketExplorer(QTreeWidget):
             QTreeWidgetItem(["scramble_audio_data", str(app_settings.get_scramble_audio_data())]),
             QTreeWidgetItem(["provide_backfill", str(app_settings.get_provide_backfill())]),
             QTreeWidgetItem(["remove_sensor_dc_offset", str(app_settings.get_remove_sensor_dc_offset())]),
-            QTreeWidgetItem(["fft_overlap", str(app_settings.get_fft_overlap())]),
+            QTreeWidgetItem(["fft_overlap", str(app_settings.get_fft_overlap().name)]),
             QTreeWidgetItem(["use_custom_time_sync_server", str(app_settings.get_use_custom_time_sync_server())]),
             QTreeWidgetItem(["time_sync_server_url", app_settings.get_time_sync_server_url()]),
             QTreeWidgetItem(["use_custom_data_server", str(app_settings.get_use_custom_data_server())]),
@@ -107,7 +107,13 @@ class PacketExplorer(QTreeWidget):
         station_metrics_item: QTreeWidgetItem = QTreeWidgetItem(["station_metrics"])
         station_metrics = station_info.get_station_metrics()
         station_metrics_item.addChildren([
-
+            self.make_sample_payload_item("network_strength", station_metrics.get_network_strength()),
+            self.make_sample_payload_item("temperature", station_metrics.get_temperature()),
+            self.make_sample_payload_item("battery", station_metrics.get_battery()),
+            self.make_sample_payload_item("battery_current", station_metrics.get_battery_current()),
+            self.make_sample_payload_item("available_ram", station_metrics.get_available_ram()),
+            self.make_sample_payload_item("available_disk", station_metrics.get_available_disk()),
+            self.make_sample_payload_item("cpu_utilization", station_metrics.get_cpu_utilization()),
         ])
 
         service_urls_item: QTreeWidgetItem = QTreeWidgetItem(["service_urls"])
@@ -123,6 +129,7 @@ class PacketExplorer(QTreeWidget):
         station_info_item.addChildren([
             QTreeWidgetItem(["id", station_info.get_id()]),
             QTreeWidgetItem(["uuid", station_info.get_uuid()]),
+            QTreeWidgetItem(["description", station_info.get_description()]),
             QTreeWidgetItem(["auth_id", station_info.get_auth_id()]),
             QTreeWidgetItem(["make", station_info.get_make()]),
             QTreeWidgetItem(["model", station_info.get_model()]),
