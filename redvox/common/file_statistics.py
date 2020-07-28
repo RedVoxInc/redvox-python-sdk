@@ -11,7 +11,7 @@ BASE_NUMBER_POINTS: int = 4096  # the number of points to sample at the first sa
 NUM_POINTS_FACTOR: int = 2**3  # the multiplier of points per increased sample rate
 
 # total multiplier of base number of points, 1 multiplier per sample rate
-POINTS_FACTOR_ARRAY: np.ndarray = np.array([1, NUM_POINTS_FACTOR, NUM_POINTS_FACTOR**2, NUM_POINTS_FACTOR**2])
+POINTS_FACTOR_ARRAY: np.ndarray = np.array([1, NUM_POINTS_FACTOR, NUM_POINTS_FACTOR**2, 2*NUM_POINTS_FACTOR**2])
 
 # total number of points per sample rate
 DURATION_TOTAL_POINTS: np.ndarray = np.array(POINTS_FACTOR_ARRAY * BASE_NUMBER_POINTS)
