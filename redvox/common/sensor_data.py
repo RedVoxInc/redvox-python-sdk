@@ -68,7 +68,7 @@ class TimingData:
         best_latency: optional float, best latency of data
         best_offset: optional int, best offset of data
     """
-    start_timestamp: int
+    station_start_timestamp: int
     server_timestamp: int
     app_start_timestamp: int
     app_end_timestamp: int
