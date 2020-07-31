@@ -19,17 +19,23 @@ class SensorDataTest(unittest.TestCase):
         timestamps = range(data_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc(),
                            data_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc() +
                            t_s_step*num_samples, t_s_step)
-        test_sensor = sd.SensorData(data_packet.microphone_sensor().sensor_name(), samp_rate, True,
+        test_sensor = sd.SensorData(data_packet.microphone_sensor().sensor_name(),
                                     pd.DataFrame(np.transpose(data_packet.microphone_sensor().payload_values()),
-                                                 index=timestamps, columns=["mic_value"]))
-        test_timing = sd.TimingData(data_packet.mach_time_zero(), data_packet.server_timestamp_epoch_microseconds_utc(),
+                                                 index=timestamps, columns=["mic_value"]), samp_rate, True)
+        test_packet = sd.DataPacket(data_packet.server_timestamp_epoch_microseconds_utc(),
+                                    {sd.SensorType.AUDIO: test_sensor},
                                     data_packet.app_file_start_timestamp_epoch_microseconds_utc(),
-                                    timestamps[-1], data_packet.time_synchronization_sensor().payload_values())
-        test_metadata = sd.SensorMetadata(data_packet.redvox_id(), data_packet.device_make(),
-                                          data_packet.device_model(), data_packet.device_os(),
-                                          data_packet.device_os_version(), "redvox", data_packet.app_version())
-        test_object = sd.Station(test_metadata, test_timing,
-                                 {sd.SensorType.AUDIO: test_sensor})
-        test_timesync = ts.TimeSyncData(test_object)
-        self.assertEqual(test_object.sensor_data_dict[sd.SensorType.AUDIO].num_samples(), 4096)
+                                    timestamps[-1], data_packet.time_synchronization_sensor().payload_values(),
+                                    data_packet.best_latency(), data_packet.best_offset())
+        test_timing = sd.StationTiming(data_packet.mach_time_zero(),
+                                       data_packet.app_file_start_timestamp_epoch_microseconds_utc(),
+                                       timestamps[-1], samp_rate, data_packet.best_latency(), data_packet.best_offset())
+        test_metadata = sd.StationMetadata(data_packet.redvox_id(), data_packet.device_make(),
+                                           data_packet.device_model(), data_packet.device_os(),
+                                           data_packet.device_os_version(), "redvox", data_packet.app_version(),
+                                           test_timing)
+        test_object = sd.Station(test_metadata,
+                                 {data_packet.app_file_start_timestamp_epoch_microseconds_utc(): test_packet})
+        test_timesync = ts.TimeSyncData(test_packet, test_metadata)
+        self.assertEqual(test_packet.sensor_data_dict[sd.SensorType.AUDIO].num_samples(), 4096)
         self.assertEqual(test_timesync.num_tri_messages(), 8)

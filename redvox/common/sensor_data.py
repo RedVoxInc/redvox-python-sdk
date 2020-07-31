@@ -36,14 +36,14 @@ class SensorData:
     Generic SensorData class for API-independent analysis
     Properties:
         name: string, name of sensor
+        data_df: dataframe of the sensor data; timestamps are the index, columns are the data fields
         sample_rate: float, sample rate of the sensor
         is_sample_rate_fixed: bool, True if sample rate is constant
-        data_df: dataframe of the sensor data; timestamps are the index, columns are the data fields
     """
     name: str
-    sample_rate: float
-    is_sample_rate_fixed: bool
     data_df: pd.DataFrame
+    sample_rate: float = 1.0
+    is_sample_rate_fixed: bool = False
 
     def sensor_timestamps(self) -> List[str]:
         return self.data_df.index.to_list()
@@ -56,31 +56,51 @@ class SensorData:
 
 
 @dataclass
-class TimingData:
+class DataPacket:
     """
-    Generic TimingData class for API-independent analysis
+    Generic DataPacket class for API-independent analysis
     Properties:
-        start_timestamp: int, timestamp when station started recording
-        server_timestamp: int, timestamp of when data was received at server
-        app_start_timestamp: int, timestamp of when data packet/segment started
-        app_end_timestamp: int, timestamp of when data packet/segment ended
-        timesync: np.ndarray, time synchronization object
-        best_latency: optional float, best latency of data
-        best_offset: optional int, best offset of data
+        server_timestamp: int, server timestamp of when data was received by the server
+        sensor_data_dict: dict, all SensorData associated with this sensor; keys are SensorData.name
+        packet_start_timestamp: int, machine timestamp of the start of the packet
+        packet_end_timestamp: int, machine timestamp of the end of the packet
+        timesync: np.array of of timesync data
+        packet_best_latency: optional float, best latency of data
+        packet_best_offset: optional int, best offset of data
     """
-    station_start_timestamp: int
     server_timestamp: int
-    app_start_timestamp: int
-    app_end_timestamp: int
-    timesync: np.ndarray
-    best_latency: Optional[float] = None
-    best_offset: Optional[int] = None
+    sensor_data_dict: Dict[SensorType, SensorData] = field(default_factory=dict)
+    packet_start_timestamp: int = 0
+    packet_end_timestamp: int = 1
+    timesync: np.array = np.zeros(0)
+    packet_best_latency: Optional[float] = None
+    packet_best_offset: Optional[int] = 0
 
 
 @dataclass
-class SensorMetadata:
+class StationTiming:
     """
-    Generic SensorMetadata class for API-independent analysis
+    Generic StationTiming class for API-independent analysis
+    Properties:
+        start_timestamp: int, timestamp when station started recording
+        episode_start_timestamp: int, timestamp of start of segment of interest
+        episode_end_timestamp: int, timestamp of end of segment of interest
+        audio_sample_rate_hz: int, sample rate in hz of audio sensor
+        station_best_latency: optional float, best latency of data
+        station_best_offset: optional int, best offset of data
+    """
+    station_start_timestamp: int
+    episode_start_timestamp: int
+    episode_end_timestamp: int
+    audio_sample_rate_hz: float
+    station_best_latency: Optional[float] = None
+    station_best_offset: Optional[int] = 0
+
+
+@dataclass
+class StationMetadata:
+    """
+    Generic StationMetadata class for API-independent analysis
     Properties:
         station_id: str, id of the station
         station_make: str, maker of the station
@@ -89,6 +109,7 @@ class SensorMetadata:
         station_os_version: str, station OS version
         station_app: str, the name of the recording software used by the station
         station_app_version: str, the recording software version
+        station_timing: StationTiming metadata
     """
     station_id: str
     station_make: str
@@ -97,6 +118,7 @@ class SensorMetadata:
     station_os_version: str
     station_app: str
     station_app_version: str
+    timing_data: StationTiming
 
 
 @dataclass
@@ -104,10 +126,9 @@ class Station:
     """
     generic station for api-independent stuff
     Properties:
-        sensor_data_dict: dict, all SensorData associated with this sensor; keys are SensorData.name
-        sensor_metadata: SensorMetadata
+        station_metadata: StationMetadata
+        station_data: dict, all DataPackets associated with this station; keys are packet_start_timestamp of DataPacket
     """
-    sensor_metadata: SensorMetadata
-    timing_data: TimingData
-    sensor_data_dict: Dict[SensorType, SensorData] = field(default_factory=dict)
+    station_metadata: StationMetadata
+    sensor_data_dict: Dict[int, DataPacket] = field(default_factory=dict)
 

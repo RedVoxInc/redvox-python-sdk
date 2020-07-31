@@ -13,28 +13,29 @@ from redvox.api900 import reader
 
 
 def load_api_900_data(wrapped_packets: List[reader.WrappedRedvoxPacket]) -> ts.TimeSyncAnalysis:
-    analysis = ts.TimeSyncAnalysis(wrapped_packets[0].redvox_id(),
-                                   sample_rate_hz=wrapped_packets[0].microphone_sensor().sample_rate_hz(),
-                                   station_start_timestamp=wrapped_packets[0].mach_time_zero())
+    data_packets = {}
+    sample_rate = wrapped_packets[0].microphone_sensor().sample_rate_hz()
+    start_ts = wrapped_packets[0].microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()
     for packet in wrapped_packets:
-        sample_rate = packet.microphone_sensor().sample_rate_hz()
-        mic_sensor = sd.SensorData(packet.microphone_sensor().sensor_name(), sample_rate, True,
-                                   pd.DataFrame(packet.microphone_sensor().payload_values()))
-        station_timing = sd.TimingData(packet.mach_time_zero(),
-                                       packet.server_timestamp_epoch_microseconds_utc(),
-                                       packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc(),
-                                       int(packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc() +
-                                       dtu.seconds_to_microseconds(fs.get_duration_seconds_from_sample_rate(sample_rate)
-                                                                   )),
-                                       packet.time_synchronization_sensor().payload_values(),
-                                       packet.best_latency(), packet.best_offset())
-        station_metadata = sd.SensorMetadata(packet.redvox_id(), packet.device_make(), packet.device_model(),
-                                             packet.device_os(), packet.device_os_version(), "redvox",
-                                             packet.app_version())
-        station = sd.Station(station_metadata, station_timing, {sd.SensorType.AUDIO: mic_sensor})
-        ts_data = ts.TimeSyncData(station)
-        analysis.add_timesync_data(ts_data)
-    return analysis
+        mic_sensor = sd.SensorData(packet.microphone_sensor().sensor_name(),
+                                   pd.DataFrame(packet.microphone_sensor().payload_values()), sample_rate, True)
+        data_pack = sd.DataPacket(packet.server_timestamp_epoch_microseconds_utc(), {sd.SensorType.AUDIO: mic_sensor},
+                                  start_ts, int(start_ts +
+                                                dtu.seconds_to_microseconds(fs.get_duration_seconds_from_sample_rate(
+                                                    sample_rate))),
+                                  packet.time_synchronization_sensor().payload_values(),
+                                  packet.best_latency(), packet.best_offset())
+        data_packets[packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()] = data_pack
+    station_timing = sd.StationTiming(
+        wrapped_packets[0].mach_time_zero(),
+        start_ts, int(start_ts + dtu.seconds_to_microseconds(fs.get_duration_seconds_from_sample_rate(sample_rate))),
+        sample_rate, wrapped_packets[0].best_latency(), wrapped_packets[0].best_offset())
+    station_metadata = sd.StationMetadata(wrapped_packets[0].redvox_id(), wrapped_packets[0].device_make(),
+                                          wrapped_packets[0].device_model(), wrapped_packets[0].device_os(),
+                                          wrapped_packets[0].device_os_version(), "redvox",
+                                          wrapped_packets[0].app_version(), station_timing)
+    station = sd.Station(station_metadata, data_packets)
+    return ts.TimeSyncAnalysis(station)
 
 
 class TimesyncTest(unittest.TestCase):
@@ -59,10 +60,12 @@ class TimesyncTest(unittest.TestCase):
         other_ts = ts.TimeSyncData()
         other_ts.station_id = "test"
         other_ts.sample_rate_hz = 80.0
-        tsa_test = ts.TimeSyncAnalysis("test")
+        tsa_test = ts.TimeSyncAnalysis()
+        tsa_test.station_id = "test"
         tsa_test.timesync_data = [test_ts, other_ts]
         tsa_test.sample_rate_hz = 80.0
         tsa_test.station_start_timestamp = 1
+        # there should be a warning message
         self.assertFalse(ts.validate_sensors(tsa_test))
 
     def test_get_time_sync_data(self):
@@ -112,6 +115,7 @@ class TimesyncTest(unittest.TestCase):
         tsd_one.packet_start_time = 1000000
         tsd_one.best_latency = 2
         tsd_one.sample_rate_hz = 2
+        tsd_one.station_start_timestamp = 0
         tsd_two = ts.TimeSyncData()
         tsd_two.packet_start_time = 4000000
         tsd_two.best_latency = 1
@@ -124,8 +128,11 @@ class TimesyncTest(unittest.TestCase):
         tsd_for.packet_start_time = 13000000
         tsd_for.best_latency = 2
         tsd_for.sample_rate_hz = 2
-        tsa_one = ts.TimeSyncAnalysis("test_station", [tsd_one, tsd_two, tsd_thr, tsd_for],
-                                      best_latency_index=1, sample_rate_hz=2)
+        tsa_one = ts.TimeSyncAnalysis()
+        tsa_one.station_id = "test_station"
+        tsa_one.timesync_data = [tsd_one, tsd_two, tsd_thr, tsd_for]
+        tsa_one.best_latency_index = 1
+        tsa_one.sample_rate_hz = 2
         file_samples = 10  # 10 samples per file
         correct_time_array_sec = ts.update_evenly_sampled_time_array(tsa_one, file_samples)
 

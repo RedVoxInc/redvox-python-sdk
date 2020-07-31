@@ -459,9 +459,9 @@ def sync_packet_time_900(wrapped_packets_fs: list, verbose: bool = False):
     for packet in wrapped_packets_fs:
         if packet.has_time_synchronization_sensor():
             # set the best latency and offset based on the packet's metadata
-            if packet.best_latency() is not None and packet.best_offset() is not None:
-                latencies.append(packet.best_latency())
-                offsets.append(packet.best_offset())
+            if packet.station_best_latency() is not None and packet.station_best_offset() is not None:
+                latencies.append(packet.station_best_latency())
+                offsets.append(packet.station_best_offset())
             else:
                 # metadata not set, use packet contents
                 timesync_channel = packet.time_synchronization_sensor()

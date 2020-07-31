@@ -40,16 +40,18 @@ class TimeSyncData:
         acquire_travel_time: int, calculated time it took packet to reach server
     """
 
-    def __init__(self, station: sd.Station = None):
+    def __init__(self, data_pack: sd.DataPacket = None, station: sd.StationMetadata = None):
         """
         Initialize properties
-        :param station: station data
+        :param data_pack: data packet
+        :param station: station metadata
         """
         self.best_latency: Optional[float] = None
         if station is None:
             self.station_id: Optional[str] = None
-            self.sample_rate_hz: Optional[float] = None
             self.station_start_timestamp: Optional[int] = None
+        if data_pack is None:
+            self.sample_rate_hz: Optional[float] = None
             self.server_acquisition_time: Optional[int] = None
             self.packet_start_time: Optional[int] = None
             self.packet_end_time: Optional[int] = None
@@ -68,27 +70,28 @@ class TimeSyncData:
             # self.num_packets: int = 0
             # self.bad_packets: List[int] = []
         else:
-            self.get_time_sync_data(station)
+            self.get_timesync_data(data_pack, station)
 
-    def get_time_sync_data(self, station: sd.Station):
+    def get_timesync_data(self, data_pack: sd.DataPacket, station: sd.StationMetadata):
         """
-        extracts the time sync data from the station data object
-        :param station: the station to get data from
+        extracts the time sync data from the data_pack object
+        :param data_pack: data packet to get data from
+        :param station: station metadata
         """
-        self.station_id = station.sensor_metadata.station_id
-        self.sample_rate_hz = station.sensor_data_dict[sd.SensorType.AUDIO].sample_rate
+        self.station_id = station.station_id
+        self.sample_rate_hz = data_pack.sensor_data_dict[sd.SensorType.AUDIO].sample_rate
         self.station_start_timestamp = station.timing_data.station_start_timestamp
-        self.server_acquisition_time = station.timing_data.server_timestamp
-        self.packet_start_time = station.timing_data.app_start_timestamp
-        self.packet_end_time = station.timing_data.app_end_timestamp
+        self.server_acquisition_time = data_pack.server_timestamp
+        self.packet_start_time = data_pack.packet_start_timestamp
+        self.packet_end_time = data_pack.packet_end_timestamp
         self.time_sync_exchanges_df = pd.DataFrame(
-            tms.transmit_receive_timestamps_microsec(station.timing_data.timesync),
+            tms.transmit_receive_timestamps_microsec(data_pack.timesync),
             index=["a1", "a2", "a3", "b1", "b2", "b3"]).T
         # stations may contain the best latency and offset data already
-        if station.timing_data.best_latency:
-            self.best_latency = station.timing_data.best_latency
-        if station.timing_data.best_offset:
-            self.best_offset = station.timing_data.best_offset
+        if data_pack.packet_best_latency:
+            self.best_latency = data_pack.packet_best_latency
+        if data_pack.packet_best_offset:
+            self.best_offset = data_pack.packet_best_offset
         self._compute_tri_message_stats()
         # set the packet duration (this should also be equal to self.packet_end_time - self.packet_start_time)
         self.packet_duration = dt.seconds_to_microseconds(
@@ -141,22 +144,22 @@ class TimeSyncAnalysis:
     """
     Used for multiple TimeSyncData objects from a station
     properties:
-        station_id: the station id that all the timesync data belongs to
-        timesync_data: the timesync data of the station
+        station: the station that contains the data to analyze
     """
-    def __init__(self, station_id: str, timesync_list: List[TimeSyncData] = None,
-                 best_latency_index: int = 0, station_start_timestamp: int = None, sample_rate_hz: float = 0):
-        self.station_id: str = station_id
-        self.best_latency_index: int = best_latency_index
+    def __init__(self, station: sd.Station = None):
+        self.station_id: str = ""
+        self.best_latency_index: int = 0
         self.latency_stats = sh.StatsContainer("latency")
         self.offset_stats = sh.StatsContainer("offset")
-        self.station_start_timestamp: int = station_start_timestamp
-        self.sample_rate_hz: float = sample_rate_hz
-        if timesync_list is not None:
-            self.timesync_data: List[TimeSyncData] = timesync_list
+        self.station_start_timestamp: Optional[int] = None
+        self.sample_rate_hz: float = 0
+        self.timesync_data: List[TimeSyncData] = []
+        if station is not None:
+            self.station_id: str = station.station_metadata.station_id
+            self.station_start_timestamp: int = station.station_metadata.timing_data.station_start_timestamp
+            self.sample_rate_hz: float = station.station_metadata.timing_data.audio_sample_rate_hz
+            self.timesync_data: List[TimeSyncData] = get_time_sync_data(station)
             self.evaluate_and_validate_data()
-        else:
-            self.timesync_data: List[TimeSyncData] = []
 
     def evaluate_and_validate_data(self):
         self._calc_timesync_stats()
@@ -288,6 +291,13 @@ class TimeSyncAnalysis:
                 return False
         # if here, all the sample rates are the same
         return True
+
+
+def get_time_sync_data(station: sd.Station) -> List[TimeSyncData]:
+    timesync_list = []
+    for packet in station.sensor_data_dict.values():
+        timesync_list.append(TimeSyncData(packet, station.station_metadata))
+    return timesync_list
 
 
 def validate_sensors(tsa_data: TimeSyncAnalysis) -> bool:
