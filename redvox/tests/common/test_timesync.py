@@ -12,6 +12,31 @@ from redvox.common import sensor_data as sd, file_statistics as fs, date_time_ut
 from redvox.api900 import reader
 
 
+def load_api_900_data(wrapped_packets: List[reader.WrappedRedvoxPacket]) -> ts.TimeSyncAnalysis:
+    analysis = ts.TimeSyncAnalysis(wrapped_packets[0].redvox_id(),
+                                   sample_rate_hz=wrapped_packets[0].microphone_sensor().sample_rate_hz(),
+                                   station_start_timestamp=wrapped_packets[0].mach_time_zero())
+    for packet in wrapped_packets:
+        sample_rate = packet.microphone_sensor().sample_rate_hz()
+        mic_sensor = sd.SensorData(packet.microphone_sensor().sensor_name(), sample_rate, True,
+                                   pd.DataFrame(packet.microphone_sensor().payload_values()))
+        station_timing = sd.TimingData(packet.mach_time_zero(),
+                                       packet.server_timestamp_epoch_microseconds_utc(),
+                                       packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc(),
+                                       int(packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc() +
+                                       dtu.seconds_to_microseconds(fs.get_duration_seconds_from_sample_rate(sample_rate)
+                                                                   )),
+                                       packet.time_synchronization_sensor().payload_values(),
+                                       packet.best_latency(), packet.best_offset())
+        station_metadata = sd.SensorMetadata(packet.redvox_id(), packet.device_make(), packet.device_model(),
+                                             packet.device_os(), packet.device_os_version(), "redvox",
+                                             packet.app_version())
+        station = sd.Station(station_metadata, station_timing, {sd.SensorType.AUDIO: mic_sensor})
+        ts_data = ts.TimeSyncData(station)
+        analysis.add_timesync_data(ts_data)
+    return analysis
+
+
 class TimesyncTest(unittest.TestCase):
     def setUp(self) -> None:
         data_paths: List[str] = sorted(glob.glob(os.path.join(tests.TEST_DATA_DIR, "1637680001*.rdvxz")))
@@ -20,7 +45,7 @@ class TimesyncTest(unittest.TestCase):
         mic_channels: List[reader.MicrophoneSensor] = list(map(
             lambda wrapped_packet: wrapped_packet.microphone_sensor(), self.wrapped_packets_fs))
         self.fs: float = mic_channels[0].sample_rate_hz()
-        self.time_sync_data = ts.TimeSyncData(self.wrapped_packets_fs)
+        self.time_sync_analysis = load_api_900_data(self.wrapped_packets_fs)
 
     def test_my_test(self):
         test_timesync = ts.TimeSyncData()
@@ -34,92 +59,46 @@ class TimesyncTest(unittest.TestCase):
         other_ts = ts.TimeSyncData()
         other_ts.station_id = "test"
         other_ts.sample_rate_hz = 80.0
-        tsa_test = ts.TimeSyncAnalysis("test", [test_ts, other_ts])
+        tsa_test = ts.TimeSyncAnalysis("test")
+        tsa_test.timesync_data = [test_ts, other_ts]
+        tsa_test.sample_rate_hz = 80.0
+        tsa_test.station_start_timestamp = 1
         self.assertFalse(ts.validate_sensors(tsa_test))
 
     def test_get_time_sync_data(self):
-        self.assertEqual(len(self.time_sync_data.rev_start_times), len(self.wrapped_packets_fs))
-        self.assertEqual(len(self.time_sync_data.latencies), len(self.wrapped_packets_fs))
-        self.assertEqual(len(self.time_sync_data.offsets), len(self.wrapped_packets_fs))
-        self.assertEqual(self.time_sync_data.best_latency, 69664.0)
+        self.assertEqual(len(self.time_sync_analysis.get_start_times()), len(self.wrapped_packets_fs))
+        self.assertEqual(len(self.time_sync_analysis.get_latencies()), len(self.wrapped_packets_fs))
+        self.assertEqual(len(self.time_sync_analysis.get_offsets()), len(self.wrapped_packets_fs))
+        self.assertEqual(self.time_sync_analysis.get_best_latency(), 69664.0)
 
     def test_compute_tri_message_stats(self):
-        self.assertEqual(self.time_sync_data.latencies[0], 69664.0)
-        self.assertEqual(self.time_sync_data.offsets[0], -22906528.)
-
-    def test_validate_sensors(self):
-        valid_sensor_settings = api900_timesync.validate_sensors(self.wrapped_packets_fs)
-        self.assertTrue(valid_sensor_settings)
-        one_packet = self.wrapped_packets_fs[0]
-        valid_one_sensor = api900_timesync.validate_sensors([one_packet])
-        self.assertTrue(valid_one_sensor)
+        self.assertEqual(self.time_sync_analysis.get_latencies()[0], 69664.0)
+        self.assertEqual(self.time_sync_analysis.get_offsets()[0], -22906528)
 
     def test_find_bad_packets(self):
-        self.assertEqual(len(self.time_sync_data.bad_packets), 0)
-
-    def test_find_bad_packets_ratio(self):
-        self.assertEqual(self.time_sync_data.get_ratio_bad_packets(), 0)
+        self.assertEqual(len(self.time_sync_analysis.get_bad_packets()), 0)
 
     def test_evaluate_latencies_and_offsets(self):
-        self.assertEqual(len(self.time_sync_data.latencies), len(self.wrapped_packets_fs))
-        self.assertEqual(len(self.time_sync_data.offsets), len(self.wrapped_packets_fs))
-        self.assertEqual(self.time_sync_data.best_latency, 69664.0)
-        self.assertEqual(self.time_sync_data.best_latency_index, 0)
+        self.assertEqual(len(self.time_sync_analysis.get_latencies()), len(self.wrapped_packets_fs))
+        self.assertEqual(len(self.time_sync_analysis.get_offsets()), len(self.wrapped_packets_fs))
+        self.assertEqual(self.time_sync_analysis.get_best_latency(), 69664.0)
+        self.assertEqual(self.time_sync_analysis.best_latency_index, 0)
 
     def test_get_latency_mean(self):
-        self.assertAlmostEqual(self.time_sync_data.get_latency_mean(), 118049.66, 2)
-        self.time_sync_data.best_latency = None
-        self.assertEqual(self.time_sync_data.get_latency_mean(), None)
+        self.assertAlmostEqual(self.time_sync_analysis.get_mean_latency(), 118049.66, 2)
 
     def test_get_latency_std_dev(self):
-        self.assertAlmostEqual(self.time_sync_data.get_latency_std_dev(), 84458.71, 2)
-        self.time_sync_data.best_latency = None
-        self.assertEqual(self.time_sync_data.get_latency_std_dev(), None)
-
-    def test_get_valid_latencies(self):
-        valid_latencies = self.time_sync_data.get_valid_latencies()
-        self.assertEqual(len(valid_latencies), len(self.wrapped_packets_fs))
-        self.assertEqual(69664.0, valid_latencies[0])
-        latency_array = [1, 2, 3, 4, 0, 0, 6, 216]
-        valid_latencies = self.time_sync_data.get_valid_latencies(latency_array)
-        self.assertEqual(6, len(valid_latencies))
-        self.assertEqual(6, valid_latencies[4])
+        self.assertAlmostEqual(self.time_sync_analysis.get_latency_std(), 84458.71, 2)
 
     def test_get_offset_mean(self):
-        self.assertAlmostEqual(self.time_sync_data.get_offset_mean(), -22903096.02, 2)
-        old_best_latency = self.time_sync_data.best_latency
-        self.time_sync_data.best_latency = None
-        self.assertEqual(self.time_sync_data.get_offset_mean(), 0.0)
-        self.time_sync_data.best_latency = old_best_latency
-        self.time_sync_data.best_offset = 0.0
-        self.assertEqual(self.time_sync_data.get_offset_mean(), 0.0)
+        self.assertAlmostEqual(self.time_sync_analysis.get_mean_offset(), -22903096.02, 2)
 
     def test_get_offset_std_dev(self):
-        self.assertAlmostEqual(self.time_sync_data.get_offset_std_dev(), 91847.39, 2)
-        old_best_latency = self.time_sync_data.best_latency
-        self.time_sync_data.best_latency = None
-        self.assertEqual(self.time_sync_data.get_offset_std_dev(), 0.0)
-        self.time_sync_data.best_latency = old_best_latency
-        self.time_sync_data.best_offset = 0.0
-        self.assertEqual(self.time_sync_data.get_offset_std_dev(), 0.0)
+        self.assertAlmostEqual(self.time_sync_analysis.get_offset_std(), 91847.39, 2)
 
-    def test_get_valid_offsets(self):
-        valid_offsets = self.time_sync_data.get_valid_offsets()
-        self.assertEqual(len(valid_offsets), len(self.wrapped_packets_fs))
-        self.assertEqual(-22906528.0, valid_offsets[0])
-        offset_array = [1, 2, 3, 4, 0, 0, 6, 216]
-        valid_offsets = self.time_sync_data.get_valid_offsets(offset_array)
-        self.assertEqual(6, len(valid_offsets))
-        self.assertEqual(6, valid_offsets[4])
-
-    def test_get_valid_rev_start_times(self):
-        valid_starts = self.time_sync_data.get_valid_rev_start_times()
-        self.assertEqual(len(valid_starts), len(self.wrapped_packets_fs))
-        self.assertEqual(1532459174181472., valid_starts[0])
-
-    def test_get_best_rev_start_time(self):
-        best_start = self.time_sync_data.get_best_rev_start_time()
-        self.assertEqual(1532459174181472.0, best_start)
+    def test_get_best_start_time(self):
+        best_start = self.time_sync_analysis.get_best_start_time()
+        self.assertEqual(1532459197088000, best_start)
 
     def test_correct_time_array(self):
         """ Example: A sample is taken every 0.5 seconds, and a file has 5 seconds (10 samples). Let's say we sampled
@@ -129,27 +108,27 @@ class TimesyncTest(unittest.TestCase):
         which occurs in file 2, which starts at 4 seconds.  In the end we should get 40 timestamps,
         starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (idx 10) = 4 seconds. """
         # the revised start times are in microseconds, but the corrected time is in seconds
-        tsd_corrected = api900_timesync.TimeSyncData()
-        tsd_corrected.rev_start_times = np.array([1000000, 4000000, 8000000, 13000000])
-        tsd_corrected.best_latency = 1
-        tsd_corrected.best_latency_index = 1
-        tsd_corrected.latencies = np.array([2, 1, 2, 2])
-        tsd_corrected.num_packets = 4
-        tsd_corrected.sample_rate_hz = 2
+        tsd_one = ts.TimeSyncData()
+        tsd_one.packet_start_time = 1000000
+        tsd_one.best_latency = 2
+        tsd_one.sample_rate_hz = 2
+        tsd_two = ts.TimeSyncData()
+        tsd_two.packet_start_time = 4000000
+        tsd_two.best_latency = 1
+        tsd_two.sample_rate_hz = 2
+        tsd_thr = ts.TimeSyncData()
+        tsd_thr.packet_start_time = 8000000
+        tsd_thr.best_latency = 2
+        tsd_thr.sample_rate_hz = 2
+        tsd_for = ts.TimeSyncData()
+        tsd_for.packet_start_time = 13000000
+        tsd_for.best_latency = 2
+        tsd_for.sample_rate_hz = 2
+        tsa_one = ts.TimeSyncAnalysis("test_station", [tsd_one, tsd_two, tsd_thr, tsd_for],
+                                      best_latency_index=1, sample_rate_hz=2)
         file_samples = 10  # 10 samples per file
-        correct_time_array_sec = api900_timesync.update_evenly_sampled_time_array(tsd_corrected, file_samples)
+        correct_time_array_sec = ts.update_evenly_sampled_time_array(tsa_one, file_samples)
 
         self.assertTrue(np.array_equal(np.arange(-1.0, 19.0, 0.5), correct_time_array_sec))
         self.assertEqual(4.0, correct_time_array_sec[10])
         self.assertTrue(isinstance(correct_time_array_sec, np.ndarray))
-
-    def test_sync_packet_time(self):
-        api900_timesync.sync_packet_time_900(self.wrapped_packets_fs, verbose=False)
-        self.assertEqual(
-            self.wrapped_packets_fs[0].magnetometer_sensor()._unevenly_sampled_channel.timestamps_microseconds_utc[0],
-            1532459174286232)
-        self.assertEqual(self.wrapped_packets_fs[0].microphone_sensor().first_sample_timestamp_epoch_microseconds_utc(),
-                         1532459174181472)
-        self.assertEqual(self.wrapped_packets_fs[0].app_file_start_timestamp_epoch_microseconds_utc(), 1532459174181472)
-        self.assertEqual(self.wrapped_packets_fs[0].is_synch_corrected(), True)
-
