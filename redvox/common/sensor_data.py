@@ -86,6 +86,7 @@ class StationTiming:
         episode_start_timestamp: int, timestamp of start of segment of interest
         episode_end_timestamp: int, timestamp of end of segment of interest
         audio_sample_rate_hz: int, sample rate in hz of audio sensor
+        station_first_timestamp: int, first timestamp chronologically of the data
         station_best_latency: optional float, best latency of data
         station_best_offset: optional int, best offset of data
     """
@@ -93,6 +94,7 @@ class StationTiming:
     episode_start_timestamp: int
     episode_end_timestamp: int
     audio_sample_rate_hz: float
+    station_first_timestamp: int
     station_best_latency: Optional[float] = None
     station_best_offset: Optional[int] = 0
 

@@ -29,7 +29,8 @@ def load_api_900_data(wrapped_packets: List[reader.WrappedRedvoxPacket]) -> ts.T
     station_timing = sd.StationTiming(
         wrapped_packets[0].mach_time_zero(),
         start_ts, int(start_ts + dtu.seconds_to_microseconds(fs.get_duration_seconds_from_sample_rate(sample_rate))),
-        sample_rate, wrapped_packets[0].best_latency(), wrapped_packets[0].best_offset())
+        sample_rate, wrapped_packets[0].app_file_start_timestamp_epoch_microseconds_utc(),
+        wrapped_packets[0].best_latency(), wrapped_packets[0].best_offset())
     station_metadata = sd.StationMetadata(wrapped_packets[0].redvox_id(), wrapped_packets[0].device_make(),
                                           wrapped_packets[0].device_model(), wrapped_packets[0].device_os(),
                                           wrapped_packets[0].device_os_version(), "redvox",

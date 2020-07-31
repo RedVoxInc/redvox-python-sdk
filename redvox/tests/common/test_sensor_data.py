@@ -29,7 +29,9 @@ class SensorDataTest(unittest.TestCase):
                                     data_packet.best_latency(), data_packet.best_offset())
         test_timing = sd.StationTiming(data_packet.mach_time_zero(),
                                        data_packet.app_file_start_timestamp_epoch_microseconds_utc(),
-                                       timestamps[-1], samp_rate, data_packet.best_latency(), data_packet.best_offset())
+                                       timestamps[-1], samp_rate,
+                                       data_packet.app_file_start_timestamp_epoch_microseconds_utc(),
+                                       data_packet.best_latency(), data_packet.best_offset())
         test_metadata = sd.StationMetadata(data_packet.redvox_id(), data_packet.device_make(),
                                            data_packet.device_model(), data_packet.device_os(),
                                            data_packet.device_os_version(), "redvox", data_packet.app_version(),

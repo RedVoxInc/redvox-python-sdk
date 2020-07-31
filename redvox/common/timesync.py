@@ -8,8 +8,7 @@ ALL timestamps in microseconds unless otherwise stated
 import numpy as np
 import pandas as pd
 
-from typing import List, Optional, Tuple
-from redvox.api900.reader_utils import empty_array
+from typing import List, Optional
 from redvox.common import stats_helper as sh, tri_message_stats as tms, date_time_utils as dt, file_statistics as fh
 from redvox.common import sensor_data as sd
 
@@ -118,6 +117,7 @@ class TimeSyncData:
             self.latencies = np.array((tse.latency1, tse.latency3))
             self.offsets = np.array((tse.offset1, tse.offset3))
             self.best_latency_index = tse.best_latency_index
+            self.best_tri_msg_index = tse.best_latency_index
             # if best_latency is None, set to best computed latency
             if self.best_latency is None:
                 self.best_latency = tse.best_latency
