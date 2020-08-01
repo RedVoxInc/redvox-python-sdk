@@ -48,8 +48,8 @@ class RdvxStatsContainerTests(unittest.TestCase):
     def test_empty_stats(self):
         sc2 = stats_helper.StatsContainer("empty")
         sc2.add(0, 0, 0)
-        self.assertEqual(sc2.mean_of_means(), 0)
-        self.assertEqual(sc2.variance_of_means(), 0)
-        self.assertEqual(sc2.mean_of_variance(), 0)
-        self.assertEqual(sc2.total_variance(), 0)
-        self.assertEqual(sc2.total_std_dev(), 0)
+        self.assertTrue(np.isnan(sc2.mean_of_means()))
+        self.assertTrue(np.isnan(sc2.variance_of_means()))
+        self.assertTrue(np.isnan(sc2.mean_of_variance()))
+        self.assertTrue(np.isnan(sc2.total_variance()))
+        self.assertTrue(np.isnan(sc2.total_std_dev()))

@@ -40,10 +40,12 @@ class StatsContainer:
         """
         # convert non-numbers to 0s
         counts: np.ndarray = np.nan_to_num(self.count_array)
+        if np.sum(counts) == 0:
+            return np.nan
         # weight each mean by the number of elements in it
         total_means: np.ndarray = np.prod([np.nan_to_num(self.mean_array), counts], axis=0)
         # if sum(counts) is 0, change sum(counts) to 1 to avoid divide by 0 errors
-        return np.sum(total_means) / (1 if np.sum(counts) == 0 else np.sum(counts))
+        return np.sum(total_means) / np.sum(counts)
 
     def mean_of_variance(self) -> float:
         """
@@ -52,11 +54,13 @@ class StatsContainer:
         """
         # convert non-numbers to 0s
         counts: np.ndarray = np.nan_to_num(self.count_array)
+        if np.sum(counts) == 0:
+            return np.nan
         std_devs: np.ndarray = np.nan_to_num(self.std_dev_array)
         # variance is std dev squared, which is then weighted by the number of elements for that variance
         total_vars: np.ndarray = np.prod([counts, std_devs, std_devs], axis=0)
         # if sum(counts) is 0, change sum(counts) to 1 to avoid divide by 0 errors
-        return np.sum(total_vars) / (1 if np.sum(counts) == 0 else np.sum(counts))
+        return np.sum(total_vars) / np.sum(counts)
 
     def variance_of_means(self) -> float:
         """
@@ -64,12 +68,14 @@ class StatsContainer:
         :return: variance of means
         """
         counts: np.ndarray = np.nan_to_num(self.count_array)
+        if np.sum(counts) == 0:
+            return np.nan
         # get the difference of individual means and total mean
         mean_vars: np.ndarray = np.subtract(np.nan_to_num(self.mean_array), self.mean_of_means())
         # square the differences then weight them by number of elements
         total: np.ndarray = np.prod([mean_vars, mean_vars, counts], axis=0)
         # if sum(counts) is 0, change sum(counts) to 1 to avoid divide by 0 errors
-        return np.sum(total) / (1 if np.sum(counts) == 0 else np.sum(counts))
+        return np.sum(total) / np.sum(counts)
 
     def total_variance(self) -> float:
         """

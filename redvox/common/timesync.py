@@ -130,8 +130,8 @@ class TimeSyncData:
             self.best_tri_msg_index = None
             self.best_latency_index = None
             self.best_latency = None
-            self.mean_latency = None
-            self.latency_std = None
+            self.mean_latency = np.nan
+            self.latency_std = np.nan
             self.best_offset = 0
             self.mean_offset = 0
             self.offset_std = 0
@@ -203,10 +203,16 @@ class TimeSyncAnalysis:
         return np.array(latencies)
 
     def get_mean_latency(self):
-        return self.latency_stats.mean_of_means()
+        mean = self.latency_stats.mean_of_means()
+        if np.isnan(mean):
+            return None
+        return mean
 
     def get_latency_std(self):
-        return self.latency_stats.total_std_dev()
+        std_dev = self.latency_stats.total_std_dev()
+        if np.isnan(std_dev):
+            return None
+        return std_dev
 
     def get_best_offset(self):
         return self.timesync_data[self.best_latency_index].best_offset
@@ -218,10 +224,16 @@ class TimeSyncAnalysis:
         return np.array(offsets)
 
     def get_mean_offset(self):
-        return self.offset_stats.mean_of_means()
+        mean = self.offset_stats.mean_of_means()
+        if np.isnan(mean):
+            return None
+        return mean
 
     def get_offset_std(self):
-        return self.offset_stats.total_std_dev()
+        std_dev = self.offset_stats.total_std_dev()
+        if np.isnan(std_dev):
+            return None
+        return std_dev
 
     def get_best_packet_latency_index(self):
         return self.timesync_data[self.best_latency_index].best_latency_index
