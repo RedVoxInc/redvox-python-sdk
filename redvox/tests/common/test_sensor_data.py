@@ -16,9 +16,9 @@ class SensorDataTest(unittest.TestCase):
         samp_rate = data_packet.microphone_sensor().sample_rate_hz()
         num_samples = fs.get_num_points_from_sample_rate(samp_rate)
         t_s_step = int(dtu.seconds_to_microseconds(fs.get_duration_seconds_from_sample_rate(samp_rate) / num_samples))
-        timestamps = range(data_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc(),
-                           data_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc() +
-                           t_s_step*num_samples, t_s_step)
+        timestamps = range(int(data_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()),
+                           int(data_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()) +
+                           int(t_s_step * num_samples), t_s_step)
         test_sensor = sd.SensorData(data_packet.microphone_sensor().sensor_name(),
                                     pd.DataFrame(np.transpose(data_packet.microphone_sensor().payload_values()),
                                                  index=timestamps, columns=["mic_value"]), samp_rate, True)
