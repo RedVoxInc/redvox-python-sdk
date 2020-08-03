@@ -264,8 +264,10 @@ class TimeSyncAnalysis:
         # assume the first element has the best timesync values for now, then compare with the others
         for index in range(1, self.get_num_packets()):
             # find the best latency; in this case, the minimum
+            # if new value is not None and if the current best is None or new value is better than current best, update
             if self.timesync_data[index].best_latency is not None \
-                    and self.timesync_data[index].best_latency < self.get_best_latency():
+                    and (self.get_best_latency() is None
+                         or self.timesync_data[index].best_latency < self.get_best_latency()):
                 self.best_latency_index = index
 
     def validate_start_timestamp(self) -> bool:
@@ -307,7 +309,7 @@ class TimeSyncAnalysis:
 
 def get_time_sync_data(station: sd.Station) -> List[TimeSyncData]:
     timesync_list = []
-    for packet in station.sensor_data_dict.values():
+    for packet in station.sensor_dict.values():
         timesync_list.append(TimeSyncData(packet, station.station_metadata))
     return timesync_list
 
