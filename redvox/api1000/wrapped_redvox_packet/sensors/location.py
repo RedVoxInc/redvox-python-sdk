@@ -21,6 +21,34 @@ class LocationScoreMethod(enum.Enum):
     UNKNOWN_METHOD: int = 0
 
 
+class BestTimestamp(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Location.BestLocation.BestTimestamp]
+):
+    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Location.BestLocation.BestTimestamp):
+        super().__init__(proto)
+
+    def get_mach(self) -> float:
+        return self._proto.mach
+
+    def set_mach(self, mach: float) -> 'BestTimestamp':
+        redvox.api1000.common.typing.check_type(mach, [int, float])
+        self._proto.mach = mach
+        return self
+
+    def get_gps(self) -> float:
+        return self._proto.gps
+
+    def set_gps(self, gps: float) -> 'BestTimestamp':
+        redvox.api1000.common.typing.check_type(gps, [int, float])
+        self._proto.gps = gps
+        return self
+
+
+
+class BestLocation:
+    pass
+
+
 class Location(
     redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Location]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Location):
