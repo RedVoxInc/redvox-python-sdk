@@ -585,37 +585,79 @@ message RedvoxPacketM {
                 // Timestamp of best bearing estimate
                 BestTimestamp bearing_timestamp = 4;
 
+                // Unit used for latitude/longitude (should be decimal degrees)
+                Unit latitude_longitude_unit = 5;
+
+                // Unit used for altitude (should be meters)
+                Unit altitude_unit = 6;
+
+                // Unit used for speed (should be m/s)
+                Unit speed_unit = 7;
+
+                // Unit used for bearing (should be radians)
+                Unit bearing_unit = 8;
+
+                // Unit used for vertical accuracy
+                Unit vertical_accuracy_unit = 9;
+
+                // Unit used for horizontal accuracy
+                Unit horizontal_accuracy_unit = 10;
+
+                // Unit used for speed accuracy
+                Unit speed_accuracy_unit = 11;
+
+                // Unit used for bearing accuracy
+                Unit bearing_accuracy_unit = 12;
+
                 // The best latitude
-                double latitude = 5;
+                double latitude = 13;
 
                 // The best longitude
-                double longitude = 6;
+                double longitude = 14;
 
                 // The best altitude
-                float altitude = 7;
+                float altitude = 15;
 
                 // The best speed
-                float speed = 8;
+                float speed = 16;
 
                 // The best bearing
-                float bearing = 9;
+                float bearing = 17;
+
+                // Vertical accuracy
+                float vertical_accuracy = 18;
+
+                // Horizontal accuracy
+                float horizontal_accuracy = 19;
+
+                // Speed accuracy
+                float speed_accuracy = 20;
+
+                // Bearing accuracy
+                float bearing_accuracy = 21;
 
                 // The best location score
-                float score = 10;
+                float score = 22;
 
                 // Method used to derive the location score
-                LocationScoreMethod method = 11;
+                LocationScoreMethod method = 23;
 
                 // A map from string to string for including untyped metadata
-                map<string, string> metadata = 12;
+                map<string, string> metadata = 24;
 
                 // A message that encapsulates both a mach and GPS timestamp
                 message BestTimestamp {
+                    // Unit of timestamps (should be microseconds since unix epoch UTC)
+                    Unit unit = 1;
+
                     // Best mach timestamp
-                    double mach = 1;
+                    double mach = 2;
 
                     // Best gps timestamp
-                    double gps = 2;
+                    double gps = 3;
+
+                    // A map from string to string for including untyped metadata
+                    map<string, string> metadata = 4;
                 }
 
                 // An enumeration for the various scoring methods for the "best of" metrics
@@ -689,34 +731,34 @@ message RedvoxPacketM {
         // The name of this stream
         string name = 1;
 
+        // List of timestamps, each associated with one Event
+        TimingPayload timestamps = 2;
+
         // List of events that belong to this stream
-        repeated Event events = 2;
+        repeated Event events = 3;
 
         // A map from string to string for including untyped metadata
-        map<string, string> metadata = 3;
+        map<string, string> metadata = 4;
 
         message Event {
-            // Timestamp of the event
-            double timestamp = 1;
-
             // Textual description of the event
-            string description = 2;
+            string description = 1;
 
             // Key-pairs of type string to string
-            map<string, string> string_payload = 3;
+            map<string, string> string_payload = 2;
 
             // Key-pairs of type string to double
-            map<string, double> numeric_payload = 4;
+            map<string, double> numeric_payload = 3;
 
             // Key-pairs of type string to boolean
-            map<string, bool> boolean_payload = 5;
+            map<string, bool> boolean_payload = 4;
 
             // Key-pairs of type string to bytes.
             // This one is mainly for transmitting binary or data that doesn't fit well into one of the other payloads.
-            map<string, bytes> byte_payload = 6;
+            map<string, bytes> byte_payload = 5;
 
             // A map from string to string for including untyped metadata
-            map<string, string> metadata = 7;
+            map<string, string> metadata = 6;
         }
     }
 
@@ -859,45 +901,88 @@ message EncryptedRedvoxPacketM {
 // --------- Message types for communicating with RedVox data acquisition servers
 // Message for sending RedVox data to a redvox.io data acquisition service.
 message AcquisitionRequest {
-    string auth_token = 1;      // The server provided authentication token
-    string firebase_token = 2;  // The API provided firebase token
-    int64 checksum = 3;         // A checksum of the payload bytes
-    bool is_encrypted = 4;      // If set, then the payload contains
-    bytes payload = 5;          // The compressed packet to send
+    // The server provided authentication token
+    string auth_token = 1;
+
+    // The API provided firebase token
+    string firebase_token = 2;
+
+    // A checksum of the payload bytes
+    int64 checksum = 3;
+
+    // If set, then the payload contains
+    bool is_encrypted = 4;
+
+    // The compressed packet to send
+    bytes payload = 5;
 }
 
 // Response from data acquisition services.
 message AcquisitionResponse {
-    ResponseType response_type = 1; // Response type (as above)
-    int64 checksum = 2;             // Checksum computed by server
-    string details = 3;             // Any other error details
-    bool resend = 4;                // If set, client to should attempt to resend the file
-                                    // otherwise, don't resend the file.
+    // Response type (as above)
+    ResponseType response_type = 1;
+
+    // Checksum computed by server
+    int64 checksum = 2;
+
+    // Any other error details
+    string details = 3;
+
+    // If set, client to should attempt to resend the file
+    // otherwise, don't resend the file.
+    bool resend = 4;
 
     enum ResponseType {
+        // Unknown (default) response type
         UNKNOWN = 0;
-        OK = 1;             // No issues with packet
-        AUTH_ERROR = 2;     // An authentication error has occurred
-        DATA_ERROR = 3;     // An error with the data decoding or data quality
-        OTHER_ERROR = 4;    // Any other errors
+
+        // No issues with packet
+        OK = 1;
+
+        // An authentication error has occurred
+        AUTH_ERROR = 2;
+
+        // An error with the data decoding or data quality
+        DATA_ERROR = 3;
+
+        // Any other errors
+        OTHER_ERROR = 4;
     }
 }
 
 // --------- Message types for communicating with RedVox v3 time synchronization service
 message SynchRequest {
-    string station_id = 1;      // Id of the station
-    string station_uuid = 2;    // Uuid of the station
-    uint32 seq_id = 3;          // The overall number of synch requests made. Starts at 0 on recording start.
-    uint32 sub_seq_id = 4;      // The seq id within a single exchange
+    // Id of the station
+    string station_id = 1;
+
+    // Uuid of the station
+    string station_uuid = 2;
+
+    // The overall number of synch requests made. Starts at 0 on recording start.
+    uint32 seq_id = 3;
+
+    // The seq id within a single exchange
+    uint32 sub_seq_id = 4;
 }
 
 message SynchResponse {
-    string station_id = 1;      // Should match same field from request
-    string station_uuid = 2;    // Should match same field from request
-    uint32 seq_id = 3;          // Should match same field from request
-    uint32 sub_seq_id = 4;      // Should be req field + 1
-    uint64 recv_ts_us = 5;      // Time synch server received request
-    uint64 send_ts_us = 6;      // Time synch server sent response
+    // Should match same field from request
+    string station_id = 1;
+
+    // Should match same field from request
+    string station_uuid = 2;
+
+    // Should match same field from request
+    uint32 seq_id = 3;
+
+    // Should be req field + 1
+    uint32 sub_seq_id = 4;
+
+    // Time synch server received request
+    uint64 recv_ts_us = 5;
+
+    // Time synch server sent response
+    uint64 send_ts_us = 6;
 }
 
 // --------- Message types for custom logging
