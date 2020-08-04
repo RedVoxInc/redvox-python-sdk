@@ -1,53 +1,22 @@
 """
 tests for timesync
 """
-import os
-import glob
 import unittest
 import numpy as np
-import pandas as pd
 import redvox.tests as tests
 from typing import List
-from redvox.common import sensor_data as sd, file_statistics as fs, date_time_utils as dtu, timesync as ts
+from redvox.common import sensor_data as sd, timesync as ts
 from redvox.api900 import reader
-
-
-def load_api_900_data(wrapped_packets: List[reader.WrappedRedvoxPacket]) -> ts.TimeSyncAnalysis:
-    data_packets = {}
-    sample_rate = wrapped_packets[0].microphone_sensor().sample_rate_hz()
-    start_ts = wrapped_packets[0].microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()
-    for packet in wrapped_packets:
-        mic_sensor = sd.SensorData(packet.microphone_sensor().sensor_name(),
-                                   pd.DataFrame(packet.microphone_sensor().payload_values()), sample_rate, True)
-        data_pack = sd.DataPacket(packet.server_timestamp_epoch_microseconds_utc(), {sd.SensorType.AUDIO: mic_sensor},
-                                  start_ts, int(start_ts +
-                                                dtu.seconds_to_microseconds(fs.get_duration_seconds_from_sample_rate(
-                                                    sample_rate))),
-                                  packet.time_synchronization_sensor().payload_values(),
-                                  packet.best_latency(), packet.best_offset())
-        data_packets[packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()] = data_pack
-    station_timing = sd.StationTiming(
-        wrapped_packets[0].mach_time_zero(),
-        start_ts, int(start_ts + dtu.seconds_to_microseconds(fs.get_duration_seconds_from_sample_rate(sample_rate))),
-        sample_rate, wrapped_packets[0].app_file_start_timestamp_epoch_microseconds_utc(),
-        wrapped_packets[0].best_latency(), wrapped_packets[0].best_offset())
-    station_metadata = sd.StationMetadata(wrapped_packets[0].redvox_id(), wrapped_packets[0].device_make(),
-                                          wrapped_packets[0].device_model(), wrapped_packets[0].device_os(),
-                                          wrapped_packets[0].device_os_version(), "redvox",
-                                          wrapped_packets[0].app_version(), station_timing)
-    station = sd.Station(station_metadata, data_packets)
-    return ts.TimeSyncAnalysis(station)
 
 
 class TimesyncTest(unittest.TestCase):
     def setUp(self) -> None:
-        data_paths: List[str] = sorted(glob.glob(os.path.join(tests.TEST_DATA_DIR, "1637680001*.rdvxz")))
-        self.wrapped_packets_fs: List[reader.WrappedRedvoxPacket] = list(map(lambda path: reader.read_rdvxz_file(path),
-                                                                             data_paths))
-        mic_channels: List[reader.MicrophoneSensor] = list(map(
-            lambda wrapped_packet: wrapped_packet.microphone_sensor(), self.wrapped_packets_fs))
-        self.fs: float = mic_channels[0].sample_rate_hz()
-        self.time_sync_analysis = load_api_900_data(self.wrapped_packets_fs)
+        packets = reader.read_rdvxz_file_range(tests.TEST_DATA_DIR, structured_layout=False, redvox_ids=["1637680001"],
+                                               concat_continuous_segments=False)
+        self.wrapped_packets_fs: List[reader.WrappedRedvoxPacket] = packets["1637680001:976500716"]
+        stations = sd.load_file_range_from_api900(tests.TEST_DATA_DIR, structured_layout=False,
+                                                  redvox_ids=["1637680001"], concat_continuous_segments=False)
+        self.time_sync_analysis = ts.TimeSyncAnalysis(stations[0])
 
     def test_my_test(self):
         test_timesync = ts.TimeSyncData()

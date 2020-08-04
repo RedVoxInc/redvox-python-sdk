@@ -10,6 +10,7 @@ import pandas as pd
 from typing import List, Dict, Optional
 from dataclasses import dataclass, field
 from redvox.api900 import reader
+from redvox.common import file_statistics as fs
 
 
 class SensorType(enum.Enum):
@@ -29,6 +30,7 @@ class SensorType(enum.Enum):
     PROXIMITY = 14              # on, off, cm
     RELATIVE_HUMIDITY = 15      # percentage
     ROTATION_VECTOR = 16        # Unitless
+    INFRARED = 17               # lux????
 
 
 @dataclass
@@ -136,14 +138,23 @@ class Station:
     sensor_dict: Dict[int, DataPacket] = field(default_factory=dict)
 
 
-def api900_sensor_to_df(sensor: reader.RedvoxSensor) -> SensorData:
+def read_api900_non_mic_sensor(sensor: reader.RedvoxSensor, packet_length_s: float, column_id: str) -> SensorData:
     """
-    read the data from an api900 sensor into a generic SensorData object
-    :param sensor: the api900 sensor to read data from
-    :return: a SensorData object
+    read a sensor that does not have mic data from an api900 data packet
+    :param sensor: the non-mic api900 sensor to read
+    :param packet_length_s: float, the length of the data packet in seconds
+    :param column_id: string, used to name the columns
+    :return: generic SensorData object
     """
-    if sensor.:
-
+    timestamps = sensor.timestamps_microseconds_utc()
+    if type(sensor) in [reader.AccelerometerSensor, reader.MagnetometerSensor, reader.GyroscopeSensor]:
+        data_for_df = np.transpose([sensor.payload_values_x(), sensor.payload_values_y(), sensor.payload_values_z()])
+        columns = [f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
+    else:
+        data_for_df = np.transpose(sensor.payload_values())
+        columns = [f"{column_id}_data"]
+    return SensorData(sensor.sensor_name(), pd.DataFrame(data_for_df, index=timestamps, columns=columns),
+                      packet_length_s / len(timestamps), False)
 
 
 def read_api900_wrapped_packet(wrapped_packet: reader.WrappedRedvoxPacket) -> Dict[SensorType, SensorData]:
@@ -152,17 +163,77 @@ def read_api900_wrapped_packet(wrapped_packet: reader.WrappedRedvoxPacket) -> Di
     :param wrapped_packet: a wrapped api900 redvox packet
     :return: a dictionary containing all the sensor data
     """
+    packet_length_s: float = wrapped_packet.duration_s()
     data_dict: Dict[SensorType, SensorData] = {}
     # there are 9 api900 sensors
     if wrapped_packet.has_microphone_sensor():
+        sample_rate_hz = wrapped_packet.microphone_sensor().sample_rate_hz()
+        data_for_df = wrapped_packet.microphone_sensor().payload_values()
+        timestamps = np.transpose(wrapped_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc() +
+                                  (np.arange(0, fs.get_num_points_from_sample_rate(sample_rate_hz)) / sample_rate_hz))
         data_dict[SensorType.AUDIO] = SensorData(wrapped_packet.microphone_sensor().sensor_name(),
-                                                 pd.DataFrame(wrapped_packet.microphone_sensor().payload_values(),
-                                                              index=["mic_data"]).T,
-                                                 wrapped_packet.microphone_sensor().sample_rate_hz(), True)
+                                                 pd.DataFrame(data_for_df, index=timestamps, columns=["mic_data"]),
+                                                 sample_rate_hz, True)
     if wrapped_packet.has_accelerometer_sensor():
-        data_dict[SensorType.ACCELEROMETER] = SensorData(wrapped_packet.accelerometer_sensor().sensor_name(),
-                                                         pd.DataFrame(wrapped_packet.accelerometer_sensor().))
+        data_dict[SensorType.ACCELEROMETER] = read_api900_non_mic_sensor(wrapped_packet.accelerometer_sensor(),
+                                                                         packet_length_s, "accel")
+    if wrapped_packet.has_magnetometer_sensor():
+        data_dict[SensorType.MAGNETOMETER] = read_api900_non_mic_sensor(wrapped_packet.magnetometer_sensor(),
+                                                                        packet_length_s, "magnet")
+    if wrapped_packet.has_gyroscope_sensor():
+        data_dict[SensorType.GYROSCOPE] = read_api900_non_mic_sensor(wrapped_packet.gyroscope_sensor(),
+                                                                     packet_length_s, "gyro")
+    if wrapped_packet.has_barometer_sensor():
+        data_dict[SensorType.PRESSURE] = read_api900_non_mic_sensor(wrapped_packet.barometer_sensor(),
+                                                                    packet_length_s, "bar")
+    if wrapped_packet.has_light_sensor():
+        data_dict[SensorType.LIGHT] = read_api900_non_mic_sensor(wrapped_packet.light_sensor(),
+                                                                 packet_length_s, "light")
+    if wrapped_packet.has_infrared_sensor():
+        data_dict[SensorType.INFRARED] = read_api900_non_mic_sensor(wrapped_packet.infrared_sensor(),
+                                                                    packet_length_s, "infrared")
+    if wrapped_packet.has_image_sensor():
+        data_dict[SensorType.IMAGE] = read_api900_non_mic_sensor(wrapped_packet.image_sensor(),
+                                                                 packet_length_s, "image")
+    if wrapped_packet.has_location_sensor():
+        timestamps = wrapped_packet.location_sensor().timestamps_microseconds_utc()
+        data_for_df = np.transpose([wrapped_packet.location_sensor().payload_values_latitude(),
+                                    wrapped_packet.location_sensor().payload_values_longitude(),
+                                    wrapped_packet.location_sensor().payload_values_altitude(),
+                                    wrapped_packet.location_sensor().payload_values_speed(),
+                                    wrapped_packet.location_sensor().payload_values_accuracy()])
+        columns = ["lat", "lon", "alt", "spd", "acc"]
+        data_dict[SensorType.LOCATION] = SensorData(wrapped_packet.location_sensor().sensor_name(),
+                                                    pd.DataFrame(data_for_df, index=timestamps, columns=columns),
+                                                    packet_length_s / len(timestamps), False)
     return data_dict
+
+
+def load_station_from_api900(directory: str, start_timestamp_utc_s: Optional[int] = None,
+                             end_timestamp_utc_s: Optional[int] = None) -> Station:
+    """
+    reads in station data from a single api900 file
+    :param directory: string of the file to read from
+    :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
+    :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
+    :return: a station Object
+    """
+    data_packet = reader.read_rdvxz_file(directory)
+    # set station metadata and timing based on first packet
+    timing = StationTiming(data_packet.mach_time_zero(), start_timestamp_utc_s, end_timestamp_utc_s,
+                           data_packet.microphone_sensor().sample_rate_hz(),
+                           data_packet.app_file_start_timestamp_epoch_microseconds_utc(),
+                           data_packet.best_latency(), data_packet.best_offset())
+    metadata = StationMetadata(data_packet.redvox_id(), data_packet.device_make(), data_packet.device_model(),
+                               data_packet.device_os(), data_packet.device_os_version(),
+                               "Redvox", data_packet.app_version(), timing)
+    data_dict = read_api900_wrapped_packet(data_packet)
+    packet_data = DataPacket(data_packet.server_timestamp_epoch_microseconds_utc(), data_dict,
+                             data_packet.start_timestamp_us_utc(), int(data_packet.end_timestamp_us_utc()),
+                             data_packet.time_synchronization_sensor().payload_values(),
+                             data_packet.best_latency(), data_packet.best_offset())
+    packet_dict: Dict[int, DataPacket] = {packet_data.packet_start_timestamp: packet_data}
+    return Station(metadata, packet_dict)
 
 
 def load_file_range_from_api900(directory: str,
@@ -170,7 +241,7 @@ def load_file_range_from_api900(directory: str,
                                 end_timestamp_utc_s: Optional[int] = None,
                                 redvox_ids: Optional[List[str]] = None,
                                 structured_layout: bool = False,
-                                concat_continuous_segments: bool = True) -> List['Station']:
+                                concat_continuous_segments: bool = True) -> List[Station]:
     """
     reads in data from a directory and returns a list of stations
     note that the param descriptions are taken directly from reader.read_rdvxz_file_range
