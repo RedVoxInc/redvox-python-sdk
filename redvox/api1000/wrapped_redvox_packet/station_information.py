@@ -10,6 +10,7 @@ _NETWORK_TYPE_FIELD_NAME: str = "network_type"
 _CELL_SERVICE_STATE_FIELD_NAME: str = "cell_service_state"
 _POWER_STATE_FIELD_NAME: str = "power_state"
 _ADDITIONAL_INPUT_SENSORS_FIELD_NAME: str = "additional_input_sensors"
+_WIFI_WAKE_LOCK_FIELD_NAME: str = "wifi_wake_lock"
 
 InputSensorProto = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor
 
@@ -178,6 +179,14 @@ class AppSettings(
         self.get_proto().station_id = station_id
         return self
 
+    def get_station_description(self) -> str:
+        return self.get_proto().station_description
+
+    def set_station_description(self, station_description: str) -> 'AppSettings':
+        redvox.api1000.common.typing.check_type(station_description, [str])
+        self.get_proto().station_description = station_description
+        return self
+
     def get_push_to_server(self) -> bool:
         return self.get_proto().push_to_server
 
@@ -248,6 +257,22 @@ class AppSettings(
     def set_data_server_url(self, data_server_url: str) -> 'AppSettings':
         redvox.api1000.common.typing.check_type(data_server_url, [str])
         self.get_proto().data_server_url = data_server_url
+        return self
+
+    def get_use_custom_auth_server(self) -> bool:
+        return self.get_proto().use_custom_auth_server
+
+    def set_use_custom_auth_server(self, use_custom_auth_server: bool) -> 'AppSettings':
+        redvox.api1000.common.typing.check_type(use_custom_auth_server, [bool])
+        self.get_proto().use_custom_auth_server = use_custom_auth_server
+        return self
+
+    def get_auth_server_url(self) -> str:
+        return self.get_proto().auth_server_url
+
+    def set_auth_server_url(self, auth_server_url: str) -> 'AppSettings':
+        redvox.api1000.common.typing.check_type(auth_server_url, [str])
+        self.get_proto().auth_server_url = auth_server_url
         return self
 
     def get_auto_delete_data_files(self) -> bool:
@@ -422,6 +447,13 @@ class StationMetrics(
             PowerState.from_proto,
             PowerState.into_proto
         )
+        self._wifi_wake_loc: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
+            station_metrics_proto,
+            station_metrics_proto.wifi_wake_lock,
+            _WIFI_WAKE_LOCK_FIELD_NAME,
+            WifiWakeLock.from_proto,
+            WifiWakeLock.into_proto
+        )
 
     @staticmethod
     def new() -> 'StationMetrics':
@@ -460,14 +492,8 @@ class StationMetrics(
     def get_power_state(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
         return self._power_state
 
-    def get_wifi_wake_loc(self) -> WifiWakeLock:
-        return WifiWakeLock(self.get_proto().wifi_wake_lock)
-
-    def set_wifi_wake_loc(self, wifi_wake_loc: WifiWakeLock) -> 'StationMetrics':
-        redvox.api1000.common.typing.check_type(wifi_wake_loc, [WifiWakeLock])
-        self.get_proto().wifi_wake_loc = redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock.Value(
-            wifi_wake_loc.name)
-        return self
+    def get_wifi_wake_loc(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
+        return self._wifi_wake_loc
 
 
 class ServiceUrls(

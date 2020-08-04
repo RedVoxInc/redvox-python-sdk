@@ -143,6 +143,14 @@ class WrappedRedvoxPacketM(
         self._proto.api = api
         return self
 
+    def get_sub_api(self) -> float:
+        return self._proto.sub_api
+
+    def set_sub_api(self, sub_api: float) -> 'WrappedRedvoxPacketM':
+        redvox.api1000.common.typing.check_type(sub_api, [int, float])
+        self._proto.sub_api = sub_api
+        return self
+
     def get_station_information(self) -> _station_information.StationInformation:
         return self._station_information
 
