@@ -21,7 +21,6 @@ class TimeSyncData:
         station_id: str, id of station
         sample_rate_hz: float, sample rate of audio sensor in Hz
         mach_time_zero: int, timestamp of when the station was started
-        mach_time_zero: int, timestamp of when app was started
         packet_start_time: int, timestamp of when data started recording
         packet_end_time: int, timestamp of when data stopped recording
         server_acquisition_times: int, timestamp of when packet arrived at server
@@ -78,14 +77,17 @@ class TimeSyncData:
         :param station: station metadata
         """
         self.station_id = station.station_id
-        self.sample_rate_hz = data_pack.sensor_data_dict[sd.SensorType.AUDIO].sample_rate
+        self.sample_rate_hz = station.timing_data.audio_sample_rate_hz
         self.station_start_timestamp = station.timing_data.station_start_timestamp
         self.server_acquisition_time = data_pack.server_timestamp
         self.packet_start_time = data_pack.packet_start_timestamp
         self.packet_end_time = data_pack.packet_end_timestamp
-        self.time_sync_exchanges_df = pd.DataFrame(
-            tms.transmit_receive_timestamps_microsec(data_pack.timesync),
-            index=["a1", "a2", "a3", "b1", "b2", "b3"]).T
+        if data_pack.timesync is not None:
+            self.time_sync_exchanges_df = pd.DataFrame(
+                tms.transmit_receive_timestamps_microsec(data_pack.timesync),
+                index=["a1", "a2", "a3", "b1", "b2", "b3"]).T
+        else:
+            self.time_sync_exchanges_df = pd.DataFrame([], columns=["a1", "a2", "a3", "b1", "b2", "b3"])
         # stations may contain the best latency and offset data already
         if data_pack.packet_best_latency:
             self.best_latency = data_pack.packet_best_latency
@@ -309,7 +311,7 @@ class TimeSyncAnalysis:
 
 def get_time_sync_data(station: sd.Station) -> List[TimeSyncData]:
     timesync_list = []
-    for packet in station.sensor_dict.values():
+    for packet in station.sensor_list:
         timesync_list.append(TimeSyncData(packet, station.station_metadata))
     return timesync_list
 

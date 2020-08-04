@@ -45,7 +45,7 @@ class SensorData:
     """
     name: str
     data_df: pd.DataFrame
-    sample_rate: float = 1.0
+    sample_rate: float = np.nan
     is_sample_rate_fixed: bool = False
 
     def sensor_timestamps(self) -> List[str]:
@@ -64,18 +64,20 @@ class DataPacket:
     Generic DataPacket class for API-independent analysis
     Properties:
         server_timestamp: int, server timestamp of when data was received by the server
+        packet_app_start_timestamp: float, machine timestamp of when app started
         sensor_data_dict: dict, all SensorData associated with this sensor; keys are SensorType
         packet_start_timestamp: int, machine timestamp of the start of the packet
         packet_end_timestamp: int, machine timestamp of the end of the packet
-        timesync: np.array of of timesync data
+        timesync: optional np.array of of timesync data
         packet_best_latency: optional float, best latency of data
         packet_best_offset: optional int, best offset of data
     """
     server_timestamp: int
+    packet_app_start_timestamp: int
     sensor_data_dict: Dict[SensorType, SensorData] = field(default_factory=dict)
     packet_start_timestamp: int = 0
     packet_end_timestamp: int = 1
-    timesync: np.array = np.zeros(0)
+    timesync: Optional[np.array] = None
     packet_best_latency: Optional[float] = None
     packet_best_offset: Optional[int] = 0
 
@@ -88,8 +90,8 @@ class StationTiming:
         start_timestamp: int, timestamp when station started recording
         episode_start_timestamp: int, timestamp of start of segment of interest
         episode_end_timestamp: int, timestamp of end of segment of interest
-        audio_sample_rate_hz: int, sample rate in hz of audio sensor
-        station_first_timestamp: int, first timestamp chronologically of the data
+        audio_sample_rate_hz: float, sample rate in hz of audio sensor
+        station_first_data_timestamp: int, first timestamp chronologically of the data
         station_best_latency: optional float, best latency of data
         station_best_offset: optional int, best offset of data
     """
@@ -97,7 +99,7 @@ class StationTiming:
     episode_start_timestamp: int
     episode_end_timestamp: int
     audio_sample_rate_hz: float
-    station_first_timestamp: int
+    station_first_data_timestamp: int
     station_best_latency: Optional[float] = None
     station_best_offset: Optional[int] = 0
 
@@ -114,7 +116,8 @@ class StationMetadata:
         station_os_version: str, station OS version
         station_app: str, the name of the recording software used by the station
         station_app_version: str, the recording software version
-        station_timing: StationTiming metadata
+        is_mic_scrambled: bool, True if mic data is scrambled
+        timing_data: StationTiming metadata
     """
     station_id: str
     station_make: str
@@ -123,6 +126,7 @@ class StationMetadata:
     station_os_version: str
     station_app: str
     station_app_version: str
+    is_mic_scrambled: bool
     timing_data: StationTiming
 
 
@@ -135,7 +139,7 @@ class Station:
         station_data: dict, all DataPackets associated with this station; keys are packet_start_timestamp of DataPacket
     """
     station_metadata: StationMetadata
-    sensor_dict: Dict[int, DataPacket] = field(default_factory=dict)
+    sensor_list: List[DataPacket] = field(default_factory=dict)
 
 
 def read_api900_non_mic_sensor(sensor: reader.RedvoxSensor, packet_length_s: float, column_id: str) -> SensorData:
@@ -172,7 +176,7 @@ def read_api900_wrapped_packet(wrapped_packet: reader.WrappedRedvoxPacket) -> Di
         timestamps = np.transpose(wrapped_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc() +
                                   (np.arange(0, fs.get_num_points_from_sample_rate(sample_rate_hz)) / sample_rate_hz))
         data_dict[SensorType.AUDIO] = SensorData(wrapped_packet.microphone_sensor().sensor_name(),
-                                                 pd.DataFrame(data_for_df, index=timestamps, columns=["mic_data"]),
+                                                 pd.DataFrame(data_for_df, index=timestamps, columns=["mic"]),
                                                  sample_rate_hz, True)
     if wrapped_packet.has_accelerometer_sensor():
         data_dict[SensorType.ACCELEROMETER] = read_api900_non_mic_sensor(wrapped_packet.accelerometer_sensor(),
@@ -226,14 +230,15 @@ def load_station_from_api900(directory: str, start_timestamp_utc_s: Optional[int
                            data_packet.best_latency(), data_packet.best_offset())
     metadata = StationMetadata(data_packet.redvox_id(), data_packet.device_make(), data_packet.device_model(),
                                data_packet.device_os(), data_packet.device_os_version(),
-                               "Redvox", data_packet.app_version(), timing)
+                               "Redvox", data_packet.app_version(), data_packet.is_scrambled(), timing)
     data_dict = read_api900_wrapped_packet(data_packet)
-    packet_data = DataPacket(data_packet.server_timestamp_epoch_microseconds_utc(), data_dict,
+    packet_data = DataPacket(data_packet.server_timestamp_epoch_microseconds_utc(),
+                             data_packet.app_file_start_timestamp_machine(), data_dict,
                              data_packet.start_timestamp_us_utc(), int(data_packet.end_timestamp_us_utc()),
                              data_packet.time_synchronization_sensor().payload_values(),
                              data_packet.best_latency(), data_packet.best_offset())
-    packet_dict: Dict[int, DataPacket] = {packet_data.packet_start_timestamp: packet_data}
-    return Station(metadata, packet_dict)
+    packet_list: List[DataPacket] = [packet_data]
+    return Station(metadata, packet_list)
 
 
 def load_file_range_from_api900(directory: str,
@@ -267,21 +272,23 @@ def load_file_range_from_api900(directory: str,
                                wrapped_packets[0].best_latency(), wrapped_packets[0].best_offset())
         metadata = StationMetadata(redvox_id, wrapped_packets[0].device_make(), wrapped_packets[0].device_model(),
                                    wrapped_packets[0].device_os(), wrapped_packets[0].device_os_version(),
-                                   "Redvox", wrapped_packets[0].app_version(), timing)
+                                   "Redvox", wrapped_packets[0].app_version(), wrapped_packets[0].is_scrambled(),
+                                   timing)
         # add data from packets
-        packet_dict: Dict[int, DataPacket] = {}
+        packet_list: List[DataPacket] = []
         for packet in wrapped_packets:
             if packet.has_time_synchronization_sensor():
                 time_sync = packet.time_synchronization_sensor().payload_values()
             else:
                 time_sync = None
             data_dict = read_api900_wrapped_packet(packet)
-            packet_data = DataPacket(packet.server_timestamp_epoch_microseconds_utc(), data_dict,
+            packet_data = DataPacket(packet.server_timestamp_epoch_microseconds_utc(),
+                                     packet.app_file_start_timestamp_machine(), data_dict,
                                      packet.start_timestamp_us_utc(), packet.end_timestamp_us_utc(),
                                      time_sync, packet.best_latency(), packet.best_offset())
-            packet_dict[packet_data.packet_start_timestamp] = packet_data
+            packet_list.append(packet_data)
 
         # create the Station data object
-        all_stations.append(Station(metadata, packet_dict))
+        all_stations.append(Station(metadata, packet_list))
 
     return all_stations

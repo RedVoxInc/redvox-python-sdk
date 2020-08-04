@@ -10,8 +10,8 @@ from redvox.common import sensor_data as sd
 class SensorDataTest(unittest.TestCase):
     def test_my_test(self):
         station = sd.load_station_from_api900(os.path.join(tests.TEST_DATA_DIR, "1637650010_1531343782220.rdvxz"))
-        self.assertEqual(len(station.sensor_dict), 1)
-        for sensor in station.sensor_dict.values():
+        self.assertEqual(len(station.sensor_list), 1)
+        for sensor in station.sensor_list:
             self.assertIsNone(sensor.packet_best_latency)
             self.assertEqual(len(sensor.sensor_data_dict), 5)
             self.assertEqual(sensor.sensor_data_dict[sd.SensorType.AUDIO].sample_rate, 80)
