@@ -271,11 +271,14 @@ def load_file_range_from_api900(directory: str,
         # add data from packets
         packet_dict: Dict[int, DataPacket] = {}
         for packet in wrapped_packets:
+            if packet.has_time_synchronization_sensor():
+                time_sync = packet.time_synchronization_sensor().payload_values()
+            else:
+                time_sync = None
             data_dict = read_api900_wrapped_packet(packet)
             packet_data = DataPacket(packet.server_timestamp_epoch_microseconds_utc(), data_dict,
                                      packet.start_timestamp_us_utc(), packet.end_timestamp_us_utc(),
-                                     packet.time_synchronization_sensor().payload_values(),
-                                     packet.best_latency(), packet.best_offset())
+                                     time_sync, packet.best_latency(), packet.best_offset())
             packet_dict[packet_data.packet_start_timestamp] = packet_data
 
         # create the Station data object
