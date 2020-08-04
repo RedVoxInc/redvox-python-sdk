@@ -258,7 +258,7 @@ class AppSettings(
         redvox.api1000.common.typing.check_type(data_server_url, [str])
         self.get_proto().data_server_url = data_server_url
         return self
-    
+
     def get_use_custom_auth_server(self) -> bool:
         return self.get_proto().use_custom_auth_server
 
