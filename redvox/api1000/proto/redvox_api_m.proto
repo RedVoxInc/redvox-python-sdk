@@ -548,29 +548,26 @@ message RedvoxPacketM {
             // A list of bearing accuracy samples
             SamplePayload bearing_accuracy_samples = 11;
 
-            // Best location from current packet
-            BestLocation packet_best_location = 12;
-
             // Most recent best location
-            BestLocation last_best_location = 13;
+            BestLocation last_best_location = 12;
 
             // Best last location
-            BestLocation overall_best_location = 14;
+            BestLocation overall_best_location = 13;
 
             // Have location permissions been granted by the user?
-            bool location_permissions_granted = 21;
+            bool location_permissions_granted = 14;
 
             // Has location services been requested by the user?
-            bool location_services_requested = 22;
+            bool location_services_requested = 15;
 
             // Are location services enabled and working?
-            bool location_services_enabled = 23;
+            bool location_services_enabled = 16;
 
             // Location provider enumeration
-            repeated LocationProvider location_provider = 24;
+            repeated LocationProvider location_provider = 17;
 
             // A map from string to string for including untyped metadata
-            map<string, string> metadata = 25;
+            map<string, string> metadata = 18;
 
             message BestLocation {
                 // Timestamp of best lat/lng measurement

@@ -951,9 +951,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
             def bearing_accuracy_samples(self) -> type___RedvoxPacketM.SamplePayload: ...
 
             @property
-            def packet_best_location(self) -> type___RedvoxPacketM.Sensors.Location.BestLocation: ...
-
-            @property
             def last_best_location(self) -> type___RedvoxPacketM.Sensors.Location.BestLocation: ...
 
             @property
@@ -975,7 +972,6 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 vertical_accuracy_samples : typing___Optional[type___RedvoxPacketM.SamplePayload] = None,
                 speed_accuracy_samples : typing___Optional[type___RedvoxPacketM.SamplePayload] = None,
                 bearing_accuracy_samples : typing___Optional[type___RedvoxPacketM.SamplePayload] = None,
-                packet_best_location : typing___Optional[type___RedvoxPacketM.Sensors.Location.BestLocation] = None,
                 last_best_location : typing___Optional[type___RedvoxPacketM.Sensors.Location.BestLocation] = None,
                 overall_best_location : typing___Optional[type___RedvoxPacketM.Sensors.Location.BestLocation] = None,
                 location_permissions_granted : typing___Optional[builtin___bool] = None,
@@ -984,8 +980,8 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 location_provider : typing___Optional[typing___Iterable[type___RedvoxPacketM.Sensors.Location.LocationProviderValue]] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            def HasField(self, field_name: typing_extensions___Literal[u"altitude_samples",b"altitude_samples",u"bearing_accuracy_samples",b"bearing_accuracy_samples",u"bearing_samples",b"bearing_samples",u"horizontal_accuracy_samples",b"horizontal_accuracy_samples",u"last_best_location",b"last_best_location",u"latitude_samples",b"latitude_samples",u"longitude_samples",b"longitude_samples",u"overall_best_location",b"overall_best_location",u"packet_best_location",b"packet_best_location",u"speed_accuracy_samples",b"speed_accuracy_samples",u"speed_samples",b"speed_samples",u"timestamps",b"timestamps",u"vertical_accuracy_samples",b"vertical_accuracy_samples"]) -> builtin___bool: ...
-            def ClearField(self, field_name: typing_extensions___Literal[u"altitude_samples",b"altitude_samples",u"bearing_accuracy_samples",b"bearing_accuracy_samples",u"bearing_samples",b"bearing_samples",u"horizontal_accuracy_samples",b"horizontal_accuracy_samples",u"last_best_location",b"last_best_location",u"latitude_samples",b"latitude_samples",u"location_permissions_granted",b"location_permissions_granted",u"location_provider",b"location_provider",u"location_services_enabled",b"location_services_enabled",u"location_services_requested",b"location_services_requested",u"longitude_samples",b"longitude_samples",u"metadata",b"metadata",u"overall_best_location",b"overall_best_location",u"packet_best_location",b"packet_best_location",u"sensor_description",b"sensor_description",u"speed_accuracy_samples",b"speed_accuracy_samples",u"speed_samples",b"speed_samples",u"timestamps",b"timestamps",u"vertical_accuracy_samples",b"vertical_accuracy_samples"]) -> None: ...
+            def HasField(self, field_name: typing_extensions___Literal[u"altitude_samples",b"altitude_samples",u"bearing_accuracy_samples",b"bearing_accuracy_samples",u"bearing_samples",b"bearing_samples",u"horizontal_accuracy_samples",b"horizontal_accuracy_samples",u"last_best_location",b"last_best_location",u"latitude_samples",b"latitude_samples",u"longitude_samples",b"longitude_samples",u"overall_best_location",b"overall_best_location",u"speed_accuracy_samples",b"speed_accuracy_samples",u"speed_samples",b"speed_samples",u"timestamps",b"timestamps",u"vertical_accuracy_samples",b"vertical_accuracy_samples"]) -> builtin___bool: ...
+            def ClearField(self, field_name: typing_extensions___Literal[u"altitude_samples",b"altitude_samples",u"bearing_accuracy_samples",b"bearing_accuracy_samples",u"bearing_samples",b"bearing_samples",u"horizontal_accuracy_samples",b"horizontal_accuracy_samples",u"last_best_location",b"last_best_location",u"latitude_samples",b"latitude_samples",u"location_permissions_granted",b"location_permissions_granted",u"location_provider",b"location_provider",u"location_services_enabled",b"location_services_enabled",u"location_services_requested",b"location_services_requested",u"longitude_samples",b"longitude_samples",u"metadata",b"metadata",u"overall_best_location",b"overall_best_location",u"sensor_description",b"sensor_description",u"speed_accuracy_samples",b"speed_accuracy_samples",u"speed_samples",b"speed_samples",u"timestamps",b"timestamps",u"vertical_accuracy_samples",b"vertical_accuracy_samples"]) -> None: ...
         type___Location = Location
 
         class Xyz(google___protobuf___message___Message):
