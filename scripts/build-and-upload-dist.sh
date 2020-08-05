@@ -1,5 +1,20 @@
 #!/usr/bin/env bash
 
+if [ -z "$1" ]
+then
+  echo "usage: ./build-and-upload-dist.sh <user> <password>"
+  exit 1
+fi
+
+if [ -z "$2" ]
+then
+  echo "usage: ./build-and-upload-dist.sh <user> <password>"
+  exit 1
+fi
+
+USER=${1}
+PASS=${2}
+
 set -o nounset
 set -o errexit
 set -o xtrace
@@ -7,5 +22,4 @@ set -o xtrace
 cd ..
 python3 setup.py sdist bdist_wheel
 
-PASS=${1}
-twine upload -r pypi -p ${PASS} dist/*
+twine upload -r pypi -u ${USER} -p ${PASS} --skip-existing dist/*
