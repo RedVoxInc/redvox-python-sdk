@@ -521,53 +521,55 @@ message RedvoxPacketM {
             // Timestamps and stats
             TimingPayload timestamps = 2;
 
+            TimingPayload timestamps_gps = 3;
+
             // A list of latitude samples
-            DoubleSamplePayload latitude_samples = 3;
+            DoubleSamplePayload latitude_samples = 4;
 
             // A list of longitude samples
-            DoubleSamplePayload longitude_samples = 4;
+            DoubleSamplePayload longitude_samples = 5;
 
             // A list of altitude samples
-            SamplePayload altitude_samples = 5;
+            SamplePayload altitude_samples = 6;
 
             // A list of speed samples
-            SamplePayload speed_samples = 6;
+            SamplePayload speed_samples = 7;
 
             // A list of bearing samples
-            SamplePayload bearing_samples = 7;
+            SamplePayload bearing_samples = 8;
 
             // A list of horizontal accuracy samples
-            SamplePayload horizontal_accuracy_samples = 8;
+            SamplePayload horizontal_accuracy_samples = 9;
 
             // A list of vertical accuracy samples
-            SamplePayload vertical_accuracy_samples = 9;
+            SamplePayload vertical_accuracy_samples = 10;
 
             // A list of speed accuracy samples
-            SamplePayload speed_accuracy_samples = 10;
+            SamplePayload speed_accuracy_samples = 11;
 
             // A list of bearing accuracy samples
-            SamplePayload bearing_accuracy_samples = 11;
+            SamplePayload bearing_accuracy_samples = 12;
 
             // Most recent best location
-            BestLocation last_best_location = 12;
+            BestLocation last_best_location = 13;
 
             // Best last location
-            BestLocation overall_best_location = 13;
+            BestLocation overall_best_location = 14;
 
             // Have location permissions been granted by the user?
-            bool location_permissions_granted = 14;
+            bool location_permissions_granted = 15;
 
             // Has location services been requested by the user?
-            bool location_services_requested = 15;
+            bool location_services_requested = 16;
 
             // Are location services enabled and working?
-            bool location_services_enabled = 16;
+            bool location_services_enabled = 17;
 
             // Location provider enumeration
-            repeated LocationProvider location_providers = 17;
+            repeated LocationProvider location_providers = 18;
 
             // A map from string to string for including untyped metadata
-            map<string, string> metadata = 18;
+            map<string, string> metadata = 19;
 
             message BestLocation {
                 // Timestamp of best lat/lng measurement
