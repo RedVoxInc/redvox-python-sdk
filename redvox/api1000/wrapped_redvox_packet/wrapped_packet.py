@@ -10,17 +10,20 @@ from google.protobuf import json_format
 import redvox.api1000.common.lz4
 import redvox.api1000.common.typing
 import redvox.api1000.errors as errors
-import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-import redvox.api1000.common.generic
+# import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
+# import redvox.api1000.common.generic
 import redvox.api1000.wrapped_redvox_packet.sensors.sensors as _sensors
 import redvox.api1000.wrapped_redvox_packet.station_information as _station_information
 import redvox.api1000.wrapped_redvox_packet.timing_information as _timing_information
 import redvox.common.date_time_utils as dt_utils
 
+from redvox.api1000.common.generic import ProtoBase, ProtoRepeatedMessage
+from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
+from redvox.api1000.wrapped_redvox_packet.event_streams import EventStream
 
-class WrappedRedvoxPacketM(
-        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM]):
-    def __init__(self, redvox_proto: redvox_api_m_pb2.RedvoxPacketM):
+
+class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
+    def __init__(self, redvox_proto: RedvoxPacketM):
         super().__init__(redvox_proto)
 
         self._station_information: _station_information.StationInformation = _station_information.StationInformation(
@@ -31,13 +34,21 @@ class WrappedRedvoxPacketM(
 
         self._sensors: _sensors.Sensors = _sensors.Sensors(redvox_proto.sensors)
 
+        self._event_streams: ProtoRepeatedMessage = ProtoRepeatedMessage(
+            redvox_proto,
+            redvox_proto.event_streams,
+            "event_streams",
+            lambda event_stream_proto: EventStream(event_stream_proto),
+            lambda event_stream: event_stream.get_proto()
+        )
+
     @staticmethod
     def new() -> 'WrappedRedvoxPacketM':
         """
         Returns a new default instance of a WrappedRedvoxPacketApi1000.
         :return: A new default instance of a WrappedRedvoxPacketApi1000.
         """
-        return WrappedRedvoxPacketM(redvox_api_m_pb2.RedvoxPacketM())
+        return WrappedRedvoxPacketM(RedvoxPacketM())
 
     @staticmethod
     def from_compressed_bytes(data: bytes) -> 'WrappedRedvoxPacketM':
@@ -48,7 +59,7 @@ class WrappedRedvoxPacketM(
         """
         redvox.api1000.common.typing.check_type(data, [bytes])
         uncompressed_data: bytes = redvox.api1000.common.lz4.decompress(data)
-        proto: redvox_api_m_pb2.RedvoxPacketM = redvox_api_m_pb2.RedvoxPacketM()
+        proto: RedvoxPacketM = RedvoxPacketM()
         proto.ParseFromString(uncompressed_data)
         return WrappedRedvoxPacketM(proto)
 
@@ -75,7 +86,7 @@ class WrappedRedvoxPacketM(
         :param json_str: contains the json representing the packet
         :return: An instance of a WrappedRedvoxPacketM
         """
-        return WrappedRedvoxPacketM(json_format.Parse(json_str, redvox_api_m_pb2.RedvoxPacketM()))
+        return WrappedRedvoxPacketM(json_format.Parse(json_str, RedvoxPacketM()))
 
     @staticmethod
     def from_json_path(json_path: str) -> 'WrappedRedvoxPacketM':
@@ -169,6 +180,9 @@ class WrappedRedvoxPacketM(
 
     def get_sensors(self) -> _sensors.Sensors:
         return self._sensors
+
+    def get_event_streams(self) -> ProtoRepeatedMessage:
+        return self._event_streams
 
     def update_timestamps(self, delta_offset: float = None) -> 'WrappedRedvoxPacketM':
         if delta_offset is None:
