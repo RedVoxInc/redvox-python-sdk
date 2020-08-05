@@ -14,6 +14,9 @@ from redvox.common import file_statistics as fs
 
 
 class SensorType(enum.Enum):
+    """
+    Enumeration of possible types of sensors to read data from
+    """
     UNKNOWN_SENSOR = 0          # unknown sensor
     ACCELEROMETER = 1           # meters/second^2
     TEMPERATURE = 2             # degrees Celsius
@@ -56,14 +59,25 @@ class SensorData:
         """
         return self.data_df.index.to_list()
 
+    def first_data_timestamp(self) -> int:
+        """
+        get the first timestamp of the data
+        :return: timestamp of the first data point
+        """
+        return self.data_df.index[0]
+
     def num_samples(self) -> int:
         """
         get the number of samples in the dataframe
-        :return:
+        :return: the number of rows in the dataframe
         """
         return self.data_df.shape[0]
 
     def sensor_data_fields(self) -> List[str]:
+        """
+        get the data fields of the sensor
+        :return: the names of the data fields of the sensor
+        """
         return self.data_df.columns.to_list()
 
 
@@ -90,9 +104,67 @@ class DataPacket:
     packet_best_latency: Optional[float] = None
     packet_best_offset: Optional[int] = 0
 
-    def get_mic_sensor(self) -> SensorData:
-        return self.sensor_data_dict[SensorType.AUDIO]
+    def _delete_sensor(self, sensor_type: SensorType):
+        """
+        removes a sensor from the data packet if it exists
+        :param sensor_type: the sensor to remove
+        """
+        if sensor_type in self.sensor_data_dict.keys():
+            self.sensor_data_dict.pop(sensor_type)
 
+    def _add_sensor(self, sensor_type: SensorType, sensor: SensorData):
+        """
+        adds a sensor to the sensor_data_dict
+        :param sensor_type: the type of sensor to add
+        :param sensor: the sensor data to add
+        """
+        if sensor_type in self.sensor_data_dict.keys():
+            raise ValueError(f"Cannot add sensor type ({sensor_type.name}) that already exists in packet!")
+        else:
+            self.sensor_data_dict[sensor_type] = sensor
+
+    def has_audio_sensor(self) -> bool:
+        """
+        check if audio sensor is in sensor_data_dict
+        :return: True if audio sensor exists
+        """
+        return SensorType.AUDIO in self.sensor_data_dict.keys()
+
+    def audio_sensor(self) -> Optional[SensorData]:
+        """
+        return the audio sensor if it exists
+        :return: audio sensor if it exists, None otherwise
+        """
+        if self.has_audio_sensor():
+            return self.sensor_data_dict[SensorType.AUDIO]
+        return None
+
+    def set_audio_sensor(self, audio_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the audio sensor; can remove audio sensor by passing None
+        :param audio_sensor: the SensorData to set or None
+        """
+        if self.has_audio_sensor():
+            self._delete_sensor(SensorType.AUDIO)
+        if audio_sensor is not None:
+            self._add_sensor(SensorType.AUDIO, audio_sensor)
+        return self
+
+    def has_location_sensor(self) -> bool:
+        """
+        check if location sensor is in sensor_data_dict
+        :return: True if location sensor exists
+        """
+        return SensorType.LOCATION in self.sensor_data_dict.keys()
+
+    def location_sensor(self) -> Optional[SensorData]:
+        """
+        return the location sensor if it exists
+        :return: audio location if it exists, None otherwise
+        """
+        if self.has_location_sensor():
+            return self.sensor_data_dict[SensorType.LOCATION]
+        return None
 
 
 @dataclass
@@ -152,7 +224,7 @@ class Station:
         station_data: dict, all DataPackets associated with this station; keys are packet_start_timestamp of DataPacket
     """
     station_metadata: StationMetadata
-    sensor_list: List[DataPacket] = field(default_factory=dict)
+    station_data: List[DataPacket] = field(default_factory=dict)
 
 
 def read_api900_non_mic_sensor(sensor: reader.RedvoxSensor, packet_length_s: float, column_id: str) -> SensorData:
@@ -169,7 +241,7 @@ def read_api900_non_mic_sensor(sensor: reader.RedvoxSensor, packet_length_s: flo
         columns = [f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
     else:
         data_for_df = np.transpose(sensor.payload_values())
-        columns = [f"{column_id}_data"]
+        columns = [column_id]
     return SensorData(sensor.sensor_name(), pd.DataFrame(data_for_df, index=timestamps, columns=columns),
                       packet_length_s / len(timestamps), False)
 
@@ -189,20 +261,20 @@ def read_api900_wrapped_packet(wrapped_packet: reader.WrappedRedvoxPacket) -> Di
         timestamps = np.transpose(wrapped_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc() +
                                   (np.arange(0, fs.get_num_points_from_sample_rate(sample_rate_hz)) / sample_rate_hz))
         data_dict[SensorType.AUDIO] = SensorData(wrapped_packet.microphone_sensor().sensor_name(),
-                                                 pd.DataFrame(data_for_df, index=timestamps, columns=["mic"]),
+                                                 pd.DataFrame(data_for_df, index=timestamps, columns=["microphone"]),
                                                  sample_rate_hz, True)
     if wrapped_packet.has_accelerometer_sensor():
         data_dict[SensorType.ACCELEROMETER] = read_api900_non_mic_sensor(wrapped_packet.accelerometer_sensor(),
-                                                                         packet_length_s, "accel")
+                                                                         packet_length_s, "accelerometer")
     if wrapped_packet.has_magnetometer_sensor():
         data_dict[SensorType.MAGNETOMETER] = read_api900_non_mic_sensor(wrapped_packet.magnetometer_sensor(),
-                                                                        packet_length_s, "magnet")
+                                                                        packet_length_s, "magnetometer")
     if wrapped_packet.has_gyroscope_sensor():
         data_dict[SensorType.GYROSCOPE] = read_api900_non_mic_sensor(wrapped_packet.gyroscope_sensor(),
-                                                                     packet_length_s, "gyro")
+                                                                     packet_length_s, "gyroscope")
     if wrapped_packet.has_barometer_sensor():
         data_dict[SensorType.PRESSURE] = read_api900_non_mic_sensor(wrapped_packet.barometer_sensor(),
-                                                                    packet_length_s, "bar")
+                                                                    packet_length_s, "barometer")
     if wrapped_packet.has_light_sensor():
         data_dict[SensorType.LIGHT] = read_api900_non_mic_sensor(wrapped_packet.light_sensor(),
                                                                  packet_length_s, "light")
@@ -219,7 +291,7 @@ def read_api900_wrapped_packet(wrapped_packet: reader.WrappedRedvoxPacket) -> Di
                                     wrapped_packet.location_sensor().payload_values_altitude(),
                                     wrapped_packet.location_sensor().payload_values_speed(),
                                     wrapped_packet.location_sensor().payload_values_accuracy()])
-        columns = ["lat", "lon", "alt", "spd", "acc"]
+        columns = ["latitude", "longitude", "altitude", "speed", "accuracy"]
         data_dict[SensorType.LOCATION] = SensorData(wrapped_packet.location_sensor().sensor_name(),
                                                     pd.DataFrame(data_for_df, index=timestamps, columns=columns),
                                                     packet_length_s / len(timestamps), False)
@@ -235,21 +307,21 @@ def load_station_from_api900(directory: str, start_timestamp_utc_s: Optional[int
     :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
     :return: a station Object
     """
-    data_packet = reader.read_rdvxz_file(directory)
+    api900_packet = reader.read_rdvxz_file(directory)
     # set station metadata and timing based on first packet
-    timing = StationTiming(data_packet.mach_time_zero(), start_timestamp_utc_s, end_timestamp_utc_s,
-                           data_packet.microphone_sensor().sample_rate_hz(),
-                           data_packet.app_file_start_timestamp_epoch_microseconds_utc(),
-                           data_packet.best_latency(), data_packet.best_offset())
-    metadata = StationMetadata(data_packet.redvox_id(), data_packet.device_make(), data_packet.device_model(),
-                               data_packet.device_os(), data_packet.device_os_version(),
-                               "Redvox", data_packet.app_version(), data_packet.is_scrambled(), timing)
-    data_dict = read_api900_wrapped_packet(data_packet)
-    packet_data = DataPacket(data_packet.server_timestamp_epoch_microseconds_utc(),
-                             data_packet.app_file_start_timestamp_machine(), data_dict,
-                             data_packet.start_timestamp_us_utc(), int(data_packet.end_timestamp_us_utc()),
-                             data_packet.time_synchronization_sensor().payload_values(),
-                             data_packet.best_latency(), data_packet.best_offset())
+    timing = StationTiming(api900_packet.mach_time_zero(), start_timestamp_utc_s, end_timestamp_utc_s,
+                           api900_packet.microphone_sensor().sample_rate_hz(),
+                           api900_packet.app_file_start_timestamp_epoch_microseconds_utc(),
+                           api900_packet.best_latency(), api900_packet.best_offset())
+    metadata = StationMetadata(api900_packet.redvox_id(), api900_packet.device_make(), api900_packet.device_model(),
+                               api900_packet.device_os(), api900_packet.device_os_version(),
+                               "Redvox", api900_packet.app_version(), api900_packet.is_scrambled(), timing)
+    data_dict = read_api900_wrapped_packet(api900_packet)
+    packet_data = DataPacket(api900_packet.server_timestamp_epoch_microseconds_utc(),
+                             api900_packet.app_file_start_timestamp_machine(), data_dict,
+                             api900_packet.start_timestamp_us_utc(), int(api900_packet.end_timestamp_us_utc()),
+                             api900_packet.time_synchronization_sensor().payload_values(),
+                             api900_packet.best_latency(), api900_packet.best_offset())
     packet_list: List[DataPacket] = [packet_data]
     return Station(metadata, packet_list)
 

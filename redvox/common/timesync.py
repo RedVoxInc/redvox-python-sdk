@@ -139,6 +139,10 @@ class TimeSyncData:
             self.offset_std = 0
 
     def num_tri_messages(self) -> int:
+        """
+        return the number of tri-message exchanges
+        :return: number of tri-message exchanges
+        """
         return self.time_sync_exchanges_df.shape[0]
 
 
@@ -146,24 +150,37 @@ class TimeSyncAnalysis:
     """
     Used for multiple TimeSyncData objects from a station
     properties:
-        station: the station that contains the data to analyze
+        station_id: string, the station_id of the station being analyzed
+        best_latency_index: int, the index of the TimeSyncData object with the best latency, default 0
+        latency_stats: StatsContainer, the statistics of the latencies
+        offset_stats: StatsContainer, the statistics of the offsets
+        sample_rate_hz: float, the audio sample rate in hz of the station
+        timesync_data: list of TimeSyncData, the TimeSyncData to analyze
+        station_start_timestamp: optional int, the timestamp of when the station became active, default None
     """
     def __init__(self, station: sd.Station = None):
+        """
+        Initialize properties
+        :param station: the station to perform analysis on
+        """
         self.station_id: str = ""
         self.best_latency_index: int = 0
         self.latency_stats = sh.StatsContainer("latency")
         self.offset_stats = sh.StatsContainer("offset")
-        self.station_start_timestamp: Optional[int] = None
         self.sample_rate_hz: float = 0
         self.timesync_data: List[TimeSyncData] = []
+        self.station_start_timestamp: Optional[int] = None
         if station is not None:
-            self.station_id: str = station.station_metadata.station_id
-            self.station_start_timestamp: int = station.station_metadata.timing_data.station_start_timestamp
-            self.sample_rate_hz: float = station.station_metadata.timing_data.audio_sample_rate_hz
-            self.timesync_data: List[TimeSyncData] = get_time_sync_data(station)
+            self.station_id = station.station_metadata.station_id
+            self.station_start_timestamp = station.station_metadata.timing_data.station_start_timestamp
+            self.sample_rate_hz = station.station_metadata.timing_data.audio_sample_rate_hz
+            self.timesync_data = get_time_sync_data(station)
             self.evaluate_and_validate_data()
 
     def evaluate_and_validate_data(self):
+        """
+        check the data for errors and update the analysis statistics
+        """
         self._calc_timesync_stats()
         self.evaluate_latencies()
         if self.validate_start_timestamp():
@@ -189,67 +206,111 @@ class TimeSyncAnalysis:
                                   self.timesync_data[index].num_tri_messages() * 2)
 
     def add_timesync_data(self, timesync_data: TimeSyncData):
+        """
+        adds a TimeSyncData object to the analysis
+        :param timesync_data: TimeSyncData to add
+        """
         self.timesync_data.append(timesync_data)
         self.evaluate_and_validate_data()
 
     def get_num_packets(self) -> int:
+        """
+        return the number of packets in the TimeSyncAnalysis
+        :return: number of packets analyzed
+        """
         return len(self.timesync_data)
 
     def get_best_latency(self) -> float:
+        """
+        return the best latency
+        :return: the best latency
+        """
         return self.timesync_data[self.best_latency_index].best_latency
 
     def get_latencies(self) -> np.array:
+        """
+        return all the latencies
+        :return: np.array containing all the latencies
+        """
         latencies = []
         for ts_data in self.timesync_data:
             latencies.append(ts_data.best_latency)
         return np.array(latencies)
 
-    def get_mean_latency(self):
-        mean = self.latency_stats.mean_of_means()
-        if np.isnan(mean):
-            return None
-        return mean
+    def get_mean_latency(self) -> float:
+        """
+        return the mean of the latencies
+        :return: the mean of the latencies, or np.nan if it doesn't exist
+        """
+        return self.latency_stats.mean_of_means()
 
-    def get_latency_std(self):
-        std_dev = self.latency_stats.total_std_dev()
-        if np.isnan(std_dev):
-            return None
-        return std_dev
+    def get_latency_std(self) -> float:
+        """
+        return the standard deviation of the latencies
+        :return: the standard deviation of the latencies, or np.nan if it doesn't exist
+        """
+        return self.latency_stats.total_std_dev()
 
-    def get_best_offset(self):
+    def get_best_offset(self) -> int:
+        """
+        returns the offset associated with the best latency
+        :return: offset associated with the best latency
+        """
         return self.timesync_data[self.best_latency_index].best_offset
 
     def get_offsets(self) -> np.array:
+        """
+        return all the offsets
+        :return: np.array containing all the offsets
+        """
         offsets = []
         for ts_data in self.timesync_data:
             offsets.append(ts_data.best_offset)
         return np.array(offsets)
 
-    def get_mean_offset(self):
-        mean = self.offset_stats.mean_of_means()
-        if np.isnan(mean):
-            return None
-        return mean
+    def get_mean_offset(self) -> float:
+        """
+        return the mean of the offsets
+        :return: the mean of the offsets, or np.nan if it doesn't exist
+        """
+        return self.offset_stats.mean_of_means()
 
-    def get_offset_std(self):
-        std_dev = self.offset_stats.total_std_dev()
-        if np.isnan(std_dev):
-            return None
-        return std_dev
+    def get_offset_std(self) -> float:
+        """
+        return the standard deviation of the offsets
+        :return: the standard deviation of the offsets, or np.nan if it doesn't exist
+        """
+        return self.offset_stats.total_std_dev()
 
-    def get_best_packet_latency_index(self):
+    def get_best_packet_latency_index(self) -> int:
+        """
+        returns the index of the best latency in the packet with the best latency
+        :return: the best latency's index in the packet with the best latency
+        """
         return self.timesync_data[self.best_latency_index].best_latency_index
 
-    def get_best_start_time(self):
+    def get_best_start_time(self) -> int:
+        """
+        return the start timestamp associated with the best latency
+        :return: start timestamp associated with the best latency
+        """
         return self.timesync_data[self.best_latency_index].packet_start_time
 
     def get_start_times(self) -> np.array:
+        """
+        returns the start timestamps of all the packets
+        :return: list of the start timestamps of each packet
+        """
         start_times = []
         for ts_data in self.timesync_data:
             start_times.append(ts_data.packet_start_time)
         return np.array(start_times)
 
     def get_bad_packets(self) -> List[int]:
+        """
+        returns all the packets that have invalid data
+        :return: list of all packets that contains invalid data
+        """
         bad_packets = []
         for idx in range(self.get_num_packets()):  # mark bad indices (they have a 0 or less value)
             if self.get_latencies()[idx] <= 0 or np.isnan(self.get_latencies()[idx]):
@@ -310,8 +371,13 @@ class TimeSyncAnalysis:
 
 
 def get_time_sync_data(station: sd.Station) -> List[TimeSyncData]:
+    """
+    Returns the TimeSyncData associated with a station
+    :param station: the station to get data from
+    :return: a list of all TimeSyncData objects from the station
+    """
     timesync_list = []
-    for packet in station.sensor_list:
+    for packet in station.station_data:
         timesync_list.append(TimeSyncData(packet, station.station_metadata))
     return timesync_list
 
