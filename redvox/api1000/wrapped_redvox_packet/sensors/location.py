@@ -8,6 +8,8 @@ from typing import List
 
 import redvox.api1000.common.generic
 
+from redvox.api1000.common.generic import ProtoRepeatedMessage
+
 
 class LocationProvider(enum.Enum):
     UNKNOWN: int = 0
@@ -15,6 +17,13 @@ class LocationProvider(enum.Enum):
     USER: int = 2
     GPS: int = 3
     NETWORK: int = 4
+
+    @staticmethod
+    def from_proto(proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Location.LocationProvider) -> 'LocationProvider':
+        return redvox_api_m_pb2.RedvoxPacketM.Sensors.Location.LocationProvider(proto)
+
+    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.Sensors.Location.LocationProvider:
+        return redvox_api_m_pb2.RedvoxPacketM.Sensors.Location.LocationProvider.Value(self.name)
 
 
 class LocationScoreMethod(enum.Enum):
@@ -44,7 +53,6 @@ class BestTimestamp(
         return self
 
 
-
 class BestLocation:
     pass
 
@@ -64,6 +72,13 @@ class Location(
         self._vertical_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.vertical_accuracy_samples)
         self._speed_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.speed_accuracy_samples)
         self._bearing_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.bearing_accuracy_samples)
+        self._location_providers: ProtoRepeatedMessage = ProtoRepeatedMessage(
+            proto,
+            proto.location_providers,
+            "location_providers",
+            LocationProvider.from_proto,
+            LocationProvider.into_proto,
+        )
 
     @staticmethod
     def new() -> 'Location':
@@ -131,14 +146,8 @@ class Location(
         self._proto.location_services_enabled = location_services_enabled
         return self
 
-    # def get_location_provider(self) -> LocationProvider:
-    #     return LocationProvider(self._proto.location_provider)
-    #
-    # def set_location_provider(self, location_provider: LocationProvider) -> 'Location':
-    #     redvox.api1000.common.typing.check_type(location_provider, [LocationProvider])
-    #     self._proto.location_provider = redvox_api_m_pb2.RedvoxPacketM.Sensors.Location \
-    #         .LocationProvider.Value(location_provider.name)
-    #     return self
+    def get_location_providers(self) -> ProtoRepeatedMessage:
+        return self._location_providers
 
 
 def validate_location(loc_sensor: Location) -> List[str]:
