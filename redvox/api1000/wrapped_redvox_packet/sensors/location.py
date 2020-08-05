@@ -21,7 +21,7 @@ class LocationProvider(enum.Enum):
 
     @staticmethod
     def from_proto(proto: RedvoxPacketM.Sensors.Location.LocationProvider) -> 'LocationProvider':
-        return RedvoxPacketM.Sensors.Location.LocationProvider(proto)
+        return LocationProvider(proto)
 
     def into_proto(self) -> RedvoxPacketM.Sensors.Location.LocationProvider:
         return RedvoxPacketM.Sensors.Location.LocationProvider.Value(self.name)
