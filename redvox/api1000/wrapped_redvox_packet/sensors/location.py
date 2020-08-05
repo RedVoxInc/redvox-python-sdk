@@ -131,14 +131,14 @@ class Location(
         self._proto.location_services_enabled = location_services_enabled
         return self
 
-    def get_location_provider(self) -> LocationProvider:
-        return LocationProvider(self._proto.location_provider)
-
-    def set_location_provider(self, location_provider: LocationProvider) -> 'Location':
-        redvox.api1000.common.typing.check_type(location_provider, [LocationProvider])
-        self._proto.location_provider = redvox_api_m_pb2.RedvoxPacketM.Sensors.Location \
-            .LocationProvider.Value(location_provider.name)
-        return self
+    # def get_location_provider(self) -> LocationProvider:
+    #     return LocationProvider(self._proto.location_provider)
+    #
+    # def set_location_provider(self, location_provider: LocationProvider) -> 'Location':
+    #     redvox.api1000.common.typing.check_type(location_provider, [LocationProvider])
+    #     self._proto.location_provider = redvox_api_m_pb2.RedvoxPacketM.Sensors.Location \
+    #         .LocationProvider.Value(location_provider.name)
+    #     return self
 
 
 def validate_location(loc_sensor: Location) -> List[str]:

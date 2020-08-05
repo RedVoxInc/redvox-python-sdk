@@ -564,7 +564,7 @@ message RedvoxPacketM {
             bool location_services_enabled = 16;
 
             // Location provider enumeration
-            repeated LocationProvider location_provider = 17;
+            repeated LocationProvider location_providers = 17;
 
             // A map from string to string for including untyped metadata
             map<string, string> metadata = 18;
@@ -639,8 +639,10 @@ message RedvoxPacketM {
                 // Method used to derive the location score
                 LocationScoreMethod method = 23;
 
+                LocationProvider location_provider = 24;
+
                 // A map from string to string for including untyped metadata
-                map<string, string> metadata = 24;
+                map<string, string> metadata = 25;
 
                 // A message that encapsulates both a mach and GPS timestamp
                 message BestTimestamp {
