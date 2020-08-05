@@ -2,6 +2,7 @@
 This module provides a high level API for creating, reading, and editing RedVox compliant API 1000 files.
 """
 
+from datetime import datetime
 import os.path
 from typing import Optional, List
 from google.protobuf import json_format
@@ -10,15 +11,15 @@ import redvox.api1000.common.lz4
 import redvox.api1000.common.typing
 import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-# import redvox.api1000.common.common as common
 import redvox.api1000.common.generic
 import redvox.api1000.wrapped_redvox_packet.sensors.sensors as _sensors
 import redvox.api1000.wrapped_redvox_packet.station_information as _station_information
 import redvox.api1000.wrapped_redvox_packet.timing_information as _timing_information
+import redvox.common.date_time_utils as dt_utils
 
 
 class WrappedRedvoxPacketM(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM]):
     def __init__(self, redvox_proto: redvox_api_m_pb2.RedvoxPacketM):
         super().__init__(redvox_proto)
 
@@ -86,24 +87,33 @@ class WrappedRedvoxPacketM(
         with open(json_path, "r") as json_in:
             return WrappedRedvoxPacketM.from_json(json_in.read())
 
-    def default_filename(self, extension: Optional[str] = None) -> str:
+    def default_filename(self, extension: Optional[str] = "rdvxm") -> str:
         """
         Returns the default filename for a given packet.
         :param extension: An (optional) file extension to add to the default file name.
         :return: The default filename for this packet.
         """
-        station_id: str = self.get_station_information().get_id()
-        station_id_len: int = len(station_id)
-        if station_id_len < 10:
-            station_id = f"{'0' * (10 - station_id_len)}{station_id}"
+        # Format to be exactly 10 characters
+        station_id: str = f"{self.get_station_information().get_id():0>10}"
         timestamp: int = round(self.get_timing_information().get_packet_start_mach_timestamp())
-
         filename: str = f"{station_id}_{timestamp}"
 
         if extension is not None:
             filename = f"{filename}.{extension}"
 
         return filename
+
+    def default_file_dir(self) -> str:
+        ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
+        dt: datetime = dt_utils.datetime_from_epoch_microseconds_utc(ts)
+        year: str = f"{dt.year}:0>4"
+        month: str = f"{dt.month:0>2}"
+        day: str = f"{dt.day:0>2}"
+        hour: str = f"{dt.hour:0>2}"
+        return os.path.join(year, month, day, hour)
+
+    def default_file_path(self) -> str:
+        return os.path.join(self.default_file_dir(), self.default_filename())
 
     def write_compressed_to_file(self, base_dir: str, filename: Optional[str] = None) -> str:
         if filename is None:
@@ -120,7 +130,7 @@ class WrappedRedvoxPacketM(
 
     def write_json_to_file(self, base_dir: str, filename: Optional[str] = None) -> str:
         if filename is None:
-            filename = self.default_filename("m.json")
+            filename = self.default_filename("json")
 
         if not os.path.isdir(base_dir):
             raise errors.WrappedRedvoxPacketMError(f"Base directory={base_dir} does not exist.")
@@ -183,7 +193,7 @@ class WrappedRedvoxPacketM(
             updated.get_sensors().get_audio().set_first_sample_timestamp(
                 self.get_sensors().get_audio().get_first_sample_timestamp() + delta_offset)
         # if self.get_sensors().get_proto().HasField("compressed_audio"):
-            # update compressed audio first sample timestamp
+        # update compressed audio first sample timestamp
         # update timestamp payloads
         if self.get_station_information().get_station_metrics().get_proto().HasField("timestamps"):
             updated.get_station_information().get_station_metrics().get_timestamps().set_timestamps(
