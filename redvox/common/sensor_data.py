@@ -14,6 +14,7 @@ from redvox.common import file_statistics as fs
 
 
 class SensorType(enum.Enum):
+    UNKNOWN_SENSOR = 0          # unknown sensor
     ACCELEROMETER = 1           # meters/second^2
     TEMPERATURE = 2             # degrees Celsius
     AUDIO = 3                   # normalized counts
@@ -49,9 +50,17 @@ class SensorData:
     is_sample_rate_fixed: bool = False
 
     def sensor_timestamps(self) -> List[str]:
+        """
+        get the timestamps from the dataframe
+        :return: a list of timestamps
+        """
         return self.data_df.index.to_list()
 
     def num_samples(self) -> int:
+        """
+        get the number of samples in the dataframe
+        :return:
+        """
         return self.data_df.shape[0]
 
     def sensor_data_fields(self) -> List[str]:
@@ -80,6 +89,10 @@ class DataPacket:
     timesync: Optional[np.array] = None
     packet_best_latency: Optional[float] = None
     packet_best_offset: Optional[int] = 0
+
+    def get_mic_sensor(self) -> SensorData:
+        return self.sensor_data_dict[SensorType.AUDIO]
+
 
 
 @dataclass
