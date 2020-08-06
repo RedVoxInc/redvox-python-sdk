@@ -6,11 +6,11 @@ import enum
 from typing import List, Tuple, Optional
 
 import numpy as np
-import scipy.stats
 
 import redvox.api1000.errors as errors
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.common.date_time_utils as dt_utils
+from redvox.api1000.common.decorators import wrap_enum
 from redvox.api1000.common.generic import ProtoBase
 from redvox.api1000.common.typing import check_type, none_or_empty
 
@@ -19,6 +19,7 @@ NAN: float = float("NaN")
 EMPTY_ARRAY: np.ndarray = np.array([])
 
 
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.Unit)
 class Unit(enum.Enum):
     """
     Standard units expected to be used within API M.
@@ -44,22 +45,6 @@ class Unit(enum.Enum):
     LUX: int = 18
     UNITLESS: int = 19
     PCM: int = 20
-
-    @staticmethod
-    def from_proto(unit: redvox_api_m_pb2.RedvoxPacketM.Unit) -> 'Unit':
-        """
-        Converts the protobuf unit into a common.Unit.
-        :param unit: Protobuf unit enumeration to convert.
-        :return: An instance of Unit.
-        """
-        return Unit(unit)
-
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.Unit:
-        """
-        Converts this instance of common.Unit into the protobuf equivalent.
-        :return:
-        """
-        return redvox_api_m_pb2.RedvoxPacketM.Unit.Value(self.name)
 
 
 class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatistics]):

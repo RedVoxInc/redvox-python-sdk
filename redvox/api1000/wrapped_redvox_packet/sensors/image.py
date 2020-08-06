@@ -3,10 +3,12 @@ import redvox.api1000.common.generic
 import redvox.api1000.common.common as common
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
+from redvox.api1000.common.decorators import wrap_enum
 from redvox.api1000.common.typing import check_type
 from typing import List
 
 
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.Sensors.Image.ImageCodec)
 class ImageCodec(enum.Enum):
     """
     Image Codecs for image data
@@ -15,22 +17,6 @@ class ImageCodec(enum.Enum):
     PNG: int = 1
     JPG: int = 2
     BMP: int = 3
-
-    @staticmethod
-    def from_proto(codec: redvox_api_m_pb2.RedvoxPacketM.Sensors.Image.ImageCodec) -> 'ImageCodec':
-        """
-        Converts the protobuf image codec into an image.ImageCodec.
-        :param codec: Protobuf image codec enumeration to convert.
-        :return: An instance of ImageCodec.
-        """
-        return ImageCodec(codec)
-
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.Sensors.Image.ImageCodec:
-        """
-        Converts this instance of image.ImageCodec into the protobuf equivalent.
-        :return:
-        """
-        return redvox_api_m_pb2.RedvoxPacketM.Sensors.Image.ImageCodec.Value(self.name)
 
 
 class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Image]):

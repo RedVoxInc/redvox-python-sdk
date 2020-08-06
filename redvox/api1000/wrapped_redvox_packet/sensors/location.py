@@ -1,17 +1,18 @@
 import enum
 
 import redvox.api1000.common.typing
-# import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.common.common as common
 
 from typing import List
 
 import redvox.api1000.common.generic
 
+from redvox.api1000.common.decorators import wrap_enum
 from redvox.api1000.common.generic import ProtoBase, ProtoRepeatedMessage
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 
 
+@wrap_enum(RedvoxPacketM.Sensors.Location.LocationProvider)
 class LocationProvider(enum.Enum):
     UNKNOWN: int = 0
     NONE: int = 1
@@ -19,23 +20,10 @@ class LocationProvider(enum.Enum):
     GPS: int = 3
     NETWORK: int = 4
 
-    @staticmethod
-    def from_proto(proto: RedvoxPacketM.Sensors.Location.LocationProvider) -> 'LocationProvider':
-        return LocationProvider(proto)
 
-    def into_proto(self) -> RedvoxPacketM.Sensors.Location.LocationProvider:
-        return RedvoxPacketM.Sensors.Location.LocationProvider.Value(self.name)
-
-
+@wrap_enum(RedvoxPacketM.Sensors.Location.BestLocation.LocationScoreMethod)
 class LocationScoreMethod(enum.Enum):
     UNKNOWN_METHOD: int = 0
-
-    @staticmethod
-    def from_proto(proto: RedvoxPacketM.Sensors.Location.BestLocation.LocationScoreMethod) -> 'LocationScoreMethod':
-        return RedvoxPacketM.Sensors.Location.BestLocation.LocationScoreMethod(proto)
-
-    def into_proto(self) -> RedvoxPacketM.Sensors.Location.BestLocation.LocationScoreMethod:
-        return RedvoxPacketM.Sensors.Location.BestLocation.LocationScoreMethod.Value(self.name)
 
 
 class BestTimestamp(

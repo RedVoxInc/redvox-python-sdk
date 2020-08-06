@@ -6,6 +6,8 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.common.common as common
 import redvox.api1000.common.generic
 
+from redvox.api1000.common.decorators import wrap_enum
+
 _NETWORK_TYPE_FIELD_NAME: str = "network_type"
 _CELL_SERVICE_STATE_FIELD_NAME: str = "cell_service_state"
 _POWER_STATE_FIELD_NAME: str = "power_state"
@@ -15,6 +17,7 @@ _WIFI_WAKE_LOCK_FIELD_NAME: str = "wifi_wake_lock"
 InputSensorProto = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor
 
 
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate)
 class AudioSamplingRate(enum.Enum):
     UNKNOWN_SAMPLING_RATE: int = 0
     HZ_80: int = 1
@@ -22,14 +25,6 @@ class AudioSamplingRate(enum.Enum):
     HZ_8000: int = 3
     HZ_16000: int = 4
     HZ_48000: int = 5
-
-    @staticmethod
-    def from_proto(
-            audio_sample_rate: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate) -> 'AudioSamplingRate':
-        return AudioSamplingRate(audio_sample_rate)
-
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate:
-        return redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(self.name)
 
     @staticmethod
     def from_sampling_rate(sampling_rate: float) -> Optional['AudioSamplingRate']:
@@ -47,21 +42,15 @@ class AudioSamplingRate(enum.Enum):
             return AudioSamplingRate['UNKNOWN_SAMPLING_RATE']
 
 
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning)
 class AudioSourceTuning(enum.Enum):
     UNKNOWN_TUNING: int = 0
     INFRASOUND_TUNING: int = 1
     LOW_AUDIO_TUNING: int = 2
     AUDIO_TUNING: int = 3
 
-    @staticmethod
-    def from_proto(
-            audio_source_tuning: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning) -> 'AudioSourceTuning':
-        return AudioSourceTuning(audio_source_tuning)
 
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning:
-        return redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(self.name)
-
-
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor)
 class InputSensor(enum.Enum):
     UNKNOWN_SENSOR: int = 0
     ACCELEROMETER = 1
@@ -81,42 +70,28 @@ class InputSensor(enum.Enum):
     RELATIVE_HUMIDITY = 15
     ROTATION_VECTOR = 16
 
-    @staticmethod
-    def from_proto(
-            input_sensor: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor) -> 'InputSensor':
-        return InputSensor(input_sensor)
 
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor:
-        return redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor.Value(self.name)
-
-
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap)
 class FftOverlap(enum.Enum):
     UNKNOWN: int = 0
     PERCENT_25: int = 1
     PERCENT_50: int = 2
     PERCENT_75: int = 3
 
-    @staticmethod
-    def from_proto(
-            fft_overlap: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap) -> 'FftOverlap':
-        return FftOverlap(fft_overlap)
-
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap:
-        return redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap.Value(self.name)
-
 
 class AppSettings(
     redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings):
         super().__init__(proto)
-        self._additional_input_sensors: redvox.api1000.common.generic.ProtoRepeatedMessage[InputSensorProto, InputSensor] =\
+        self._additional_input_sensors: redvox.api1000.common.generic.ProtoRepeatedMessage[
+            InputSensorProto, InputSensor] = \
             redvox.api1000.common.generic.ProtoRepeatedMessage(
-            proto,
-            proto.additional_input_sensors,
-            _ADDITIONAL_INPUT_SENSORS_FIELD_NAME,
-            InputSensor.from_proto,
-            InputSensor.into_proto
-        )
+                proto,
+                proto.additional_input_sensors,
+                _ADDITIONAL_INPUT_SENSORS_FIELD_NAME,
+                InputSensor.from_proto,
+                InputSensor.into_proto
+            )
 
     @staticmethod
     def new() -> 'AppSettings':
@@ -345,6 +320,7 @@ def validate_app_settings(app: AppSettings) -> List[str]:
     return errors_list
 
 
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType)
 class NetworkType(enum.Enum):
     UNKNOWN_NETWORK: int = 0
     NO_NETWORK: int = 1
@@ -352,30 +328,16 @@ class NetworkType(enum.Enum):
     CELLULAR: int = 3
     WIRED: int = 4
 
-    @staticmethod
-    def from_proto(
-            network_type: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType) -> 'NetworkType':
-        return NetworkType(network_type)
 
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType:
-        return redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType.Value(self.name)
-
-
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock)
 class WifiWakeLock(enum.Enum):
     NONE: int = 0
     HIGH_PERF: int = 1
     LOW_LATENCY: int = 2
     OTHER: int = 3
 
-    @staticmethod
-    def from_proto(
-            wifi_wake_lock: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock) -> 'WifiWakeLock':
-        return WifiWakeLock(wifi_wake_lock)
 
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock:
-        return redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock.Value(self.name)
-
-
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState)
 class CellServiceState(enum.Enum):
     UNKNOWN: int = 0
     EMERGENCY: int = 1
@@ -383,28 +345,13 @@ class CellServiceState(enum.Enum):
     OUT_OF_SERVICE: int = 3
     POWER_OFF: int = 4
 
-    @staticmethod
-    def from_proto(
-            cell_service_state: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState) -> 'CellServiceState':
-        return CellServiceState(cell_service_state)
 
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState:
-        return redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState.Value(self.name)
-
-
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState)
 class PowerState(enum.Enum):
     UNKNOWN_POWER_STATE: int = 0
     UNPLUGGED: int = 1
     CHARGING: int = 2
     CHARGED: int = 3
-
-    @staticmethod
-    def from_proto(
-            power_state: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState) -> 'PowerState':
-        return PowerState(power_state)
-
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState:
-        return redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState.Value(self.name)
 
 
 class StationMetrics(
@@ -426,19 +373,19 @@ class StationMetrics(
             CellServiceState.from_proto,
             CellServiceState.into_proto
         )
-        self._network_strength: common.SamplePayload = common.SamplePayload(station_metrics_proto.network_strength)\
+        self._network_strength: common.SamplePayload = common.SamplePayload(station_metrics_proto.network_strength) \
             .set_unit(common.Unit.DECIBEL)
-        self._temperature: common.SamplePayload = common.SamplePayload(station_metrics_proto.temperature)\
+        self._temperature: common.SamplePayload = common.SamplePayload(station_metrics_proto.temperature) \
             .set_unit(common.Unit.DEGREES_CELSIUS)
-        self._battery: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery)\
+        self._battery: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery) \
             .set_unit(common.Unit.PERCENTAGE)
-        self._battery_current: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery_current)\
+        self._battery_current: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery_current) \
             .set_unit(common.Unit.MICROAMPERES)
-        self._available_ram: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_ram)\
+        self._available_ram: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_ram) \
             .set_unit(common.Unit.BYTE)
         self._available_disk: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_disk) \
             .set_unit(common.Unit.BYTE)
-        self._cpu_utilization: common.SamplePayload = common.SamplePayload(station_metrics_proto.cpu_utilization)\
+        self._cpu_utilization: common.SamplePayload = common.SamplePayload(station_metrics_proto.cpu_utilization) \
             .set_unit(common.Unit.PERCENTAGE)
         self._power_state: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
             station_metrics_proto,
@@ -536,6 +483,7 @@ def validate_station_metrics(station_metrics: StationMetrics) -> List[str]:
     return common.validate_timing_payload(station_metrics.get_timestamps())
 
 
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType)
 class OsType(enum.Enum):
     UNKNOWN_OS: int = 0
     ANDROID: int = 1
@@ -543,13 +491,6 @@ class OsType(enum.Enum):
     OSX: int = 3
     LINUX: int = 4
     WINDOWS: int = 5
-
-    @staticmethod
-    def from_proto(os_type: redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType) -> 'OsType':
-        return OsType(os_type)
-
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType:
-        return redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType.Value(self.name)
 
 
 class StationInformation(

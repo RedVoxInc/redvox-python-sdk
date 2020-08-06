@@ -5,6 +5,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.common.common as common
 import redvox.api1000.common.generic
 from redvox.api1000.wrapped_redvox_packet.station_information import AudioSamplingRate
+from redvox.api1000.common.decorators import wrap_enum
 
 from typing import List
 
@@ -92,16 +93,10 @@ def validate_audio(audio_sensor: Audio) -> List[str]:
     return errors_list
 
 
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec)
 class AudioCodec(enum.Enum):
     UNKNOWN: int = 0
     FLAC: int = 1
-
-    @staticmethod
-    def from_proto(audio_codec: redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec) -> 'AudioCodec':
-        return AudioCodec(audio_codec)
-
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec:
-        return redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec.Value(self.name)
 
 
 class CompressedAudio(

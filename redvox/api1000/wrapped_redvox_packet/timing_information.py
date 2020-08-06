@@ -6,6 +6,8 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.common.common as common
 import redvox.api1000.common.generic
 
+from redvox.api1000.common.decorators import wrap_enum
+
 _SYNCH_EXCHANGES_FIELD_NAME: str = "synch_exchanges"
 SynchExchangeProto = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange
 
@@ -109,16 +111,9 @@ def validate_synch_exchange(sync: SynchExchange) -> List[str]:
     return errors_list
 
 
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod)
 class TimingScoreMethod(enum.Enum):
     UNKNOWN: int = 0
-
-    @staticmethod
-    def from_proto(
-            score_method: redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod) -> 'TimingScoreMethod':
-        return TimingScoreMethod(score_method)
-
-    def into_proto(self) -> redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod:
-        return redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(self.name)
 
 
 class TimingInformation(
