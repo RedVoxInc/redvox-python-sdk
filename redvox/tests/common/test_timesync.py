@@ -20,7 +20,7 @@ class TimesyncTest(unittest.TestCase):
 
     def test_my_test(self):
         test_timesync = ts.TimeSyncData()
-        self.assertEqual(test_timesync.sample_rate_hz, None)
+        self.assertTrue(np.isnan(test_timesync.sample_rate_hz))
 
     def test_validate_sensors(self):
         test_ts = ts.TimeSyncData()
@@ -90,19 +90,23 @@ class TimesyncTest(unittest.TestCase):
         tsd_two.packet_start_time = 4000000
         tsd_two.best_latency = 1
         tsd_two.sample_rate_hz = 2
+        tsd_two.station_start_timestamp = 0
         tsd_thr = ts.TimeSyncData()
         tsd_thr.packet_start_time = 8000000
         tsd_thr.best_latency = 2
         tsd_thr.sample_rate_hz = 2
+        tsd_thr.station_start_timestamp = 0
         tsd_for = ts.TimeSyncData()
         tsd_for.packet_start_time = 13000000
         tsd_for.best_latency = 2
         tsd_for.sample_rate_hz = 2
+        tsd_for.station_start_timestamp = 0
         tsa_one = ts.TimeSyncAnalysis()
         tsa_one.station_id = "test_station"
         tsa_one.timesync_data = [tsd_one, tsd_two, tsd_thr, tsd_for]
         tsa_one.best_latency_index = 1
         tsa_one.sample_rate_hz = 2
+        tsa_one.station_start_timestamp = 0
         file_samples = 10  # 10 samples per file
         correct_time_array_sec = ts.update_evenly_sampled_time_array(tsa_one, file_samples)
 

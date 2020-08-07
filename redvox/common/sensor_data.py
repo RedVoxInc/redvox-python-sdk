@@ -11,6 +11,8 @@ from typing import List, Dict, Optional
 from dataclasses import dataclass, field
 from redvox.api900 import reader
 from redvox.common import file_statistics as fs
+from redvox.common import date_time_utils as dtu
+from obspy import read
 
 
 class SensorType(enum.Enum):
@@ -44,8 +46,8 @@ class SensorData:
     Properties:
         name: string, name of sensor
         data_df: dataframe of the sensor data; timestamps are the index, columns are the data fields
-        sample_rate: float, sample rate of the sensor
-        is_sample_rate_fixed: bool, True if sample rate is constant
+        sample_rate: float, sample rate of the sensor, default np.nan
+        is_sample_rate_fixed: bool, True if sample rate is constant, default False
     """
     name: str
     data_df: pd.DataFrame
@@ -88,21 +90,21 @@ class DataPacket:
     Properties:
         server_timestamp: int, server timestamp of when data was received by the server
         packet_app_start_timestamp: float, machine timestamp of when app started
-        sensor_data_dict: dict, all SensorData associated with this sensor; keys are SensorType
-        packet_start_timestamp: int, machine timestamp of the start of the packet
-        packet_end_timestamp: int, machine timestamp of the end of the packet
-        timesync: optional np.array of of timesync data
-        packet_best_latency: optional float, best latency of data
-        packet_best_offset: optional int, best offset of data
+        sensor_data_dict: dict, all SensorData associated with this sensor; keys are SensorType, default empty dict
+        packet_start_timestamp: int, machine timestamp of the start of the packet, default np.nan
+        packet_end_timestamp: int, machine timestamp of the end of the packet, default np.nan
+        timesync: optional np.array of of timesync data, default None
+        packet_best_latency: float, best latency of data, default np.nan
+        packet_best_offset: float, best offset of data, default 0.0
     """
     server_timestamp: int
     packet_app_start_timestamp: int
     sensor_data_dict: Dict[SensorType, SensorData] = field(default_factory=dict)
-    packet_start_timestamp: int = 0
-    packet_end_timestamp: int = 1
+    packet_start_timestamp: int = np.nan
+    packet_end_timestamp: int = np.nan
     timesync: Optional[np.array] = None
-    packet_best_latency: Optional[float] = None
-    packet_best_offset: Optional[int] = 0
+    packet_best_latency: float = np.nan
+    packet_best_offset: float = 0.0
 
     def _delete_sensor(self, sensor_type: SensorType):
         """
@@ -143,6 +145,7 @@ class DataPacket:
         """
         sets the audio sensor; can remove audio sensor by passing None
         :param audio_sensor: the SensorData to set or None
+        :return: the edited DataPacket
         """
         if self.has_audio_sensor():
             self._delete_sensor(SensorType.AUDIO)
@@ -160,11 +163,219 @@ class DataPacket:
     def location_sensor(self) -> Optional[SensorData]:
         """
         return the location sensor if it exists
-        :return: audio location if it exists, None otherwise
+        :return: location sensor if it exists, None otherwise
         """
         if self.has_location_sensor():
             return self.sensor_data_dict[SensorType.LOCATION]
         return None
+
+    def set_location_sensor(self, loc_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the location sensor; can remove location sensor by passing None
+        :param loc_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_location_sensor():
+            self._delete_sensor(SensorType.LOCATION)
+        if loc_sensor is not None:
+            self._add_sensor(SensorType.LOCATION, loc_sensor)
+        return self
+
+    def has_accelerometer_sensor(self) -> bool:
+        """
+        check if accelerometer sensor is in sensor_data_dict
+        :return: True if accelerometer sensor exists
+        """
+        return SensorType.ACCELEROMETER in self.sensor_data_dict.keys()
+
+    def accelerometer_sensor(self) -> Optional[SensorData]:
+        """
+        return the accelerometer sensor if it exists
+        :return: accelerometer sensor if it exists, None otherwise
+        """
+        if self.has_accelerometer_sensor():
+            return self.sensor_data_dict[SensorType.ACCELEROMETER]
+        return None
+
+    def set_accelerometer_sensor(self, acc_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the accelerometer sensor; can remove accelerometer sensor by passing None
+        :param acc_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_accelerometer_sensor():
+            self._delete_sensor(SensorType.ACCELEROMETER)
+        if acc_sensor is not None:
+            self._add_sensor(SensorType.ACCELEROMETER, acc_sensor)
+        return self
+
+    def has_magnetometer_sensor(self) -> bool:
+        """
+        check if magnetometer sensor is in sensor_data_dict
+        :return: True if magnetometer sensor exists
+        """
+        return SensorType.MAGNETOMETER in self.sensor_data_dict.keys()
+
+    def magnetometer_sensor(self) -> Optional[SensorData]:
+        """
+        return the magnetometer sensor if it exists
+        :return: magnetometer sensor if it exists, None otherwise
+        """
+        if self.has_magnetometer_sensor():
+            return self.sensor_data_dict[SensorType.MAGNETOMETER]
+        return None
+
+    def set_magnetometer_sensor(self, mag_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the magnetometer sensor; can remove magnetometer sensor by passing None
+        :param mag_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_magnetometer_sensor():
+            self._delete_sensor(SensorType.MAGNETOMETER)
+        if mag_sensor is not None:
+            self._add_sensor(SensorType.MAGNETOMETER, mag_sensor)
+        return self
+
+    def has_gyroscope_sensor(self) -> bool:
+        """
+        check if gyroscope sensor is in sensor_data_dict
+        :return: True if gyroscope sensor exists
+        """
+        return SensorType.GYROSCOPE in self.sensor_data_dict.keys()
+
+    def gyroscope_sensor(self) -> Optional[SensorData]:
+        """
+        return the gyroscope sensor if it exists
+        :return: gyroscope sensor if it exists, None otherwise
+        """
+        if self.has_gyroscope_sensor():
+            return self.sensor_data_dict[SensorType.GYROSCOPE]
+        return None
+
+    def set_gyroscope_sensor(self, gyro_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the gyroscope sensor; can remove gyroscope sensor by passing None
+        :param gyro_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_gyroscope_sensor():
+            self._delete_sensor(SensorType.GYROSCOPE)
+        if gyro_sensor is not None:
+            self._add_sensor(SensorType.GYROSCOPE, gyro_sensor)
+        return self
+
+    def has_barometer_sensor(self) -> bool:
+        """
+        check if barometer sensor is in sensor_data_dict
+        :return: True if barometer sensor exists
+        """
+        return SensorType.PRESSURE in self.sensor_data_dict.keys()
+
+    def barometer_sensor(self) -> Optional[SensorData]:
+        """
+        return the barometer sensor if it exists
+        :return: barometer sensor if it exists, None otherwise
+        """
+        if self.has_barometer_sensor():
+            return self.sensor_data_dict[SensorType.PRESSURE]
+        return None
+
+    def set_barometer_sensor(self, bar_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the barometer sensor; can remove barometer sensor by passing None
+        :param bar_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_barometer_sensor():
+            self._delete_sensor(SensorType.PRESSURE)
+        if bar_sensor is not None:
+            self._add_sensor(SensorType.PRESSURE, bar_sensor)
+        return self
+
+    def has_light_sensor(self) -> bool:
+        """
+        check if light sensor is in sensor_data_dict
+        :return: True if light sensor exists
+        """
+        return SensorType.LIGHT in self.sensor_data_dict.keys()
+
+    def light_sensor(self) -> Optional[SensorData]:
+        """
+        return the light sensor if it exists
+        :return: light sensor if it exists, None otherwise
+        """
+        if self.has_light_sensor():
+            return self.sensor_data_dict[SensorType.LIGHT]
+        return None
+
+    def set_light_sensor(self, light_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the light sensor; can remove light sensor by passing None
+        :param light_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_light_sensor():
+            self._delete_sensor(SensorType.LIGHT)
+        if light_sensor is not None:
+            self._add_sensor(SensorType.LIGHT, light_sensor)
+        return self
+
+    def has_infrared_sensor(self) -> bool:
+        """
+        check if infrared sensor is in sensor_data_dict
+        :return: True if infrared sensor exists
+        """
+        return SensorType.INFRARED in self.sensor_data_dict.keys()
+
+    def infrared_sensor(self) -> Optional[SensorData]:
+        """
+        return the infrared sensor if it exists
+        :return: infrared sensor if it exists, None otherwise
+        """
+        if self.has_infrared_sensor():
+            return self.sensor_data_dict[SensorType.INFRARED]
+        return None
+
+    def set_infrared_sensor(self, infrd_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the infrared sensor; can remove infrared sensor by passing None
+        :param infrd_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_infrared_sensor():
+            self._delete_sensor(SensorType.INFRARED)
+        if infrd_sensor is not None:
+            self._add_sensor(SensorType.INFRARED, infrd_sensor)
+        return self
+
+    def has_image_sensor(self) -> bool:
+        """
+        check if image sensor is in sensor_data_dict
+        :return: True if image sensor exists
+        """
+        return SensorType.IMAGE in self.sensor_data_dict.keys()
+
+    def image_sensor(self) -> Optional[SensorData]:
+        """
+        return the image sensor if it exists
+        :return: image sensor if it exists, None otherwise
+        """
+        if self.has_image_sensor():
+            return self.sensor_data_dict[SensorType.IMAGE]
+        return None
+
+    def set_image_sensor(self, img_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the image sensor; can remove image sensor by passing None
+        :param img_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_light_sensor():
+            self._delete_sensor(SensorType.IMAGE)
+        if img_sensor is not None:
+            self._add_sensor(SensorType.IMAGE, img_sensor)
+        return self
 
 
 @dataclass
@@ -177,16 +388,16 @@ class StationTiming:
         episode_end_timestamp: int, timestamp of end of segment of interest
         audio_sample_rate_hz: float, sample rate in hz of audio sensor
         station_first_data_timestamp: int, first timestamp chronologically of the data
-        station_best_latency: optional float, best latency of data
-        station_best_offset: optional int, best offset of data
+        station_best_latency: float, best latency of data, default np.nan
+        station_best_offset: float, best offset of data, default 0.0
     """
     station_start_timestamp: int
     episode_start_timestamp: int
     episode_end_timestamp: int
     audio_sample_rate_hz: float
     station_first_data_timestamp: int
-    station_best_latency: Optional[float] = None
-    station_best_offset: Optional[int] = 0
+    station_best_latency: float = np.nan
+    station_best_offset: float = 0.0
 
 
 @dataclass
@@ -197,22 +408,34 @@ class StationMetadata:
         station_id: str, id of the station
         station_make: str, maker of the station
         station_model: str, model of the station
-        station_os: str, operating system of the station
-        station_os_version: str, station OS version
-        station_app: str, the name of the recording software used by the station
-        station_app_version: str, the recording software version
-        is_mic_scrambled: bool, True if mic data is scrambled
-        timing_data: StationTiming metadata
+        station_os: optional str, operating system of the station, default None
+        station_os_version: optional str, station OS version, default None
+        station_app: optional str, the name of the recording software used by the station, default None
+        station_app_version: optional str, the recording software version, default None
+        is_mic_scrambled: optional bool, True if mic data is scrambled, default False
+        timing_data: optional StationTiming metadata, default None
+        station_calib: optional float, station calibration value, default None
+        station_network_name: optional str, name/code of network station belongs to, default None
+        station_name: optional str, name/code of station, default None
+        station_location_name: optional str, name/code of location station is at, default None
+        station_channel_name: optional str, name/code of channel station is recording, default None
+        station_channel_encoding: optional str, name/code of channel encoding method, default None
     """
     station_id: str
     station_make: str
     station_model: str
-    station_os: str
-    station_os_version: str
-    station_app: str
-    station_app_version: str
-    is_mic_scrambled: bool
-    timing_data: StationTiming
+    station_os: Optional[str] = None
+    station_os_version: Optional[str] = None
+    station_app: Optional[str] = None
+    station_app_version: Optional[str] = None
+    is_mic_scrambled: Optional[bool] = False
+    timing_data: Optional[StationTiming] = None
+    station_calib: Optional[float] = None
+    station_network_name: Optional[str] = None
+    station_name: Optional[str] = None
+    station_location_name: Optional[str] = None
+    station_channel_name: Optional[str] = None
+    station_channel_encoding: Optional[str] = None
 
 
 @dataclass
@@ -221,10 +444,21 @@ class Station:
     generic station for api-independent stuff
     Properties:
         station_metadata: StationMetadata
-        station_data: dict, all DataPackets associated with this station; keys are packet_start_timestamp of DataPacket
+        station_data: list, all DataPackets associated with this station, default empty list
     """
     station_metadata: StationMetadata
-    station_data: List[DataPacket] = field(default_factory=dict)
+    station_data: List[DataPacket] = field(default_factory=list)
+
+
+def _calc_evenly_sampled_timestamps(start: float, samples: int, rate_hz: float) -> np.array:
+    """
+    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+    :param start: float, start timestamp
+    :param samples: int, number of samples
+    :param rate_hz: float, sample rate in hz
+    :return: np.array with evenly spaced timestamps starting at start
+    """
+    return np.array(start + dtu.seconds_to_microseconds(np.arange(0, samples) / rate_hz))
 
 
 def read_api900_non_mic_sensor(sensor: reader.RedvoxSensor, packet_length_s: float, column_id: str) -> SensorData:
@@ -258,8 +492,9 @@ def read_api900_wrapped_packet(wrapped_packet: reader.WrappedRedvoxPacket) -> Di
     if wrapped_packet.has_microphone_sensor():
         sample_rate_hz = wrapped_packet.microphone_sensor().sample_rate_hz()
         data_for_df = wrapped_packet.microphone_sensor().payload_values()
-        timestamps = np.transpose(wrapped_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc() +
-                                  (np.arange(0, fs.get_num_points_from_sample_rate(sample_rate_hz)) / sample_rate_hz))
+        timestamps = _calc_evenly_sampled_timestamps(
+            wrapped_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc(),
+            fs.get_num_points_from_sample_rate(sample_rate_hz), sample_rate_hz)
         data_dict[SensorType.AUDIO] = SensorData(wrapped_packet.microphone_sensor().sensor_name(),
                                                  pd.DataFrame(data_for_df, index=timestamps, columns=["microphone"]),
                                                  sample_rate_hz, True)
@@ -369,7 +604,7 @@ def load_file_range_from_api900(directory: str,
             data_dict = read_api900_wrapped_packet(packet)
             packet_data = DataPacket(packet.server_timestamp_epoch_microseconds_utc(),
                                      packet.app_file_start_timestamp_machine(), data_dict,
-                                     packet.start_timestamp_us_utc(), packet.end_timestamp_us_utc(),
+                                     packet.start_timestamp_us_utc(), int(packet.end_timestamp_us_utc()),
                                      time_sync, packet.best_latency(), packet.best_offset())
             packet_list.append(packet_data)
 
@@ -377,3 +612,31 @@ def load_file_range_from_api900(directory: str,
         all_stations.append(Station(metadata, packet_list))
 
     return all_stations
+
+
+def load_from_mseed(directory: str) -> List[Station]:
+    """
+    load station data from a miniseed file
+    :param directory: the location of the miniseed file
+    :return: a list of Station objects that contain the data
+    """
+    stations: List[Station] = []
+    st = read(directory)
+    for data_stream in st:
+        record_info = data_stream.meta
+        start_time = int(dtu.seconds_to_microseconds(data_stream.meta["starttime"].timestamp))
+        end_time = int(dtu.seconds_to_microseconds(data_stream.meta["endtime"].timestamp))
+        station_timing = StationTiming(np.nan, start_time, end_time, record_info["sampling_rate"], start_time)
+        metadata = StationMetadata(record_info["network"] + record_info["station"] + "_" + record_info["location"],
+                                   "mb3_make", "mb3_model", "mb3_os", "mb3_os_vers", "mb3_recorder",
+                                   "mb3_recorder_version", False, station_timing, record_info["calib"],
+                                   record_info["network"], record_info["station"], record_info["location"],
+                                   record_info["channel"], record_info["mseed"]["encoding"])
+        sample_rate_hz = record_info["sampling_rate"]
+        data_for_df = data_stream.data
+        timestamps = _calc_evenly_sampled_timestamps(start_time, int(record_info["npts"]), sample_rate_hz)
+        sensor_data = SensorData(record_info["channel"], pd.DataFrame(data_for_df, index=timestamps, columns=["BDF"]),
+                                 record_info["sampling_rate"], True)
+        data_packet = DataPacket(np.nan, start_time, {SensorType.AUDIO: sensor_data}, start_time, end_time)
+        stations.append(Station(metadata, [data_packet]))
+    return stations
