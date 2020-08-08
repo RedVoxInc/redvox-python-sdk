@@ -80,8 +80,8 @@ class TimeSyncData:
         self.sample_rate_hz = station.timing_data.audio_sample_rate_hz
         self.station_start_timestamp = station.timing_data.station_start_timestamp
         self.server_acquisition_time = data_pack.server_timestamp
-        self.packet_start_time = data_pack.packet_start_timestamp
-        self.packet_end_time = data_pack.packet_end_timestamp
+        self.packet_start_time = data_pack.data_start_timestamp
+        self.packet_end_time = data_pack.data_end_timestamp
         if data_pack.timesync is not None:
             self.time_sync_exchanges_df = pd.DataFrame(
                 tms.transmit_receive_timestamps_microsec(data_pack.timesync),
@@ -342,10 +342,11 @@ class TimeSyncAnalysis:
                          or self.timesync_data[index].best_latency < self.get_best_latency()):
                 self.best_latency_index = index
 
-    def validate_start_timestamp(self) -> bool:
+    def validate_start_timestamp(self, debug: bool = False) -> bool:
         """
         confirms if station_start_timestamp differs in any of the timesync_data
         outputs warnings if a change in timestamps is detected
+        :param debug: if True, output warning message, default False
         :return: True if no change
         """
         if self.get_num_packets() < 1:
@@ -353,17 +354,19 @@ class TimeSyncAnalysis:
         for index in range(0, self.get_num_packets()):
             # compare station start timestamps; notify when they are different
             if self.timesync_data[index].station_start_timestamp != self.station_start_timestamp:
-                print(f"Warning!  Change in station start timestamp detected!  "
-                      f"Expected: {self.station_start_timestamp}, read: "
-                      f"{self.timesync_data[index].station_start_timestamp}")
+                if debug:
+                    print(f"Warning!  Change in station start timestamp detected!  "
+                          f"Expected: {self.station_start_timestamp}, read: "
+                          f"{self.timesync_data[index].station_start_timestamp}")
                 return False
         # if here, all the sample timestamps are the same
         return True
 
-    def validate_sample_rate(self) -> bool:
+    def validate_sample_rate(self, debug: bool = False) -> bool:
         """
         confirms if sample rate is the same across all timesync_data
         outputs warning if a change in sample rate is detected
+        :param debug: if True, output warning message, default False
         :return: True if no change
         """
         if self.get_num_packets() < 1:
@@ -372,8 +375,9 @@ class TimeSyncAnalysis:
             # compare station start timestamps; notify when they are different
             if np.isnan(self.timesync_data[index].sample_rate_hz) \
                     or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz:
-                print(f"Warning!  Change in station sample rate detected!  "
-                      f"Expected: {self.sample_rate_hz}, read: {self.timesync_data[index].sample_rate_hz}")
+                if debug:
+                    print(f"Warning!  Change in station sample rate detected!  "
+                          f"Expected: {self.sample_rate_hz}, read: {self.timesync_data[index].sample_rate_hz}")
                 return False
         # if here, all the sample rates are the same
         return True

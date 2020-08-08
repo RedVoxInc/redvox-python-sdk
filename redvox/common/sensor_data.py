@@ -91,8 +91,8 @@ class DataPacket:
         server_timestamp: int, server timestamp of when data was received by the server
         packet_app_start_timestamp: float, machine timestamp of when app started
         sensor_data_dict: dict, all SensorData associated with this sensor; keys are SensorType, default empty dict
-        packet_start_timestamp: int, machine timestamp of the start of the packet, default np.nan
-        packet_end_timestamp: int, machine timestamp of the end of the packet, default np.nan
+        data_start_timestamp: int, machine timestamp of the start of the packet's data, default np.nan
+        data_end_timestamp: int, machine timestamp of the end of the packet's data, default np.nan
         timesync: optional np.array of of timesync data, default None
         packet_best_latency: float, best latency of data, default np.nan
         packet_best_offset: float, best offset of data, default 0.0
@@ -100,8 +100,8 @@ class DataPacket:
     server_timestamp: int
     packet_app_start_timestamp: int
     sensor_data_dict: Dict[SensorType, SensorData] = field(default_factory=dict)
-    packet_start_timestamp: int = np.nan
-    packet_end_timestamp: int = np.nan
+    data_start_timestamp: int = np.nan
+    data_end_timestamp: int = np.nan
     timesync: Optional[np.array] = None
     packet_best_latency: float = np.nan
     packet_best_offset: float = 0.0
@@ -371,10 +371,234 @@ class DataPacket:
         :param img_sensor: the SensorData to set or None
         :return: the edited DataPacket
         """
-        if self.has_light_sensor():
+        if self.has_image_sensor():
             self._delete_sensor(SensorType.IMAGE)
         if img_sensor is not None:
             self._add_sensor(SensorType.IMAGE, img_sensor)
+        return self
+
+    def has_ambient_temperature_sensor(self) -> bool:
+        """
+        check if ambient temperature sensor is in sensor_data_dict
+        :return: True if ambient temperature sensor exists
+        """
+        return SensorType.TEMPERATURE in self.sensor_data_dict.keys()
+
+    def ambient_temperature_sensor(self) -> Optional[SensorData]:
+        """
+        return the ambient temperature sensor if it exists
+        :return: image ambient temperature if it exists, None otherwise
+        """
+        if self.has_ambient_temperature_sensor():
+            return self.sensor_data_dict[SensorType.TEMPERATURE]
+        return None
+
+    def set_ambient_temperature_sensor(self, amtemp_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the ambient temperature sensor; can remove ambient temperature sensor by passing None
+        :param amtemp_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_ambient_temperature_sensor():
+            self._delete_sensor(SensorType.TEMPERATURE)
+        if amtemp_sensor is not None:
+            self._add_sensor(SensorType.TEMPERATURE, amtemp_sensor)
+        return self
+
+    def has_gravity_sensor(self) -> bool:
+        """
+        check if gravity sensor is in sensor_data_dict
+        :return: True if gravity sensor exists
+        """
+        return SensorType.GRAVITY in self.sensor_data_dict.keys()
+
+    def gravity_sensor(self) -> Optional[SensorData]:
+        """
+        return the gravity sensor if it exists
+        :return: gravity sensor if it exists, None otherwise
+        """
+        if self.has_gravity_sensor():
+            return self.sensor_data_dict[SensorType.GRAVITY]
+        return None
+
+    def set_gravity_sensor(self, grav_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the gravity sensor; can remove gravity sensor by passing None
+        :param grav_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_gravity_sensor():
+            self._delete_sensor(SensorType.GRAVITY)
+        if grav_sensor is not None:
+            self._add_sensor(SensorType.GRAVITY, grav_sensor)
+        return self
+
+    def has_linear_acceleration_sensor(self) -> bool:
+        """
+        check if linear acceleration sensor is in sensor_data_dict
+        :return: True if linear acceleration sensor exists
+        """
+        return SensorType.LINEAR_ACCELERATION in self.sensor_data_dict.keys()
+
+    def linear_acceleration_sensor(self) -> Optional[SensorData]:
+        """
+        return the linear acceleration sensor if it exists
+        :return: linear acceleration sensor if it exists, None otherwise
+        """
+        if self.has_linear_acceleration_sensor():
+            return self.sensor_data_dict[SensorType.LINEAR_ACCELERATION]
+        return None
+
+    def set_linear_acceleration_sensor(self, linacc_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the linear acceleration sensor; can remove linear acceleration sensor by passing None
+        :param linacc_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_linear_acceleration_sensor():
+            self._delete_sensor(SensorType.LINEAR_ACCELERATION)
+        if linacc_sensor is not None:
+            self._add_sensor(SensorType.LINEAR_ACCELERATION, linacc_sensor)
+        return self
+
+    def has_orientation_sensor(self) -> bool:
+        """
+        check if orientation sensor is in sensor_data_dict
+        :return: True if orientation sensor exists
+        """
+        return SensorType.ORIENTATION in self.sensor_data_dict.keys()
+
+    def orientation_sensor(self) -> Optional[SensorData]:
+        """
+        return the orientation sensor if it exists
+        :return: orientation sensor if it exists, None otherwise
+        """
+        if self.has_orientation_sensor():
+            return self.sensor_data_dict[SensorType.ORIENTATION]
+        return None
+
+    def set_orientation_sensor(self, orient_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the orientation sensor; can remove orientation sensor by passing None
+        :param orient_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_orientation_sensor():
+            self._delete_sensor(SensorType.ORIENTATION)
+        if orient_sensor is not None:
+            self._add_sensor(SensorType.ORIENTATION, orient_sensor)
+        return self
+
+    def has_proximity_sensor(self) -> bool:
+        """
+        check if proximity sensor is in sensor_data_dict
+        :return: True if proximity sensor exists
+        """
+        return SensorType.PROXIMITY in self.sensor_data_dict.keys()
+
+    def proximity_sensor(self) -> Optional[SensorData]:
+        """
+        return the proximity sensor if it exists
+        :return: proximity sensor if it exists, None otherwise
+        """
+        if self.has_proximity_sensor():
+            return self.sensor_data_dict[SensorType.PROXIMITY]
+        return None
+
+    def set_proximity_sensor(self, prox_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the proximity sensor; can remove proximity sensor by passing None
+        :param prox_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_proximity_sensor():
+            self._delete_sensor(SensorType.PROXIMITY)
+        if prox_sensor is not None:
+            self._add_sensor(SensorType.PROXIMITY, prox_sensor)
+        return self
+
+    def has_relative_humidity_sensor(self) -> bool:
+        """
+        check if relative humidity sensor is in sensor_data_dict
+        :return: True if linear relative humidity sensor exists
+        """
+        return SensorType.RELATIVE_HUMIDITY in self.sensor_data_dict.keys()
+
+    def relative_humidity_sensor(self) -> Optional[SensorData]:
+        """
+        return the relative humidity sensor if it exists
+        :return: relative humidity sensor if it exists, None otherwise
+        """
+        if self.has_relative_humidity_sensor():
+            return self.sensor_data_dict[SensorType.RELATIVE_HUMIDITY]
+        return None
+
+    def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the relative humidity sensor; can remove relative humidity sensor by passing None
+        :param relhum_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_relative_humidity_sensor():
+            self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
+        if relhum_sensor is not None:
+            self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
+        return self
+
+    def has_rotation_vector_sensor(self) -> bool:
+        """
+        check if rotation vector sensor is in sensor_data_dict
+        :return: True if rotation vector sensor exists
+        """
+        return SensorType.ROTATION_VECTOR in self.sensor_data_dict.keys()
+
+    def rotation_vector_sensor(self) -> Optional[SensorData]:
+        """
+        return the rotation vector sensor if it exists
+        :return: rotation vector sensor if it exists, None otherwise
+        """
+        if self.has_rotation_vector_sensor():
+            return self.sensor_data_dict[SensorType.ROTATION_VECTOR]
+        return None
+
+    def set_rotation_vector_sensor(self, rotvec_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the rotation vector sensor; can remove rotation vector sensor by passing None
+        :param rotvec_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_rotation_vector_sensor():
+            self._delete_sensor(SensorType.ROTATION_VECTOR)
+        if rotvec_sensor is not None:
+            self._add_sensor(SensorType.ROTATION_VECTOR, rotvec_sensor)
+        return self
+
+    def has_compressed_audio_sensor(self) -> bool:
+        """
+        check if compressed audio sensor is in sensor_data_dict
+        :return: True if compressed audio sensor exists
+        """
+        return SensorType.COMPRESSED_AUDIO in self.sensor_data_dict.keys()
+
+    def compressed_audio_sensor(self) -> Optional[SensorData]:
+        """
+        return the compressed audio sensor if it exists
+        :return: compressed audio sensor if it exists, None otherwise
+        """
+        if self.has_compressed_audio_sensor():
+            return self.sensor_data_dict[SensorType.COMPRESSED_AUDIO]
+        return None
+
+    def set_compressed_audio_sensor(self, compaudio_sensor: Optional[SensorData]) -> 'DataPacket':
+        """
+        sets the compressed audio sensor; can remove compressed audio sensor by passing None
+        :param compaudio_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_compressed_audio_sensor():
+            self._delete_sensor(SensorType.COMPRESSED_AUDIO)
+        if compaudio_sensor is not None:
+            self._add_sensor(SensorType.COMPRESSED_AUDIO, compaudio_sensor)
         return self
 
 

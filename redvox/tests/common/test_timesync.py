@@ -4,16 +4,11 @@ tests for timesync
 import unittest
 import numpy as np
 import redvox.tests as tests
-from typing import List
 from redvox.common import sensor_data as sd, timesync as ts
-from redvox.api900 import reader
 
 
 class TimesyncTest(unittest.TestCase):
     def setUp(self) -> None:
-        packets = reader.read_rdvxz_file_range(tests.TEST_DATA_DIR, structured_layout=False, redvox_ids=["1637680001"],
-                                               concat_continuous_segments=False)
-        self.wrapped_packets_fs: List[reader.WrappedRedvoxPacket] = packets["1637680001:976500716"]
         stations = sd.load_file_range_from_api900(tests.TEST_DATA_DIR, structured_layout=False,
                                                   redvox_ids=["1637680001"], concat_continuous_segments=False)
         self.time_sync_analysis = ts.TimeSyncAnalysis(stations[0])
@@ -39,9 +34,9 @@ class TimesyncTest(unittest.TestCase):
         self.assertFalse(ts.validate_sensors(tsa_test))
 
     def test_get_time_sync_data(self):
-        self.assertEqual(len(self.time_sync_analysis.get_start_times()), len(self.wrapped_packets_fs))
-        self.assertEqual(len(self.time_sync_analysis.get_latencies()), len(self.wrapped_packets_fs))
-        self.assertEqual(len(self.time_sync_analysis.get_offsets()), len(self.wrapped_packets_fs))
+        self.assertEqual(len(self.time_sync_analysis.get_start_times()), 3)
+        self.assertEqual(len(self.time_sync_analysis.get_latencies()), 3)
+        self.assertEqual(len(self.time_sync_analysis.get_offsets()), 3)
         self.assertEqual(self.time_sync_analysis.get_best_latency(), 69664.0)
 
     def test_compute_tri_message_stats(self):
@@ -52,8 +47,8 @@ class TimesyncTest(unittest.TestCase):
         self.assertEqual(len(self.time_sync_analysis.get_bad_packets()), 0)
 
     def test_evaluate_latencies_and_offsets(self):
-        self.assertEqual(len(self.time_sync_analysis.get_latencies()), len(self.wrapped_packets_fs))
-        self.assertEqual(len(self.time_sync_analysis.get_offsets()), len(self.wrapped_packets_fs))
+        self.assertEqual(len(self.time_sync_analysis.get_latencies()), 3)
+        self.assertEqual(len(self.time_sync_analysis.get_offsets()), 3)
         self.assertEqual(self.time_sync_analysis.get_best_latency(), 69664.0)
         self.assertEqual(self.time_sync_analysis.best_latency_index, 0)
 
