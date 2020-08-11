@@ -261,10 +261,10 @@ message RedvoxPacketM {
             bool use_location_services = 23;
 
             // User set latitude decimal degrees
-            float use_latitude = 24;
+            double use_latitude = 24;
 
             // User set longitude decimal degrees
-            float use_longitude = 25;
+            double use_longitude = 25;
 
             // User set altitude meters
             float use_altitude = 26;
@@ -844,22 +844,22 @@ message RedvoxPacketM {
     // Common statistics stored with payloads
     message SummaryStatistics {
         // The total count of values included in the statistics
-        float count = 1;
+        double count = 1;
 
         // The mean of the values
-        float mean = 2;
+        double mean = 2;
 
         // The standard deviation of the values
-        float standard_deviation = 3;
+        double standard_deviation = 3;
 
         // The minimum value
-        float min = 4;
+        double min = 4;
 
         // The maximum value
-        float max = 5;
+        double max = 5;
 
         // The range of the values
-        float range = 6;
+        double range = 6;
 
         // A map from string to string for including untyped metadata
         map<string, string> metadata = 7;
