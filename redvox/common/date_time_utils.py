@@ -532,3 +532,43 @@ class DateIterator:
         self.start_dt += self._one_day
 
         return year, month, day
+
+
+class DateIteratorAPIM:
+    """
+    This class provides an iterator over dates. That is, it takes a start date and an end date and returns a tuple
+    of year, month, day and hour for each date between the start and end.
+    """
+
+    def __init__(self,
+                 start_timestamp_utc_s: int,
+                 end_timestamp_utc_s: int):
+
+        start_dt_full: datetime = datetime.utcfromtimestamp(start_timestamp_utc_s)
+        end_dt_full: datetime = datetime.utcfromtimestamp(end_timestamp_utc_s)
+
+        self.start_dt: datetime = datetime_from(start_dt_full.year, start_dt_full.month, start_dt_full.day)
+        self.end_dt: datetime = datetime_from(end_dt_full.year, end_dt_full.month, end_dt_full.day)
+
+        self._one_day: timedelta = timedelta(days=1)
+        self._one_hour: timedelta = timedelta(hours=1)
+
+    def __iter__(self) -> 'DateIteratorAPIM':
+        return self
+
+    def __next__(self) -> Tuple[str, str, str, str]:
+        """
+        Returns the next date in the iterator.
+        :return: The next date in the iterator.
+        """
+        if self.start_dt > self.end_dt:
+            raise StopIteration()
+
+        year = str(self.start_dt.year)
+        month = f"{self.start_dt.month:02}"
+        day = f"{self.start_dt.day:02}"
+        hour = f"{self.start_dt.hour:02}"
+
+        self.start_dt += self._one_hour
+
+        return year, month, day, hour

@@ -41,3 +41,8 @@ class ApiMTypeError(ApiMError):
 class WrappedRedvoxPacketMError(ApiMError):
     def __init__(self, message: str):
         super().__init__(f"WrappedRedvoxPacketMError: {message}")
+
+
+class ApiMConcatentationError(ApiMError):
+    def __init__(self, message: str):
+        super().__init__(f"ApiMConcatentationError: {message}")
