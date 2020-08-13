@@ -356,6 +356,7 @@ class PowerState(enum.Enum):
 
 class StationMetrics(
     redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics]):
+    # noinspection Mypy
     def __init__(self, station_metrics_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics):
         super().__init__(station_metrics_proto)
         self._timestamps = common.TimingPayload(station_metrics_proto.timestamps).set_default_unit()

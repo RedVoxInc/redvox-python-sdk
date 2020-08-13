@@ -75,8 +75,15 @@ class ProtoRepeatedMessage(Generic[P, T]):
         Clears all values in this collection.
         :return: This instance of ProtoRepeatedMessage.
         """
-        self._parent_proto.ClearField(self._repeated_field_name)
+        # self._parent_proto.ClearField(self._repeated_field_name)
+        del self._repeated_field_proto[:]
         return self
+
+    def __str__(self):
+        return str(self._repeated_field_proto)
+
+    def __repr__(self):
+        return str(self)
 
 
 class ProtoBase(Generic[P]):
