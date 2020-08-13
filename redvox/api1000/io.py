@@ -8,7 +8,7 @@ import redvox.api1000.wrapped_redvox_packet.wrapped_packet as api_m_wp
 import redvox.common.date_time_utils as date_time_utils
 import redvox.api1000.errors as _errors
 import numpy as np
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Callable
 
 
 REDVOX_API_M_FILE_EXT = "rdvxm"
@@ -16,7 +16,7 @@ REDVOX_API_M_FILE_EXT = "rdvxm"
 
 class ReadWrappedPackets:
     """
-    A searchable list of continuous wrapped API M redvox packets
+    A searchable/sortable list of continuous wrapped API M redvox packets
     A set of API M packets are continuous if:
         * their redvox ids are equal
         * their uuids are equal
@@ -45,11 +45,11 @@ class ReadWrappedPackets:
         """
         sort packets by packet_start_timestamp
         """
-        self.wrapped_packets.sort(key=lambda p: p.get_timing_information().get_packet_start_mach_timestamp())
+        sorted(self.wrapped_packets, key=lambda p: p.get_timing_information().get_packet_start_mach_timestamp())
 
     def add_packet(self, wrapped_packet: api_m_wp.WrappedRedvoxPacketM) -> bool:
         """
-        Adds the wrapped packet to the list if it's continuous, otherwise returns a new object using the packet
+        Adds the wrapped packet to the list if it is from the same device
         :param wrapped_packet: packet to potentially add to list
         :return: True if successful, False otherwise
         """
@@ -105,7 +105,7 @@ class ReadWrappedPackets:
             matches.append(prev_sensors == next_sensors)
         return all(matches)
 
-    def _identify_gaps(self, allowed_timing_error_s: float, debug: bool = False) -> List[int]:
+    def identify_gaps(self, allowed_timing_error_s: float, debug: bool = False) -> List[int]:
         """
         Identifies discontinuities in sensor data by checking if sensors drop in and out and by comparing timing info.
         :param allowed_timing_error_s: The amount of timing error in seconds.
@@ -187,32 +187,6 @@ class ReadWrappedPackets:
 
         return sorted(list(gaps))
 
-    # def concat_continuous_packets(self):
-    #     # Check that packets are ordered
-    #     machine_times = list(map(lambda packet: packet.get_timing_information().get_packet_start_mach_timestamp(),
-    #                              self.wrapped_packets))
-    #
-    #     if not np.all(np.diff(np.array(machine_times)) > 0):
-    #         raise _errors.ApiMConcatentationError("Packets are not strictly monotonic")
-    #
-    #     # Identify gaps
-    #     gaps = self._identify_gaps(5)
-    #
-    #     # Concat
-    #     concatenated_packets = []
-    #     start = 0
-    #     end = len(self.wrapped_packets)
-    #
-    #     # for gap_idx in gaps:
-    #     #     concatenated_packets.append(_concat_continuous_data(self.wrapped_packets[start:gap_idx]))
-    #     #     start = gap_idx
-    #     #
-    #     # concatenated_packets.append(_concat_continuous_data(self.wrapped_packets[start:end]))
-    #
-    #     return concatenated_packets
-
-    pass
-
 
 class ReadResult:
     """
@@ -256,19 +230,17 @@ class ReadResult:
         # went through for loop and nothing got added, so we assume it's a new id to add
         self.all_wrapped_packets.append(ReadWrappedPackets([wrapped_packet]))
 
-    def get_by_id(self, redvox_id: str) -> List[List[api_m_wp.WrappedRedvoxPacketM]]:
+    def get_by_id(self, redvox_id: str) -> List[api_m_wp.WrappedRedvoxPacketM]:
         """
         gets all the packets with the id specified
         :param redvox_id: the redvox id to return values for
-        :return: list of wrapped API M redvox packets with redvox id specified or None if redvox id not found
+        :return: list of API M redvox packets with the redvox_id specified
         """
-        results: List[List[api_m_wp.WrappedRedvoxPacketM]] = []
+        results: List[api_m_wp.WrappedRedvoxPacketM] = []
         for packets in self.all_wrapped_packets:
             if packets.redvox_id == redvox_id:
-                results.append(packets.wrapped_packets)
+                results.extend(packets.wrapped_packets)
         return results
-
-    pass
 
 
 class StreamResult:
