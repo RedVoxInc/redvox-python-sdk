@@ -4,18 +4,24 @@ This module provides custom exception types for API 1000 related errors.
 
 
 class ApiMError(Exception):
+    """
+    Base API Error class. All other error classes should be subclasses of this one.
+    """
     def __init__(self, message: str):
         super().__init__(f"ApiMError: {message}")
 
 
 class SummaryStatisticsError(ApiMError):
+    """
+    An error with summary statistics.
+    """
     def __init__(self, message: str):
         super().__init__(f"SummaryStatisticsError: {message}")
 
 
-class MicrophoneChannelError(ApiMError):
+class AudioChannelError(ApiMError):
     def __init__(self, message: str):
-        super().__init__(f"MicrophoneChannelError: {message}")
+        super().__init__(f"AudioChannelError: {message}")
 
 
 class SingleChannelError(ApiMError):
@@ -43,6 +49,11 @@ class WrappedRedvoxPacketMError(ApiMError):
         super().__init__(f"WrappedRedvoxPacketMError: {message}")
 
 
-class ApiMConcatentationError(ApiMError):
+class ApiMConcatenationError(ApiMError):
     def __init__(self, message: str):
-        super().__init__(f"ApiMConcatentationError: {message}")
+        super().__init__(f"ApiMConcatenationError: {message}")
+
+
+class ApiMOtherError(ApiMError):
+    def __init__(self, message: str):
+        super().__init__(f"ApiMOtherError: {message}")

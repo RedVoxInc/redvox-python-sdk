@@ -1,20 +1,25 @@
 from unittest import TestCase
 from typing import Any, Dict, List, Set
 
-from redvox.api1000.errors import ApiMError
+from redvox.api1000.errors import ApiMError, ApiMTypeError, ApiMOtherError
 
 from redvox.api1000.common.typing import check_type
 
 
 class TypingTests(TestCase):
     def test_primitives_ok(self):
-        check_type(1, [int])
-        check_type(1.0, [float])
-        check_type(True, [bool])
-        check_type("foo", [str])
-        check_type([1], [list])
-        check_type({1}, [set])
-        check_type({1: 2}, [dict])
+        good_types: List[Any] = [
+            [1, [int]],
+            [1.0, [float]],
+            [True, [bool]],
+            ["foo", [str]],
+            [[1], [list]],
+            [{1}, [set]],
+            [{1: 2}, [dict]],
+        ]
+        good_type: List[Any]
+        for good_type in good_types:
+            check_type(*good_type)
 
     def test_primitive_bad(self):
         bad_types: List[Any] = [
@@ -27,6 +32,20 @@ class TypingTests(TestCase):
             [{1: 2}, [int, float, bool, str, list, set]]
         ]
 
+        bad_type: List[Any]
         for bad_type in bad_types:
-            with self.assertRaises(ApiMError) as ctx:
+            with self.assertRaises(ApiMTypeError) as ctx:
                 check_type(*bad_type)
+            self.assertTrue("Expected type(s)" in str(ctx.exception))
+
+    def test_custom_exception(self):
+        with self.assertRaises(ApiMOtherError) as ctx:
+            check_type(1.0, [int], exception=ApiMOtherError)
+        self.assertTrue("Expected type(s)" in str(ctx.exception))
+        self.assertTrue("ApiMOtherError" in str(ctx.exception))
+
+    def test_additional_info(self):
+        with self.assertRaises(ApiMTypeError) as ctx:
+            check_type(1.0, [int], additional_info="foo")
+        self.assertTrue("Expected type(s)" in str(ctx.exception))
+        self.assertTrue("foo" in str(ctx.exception))
