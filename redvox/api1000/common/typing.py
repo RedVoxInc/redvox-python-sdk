@@ -25,10 +25,13 @@ def check_type(value: Any,
                             is provided by default.
     """
 
-    # In order to keep this fast, check all types right away amd short circuit return if all good. Only if there are
-    # issues should we perform any error management.
-    for valid_type in valid_types:
-        if isinstance(value, valid_type):
+    # It turns out that isinstance(True, int) will return True.... handle edge case first
+    # https://stackoverflow.com/questions/37888620/comparing-boolean-and-int-using-isinstance
+    if bool not in valid_types and isinstance(value, bool):
+        # This is a bool and it shouldn't be, continue to issue logic
+        pass
+    else:
+        if isinstance(value, tuple(valid_types)):
             return None
 
     # There are type check issues
