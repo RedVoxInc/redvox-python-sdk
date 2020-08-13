@@ -1,5 +1,5 @@
 """
-This module provides functions and wrappers for working API M metadata fields.
+This module provides functions and wrappers for working protobuf Map fields.
 """
 
 from typing import Dict, Generic, Type, TypeVar
@@ -12,7 +12,7 @@ T = TypeVar("T")
 
 class Mapping(Generic[T]):
     """
-    This class encapsulates the API M metadata fields providing high-level methods for manipulating the underlying
+    This class encapsulates the API M map fields providing high-level methods for manipulating the underlying
     mapping.
     """
 
