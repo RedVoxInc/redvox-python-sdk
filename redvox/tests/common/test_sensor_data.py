@@ -12,6 +12,8 @@ class SensorDataTest(unittest.TestCase):
     def setUp(self) -> None:
         self.api900_station = sd.load_station_from_api900(os.path.join(tests.TEST_DATA_DIR,
                                                                        "1637650010_1531343782220.rdvxz"))
+        self.apim_station = sd.load_station_from_apim(os.path.join(tests.TEST_DATA_DIR,
+                                                                   "0000000001_1597189452945991.rdvxm"))
         self.mseed_data = sd.load_from_mseed("/Users/tyler/Documents/pipeline_tests/out.mseed")
 
     def test_api900_station(self):
@@ -22,6 +24,15 @@ class SensorDataTest(unittest.TestCase):
             self.assertEqual(sensor.audio_sensor().sample_rate, 80)
             self.assertTrue(sensor.audio_sensor().is_sample_rate_fixed)
             self.assertEqual(sensor.location_sensor().data_df.shape, (2, 5))
+
+    def test_apim_station(self):
+        self.assertEqual(len(self.apim_station.station_data), 1)
+        sensor = self.apim_station.station_data[0]
+        self.assertEqual(sensor.packet_best_latency, 1296.0)
+        self.assertEqual(len(sensor.sensor_data_dict), 2)
+        self.assertEqual(sensor.audio_sensor().sample_rate, 48000.0)
+        self.assertTrue(sensor.audio_sensor().is_sample_rate_fixed)
+        self.assertEqual(sensor.location_sensor().data_df.shape, (1, 9))
 
     def test_create_read_update_delete_audio_sensor(self):
         self.assertTrue(self.api900_station.station_data[0].has_audio_sensor())

@@ -21,11 +21,13 @@ class ReadWrappedPackets:
         * their redvox ids are equal
         * their uuids are equal
         * their app start machine timestamps are equal
+        * their sample rate is constant
     properties:
         wrapped_packets: list of wrapped redvox API M packets
         redvox_id: string, redvox id of all the packets
         uuid: string, uuid of all the packets
         start_mach_timestamp: float, app_start_mach_timestamp of all the packets
+        audio_sample_rate: float, sample rate of the audio sensor
     """
     def __init__(self, wrapped_packets: List[api_m_wp.WrappedRedvoxPacketM]):
         """
@@ -36,6 +38,7 @@ class ReadWrappedPackets:
         self.redvox_id: str = wrapped_packets[0].get_station_information().get_id()
         self.uuid: str = wrapped_packets[0].get_station_information().get_uuid()
         self.start_mach_timestamp: float = wrapped_packets[0].get_timing_information().get_app_start_mach_timestamp()
+        self.audio_sample_rate: float = wrapped_packets[0].get_sensors().get_audio().get_sample_rate()
         # set the packets
         self.wrapped_packets: List[api_m_wp.WrappedRedvoxPacketM] = wrapped_packets
         if len(wrapped_packets) > 1:
@@ -286,7 +289,7 @@ def read_file(file: str, is_compressed: bool = None) -> api_m_wp.RedvoxPacketM:
         return read_buffer(fin.read(), _is_compressed)
 
 
-def read_rdvxz_file(path: str) -> api_m_wp.WrappedRedvoxPacketM:
+def read_rdvxm_file(path: str) -> api_m_wp.WrappedRedvoxPacketM:
     """
     Reads a .rdvxm file from the specified path and returns a WrappedRedvoxPacketM.
     :param path: The path of the file.
@@ -441,14 +444,16 @@ def _get_structured_paths(directory: str,
 def read_structured(directory: str,
                     start_timestamp_utc_s: Optional[int] = None,
                     end_timestamp_utc_s: Optional[int] = None,
-                    redvox_ids: Optional[List[str]] = None) -> ReadResult:
+                    redvox_ids: Optional[List[str]] = None,
+                    structured_layout: bool = True) -> ReadResult:
     """
     read API M data from a directory that contains a specific structure (directory/YYYY/MM/DD/HH)
     Timestamps in directory and parameters are in UNIX time UTC
-    :param directory: the directory that contains the data
+    :param directory: the root directory that contains the data
     :param start_timestamp_utc_s: starting timestamp to get data from.  if None, get all data, default None
     :param end_timestamp_utc_s: ending timestamp to get data from.  if None, get all data, default None
     :param redvox_ids: specific redvox ids to get data for.  if None, get all ids, default None
+    :param structured_layout: specifies if directory has specific structure, default True
     :return: a ReadResult object that stores the packets with metadata
     """
     # Remove trailing directory separators
@@ -467,15 +472,21 @@ def read_structured(directory: str,
         if end_timestamp_utc_s is None:
             end_timestamp_utc_s = end_adjusted
 
-    paths = _get_structured_paths(directory,
-                                  start_timestamp_utc_s,
-                                  end_timestamp_utc_s,
-                                  set(redvox_ids))
+    if structured_layout:
+        paths = _get_structured_paths(directory,
+                                      start_timestamp_utc_s,
+                                      end_timestamp_utc_s,
+                                      set(redvox_ids))
+    else:
+        all_paths = glob.glob(os.path.join(directory, f"*.{REDVOX_API_M_FILE_EXT}"))
+        paths = list(
+            filter(lambda pth: _is_path_in_set(pth, start_timestamp_utc_s, end_timestamp_utc_s, set(redvox_ids)),
+                   all_paths))
 
     read_result = ReadResult(start_timestamp_utc_s, end_timestamp_utc_s)
 
     for path in paths:
-        read_result.add_packet(read_rdvxz_file(path))
+        read_result.add_packet(read_rdvxm_file(path))
 
     return read_result
 
@@ -495,7 +506,7 @@ def read_dir(directory_path: str) -> ReadResult:
     file_paths = sorted(glob.glob(directory_path + f"*.{REDVOX_API_M_FILE_EXT}"))
 
     for path in file_paths:
-        read_result.add_packet(read_rdvxz_file(path))
+        read_result.add_packet(read_rdvxm_file(path))
 
     return read_result
 

@@ -9,9 +9,12 @@ import pandas as pd
 
 from typing import List, Dict, Optional
 from dataclasses import dataclass, field
-from redvox.api900 import reader
+from redvox.api1000 import io as apim_io
+from redvox.api900 import reader as api900_io
 from redvox.common import file_statistics as fs
 from redvox.common import date_time_utils as dtu
+from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
+from redvox.api1000.wrapped_redvox_packet import wrapped_packet as apim_wp
 from obspy import read
 
 
@@ -88,20 +91,20 @@ class DataPacket:
     """
     Generic DataPacket class for API-independent analysis
     Properties:
-        server_timestamp: int, server timestamp of when data was received by the server
+        server_timestamp: float, server timestamp of when data was received by the server
         packet_app_start_timestamp: float, machine timestamp of when app started
         sensor_data_dict: dict, all SensorData associated with this sensor; keys are SensorType, default empty dict
-        data_start_timestamp: int, machine timestamp of the start of the packet's data, default np.nan
-        data_end_timestamp: int, machine timestamp of the end of the packet's data, default np.nan
+        data_start_timestamp: float, machine timestamp of the start of the packet's data, default np.nan
+        data_end_timestamp: float, machine timestamp of the end of the packet's data, default np.nan
         timesync: optional np.array of of timesync data, default None
         packet_best_latency: float, best latency of data, default np.nan
         packet_best_offset: float, best offset of data, default 0.0
     """
-    server_timestamp: int
-    packet_app_start_timestamp: int
+    server_timestamp: float
+    packet_app_start_timestamp: float
     sensor_data_dict: Dict[SensorType, SensorData] = field(default_factory=dict)
-    data_start_timestamp: int = np.nan
-    data_end_timestamp: int = np.nan
+    data_start_timestamp: float = np.nan
+    data_end_timestamp: float = np.nan
     timesync: Optional[np.array] = None
     packet_best_latency: float = np.nan
     packet_best_offset: float = 0.0
@@ -607,19 +610,19 @@ class StationTiming:
     """
     Generic StationTiming class for API-independent analysis
     Properties:
-        start_timestamp: int, timestamp when station started recording
-        episode_start_timestamp: int, timestamp of start of segment of interest
-        episode_end_timestamp: int, timestamp of end of segment of interest
+        start_timestamp: float, timestamp when station started recording
+        episode_start_timestamp_s: float, timestamp of start of segment of interest in seconds since epoch UTC
+        episode_end_timestamp_s: float, timestamp of end of segment of interest in seconds since epoch UTC
         audio_sample_rate_hz: float, sample rate in hz of audio sensor
-        station_first_data_timestamp: int, first timestamp chronologically of the data
+        station_first_data_timestamp: float, first timestamp chronologically of the data
         station_best_latency: float, best latency of data, default np.nan
         station_best_offset: float, best offset of data, default 0.0
     """
-    station_start_timestamp: int
-    episode_start_timestamp: int
-    episode_end_timestamp: int
+    station_start_timestamp: float
+    episode_start_timestamp_s: int
+    episode_end_timestamp_s: int
     audio_sample_rate_hz: float
-    station_first_data_timestamp: int
+    station_first_data_timestamp: float
     station_best_latency: float = np.nan
     station_best_offset: float = 0.0
 
@@ -685,7 +688,7 @@ def _calc_evenly_sampled_timestamps(start: float, samples: int, rate_hz: float) 
     return np.array(start + dtu.seconds_to_microseconds(np.arange(0, samples) / rate_hz))
 
 
-def read_api900_non_mic_sensor(sensor: reader.RedvoxSensor, packet_length_s: float, column_id: str) -> SensorData:
+def read_api900_non_mic_sensor(sensor: api900_io.RedvoxSensor, packet_length_s: float, column_id: str) -> SensorData:
     """
     read a sensor that does not have mic data from an api900 data packet
     :param sensor: the non-mic api900 sensor to read
@@ -694,7 +697,7 @@ def read_api900_non_mic_sensor(sensor: reader.RedvoxSensor, packet_length_s: flo
     :return: generic SensorData object
     """
     timestamps = sensor.timestamps_microseconds_utc()
-    if type(sensor) in [reader.AccelerometerSensor, reader.MagnetometerSensor, reader.GyroscopeSensor]:
+    if type(sensor) in [api900_io.AccelerometerSensor, api900_io.MagnetometerSensor, api900_io.GyroscopeSensor]:
         data_for_df = np.transpose([sensor.payload_values_x(), sensor.payload_values_y(), sensor.payload_values_z()])
         columns = [f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
     else:
@@ -704,7 +707,7 @@ def read_api900_non_mic_sensor(sensor: reader.RedvoxSensor, packet_length_s: flo
                       packet_length_s / len(timestamps), False)
 
 
-def read_api900_wrapped_packet(wrapped_packet: reader.WrappedRedvoxPacket) -> Dict[SensorType, SensorData]:
+def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) -> Dict[SensorType, SensorData]:
     """
     reads the data from a wrapped api900 redvox packet into a dictionary of generic data
     :param wrapped_packet: a wrapped api900 redvox packet
@@ -766,7 +769,7 @@ def load_station_from_api900(directory: str, start_timestamp_utc_s: Optional[int
     :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
     :return: a station Object
     """
-    api900_packet = reader.read_rdvxz_file(directory)
+    api900_packet = api900_io.read_rdvxz_file(directory)
     # set station metadata and timing based on first packet
     timing = StationTiming(api900_packet.mach_time_zero(), start_timestamp_utc_s, end_timestamp_utc_s,
                            api900_packet.microphone_sensor().sample_rate_hz(),
@@ -792,8 +795,8 @@ def load_file_range_from_api900(directory: str,
                                 structured_layout: bool = False,
                                 concat_continuous_segments: bool = True) -> List[Station]:
     """
-    reads in data from a directory and returns a list of stations
-    note that the param descriptions are taken directly from reader.read_rdvxz_file_range
+    reads in api900 data from a directory and returns a list of stations
+    note that the param descriptions are taken directly from api900.reader.read_rdvxz_file_range
     :param directory: The root directory of the data. If structured_layout is False, then this directory will
                       contain various unorganized .rdvxz files. If structured_layout is True, then this directory
                       must be the root api900 directory of the structured files.
@@ -806,8 +809,8 @@ def load_file_range_from_api900(directory: str,
     :return: a list of Station objects that contain the data
     """
     all_stations: List[Station] = []
-    all_data = reader.read_rdvxz_file_range(directory, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids,
-                                            structured_layout, concat_continuous_segments)
+    all_data = api900_io.read_rdvxz_file_range(directory, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids,
+                                               structured_layout, concat_continuous_segments)
     for redvox_id, wrapped_packets in all_data.items():
         # set station metadata and timing based on first packet
         timing = StationTiming(wrapped_packets[0].mach_time_zero(), start_timestamp_utc_s, end_timestamp_utc_s,
@@ -835,6 +838,215 @@ def load_file_range_from_api900(directory: str,
         # create the Station data object
         all_stations.append(Station(metadata, packet_list))
 
+    return all_stations
+
+
+def read_apim_xyz_sensor(sensor: xyz, packet_length_s: float, column_id: str) -> SensorData:
+    """
+    read a sensor that has xyz data channels from an api M data packet
+    :param sensor: the xyz api M sensor to read
+    :param packet_length_s: float, the length of the data packet in seconds
+    :param column_id: string, used to name the columns
+    :return: generic SensorData object
+    """
+    timestamps = sensor.get_timestamps().get_timestamps()
+    data_for_df = np.transpose([sensor.get_x_samples().get_values(),
+                                sensor.get_y_samples().get_values(),
+                                sensor.get_z_samples().get_values()])
+    columns = [f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
+    return SensorData(sensor.get_sensor_description(), pd.DataFrame(data_for_df, index=timestamps, columns=columns),
+                      packet_length_s / len(timestamps), False)
+
+
+def read_apim_single_sensor(sensor: single, packet_length_s: float, column_id: str) -> SensorData:
+    """
+    read a sensor that has a single data channel from an api M data packet
+    :param sensor: the single channel api M sensor to read
+    :param packet_length_s: float, the length of the data packet in seconds
+    :param column_id: string, used to name the columns
+    :return: generic SensorData object
+    """
+    timestamps = sensor.get_timestamps().get_timestamps()
+    data_for_df = np.transpose([sensor.get_samples().get_values()])
+    columns = [column_id]
+    return SensorData(sensor.get_sensor_description(), pd.DataFrame(data_for_df, index=timestamps, columns=columns),
+                      packet_length_s / len(timestamps), False)
+
+
+def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Dict[SensorType, SensorData]:
+    """
+    reads the data from a wrapped api M redvox packet into a dictionary of generic data
+    :param wrapped_packet: a wrapped api M redvox packet
+    :return: a dictionary containing all the sensor data
+    """
+    packet_length_s: float = wrapped_packet.get_timing_information().get_packet_end_mach_timestamp() - \
+        wrapped_packet.get_timing_information().get_packet_start_mach_timestamp()
+    data_dict: Dict[SensorType, SensorData] = {}
+    sensors = wrapped_packet.get_sensors()
+    # there are 16 api M sensors
+    if sensors.has_audio():
+        sample_rate_hz = sensors.get_audio().get_sample_rate()
+        data_for_df = sensors.get_audio().get_samples().get_values()
+        timestamps = _calc_evenly_sampled_timestamps(sensors.get_audio().get_first_sample_timestamp(),
+                                                     len(data_for_df), sample_rate_hz)
+        data_dict[SensorType.AUDIO] = SensorData(sensors.get_audio().get_sensor_description(),
+                                                 pd.DataFrame(data_for_df, index=timestamps, columns=["microphone"]),
+                                                 sample_rate_hz, True)
+    if sensors.has_compress_audio():
+        sample_rate_hz = sensors.get_compressed_audio().get_sample_rate()
+        data_for_df = sensors.get_compressed_audio().get_samples().get_values()
+        timestamps = _calc_evenly_sampled_timestamps(sensors.get_compressed_audio().get_first_sample_timestamp(),
+                                                     len(data_for_df), sample_rate_hz)
+        data_dict[SensorType.COMPRESSED_AUDIO] = SensorData(sensors.get_compressed_audio().get_sensor_description(),
+                                                            pd.DataFrame(data_for_df, index=timestamps,
+                                                                         columns=["compressed_audio"]),
+                                                            sample_rate_hz, True)
+    if sensors.has_accelerometer():
+        data_dict[SensorType.ACCELEROMETER] = read_apim_xyz_sensor(sensors.get_accelerometer(),
+                                                                   packet_length_s, "accelerometer")
+    if sensors.has_magnetometer():
+        data_dict[SensorType.MAGNETOMETER] = read_apim_xyz_sensor(sensors.get_magnetometer(),
+                                                                  packet_length_s, "magnetometer")
+    if sensors.has_linear_acceleration():
+        data_dict[SensorType.LINEAR_ACCELERATION] = read_apim_xyz_sensor(sensors.get_linear_acceleration(),
+                                                                         packet_length_s, "linear_accel")
+    if sensors.has_orientation():
+        data_dict[SensorType.ORIENTATION] = read_apim_xyz_sensor(sensors.get_orientation(),
+                                                                 packet_length_s, "orientation")
+    if sensors.has_rotation_vector():
+        data_dict[SensorType.ROTATION_VECTOR] = read_apim_xyz_sensor(sensors.get_rotation_vector(),
+                                                                     packet_length_s, "rotation_vector")
+    if sensors.has_gyroscope():
+        data_dict[SensorType.GYROSCOPE] = read_apim_xyz_sensor(sensors.get_gyroscope(), packet_length_s, "gyroscope")
+    if sensors.has_gravity():
+        data_dict[SensorType.GRAVITY] = read_apim_xyz_sensor(sensors.get_gravity(), packet_length_s, "gravity")
+    if sensors.has_pressure():
+        data_dict[SensorType.PRESSURE] = read_apim_single_sensor(sensors.get_pressure(), packet_length_s, "barometer")
+    if sensors.has_light():
+        data_dict[SensorType.LIGHT] = read_apim_single_sensor(sensors.get_light(), packet_length_s, "light")
+    if sensors.has_proximity():
+        data_dict[SensorType.PROXIMITY] = read_apim_single_sensor(sensors.get_proximity(), packet_length_s, "proximity")
+    if sensors.has_ambient_temperature():
+        data_dict[SensorType.TEMPERATURE] = read_apim_single_sensor(sensors.get_ambient_temperature(),
+                                                                    packet_length_s, "ambient_temp")
+    if sensors.has_relative_humidity():
+        data_dict[SensorType.RELATIVE_HUMIDITY] = read_apim_single_sensor(sensors.get_relative_humidity(),
+                                                                          packet_length_s, "rel_humidity")
+    if sensors.has_image():
+        timestamps = sensors.get_image().get_timestamps().get_timestamps()
+        data_for_df = sensors.get_image().get_samples()
+        data_dict[SensorType.IMAGE] = SensorData(sensors.get_image().get_sensor_description(),
+                                                 pd.DataFrame(data_for_df, index=timestamps, columns=["image"]),
+                                                 packet_length_s / len(timestamps), False)
+    if sensors.has_location():
+        timestamps = sensors.get_location().get_timestamps().get_timestamps()
+        data_for_df = np.transpose([sensors.get_location().get_latitude_samples().get_values(),
+                                    sensors.get_location().get_longitude_samples().get_values(),
+                                    sensors.get_location().get_altitude_samples().get_values(),
+                                    sensors.get_location().get_speed_samples().get_values(),
+                                    sensors.get_location().get_bearing_samples().get_values(),
+                                    sensors.get_location().get_horizontal_accuracy_samples().get_values(),
+                                    sensors.get_location().get_vertical_accuracy_samples().get_values(),
+                                    sensors.get_location().get_speed_samples().get_values(),
+                                    sensors.get_location().get_bearing_accuracy_samples().get_values()])
+        columns = ["latitude", "longitude", "altitude", "speed", "bearing",
+                   "horizonal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy"]
+        data_dict[SensorType.LOCATION] = SensorData(sensors.get_location().get_sensor_description(),
+                                                    pd.DataFrame(data_for_df, index=timestamps, columns=columns),
+                                                    packet_length_s / len(timestamps), False)
+    return data_dict
+
+
+def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] = None,
+                           end_timestamp_utc_s: Optional[int] = None) -> Station:
+    """
+    reads in station data from a single api M file
+    :param directory: string of the file to read from
+    :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
+    :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
+    :return: a station Object
+    """
+    read_packet = apim_io.read_rdvxm_file(directory)
+    # set station metadata and timing based on first packet
+    timing = StationTiming(read_packet.get_timing_information().get_app_start_mach_timestamp(),
+                           start_timestamp_utc_s, end_timestamp_utc_s,
+                           read_packet.get_sensors().get_audio().get_sample_rate(),
+                           read_packet.get_sensors().get_audio().get_first_sample_timestamp(),
+                           read_packet.get_timing_information().get_best_latency(),
+                           read_packet.get_timing_information().get_best_offset())
+    metadata = StationMetadata(read_packet.get_station_information().get_id(),
+                               read_packet.get_station_information().get_make(),
+                               read_packet.get_station_information().get_model(),
+                               read_packet.get_station_information().get_os().value,
+                               read_packet.get_station_information().get_os_version(), "Redvox",
+                               read_packet.get_station_information().get_app_version(),
+                               read_packet.get_station_information().get_app_settings().
+                               get_scramble_audio_data(),
+                               timing)
+    # add data from packets
+    time_sync = np.array(read_packet.get_timing_information().get_synch_exchanges().get_values())
+    data_dict = load_apim_wrapped_packet(read_packet)
+    packet_data = DataPacket(read_packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
+                             read_packet.get_timing_information().get_app_start_mach_timestamp(), data_dict,
+                             read_packet.get_timing_information().get_packet_start_mach_timestamp(),
+                             read_packet.get_timing_information().get_packet_end_mach_timestamp(),
+                             time_sync, read_packet.get_timing_information().get_best_latency(),
+                             read_packet.get_timing_information().get_best_offset())
+    packet_list: List[DataPacket] = [packet_data]
+    return Station(metadata, packet_list)
+
+
+def load_from_file_range_api_m(directory: str,
+                               start_timestamp_utc_s: Optional[int] = None,
+                               end_timestamp_utc_s: Optional[int] = None,
+                               redvox_ids: Optional[List[str]] = None,
+                               structured_layout: bool = False) -> List[Station]:
+    """
+    reads in api M data from a directory and returns a list of stations
+    :param directory: The root directory of the data. If structured_layout is False, then this directory will
+                      contain various unorganized .rdvxz files. If structured_layout is True, then this directory
+                      must be the root api1000 directory of the structured files.
+    :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
+    :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
+    :param redvox_ids: An optional list of redvox_ids to filter against, default empty list
+    :param structured_layout: An optional value to define if this is loading structured data, default False.
+    :return: a list of Station objects that contain the data
+    """
+    all_stations: List[Station] = []
+    all_data = apim_io.read_structured(directory, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids,
+                                       structured_layout)
+    for read_packets in all_data.all_wrapped_packets:
+        # set station metadata and timing based on first packet
+        timing = StationTiming(read_packets.start_mach_timestamp,
+                               start_timestamp_utc_s, end_timestamp_utc_s, read_packets.audio_sample_rate,
+                               read_packets.wrapped_packets[0].get_sensors().get_audio().get_first_sample_timestamp(),
+                               read_packets.wrapped_packets[0].get_timing_information().get_best_latency(),
+                               read_packets.wrapped_packets[0].get_timing_information().get_best_offset())
+        metadata = StationMetadata(read_packets.redvox_id,
+                                   read_packets.wrapped_packets[0].get_station_information().get_make(),
+                                   read_packets.wrapped_packets[0].get_station_information().get_model(),
+                                   read_packets.wrapped_packets[0].get_station_information().get_os().value,
+                                   read_packets.wrapped_packets[0].get_station_information().get_os_version(),
+                                   "Redvox",
+                                   read_packets.wrapped_packets[0].get_station_information().get_app_version(),
+                                   read_packets.wrapped_packets[0].get_station_information().get_app_settings().
+                                   get_scramble_audio_data(),
+                                   timing)
+        # add data from packets
+        packet_list: List[DataPacket] = []
+        for packet in read_packets.wrapped_packets:
+            time_sync = np.array(packet.get_timing_information().get_synch_exchanges().get_values())
+            data_dict = load_apim_wrapped_packet(packet)
+            packet_data = DataPacket(packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
+                                     packet.get_timing_information().get_app_start_mach_timestamp(), data_dict,
+                                     packet.get_timing_information().get_packet_start_mach_timestamp(),
+                                     packet.get_timing_information().get_packet_end_mach_timestamp(),
+                                     time_sync, packet.get_timing_information().get_best_latency(),
+                                     packet.get_timing_information().get_best_offset())
+            packet_list.append(packet_data)
+
+        # create the Station data object
+        all_stations.append(Station(metadata, packet_list))
     return all_stations
 
 
