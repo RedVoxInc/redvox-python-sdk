@@ -6,9 +6,7 @@ import glob
 import redvox.api1000.common.lz4
 import redvox.api1000.wrapped_redvox_packet.wrapped_packet as api_m_wp
 import redvox.common.date_time_utils as date_time_utils
-import redvox.api1000.errors as _errors
-import numpy as np
-from typing import Dict, List, Optional, Set, Tuple, Callable
+from typing import List, Optional, Set, Tuple
 
 
 REDVOX_API_M_FILE_EXT = "rdvxm"
@@ -298,14 +296,14 @@ def read_rdvxm_file(path: str) -> api_m_wp.WrappedRedvoxPacketM:
     return wrap(read_file(path))
 
 
-def _extract_timestamp_s(path: str) -> int:
+def _extract_timestamp(path: str) -> int:
     """
-    Extracts a timestamp from a file path.
+    Extracts a timestamp in microseconds from a file path.
     :param path: Path to extract a timestamp from.
     :return: The timestamp in seconds from a path.
     """
     file = path.split(os.path.sep)[-1].split(".")[0]
-    return int(round(float(file.split("_")[1]) / 1000.0))
+    return int(file.split("_")[1])
 
 
 def _extract_redvox_id(path: str) -> str:
@@ -343,14 +341,14 @@ def _is_valid_redvox_api_m_filename(filename: str) -> bool:
 
 
 def _is_path_in_set(path: str,
-                    start_timestamp_utc_s: int,
-                    end_timestamp_utc_s: int,
+                    start_timestamp_utc: int,
+                    end_timestamp_utc: int,
                     redvox_ids: Set[str] = None) -> bool:
     """
     Determines whether a given path is in a provided time range and set of redvox_ids.
     :param path: The path to check.
-    :param start_timestamp_utc_s: Start of time range.
-    :param end_timestamp_utc_s: End of time range.
+    :param start_timestamp_utc: Start of time range in microseconds since epoch UTC.
+    :param end_timestamp_utc: End of time range in microseconds since epoch UTC.
     :param redvox_ids: Optional set of redvox ids.
     :return: True if path is in set false otherwise.
     """
@@ -361,9 +359,9 @@ def _is_path_in_set(path: str,
     if not _is_valid_redvox_api_m_filename(filename):
         return False
 
-    timestamp = int(date_time_utils.milliseconds_to_seconds(float(filename[11:24])))
+    timestamp = int(filename[11:27])
 
-    if not start_timestamp_utc_s <= timestamp <= end_timestamp_utc_s:
+    if not start_timestamp_utc <= timestamp <= end_timestamp_utc:
         return False
 
     if len(redvox_ids) > 0:
@@ -390,10 +388,10 @@ def _get_time_range_paths(paths: List[str],
         return -1, -1
 
     if len(paths) == 1:
-        timestamp = _extract_timestamp_s(paths[0])
+        timestamp = _extract_timestamp(paths[0])
         return timestamp, timestamp
 
-    timestamps = sorted(list(map(_extract_timestamp_s, paths)))
+    timestamps = sorted(list(map(_extract_timestamp, paths)))
     return timestamps[0], timestamps[-1]
 
 
@@ -418,40 +416,40 @@ def _get_paths_time_range(directory: str,
 
 
 def _get_structured_paths(directory: str,
-                          start_timestamp_utc_s: int,
-                          end_timestamp_utc_s: int,
+                          start_timestamp_utc: int,
+                          end_timestamp_utc: int,
                           redvox_ids: Set[str] = None) -> List[str]:
     """
     Given a base directory (which should end with api1000), find the paths of all structured API M redvox files.
     :param directory: The base directory path (which should end with api1000)
-    :param start_timestamp_utc_s: Start timestamp as seconds since the epoch UTC.
-    :param end_timestamp_utc_s: End timestamp as seconds since the epoch UTC.
+    :param start_timestamp_utc: Start timestamp as microseconds since the epoch UTC.
+    :param end_timestamp_utc: End timestamp as microseconds since the epoch UTC.
     :param redvox_ids: An optional set of redvox_ids to filter against.
     :return: A list of paths in a structured layout of filtered API M redvox files.
     """
     if redvox_ids is None:
         redvox_ids = set()
     paths = []
-    for (year, month, day, hour) in date_time_utils.DateIteratorAPIM(start_timestamp_utc_s, end_timestamp_utc_s):
+    for (year, month, day, hour) in date_time_utils.DateIteratorAPIM(start_timestamp_utc, end_timestamp_utc):
         all_paths = glob.glob(os.path.join(directory, year, month, day, hour, f"*.{REDVOX_API_M_FILE_EXT}"))
         valid_paths = list(
-            filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids),
+            filter(lambda path: _is_path_in_set(path, start_timestamp_utc, end_timestamp_utc, redvox_ids),
                    all_paths))
         paths.extend(valid_paths)
     return paths
 
 
 def read_structured(directory: str,
-                    start_timestamp_utc_s: Optional[int] = None,
-                    end_timestamp_utc_s: Optional[int] = None,
+                    start_timestamp_utc: Optional[int] = None,
+                    end_timestamp_utc: Optional[int] = None,
                     redvox_ids: Optional[List[str]] = None,
                     structured_layout: bool = True) -> ReadResult:
     """
     read API M data from a directory that contains a specific structure (directory/YYYY/MM/DD/HH)
     Timestamps in directory and parameters are in UNIX time UTC
     :param directory: the root directory that contains the data
-    :param start_timestamp_utc_s: starting timestamp to get data from.  if None, get all data, default None
-    :param end_timestamp_utc_s: ending timestamp to get data from.  if None, get all data, default None
+    :param start_timestamp_utc: starting timestamp to get data from.  if None, get all data, default None
+    :param end_timestamp_utc: ending timestamp to get data from.  if None, get all data, default None
     :param redvox_ids: specific redvox ids to get data for.  if None, get all ids, default None
     :param structured_layout: specifies if directory has specific structure, default True
     :return: a ReadResult object that stores the packets with metadata
@@ -462,28 +460,28 @@ def read_structured(directory: str,
     while directory.endswith("/") or directory.endswith("\\"):
         directory = directory[:-1]
 
-    if start_timestamp_utc_s is None or end_timestamp_utc_s is None:
+    if start_timestamp_utc is None or end_timestamp_utc is None:
         ids = None if len(redvox_ids) == 0 else redvox_ids
         start_adjusted, end_adjusted = _get_paths_time_range(directory, ids, True)
 
-        if start_timestamp_utc_s is None:
-            start_timestamp_utc_s = start_adjusted
+        if start_timestamp_utc is None:
+            start_timestamp_utc = start_adjusted
 
-        if end_timestamp_utc_s is None:
-            end_timestamp_utc_s = end_adjusted
+        if end_timestamp_utc is None:
+            end_timestamp_utc = end_adjusted
 
     if structured_layout:
         paths = _get_structured_paths(directory,
-                                      start_timestamp_utc_s,
-                                      end_timestamp_utc_s,
+                                      start_timestamp_utc,
+                                      end_timestamp_utc,
                                       set(redvox_ids))
     else:
         all_paths = glob.glob(os.path.join(directory, f"*.{REDVOX_API_M_FILE_EXT}"))
         paths = list(
-            filter(lambda pth: _is_path_in_set(pth, start_timestamp_utc_s, end_timestamp_utc_s, set(redvox_ids)),
+            filter(lambda pth: _is_path_in_set(pth, start_timestamp_utc, end_timestamp_utc, set(redvox_ids)),
                    all_paths))
 
-    read_result = ReadResult(start_timestamp_utc_s, end_timestamp_utc_s)
+    read_result = ReadResult(start_timestamp_utc, end_timestamp_utc)
 
     for path in paths:
         read_result.add_packet(read_rdvxm_file(path))
