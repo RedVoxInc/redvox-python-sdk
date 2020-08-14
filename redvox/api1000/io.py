@@ -6,7 +6,7 @@ import glob
 import redvox.api1000.common.lz4
 import redvox.api1000.wrapped_redvox_packet.wrapped_packet as api_m_wp
 import redvox.common.date_time_utils as date_time_utils
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple, Callable, TypeVar
 
 
 REDVOX_API_M_FILE_EXT = "rdvxm"
@@ -43,11 +43,23 @@ class ReadWrappedPackets:
         if len(wrapped_packets) > 1:
             self.sort_packets()
 
-    def sort_packets(self):
+    @staticmethod
+    def _default_sort_packets(packet: api_m_wp.WrappedRedvoxPacketM):
+        return packet.get_timing_information().get_packet_start_mach_timestamp()
+
+    # this is for below to allow custom criteria to sort on
+    T = TypeVar("T")
+
+    def sort_packets(self, sort_func: Optional[Callable[[api_m_wp.WrappedRedvoxPacketM], T]] = None,
+                     reverse: bool = False):
         """
-        sort packets by packet_start_timestamp
+        sort packets by custom user function, or by default, packet_start_timestamp
+        :param sort_func: Optional function defining how to sort the packets, default None (uses packet start mach time)
+        :param reverse: bool, if True, sort results in reverse, default False
         """
-        sorted(self.wrapped_packets, key=lambda p: p.get_timing_information().get_packet_start_mach_timestamp())
+        if sort_func is None:
+            sort_func = self._default_sort_packets
+        self.wrapped_packets = sorted(self.wrapped_packets, key=sort_func, reverse=reverse)
 
     def add_packet(self, wrapped_packet: api_m_wp.WrappedRedvoxPacketM) -> bool:
         """
@@ -70,6 +82,9 @@ class ReadWrappedPackets:
         :param wrapped_packet: packet to check for differences
         :return: True if no change in any sensors, False otherwise
         """
+        # only 1 packet means sensors don't change
+        if len(self.wrapped_packets) <= 1:
+            return True
         matches = []
         prev_sensors = [wrapped_packet.get_sensors().has_audio(),
                         wrapped_packet.get_sensors().has_pressure(),
@@ -123,49 +138,7 @@ class ReadWrappedPackets:
             prev_packet = self.wrapped_packets[i - 1]
             next_packet = self.wrapped_packets[i]
 
-            # so sensors should have been checked already
-
-            # Sensor discontinuity
-            # prev_sensors = [prev_packet.get_sensors().has_audio(),
-            #                 prev_packet.get_sensors().has_pressure(),
-            #                 prev_packet.get_sensors().has_accelerometer(),
-            #                 prev_packet.get_sensors().has_gyroscope(),
-            #                 prev_packet.get_sensors().has_light(),
-            #                 prev_packet.get_sensors().has_image(),
-            #                 prev_packet.get_sensors().has_location(),
-            #                 prev_packet.get_sensors().has_magnetometer(),
-            #                 prev_packet.get_sensors().has_ambient_temperature(),
-            #                 prev_packet.get_sensors().has_compress_audio(),
-            #                 prev_packet.get_sensors().has_gravity(),
-            #                 prev_packet.get_sensors().has_linear_acceleration(),
-            #                 prev_packet.get_sensors().has_orientation(),
-            #                 prev_packet.get_sensors().has_proximity(),
-            #                 prev_packet.get_sensors().has_relative_humidity(),
-            #                 prev_packet.get_sensors().has_rotation_vector()]
-            #
-            # next_sensors = [next_packet.get_sensors().has_audio(),
-            #                 next_packet.get_sensors().has_pressure(),
-            #                 next_packet.get_sensors().has_accelerometer(),
-            #                 next_packet.get_sensors().has_gyroscope(),
-            #                 next_packet.get_sensors().has_light(),
-            #                 next_packet.get_sensors().has_image(),
-            #                 next_packet.get_sensors().has_location(),
-            #                 next_packet.get_sensors().has_magnetometer(),
-            #                 next_packet.get_sensors().has_ambient_temperature(),
-            #                 next_packet.get_sensors().has_compress_audio(),
-            #                 next_packet.get_sensors().has_gravity(),
-            #                 next_packet.get_sensors().has_linear_acceleration(),
-            #                 next_packet.get_sensors().has_orientation(),
-            #                 next_packet.get_sensors().has_proximity(),
-            #                 next_packet.get_sensors().has_relative_humidity(),
-            #                 next_packet.get_sensors().has_rotation_vector()]
-            #
-            # # pylint: disable=C0200
-            # for j in range(len(prev_sensors)):
-            #     if prev_sensors[j] != next_sensors[j]:
-            #         gaps.add(i)
-
-            # so the only check that shouldn't have been made yet is difference in start/end timestamps
+            # the only check that shouldn't have been made yet is difference in start/end timestamps
             # Time based gaps
             prev_timestamp = prev_packet.get_timing_information().get_packet_end_mach_timestamp()
             next_timestamp = next_packet.get_timing_information().get_packet_start_mach_timestamp()
@@ -176,16 +149,6 @@ class ReadWrappedPackets:
                 gaps.add(i)
                 if debug:
                     print("time gap")
-
-            # so the mach start time should have been checked already
-
-            # app start time should not change
-            # prev_app_start_mach = prev_packet.get_timing_information().get_app_start_mach_timestamp()
-            # next_app_start_mach = next_packet.get_timing_information().get_app_start_mach_timestamp()
-            # if next_app_start_mach != prev_app_start_mach:
-            #     gaps.add(i)
-            #     if debug:
-            #         print("mach time zero gap")
 
         return sorted(list(gaps))
 
@@ -198,8 +161,8 @@ class ReadResult:
         end_timestamp_s: optional float, end timestamp in seconds of the data being read
         all_wrapped_packets: list of lists of wrapped API M redvox packets
     """
-    def __init__(self, start_time: float = None, end_time: float = None,
-                 wrapped_packets: List[ReadWrappedPackets] = None):
+    def __init__(self, start_time: Optional[float] = None, end_time: Optional[float] = None,
+                 wrapped_packets: Optional[List[ReadWrappedPackets]] = None):
         """
         initialize a ReadResult
         :param start_time: start time of the data being read, default None
@@ -431,7 +394,9 @@ def _get_structured_paths(directory: str,
     if redvox_ids is None:
         redvox_ids = set()
     paths = []
-    for (year, month, day, hour) in date_time_utils.DateIteratorAPIM(start_timestamp_utc, end_timestamp_utc):
+    for (year, month, day, hour) in date_time_utils.DateIteratorAPIM(
+            int(date_time_utils.microseconds_to_seconds(start_timestamp_utc)),
+            int(date_time_utils.microseconds_to_seconds(end_timestamp_utc))):
         all_paths = glob.glob(os.path.join(directory, year, month, day, hour, f"*.{REDVOX_API_M_FILE_EXT}"))
         valid_paths = list(
             filter(lambda path: _is_path_in_set(path, start_timestamp_utc, end_timestamp_utc, redvox_ids),
@@ -447,7 +412,7 @@ def read_structured(directory: str,
                     structured_layout: bool = True) -> ReadResult:
     """
     read API M data from a directory that contains a specific structure (directory/YYYY/MM/DD/HH)
-    Timestamps in directory and parameters are in UNIX time UTC
+    Timestamps in directory and parameters are in microseconds since epoch UTC
     :param directory: the root directory that contains the data
     :param start_timestamp_utc: starting timestamp to get data from.  if None, get all data, default None
     :param end_timestamp_utc: ending timestamp to get data from.  if None, get all data, default None

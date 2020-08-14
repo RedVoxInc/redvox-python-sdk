@@ -235,27 +235,27 @@ class RedVoxLocationAnalyzerClassTests(LoadRedvoxTestFiles):
         self.new_la.analyze_data()
         current_csv_path = os.path.join(LA_TEST_DATA_DIR, "all.csv")
         self.new_la.print_to_csv(current_csv_path)
-        with open(os.path.join(LA_TEST_DATA_DIR, "master.csv"), 'r', encoding="utf-8") as in_test_file:
-            test_contents = in_test_file.read()
-            with open(current_csv_path, 'r', encoding="utf-8") as in_file:
-                contents = in_file.read()
-            self.assertEqual(contents, test_contents)
+        test_contents = pd.read_csv(os.path.join(LA_TEST_DATA_DIR, "master.csv"))
+        contents = pd.read_csv(current_csv_path)
+        for idx in contents.index:
+            for clm in contents.columns:
+                self.assertAlmostEqual(contents.at[idx, clm], test_contents.at[idx, clm], 4)
         os.remove(current_csv_path)
         current_csv_path = os.path.join(LA_TEST_DATA_DIR, "android.csv")
         self.new_la.print_to_csv(current_csv_path, "Android")
-        with open(os.path.join(LA_TEST_DATA_DIR, "master_android.csv"), 'r', encoding="utf-8") as in_test_file:
-            test_contents = in_test_file.read()
-            with open(current_csv_path, 'r', encoding="utf-8") as in_file:
-                contents = in_file.read()
-            self.assertEqual(contents, test_contents)
+        test_contents = pd.read_csv(os.path.join(LA_TEST_DATA_DIR, "master_android.csv"))
+        contents = pd.read_csv(current_csv_path)
+        for idx in contents.index:
+            for clm in contents.columns:
+                self.assertAlmostEqual(contents.at[idx, clm], test_contents.at[idx, clm], 4)
         os.remove(current_csv_path)
         current_csv_path = os.path.join(LA_TEST_DATA_DIR, "ios.csv")
         self.new_la.print_to_csv(current_csv_path, "iOS")
-        with open(os.path.join(LA_TEST_DATA_DIR, "master_ios.csv"), 'r', encoding="utf-8") as in_test_file:
-            test_contents = in_test_file.read()
-            with open(current_csv_path, 'r', encoding="utf-8") as in_file:
-                contents = in_file.read()
-            self.assertEqual(contents, test_contents)
+        test_contents = pd.read_csv(os.path.join(LA_TEST_DATA_DIR, "master_ios.csv"))
+        contents = pd.read_csv(current_csv_path)
+        for idx in contents.index:
+            for clm in contents.columns:
+                self.assertAlmostEqual(contents.at[idx, clm], test_contents.at[idx, clm], 4)
         os.remove(current_csv_path)
 
 

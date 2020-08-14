@@ -2,9 +2,6 @@
 tests for timesync
 """
 import unittest
-import os
-import glob
-import numpy as np
 import redvox.tests as tests
 from redvox.api1000 import io
 TEST_DIR = tests.TEST_DATA_DIR
@@ -12,8 +9,9 @@ TEST_DIR = tests.TEST_DATA_DIR
 
 class ReadWrappedPacketTest(unittest.TestCase):
     def setUp(self) -> None:
-        file_one = TEST_DIR + "/0000000001_1597189452945991.rdvxm"
+        file_one = TEST_DIR + "/0000000001_1597189462946314.rdvxm"
         self.read_wrapped_packet = io.ReadWrappedPackets([io.read_rdvxm_file(file_one)])
+        self.empty_read_result = io.ReadResult()
 
     def test_init(self):
         self.assertEqual(self.read_wrapped_packet.start_mach_timestamp, 1597189452943691.0)
@@ -29,7 +27,7 @@ class ReadWrappedPacketTest(unittest.TestCase):
             io.read_rdvxm_file(TEST_DIR + "/0000000001_1597189457945569.rdvxm")))
 
     def test_add_gap(self):
-        self.read_wrapped_packet.add_packet(io.read_rdvxm_file(TEST_DIR + "/0000000001_1597189462946314.rdvxm"))
+        self.read_wrapped_packet.add_packet(io.read_rdvxm_file(TEST_DIR + "/0000000001_1597189452945991.rdvxm"))
         self.assertEqual(len(self.read_wrapped_packet.wrapped_packets), 2)
         self.assertTrue(len(self.read_wrapped_packet.identify_gaps(5)) > 0)
 
@@ -37,7 +35,6 @@ class ReadWrappedPacketTest(unittest.TestCase):
         file_two = TEST_DIR + "/example.rdvxm"
         read_synth_packet = io.ReadWrappedPackets([io.read_rdvxm_file(file_two)])
         self.assertEqual(read_synth_packet.redvox_id, "1234567890")
-        print(read_synth_packet.wrapped_packets[0].get_station_information().get_app_settings())
 
 
 class ReadResultTest(unittest.TestCase):
@@ -46,7 +43,7 @@ class ReadResultTest(unittest.TestCase):
 
     def test_read_dir(self):
         self.assertEqual(self.read_result.start_timestamp_s, None)
-        self.assertEqual(len(self.read_result.all_wrapped_packets), 1)
+        self.assertEqual(len(self.read_result.all_wrapped_packets), 2)
 
     def test_get_by_id(self):
         self.assertEqual(self.read_result.get_by_id("0000000001")[0].get_timing_information()
