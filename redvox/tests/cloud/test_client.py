@@ -133,7 +133,7 @@ class ClientTests(unittest.TestCase):
             self.assertEqual(resp.aud, "api")
             self.assertEqual(resp.iss, "RedVox, Inc.")
             self.assertEqual(resp.sub, "redvoxcore@gmail.com")
-            self.assertEqual(resp.tier, "free")
+            self.assertEqual(resp.tier, "ADMIN")
 
     def test_refresh_token(self):
         if self.client:
