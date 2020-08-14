@@ -12,6 +12,7 @@ from typing import List, Optional, Set, Tuple
 REDVOX_API_M_FILE_EXT = "rdvxm"
 
 
+# todo: separate ReadWrappedPackets into multiple objects when gap detected
 class ReadWrappedPackets:
     """
     A searchable/sortable list of continuous wrapped API M redvox packets

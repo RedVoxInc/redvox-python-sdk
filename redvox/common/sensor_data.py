@@ -980,8 +980,7 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
                                read_packet.get_station_information().get_os().name,
                                read_packet.get_station_information().get_os_version(), "Redvox",
                                read_packet.get_station_information().get_app_version(),
-                               read_packet.get_station_information().get_app_settings().
-                               get_scramble_audio_data(),
+                               read_packet.get_station_information().get_app_settings().get_scramble_audio_data(),
                                timing)
     # add data from packets
     time_sync = np.array(read_packet.get_timing_information().get_synch_exchanges().get_values())
