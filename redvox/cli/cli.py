@@ -73,6 +73,10 @@ def determine_exit(status: bool) -> None:
 
 
 def rdvxz_to_rdvxm(args) -> None:
+    """
+    Convert rdvxz to rdvxm
+    :param args: Args from argparse.
+    """
     if not check_files(args.rdvxz_paths, ".rdvxz"):
         determine_exit(False)
 
@@ -83,6 +87,10 @@ def rdvxz_to_rdvxm(args) -> None:
 
 
 def rdvxm_to_rdvxz(args) -> None:
+    """
+    Convert rdvxm to rdvxz
+    :param args: Args from argparse.
+    """
     if not check_files(args.rdvxm_paths, ".rdvxm"):
         determine_exit(False)
 
@@ -171,6 +179,10 @@ def rdvxm_print_stdout_args(args) -> None:
 
 
 def validate_rdvxm_args(args) -> None:
+    """
+    Validates the args
+    :param args: Args from argparse
+    """
     if not check_files(args.rdvxm_paths, ".rdvxm"):
         determine_exit(False)
 
