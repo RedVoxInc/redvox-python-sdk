@@ -21,6 +21,8 @@ class ReadWrappedPackets:
         * their uuids are equal
         * their app start machine timestamps are equal
         * their sample rate is constant
+        * their sensors do not change
+        * there is no considerable gap between the end of one packet and the start of the next
     properties:
         wrapped_packets: list of wrapped redvox API M packets
         redvox_id: string, redvox id of all the packets
@@ -41,7 +43,7 @@ class ReadWrappedPackets:
         # set the packets
         self.wrapped_packets: List[api_m_wp.WrappedRedvoxPacketM] = wrapped_packets
         if len(wrapped_packets) > 1:
-            self.sort_packets()
+            self.wrapped_packets = self.sort_packets()
 
     @staticmethod
     def _default_sort_packets(packet: api_m_wp.WrappedRedvoxPacketM):
@@ -51,15 +53,16 @@ class ReadWrappedPackets:
     T = TypeVar("T")
 
     def sort_packets(self, sort_func: Optional[Callable[[api_m_wp.WrappedRedvoxPacketM], T]] = None,
-                     reverse: bool = False):
+                     reverse: bool = False) -> List[api_m_wp.WrappedRedvoxPacketM]:
         """
         sort packets by custom user function, or by default, packet_start_timestamp
         :param sort_func: Optional function defining how to sort the packets, default None (uses packet start mach time)
         :param reverse: bool, if True, sort results in reverse, default False
+        :return: the sorted list of packets
         """
         if sort_func is None:
             sort_func = self._default_sort_packets
-        self.wrapped_packets = sorted(self.wrapped_packets, key=sort_func, reverse=reverse)
+        return sorted(self.wrapped_packets, key=sort_func, reverse=reverse)
 
     def add_packet(self, wrapped_packet: api_m_wp.WrappedRedvoxPacketM) -> bool:
         """
@@ -72,7 +75,7 @@ class ReadWrappedPackets:
                 and wrapped_packet.get_timing_information().get_app_start_mach_timestamp() == self.start_mach_timestamp\
                 and self.validate_sensors(wrapped_packet):
             self.wrapped_packets.append(wrapped_packet)
-            self.sort_packets()
+            self.wrapped_packets = self.sort_packets()
             return True
         return False
 
@@ -303,6 +306,15 @@ def read_rdvxm_file(path: str) -> api_m_wp.WrappedRedvoxPacketM:
     :return: A WrappedRedvoxPacketM.
     """
     return wrap(read_file(path))
+
+
+def read_rdvxm_buffer(buf: bytes) -> api_m_wp.WrappedRedvoxPacketM:
+    """
+    reads a .rdvxm file from the provided buffer and returns a WrappedRedvoxPacketM
+    :param buf: buffer of bytes to read
+    :return: A WrappedRedvoxPacketM
+    """
+    return wrap(read_buffer(buf))
 
 
 def _extract_timestamp(path: str) -> int:
