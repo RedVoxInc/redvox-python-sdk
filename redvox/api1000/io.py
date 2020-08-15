@@ -85,7 +85,7 @@ class ReadWrappedPackets:
         # only 1 packet means sensors don't change
         if len(self.wrapped_packets) <= 1:
             return True
-        matches = []
+        # matches = []
         prev_sensors = [wrapped_packet.get_sensors().has_audio(),
                         wrapped_packet.get_sensors().has_pressure(),
                         wrapped_packet.get_sensors().has_accelerometer(),
@@ -119,8 +119,12 @@ class ReadWrappedPackets:
                             packet.get_sensors().has_proximity(),
                             packet.get_sensors().has_relative_humidity(),
                             packet.get_sensors().has_rotation_vector()]
-            matches.append(prev_sensors == next_sensors)
-        return all(matches)
+            if prev_sensors != next_sensors:
+                return False
+            # matches.append(prev_sensors == next_sensors)
+        # if here, all sensors match
+        return True
+        # return all(matches)
 
     def identify_gaps(self, allowed_timing_error_s: float, debug: bool = False) -> List[int]:
         """
@@ -194,6 +198,47 @@ class ReadResult:
                 return
         # went through for loop and nothing got added, so we assume it's a new id to add
         self.all_wrapped_packets.append(ReadWrappedPackets([wrapped_packet]))
+
+    def add_list_of_packets(self, wrapped_packets: List[api_m_wp.WrappedRedvoxPacketM]):
+        """
+        adds a list of WrappedRedvoxPacketM files to the ReadResult
+        :param wrapped_packets: the list of wrapped API M redvox packets to add
+        """
+        for packet in wrapped_packets:
+            self.add_packet(packet)
+        end_result = self.reorganize_packets()
+        self.all_wrapped_packets = end_result.all_wrapped_packets
+
+    def identify_gaps(self, timing_gap_s: float = 5.0) -> 'ReadResult':
+        """
+        checks all_wrapped_packets for any time gaps and splits them into continuous objects
+        :param timing_gap_s: amount of seconds allowed between packets to be considered a gap
+        :return: an updated ReadResult object
+        """
+        updated_result = ReadResult(self.start_timestamp_s, self.end_timestamp_s)
+        for packets in self.all_wrapped_packets:
+            gaps = packets.identify_gaps(timing_gap_s)
+            start = 0
+            for index in gaps:
+                split_val = ReadWrappedPackets(packets.wrapped_packets[start:index])
+                updated_result.all_wrapped_packets.append(split_val)
+                start = index
+            # do this one last time to get the rest of the data that wasn't split yet
+            split_val = ReadWrappedPackets(packets.wrapped_packets[start:])
+            updated_result.all_wrapped_packets.append(split_val)
+        return updated_result
+
+    def reorganize_packets(self, timing_gap_s: float = 5.0) -> 'ReadResult':
+        """
+        takes all_wrapped_packets and recreates the ReadResult object
+        :param timing_gap_s: amount of seconds allowed between packets to be considered a gap
+        :return: an updated ReadResult object
+        """
+        updated_result = ReadResult(self.start_timestamp_s, self.end_timestamp_s)
+        for packets in self.all_wrapped_packets:
+            for packet in packets.wrapped_packets:
+                updated_result.add_packet(packet)
+        return updated_result.identify_gaps(timing_gap_s)
 
     def get_by_id(self, redvox_id: str) -> List[api_m_wp.WrappedRedvoxPacketM]:
         """
