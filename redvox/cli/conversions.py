@@ -17,6 +17,11 @@ log = logging.getLogger(__name__)
 
 
 def validate_rdvxm(paths: List[str]) -> bool:
+    """
+    Validates the correctness of rdvxm files.
+    :param paths: Paths to the files.
+    :return: True if all valid, False otherwise
+    """
     for path in paths:
         wrapped_packet: WrappedRedvoxPacketM = WrappedRedvoxPacketM.from_compressed_path(path)
         validation_results: List[str] = wrapped_packet.validate()
@@ -111,6 +116,12 @@ def json_to_rdvxm(paths: List[str], out_dir: Optional[str] = None) -> bool:
 
 
 def rdvxz_to_rdvxm(paths: List[str], out_dir: Optional[str] = None) -> bool:
+    """
+    Convert rdvxz files to rdvxm files
+    :param paths: Paths of original files to convert
+    :param out_dir: Optional output directory of converted files (default "./")
+    :return: True if completed successfully
+    """
     out_dir = out_dir if out_dir is not None else "."
     for path in paths:
         wrapped_packet_900: reader.WrappedRedvoxPacket = reader.read_rdvxz_file(path)
@@ -121,6 +132,12 @@ def rdvxz_to_rdvxm(paths: List[str], out_dir: Optional[str] = None) -> bool:
 
 
 def rdvxm_to_rdvxz(paths: List[str], out_dir: Optional[str] = None) -> bool:
+    """
+    Convert rdvxm files to rdvxz files
+    :param paths: Paths of original files to convert
+    :param out_dir: Optional output directory of converted files (default "./")
+    :return: True if completed successfully
+    """
     out_dir = out_dir if out_dir is not None else "."
     for path in paths:
         wrapped_packet_1000: WrappedRedvoxPacketM = WrappedRedvoxPacketM.from_compressed_path(path)
