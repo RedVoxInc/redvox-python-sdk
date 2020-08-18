@@ -62,9 +62,23 @@ class BestTimestamp(
 
 class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
     def __init__(self, proto: RedvoxPacketM.Sensors.Location.BestLocation):
+        super().__init__(proto)
         self._latitude_longitude_timestamp: BestTimestamp = BestTimestamp(proto.latitude_longitude_timestamp)
         self._altitude_timestamp: BestTimestamp = BestTimestamp(proto.altitude_timestamp)
         self._speed_timestamp: BestTimestamp = BestTimestamp(proto.speed_timestamp)
+        self._bearing_timestamp: BestTimestamp = BestTimestamp(proto.bearing_timestamp)
+
+    def get_latitude_longitude_timestamp(self) -> BestTimestamp:
+        return self._latitude_longitude_timestamp
+
+    def get_altitude_timestamp(self) -> BestTimestamp:
+        return self._altitude_timestamp
+
+    def get_speed_timestamp(self) -> BestTimestamp:
+        return self._speed_timestamp
+
+    def get_bearing_timestamp(self) -> BestTimestamp:
+        return self._bearing_timestamp
 
     def get_latitude_longitude_unit(self) -> common.Unit:
         return common.Unit.from_proto(self._proto.latitude_longitude_unit)
@@ -227,8 +241,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         return self
 
 
-class Location(
-    redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Location]):
+class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Location]):
     def __init__(self, proto: RedvoxPacketM.Sensors.Location):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
@@ -297,6 +310,12 @@ class Location(
 
     def get_bearing_accuracy_samples(self) -> common.SamplePayload:
         return self._bearing_accuracy_samples
+
+    def get_last_best_location(self) -> BestLocation:
+        return self._last_best_location
+
+    def get_overall_best_location(self) -> BestLocation:
+        return self._overall_best_location
 
     def get_location_permissions_granted(self) -> bool:
         return self._proto.location_permissions_granted
