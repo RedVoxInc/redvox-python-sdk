@@ -29,7 +29,7 @@ class SynchExchange(
     def set_default_unit(self) -> 'SynchExchange':
         return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
-    def set_unit(self, unit: common.Unit) -> 'SynchExchange':
+    def set_unit(self, unit: Union[common.Unit, int]) -> 'SynchExchange':
         redvox.api1000.common.typing.check_type(unit, [common.Unit])
         self._proto.unit = unit.into_proto()
         return self

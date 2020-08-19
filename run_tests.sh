@@ -12,5 +12,6 @@ set -o xtrace
 coverage run -m unittest discover
 coverage html
 
-# Run the tests again with API 1000 migrations turned on
-ENABLE_MIGRATIONS="1" python3 -m unittest discover
+# Migrations have pretty much been validated at this point. If you want to test API 900 code with migrations, you can
+# uncomment the following line.
+# ENABLE_MIGRATIONS="1" python3 -m unittest discover
