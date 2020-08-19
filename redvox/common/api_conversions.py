@@ -1,9 +1,18 @@
-from typing import List, Optional, Dict
+# TODO: Document
+# TODO: Test
+# TODO: Implement (de)normalization now that dynamic range in known in API M (how does this fork API 900 to API M?)
+# TODO: Update any method that sets an enum to accent Union[Enum, int] to fix mypy type errors involving that
+# TODO: Breakup conversion into smaller, more testable functions
+# TODO: Rework location sensor conversions
+# TODO: Add functions for converting compressed audio... in fact, this might make the most sent from converting API 900
+# TODO:   into API M data since FLAC requires integers
 
+from typing import List, Optional, Dict
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType, StationInformation, StationMetrics
 from redvox.api1000.wrapped_redvox_packet.timing_information import SynchExchange
 from redvox.api1000.wrapped_redvox_packet.sensors.sensors import Sensors
+import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.common.common as common_m
 import redvox.common.date_time_utils as dt_utls
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
@@ -13,10 +22,12 @@ import redvox
 import numpy as np
 
 _NORMALIZATION_CONSTANT: int = 0x7FFFFF
+NAN: float = float("nan")
 
 
-def _normalize_audio_count(count: int) -> float:
-    return float(count) / float(_NORMALIZATION_CONSTANT)
+def _normalize_audio_count(count: int, normalize_by: Optional[float] = None) -> float:
+    norm: float = normalize_by if normalize_by is not None else _NORMALIZATION_CONSTANT
+    return float(count) / float(norm)
 
 
 def _denormalize_audio_count(norm: float) -> int:
@@ -28,12 +39,12 @@ def _migrate_synch_exchanges_900_to_1000(synch_exchanges: np.ndarray) -> List[Sy
 
     for i in range(0, len(synch_exchanges), 6):
         exchange: SynchExchange = SynchExchange.new()
-        exchange.set_a1(int(synch_exchanges[i]))
-        exchange.set_a2(int(synch_exchanges[i + 1]))
-        exchange.set_a3(int(synch_exchanges[i + 2]))
-        exchange.set_b1(int(synch_exchanges[i + 3]))
-        exchange.set_b2(int(synch_exchanges[i + 4]))
-        exchange.set_b3(int(synch_exchanges[i + 5]))
+        exchange.set_a1(float(synch_exchanges[i]))
+        exchange.set_a2(float(synch_exchanges[i + 1]))
+        exchange.set_a3(float(synch_exchanges[i + 2]))
+        exchange.set_b1(float(synch_exchanges[i + 3]))
+        exchange.set_b2(float(synch_exchanges[i + 4]))
+        exchange.set_b3(float(synch_exchanges[i + 5]))
         exchanges.append(exchange)
 
     return exchanges
@@ -63,6 +74,7 @@ def _packet_length_microseconds_900(packet: reader_900.WrappedRedvoxPacket) -> i
     return 0
 
 
+# noinspection PyTypeChecker
 def _migrate_os_type_900_to_1000(os: str) -> OsType:
     os_lower: str = os.lower()
     if os_lower == "android":
@@ -89,12 +101,8 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
 
     # Top-level metadata
     wrapped_packet_m.set_api(1000.0)
-
-    # User information
-    wrapped_packet_m.get_user_information() \
-        .set_auth_email(wrapped_packet_900.authenticated_email()) \
-        .set_auth_token(wrapped_packet_900.authentication_token()) \
-        .set_firebase_token(wrapped_packet_900.firebase_token())
+    # noinspection PyUnresolvedReferences
+    wrapped_packet_m.set_sub_api(redvox_api_m_pb2.SUB_API)
 
     # Station information
     station_information: StationInformation = wrapped_packet_m.get_station_information()
@@ -105,7 +113,13 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
         .set_model(wrapped_packet_900.device_model()) \
         .set_os(_migrate_os_type_900_to_1000(wrapped_packet_900.device_os())) \
         .set_os_version(wrapped_packet_900.device_os_version()) \
-        .set_app_version(wrapped_packet_900.app_version())
+        .set_app_version(wrapped_packet_900.app_version()) \
+        .set_is_private(wrapped_packet_900.is_private())
+
+    station_information.get_service_urls() \
+        .set_acquisition_server(wrapped_packet_900.acquisition_server()) \
+        .set_synch_server(wrapped_packet_900.time_synchronization_server()) \
+        .set_auth_server(wrapped_packet_900.authentication_server())
 
     # API 900 does not maintain a copy of its settings. So we will not set anything in AppSettings
 
@@ -116,19 +130,14 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
     station_metrics.get_temperature().append_value(wrapped_packet_900.device_temperature_c())
     station_metrics.get_battery().append_value(wrapped_packet_900.battery_level_percent())
 
-    # Packet information
-    wrapped_packet_m.get_packet_information() \
-        .set_is_backfilled(wrapped_packet_900.is_backfilled()) \
-        .set_is_private(wrapped_packet_900.is_private())
-
     # Timing information
     mach_time_900: int = wrapped_packet_900.app_file_start_timestamp_machine()
     os_time_900: int = wrapped_packet_900.app_file_start_timestamp_epoch_microseconds_utc()
     len_micros: int = _packet_length_microseconds_900(wrapped_packet_900)
     best_latency: Optional[float] = wrapped_packet_900.best_latency()
-    best_latency = best_latency if best_latency is not None else 0.0
+    best_latency = best_latency if best_latency is not None else NAN
     best_offset: Optional[float] = wrapped_packet_900.best_offset()
-    best_offset = best_offset if best_offset is not None else 0.0
+    best_offset = best_offset if best_offset is not None else NAN
 
     wrapped_packet_m.get_timing_information() \
         .set_unit(common_m.Unit.MICROSECONDS_SINCE_UNIX_EPOCH) \
@@ -145,12 +154,6 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
     if time_sensor is not None:
         wrapped_packet_m.get_timing_information().get_synch_exchanges() \
             .append_values(_migrate_synch_exchanges_900_to_1000(time_sensor.payload_values()))
-
-    # Server information
-    wrapped_packet_m.get_server_information() \
-        .set_auth_server_url(wrapped_packet_900.authentication_server()) \
-        .set_synch_server_url(wrapped_packet_900.time_synchronization_server()) \
-        .set_acquisition_server_url(wrapped_packet_900.acquisition_server())
 
     # Sensors
     sensors_m: Sensors = wrapped_packet_m.get_sensors()
@@ -301,19 +304,18 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
     wrapped_packet_900: reader_900.WrappedRedvoxPacket = reader_900.WrappedRedvoxPacket()
 
     station_information_m = wrapped_packet_m.get_station_information()
-    user_information_m = wrapped_packet_m.get_user_information()
-    packet_information_m = wrapped_packet_m.get_packet_information()
     sensors_m = wrapped_packet_m.get_sensors()
+    audio_m = sensors_m.get_audio()
 
     wrapped_packet_900.set_api(900)
     wrapped_packet_900.set_uuid(station_information_m.get_uuid())
     wrapped_packet_900.set_redvox_id(station_information_m.get_id())
-    wrapped_packet_900.set_authenticated_email(user_information_m.get_auth_email())
-    wrapped_packet_900.set_authentication_token(user_information_m.get_auth_token())
-    wrapped_packet_900.set_firebase_token(user_information_m.get_firebase_token())
-    wrapped_packet_900.set_is_backfilled(packet_information_m.get_is_backfilled())
+    wrapped_packet_900.set_authenticated_email(station_information_m.get_auth_email())
+    wrapped_packet_900.set_authentication_token("n/a")  # Different auth protocols are used, can't convert between
+    wrapped_packet_900.set_firebase_token("n/a")  # No longer in API M packet
+    wrapped_packet_900.set_is_backfilled(False)  # No longer useful metric in API M
     wrapped_packet_900.set_is_private(station_information_m.get_is_private())
-    wrapped_packet_900.set_is_scrambled(station_information_m.get_scramble_audio_data())
+    wrapped_packet_900.set_is_scrambled(audio_m.get_is_scrambled())
     wrapped_packet_900.set_device_make(station_information_m.get_make())
     wrapped_packet_900.set_device_model(station_information_m.get_model())
     wrapped_packet_900.set_device_os(_migrate_os_type_1000_to_900(station_information_m.get_os()))
@@ -346,7 +348,6 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
     wrapped_packet_900.add_metadata("migrated_from_api_1000", f"v{redvox.VERSION}")
 
     # Sensors
-    audio_m = sensors_m.get_audio()
     if audio_m is not None:
         denorm_audio = list(map(_denormalize_audio_count, audio_m.get_samples().get_values()))
         mic_900 = reader_900.MicrophoneSensor()

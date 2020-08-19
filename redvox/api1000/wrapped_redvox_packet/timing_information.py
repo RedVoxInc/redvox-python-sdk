@@ -1,5 +1,5 @@
 import enum
-from typing import List
+from typing import List, Union
 
 import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
@@ -139,7 +139,7 @@ class TimingInformation(
     def set_default_unit(self) -> 'TimingInformation':
         return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
-    def set_unit(self, unit: common.Unit) -> 'TimingInformation':
+    def set_unit(self, unit: Union[common.Unit, int]) -> 'TimingInformation':
         redvox.api1000.common.typing.check_type(unit, [common.Unit])
         self._proto.unit = unit.into_proto()
         return self
