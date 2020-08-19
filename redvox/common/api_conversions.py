@@ -180,6 +180,7 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
         pressure_sensor_m.get_metadata().set_metadata(barometer_sensor_900.metadata_as_dict())
 
     # Location
+    # TODO: rework
     location_sensor_900: Optional[reader_900.LocationSensor] = wrapped_packet_900.location_sensor()
     if location_sensor_900 is not None:
         location_m = sensors_m.new_location()
@@ -275,7 +276,7 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
         light_m.get_metadata().set_metadata(light_900.metadata_as_dict())
 
     # Image
-    # This was never officially released in API 900
+    # TODO: Implement
 
     # Proximity
     proximity_900 = wrapped_packet_900.infrared_sensor()
