@@ -150,9 +150,10 @@ def load_file_range_from_api900(directory: str,
                                                structured_layout, concat_continuous_segments)
     for redvox_id, wrapped_packets in all_data.items():
         # set station metadata and timing based on first packet
-        timing = StationTiming(wrapped_packets[0].mach_time_zero(), start_timestamp_utc_s, end_timestamp_utc_s,
+        timing = StationTiming(wrapped_packets[0].mach_time_zero(),
                                wrapped_packets[0].microphone_sensor().sample_rate_hz(),
                                wrapped_packets[0].app_file_start_timestamp_epoch_microseconds_utc(),
+                               start_timestamp_utc_s, end_timestamp_utc_s,
                                wrapped_packets[0].best_latency(), wrapped_packets[0].best_offset())
         metadata = StationMetadata(redvox_id, wrapped_packets[0].device_make(), wrapped_packets[0].device_model(),
                                    wrapped_packets[0].device_os(), wrapped_packets[0].device_os_version(),
@@ -404,7 +405,7 @@ def load_from_mseed(directory: str) -> List[Station]:
         record_info = data_stream.meta
         start_time = int(dtu.seconds_to_microseconds(data_stream.meta["starttime"].timestamp))
         end_time = int(dtu.seconds_to_microseconds(data_stream.meta["endtime"].timestamp))
-        station_timing = StationTiming(np.nan, start_time, end_time, record_info["sampling_rate"], start_time)
+        station_timing = StationTiming(np.nan, record_info["sampling_rate"], start_time, start_time, end_time)
         metadata = StationMetadata(record_info["network"] + record_info["station"] + "_" + record_info["location"],
                                    "mb3_make", "mb3_model", "mb3_os", "mb3_os_vers", "mb3_recorder",
                                    "mb3_recorder_version", False, station_timing, record_info["calib"],
