@@ -5,16 +5,16 @@ import os
 import unittest
 import pandas as pd
 import redvox.tests as tests
-from redvox.common import sensor_data as sd
+from redvox.common import sensor_data as sd, load_sensor_data as load_sd
 
 
 class SensorDataTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.api900_station = sd.load_station_from_api900(os.path.join(tests.TEST_DATA_DIR,
-                                                                       "1637650010_1531343782220.rdvxz"))
-        self.apim_station = sd.load_station_from_apim(os.path.join(tests.TEST_DATA_DIR,
-                                                                   "0000000001_1597189452945991.rdvxm"))
-        self.mseed_data = sd.load_from_mseed(os.path.join(tests.TEST_DATA_DIR, "out.mseed"))
+        self.api900_station = load_sd.load_station_from_api900(os.path.join(tests.TEST_DATA_DIR,
+                                                                            "1637650010_1531343782220.rdvxz"))
+        self.apim_station = load_sd.load_station_from_apim(os.path.join(tests.TEST_DATA_DIR,
+                                                                        "0000000001_1597189452945991.rdvxm"))
+        self.mseed_data = load_sd.load_from_mseed(os.path.join(tests.TEST_DATA_DIR, "out.mseed"))
 
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station.station_data), 1)

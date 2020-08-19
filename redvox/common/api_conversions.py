@@ -312,8 +312,8 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
     wrapped_packet_900.set_authentication_token(user_information_m.get_auth_token())
     wrapped_packet_900.set_firebase_token(user_information_m.get_firebase_token())
     wrapped_packet_900.set_is_backfilled(packet_information_m.get_is_backfilled())
-    wrapped_packet_900.set_is_private(packet_information_m.get_is_private())
-    wrapped_packet_900.set_is_scrambled(sensors_m.get_audio().get_is_scrambled())
+    wrapped_packet_900.set_is_private(station_information_m.get_is_private())
+    wrapped_packet_900.set_is_scrambled(station_information_m.get_scramble_audio_data())
     wrapped_packet_900.set_device_make(station_information_m.get_make())
     wrapped_packet_900.set_device_model(station_information_m.get_model())
     wrapped_packet_900.set_device_os(_migrate_os_type_1000_to_900(station_information_m.get_os()))
@@ -327,10 +327,10 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
     device_temp: float = temp_metrics.get_values()[-1] if temp_metrics.get_values_count() > 0 else 0.0
     wrapped_packet_900.set_device_temperature_c(device_temp)
 
-    server_info_m = wrapped_packet_m.get_server_information()
-    wrapped_packet_900.set_acquisition_server(server_info_m.get_acquisition_server_url())
-    wrapped_packet_900.set_time_synchronization_server(server_info_m.get_synch_server_url())
-    wrapped_packet_900.set_authentication_server(server_info_m.get_auth_server_url())
+    server_info_m = wrapped_packet_m.get_station_information().get_service_urls()
+    wrapped_packet_900.set_acquisition_server(server_info_m.get_acquisition_server())
+    wrapped_packet_900.set_time_synchronization_server(server_info_m.get_synch_server())
+    wrapped_packet_900.set_authentication_server(server_info_m.get_auth_server())
 
     timing_info_m = wrapped_packet_m.get_timing_information()
     wrapped_packet_900.set_app_file_start_timestamp_epoch_microseconds_utc(
@@ -381,7 +381,8 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
         md["useLocation"] = "T" if location_m.get_location_services_enabled() else "F"
         md["desiredLocation"] = "T" if location_m.get_location_services_requested() else "F"
         md["permissionLocation"] = "T" if location_m.get_location_permissions_granted() else "F"
-        md["enabledLocation"] = "T" if location_m.get_location_provider() == LocationProvider.GPS else "FD"
+        md["enabledLocation"] = "T" if LocationProvider.GPS in location_m.get_location_providers().get_values() \
+            else "FD"
         location_900.set_metadata_as_dict(md)
 
     # Synch exchanges

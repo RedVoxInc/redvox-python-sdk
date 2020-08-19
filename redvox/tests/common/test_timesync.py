@@ -4,13 +4,13 @@ tests for timesync
 import unittest
 import numpy as np
 import redvox.tests as tests
-from redvox.common import sensor_data as sd, timesync as ts
+from redvox.common import load_sensor_data as load_sd, timesync as ts
 
 
 class TimesyncTest(unittest.TestCase):
     def setUp(self) -> None:
-        stations = sd.load_file_range_from_api900(tests.TEST_DATA_DIR, structured_layout=False,
-                                                  redvox_ids=["1637680001"], concat_continuous_segments=False)
+        stations = load_sd.load_file_range_from_api900(tests.TEST_DATA_DIR, structured_layout=False,
+                                                       redvox_ids=["1637680001"], concat_continuous_segments=False)
         self.time_sync_analysis = ts.TimeSyncAnalysis(stations[0])
 
     def test_my_test(self):
