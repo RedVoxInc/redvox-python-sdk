@@ -151,7 +151,7 @@ def _identify_gaps(wrapped_redvox_packets,
         # Time based gaps
         prev_timestamp = prev_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()
         next_timestamp = next_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc()
-        print(next_timestamp - prev_timestamp)
+        # print(next_timestamp - prev_timestamp)
         if _date_time_utils.microseconds_to_seconds(next_timestamp - prev_timestamp) > (
                 truth_len + allowed_timing_error_s):
             gaps.add(i)

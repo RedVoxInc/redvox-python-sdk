@@ -54,6 +54,7 @@ class ReadResultTest(unittest.TestCase):
         temp_result.add_packet(io.read_rdvxm_file(TEST_DIR + "/0000000001_1597189452945991.rdvxm"))
         new_temp = temp_result.identify_gaps(5.0)
         self.assertEqual(len(new_temp.all_wrapped_packets), 2)
+        # identify_gaps will not change existing object if no gaps are detected
         new_result = self.read_result.identify_gaps(5.0)
         self.assertEqual(len(new_result.all_wrapped_packets), 2)
 

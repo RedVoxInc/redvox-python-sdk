@@ -88,7 +88,6 @@ class ReadWrappedPackets:
         # only 1 packet means sensors don't change
         if len(self.wrapped_packets) <= 1:
             return True
-        # matches = []
         prev_sensors = [wrapped_packet.get_sensors().has_audio(),
                         wrapped_packet.get_sensors().has_pressure(),
                         wrapped_packet.get_sensors().has_accelerometer(),
@@ -124,10 +123,8 @@ class ReadWrappedPackets:
                             packet.get_sensors().has_rotation_vector()]
             if prev_sensors != next_sensors:
                 return False
-            # matches.append(prev_sensors == next_sensors)
         # if here, all sensors match
         return True
-        # return all(matches)
 
     def identify_gaps(self, allowed_timing_error_s: float, debug: bool = False) -> List[int]:
         """
@@ -145,8 +142,6 @@ class ReadWrappedPackets:
             prev_packet = self.wrapped_packets[i - 1]
             next_packet = self.wrapped_packets[i]
 
-            # the only check that shouldn't have been made yet is difference in start/end timestamps
-            # Time based gaps
             prev_timestamp = prev_packet.get_timing_information().get_packet_end_mach_timestamp()
             next_timestamp = next_packet.get_timing_information().get_packet_start_mach_timestamp()
             if debug:
@@ -215,6 +210,7 @@ class ReadResult:
     def identify_gaps(self, timing_gap_s: float = 5.0) -> 'ReadResult':
         """
         checks all_wrapped_packets for any time gaps and splits them into continuous objects
+        returns a copy of the calling object if no gaps detected
         :param timing_gap_s: amount of seconds allowed between packets to be considered a gap
         :return: an updated ReadResult object
         """
