@@ -8,7 +8,7 @@ ALL timestamps in microseconds unless otherwise stated
 import numpy as np
 import pandas as pd
 
-from typing import List
+from typing import List, Optional
 from redvox.common import stats_helper as sh, tri_message_stats as tms, date_time_utils as dt
 from redvox.common import sensor_data as sd
 
@@ -39,7 +39,7 @@ class TimeSyncData:
         acquire_travel_time: float, calculated time it took packet to reach server, default np.nan
     """
 
-    def __init__(self, data_pack: sd.DataPacket = None, station: sd.StationMetadata = None):
+    def __init__(self, data_pack: Optional[sd.DataPacket] = None, station: Optional[sd.StationMetadata] = None):
         """
         Initialize properties
         :param data_pack: data packet
@@ -55,6 +55,7 @@ class TimeSyncData:
                 self.station_start_timestamp: float = np.nan
             if data_pack is None:
                 self.sample_rate_hz: float = np.nan
+                self.packet_num_audio_samples: int = 0
                 self.server_acquisition_time: float = np.nan
                 self.packet_start_time: float = np.nan
                 self.packet_end_time: float = np.nan
@@ -80,6 +81,7 @@ class TimeSyncData:
         """
         self.station_id = station.station_id
         self.sample_rate_hz = station.timing_data.audio_sample_rate_hz
+        self.packet_num_audio_samples = data_pack.audio_sensor().num_samples()
         self.station_start_timestamp = station.timing_data.station_start_timestamp
         self.server_acquisition_time = data_pack.server_timestamp
         self.packet_start_time = data_pack.data_start_timestamp
@@ -159,7 +161,7 @@ class TimeSyncAnalysis:
         timesync_data: list of TimeSyncData, the TimeSyncData to analyze, default empty list
         station_start_timestamp: float, the timestamp of when the station became active, default np.nan
     """
-    def __init__(self, station: sd.Station = None):
+    def __init__(self, station: Optional[sd.Station] = None):
         """
         Initialize properties
         :param station: the station to perform analysis on
@@ -175,7 +177,7 @@ class TimeSyncAnalysis:
             self.station_id = station.station_metadata.station_id
             self.station_start_timestamp = station.station_metadata.timing_data.station_start_timestamp
             self.sample_rate_hz = station.station_metadata.timing_data.audio_sample_rate_hz
-            self.timesync_data = get_time_sync_data(station)
+            self.timesync_data = get_time_sync_data_from_station(station)
             self.evaluate_and_validate_data()
 
     def evaluate_and_validate_data(self):
@@ -247,7 +249,7 @@ class TimeSyncAnalysis:
         """
         return self.latency_stats.mean_of_means()
 
-    def get_latency_std(self) -> float:
+    def get_latency_stdev(self) -> float:
         """
         return the standard deviation of the latencies
         :return: the standard deviation of the latencies, or np.nan if it doesn't exist
@@ -280,7 +282,7 @@ class TimeSyncAnalysis:
         """
         return self.offset_stats.mean_of_means()
 
-    def get_offset_std(self) -> float:
+    def get_offset_stdev(self) -> float:
         """
         return the standard deviation of the offsets
         :return: the standard deviation of the offsets, or np.nan if it doesn't exist
@@ -351,7 +353,8 @@ class TimeSyncAnalysis:
         :return: True if no change
         """
         if self.get_num_packets() < 1:
-            raise ValueError("Nothing to evaluate; length of timesync data is less than 1")
+            if debug:
+                print("Less than 1 timesync data object to evaluate start timestamps with")
         for index in range(0, self.get_num_packets()):
             # compare station start timestamps; notify when they are different
             if self.timesync_data[index].station_start_timestamp != self.station_start_timestamp:
@@ -371,7 +374,8 @@ class TimeSyncAnalysis:
         :return: True if no change
         """
         if self.get_num_packets() < 1:
-            raise ValueError("Nothing to evaluate; length of timesync data is less than 1")
+            if debug:
+                print("Less than 1 timesync data object to evaluate sample rate with")
         for index in range(0, self.get_num_packets()):
             # compare station start timestamps; notify when they are different
             if np.isnan(self.timesync_data[index].sample_rate_hz) \
@@ -383,8 +387,29 @@ class TimeSyncAnalysis:
         # if here, all the sample rates are the same
         return True
 
+    def validate_time_gaps(self, gap_duration_s: float, debug: bool = False) -> bool:
+        """
+        confirms there are no data gaps between packets
+        outputs warning if a gap is detected
+        :param gap_duration_s: length of time in seconds to be detected as a gap
+        :param debug: if True, output warning message, default False
+        :return: True if no gap
+        """
+        if self.get_num_packets() < 2:
+            if debug:
+                print("Less than 2 timesync data objects to evaluate gaps with")
+        for index in range(1, self.get_num_packets()):
+            # compare last packet's end timestamp with current start timestamp
+            if dt.microseconds_to_seconds(self.timesync_data[index].packet_start_time
+                                          - self.timesync_data[index - 1].packet_end_time) > gap_duration_s:
+                if debug:
+                    print(f"Warning!  Gap detected at packet number: {index}")
+                return False
+        # if here, no gaps
+        return True
 
-def get_time_sync_data(station: sd.Station) -> List[TimeSyncData]:
+
+def get_time_sync_data_from_station(station: sd.Station) -> List[TimeSyncData]:
     """
     Returns the TimeSyncData associated with a station
     :param station: the station to get data from
@@ -414,36 +439,35 @@ def validate_sensors(tsa_data: TimeSyncAnalysis) -> bool:
 
 
 def update_evenly_sampled_time_array(ts_analysis: TimeSyncAnalysis, num_samples: float = None,
-                                     time_start_array: np.array = None) -> np.ndarray:
+                                     time_start_array_s: np.array = None) -> np.ndarray:
     """
     Correct evenly sampled times using updated time_start_array values as the focal point.
-    Expects tsd to have the same number of packets as elements in time_start_array
-    Inserts data gaps where necessary before building array.
+    Expects tsd to have the same number of packets as elements in time_start_array.
+    Expects there are no gaps in the data or changes in station sample rate or start time.
     Throws an exception if the number of packets in tsa does not match the length of time_start_array
-
     :param ts_analysis: TimeSyncAnalysis object that contains the information needed to update the time array
     :param num_samples: number of samples in one file; optional, uses number based on sample rate if not given
-    :param time_start_array: the array of timestamps to correct in seconds; optional, uses the start times in the
+    :param time_start_array_s: the array of timestamps to correct in seconds; optional, uses the start times in the
                              TimeSyncAnalysis object if not given
     :return: Revised time array in epoch seconds
     """
     if not validate_sensors(ts_analysis):
         raise AttributeError("ERROR: Change in Station Start Time or Sample Rate detected!")
-    if time_start_array is None:
+    if time_start_array_s is None:
         # replace the time_start_array with values from tsd; convert tsd times to seconds
-        time_start_array = np.array([])
+        time_start_array_s = np.array([])
         for tsd in ts_analysis.timesync_data:
-            time_start_array = np.append(time_start_array, tsd.packet_start_time / dt.MICROSECONDS_IN_SECOND)
+            time_start_array_s = np.append(time_start_array_s, tsd.packet_start_time / dt.MICROSECONDS_IN_SECOND)
     num_files = len(ts_analysis.timesync_data)
     # the TimeSyncData must have the same number of packets as the number of elements in time_start_array
-    if num_files != len(time_start_array):
+    if num_files != len(time_start_array_s):
         # alert the user, then quit
         raise Exception("ERROR: Attempted to update a time array that doesn't contain "
                         "the same number of elements as the TimeSyncAnalysis!")
 
+    # use the number of audio samples in the first data packet
     if num_samples is None:
-        num_samples = dt.microseconds_to_seconds(ts_analysis.timesync_data[0].packet_duration) \
-                      / ts_analysis.timesync_data[0].sample_rate_hz
+        num_samples = ts_analysis.timesync_data[0].packet_num_audio_samples
     t_dt = 1.0 / ts_analysis.sample_rate_hz
 
     # Use TimeSyncData object to find best start index.
@@ -453,7 +477,7 @@ def update_evenly_sampled_time_array(ts_analysis: TimeSyncAnalysis, num_samples:
     decoder_idx = ts_analysis.best_latency_index
     samples_before = int(decoder_idx * num_samples)
     samples_after = round((num_files - decoder_idx) * num_samples) - 1
-    best_start_sec = time_start_array[decoder_idx]
+    best_start_sec = time_start_array_s[decoder_idx]
 
     # build the time arrays separately in epoch seconds, then join into one
     # add 1 to include the actual a0 sample, then add 1 again to skip the a0 sample; this avoids repetition
@@ -462,24 +486,24 @@ def update_evenly_sampled_time_array(ts_analysis: TimeSyncAnalysis, num_samples:
     timesec_after = np.vectorize(lambda t: best_start_sec + t * t_dt)(list(range(1, int(samples_after + 1))))
     timesec_rev = np.concatenate([timesec_before, timesec_after])
 
-    return timesec_rev
+    return update_time_array_from_analysis(ts_analysis, timesec_rev)
 
 
-def update_time_array(ts_data: TimeSyncData, time_array: np.array) -> np.ndarray:
+def update_time_array(ts_data: TimeSyncData, time_array_s: np.array) -> np.ndarray:
     """
     Correct timestamps in time_array using information from TimeSyncData
     :param ts_data: TimeSyncData object that contains the information needed to update the time array
-    :param time_array: the list of timestamps to correct in seconds
+    :param time_array_s: the list of timestamps to correct in seconds
     :return: Revised time array in epoch seconds
     """
-    return time_array + (ts_data.best_offset / dt.MICROSECONDS_IN_SECOND)
+    return time_array_s + (ts_data.best_offset / dt.MICROSECONDS_IN_SECOND)
 
 
-def update_time_array_from_analysis(ts_analysis: TimeSyncAnalysis, time_array: np.array) -> np.ndarray:
+def update_time_array_from_analysis(ts_analysis: TimeSyncAnalysis, time_array_s: np.array) -> np.ndarray:
     """
     Correct timestamps in time_array using information from TimeSyncAnalysis
     :param ts_analysis: TimeSyncAnalysis object that contains the information needed to update the time array
-    :param time_array: the list of timestamps to correct in seconds
+    :param time_array_s: the list of timestamps to correct in seconds
     :return: Revised time array in epoch seconds
     """
-    return time_array + (ts_analysis.get_best_offset() / dt.MICROSECONDS_IN_SECOND)
+    return time_array_s + (ts_analysis.get_best_offset() / dt.MICROSECONDS_IN_SECOND)
