@@ -547,8 +547,9 @@ class DateIteratorAPIM:
         start_dt_full: datetime = datetime.utcfromtimestamp(start_timestamp_utc_s)
         end_dt_full: datetime = datetime.utcfromtimestamp(end_timestamp_utc_s)
 
-        self.start_dt: datetime = datetime_from(start_dt_full.year, start_dt_full.month, start_dt_full.day)
-        self.end_dt: datetime = datetime_from(end_dt_full.year, end_dt_full.month, end_dt_full.day)
+        self.start_dt: datetime = datetime_from(start_dt_full.year, start_dt_full.month, start_dt_full.day,
+                                                start_dt_full.hour)
+        self.end_dt: datetime = datetime_from(end_dt_full.year, end_dt_full.month, end_dt_full.day, end_dt_full.hour)
 
         self._one_day: timedelta = timedelta(days=1)
         self._one_hour: timedelta = timedelta(hours=1)

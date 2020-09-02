@@ -15,6 +15,7 @@ class SensorDataTest(unittest.TestCase):
         self.apim_station = load_sd.load_station_from_apim(os.path.join(tests.TEST_DATA_DIR,
                                                                         "0000000001_1597189452945991.rdvxm"))
         self.mseed_data = load_sd.load_from_mseed(os.path.join(tests.TEST_DATA_DIR, "out.mseed"))
+        self.all_data = load_sd.read_any_dir(tests.TEST_DATA_DIR, redvox_ids=["1637650010", "0000000001"])
 
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station.station_data), 1)
@@ -51,3 +52,34 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(self.mseed_data[0].station_metadata.station_network_name, "UH")
         self.assertEqual(self.mseed_data[0].station_metadata.station_name, "MB3")
         self.assertEqual(self.mseed_data[0].station_metadata.station_channel_name, "BDF")
+
+    def test_read_any_dir(self):
+        # api900 station
+        station = self.all_data[0]
+        self.assertEqual(len(station.station_data), 1)
+        sensor = station.station_data[0]
+        self.assertIsNone(sensor.packet_best_latency)
+        self.assertEqual(len(sensor.sensor_data_dict), 5)
+        self.assertEqual(sensor.audio_sensor().sample_rate, 80)
+        self.assertTrue(sensor.audio_sensor().is_sample_rate_fixed)
+        self.assertEqual(sensor.location_sensor().data_df.shape, (2, 5))
+        self.assertEqual(len(self.apim_station.station_data), 1)
+        # api m station
+        station = self.all_data[1]
+        self.assertEqual(len(station.station_data), 3)
+        sensor = station.station_data[0]
+        self.assertEqual(sensor.packet_best_latency, 1296.0)
+        self.assertEqual(len(sensor.sensor_data_dict), 2)
+        self.assertEqual(sensor.audio_sensor().sample_rate, 48000.0)
+        self.assertTrue(sensor.audio_sensor().is_sample_rate_fixed)
+        self.assertEqual(sensor.location_sensor().data_df.shape, (1, 9))
+        # mseed station
+        station = self.all_data[2]
+        self.assertEqual(len(station.station_data), 1)
+        sensor = station.station_data[0]
+        self.assertEqual(sensor.audio_sensor().num_samples(), 6001)
+        self.assertEqual(station.station_metadata.station_network_name, "UH")
+        self.assertEqual(station.station_metadata.station_name, "MB3")
+        self.assertEqual(station.station_metadata.station_channel_name, "BDF")
+
+

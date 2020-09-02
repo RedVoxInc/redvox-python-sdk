@@ -4,6 +4,7 @@ This module contains functions for reading and writing bulk API M data.
 import os
 import glob
 import redvox.api1000.common.lz4
+import numpy as np
 import redvox.api1000.wrapped_redvox_packet.wrapped_packet as api_m_wp
 import redvox.common.date_time_utils as date_time_utils
 from typing import List, Optional, Set, Tuple, Callable, TypeVar
@@ -12,7 +13,18 @@ from typing import List, Optional, Set, Tuple, Callable, TypeVar
 REDVOX_API_M_FILE_EXT = "rdvxm"
 
 
-# todo: separate ReadWrappedPackets into multiple objects when gap detected
+def calc_evenly_sampled_timestamps(start: float, samples: int, rate_hz: float) -> np.array:
+    """
+    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+    :param start: float, start timestamp
+    :param samples: int, number of samples
+    :param rate_hz: float, sample rate in hz
+    :return: np.array with evenly spaced timestamps starting at start
+    """
+    return np.array(start + date_time_utils.seconds_to_microseconds(np.arange(0, samples) / rate_hz))
+
+
+# todo: stream inputs and read multiple buffers
 class ReadWrappedPackets:
     """
     A searchable/sortable list of continuous wrapped API M redvox packets
@@ -129,8 +141,8 @@ class ReadWrappedPackets:
     def identify_gaps(self, allowed_timing_error_s: float, debug: bool = False) -> List[int]:
         """
         Identifies discontinuities in sensor data by checking if sensors drop in and out and by comparing timing info.
-        :param allowed_timing_error_s: The amount of timing error in seconds.
-        :param debug: if True, output information as function is running, default False
+        :param allowed_timing_error_s: float, the amount of timing error in seconds.
+        :param debug: bool, if True, output information as function is running, default False
         :return: A list of indices into the original list where gaps were found.
         """
         if len(self.wrapped_packets) <= 1:
@@ -159,8 +171,8 @@ class ReadResult:
     """
     Results from reading a directory containing API M redvox data
     properties:
-        start_timestamp_s: optional float, start timestamp in seconds of the data being read
-        end_timestamp_s: optional float, end timestamp in seconds of the data being read
+        start_timestamp: optional float, start timestamp in microseconds of the data being read
+        end_timestamp: optional float, end timestamp in microseconds of the data being read
         all_wrapped_packets: list of lists of wrapped API M redvox packets
     """
     def __init__(self, start_time: Optional[float] = None, end_time: Optional[float] = None,
@@ -171,8 +183,8 @@ class ReadResult:
         :param end_time: end time of the data being read, default None
         :param wrapped_packets: list of lists of wrapped API M packets containing all the data, default None
         """
-        self.start_timestamp_s: Optional[float] = start_time
-        self.end_timestamp_s: Optional[float] = end_time
+        self.start_timestamp: Optional[float] = start_time
+        self.end_timestamp: Optional[float] = end_time
         if wrapped_packets is None:
             self.all_wrapped_packets = []
         else:
@@ -214,7 +226,7 @@ class ReadResult:
         :param timing_gap_s: amount of seconds allowed between packets to be considered a gap
         :return: an updated ReadResult object
         """
-        updated_result = ReadResult(self.start_timestamp_s, self.end_timestamp_s)
+        updated_result = ReadResult(self.start_timestamp, self.end_timestamp)
         for packets in self.all_wrapped_packets:
             gaps = packets.identify_gaps(timing_gap_s)
             start = 0
@@ -233,7 +245,7 @@ class ReadResult:
         :param timing_gap_s: amount of seconds allowed between packets to be considered a gap
         :return: an updated ReadResult object
         """
-        updated_result = ReadResult(self.start_timestamp_s, self.end_timestamp_s)
+        updated_result = ReadResult(self.start_timestamp, self.end_timestamp)
         for packets in self.all_wrapped_packets:
             for packet in packets.wrapped_packets:
                 updated_result.add_packet(packet)
@@ -481,7 +493,7 @@ def read_structured(directory: str,
 
     if start_timestamp_utc is None or end_timestamp_utc is None:
         ids = None if len(redvox_ids) == 0 else redvox_ids
-        start_adjusted, end_adjusted = _get_paths_time_range(directory, ids, True)
+        start_adjusted, end_adjusted = _get_paths_time_range(directory, ids, structured_layout)
 
         if start_timestamp_utc is None:
             start_timestamp_utc = start_adjusted

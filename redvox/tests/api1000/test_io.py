@@ -41,7 +41,7 @@ class ReadResultTest(unittest.TestCase):
         self.read_result = io.read_dir(TEST_DIR)
 
     def test_read_dir(self):
-        self.assertEqual(self.read_result.start_timestamp_s, None)
+        self.assertEqual(self.read_result.start_timestamp, None)
         self.assertEqual(len(self.read_result.all_wrapped_packets), 2)
 
     def test_get_by_id(self):
@@ -60,8 +60,8 @@ class ReadResultTest(unittest.TestCase):
 
     def test_reorganize_packets(self):
         new_result = self.read_result.reorganize_packets(5.0)
-        self.assertEqual(new_result.start_timestamp_s, self.read_result.start_timestamp_s)
-        self.assertEqual(new_result.end_timestamp_s, self.read_result.end_timestamp_s)
+        self.assertEqual(new_result.start_timestamp, self.read_result.start_timestamp)
+        self.assertEqual(new_result.end_timestamp, self.read_result.end_timestamp)
         self.assertEqual(len(new_result.all_wrapped_packets), len(self.read_result.all_wrapped_packets))
 
 

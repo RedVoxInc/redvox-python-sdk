@@ -1,6 +1,8 @@
 """
 This module loads or reads sensor data from various sources
 """
+import os
+import glob
 import numpy as np
 import pandas as pd
 from obspy import read
@@ -296,13 +298,13 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
     return data_dict
 
 
-def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] = None,
-                           end_timestamp_utc_s: Optional[int] = None) -> Station:
+def load_station_from_apim(directory: str, start_timestamp_utc: Optional[int] = None,
+                           end_timestamp_utc: Optional[int] = None) -> Station:
     """
     reads in station data from a single api M file
     :param directory: string of the file to read from
-    :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
-    :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
+    :param start_timestamp_utc: The start timestamp as seconds since the epoch UTC.
+    :param end_timestamp_utc: The end timestamp as seconds since the epoch UTC.
     :return: a station Object
     """
     read_packet = apim_io.read_rdvxm_file(directory)
@@ -311,7 +313,7 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
         timing = StationTiming(read_packet.get_timing_information().get_app_start_mach_timestamp(),
                                read_packet.get_sensors().get_audio().get_sample_rate(),
                                read_packet.get_sensors().get_audio().get_first_sample_timestamp(),
-                               start_timestamp_utc_s, end_timestamp_utc_s,
+                               start_timestamp_utc, end_timestamp_utc,
                                read_packet.get_timing_information().get_best_latency(),
                                read_packet.get_timing_information().get_best_offset())
     else:
@@ -338,23 +340,23 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
 
 
 def load_from_file_range_api_m(directory: str,
-                               start_timestamp_utc_s: Optional[int] = None,
-                               end_timestamp_utc_s: Optional[int] = None,
+                               start_timestamp_utc: Optional[int] = None,
+                               end_timestamp_utc: Optional[int] = None,
                                redvox_ids: Optional[List[str]] = None,
                                structured_layout: bool = False) -> List[Station]:
     """
     reads in api M data from a directory and returns a list of stations
     :param directory: The root directory of the data. If structured_layout is False, then this directory will
-                      contain various unorganized .rdvxz files. If structured_layout is True, then this directory
+                      contain various unorganized .rdvxm files. If structured_layout is True, then this directory
                       must be the root api1000 directory of the structured files.
-    :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
-    :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
+    :param start_timestamp_utc: The start timestamp in microseconds since the epoch UTC.
+    :param end_timestamp_utc: The end timestamp in microseconds since the epoch UTC.
     :param redvox_ids: An optional list of redvox_ids to filter against, default empty list
     :param structured_layout: An optional value to define if this is loading structured data, default False.
     :return: a list of Station objects that contain the data
     """
     all_stations: List[Station] = []
-    all_data = apim_io.read_structured(directory, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids,
+    all_data = apim_io.read_structured(directory, start_timestamp_utc, end_timestamp_utc, redvox_ids,
                                        structured_layout)
     for read_packets in all_data.all_wrapped_packets:
         # set station metadata and timing based on first packet
@@ -363,7 +365,7 @@ def load_from_file_range_api_m(directory: str,
                 first_pack = read_packets.wrapped_packets[0]
                 timing = StationTiming(read_packets.start_mach_timestamp, read_packets.audio_sample_rate,
                                        first_pack.get_sensors().get_audio().get_first_sample_timestamp(),
-                                       start_timestamp_utc_s, end_timestamp_utc_s,
+                                       start_timestamp_utc, end_timestamp_utc,
                                        first_pack.get_timing_information().get_best_latency(),
                                        first_pack.get_timing_information().get_best_offset())
                 station_info = first_pack.get_station_information()
@@ -393,14 +395,14 @@ def load_from_file_range_api_m(directory: str,
     return all_stations
 
 
-def load_from_mseed(directory: str) -> List[Station]:
+def load_from_mseed(file_path: str) -> List[Station]:
     """
     load station data from a miniseed file
-    :param directory: the location of the miniseed file
+    :param file_path: the location of the miniseed file
     :return: a list of Station objects that contain the data
     """
     stations: List[Station] = []
-    strm = read(directory)
+    strm = read(file_path)
     for data_stream in strm:
         record_info = data_stream.meta
         start_time = int(dtu.seconds_to_microseconds(data_stream.meta["starttime"].timestamp))
@@ -418,4 +420,57 @@ def load_from_mseed(directory: str) -> List[Station]:
                                  record_info["sampling_rate"], True)
         data_packet = DataPacket(np.nan, start_time, {SensorType.AUDIO: sensor_data}, start_time, end_time)
         stations.append(Station(metadata, [data_packet]))
+    return stations
+
+
+def read_any_dir(directory: str,
+                 start_timestamp_utc_s: Optional[int] = None,
+                 end_timestamp_utc_s: Optional[int] = None,
+                 start_timestamp_utc_micros: Optional[int] = None,
+                 end_timestamp_utc_micros: Optional[int] = None,
+                 redvox_ids: Optional[List[str]] = None,
+                 structured_layout: bool = False,
+                 concat_continuous_segments: bool = True) -> List[Station]:
+    """
+    load all data files in the directory
+    :param directory: location of all the files; if structured_layout is True, the directory contains a root api1000
+                        or api900 directory, if structured_layout is False, the directory contains unsorted files
+    :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
+    :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
+    :param start_timestamp_utc_micros: The start timestamp as microseconds since the epoch UTC.
+    :param end_timestamp_utc_micros: The end timestamp as microseconds since the epoch UTC.
+    :param redvox_ids: An optional list of redvox_ids to filter against, default empty list
+    :param structured_layout: An optional value to define if this is loading structured data, default False.
+    :param concat_continuous_segments: An optional value to define if this function should concatenate rdvxz files
+                                       into multiple continuous rdvxz files separated at gaps.  ONLY WORKS FOR API900
+    :return: a list of Station objects that contain the data
+    """
+    api900_dir = os.path.join(directory, "api900")
+    apim_dir = os.path.join(directory, "api1000")
+    # if structured_layout, there should be a specifically named folder in directory
+    if structured_layout:
+        if os.path.exists(api900_dir):
+            # it's api900 data
+            return load_file_range_from_api900(api900_dir, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids,
+                                               True, concat_continuous_segments)
+        elif os.path.exists(apim_dir):
+            # it's api1000 data
+            return load_from_file_range_api_m(apim_dir, start_timestamp_utc_micros, end_timestamp_utc_micros,
+                                              redvox_ids, True)
+        else:
+            # structured layout requires api1000 or api900 directory
+            raise ValueError(f"{directory} does not contain api900 or api1000 directory.")
+    # load files from unstructured layout
+    # create the object to store the data
+    stations: List[Station] = []
+    # get unstructured api 900 data
+    stations.extend(load_file_range_from_api900(directory, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids,
+                                                False, concat_continuous_segments))
+    # get unstructured api m data
+    stations.extend(load_from_file_range_api_m(directory, start_timestamp_utc_micros, end_timestamp_utc_micros,
+                                               redvox_ids, False))
+    # get miniseed data
+    mseed_paths = glob.glob(os.path.join(directory, "*.mseed"))
+    for path in mseed_paths:
+        stations.extend(load_from_mseed(path))
     return stations
