@@ -77,11 +77,18 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         self._samples.set_values(audio_samples.get_values())
         return self
 
+    def get_duration_s(self) -> float:
+        """
+        calculate the duration of the audio data in seconds
+        :return: duration of audio data in seconds
+        """
+        return float(self.get_samples().get_values_count()) / self.get_sample_rate()
+
 
 def validate_audio(audio_sensor: Audio) -> List[str]:
     # todo: add default audio unit, normalization factor if needed
     errors_list = common.validate_sample_payload(audio_sensor.get_samples(), "Audio")
-    if len(audio_sensor.get_samples().get_values()) > 0:
+    if audio_sensor.get_samples().get_values_count() > 0:
         if np.min(audio_sensor.get_samples().get_values()) < -1.0:
             errors_list.append("Audio minimum value of samples cannot be less than -1.0")
         if np.max(audio_sensor.get_samples().get_values()) > 1.0:

@@ -62,7 +62,9 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(len(sensor.sensor_data_dict), 5)
         self.assertEqual(sensor.audio_sensor().sample_rate, 80)
         self.assertTrue(sensor.audio_sensor().is_sample_rate_fixed)
+        self.assertEqual(sensor.audio_sensor().data_duration_s(), 51.2)
         self.assertEqual(sensor.location_sensor().data_df.shape, (2, 5))
+        self.assertEqual(sensor.location_sensor().data_duration_s(), 51.2)
         self.assertEqual(len(self.apim_station.station_data), 1)
         # api m station
         station = self.all_data[1]
@@ -72,7 +74,9 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(len(sensor.sensor_data_dict), 2)
         self.assertEqual(sensor.audio_sensor().sample_rate, 48000.0)
         self.assertTrue(sensor.audio_sensor().is_sample_rate_fixed)
+        self.assertEqual(sensor.audio_sensor().data_duration_s(), 5.0)
         self.assertEqual(sensor.location_sensor().data_df.shape, (1, 9))
+        self.assertEqual(sensor.location_sensor().data_duration_s(), 5.0)
         # mseed station
         station = self.all_data[2]
         self.assertEqual(len(station.station_data), 1)
@@ -81,5 +85,3 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(station.station_metadata.station_network_name, "UH")
         self.assertEqual(station.station_metadata.station_name, "MB3")
         self.assertEqual(station.station_metadata.station_channel_name, "BDF")
-
-

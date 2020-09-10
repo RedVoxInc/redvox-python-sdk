@@ -40,7 +40,7 @@ class SensorData:
     Properties:
         name: string, name of sensor
         data_df: dataframe of the sensor data; timestamps are the index, columns are the data fields
-        sample_rate: float, sample rate of the sensor, default np.nan
+        sample_rate: float, sample rate in Hz of the sensor, default np.nan
         is_sample_rate_fixed: bool, True if sample rate is constant, default False
     """
     name: str
@@ -68,6 +68,13 @@ class SensorData:
         :return: the number of rows in the dataframe
         """
         return self.data_df.shape[0]
+
+    def data_duration_s(self) -> float:
+        """
+        calculate the duration in seconds of the dataframe
+        :return: duration in seconds of the dataframe
+        """
+        return self.num_samples() / self.sample_rate
 
     def sensor_data_fields(self) -> List[str]:
         """

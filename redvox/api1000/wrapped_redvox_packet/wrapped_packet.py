@@ -184,7 +184,21 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
     def get_event_streams(self) -> ProtoRepeatedMessage:
         return self._event_streams
 
+    # todo: add packet_duration calculations
+
+    def get_packet_duration_s(self) -> float:
+        """
+        get the packet duration in seconds from the audio data
+        :return: packet duration in seconds
+        """
+        return self.get_sensors().get_audio().get_duration_s()
+
     def update_timestamps(self, delta_offset: float = None) -> 'WrappedRedvoxPacketM':
+        """
+        update all timestamps in the packet by adding the delta offset
+        :param delta_offset: amount of microseconds to add to existing timestamps
+        :return: WrappedRedvoxPacketM with updated timestamps
+        """
         if delta_offset is None:
             delta_offset = self.get_timing_information().get_best_offset()
         redvox.api1000.common.typing.check_type(delta_offset, [float])
@@ -206,7 +220,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
             # update audio first sample timestamp
             updated.get_sensors().get_audio().set_first_sample_timestamp(
                 self.get_sensors().get_audio().get_first_sample_timestamp() + delta_offset)
-        # if self.get_sensors().get_proto().HasField("compressed_audio"):
+        # todo if self.get_sensors().get_proto().HasField("compressed_audio"):
         # update compressed audio first sample timestamp
         # update timestamp payloads
         if self.get_station_information().get_station_metrics().get_proto().HasField("timestamps"):

@@ -80,6 +80,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self.get_proto().ClearField(_ACCELEROMETER_FIELD_NAME)
         return self
 
+    def validate_accelerometer(self) -> bool:
+        """
+        Checks if there are no errors with the accelerometer and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(xyz.validate_xyz(self._accelerometer, common.Unit.METERS_PER_SECOND_SQUARED)) < 1 \
+            and self._accelerometer.get_x_samples().get_values_count() > 0
+
     def has_ambient_temperature(self) -> bool:
         return self.get_proto().HasField(_AMBIENT_TEMPERATURE_FIELD_NAME)
 
@@ -103,6 +111,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self.get_proto().ClearField(_AMBIENT_TEMPERATURE_FIELD_NAME)
         return self
 
+    def validate_ambient_temperature(self) -> bool:
+        """
+        Checks if there are no errors with the ambient temperature sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(single.validate_single(self._ambient_temperature, common.Unit.DEGREES_CELSIUS)) < 1 \
+            and self._ambient_temperature.get_samples().get_values_count() > 0
+
     def has_audio(self) -> bool:
         return self.get_proto().HasField(_AUDIO_FIELD_NAME)
 
@@ -125,6 +141,13 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self.get_proto().ClearField(_AUDIO_FIELD_NAME)
         return self
 
+    def validate_audio(self) -> bool:
+        """
+        Checks if there are no errors with the audio sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(audio.validate_audio(self._audio)) < 1 and self._audio.get_samples().get_values_count() > 0
+
     def has_compress_audio(self) -> bool:
         return self.get_proto().HasField(_COMPRESSED_AUDIO_FIELD_NAME)
 
@@ -145,6 +168,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
     def remove_compressed_audio(self) -> 'Sensors':
         self.get_proto().ClearField(_COMPRESSED_AUDIO_FIELD_NAME)
         return self
+
+    def validate_compressed_audio(self) -> bool:
+        """
+        Checks if there are no errors with the compressed audio sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(audio.validate_compress_audio(self._compressed_audio)) < 1 \
+            and self._compressed_audio.get_values_count() > 0
 
     def has_gravity(self) -> bool:
         return self.get_proto().HasField(_GRAVITY_FIELD_NAME)
@@ -169,6 +200,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self.get_proto().ClearField(_GRAVITY_FIELD_NAME)
         return self
 
+    def validate_gravity(self) -> bool:
+        """
+        Checks if there are no errors with the gravity sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(xyz.validate_xyz(self._gravity, common.Unit.METERS_PER_SECOND_SQUARED)) < 1 \
+            and self._gravity.get_x_samples().get_values_count() > 0
+
     def has_gyroscope(self) -> bool:
         return self.get_proto().HasField(_GYROSCOPE_FIELD_NAME)
 
@@ -192,6 +231,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self.get_proto().ClearField(_GYROSCOPE_FIELD_NAME)
         return self
 
+    def validate_gyroscope(self) -> bool:
+        """
+        Checks if there are no errors with the gyroscope and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(xyz.validate_xyz(self._gyroscope, common.Unit.RADIANS_PER_SECOND)) < 1 \
+            and self._gyroscope.get_x_samples().get_values_count() > 0
+
     def has_image(self) -> bool:
         return self.get_proto().HasField(_IMAGE_FIELD_NAME)
 
@@ -213,6 +260,13 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
     def remove_image(self) -> 'Sensors':
         self.get_proto().ClearField(_IMAGE_FIELD_NAME)
         return self
+
+    def validate_image(self) -> bool:
+        """
+        Checks if there are no errors with the image sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(image.validate_image(self._image)) < 1 and self._image.get_num_images() > 0
 
     def has_light(self) -> bool:
         return self.get_proto().HasField(_LIGHT_FIELD_NAME)
@@ -237,6 +291,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self.get_proto().ClearField(_LIGHT_FIELD_NAME)
         return self
 
+    def validate_light(self) -> bool:
+        """
+        Checks if there are no errors with the light sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(single.validate_single(self._light, common.Unit.LUX)) < 1 \
+            and self._light.get_samples().get_values_count() > 0
+
     def has_linear_acceleration(self) -> bool:
         return self.get_proto().HasField(_LINEAR_ACCELERATION_FIELD_NAME)
 
@@ -259,6 +321,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
     def remove_linear_acceleration(self) -> 'Sensors':
         self.get_proto().ClearField(_LINEAR_ACCELERATION_FIELD_NAME)
         return self
+
+    def validate_linear_acceleration(self) -> bool:
+        """
+        Checks if there are no errors with the linear acceleration sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(xyz.validate_xyz(self._linear_acceleration, common.Unit.METERS_PER_SECOND_SQUARED)) < 1 \
+            and self._linear_acceleration.get_x_samples().get_values_count() > 0
 
     def has_location(self) -> bool:
         return self.get_proto().HasField(_LOCATION_FIELD_NAME)
@@ -291,6 +361,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self.get_proto().ClearField(_LOCATION_FIELD_NAME)
         return self
 
+    def validate_location(self) -> bool:
+        """
+        Checks if there are no errors with the location and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(location.validate_location(self._location)) < 1 \
+            and self._location.get_latitude_samples().get_values_count() > 0
+
     def has_magnetometer(self) -> bool:
         return self.get_proto().HasField(_MAGNETOMETER_FIELD_NAME)
 
@@ -313,6 +391,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
     def remove_magnetometer(self) -> 'Sensors':
         self.get_proto().ClearField(_MAGNETOMETER_FIELD_NAME)
         return self
+
+    def validate_magnetometer(self) -> bool:
+        """
+        Checks if there are no errors with the magnetometer and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(xyz.validate_xyz(self._magnetometer, common.Unit.MICROTESLA)) < 1 \
+            and self._magnetometer.get_x_samples().get_values_count() > 0
 
     def has_orientation(self) -> bool:
         return self.get_proto().HasField(_ORIENTATION_FIELD_NAME)
@@ -337,6 +423,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self.get_proto().ClearField(_ORIENTATION_FIELD_NAME)
         return self
 
+    def validate_orientation(self) -> bool:
+        """
+        Checks if there are no errors with the orientation sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(xyz.validate_xyz(self._orientation, common.Unit.RADIANS)) < 1 \
+            and self._orientation.get_x_samples().get_values_count() > 0
+
     def has_pressure(self) -> bool:
         return self.get_proto().HasField(_PRESSURE_FIELD_NAME)
 
@@ -359,6 +453,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
     def remove_pressure(self) -> 'Sensors':
         self.get_proto().ClearField(_PRESSURE_FIELD_NAME)
         return self
+
+    def validate_pressure(self) -> bool:
+        """
+        Checks if there are no errors with the pressure sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(single.validate_single(self._pressure, common.Unit.KILOPASCAL)) < 1 \
+            and self._pressure.get_samples().get_values_count() > 0
 
     def has_proximity(self) -> bool:
         return self.get_proto().HasField(_PROXIMITY_FIELD_NAME)
@@ -383,6 +485,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self.get_proto().ClearField(_PROXIMITY_FIELD_NAME)
         return self
 
+    def validate_proximity(self) -> bool:
+        """
+        Checks if there are no errors with the proximity sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(single.validate_single(self._proximity, common.Unit.CENTIMETERS)) < 1 \
+            and self._proximity.get_samples().get_values_count() > 0
+
     def has_relative_humidity(self) -> bool:
         return self.get_proto().HasField(_RELATIVE_HUMIDITY_FIELD_NAME)
 
@@ -406,6 +516,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self.get_proto().ClearField(_RELATIVE_HUMIDITY_FIELD_NAME)
         return self
 
+    def validate_relative_humidity(self) -> bool:
+        """
+        Checks if there are no errors with the relative_humidity sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(single.validate_single(self._relative_humidity, common.Unit.PERCENTAGE)) < 1 \
+            and self._relative_humidity.get_samples().get_values_count() > 0
+
     def has_rotation_vector(self) -> bool:
         return self.get_proto().HasField(_ROTATION_VECTOR)
 
@@ -428,6 +546,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
     def remove_rotation_vector(self) -> 'Sensors':
         self.get_proto().ClearField(_ROTATION_VECTOR)
         return self
+
+    def validate_rotation_vector(self) -> bool:
+        """
+        Checks if there are no errors with the rotation vector sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        return len(xyz.validate_xyz(self._rotation_vector, common.Unit.UNITLESS)) < 1 \
+            and self._rotation_vector.get_x_samples().get_values_count() > 0
 
 
 def validate_sensors(sensors_list: Sensors) -> List[str]:
