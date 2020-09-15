@@ -76,9 +76,9 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         return len(self.get_samples())
 
     def write_image(self,
+                    index: int,
                     base_dir: str = ".",
-                    out_file: Optional[str] = None,
-                    index: int = 0) -> str:
+                    out_file: Optional[str] = None) -> str:
         """
         Writes an image to disk.
         :param base_dir: Base directory to write image to (default: ".")
