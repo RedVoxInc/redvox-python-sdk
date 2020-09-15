@@ -22,6 +22,7 @@ from redvox.api1000.common.generic import ProtoBase, ProtoRepeatedMessage
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet.event_streams import EventStream
 
+
 @total_ordering
 class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
     def __init__(self, redvox_proto: RedvoxPacketM):
