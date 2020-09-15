@@ -1,4 +1,5 @@
 import enum
+import os.path
 import redvox.api1000.common.generic
 import redvox.api1000.common.common as common
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
@@ -6,6 +7,8 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 from redvox.api1000.common.decorators import wrap_enum
 from redvox.api1000.common.typing import check_type
 from typing import List, Optional
+
+from redvox.api1000.errors import ApiMImageChannelError
 
 
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.Sensors.Image.ImageCodec)
@@ -72,24 +75,22 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
     def get_num_images(self) -> int:
         return len(self.get_samples())
 
-    def write_image(self, out_file: Optional[str] = None, index: int = 0):
-        """
-        Prints the image at index in the data as out_file.image_codec, where image_codec is defined by the sensor
-        :param out_file: the name of the output file
-        :param index: the index of the image to print
-        """
-        # invalid indices get converted to the closest valid index
-        if index < 0:
-            index = 0
-        elif index >= self.get_num_images():
-            index = self.get_num_images() - 1
-        # append the image codec to the file name
-        if out_file is None:
-            out_file = str(self._timestamps.get_timestamps()[index])
-        out_file = out_file + "." + self.get_image_codec().name.lower()
-        with open(out_file, 'wb') as image_out:
-            data_as_bytes: bytes = self.get_samples()[index]
-            image_out.write(data_as_bytes)
+    def write_image(self,
+                    base_dir: Optional[str] = ".",
+                    out_file: Optional[str] = None,
+                    index: int = 0):
+
+        if index < 0 or index >= self.get_num_images() - 1:
+            raise ApiMImageChannelError(f"Index={index} must be > 0 and <= {self.get_num_images() - 1}")
+
+        ext: str = self.get_image_codec().name.lower()
+        base_name: str = self._timestamps.get_timestamps()[index] if out_file is None else out_file
+        file_name: str = f"{base_name}.{ext}"
+        file_path: str = os.path.join(base_dir, file_name)
+
+        with open(file_path, 'wb') as image_out:
+            img_bytes: bytes = self.get_samples()[index]
+            image_out.write(img_bytes)
 
 
 def validate_image(image_sensor: Image) -> List[str]:
