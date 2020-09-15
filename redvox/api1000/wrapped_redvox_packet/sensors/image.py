@@ -76,7 +76,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         return len(self.get_samples())
 
     def write_image(self,
-                    base_dir: Optional[str] = ".",
+                    base_dir: str = ".",
                     out_file: Optional[str] = None,
                     index: int = 0):
 
