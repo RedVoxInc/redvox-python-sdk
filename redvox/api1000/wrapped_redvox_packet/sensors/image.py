@@ -5,7 +5,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
 from redvox.api1000.common.decorators import wrap_enum
 from redvox.api1000.common.typing import check_type
-from typing import List
+from typing import List, Optional
 
 
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.Sensors.Image.ImageCodec)
@@ -72,7 +72,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
     def get_num_images(self) -> int:
         return len(self.get_samples())
 
-    def write_image(self, out_file: str, index: int = 0):
+    def write_image(self, out_file: Optional[str] = None, index: int = 0):
         """
         Prints the image at index in the data as out_file.image_codec, where image_codec is defined by the sensor
         :param out_file: the name of the output file
@@ -84,6 +84,8 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         elif index >= self.get_num_images():
             index = self.get_num_images() - 1
         # append the image codec to the file name
+        if out_file is None:
+            out_file = str(self._timestamps.get_timestamps()[index])
         out_file = out_file + "." + self.get_image_codec().name.lower()
         with open(out_file, 'wb') as image_out:
             data_as_bytes: bytes = self.get_samples()[index]
