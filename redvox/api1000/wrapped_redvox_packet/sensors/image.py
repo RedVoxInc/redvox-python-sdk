@@ -34,6 +34,9 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
     def get_image_codec(self) -> ImageCodec:
         return ImageCodec.from_proto(self._proto.image_codec)
 
+    def get_file_ext(self) -> str:
+        return self.get_image_codec().name.lower()
+
     def set_image_codec(self, codec: ImageCodec) -> 'Image':
         check_type(codec, [ImageCodec])
         self._proto.image_codec = codec.into_proto()
@@ -89,7 +92,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         if index < 0 or index >= self.get_num_images():
             raise ApiMImageChannelError(f"Index={index} must be > 0 and < {self.get_num_images()}")
 
-        ext: str = self.get_image_codec().name.lower()
+        ext: str = self.get_file_ext()
         base_name: str = str(int(self._timestamps.get_timestamps()[index])) if out_file is None else out_file
         file_name: str = f"{base_name}.{ext}"
         file_path: str = os.path.join(base_dir, file_name)
