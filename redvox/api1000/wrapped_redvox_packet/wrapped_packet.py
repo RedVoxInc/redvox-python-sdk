@@ -4,6 +4,7 @@ This module provides a high level API for creating, reading, and editing RedVox 
 
 from datetime import datetime
 import os.path
+from functools import total_ordering
 from typing import Optional, List
 from google.protobuf import json_format
 
@@ -21,7 +22,7 @@ from redvox.api1000.common.generic import ProtoBase, ProtoRepeatedMessage
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet.event_streams import EventStream
 
-
+@total_ordering
 class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
     def __init__(self, redvox_proto: RedvoxPacketM):
         super().__init__(redvox_proto)
@@ -41,6 +42,17 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
             lambda event_stream_proto: EventStream(event_stream_proto),
             lambda event_stream: event_stream.get_proto()
         )
+
+    # Implement methods required for total_ordering
+    def __eq__(self, other) -> bool:
+        self_ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
+        other_ts: float = other.get_timing_information().get_packet_start_mach_timestamp()
+        return self_ts == other_ts
+
+    def __lt__(self, other: 'WrappedRedvoxPacketM') -> bool:
+        self_ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
+        other_ts: float = other.get_timing_information().get_packet_start_mach_timestamp()
+        return self_ts < other_ts
 
     @staticmethod
     def new() -> 'WrappedRedvoxPacketM':
