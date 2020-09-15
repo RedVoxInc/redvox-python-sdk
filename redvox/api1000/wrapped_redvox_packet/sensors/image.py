@@ -86,11 +86,11 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         :param index: Index of image to be written.
         :return: Path of written file.
         """
-        if index < 0 or index >= self.get_num_images() - 1:
-            raise ApiMImageChannelError(f"Index={index} must be > 0 and <= {self.get_num_images() - 1}")
+        if index < 0 or index >= self.get_num_images():
+            raise ApiMImageChannelError(f"Index={index} must be > 0 and < {self.get_num_images()}")
 
         ext: str = self.get_image_codec().name.lower()
-        base_name: str = self._timestamps.get_timestamps()[index] if out_file is None else out_file
+        base_name: str = str(int(self._timestamps.get_timestamps()[index])) if out_file is None else out_file
         file_name: str = f"{base_name}.{ext}"
         file_path: str = os.path.join(base_dir, file_name)
 
@@ -101,8 +101,8 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         return file_path
 
     def write_images(self,
-                     base_dir: str = ".",
-                     indices: Optional[List[int]] = None) -> List[str]:
+                     indices: Optional[List[int]] = None,
+                     base_dir: str = ".") -> List[str]:
         """
         Write multiple images to disk.
         :param base_dir: Base directory to write images to (default: ".").
@@ -111,7 +111,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
 
         indices = indices if indices is not None else list(range(0, self.get_num_images()))
-        return list(map(lambda i: self.write_image(base_dir, index=i), indices))
+        return list(map(lambda i: self.write_image(i, base_dir), indices))
 
 
 def validate_image(image_sensor: Image) -> List[str]:
