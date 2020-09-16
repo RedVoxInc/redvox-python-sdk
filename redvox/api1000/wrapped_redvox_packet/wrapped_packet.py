@@ -2,7 +2,7 @@
 This module provides a high level API for creating, reading, and editing RedVox compliant API 1000 files.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 import os.path
 from functools import total_ordering
 from typing import Optional, List
@@ -11,8 +11,6 @@ from google.protobuf import json_format
 import redvox.api1000.common.lz4
 import redvox.api1000.common.typing
 import redvox.api1000.errors as errors
-# import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-# import redvox.api1000.common.generic
 import redvox.api1000.wrapped_redvox_packet.sensors.sensors as _sensors
 import redvox.api1000.wrapped_redvox_packet.station_information as _station_information
 import redvox.api1000.wrapped_redvox_packet.timing_information as _timing_information
@@ -25,6 +23,9 @@ from redvox.api1000.wrapped_redvox_packet.event_streams import EventStream
 
 @total_ordering
 class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
+    """
+    Wraps a RedVox API M protobuf buffer.
+    """
     def __init__(self, redvox_proto: RedvoxPacketM):
         super().__init__(redvox_proto)
 
@@ -46,11 +47,21 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
 
     # Implement methods required for total_ordering
     def __eq__(self, other) -> bool:
+        """
+        Tests if this packet is equal in time to another packet by comparing start mach timestamps.
+        :param other: Other packet to compare against
+        :return: True if the packets mach timestamps match, False otherwise
+        """
         self_ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
         other_ts: float = other.get_timing_information().get_packet_start_mach_timestamp()
         return self_ts == other_ts
 
     def __lt__(self, other: 'WrappedRedvoxPacketM') -> bool:
+        """
+        Checks if this packet is less than another packet by comparing start mach times.
+        :param other: Other packet to compare against.
+        :return: True if this packet is less than the other packet
+        """
         self_ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
         other_ts: float = other.get_timing_information().get_packet_start_mach_timestamp()
         return self_ts < other_ts
@@ -79,9 +90,9 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
     @staticmethod
     def from_compressed_path(rdvxm_path: str) -> 'WrappedRedvoxPacketM':
         """
-        Deserialize an API M encoded .rdvxz file from the specified file system path.
+        Deserialize an API M encoded .rdvxm file from the specified file system path.
         :param rdvxm_path: Path to the API M encoded file.
-        :return: An instance of a WrappedRedvoxPacketApi1000.
+        :return: An instance of a WrappedRedvoxPacketApiM.
         """
         redvox.api1000.common.typing.check_type(rdvxm_path, [str])
 
@@ -128,6 +139,10 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         return filename
 
     def default_file_dir(self) -> str:
+        """
+        Computes the default file directory structure for a structured layout for this particular packet.
+        :return:  Directory structure for this packet when using structured layout
+        """
         ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
         dt: datetime = dt_utils.datetime_from_epoch_microseconds_utc(ts)
         year: str = f"{dt.year}:0>4"
@@ -137,9 +152,19 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         return os.path.join(year, month, day, hour)
 
     def default_file_path(self) -> str:
+        """
+        Computes the default directory structure and file name for this packet for structured layouts.
+        :return: The default directory structure and file name for this packet for structured layouts.
+        """
         return os.path.join(self.default_file_dir(), self.default_filename())
 
     def write_compressed_to_file(self, base_dir: str, filename: Optional[str] = None) -> str:
+        """
+        Writes this packet to a .rdvxm file.
+        :param base_dir: Directory to write .rdvxm to.
+        :param filename: The (optional) file name to use. Will use default file name otherwise.
+        :return: Path of written file.
+        """
         if filename is None:
             filename = self.default_filename("rdvxm")
 
@@ -153,6 +178,12 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         return out_path
 
     def write_json_to_file(self, base_dir: str, filename: Optional[str] = None) -> str:
+        """
+        Writes this packet to a .json file.
+        :param base_dir: Directory to write .json to.
+        :param filename: The (optional) file name to use. Will use default file name otherwise.
+        :return: Path of written file.
+        """
         if filename is None:
             filename = self.default_filename("json")
 
@@ -166,18 +197,35 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         return out_path
 
     def validate(self) -> List[str]:
+        """
+        Validates this packet.
+        :return: A list of validation errors.
+        """
         return validate_wrapped_packet(self)
 
     # Top-level packet fields
     def get_api(self) -> float:
+        """
+        Returns the API version of this packet.
+        :return: The API version of this packet.
+        """
         return self._proto.api
 
     def set_api(self, api: float) -> 'WrappedRedvoxPacketM':
+        """
+        Sets the api version of this packet.
+        :param api: The API version (should be 1000.0)
+        :return: The modified instance of this packet
+        """
         redvox.api1000.common.typing.check_type(api, [int, float])
         self._proto.api = api
         return self
 
     def get_sub_api(self) -> float:
+        """
+        Returns the sub_api version. This version tracks small changes within API 1000.
+        :return: The sub_api version. This version tracks small changes within API 1000.
+        """
         return self._proto.sub_api
 
     def set_sub_api(self, sub_api: float) -> 'WrappedRedvoxPacketM':
