@@ -62,6 +62,13 @@ class SensorData:
         """
         return self.data_df.index[0]
 
+    def last_data_timestamp(self) -> int:
+        """
+        get the last timestamp of the data
+        :return: timestamp of the last data point
+        """
+        return self.data_df.index[-1]
+
     def num_samples(self) -> int:
         """
         get the number of samples in the dataframe
@@ -106,6 +113,18 @@ class DataPacket:
     timesync: Optional[np.array] = None
     packet_best_latency: Optional[float] = np.nan
     packet_best_offset: Optional[float] = 0.0
+
+    def append_sensor(self, sensor_type: SensorType, sensor: SensorData):
+        """
+        append sensor data to an existing sensor_type or add a new sensor to the dictionary
+        :param sensor_type: the sensor to append to
+        :param sensor: the data to append
+        """
+        if sensor_type in self.sensor_data_dict.keys():
+            self.sensor_data_dict[sensor_type].data_df = pd.concat([self.sensor_data_dict[sensor_type].data_df,
+                                                                    sensor])
+        else:
+            self._add_sensor(sensor_type, sensor)
 
     def _delete_sensor(self, sensor_type: SensorType):
         """

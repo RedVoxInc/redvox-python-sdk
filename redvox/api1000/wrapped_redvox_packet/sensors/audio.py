@@ -77,12 +77,15 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         self._samples.set_values(audio_samples.get_values())
         return self
 
+    def get_num_samples(self) -> int:
+        return self.get_samples().get_values_count()
+
     def get_duration_s(self) -> float:
         """
         calculate the duration of the audio data in seconds
         :return: duration of audio data in seconds
         """
-        return float(self.get_samples().get_values_count()) / self.get_sample_rate()
+        return float(self.get_num_samples()) / self.get_sample_rate()
 
 
 def validate_audio(audio_sensor: Audio) -> List[str]:

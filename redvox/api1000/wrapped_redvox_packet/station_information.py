@@ -107,6 +107,8 @@ class AppSettings(
             audio_sampling_rate.name)
         return self
 
+    # todo get_samples_per_window
+
     def get_audio_source_tuning(self) -> AudioSourceTuning:
         return AudioSourceTuning(self.get_proto().audio_source_tuning)
 

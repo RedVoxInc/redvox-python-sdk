@@ -197,14 +197,17 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
     def get_event_streams(self) -> ProtoRepeatedMessage:
         return self._event_streams
 
-    # todo: add packet_duration calculations
+    # todo: add packet_duration calculations that don't rely on sensors existing if possible
 
     def get_packet_duration_s(self) -> float:
         """
         get the packet duration in seconds from the audio data
         :return: packet duration in seconds
         """
-        return self.get_sensors().get_audio().get_duration_s()
+        if self.get_sensors().has_audio():
+            return self.get_sensors().get_audio().get_duration_s()
+        else:
+            return 0.0
 
     def update_timestamps(self, delta_offset: float = None) -> 'WrappedRedvoxPacketM':
         """

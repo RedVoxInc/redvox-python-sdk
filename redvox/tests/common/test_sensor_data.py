@@ -15,7 +15,7 @@ class SensorDataTest(unittest.TestCase):
         self.apim_station = load_sd.load_station_from_apim(os.path.join(tests.TEST_DATA_DIR,
                                                                         "0000000001_1597189452945991.rdvxm"))
         self.mseed_data = load_sd.load_from_mseed(os.path.join(tests.TEST_DATA_DIR, "out.mseed"))
-        self.all_data = load_sd.read_any_dir(tests.TEST_DATA_DIR, redvox_ids=["1637650010", "0000000001"])
+        self.all_data = load_sd.read_all_in_dir(tests.TEST_DATA_DIR, redvox_ids=["1637650010", "0000000001"])
 
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station.station_data), 1)

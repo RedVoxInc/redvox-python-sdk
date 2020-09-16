@@ -13,6 +13,7 @@ from redvox.common import file_statistics as fs
 from redvox.common import date_time_utils as dtu
 from redvox.common.sensor_data import SensorType, SensorData, Station, StationTiming, StationMetadata, DataPacket
 from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
+from redvox.api900.timesync.api900_timesync import sync_packet_time_900
 from redvox.api1000.wrapped_redvox_packet import wrapped_packet as apim_wp
 
 
@@ -442,16 +443,16 @@ def load_from_mseed(file_path: str) -> List[Station]:
     return stations
 
 
-def read_any_dir(directory: str,
-                 start_timestamp_utc_s: Optional[int] = None,
-                 end_timestamp_utc_s: Optional[int] = None,
-                 redvox_ids: Optional[List[str]] = None,
-                 structured_layout: bool = False,
-                 concat_continuous_segments: bool = True) -> List[Station]:
+def read_all_in_dir(directory: str,
+                    start_timestamp_utc_s: Optional[int] = None,
+                    end_timestamp_utc_s: Optional[int] = None,
+                    redvox_ids: Optional[List[str]] = None,
+                    structured_layout: bool = False,
+                    concat_continuous_segments: bool = True) -> List[Station]:
     """
     load all data files in the directory
-    :param directory: location of all the files; if structured_layout is True, the directory contains a root api1000
-                        or api900 directory, if structured_layout is False, the directory contains unsorted files
+    :param directory: location of all the files; if structured_layout is True, the directory contains a root api1000,
+                        api900, or mseed directory, if structured_layout is False, the directory contains unsorted files
     :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
     :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
     :param redvox_ids: An optional list of redvox_ids to filter against, default empty list
@@ -460,24 +461,30 @@ def read_any_dir(directory: str,
                                        into multiple continuous rdvxz files separated at gaps.  ONLY WORKS FOR API900
     :return: a list of Station objects that contain the data
     """
-    api900_dir = os.path.join(directory, "api900")
-    apim_dir = os.path.join(directory, "api1000")
+    # create the object to store the data
+    stations: List[Station] = []
     # if structured_layout, there should be a specifically named folder in directory
     if structured_layout:
+        api900_dir = os.path.join(directory, "api900")
         if os.path.exists(api900_dir):
-            # it's api900 data
-            return load_file_range_from_api900(api900_dir, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids,
-                                               True, concat_continuous_segments)
-        elif os.path.exists(apim_dir):
-            # it's api1000 data
-            return load_from_file_range_api_m(apim_dir, start_timestamp_utc_s, end_timestamp_utc_s,
-                                              redvox_ids, True)
+            # get api900 data
+            stations.extend(load_file_range_from_api900(api900_dir, start_timestamp_utc_s, end_timestamp_utc_s,
+                                                        redvox_ids, True, concat_continuous_segments))
+        apim_dir = os.path.join(directory, "api1000")
+        if os.path.exists(apim_dir):
+            # get api1000 data
+            stations.extend(load_from_file_range_api_m(apim_dir, start_timestamp_utc_s, end_timestamp_utc_s,
+                                                       redvox_ids, True))
+        mseed_dir = os.path.join(directory, "mseed")
+        if os.path.exists(mseed_dir):
+            # get mseed data
+            all_paths = glob.glob(os.path.join(mseed_dir, "*.mseed"))
+            for path in all_paths:
+                stations.extend(load_from_mseed(path))
         else:
             # structured layout requires api1000 or api900 directory
             raise ValueError(f"{directory} does not contain api900 or api1000 directory.")
     # load files from unstructured layout
-    # create the object to store the data
-    stations: List[Station] = []
     # get unstructured api 900 data
     stations.extend(load_file_range_from_api900(directory, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids,
                                                 False, concat_continuous_segments))
@@ -489,3 +496,89 @@ def read_any_dir(directory: str,
     for path in mseed_paths:
         stations.extend(load_from_mseed(path))
     return stations
+
+
+def read_api900_in_dir_exact(directory: str,
+                             start_timestamp_utc_s: Optional[int] = None,
+                             end_timestamp_utc_s: Optional[int] = None,
+                             start_padding_s: int = 120,
+                             end_padding_s: int = 120,
+                             redvox_ids: Optional[List[str]] = None,
+                             apply_correction: bool = False,
+                             structured_layout: bool = False,
+                             concat_continuous_segments: bool = True) -> Dict[str, Dict[SensorType, SensorData]]:
+    data = api900_io.read_rdvxz_file_range(directory, start_timestamp_utc_s - start_padding_s,
+                                           end_timestamp_utc_s + end_padding_s, redvox_ids,
+                                           structured_layout, concat_continuous_segments)
+    # create the object to store the data
+    return_dict: Dict[str, Dict[SensorType, SensorData]] = {}
+
+    # correct data, then convert to SensorData
+    for redvox_id, wrapped_packets in data.items():
+        # get the id
+        short_id = wrapped_packets[0].redvox_id()
+        # apply correction if needed
+        if apply_correction:
+            sync_packet_time_900(wrapped_packets)
+        # prepare an empty dict to add data to
+        return_dict[short_id] = {}
+        for packet in wrapped_packets:
+            # read in the packets' data
+            for sensor_type, sensor_data in read_api900_wrapped_packet(packet).items():
+                if sensor_type in return_dict[short_id].keys():
+                    return_dict[short_id][sensor_type].data_df = \
+                        pd.concat([return_dict[short_id][sensor_type].data_df, sensor_data.data_df])
+                else:
+                    return_dict[short_id][sensor_type] = sensor_data
+
+    # fill in gaps and truncate
+    for ids in redvox_ids:
+        if ids not in return_dict.keys():
+            # error handling
+            print(f"WARNING: {ids} doesn't have any data to read")
+        else:
+            # prepare a bunch of information to be used later
+            # compute the length in seconds of one sample
+            one_sample_s = 1 / return_dict[ids][SensorType.AUDIO].sample_rate
+            # get the start and end timestamps + 1 sample to be safe
+            start_timestamp = int(dtu.seconds_to_microseconds(start_timestamp_utc_s - one_sample_s))
+            end_timestamp = int(dtu.seconds_to_microseconds(end_timestamp_utc_s + one_sample_s))
+            # TRUNCATE!  get only the timestamps between the start and end timestamps
+            for sensor_types in return_dict[ids].keys():
+                # get the timestamps of the data
+                df_timestamps = return_dict[ids][sensor_types].data_df.index.to_numpy()
+                temp = np.where(
+                    (start_timestamp < df_timestamps) & (df_timestamps < end_timestamp))[0]
+                new_df = return_dict[ids][sensor_types].data_df.iloc[temp]
+                return_dict[ids][sensor_types].data_df = new_df
+            # GAP FILL!  calculate the audio samples missing based on inputs
+            new_df = return_dict[ids][SensorType.AUDIO].data_df
+            first_timestamp = return_dict[ids][SensorType.AUDIO].first_data_timestamp()
+            start_diff = first_timestamp - dtu.seconds_to_microseconds(start_timestamp_utc_s)
+            if start_diff > 0:
+                num_missing_samples = int(dtu.microseconds_to_seconds(start_diff) *
+                                          return_dict[ids][SensorType.AUDIO].sample_rate)
+                time_before = np.vectorize(
+                    lambda t: first_timestamp - dtu.seconds_to_microseconds(t * one_sample_s))(
+                    list(range(num_missing_samples)))
+                time_before = time_before[::-1]
+                data = np.ndarray((num_missing_samples, 1))
+                data[:] = np.NAN
+                new_df_values = pd.DataFrame(data, index=time_before, columns=["microphone"])
+                new_df = new_df_values.append(new_df)
+            last_timestamp = return_dict[ids][SensorType.AUDIO].data_df.index[-1]
+            last_diff = dtu.seconds_to_microseconds(end_timestamp_utc_s) - last_timestamp
+            if last_diff > 0:
+                num_missing_samples = int(dtu.microseconds_to_seconds(last_diff) *
+                                          return_dict[ids][SensorType.AUDIO].sample_rate)
+                time_after = np.vectorize(
+                    lambda t: last_timestamp + dtu.seconds_to_microseconds(t * one_sample_s))(
+                    list(range(1, num_missing_samples)))
+                data = np.ndarray((num_missing_samples, 1))
+                data[:] = np.NAN
+                new_df_values = pd.DataFrame(data, index=time_after, columns=["microphone"])
+                new_df = new_df.append(new_df_values)
+            # ALL DONE!  set the dataframe to the updated dataframe
+            return_dict[ids][SensorType.AUDIO].data_df = new_df
+
+    return return_dict
