@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from glob import glob
 import os.path
 from pathlib import Path
+import re
 from typing import Dict, List, Optional, Set
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
@@ -113,22 +114,28 @@ class ReadResult:
             return self.__get_packets_for_station_id(station_id)
 
 
-def _get_structured_paths(directory: str) -> List[str]:
-    """
-    Given a base directory (which should end with api1000), find the paths of all structured API M redvox files.
-    :param directory: The base directory path (which should end with api1000)
-    :return: A list of paths in a structured layout of filtered API M redvox files.
-    """
-    paths: List[str] = []
+__VALID_YEARS: Set[str] = {f"{i:04}" for i in range(2018, 2031)}
+__VALID_MONTHS: Set[str] = {f"{i:02}" for i in range(1, 13)}
+__VALID_DATES: Set[str] = {f"{i:02}" for i in range(1, 32)}
+__VALID_HOURS: Set[str] = {f"{i:02}" for i in range(0, 24)}
 
-    for (year, month, day, hour) in date_time_utils.DateIteratorAPIM(start_timestamp_utc_s, end_timestamp_utc_s):
-        all_paths = glob.glob(os.path.join(directory, year, month, day, hour, f"*.{REDVOX_API_M_FILE_EXT}"))
-        valid_paths = list(
-            filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids),
-                   all_paths))
-        paths.extend(valid_paths)
 
-    return paths
+import pathlib
+def __list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
+    subdirs: List[str] = map(lambda p: pathlib.Path(p).name ,glob(os.path.join(base_dir, "*", "")))
+    slist = list(subdirs)
+    print(slist)
+    return list(filter(valid_choices.__contains__, slist))
+
+
+def parse_structured_layout(base_dir: str) -> Dict[str, Dict[str, Dict[str, List[str]]]]:
+    structure: Dict[str, Dict[str, Dict[str, List[str]]]] = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    for year in __list_subdirs(base_dir, __VALID_YEARS):
+        for month in __list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
+            for day in __list_subdirs(os.path.join(base_dir, year, month), __VALID_DATES):
+                for hour in __list_subdirs(os.path.join(base_dir, year, day), __VALID_HOURS):
+                    structure[year][month][day].append(hour)
+    return structure
 
 
 def read_bufs(bufs: List[bytes]) -> ReadResult:
@@ -149,3 +156,9 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> 
     paths = list(filter(lambda path: read_filter.filter_path(path), paths))
     wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
     return ReadResult.from_packets(wrapped_packets)
+
+
+if __name__ == "__main__":
+    from pprint import pprint
+    res = parse_structured_layout("/Users/anthony/data/api900")
+    pprint(dict(res))
