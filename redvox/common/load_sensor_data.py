@@ -570,34 +570,38 @@ def read_api900_in_dir_exact(directory: str,
                     (start_timestamp < df_timestamps) & (df_timestamps < end_timestamp))[0]
                 new_df = return_dict[ids][sensor_types].data_df.iloc[temp]
                 return_dict[ids][sensor_types].data_df = new_df
-            # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
-            new_df = return_dict[ids][SensorType.AUDIO].data_df
-            first_timestamp = return_dict[ids][SensorType.AUDIO].first_data_timestamp()
-            start_diff = first_timestamp - dtu.seconds_to_microseconds(start_timestamp_utc_s)
-            if start_diff > 0:
-                num_missing_samples = int(dtu.microseconds_to_seconds(start_diff) *
-                                          return_dict[ids][SensorType.AUDIO].sample_rate)
-                time_before = np.vectorize(
-                    lambda t: first_timestamp - dtu.seconds_to_microseconds(t * one_sample_s))(
-                    list(range(1, num_missing_samples)))
-                time_before = time_before[::-1]
-                data = np.empty(num_missing_samples - 1)
-                data[:] = np.nan
-                new_df_values = pd.DataFrame(data, index=time_before, columns=["microphone"])
-                new_df = new_df_values.append(new_df)
-            last_timestamp = return_dict[ids][SensorType.AUDIO].data_df.index[-1]
-            last_diff = dtu.seconds_to_microseconds(end_timestamp_utc_s) - last_timestamp
-            if last_diff > 0:
-                num_missing_samples = int(dtu.microseconds_to_seconds(last_diff) *
-                                          return_dict[ids][SensorType.AUDIO].sample_rate)
-                time_after = np.vectorize(
-                    lambda t: last_timestamp + dtu.seconds_to_microseconds(t * one_sample_s))(
-                    list(range(1, num_missing_samples)))
-                data = np.empty(num_missing_samples - 1)
-                data[:] = np.nan
-                new_df_values = pd.DataFrame(data, index=time_after, columns=["microphone"])
-                new_df = new_df.append(new_df_values)
-            # ALL DONE!  set the dataframe to the updated dataframe
-            return_dict[ids][SensorType.AUDIO].data_df = new_df
+            if len(return_dict[ids][SensorType.AUDIO].data_df.values) < 1:
+                print(f"WARNING: {ids} audio sensor has been truncated and no valid data remains!")
+                return_dict.pop(ids)
+            else:
+                # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
+                new_df = return_dict[ids][SensorType.AUDIO].data_df
+                first_timestamp = return_dict[ids][SensorType.AUDIO].first_data_timestamp()
+                start_diff = first_timestamp - dtu.seconds_to_microseconds(start_timestamp_utc_s)
+                if start_diff > 0:
+                    num_missing_samples = int(dtu.microseconds_to_seconds(start_diff) *
+                                              return_dict[ids][SensorType.AUDIO].sample_rate)
+                    time_before = np.vectorize(
+                        lambda t: first_timestamp - dtu.seconds_to_microseconds(t * one_sample_s))(
+                        list(range(1, num_missing_samples)))
+                    time_before = time_before[::-1]
+                    data = np.empty(num_missing_samples - 1)
+                    data[:] = np.nan
+                    new_df_values = pd.DataFrame(data, index=time_before, columns=["microphone"])
+                    new_df = new_df_values.append(new_df)
+                last_timestamp = return_dict[ids][SensorType.AUDIO].data_df.index[-1]
+                last_diff = dtu.seconds_to_microseconds(end_timestamp_utc_s) - last_timestamp
+                if last_diff > 0:
+                    num_missing_samples = int(dtu.microseconds_to_seconds(last_diff) *
+                                              return_dict[ids][SensorType.AUDIO].sample_rate)
+                    time_after = np.vectorize(
+                        lambda t: last_timestamp + dtu.seconds_to_microseconds(t * one_sample_s))(
+                        list(range(1, num_missing_samples)))
+                    data = np.empty(num_missing_samples - 1)
+                    data[:] = np.nan
+                    new_df_values = pd.DataFrame(data, index=time_after, columns=["microphone"])
+                    new_df = new_df.append(new_df_values)
+                # ALL DONE!  set the dataframe to the updated dataframe
+                return_dict[ids][SensorType.AUDIO].data_df = new_df
 
     return return_dict
