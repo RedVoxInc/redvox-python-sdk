@@ -80,10 +80,6 @@ class ReadResult:
             self.__station_id_to_id_uuid[s[0]] = s[1]
 
     @staticmethod
-    def empty() -> 'ReadResult':
-        return ReadResult({})
-
-    @staticmethod
     def from_packets(packets: List[WrappedRedvoxPacketM]) -> 'ReadResult':
         station_id_uuid_to_packets: Dict[str, List[WrappedRedvoxPacketM]] = defaultdict(list)
 
@@ -173,9 +169,3 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> 
     wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
     return ReadResult.from_packets(wrapped_packets)
 
-
-if __name__ == "__main__":
-    from pprint import pprint
-
-    res = __parse_structured_layout("/Users/anthony/data/api900")
-    pprint(dict(res))
