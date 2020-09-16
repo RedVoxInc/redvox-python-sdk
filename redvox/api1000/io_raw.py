@@ -1,14 +1,12 @@
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from glob import glob
 import os.path
 from pathlib import Path
-import re
-from typing import Dict, List, Optional, Set
+from typing import Dict, Iterator, List, Optional, Set
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-from redvox.common import date_time_utils
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
 
 
@@ -41,6 +39,15 @@ class ReadFilter:
         self.extension = extension
         return self
 
+    def filter_dt(self, dt: datetime):
+        if self.start_dt is not None and dt < self.start_dt:
+            return False
+
+        if self.end_dt is not None and dt > self.end_dt:
+            return False
+
+        return True
+
     def filter_path(self, path: str) -> bool:
         _path: Path = Path(path)
         ext: str = "".join(_path.suffixes)
@@ -50,10 +57,7 @@ class ReadFilter:
         ts: float = float(split[1])
         dt: datetime = dt_us(ts)
 
-        if self.start_dt is not None and dt < self.start_dt:
-            return False
-
-        if self.end_dt is not None and dt > self.end_dt:
+        if not self.filter_dt(dt):
             return False
 
         if self.station_ids is not None and station_id not in self.station_ids:
@@ -120,22 +124,36 @@ __VALID_DATES: Set[str] = {f"{i:02}" for i in range(1, 32)}
 __VALID_HOURS: Set[str] = {f"{i:02}" for i in range(0, 24)}
 
 
-import pathlib
 def __list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
-    subdirs: List[str] = map(lambda p: pathlib.Path(p).name ,glob(os.path.join(base_dir, "*", "")))
-    slist = list(subdirs)
-    print(slist)
-    return list(filter(valid_choices.__contains__, slist))
+    subdirs: Iterator[str] = map(lambda p: Path(p).name, glob(os.path.join(base_dir, "*", "")))
+    return sorted(list(filter(valid_choices.__contains__, subdirs)))
 
 
-def parse_structured_layout(base_dir: str) -> Dict[str, Dict[str, Dict[str, List[str]]]]:
-    structure: Dict[str, Dict[str, Dict[str, List[str]]]] = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+def __parse_structured_layout(base_dir: str,
+                              read_filter: ReadFilter = ReadFilter()) -> List[str]:
+    all_paths: List[str] = []
     for year in __list_subdirs(base_dir, __VALID_YEARS):
         for month in __list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
             for day in __list_subdirs(os.path.join(base_dir, year, month), __VALID_DATES):
                 for hour in __list_subdirs(os.path.join(base_dir, year, day), __VALID_HOURS):
-                    structure[year][month][day].append(hour)
-    return structure
+                    if not read_filter.filter_dt(datetime(int(year),
+                                                          int(month),
+                                                          int(day),
+                                                          int(hour),
+                                                          tzinfo=timezone.utc)):
+                        continue
+
+                    paths: List[str] = glob(os.path.join(base_dir,
+                                                         year,
+                                                         month,
+                                                         day,
+                                                         hour,
+                                                         f"*.{read_filter.extension}"))
+                    valid_paths: List[str] = list(filter(lambda path: read_filter.filter_path(path), paths))
+                    if len(valid_paths) > 0:
+                        all_paths.extend(valid_paths)
+
+    return all_paths
 
 
 def read_bufs(bufs: List[bytes]) -> ReadResult:
@@ -144,15 +162,13 @@ def read_bufs(bufs: List[bytes]) -> ReadResult:
 
 
 def read_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> ReadResult:
-    pattern: str = os.path.join(base_dir, f"*.{read_filter.extension}")
-    paths: List[str] = glob(pattern)
-    paths = list(filter(lambda path: read_filter.filter_path(path), paths))
-    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_bytes, bufs)))
+    paths: List[str] = __parse_structured_layout(base_dir, read_filter)
+    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
+    return ReadResult.from_packets(wrapped_packets)
 
 
 def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> ReadResult:
-    pattern: str = os.path.join(base_dir, f"*.{read_filter.extension}")
-    paths: List[str] = glob(pattern)
+    paths: List[str] = glob(os.path.join(base_dir, f"*.{read_filter.extension}"))
     paths = list(filter(lambda path: read_filter.filter_path(path), paths))
     wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
     return ReadResult.from_packets(wrapped_packets)
@@ -160,5 +176,6 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> 
 
 if __name__ == "__main__":
     from pprint import pprint
-    res = parse_structured_layout("/Users/anthony/data/api900")
+
+    res = __parse_structured_layout("/Users/anthony/data/api900")
     pprint(dict(res))
