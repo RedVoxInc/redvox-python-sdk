@@ -480,7 +480,10 @@ def read_all_in_dir(directory: str,
             # get mseed data
             all_paths = glob.glob(os.path.join(mseed_dir, "*.mseed"))
             for path in all_paths:
-                stations.extend(load_from_mseed(path))
+                mseed_data = load_from_mseed(path)
+                for mseed_station in mseed_data:
+                    if mseed_station.station_metadata.station_id in redvox_ids:
+                        stations.append(mseed_station)
         else:
             # structured layout requires api1000 or api900 directory
             raise ValueError(f"{directory} does not contain api900 or api1000 directory.")
@@ -503,6 +506,7 @@ def read_api900_in_dir_exact(directory: str,
                              end_timestamp_utc_s: Optional[int] = None,
                              start_padding_s: int = 120,
                              end_padding_s: int = 120,
+                             gap_time_s: float = 5,
                              redvox_ids: Optional[List[str]] = None,
                              apply_correction: bool = False,
                              structured_layout: bool = False,
@@ -526,6 +530,21 @@ def read_api900_in_dir_exact(directory: str,
             # read in the packets' data
             for sensor_type, sensor_data in read_api900_wrapped_packet(packet).items():
                 if sensor_type in return_dict[short_id].keys():
+                    if sensor_type == SensorType.AUDIO:
+                        # detect gap between last added timestamp and new data start timestamp
+                        last_timestamp = return_dict[short_id][SensorType.AUDIO].last_data_timestamp()
+                        first_timestamp = sensor_data.first_data_timestamp()
+                        time_diff: float = first_timestamp - last_timestamp
+                        if time_diff > dtu.seconds_to_microseconds(gap_time_s):
+                            missing_points = int(dtu.microseconds_to_seconds(time_diff) * sensor_data.sample_rate)
+                            gap_times = np.vectorize(
+                                lambda t: last_timestamp + dtu.seconds_to_microseconds(t / sensor_data.sample_rate))(
+                                list(range(1, missing_points)))
+                            empty_points = np.empty(missing_points - 1)
+                            empty_points[:] = np.nan
+                            empty_df = pd.DataFrame(empty_points, index=gap_times, columns=["microphone"])
+                            return_dict[short_id][SensorType.AUDIO].data_df = \
+                                pd.concat([return_dict[short_id][SensorType.AUDIO].data_df, empty_df])
                     return_dict[short_id][sensor_type].data_df = \
                         pd.concat([return_dict[short_id][sensor_type].data_df, sensor_data.data_df])
                 else:
@@ -551,7 +570,7 @@ def read_api900_in_dir_exact(directory: str,
                     (start_timestamp < df_timestamps) & (df_timestamps < end_timestamp))[0]
                 new_df = return_dict[ids][sensor_types].data_df.iloc[temp]
                 return_dict[ids][sensor_types].data_df = new_df
-            # GAP FILL!  calculate the audio samples missing based on inputs
+            # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
             new_df = return_dict[ids][SensorType.AUDIO].data_df
             first_timestamp = return_dict[ids][SensorType.AUDIO].first_data_timestamp()
             start_diff = first_timestamp - dtu.seconds_to_microseconds(start_timestamp_utc_s)
@@ -560,10 +579,10 @@ def read_api900_in_dir_exact(directory: str,
                                           return_dict[ids][SensorType.AUDIO].sample_rate)
                 time_before = np.vectorize(
                     lambda t: first_timestamp - dtu.seconds_to_microseconds(t * one_sample_s))(
-                    list(range(num_missing_samples)))
+                    list(range(1, num_missing_samples)))
                 time_before = time_before[::-1]
-                data = np.ndarray((num_missing_samples, 1))
-                data[:] = np.NAN
+                data = np.empty(num_missing_samples - 1)
+                data[:] = np.nan
                 new_df_values = pd.DataFrame(data, index=time_before, columns=["microphone"])
                 new_df = new_df_values.append(new_df)
             last_timestamp = return_dict[ids][SensorType.AUDIO].data_df.index[-1]
@@ -574,8 +593,8 @@ def read_api900_in_dir_exact(directory: str,
                 time_after = np.vectorize(
                     lambda t: last_timestamp + dtu.seconds_to_microseconds(t * one_sample_s))(
                     list(range(1, num_missing_samples)))
-                data = np.ndarray((num_missing_samples, 1))
-                data[:] = np.NAN
+                data = np.empty(num_missing_samples - 1)
+                data[:] = np.nan
                 new_df_values = pd.DataFrame(data, index=time_after, columns=["microphone"])
                 new_df = new_df.append(new_df_values)
             # ALL DONE!  set the dataframe to the updated dataframe
