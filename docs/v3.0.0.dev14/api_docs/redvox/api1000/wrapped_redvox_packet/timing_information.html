@@ -1,0 +1,1420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>redvox.api1000.wrapped_redvox_packet.timing_information API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.api1000.wrapped_redvox_packet.timing_information</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import enum
+from typing import List, Union
+
+import redvox.api1000.common.typing
+import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
+import redvox.api1000.common.common as common
+import redvox.api1000.common.generic
+
+from redvox.api1000.common.decorators import wrap_enum
+
+_SYNCH_EXCHANGES_FIELD_NAME: str = &#34;synch_exchanges&#34;
+SynchExchangeProto = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange
+
+
+class SynchExchange(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange]):
+    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange):
+        super().__init__(proto)
+
+    @staticmethod
+    def new() -&gt; &#39;SynchExchange&#39;:
+        exchange = SynchExchange(redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange())
+        exchange.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+        return exchange
+
+    def get_unit(self) -&gt; common.Unit:
+        return common.Unit.from_proto(self._proto.unit)
+
+    def set_default_unit(self) -&gt; &#39;SynchExchange&#39;:
+        return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+
+    def set_unit(self, unit: Union[common.Unit, int]) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        self._proto.unit = unit.into_proto()
+        return self
+
+    def get_a1(self) -&gt; float:
+        return self._proto.a1
+
+    def set_a1(self, a1: float) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(a1, [int, float])
+        self._proto.a1 = a1
+        return self
+
+    def get_a2(self) -&gt; float:
+        return self._proto.a2
+
+    def set_a2(self, a2: float) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(a2, [int, float])
+        self._proto.a2 = a2
+        return self
+
+    def get_a3(self) -&gt; float:
+        return self._proto.a3
+
+    def set_a3(self, a3: float) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(a3, [int, float])
+        self._proto.a3 = a3
+        return self
+
+    def get_b1(self) -&gt; float:
+        return self._proto.b1
+
+    def set_b1(self, b1: float) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(b1, [int, float])
+        self._proto.b1 = b1
+        return self
+
+    def get_b2(self) -&gt; float:
+        return self._proto.b2
+
+    def set_b2(self, b2: float) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(b2, [int, float])
+        self._proto.b2 = b2
+        return self
+
+    def get_b3(self) -&gt; float:
+        return self._proto.b3
+
+    def set_b3(self, b3: float) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(b3, [int, float])
+        self._proto.b3 = b3
+        return self
+
+
+def validate_synch_exchange(sync: SynchExchange) -&gt; List[str]:
+    errors_list = []
+    # assume 0 (default) is an invalid value
+    if sync.get_a1() == 0:
+        errors_list.append(&#34;Sync exchange a1 value is 0&#34;)
+    if sync.get_a2() == 0:
+        errors_list.append(&#34;Sync exchange a2 value is 0&#34;)
+    if sync.get_a3() == 0:
+        errors_list.append(&#34;Sync exchange a3 value is 0&#34;)
+    if sync.get_a1() &gt;= sync.get_a2():
+        errors_list.append(&#34;Sync exchange a1 is greater than or equal to a2&#34;)
+    if sync.get_a2() &gt; sync.get_a3():
+        errors_list.append(&#34;Sync exchange a2 is greater than a3&#34;)
+    if sync.get_b1() == 0:
+        errors_list.append(&#34;Sync exchange b1 value is 0&#34;)
+    if sync.get_b2() == 0:
+        errors_list.append(&#34;Sync exchange b2 value is 0&#34;)
+    if sync.get_b3() == 0:
+        errors_list.append(&#34;Sync exchange b3 value is 0&#34;)
+    if sync.get_b1() &gt; sync.get_b2():
+        errors_list.append(&#34;Sync exchange b1 value is greater than b2&#34;)
+    if sync.get_b2() &gt;= sync.get_b3():
+        errors_list.append(&#34;Sync exchange b2 value is greater than or equal to b3&#34;)
+    if sync.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
+        errors_list.append(&#34;Sync exchange unit is not microseconds since unix epoch&#34;)
+    return errors_list
+
+
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod)
+class TimingScoreMethod(enum.Enum):
+    UNKNOWN: int = 0
+
+
+class TimingInformation(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation]):
+    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation):
+        super().__init__(proto)
+        self._synch_exchanges: redvox.api1000.common.generic.ProtoRepeatedMessage[SynchExchangeProto, SynchExchange] = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                proto,
+                proto.synch_exchanges,
+                _SYNCH_EXCHANGES_FIELD_NAME,
+                lambda exchange_proto: SynchExchange(exchange_proto),
+                lambda exchange: exchange.get_proto()
+            )
+
+    @staticmethod
+    def new() -&gt; &#39;TimingInformation&#39;:
+        return TimingInformation(redvox_api_m_pb2.RedvoxPacketM.TimingInformation())
+
+    def get_unit(self) -&gt; common.Unit:
+        return common.Unit.from_proto(self._proto.unit)
+
+    def set_default_unit(self) -&gt; &#39;TimingInformation&#39;:
+        return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+
+    def set_unit(self, unit: Union[common.Unit, int]) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        self._proto.unit = unit.into_proto()
+        return self
+
+    def get_packet_start_os_timestamp(self) -&gt; float:
+        return self._proto.packet_start_os_timestamp
+
+    def set_packet_start_os_timestamp(self, packet_start_os_timestamp) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(packet_start_os_timestamp, [int, float])
+        self._proto.packet_start_os_timestamp = packet_start_os_timestamp
+        return self
+
+    def get_packet_start_mach_timestamp(self) -&gt; float:
+        return self._proto.packet_start_mach_timestamp
+
+    def set_packet_start_mach_timestamp(self, packet_start_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(packet_start_mach_timestamp, [int, float])
+        self._proto.packet_start_mach_timestamp = packet_start_mach_timestamp
+        return self
+
+    def get_packet_end_os_timestamp(self) -&gt; float:
+        return self._proto.packet_end_os_timestamp
+
+    def set_packet_end_os_timestamp(self, packet_end_os_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(packet_end_os_timestamp, [int, float])
+        self._proto.packet_end_os_timestamp = packet_end_os_timestamp
+        return self
+
+    def get_packet_end_mach_timestamp(self) -&gt; float:
+        return self._proto.packet_end_mach_timestamp
+
+    def set_packet_end_mach_timestamp(self, packet_end_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(packet_end_mach_timestamp, [int, float])
+        self._proto.packet_end_mach_timestamp = packet_end_mach_timestamp
+        return self
+
+    def get_server_acquisition_arrival_timestamp(self) -&gt; float:
+        return self._proto.server_acquisition_arrival_timestamp
+
+    def set_server_acquisition_arrival_timestamp(self,
+                                                 server_acquisition_arrival_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(server_acquisition_arrival_timestamp, [int, float])
+        self._proto.server_acquisition_arrival_timestamp = server_acquisition_arrival_timestamp
+        return self
+
+    def get_app_start_mach_timestamp(self) -&gt; float:
+        return self._proto.app_start_mach_timestamp
+
+    def set_app_start_mach_timestamp(self, app_start_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(app_start_mach_timestamp, [int, float])
+        self._proto.app_start_mach_timestamp = app_start_mach_timestamp
+        return self
+
+    def get_synch_exchanges(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        return self._synch_exchanges
+
+    def get_best_latency(self) -&gt; float:
+        return self._proto.best_latency
+
+    def set_best_latency(self, best_latency: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(best_latency, [int, float])
+        self._proto.best_latency = best_latency
+        return self
+
+    def get_best_offset(self) -&gt; float:
+        return self._proto.best_offset
+
+    def set_best_offset(self, best_offset: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(best_offset, [int, float])
+        self._proto.best_offset = best_offset
+        return self
+
+    def get_score(self) -&gt; float:
+        return self._proto.score
+
+    def set_score(self, score: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(score, [float])
+        self._proto.score = score
+        return self
+
+    def get_score_method(self) -&gt; TimingScoreMethod:
+        return TimingScoreMethod(self._proto.score_method)
+
+    def set_score_method(self, score_method: TimingScoreMethod) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(score_method, [TimingScoreMethod])
+        self._proto.os = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
+        return self
+
+
+def validate_timing_information(timing: TimingInformation) -&gt; List[str]:
+    errors_list = []
+    synch_vals = timing.get_synch_exchanges().get_values()
+    # if we have synchronization values, we can validate them
+    # otherwise we can just return an empty list since there&#39;s no point in validating nothing
+    if len(synch_vals) &gt; 0:
+        for sync_exch in synch_vals:
+            errors_list.extend(validate_synch_exchange(sync_exch))
+    if timing.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
+        errors_list.append(&#34;Timing information unit is not microseconds since unix epoch&#34;)
+    if timing.get_packet_start_os_timestamp() == 0:
+        errors_list.append(&#34;Timing information os start timestamp is 0&#34;)
+    if timing.get_packet_start_mach_timestamp() == 0:
+        errors_list.append(&#34;Timing information mach start timestamp is 0&#34;)
+    if timing.get_packet_end_os_timestamp() == 0:
+        errors_list.append(&#34;Timing information os end timestamp is 0&#34;)
+    if timing.get_packet_end_mach_timestamp() == 0:
+        errors_list.append(&#34;Timing information mach end timestamp is 0&#34;)
+    if timing.get_app_start_mach_timestamp() == 0:
+        errors_list.append(&#34;Timing information app mach start timestamp is 0&#34;)
+    if timing.get_packet_start_os_timestamp() &gt; timing.get_packet_end_os_timestamp():
+        errors_list.append(&#34;Timing information os end timestamp is less than start timestamp&#34;)
+    if timing.get_packet_start_mach_timestamp() &gt; timing.get_packet_end_mach_timestamp():
+        errors_list.append(&#34;Timing information mach end timestamp is less than start timestamp&#34;)
+        # if timing.get_server_acquisition_arrival_timestamp() == 0:
+        #     errors_list.append(&#34;Timing information server acquisition arrival timestamp is 0&#34;)
+    return errors_list</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.validate_synch_exchange"><code class="name flex">
+<span>def <span class="ident">validate_synch_exchange</span></span>(<span>sync: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a>) ‑> typing.List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_synch_exchange(sync: SynchExchange) -&gt; List[str]:
+    errors_list = []
+    # assume 0 (default) is an invalid value
+    if sync.get_a1() == 0:
+        errors_list.append(&#34;Sync exchange a1 value is 0&#34;)
+    if sync.get_a2() == 0:
+        errors_list.append(&#34;Sync exchange a2 value is 0&#34;)
+    if sync.get_a3() == 0:
+        errors_list.append(&#34;Sync exchange a3 value is 0&#34;)
+    if sync.get_a1() &gt;= sync.get_a2():
+        errors_list.append(&#34;Sync exchange a1 is greater than or equal to a2&#34;)
+    if sync.get_a2() &gt; sync.get_a3():
+        errors_list.append(&#34;Sync exchange a2 is greater than a3&#34;)
+    if sync.get_b1() == 0:
+        errors_list.append(&#34;Sync exchange b1 value is 0&#34;)
+    if sync.get_b2() == 0:
+        errors_list.append(&#34;Sync exchange b2 value is 0&#34;)
+    if sync.get_b3() == 0:
+        errors_list.append(&#34;Sync exchange b3 value is 0&#34;)
+    if sync.get_b1() &gt; sync.get_b2():
+        errors_list.append(&#34;Sync exchange b1 value is greater than b2&#34;)
+    if sync.get_b2() &gt;= sync.get_b3():
+        errors_list.append(&#34;Sync exchange b2 value is greater than or equal to b3&#34;)
+    if sync.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
+        errors_list.append(&#34;Sync exchange unit is not microseconds since unix epoch&#34;)
+    return errors_list</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.validate_timing_information"><code class="name flex">
+<span>def <span class="ident">validate_timing_information</span></span>(<span>timing: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a>) ‑> typing.List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_timing_information(timing: TimingInformation) -&gt; List[str]:
+    errors_list = []
+    synch_vals = timing.get_synch_exchanges().get_values()
+    # if we have synchronization values, we can validate them
+    # otherwise we can just return an empty list since there&#39;s no point in validating nothing
+    if len(synch_vals) &gt; 0:
+        for sync_exch in synch_vals:
+            errors_list.extend(validate_synch_exchange(sync_exch))
+    if timing.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
+        errors_list.append(&#34;Timing information unit is not microseconds since unix epoch&#34;)
+    if timing.get_packet_start_os_timestamp() == 0:
+        errors_list.append(&#34;Timing information os start timestamp is 0&#34;)
+    if timing.get_packet_start_mach_timestamp() == 0:
+        errors_list.append(&#34;Timing information mach start timestamp is 0&#34;)
+    if timing.get_packet_end_os_timestamp() == 0:
+        errors_list.append(&#34;Timing information os end timestamp is 0&#34;)
+    if timing.get_packet_end_mach_timestamp() == 0:
+        errors_list.append(&#34;Timing information mach end timestamp is 0&#34;)
+    if timing.get_app_start_mach_timestamp() == 0:
+        errors_list.append(&#34;Timing information app mach start timestamp is 0&#34;)
+    if timing.get_packet_start_os_timestamp() &gt; timing.get_packet_end_os_timestamp():
+        errors_list.append(&#34;Timing information os end timestamp is less than start timestamp&#34;)
+    if timing.get_packet_start_mach_timestamp() &gt; timing.get_packet_end_mach_timestamp():
+        errors_list.append(&#34;Timing information mach end timestamp is less than start timestamp&#34;)
+        # if timing.get_server_acquisition_arrival_timestamp() == 0:
+        #     errors_list.append(&#34;Timing information server acquisition arrival timestamp is 0&#34;)
+    return errors_list</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange"><code class="flex name class">
+<span>class <span class="ident">SynchExchangeProto</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.MetadataEntry"><code class="name">var <span class="ident">MetadataEntry</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.a1"><code class="name">var <span class="ident">a1</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.TimingInformation.SynchExchange.a1</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.a2"><code class="name">var <span class="ident">a2</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.TimingInformation.SynchExchange.a2</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.a3"><code class="name">var <span class="ident">a3</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.TimingInformation.SynchExchange.a3</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.b1"><code class="name">var <span class="ident">b1</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.TimingInformation.SynchExchange.b1</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.b2"><code class="name">var <span class="ident">b2</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.TimingInformation.SynchExchange.b2</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.b3"><code class="name">var <span class="ident">b3</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.TimingInformation.SynchExchange.b3</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.TimingInformation.SynchExchange.metadata</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.unit"><code class="name">var <span class="ident">unit</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.TimingInformation.SynchExchange.unit</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange"><code class="flex name class">
+<span>class <span class="ident">SynchExchange</span></span>
+<span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.SynchExchange)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SynchExchange(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange]):
+    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange):
+        super().__init__(proto)
+
+    @staticmethod
+    def new() -&gt; &#39;SynchExchange&#39;:
+        exchange = SynchExchange(redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange())
+        exchange.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+        return exchange
+
+    def get_unit(self) -&gt; common.Unit:
+        return common.Unit.from_proto(self._proto.unit)
+
+    def set_default_unit(self) -&gt; &#39;SynchExchange&#39;:
+        return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+
+    def set_unit(self, unit: Union[common.Unit, int]) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        self._proto.unit = unit.into_proto()
+        return self
+
+    def get_a1(self) -&gt; float:
+        return self._proto.a1
+
+    def set_a1(self, a1: float) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(a1, [int, float])
+        self._proto.a1 = a1
+        return self
+
+    def get_a2(self) -&gt; float:
+        return self._proto.a2
+
+    def set_a2(self, a2: float) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(a2, [int, float])
+        self._proto.a2 = a2
+        return self
+
+    def get_a3(self) -&gt; float:
+        return self._proto.a3
+
+    def set_a3(self, a3: float) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(a3, [int, float])
+        self._proto.a3 = a3
+        return self
+
+    def get_b1(self) -&gt; float:
+        return self._proto.b1
+
+    def set_b1(self, b1: float) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(b1, [int, float])
+        self._proto.b1 = b1
+        return self
+
+    def get_b2(self) -&gt; float:
+        return self._proto.b2
+
+    def set_b2(self, b2: float) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(b2, [int, float])
+        self._proto.b2 = b2
+        return self
+
+    def get_b3(self) -&gt; float:
+        return self._proto.b3
+
+    def set_b3(self, b3: float) -&gt; &#39;SynchExchange&#39;:
+        redvox.api1000.common.typing.check_type(b3, [int, float])
+        self._proto.b3 = b3
+        return self</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="redvox.api1000.common.generic.ProtoBase" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase">ProtoBase</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.new"><code class="name flex">
+<span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def new() -&gt; &#39;SynchExchange&#39;:
+    exchange = SynchExchange(redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange())
+    exchange.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+    return exchange</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_a1"><code class="name flex">
+<span>def <span class="ident">get_a1</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_a1(self) -&gt; float:
+    return self._proto.a1</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_a2"><code class="name flex">
+<span>def <span class="ident">get_a2</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_a2(self) -&gt; float:
+    return self._proto.a2</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_a3"><code class="name flex">
+<span>def <span class="ident">get_a3</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_a3(self) -&gt; float:
+    return self._proto.a3</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_b1"><code class="name flex">
+<span>def <span class="ident">get_b1</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_b1(self) -&gt; float:
+    return self._proto.b1</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_b2"><code class="name flex">
+<span>def <span class="ident">get_b2</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_b2(self) -&gt; float:
+    return self._proto.b2</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_b3"><code class="name flex">
+<span>def <span class="ident">get_b3</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_b3(self) -&gt; float:
+    return self._proto.b3</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_unit"><code class="name flex">
+<span>def <span class="ident">get_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_unit(self) -&gt; common.Unit:
+    return common.Unit.from_proto(self._proto.unit)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_a1"><code class="name flex">
+<span>def <span class="ident">set_a1</span></span>(<span>self, a1: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_a1(self, a1: float) -&gt; &#39;SynchExchange&#39;:
+    redvox.api1000.common.typing.check_type(a1, [int, float])
+    self._proto.a1 = a1
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_a2"><code class="name flex">
+<span>def <span class="ident">set_a2</span></span>(<span>self, a2: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_a2(self, a2: float) -&gt; &#39;SynchExchange&#39;:
+    redvox.api1000.common.typing.check_type(a2, [int, float])
+    self._proto.a2 = a2
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_a3"><code class="name flex">
+<span>def <span class="ident">set_a3</span></span>(<span>self, a3: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_a3(self, a3: float) -&gt; &#39;SynchExchange&#39;:
+    redvox.api1000.common.typing.check_type(a3, [int, float])
+    self._proto.a3 = a3
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_b1"><code class="name flex">
+<span>def <span class="ident">set_b1</span></span>(<span>self, b1: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_b1(self, b1: float) -&gt; &#39;SynchExchange&#39;:
+    redvox.api1000.common.typing.check_type(b1, [int, float])
+    self._proto.b1 = b1
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_b2"><code class="name flex">
+<span>def <span class="ident">set_b2</span></span>(<span>self, b2: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_b2(self, b2: float) -&gt; &#39;SynchExchange&#39;:
+    redvox.api1000.common.typing.check_type(b2, [int, float])
+    self._proto.b2 = b2
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_b3"><code class="name flex">
+<span>def <span class="ident">set_b3</span></span>(<span>self, b3: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_b3(self, b3: float) -&gt; &#39;SynchExchange&#39;:
+    redvox.api1000.common.typing.check_type(b3, [int, float])
+    self._proto.b3 = b3
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_default_unit"><code class="name flex">
+<span>def <span class="ident">set_default_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_default_unit(self) -&gt; &#39;SynchExchange&#39;:
+    return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_unit"><code class="name flex">
+<span>def <span class="ident">set_unit</span></span>(<span>self, unit: typing.Union[<a title="redvox.api1000.common.common.Unit" href="../common/common.html#redvox.api1000.common.common.Unit">Unit</a>, int]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_unit(self, unit: Union[common.Unit, int]) -&gt; &#39;SynchExchange&#39;:
+    redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    self._proto.unit = unit.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="redvox.api1000.common.generic.ProtoBase" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase">ProtoBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_bytes" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_bytes">as_bytes</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_compressed_bytes" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_compressed_bytes">as_compressed_bytes</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_dict" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_dict">as_dict</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_json" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_json">as_json</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.get_metadata" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.get_metadata">get_metadata</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.get_proto" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.get_proto">get_proto</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation"><code class="flex name class">
+<span>class <span class="ident">TimingInformation</span></span>
+<span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.TimingInformation)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TimingInformation(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation]):
+    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation):
+        super().__init__(proto)
+        self._synch_exchanges: redvox.api1000.common.generic.ProtoRepeatedMessage[SynchExchangeProto, SynchExchange] = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                proto,
+                proto.synch_exchanges,
+                _SYNCH_EXCHANGES_FIELD_NAME,
+                lambda exchange_proto: SynchExchange(exchange_proto),
+                lambda exchange: exchange.get_proto()
+            )
+
+    @staticmethod
+    def new() -&gt; &#39;TimingInformation&#39;:
+        return TimingInformation(redvox_api_m_pb2.RedvoxPacketM.TimingInformation())
+
+    def get_unit(self) -&gt; common.Unit:
+        return common.Unit.from_proto(self._proto.unit)
+
+    def set_default_unit(self) -&gt; &#39;TimingInformation&#39;:
+        return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+
+    def set_unit(self, unit: Union[common.Unit, int]) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        self._proto.unit = unit.into_proto()
+        return self
+
+    def get_packet_start_os_timestamp(self) -&gt; float:
+        return self._proto.packet_start_os_timestamp
+
+    def set_packet_start_os_timestamp(self, packet_start_os_timestamp) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(packet_start_os_timestamp, [int, float])
+        self._proto.packet_start_os_timestamp = packet_start_os_timestamp
+        return self
+
+    def get_packet_start_mach_timestamp(self) -&gt; float:
+        return self._proto.packet_start_mach_timestamp
+
+    def set_packet_start_mach_timestamp(self, packet_start_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(packet_start_mach_timestamp, [int, float])
+        self._proto.packet_start_mach_timestamp = packet_start_mach_timestamp
+        return self
+
+    def get_packet_end_os_timestamp(self) -&gt; float:
+        return self._proto.packet_end_os_timestamp
+
+    def set_packet_end_os_timestamp(self, packet_end_os_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(packet_end_os_timestamp, [int, float])
+        self._proto.packet_end_os_timestamp = packet_end_os_timestamp
+        return self
+
+    def get_packet_end_mach_timestamp(self) -&gt; float:
+        return self._proto.packet_end_mach_timestamp
+
+    def set_packet_end_mach_timestamp(self, packet_end_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(packet_end_mach_timestamp, [int, float])
+        self._proto.packet_end_mach_timestamp = packet_end_mach_timestamp
+        return self
+
+    def get_server_acquisition_arrival_timestamp(self) -&gt; float:
+        return self._proto.server_acquisition_arrival_timestamp
+
+    def set_server_acquisition_arrival_timestamp(self,
+                                                 server_acquisition_arrival_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(server_acquisition_arrival_timestamp, [int, float])
+        self._proto.server_acquisition_arrival_timestamp = server_acquisition_arrival_timestamp
+        return self
+
+    def get_app_start_mach_timestamp(self) -&gt; float:
+        return self._proto.app_start_mach_timestamp
+
+    def set_app_start_mach_timestamp(self, app_start_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(app_start_mach_timestamp, [int, float])
+        self._proto.app_start_mach_timestamp = app_start_mach_timestamp
+        return self
+
+    def get_synch_exchanges(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        return self._synch_exchanges
+
+    def get_best_latency(self) -&gt; float:
+        return self._proto.best_latency
+
+    def set_best_latency(self, best_latency: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(best_latency, [int, float])
+        self._proto.best_latency = best_latency
+        return self
+
+    def get_best_offset(self) -&gt; float:
+        return self._proto.best_offset
+
+    def set_best_offset(self, best_offset: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(best_offset, [int, float])
+        self._proto.best_offset = best_offset
+        return self
+
+    def get_score(self) -&gt; float:
+        return self._proto.score
+
+    def set_score(self, score: float) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(score, [float])
+        self._proto.score = score
+        return self
+
+    def get_score_method(self) -&gt; TimingScoreMethod:
+        return TimingScoreMethod(self._proto.score_method)
+
+    def set_score_method(self, score_method: TimingScoreMethod) -&gt; &#39;TimingInformation&#39;:
+        redvox.api1000.common.typing.check_type(score_method, [TimingScoreMethod])
+        self._proto.os = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
+        return self</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="redvox.api1000.common.generic.ProtoBase" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase">ProtoBase</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.new"><code class="name flex">
+<span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def new() -&gt; &#39;TimingInformation&#39;:
+    return TimingInformation(redvox_api_m_pb2.RedvoxPacketM.TimingInformation())</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_app_start_mach_timestamp"><code class="name flex">
+<span>def <span class="ident">get_app_start_mach_timestamp</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_app_start_mach_timestamp(self) -&gt; float:
+    return self._proto.app_start_mach_timestamp</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_best_latency"><code class="name flex">
+<span>def <span class="ident">get_best_latency</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_best_latency(self) -&gt; float:
+    return self._proto.best_latency</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_best_offset"><code class="name flex">
+<span>def <span class="ident">get_best_offset</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_best_offset(self) -&gt; float:
+    return self._proto.best_offset</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_packet_end_mach_timestamp"><code class="name flex">
+<span>def <span class="ident">get_packet_end_mach_timestamp</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_packet_end_mach_timestamp(self) -&gt; float:
+    return self._proto.packet_end_mach_timestamp</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_packet_end_os_timestamp"><code class="name flex">
+<span>def <span class="ident">get_packet_end_os_timestamp</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_packet_end_os_timestamp(self) -&gt; float:
+    return self._proto.packet_end_os_timestamp</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_packet_start_mach_timestamp"><code class="name flex">
+<span>def <span class="ident">get_packet_start_mach_timestamp</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_packet_start_mach_timestamp(self) -&gt; float:
+    return self._proto.packet_start_mach_timestamp</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_packet_start_os_timestamp"><code class="name flex">
+<span>def <span class="ident">get_packet_start_os_timestamp</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_packet_start_os_timestamp(self) -&gt; float:
+    return self._proto.packet_start_os_timestamp</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_score"><code class="name flex">
+<span>def <span class="ident">get_score</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_score(self) -&gt; float:
+    return self._proto.score</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_score_method"><code class="name flex">
+<span>def <span class="ident">get_score_method</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod">TimingScoreMethod</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_score_method(self) -&gt; TimingScoreMethod:
+    return TimingScoreMethod(self._proto.score_method)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_server_acquisition_arrival_timestamp"><code class="name flex">
+<span>def <span class="ident">get_server_acquisition_arrival_timestamp</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_server_acquisition_arrival_timestamp(self) -&gt; float:
+    return self._proto.server_acquisition_arrival_timestamp</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_synch_exchanges"><code class="name flex">
+<span>def <span class="ident">get_synch_exchanges</span></span>(<span>self) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="../common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_synch_exchanges(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+    return self._synch_exchanges</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_unit"><code class="name flex">
+<span>def <span class="ident">get_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_unit(self) -&gt; common.Unit:
+    return common.Unit.from_proto(self._proto.unit)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_app_start_mach_timestamp"><code class="name flex">
+<span>def <span class="ident">set_app_start_mach_timestamp</span></span>(<span>self, app_start_mach_timestamp: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_app_start_mach_timestamp(self, app_start_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+    redvox.api1000.common.typing.check_type(app_start_mach_timestamp, [int, float])
+    self._proto.app_start_mach_timestamp = app_start_mach_timestamp
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_best_latency"><code class="name flex">
+<span>def <span class="ident">set_best_latency</span></span>(<span>self, best_latency: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_best_latency(self, best_latency: float) -&gt; &#39;TimingInformation&#39;:
+    redvox.api1000.common.typing.check_type(best_latency, [int, float])
+    self._proto.best_latency = best_latency
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_best_offset"><code class="name flex">
+<span>def <span class="ident">set_best_offset</span></span>(<span>self, best_offset: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_best_offset(self, best_offset: float) -&gt; &#39;TimingInformation&#39;:
+    redvox.api1000.common.typing.check_type(best_offset, [int, float])
+    self._proto.best_offset = best_offset
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_default_unit"><code class="name flex">
+<span>def <span class="ident">set_default_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_default_unit(self) -&gt; &#39;TimingInformation&#39;:
+    return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_packet_end_mach_timestamp"><code class="name flex">
+<span>def <span class="ident">set_packet_end_mach_timestamp</span></span>(<span>self, packet_end_mach_timestamp: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_packet_end_mach_timestamp(self, packet_end_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+    redvox.api1000.common.typing.check_type(packet_end_mach_timestamp, [int, float])
+    self._proto.packet_end_mach_timestamp = packet_end_mach_timestamp
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_packet_end_os_timestamp"><code class="name flex">
+<span>def <span class="ident">set_packet_end_os_timestamp</span></span>(<span>self, packet_end_os_timestamp: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_packet_end_os_timestamp(self, packet_end_os_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+    redvox.api1000.common.typing.check_type(packet_end_os_timestamp, [int, float])
+    self._proto.packet_end_os_timestamp = packet_end_os_timestamp
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_packet_start_mach_timestamp"><code class="name flex">
+<span>def <span class="ident">set_packet_start_mach_timestamp</span></span>(<span>self, packet_start_mach_timestamp: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_packet_start_mach_timestamp(self, packet_start_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+    redvox.api1000.common.typing.check_type(packet_start_mach_timestamp, [int, float])
+    self._proto.packet_start_mach_timestamp = packet_start_mach_timestamp
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_packet_start_os_timestamp"><code class="name flex">
+<span>def <span class="ident">set_packet_start_os_timestamp</span></span>(<span>self, packet_start_os_timestamp) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_packet_start_os_timestamp(self, packet_start_os_timestamp) -&gt; &#39;TimingInformation&#39;:
+    redvox.api1000.common.typing.check_type(packet_start_os_timestamp, [int, float])
+    self._proto.packet_start_os_timestamp = packet_start_os_timestamp
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_score"><code class="name flex">
+<span>def <span class="ident">set_score</span></span>(<span>self, score: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_score(self, score: float) -&gt; &#39;TimingInformation&#39;:
+    redvox.api1000.common.typing.check_type(score, [float])
+    self._proto.score = score
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_score_method"><code class="name flex">
+<span>def <span class="ident">set_score_method</span></span>(<span>self, score_method: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod">TimingScoreMethod</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_score_method(self, score_method: TimingScoreMethod) -&gt; &#39;TimingInformation&#39;:
+    redvox.api1000.common.typing.check_type(score_method, [TimingScoreMethod])
+    self._proto.os = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_server_acquisition_arrival_timestamp"><code class="name flex">
+<span>def <span class="ident">set_server_acquisition_arrival_timestamp</span></span>(<span>self, server_acquisition_arrival_timestamp: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_server_acquisition_arrival_timestamp(self,
+                                             server_acquisition_arrival_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+    redvox.api1000.common.typing.check_type(server_acquisition_arrival_timestamp, [int, float])
+    self._proto.server_acquisition_arrival_timestamp = server_acquisition_arrival_timestamp
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_unit"><code class="name flex">
+<span>def <span class="ident">set_unit</span></span>(<span>self, unit: typing.Union[<a title="redvox.api1000.common.common.Unit" href="../common/common.html#redvox.api1000.common.common.Unit">Unit</a>, int]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_unit(self, unit: Union[common.Unit, int]) -&gt; &#39;TimingInformation&#39;:
+    redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    self._proto.unit = unit.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="redvox.api1000.common.generic.ProtoBase" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase">ProtoBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_bytes" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_bytes">as_bytes</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_compressed_bytes" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_compressed_bytes">as_compressed_bytes</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_dict" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_dict">as_dict</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_json" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_json">as_json</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.get_metadata" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.get_metadata">get_metadata</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.get_proto" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.get_proto">get_proto</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod"><code class="flex name class">
+<span>class <span class="ident">TimingScoreMethod</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TimingScoreMethod(enum.Enum):
+    UNKNOWN: int = 0</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod.from_proto"><code class="name flex">
+<span>def <span class="ident">from_proto</span></span>(<span>proto)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">enum.from_proto = staticmethod(lambda proto: enum(proto))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod.into_proto"><code class="name flex">
+<span>def <span class="ident">into_proto</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">setattr(enum, &#34;into_proto&#34;, lambda self: proto_type.Value(self.name))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet" href="index.html">redvox.api1000.wrapped_redvox_packet</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.validate_synch_exchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.validate_synch_exchange">validate_synch_exchange</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.validate_timing_information" href="#redvox.api1000.wrapped_redvox_packet.timing_information.validate_timing_information">validate_timing_information</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.DESCRIPTOR" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.MetadataEntry" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.MetadataEntry">MetadataEntry</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.a1" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.a1">a1</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.a2" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.a2">a2</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.a3" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.a3">a3</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.b1" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.b1">b1</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.b2" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.b2">b2</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.b3" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.b3">b3</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.metadata" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.metadata">metadata</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.unit" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.unit">unit</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_a1" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_a1">get_a1</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_a2" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_a2">get_a2</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_a3" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_a3">get_a3</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_b1" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_b1">get_b1</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_b2" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_b2">get_b2</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_b3" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_b3">get_b3</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_unit" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.get_unit">get_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.new" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.new">new</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_a1" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_a1">set_a1</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_a2" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_a2">set_a2</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_a3" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_a3">set_a3</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_b1" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_b1">set_b1</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_b2" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_b2">set_b2</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_b3" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_b3">set_b3</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_default_unit" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_default_unit">set_default_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_unit" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_unit">set_unit</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_app_start_mach_timestamp" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_app_start_mach_timestamp">get_app_start_mach_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_best_latency" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_best_latency">get_best_latency</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_best_offset" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_best_offset">get_best_offset</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_packet_end_mach_timestamp" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_packet_end_mach_timestamp">get_packet_end_mach_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_packet_end_os_timestamp" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_packet_end_os_timestamp">get_packet_end_os_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_packet_start_mach_timestamp" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_packet_start_mach_timestamp">get_packet_start_mach_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_packet_start_os_timestamp" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_packet_start_os_timestamp">get_packet_start_os_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_score" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_score">get_score</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_score_method" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_score_method">get_score_method</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_server_acquisition_arrival_timestamp" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_server_acquisition_arrival_timestamp">get_server_acquisition_arrival_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_synch_exchanges" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_synch_exchanges">get_synch_exchanges</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_unit" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_unit">get_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.new" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.new">new</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_app_start_mach_timestamp" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_app_start_mach_timestamp">set_app_start_mach_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_best_latency" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_best_latency">set_best_latency</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_best_offset" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_best_offset">set_best_offset</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_default_unit" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_default_unit">set_default_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_packet_end_mach_timestamp" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_packet_end_mach_timestamp">set_packet_end_mach_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_packet_end_os_timestamp" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_packet_end_os_timestamp">set_packet_end_os_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_packet_start_mach_timestamp" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_packet_start_mach_timestamp">set_packet_start_mach_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_packet_start_os_timestamp" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_packet_start_os_timestamp">set_packet_start_os_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_score" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_score">set_score</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_score_method" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_score_method">set_score_method</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_server_acquisition_arrival_timestamp" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_server_acquisition_arrival_timestamp">set_server_acquisition_arrival_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_unit" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_unit">set_unit</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod">TimingScoreMethod</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod.UNKNOWN" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod.UNKNOWN">UNKNOWN</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod.from_proto" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod.from_proto">from_proto</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod.into_proto" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod.into_proto">into_proto</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
