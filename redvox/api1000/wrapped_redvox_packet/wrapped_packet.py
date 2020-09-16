@@ -165,16 +165,6 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
 
         return out_path
 
-    def duration(self) -> timedelta:
-        """
-        Calculates the curation of a packet from its audio sampling rate and number of audio samples.
-        :return: A timedelta representing the duration of the packet
-        """
-        audio_sensor = self.get_sensors().get_audio()
-        sample_rate_hz: float = audio_sensor.get_sample_rate()
-        samples: int = audio_sensor.get_samples().get_values_count()
-        return timedelta(seconds=samples / sample_rate_hz)
-
     def validate(self) -> List[str]:
         return validate_wrapped_packet(self)
 
