@@ -1,4 +1,6 @@
 import enum
+from datetime import timedelta
+
 import numpy as np
 import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
@@ -79,6 +81,9 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
 
     def get_num_samples(self) -> int:
         return self.get_samples().get_values_count()
+
+    def get_duration(self) -> timedelta:
+        return timedelta(seconds=self.get_duration_s())
 
     def get_duration_s(self) -> float:
         """
