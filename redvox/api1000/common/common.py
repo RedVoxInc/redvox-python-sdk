@@ -3,7 +3,7 @@ Provides common classes and methods for interacting with various API 1000 protob
 """
 
 import enum
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Union
 
 import numpy as np
 
@@ -201,11 +201,13 @@ def validate_summary_statistics(stats: SummaryStatistics) -> List[str]:
     return errors_list
 
 
-class SamplePayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SamplePayload]):
+class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload,
+                                    redvox_api_m_pb2.RedvoxPacketM.DoubleSamplePayload]]):
     """
     A class for managing sensor samples and the corresponding statistics.
     """
-    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.SamplePayload):
+    def __init__(self, proto: Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload,
+                                    redvox_api_m_pb2.RedvoxPacketM.DoubleSamplePayload]):
         super().__init__(proto)
         self._summary_statistics: SummaryStatistics = SummaryStatistics(proto.value_statistics)
 
