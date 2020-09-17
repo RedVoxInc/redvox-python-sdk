@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>redvox.api1000.io_raw API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="This module provides low level aggregate read functionality for RedVox API M data." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,16 @@
 <h1 class="title">Module <code>redvox.api1000.io_raw</code></h1>
 </header>
 <section id="section-intro">
+<p>This module provides low level aggregate read functionality for RedVox API M data.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from collections import defaultdict
+<pre><code class="python">&#34;&#34;&#34;
+This module provides low level aggregate read functionality for RedVox API M data.
+&#34;&#34;&#34;
+
+from collections import defaultdict
 from datetime import datetime, timezone
 from dataclasses import dataclass
 from glob import glob
@@ -40,34 +45,72 @@ from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc a
 
 @dataclass
 class ReadFilter:
+    &#34;&#34;&#34;
+    Filter API M files from the file system.
+    &#34;&#34;&#34;
     start_dt: Optional[datetime] = None
     end_dt: Optional[datetime] = None
     station_ids: Optional[Set[str]] = None
     extension: str = &#34;.rdvxm&#34;
 
     def with_start_dt(self, start_dt: datetime) -&gt; &#39;ReadFilter&#39;:
+        &#34;&#34;&#34;
+        Adds a start datetime filter.
+        :param start_dt: Start datetime that files should come after.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
         self.start_dt = start_dt
         return self
 
     def with_start_ts(self, start_ts: float) -&gt; &#39;ReadFilter&#39;:
+        &#34;&#34;&#34;
+        Adds a start time filter.
+        :param start_ts: Start timestamp (microseconds)
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
         return self.with_start_dt(dt_us(start_ts))
 
     def with_end_dt(self, end_dt: datetime) -&gt; &#39;ReadFilter&#39;:
+        &#34;&#34;&#34;
+        Adds an end datetime filter.
+        :param end_dt: Filter for which packets should come before.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
         self.end_dt = end_dt
         return self
 
     def with_end_ts(self, end_ts: float) -&gt; &#39;ReadFilter&#39;:
+        &#34;&#34;&#34;
+        Like with_end_dt, but uses a microsecond timestamp.
+        :param end_ts: Timestamp microseconds.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
         return self.with_end_dt(dt_us(end_ts))
 
     def with_station_ids(self, station_ids: Set[str]) -&gt; &#39;ReadFilter&#39;:
+        &#34;&#34;&#34;
+        Add a station id filter. Filters against provided station ids.
+        :param station_ids: Station ids to filter against.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
         self.station_ids = station_ids
         return self
 
     def with_extension(self, extension: str) -&gt; &#39;ReadFilter&#39;:
+        &#34;&#34;&#34;
+        Filters against a known file extension.
+        :param extension: Extension to filter against
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
         self.extension = extension
         return self
 
-    def filter_dt(self, dt: datetime):
+    def filter_dt(self, dt: datetime) -&gt; bool:
+        &#34;&#34;&#34;
+        Tests if a given datetime passes this filter.
+        :param dt: Datetime to test
+        :return: True if the datetime is included, False otherwise
+        &#34;&#34;&#34;
         if self.start_dt is not None and dt &lt; self.start_dt:
             return False
 
@@ -77,6 +120,11 @@ class ReadFilter:
         return True
 
     def filter_path(self, path: str) -&gt; bool:
+        &#34;&#34;&#34;
+        Tests a given file system path against this filter.
+        :param path: Path to test.
+        :return: True if the path is accepted, False otherwise
+        &#34;&#34;&#34;
         _path: Path = Path(path)
         ext: str = &#34;&#34;.join(_path.suffixes)
         station_ts: str = _path.stem
@@ -98,8 +146,14 @@ class ReadFilter:
 
 
 class ReadResult:
+    &#34;&#34;&#34;
+    Result of reading multiple API M files.
+    &#34;&#34;&#34;
     def __init__(self,
                  station_id_uuid_to_packets: Dict[str, List[WrappedRedvoxPacketM]]):
+        &#34;&#34;&#34;
+        :param station_id_uuid_to_packets: station_id:station_uuid -&gt; packets
+        &#34;&#34;&#34;
         self.station_id_uuid_to_packets: Dict[str, List[WrappedRedvoxPacketM]] = station_id_uuid_to_packets
         self.__station_id_to_id_uuid: Dict[str, str] = {}
 
@@ -109,6 +163,11 @@ class ReadResult:
 
     @staticmethod
     def from_packets(packets: List[WrappedRedvoxPacketM]) -&gt; &#39;ReadResult&#39;:
+        &#34;&#34;&#34;
+        Constructs a read result from the provided packets.
+        :param packets: Packets to construct read result from.
+        :return: ReadResult from provided packets
+        &#34;&#34;&#34;
         station_id_uuid_to_packets: Dict[str, List[WrappedRedvoxPacketM]] = defaultdict(list)
 
         for packet in packets:
@@ -121,45 +180,79 @@ class ReadResult:
         return ReadResult(station_id_uuid_to_packets)
 
     def __get_packets_for_station_id_uuid(self, station_id_uuid) -&gt; List[WrappedRedvoxPacketM]:
+        &#34;&#34;&#34;
+        Find packets given a station_id:uuid.
+        :param station_id_uuid: Station id and uuid to get packets for.
+        :return: A list of wrapped packets or an empty list if none match.
+        &#34;&#34;&#34;
         if station_id_uuid in self.station_id_uuid_to_packets:
             return self.station_id_uuid_to_packets[station_id_uuid]
 
         return []
 
     def __get_packets_for_station_id(self, station_id: str) -&gt; List[WrappedRedvoxPacketM]:
+        &#34;&#34;&#34;
+        Get packets for an associated station id.
+        :param station_id: The station id.
+        :return: A list of wrapped packets or an empty list if none provided.
+        &#34;&#34;&#34;
         if station_id in self.__station_id_to_id_uuid:
             return self.__get_packets_for_station_id_uuid(self.__station_id_to_id_uuid[station_id])
 
         return []
 
     def get_station_id_uuids(self) -&gt; List[str]:
+        &#34;&#34;&#34;
+        :return: A list of station_id:uuids contained in this ReadResult
+        &#34;&#34;&#34;
         return list(self.station_id_uuid_to_packets.keys())
 
     def get_packets_for_station_id(self, station_id: str) -&gt; List[WrappedRedvoxPacketM]:
+        &#34;&#34;&#34;
+        Gets packets either for the provided station_id or the provided station_id:uuid.
+        :param station_id: station_id or station_id:uuid to get packets for.
+        :return: A list of packets of an empty list of none provided.
+        &#34;&#34;&#34;
         if &#34;:&#34; in station_id:
             return self.__get_packets_for_station_id_uuid(station_id)
         else:
             return self.__get_packets_for_station_id(station_id)
 
 
-__VALID_YEARS: Set[str] = {f&#34;{i:04}&#34; for i in range(2018, 2031)}
+# We need to parse the API M structured directory structure. Here, we enumerate the valid values for the various
+# levels in the hierarchy.
+__VALID_YEARS:  Set[str] = {f&#34;{i:04}&#34; for i in range(2018, 2031)}
 __VALID_MONTHS: Set[str] = {f&#34;{i:02}&#34; for i in range(1, 13)}
-__VALID_DATES: Set[str] = {f&#34;{i:02}&#34; for i in range(1, 32)}
-__VALID_HOURS: Set[str] = {f&#34;{i:02}&#34; for i in range(0, 24)}
+__VALID_DATES:  Set[str] = {f&#34;{i:02}&#34; for i in range(1, 32)}
+__VALID_HOURS:  Set[str] = {f&#34;{i:02}&#34; for i in range(0, 24)}
 
 
 def __list_subdirs(base_dir: str, valid_choices: Set[str]) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Lists sub-directors in a given base directory that match the provided choices.
+    :param base_dir: Base dir to find sub dirs in.
+    :param valid_choices: A list of valid directory names.
+    :return: A list of valid subdirs.
+    &#34;&#34;&#34;
     subdirs: Iterator[str] = map(lambda p: Path(p).name, glob(os.path.join(base_dir, &#34;*&#34;, &#34;&#34;)))
     return sorted(list(filter(valid_choices.__contains__, subdirs)))
 
 
 def __parse_structured_layout(base_dir: str,
                               read_filter: ReadFilter = ReadFilter()) -&gt; List[str]:
+    &#34;&#34;&#34;
+    This parses a structured API M directory structure and identifies files that match the provided filter.
+    :param base_dir: Base directory (should be named api1000)
+    :param read_filter: Filter to filter files with
+    :return: A list of wrapped packets on an empty list if none match the filter or none are found
+    &#34;&#34;&#34;
     all_paths: List[str] = []
     for year in __list_subdirs(base_dir, __VALID_YEARS):
         for month in __list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
             for day in __list_subdirs(os.path.join(base_dir, year, month), __VALID_DATES):
                 for hour in __list_subdirs(os.path.join(base_dir, year, day), __VALID_HOURS):
+                    # Before scanning for *.rdvxm files, let&#39;s see if the current year, month, day, hour are in the
+                    # filter&#39;s range. If not, we can short circuit and skip getting the *.rdvxm files.
                     if not read_filter.filter_dt(datetime(int(year),
                                                           int(month),
                                                           int(day),
@@ -173,6 +266,7 @@ def __parse_structured_layout(base_dir: str,
                                                          day,
                                                          hour,
                                                          f&#34;*.{read_filter.extension}&#34;))
+                    # Filer paths that match the predicate
                     valid_paths: List[str] = list(filter(lambda path: read_filter.filter_path(path), paths))
                     if len(valid_paths) &gt; 0:
                         all_paths.extend(valid_paths)
@@ -181,17 +275,35 @@ def __parse_structured_layout(base_dir: str,
 
 
 def read_bufs(bufs: List[bytes]) -&gt; ReadResult:
+    &#34;&#34;&#34;
+    Reads a list of API M packet buffers.
+    :param bufs: Buffers to read.
+    :return: A ReadResult of the read data.
+    &#34;&#34;&#34;
     wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_bytes, bufs)))
     return ReadResult.from_packets(wrapped_packets)
 
 
 def read_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&gt; ReadResult:
+    &#34;&#34;&#34;
+    Read structured API M data. Structured API data is stored using the following directory hierarchy.
+        api1000/[YYYY]/[MM]/[DD]/[HH]/*.rdvxm
+    :param base_dir: Base directory of structured data (should be named api1000)
+    :param read_filter: Filter to apply to files.
+    :return: A ReadResult
+    &#34;&#34;&#34;
     paths: List[str] = __parse_structured_layout(base_dir, read_filter)
     wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
     return ReadResult.from_packets(wrapped_packets)
 
 
 def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&gt; ReadResult:
+    &#34;&#34;&#34;
+    Reads RedVox files from a provided directory.
+    :param base_dir: Directory to read files from.
+    :param read_filter: Filter to filter files with.
+    :return: A ReadResult.
+    &#34;&#34;&#34;
     paths: List[str] = glob(os.path.join(base_dir, f&#34;*.{read_filter.extension}&#34;))
     paths = list(filter(lambda path: read_filter.filter_path(path), paths))
     wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
@@ -209,12 +321,19 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>def <span class="ident">read_bufs</span></span>(<span>bufs: typing.List[bytes]) ‑> <a title="redvox.api1000.io_raw.ReadResult" href="#redvox.api1000.io_raw.ReadResult">ReadResult</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Reads a list of API M packet buffers.
+:param bufs: Buffers to read.
+:return: A ReadResult of the read data.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def read_bufs(bufs: List[bytes]) -&gt; ReadResult:
+    &#34;&#34;&#34;
+    Reads a list of API M packet buffers.
+    :param bufs: Buffers to read.
+    :return: A ReadResult of the read data.
+    &#34;&#34;&#34;
     wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_bytes, bufs)))
     return ReadResult.from_packets(wrapped_packets)</code></pre>
 </details>
@@ -223,12 +342,23 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>def <span class="ident">read_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.api1000.io_raw.ReadFilter" href="#redvox.api1000.io_raw.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extension='.rdvxm')) ‑> <a title="redvox.api1000.io_raw.ReadResult" href="#redvox.api1000.io_raw.ReadResult">ReadResult</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Read structured API M data. Structured API data is stored using the following directory hierarchy.
+api1000/[YYYY]/[MM]/[DD]/[HH]/*.rdvxm
+:param base_dir: Base directory of structured data (should be named api1000)
+:param read_filter: Filter to apply to files.
+:return: A ReadResult</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def read_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&gt; ReadResult:
+    &#34;&#34;&#34;
+    Read structured API M data. Structured API data is stored using the following directory hierarchy.
+        api1000/[YYYY]/[MM]/[DD]/[HH]/*.rdvxm
+    :param base_dir: Base directory of structured data (should be named api1000)
+    :param read_filter: Filter to apply to files.
+    :return: A ReadResult
+    &#34;&#34;&#34;
     paths: List[str] = __parse_structured_layout(base_dir, read_filter)
     wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
     return ReadResult.from_packets(wrapped_packets)</code></pre>
@@ -238,12 +368,21 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>def <span class="ident">read_unstructured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.api1000.io_raw.ReadFilter" href="#redvox.api1000.io_raw.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extension='.rdvxm')) ‑> <a title="redvox.api1000.io_raw.ReadResult" href="#redvox.api1000.io_raw.ReadResult">ReadResult</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Reads RedVox files from a provided directory.
+:param base_dir: Directory to read files from.
+:param read_filter: Filter to filter files with.
+:return: A ReadResult.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&gt; ReadResult:
+    &#34;&#34;&#34;
+    Reads RedVox files from a provided directory.
+    :param base_dir: Directory to read files from.
+    :param read_filter: Filter to filter files with.
+    :return: A ReadResult.
+    &#34;&#34;&#34;
     paths: List[str] = glob(os.path.join(base_dir, f&#34;*.{read_filter.extension}&#34;))
     paths = list(filter(lambda path: read_filter.filter_path(path), paths))
     wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
@@ -260,40 +399,78 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>(</span><span>start_dt: typing.Union[datetime.datetime, NoneType] = None, end_dt: typing.Union[datetime.datetime, NoneType] = None, station_ids: typing.Union[typing.Set[str], NoneType] = None, extension: str = '.rdvxm')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>ReadFilter(start_dt: typing.Union[datetime.datetime, NoneType] = None, end_dt: typing.Union[datetime.datetime, NoneType] = None, station_ids: typing.Union[typing.Set[str], NoneType] = None, extension: str = '.rdvxm')</p></div>
+<div class="desc"><p>Filter API M files from the file system.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ReadFilter:
+    &#34;&#34;&#34;
+    Filter API M files from the file system.
+    &#34;&#34;&#34;
     start_dt: Optional[datetime] = None
     end_dt: Optional[datetime] = None
     station_ids: Optional[Set[str]] = None
     extension: str = &#34;.rdvxm&#34;
 
     def with_start_dt(self, start_dt: datetime) -&gt; &#39;ReadFilter&#39;:
+        &#34;&#34;&#34;
+        Adds a start datetime filter.
+        :param start_dt: Start datetime that files should come after.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
         self.start_dt = start_dt
         return self
 
     def with_start_ts(self, start_ts: float) -&gt; &#39;ReadFilter&#39;:
+        &#34;&#34;&#34;
+        Adds a start time filter.
+        :param start_ts: Start timestamp (microseconds)
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
         return self.with_start_dt(dt_us(start_ts))
 
     def with_end_dt(self, end_dt: datetime) -&gt; &#39;ReadFilter&#39;:
+        &#34;&#34;&#34;
+        Adds an end datetime filter.
+        :param end_dt: Filter for which packets should come before.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
         self.end_dt = end_dt
         return self
 
     def with_end_ts(self, end_ts: float) -&gt; &#39;ReadFilter&#39;:
+        &#34;&#34;&#34;
+        Like with_end_dt, but uses a microsecond timestamp.
+        :param end_ts: Timestamp microseconds.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
         return self.with_end_dt(dt_us(end_ts))
 
     def with_station_ids(self, station_ids: Set[str]) -&gt; &#39;ReadFilter&#39;:
+        &#34;&#34;&#34;
+        Add a station id filter. Filters against provided station ids.
+        :param station_ids: Station ids to filter against.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
         self.station_ids = station_ids
         return self
 
     def with_extension(self, extension: str) -&gt; &#39;ReadFilter&#39;:
+        &#34;&#34;&#34;
+        Filters against a known file extension.
+        :param extension: Extension to filter against
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
         self.extension = extension
         return self
 
-    def filter_dt(self, dt: datetime):
+    def filter_dt(self, dt: datetime) -&gt; bool:
+        &#34;&#34;&#34;
+        Tests if a given datetime passes this filter.
+        :param dt: Datetime to test
+        :return: True if the datetime is included, False otherwise
+        &#34;&#34;&#34;
         if self.start_dt is not None and dt &lt; self.start_dt:
             return False
 
@@ -303,6 +480,11 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
         return True
 
     def filter_path(self, path: str) -&gt; bool:
+        &#34;&#34;&#34;
+        Tests a given file system path against this filter.
+        :param path: Path to test.
+        :return: True if the path is accepted, False otherwise
+        &#34;&#34;&#34;
         _path: Path = Path(path)
         ext: str = &#34;&#34;.join(_path.suffixes)
         station_ts: str = _path.stem
@@ -344,15 +526,22 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.api1000.io_raw.ReadFilter.filter_dt"><code class="name flex">
-<span>def <span class="ident">filter_dt</span></span>(<span>self, dt: datetime.datetime)</span>
+<span>def <span class="ident">filter_dt</span></span>(<span>self, dt: datetime.datetime) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Tests if a given datetime passes this filter.
+:param dt: Datetime to test
+:return: True if the datetime is included, False otherwise</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def filter_dt(self, dt: datetime):
+<pre><code class="python">def filter_dt(self, dt: datetime) -&gt; bool:
+    &#34;&#34;&#34;
+    Tests if a given datetime passes this filter.
+    :param dt: Datetime to test
+    :return: True if the datetime is included, False otherwise
+    &#34;&#34;&#34;
     if self.start_dt is not None and dt &lt; self.start_dt:
         return False
 
@@ -366,12 +555,19 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>def <span class="ident">filter_path</span></span>(<span>self, path: str) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Tests a given file system path against this filter.
+:param path: Path to test.
+:return: True if the path is accepted, False otherwise</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def filter_path(self, path: str) -&gt; bool:
+    &#34;&#34;&#34;
+    Tests a given file system path against this filter.
+    :param path: Path to test.
+    :return: True if the path is accepted, False otherwise
+    &#34;&#34;&#34;
     _path: Path = Path(path)
     ext: str = &#34;&#34;.join(_path.suffixes)
     station_ts: str = _path.stem
@@ -396,12 +592,19 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>def <span class="ident">with_end_dt</span></span>(<span>self, end_dt: datetime.datetime) ‑> <a title="redvox.api1000.io_raw.ReadFilter" href="#redvox.api1000.io_raw.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Adds an end datetime filter.
+:param end_dt: Filter for which packets should come before.
+:return: A modified instance of this filter</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def with_end_dt(self, end_dt: datetime) -&gt; &#39;ReadFilter&#39;:
+    &#34;&#34;&#34;
+    Adds an end datetime filter.
+    :param end_dt: Filter for which packets should come before.
+    :return: A modified instance of this filter
+    &#34;&#34;&#34;
     self.end_dt = end_dt
     return self</code></pre>
 </details>
@@ -410,12 +613,19 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>def <span class="ident">with_end_ts</span></span>(<span>self, end_ts: float) ‑> <a title="redvox.api1000.io_raw.ReadFilter" href="#redvox.api1000.io_raw.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Like with_end_dt, but uses a microsecond timestamp.
+:param end_ts: Timestamp microseconds.
+:return: A modified instance of this filter</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def with_end_ts(self, end_ts: float) -&gt; &#39;ReadFilter&#39;:
+    &#34;&#34;&#34;
+    Like with_end_dt, but uses a microsecond timestamp.
+    :param end_ts: Timestamp microseconds.
+    :return: A modified instance of this filter
+    &#34;&#34;&#34;
     return self.with_end_dt(dt_us(end_ts))</code></pre>
 </details>
 </dd>
@@ -423,12 +633,19 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>def <span class="ident">with_extension</span></span>(<span>self, extension: str) ‑> <a title="redvox.api1000.io_raw.ReadFilter" href="#redvox.api1000.io_raw.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Filters against a known file extension.
+:param extension: Extension to filter against
+:return: A modified instance of this filter</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def with_extension(self, extension: str) -&gt; &#39;ReadFilter&#39;:
+    &#34;&#34;&#34;
+    Filters against a known file extension.
+    :param extension: Extension to filter against
+    :return: A modified instance of this filter
+    &#34;&#34;&#34;
     self.extension = extension
     return self</code></pre>
 </details>
@@ -437,12 +654,19 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>def <span class="ident">with_start_dt</span></span>(<span>self, start_dt: datetime.datetime) ‑> <a title="redvox.api1000.io_raw.ReadFilter" href="#redvox.api1000.io_raw.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Adds a start datetime filter.
+:param start_dt: Start datetime that files should come after.
+:return: A modified instance of this filter</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def with_start_dt(self, start_dt: datetime) -&gt; &#39;ReadFilter&#39;:
+    &#34;&#34;&#34;
+    Adds a start datetime filter.
+    :param start_dt: Start datetime that files should come after.
+    :return: A modified instance of this filter
+    &#34;&#34;&#34;
     self.start_dt = start_dt
     return self</code></pre>
 </details>
@@ -451,12 +675,19 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>def <span class="ident">with_start_ts</span></span>(<span>self, start_ts: float) ‑> <a title="redvox.api1000.io_raw.ReadFilter" href="#redvox.api1000.io_raw.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Adds a start time filter.
+:param start_ts: Start timestamp (microseconds)
+:return: A modified instance of this filter</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def with_start_ts(self, start_ts: float) -&gt; &#39;ReadFilter&#39;:
+    &#34;&#34;&#34;
+    Adds a start time filter.
+    :param start_ts: Start timestamp (microseconds)
+    :return: A modified instance of this filter
+    &#34;&#34;&#34;
     return self.with_start_dt(dt_us(start_ts))</code></pre>
 </details>
 </dd>
@@ -464,12 +695,19 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>def <span class="ident">with_station_ids</span></span>(<span>self, station_ids: typing.Set[str]) ‑> <a title="redvox.api1000.io_raw.ReadFilter" href="#redvox.api1000.io_raw.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Add a station id filter. Filters against provided station ids.
+:param station_ids: Station ids to filter against.
+:return: A modified instance of this filter</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def with_station_ids(self, station_ids: Set[str]) -&gt; &#39;ReadFilter&#39;:
+    &#34;&#34;&#34;
+    Add a station id filter. Filters against provided station ids.
+    :param station_ids: Station ids to filter against.
+    :return: A modified instance of this filter
+    &#34;&#34;&#34;
     self.station_ids = station_ids
     return self</code></pre>
 </details>
@@ -481,14 +719,21 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>(</span><span>station_id_uuid_to_packets: typing.Dict[str, typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]])</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Result of reading multiple API M files.</p>
+<p>:param station_id_uuid_to_packets: station_id:station_uuid -&gt; packets</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ReadResult:
+    &#34;&#34;&#34;
+    Result of reading multiple API M files.
+    &#34;&#34;&#34;
     def __init__(self,
                  station_id_uuid_to_packets: Dict[str, List[WrappedRedvoxPacketM]]):
+        &#34;&#34;&#34;
+        :param station_id_uuid_to_packets: station_id:station_uuid -&gt; packets
+        &#34;&#34;&#34;
         self.station_id_uuid_to_packets: Dict[str, List[WrappedRedvoxPacketM]] = station_id_uuid_to_packets
         self.__station_id_to_id_uuid: Dict[str, str] = {}
 
@@ -498,6 +743,11 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 
     @staticmethod
     def from_packets(packets: List[WrappedRedvoxPacketM]) -&gt; &#39;ReadResult&#39;:
+        &#34;&#34;&#34;
+        Constructs a read result from the provided packets.
+        :param packets: Packets to construct read result from.
+        :return: ReadResult from provided packets
+        &#34;&#34;&#34;
         station_id_uuid_to_packets: Dict[str, List[WrappedRedvoxPacketM]] = defaultdict(list)
 
         for packet in packets:
@@ -510,21 +760,39 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
         return ReadResult(station_id_uuid_to_packets)
 
     def __get_packets_for_station_id_uuid(self, station_id_uuid) -&gt; List[WrappedRedvoxPacketM]:
+        &#34;&#34;&#34;
+        Find packets given a station_id:uuid.
+        :param station_id_uuid: Station id and uuid to get packets for.
+        :return: A list of wrapped packets or an empty list if none match.
+        &#34;&#34;&#34;
         if station_id_uuid in self.station_id_uuid_to_packets:
             return self.station_id_uuid_to_packets[station_id_uuid]
 
         return []
 
     def __get_packets_for_station_id(self, station_id: str) -&gt; List[WrappedRedvoxPacketM]:
+        &#34;&#34;&#34;
+        Get packets for an associated station id.
+        :param station_id: The station id.
+        :return: A list of wrapped packets or an empty list if none provided.
+        &#34;&#34;&#34;
         if station_id in self.__station_id_to_id_uuid:
             return self.__get_packets_for_station_id_uuid(self.__station_id_to_id_uuid[station_id])
 
         return []
 
     def get_station_id_uuids(self) -&gt; List[str]:
+        &#34;&#34;&#34;
+        :return: A list of station_id:uuids contained in this ReadResult
+        &#34;&#34;&#34;
         return list(self.station_id_uuid_to_packets.keys())
 
     def get_packets_for_station_id(self, station_id: str) -&gt; List[WrappedRedvoxPacketM]:
+        &#34;&#34;&#34;
+        Gets packets either for the provided station_id or the provided station_id:uuid.
+        :param station_id: station_id or station_id:uuid to get packets for.
+        :return: A list of packets of an empty list of none provided.
+        &#34;&#34;&#34;
         if &#34;:&#34; in station_id:
             return self.__get_packets_for_station_id_uuid(station_id)
         else:
@@ -536,13 +804,20 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&g
 <span>def <span class="ident">from_packets</span></span>(<span>packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> <a title="redvox.api1000.io_raw.ReadResult" href="#redvox.api1000.io_raw.ReadResult">ReadResult</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Constructs a read result from the provided packets.
+:param packets: Packets to construct read result from.
+:return: ReadResult from provided packets</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def from_packets(packets: List[WrappedRedvoxPacketM]) -&gt; &#39;ReadResult&#39;:
+    &#34;&#34;&#34;
+    Constructs a read result from the provided packets.
+    :param packets: Packets to construct read result from.
+    :return: ReadResult from provided packets
+    &#34;&#34;&#34;
     station_id_uuid_to_packets: Dict[str, List[WrappedRedvoxPacketM]] = defaultdict(list)
 
     for packet in packets:
@@ -562,12 +837,19 @@ def from_packets(packets: List[WrappedRedvoxPacketM]) -&gt; &#39;ReadResult&#39;
 <span>def <span class="ident">get_packets_for_station_id</span></span>(<span>self, station_id: str) ‑> typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Gets packets either for the provided station_id or the provided station_id:uuid.
+:param station_id: station_id or station_id:uuid to get packets for.
+:return: A list of packets of an empty list of none provided.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_packets_for_station_id(self, station_id: str) -&gt; List[WrappedRedvoxPacketM]:
+    &#34;&#34;&#34;
+    Gets packets either for the provided station_id or the provided station_id:uuid.
+    :param station_id: station_id or station_id:uuid to get packets for.
+    :return: A list of packets of an empty list of none provided.
+    &#34;&#34;&#34;
     if &#34;:&#34; in station_id:
         return self.__get_packets_for_station_id_uuid(station_id)
     else:
@@ -578,12 +860,15 @@ def from_packets(packets: List[WrappedRedvoxPacketM]) -&gt; &#39;ReadResult&#39;
 <span>def <span class="ident">get_station_id_uuids</span></span>(<span>self) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A list of station_id:uuids contained in this ReadResult</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_station_id_uuids(self) -&gt; List[str]:
+    &#34;&#34;&#34;
+    :return: A list of station_id:uuids contained in this ReadResult
+    &#34;&#34;&#34;
     return list(self.station_id_uuid_to_packets.keys())</code></pre>
 </details>
 </dd>

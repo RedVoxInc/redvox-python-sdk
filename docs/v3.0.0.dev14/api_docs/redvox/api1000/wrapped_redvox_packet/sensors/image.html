@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>redvox.api1000.wrapped_redvox_packet.sensors.image API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="This module provides functionality for working with API M image sensors." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,17 @@
 <h1 class="title">Module <code>redvox.api1000.wrapped_redvox_packet.sensors.image</code></h1>
 </header>
 <section id="section-intro">
+<p>This module provides functionality for working with API M image sensors.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import enum
+<pre><code class="python">&#34;&#34;&#34;
+This module provides functionality for working with API M image sensors.
+&#34;&#34;&#34;
+
+import enum
+import os.path
 import redvox.api1000.common.generic
 import redvox.api1000.common.common as common
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
@@ -35,7 +41,10 @@ from redvox.api1000.common.decorators import wrap_enum
 from redvox.api1000.common.typing import check_type
 from typing import List, Optional
 
+from redvox.api1000.errors import ApiMImageChannelError
 
+
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.Sensors.Image.ImageCodec)
 class ImageCodec(enum.Enum):
     &#34;&#34;&#34;
@@ -48,79 +57,158 @@ class ImageCodec(enum.Enum):
 
 
 class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Image]):
+    &#34;&#34;&#34;
+    This class encapsulates metadata and data associated with the image sensor.
+    &#34;&#34;&#34;
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Image):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
 
     @staticmethod
     def new() -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty Image sensor instance
+        &#34;&#34;&#34;
         return Image(redvox_api_m_pb2.RedvoxPacketM.Sensors.Image())
 
     def get_image_codec(self) -&gt; ImageCodec:
+        &#34;&#34;&#34;
+        :return: Returns the codec that was used to store the images.
+        &#34;&#34;&#34;
+        # noinspection Mypy
         return ImageCodec.from_proto(self._proto.image_codec)
 
+    def get_file_ext(self) -&gt; str:
+        return self.get_image_codec().name.lower()
+
     def set_image_codec(self, codec: ImageCodec) -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        Sets the codec used to store the images.
+        :param codec: Codec to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(codec, [ImageCodec])
+        # noinspection Mypy
         self._proto.image_codec = codec.into_proto()
         return self
 
     def get_sensor_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The image sensor description.
+        &#34;&#34;&#34;
         return self._proto.sensor_description
 
     def set_sensor_description(self, sensor_description: str) -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        Sets the image sensor description.
+        :param sensor_description: Description to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self
 
     def get_timestamps(self) -&gt; common.TimingPayload:
+        &#34;&#34;&#34;
+        :return: Timestamp payload which contains a timestamp per image
+        &#34;&#34;&#34;
         return self._timestamps
 
     def get_samples(self) -&gt; List[bytes]:
+        &#34;&#34;&#34;
+        :return: Returns each image as collection of bytes.
+        &#34;&#34;&#34;
         return list(self.get_proto().samples)
 
     def set_samples(self, images: List[bytes]) -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        Set images.
+        :param images: List of bytes objects representing each image.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         # check_type(images, [List[bytes]])
         self._proto.samples[:] = images
         return self
 
-    def append_value(self, images: bytes) -&gt; &#39;Image&#39;:
-        check_type(images, [bytes])
-        self._proto.samples.append(images)
+    def append_value(self, image: bytes) -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        Appends a single image to this sensors list of images.
+        :param image: Image to append as serialized bytes.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        check_type(image, [bytes])
+        self._proto.samples.append(image)
         return self
 
     def append_values(self, images: List[bytes]) -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        Appends multiple images to this sensor&#39;s image payload.
+        :param images: Images to append as a list of bytes objects.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(images, [List[bytes]])
         self._proto.samples.extend(list(images))
         return self
 
     def clear_values(self) -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        Clears all images from this sensor
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         self._proto.samples[:] = []
         return self
 
     def get_num_images(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: The total number of images stored in this packet
+        &#34;&#34;&#34;
         return len(self.get_samples())
 
-    def write_image(self, out_file: Optional[str] = None, index: int = 0):
+    def write_image(self,
+                    index: int,
+                    base_dir: str = &#34;.&#34;,
+                    out_file: Optional[str] = None) -&gt; str:
         &#34;&#34;&#34;
-        Prints the image at index in the data as out_file.image_codec, where image_codec is defined by the sensor
-        :param out_file: the name of the output file
-        :param index: the index of the image to print
+        Writes an image to disk.
+        :param base_dir: Base directory to write image to (default: &#34;.&#34;)
+        :param out_file: Optional file name (sans extension) (default: timestamp of image)
+        :param index: Index of image to be written.
+        :return: Path of written file.
         &#34;&#34;&#34;
-        # invalid indices get converted to the closest valid index
-        if index &lt; 0:
-            index = 0
-        elif index &gt;= self.get_num_images():
-            index = self.get_num_images() - 1
-        # append the image codec to the file name
-        if out_file is None:
-            out_file = str(self._timestamps.get_timestamps()[index])
-        out_file = out_file + &#34;.&#34; + self.get_image_codec().name.lower()
-        with open(out_file, &#39;wb&#39;) as image_out:
-            data_as_bytes: bytes = self.get_samples()[index]
-            image_out.write(data_as_bytes)
+        if index &lt; 0 or index &gt;= self.get_num_images():
+            raise ApiMImageChannelError(f&#34;Index={index} must be &gt; 0 and &lt; {self.get_num_images()}&#34;)
+
+        ext: str = self.get_file_ext()
+        base_name: str = str(int(self._timestamps.get_timestamps()[index])) if out_file is None else out_file
+        file_name: str = f&#34;{base_name}.{ext}&#34;
+        file_path: str = os.path.join(base_dir, file_name)
+
+        with open(file_path, &#39;wb&#39;) as image_out:
+            img_bytes: bytes = self.get_samples()[index]
+            image_out.write(img_bytes)
+
+        return file_path
+
+    def write_images(self,
+                     indices: Optional[List[int]] = None,
+                     base_dir: str = &#34;.&#34;) -&gt; List[str]:
+        &#34;&#34;&#34;
+        Write multiple images to disk.
+        :param base_dir: Base directory to write images to (default: &#34;.&#34;).
+        :param indices: Optional list of indices for images to write. If this is None, all images will be written.
+        :return: List of written file paths.
+        &#34;&#34;&#34;
+
+        indices = indices if indices is not None else list(range(0, self.get_num_images()))
+        return list(map(lambda i: self.write_image(i, base_dir), indices))
 
 
 def validate_image(image_sensor: Image) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the image sensor.
+    :param image_sensor: Image sensor to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     errors_list = common.validate_timing_payload(image_sensor.get_timestamps())
     if image_sensor.get_image_codec() not in ImageCodec.__members__.values():
         errors_list.append(&#34;Image sensor image codec is unknown&#34;)
@@ -138,12 +226,19 @@ def validate_image(image_sensor: Image) -&gt; List[str]:
 <span>def <span class="ident">validate_image</span></span>(<span>image_sensor: <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a>) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Validates the image sensor.
+:param image_sensor: Image sensor to validate.
+:return: A list of validation errors.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_image(image_sensor: Image) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the image sensor.
+    :param image_sensor: Image sensor to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     errors_list = common.validate_timing_payload(image_sensor.get_timestamps())
     if image_sensor.get_image_codec() not in ImageCodec.__members__.values():
         errors_list.append(&#34;Image sensor image codec is unknown&#34;)
@@ -160,82 +255,156 @@ def validate_image(image_sensor: Image) -&gt; List[str]:
 <span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.Image)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>This class encapsulates metadata and data associated with the image sensor.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Image]):
+    &#34;&#34;&#34;
+    This class encapsulates metadata and data associated with the image sensor.
+    &#34;&#34;&#34;
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Image):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
 
     @staticmethod
     def new() -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty Image sensor instance
+        &#34;&#34;&#34;
         return Image(redvox_api_m_pb2.RedvoxPacketM.Sensors.Image())
 
     def get_image_codec(self) -&gt; ImageCodec:
+        &#34;&#34;&#34;
+        :return: Returns the codec that was used to store the images.
+        &#34;&#34;&#34;
+        # noinspection Mypy
         return ImageCodec.from_proto(self._proto.image_codec)
 
+    def get_file_ext(self) -&gt; str:
+        return self.get_image_codec().name.lower()
+
     def set_image_codec(self, codec: ImageCodec) -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        Sets the codec used to store the images.
+        :param codec: Codec to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(codec, [ImageCodec])
+        # noinspection Mypy
         self._proto.image_codec = codec.into_proto()
         return self
 
     def get_sensor_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The image sensor description.
+        &#34;&#34;&#34;
         return self._proto.sensor_description
 
     def set_sensor_description(self, sensor_description: str) -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        Sets the image sensor description.
+        :param sensor_description: Description to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self
 
     def get_timestamps(self) -&gt; common.TimingPayload:
+        &#34;&#34;&#34;
+        :return: Timestamp payload which contains a timestamp per image
+        &#34;&#34;&#34;
         return self._timestamps
 
     def get_samples(self) -&gt; List[bytes]:
+        &#34;&#34;&#34;
+        :return: Returns each image as collection of bytes.
+        &#34;&#34;&#34;
         return list(self.get_proto().samples)
 
     def set_samples(self, images: List[bytes]) -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        Set images.
+        :param images: List of bytes objects representing each image.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         # check_type(images, [List[bytes]])
         self._proto.samples[:] = images
         return self
 
-    def append_value(self, images: bytes) -&gt; &#39;Image&#39;:
-        check_type(images, [bytes])
-        self._proto.samples.append(images)
+    def append_value(self, image: bytes) -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        Appends a single image to this sensors list of images.
+        :param image: Image to append as serialized bytes.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        check_type(image, [bytes])
+        self._proto.samples.append(image)
         return self
 
     def append_values(self, images: List[bytes]) -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        Appends multiple images to this sensor&#39;s image payload.
+        :param images: Images to append as a list of bytes objects.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(images, [List[bytes]])
         self._proto.samples.extend(list(images))
         return self
 
     def clear_values(self) -&gt; &#39;Image&#39;:
+        &#34;&#34;&#34;
+        Clears all images from this sensor
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         self._proto.samples[:] = []
         return self
 
     def get_num_images(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: The total number of images stored in this packet
+        &#34;&#34;&#34;
         return len(self.get_samples())
 
-    def write_image(self, out_file: Optional[str] = None, index: int = 0):
+    def write_image(self,
+                    index: int,
+                    base_dir: str = &#34;.&#34;,
+                    out_file: Optional[str] = None) -&gt; str:
         &#34;&#34;&#34;
-        Prints the image at index in the data as out_file.image_codec, where image_codec is defined by the sensor
-        :param out_file: the name of the output file
-        :param index: the index of the image to print
+        Writes an image to disk.
+        :param base_dir: Base directory to write image to (default: &#34;.&#34;)
+        :param out_file: Optional file name (sans extension) (default: timestamp of image)
+        :param index: Index of image to be written.
+        :return: Path of written file.
         &#34;&#34;&#34;
-        # invalid indices get converted to the closest valid index
-        if index &lt; 0:
-            index = 0
-        elif index &gt;= self.get_num_images():
-            index = self.get_num_images() - 1
-        # append the image codec to the file name
-        if out_file is None:
-            out_file = str(self._timestamps.get_timestamps()[index])
-        out_file = out_file + &#34;.&#34; + self.get_image_codec().name.lower()
-        with open(out_file, &#39;wb&#39;) as image_out:
-            data_as_bytes: bytes = self.get_samples()[index]
-            image_out.write(data_as_bytes)</code></pre>
+        if index &lt; 0 or index &gt;= self.get_num_images():
+            raise ApiMImageChannelError(f&#34;Index={index} must be &gt; 0 and &lt; {self.get_num_images()}&#34;)
+
+        ext: str = self.get_file_ext()
+        base_name: str = str(int(self._timestamps.get_timestamps()[index])) if out_file is None else out_file
+        file_name: str = f&#34;{base_name}.{ext}&#34;
+        file_path: str = os.path.join(base_dir, file_name)
+
+        with open(file_path, &#39;wb&#39;) as image_out:
+            img_bytes: bytes = self.get_samples()[index]
+            image_out.write(img_bytes)
+
+        return file_path
+
+    def write_images(self,
+                     indices: Optional[List[int]] = None,
+                     base_dir: str = &#34;.&#34;) -&gt; List[str]:
+        &#34;&#34;&#34;
+        Write multiple images to disk.
+        :param base_dir: Base directory to write images to (default: &#34;.&#34;).
+        :param indices: Optional list of indices for images to write. If this is None, all images will be written.
+        :return: List of written file paths.
+        &#34;&#34;&#34;
+
+        indices = indices if indices is not None else list(range(0, self.get_num_images()))
+        return list(map(lambda i: self.write_image(i, base_dir), indices))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -248,13 +417,16 @@ def validate_image(image_sensor: Image) -&gt; List[str]:
 <span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A new, empty Image sensor instance</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def new() -&gt; &#39;Image&#39;:
+    &#34;&#34;&#34;
+    :return: A new, empty Image sensor instance
+    &#34;&#34;&#34;
     return Image(redvox_api_m_pb2.RedvoxPacketM.Sensors.Image())</code></pre>
 </details>
 </dd>
@@ -262,17 +434,24 @@ def new() -&gt; &#39;Image&#39;:
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.append_value"><code class="name flex">
-<span>def <span class="ident">append_value</span></span>(<span>self, images: bytes) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a></span>
+<span>def <span class="ident">append_value</span></span>(<span>self, image: bytes) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Appends a single image to this sensors list of images.
+:param image: Image to append as serialized bytes.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def append_value(self, images: bytes) -&gt; &#39;Image&#39;:
-    check_type(images, [bytes])
-    self._proto.samples.append(images)
+<pre><code class="python">def append_value(self, image: bytes) -&gt; &#39;Image&#39;:
+    &#34;&#34;&#34;
+    Appends a single image to this sensors list of images.
+    :param image: Image to append as serialized bytes.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    check_type(image, [bytes])
+    self._proto.samples.append(image)
     return self</code></pre>
 </details>
 </dd>
@@ -280,12 +459,19 @@ def new() -&gt; &#39;Image&#39;:
 <span>def <span class="ident">append_values</span></span>(<span>self, images: typing.List[bytes]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Appends multiple images to this sensor's image payload.
+:param images: Images to append as a list of bytes objects.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def append_values(self, images: List[bytes]) -&gt; &#39;Image&#39;:
+    &#34;&#34;&#34;
+    Appends multiple images to this sensor&#39;s image payload.
+    :param images: Images to append as a list of bytes objects.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     check_type(images, [List[bytes]])
     self._proto.samples.extend(list(images))
     return self</code></pre>
@@ -295,18 +481,23 @@ def new() -&gt; &#39;Image&#39;:
 <span>def <span class="ident">clear_values</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Clears all images from this sensor
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def clear_values(self) -&gt; &#39;Image&#39;:
+    &#34;&#34;&#34;
+    Clears all images from this sensor
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     self._proto.samples[:] = []
     return self</code></pre>
 </details>
 </dd>
-<dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_image_codec"><code class="name flex">
-<span>def <span class="ident">get_image_codec</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.ImageCodec" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.ImageCodec">ImageCodec</a></span>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_file_ext"><code class="name flex">
+<span>def <span class="ident">get_file_ext</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -314,7 +505,24 @@ def new() -&gt; &#39;Image&#39;:
 <summary>
 <span>Expand source code</span>
 </summary>
+<pre><code class="python">def get_file_ext(self) -&gt; str:
+    return self.get_image_codec().name.lower()</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_image_codec"><code class="name flex">
+<span>def <span class="ident">get_image_codec</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.ImageCodec" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.ImageCodec">ImageCodec</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Returns the codec that was used to store the images.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_image_codec(self) -&gt; ImageCodec:
+    &#34;&#34;&#34;
+    :return: Returns the codec that was used to store the images.
+    &#34;&#34;&#34;
+    # noinspection Mypy
     return ImageCodec.from_proto(self._proto.image_codec)</code></pre>
 </details>
 </dd>
@@ -322,12 +530,15 @@ def new() -&gt; &#39;Image&#39;:
 <span>def <span class="ident">get_num_images</span></span>(<span>self) ‑> int</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The total number of images stored in this packet</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_num_images(self) -&gt; int:
+    &#34;&#34;&#34;
+    :return: The total number of images stored in this packet
+    &#34;&#34;&#34;
     return len(self.get_samples())</code></pre>
 </details>
 </dd>
@@ -335,12 +546,15 @@ def new() -&gt; &#39;Image&#39;:
 <span>def <span class="ident">get_samples</span></span>(<span>self) ‑> typing.List[bytes]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Returns each image as collection of bytes.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_samples(self) -&gt; List[bytes]:
+    &#34;&#34;&#34;
+    :return: Returns each image as collection of bytes.
+    &#34;&#34;&#34;
     return list(self.get_proto().samples)</code></pre>
 </details>
 </dd>
@@ -348,12 +562,15 @@ def new() -&gt; &#39;Image&#39;:
 <span>def <span class="ident">get_sensor_description</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The image sensor description.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_sensor_description(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The image sensor description.
+    &#34;&#34;&#34;
     return self._proto.sensor_description</code></pre>
 </details>
 </dd>
@@ -361,12 +578,15 @@ def new() -&gt; &#39;Image&#39;:
 <span>def <span class="ident">get_timestamps</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="../../common/common.html#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Timestamp payload which contains a timestamp per image</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_timestamps(self) -&gt; common.TimingPayload:
+    &#34;&#34;&#34;
+    :return: Timestamp payload which contains a timestamp per image
+    &#34;&#34;&#34;
     return self._timestamps</code></pre>
 </details>
 </dd>
@@ -374,13 +594,21 @@ def new() -&gt; &#39;Image&#39;:
 <span>def <span class="ident">set_image_codec</span></span>(<span>self, codec: <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.ImageCodec" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.ImageCodec">ImageCodec</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the codec used to store the images.
+:param codec: Codec to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_image_codec(self, codec: ImageCodec) -&gt; &#39;Image&#39;:
+    &#34;&#34;&#34;
+    Sets the codec used to store the images.
+    :param codec: Codec to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     check_type(codec, [ImageCodec])
+    # noinspection Mypy
     self._proto.image_codec = codec.into_proto()
     return self</code></pre>
 </details>
@@ -389,12 +617,19 @@ def new() -&gt; &#39;Image&#39;:
 <span>def <span class="ident">set_samples</span></span>(<span>self, images: typing.List[bytes]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set images.
+:param images: List of bytes objects representing each image.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_samples(self, images: List[bytes]) -&gt; &#39;Image&#39;:
+    &#34;&#34;&#34;
+    Set images.
+    :param images: List of bytes objects representing each image.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     # check_type(images, [List[bytes]])
     self._proto.samples[:] = images
     return self</code></pre>
@@ -404,46 +639,87 @@ def new() -&gt; &#39;Image&#39;:
 <span>def <span class="ident">set_sensor_description</span></span>(<span>self, sensor_description: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the image sensor description.
+:param sensor_description: Description to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_sensor_description(self, sensor_description: str) -&gt; &#39;Image&#39;:
+    &#34;&#34;&#34;
+    Sets the image sensor description.
+    :param sensor_description: Description to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(sensor_description, [str])
     self._proto.sensor_description = sensor_description
     return self</code></pre>
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.write_image"><code class="name flex">
-<span>def <span class="ident">write_image</span></span>(<span>self, out_file: typing.Union[str, NoneType] = None, index: int = 0)</span>
+<span>def <span class="ident">write_image</span></span>(<span>self, index: int, base_dir: str = '.', out_file: typing.Union[str, NoneType] = None) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Prints the image at index in the data as out_file.image_codec, where image_codec is defined by the sensor
-:param out_file: the name of the output file
-:param index: the index of the image to print</p></div>
+<div class="desc"><p>Writes an image to disk.
+:param base_dir: Base directory to write image to (default: ".")
+:param out_file: Optional file name (sans extension) (default: timestamp of image)
+:param index: Index of image to be written.
+:return: Path of written file.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def write_image(self, out_file: Optional[str] = None, index: int = 0):
+<pre><code class="python">def write_image(self,
+                index: int,
+                base_dir: str = &#34;.&#34;,
+                out_file: Optional[str] = None) -&gt; str:
     &#34;&#34;&#34;
-    Prints the image at index in the data as out_file.image_codec, where image_codec is defined by the sensor
-    :param out_file: the name of the output file
-    :param index: the index of the image to print
+    Writes an image to disk.
+    :param base_dir: Base directory to write image to (default: &#34;.&#34;)
+    :param out_file: Optional file name (sans extension) (default: timestamp of image)
+    :param index: Index of image to be written.
+    :return: Path of written file.
     &#34;&#34;&#34;
-    # invalid indices get converted to the closest valid index
-    if index &lt; 0:
-        index = 0
-    elif index &gt;= self.get_num_images():
-        index = self.get_num_images() - 1
-    # append the image codec to the file name
-    if out_file is None:
-        out_file = str(self._timestamps.get_timestamps()[index])
-    out_file = out_file + &#34;.&#34; + self.get_image_codec().name.lower()
-    with open(out_file, &#39;wb&#39;) as image_out:
-        data_as_bytes: bytes = self.get_samples()[index]
-        image_out.write(data_as_bytes)</code></pre>
+    if index &lt; 0 or index &gt;= self.get_num_images():
+        raise ApiMImageChannelError(f&#34;Index={index} must be &gt; 0 and &lt; {self.get_num_images()}&#34;)
+
+    ext: str = self.get_file_ext()
+    base_name: str = str(int(self._timestamps.get_timestamps()[index])) if out_file is None else out_file
+    file_name: str = f&#34;{base_name}.{ext}&#34;
+    file_path: str = os.path.join(base_dir, file_name)
+
+    with open(file_path, &#39;wb&#39;) as image_out:
+        img_bytes: bytes = self.get_samples()[index]
+        image_out.write(img_bytes)
+
+    return file_path</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.write_images"><code class="name flex">
+<span>def <span class="ident">write_images</span></span>(<span>self, indices: typing.Union[typing.List[int], NoneType] = None, base_dir: str = '.') ‑> typing.List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Write multiple images to disk.
+:param base_dir: Base directory to write images to (default: ".").
+:param indices: Optional list of indices for images to write. If this is None, all images will be written.
+:return: List of written file paths.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_images(self,
+                 indices: Optional[List[int]] = None,
+                 base_dir: str = &#34;.&#34;) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Write multiple images to disk.
+    :param base_dir: Base directory to write images to (default: &#34;.&#34;).
+    :param indices: Optional list of indices for images to write. If this is None, all images will be written.
+    :return: List of written file paths.
+    &#34;&#34;&#34;
+
+    indices = indices if indices is not None else list(range(0, self.get_num_images()))
+    return list(map(lambda i: self.write_image(i, base_dir), indices))</code></pre>
 </details>
 </dd>
 </dl>
@@ -561,6 +837,7 @@ def new() -&gt; &#39;Image&#39;:
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.append_value" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image.append_value">append_value</a></code></li>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.append_values" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image.append_values">append_values</a></code></li>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.clear_values" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image.clear_values">clear_values</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_file_ext" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_file_ext">get_file_ext</a></code></li>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_image_codec" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_image_codec">get_image_codec</a></code></li>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_num_images" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_num_images">get_num_images</a></code></li>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_samples" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_samples">get_samples</a></code></li>
@@ -571,6 +848,7 @@ def new() -&gt; &#39;Image&#39;:
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.set_samples" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image.set_samples">set_samples</a></code></li>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.set_sensor_description" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image.set_sensor_description">set_sensor_description</a></code></li>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.write_image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image.write_image">write_image</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.write_images" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image.write_images">write_images</a></code></li>
 </ul>
 </li>
 <li>

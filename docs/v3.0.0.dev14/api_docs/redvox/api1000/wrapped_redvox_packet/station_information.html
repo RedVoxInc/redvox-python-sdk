@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>redvox.api1000.wrapped_redvox_packet.station_information API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="This module provides access to underlying station information from RedVox API M data." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,16 @@
 <h1 class="title">Module <code>redvox.api1000.wrapped_redvox_packet.station_information</code></h1>
 </header>
 <section id="section-intro">
+<p>This module provides access to underlying station information from RedVox API M data.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import enum
+<pre><code class="python">&#34;&#34;&#34;
+This module provides access to underlying station information from RedVox API M data.
+&#34;&#34;&#34;
+
+import enum
 from typing import List, Optional
 
 import redvox.api1000.common.typing
@@ -45,8 +50,12 @@ _WIFI_WAKE_LOCK_FIELD_NAME: str = &#34;wifi_wake_lock&#34;
 InputSensorProto = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate)
 class AudioSamplingRate(enum.Enum):
+    &#34;&#34;&#34;
+    Sampling Rate as provided by the app settings.
+    &#34;&#34;&#34;
     UNKNOWN_SAMPLING_RATE: int = 0
     HZ_80: int = 1
     HZ_800: int = 2
@@ -56,6 +65,11 @@ class AudioSamplingRate(enum.Enum):
 
     @staticmethod
     def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#39;AudioSamplingRate&#39;]:
+        &#34;&#34;&#34;
+        Convert from a numeric sampling rate into this enum.
+        :param sampling_rate: Numeric sampling rate.
+        :return: An instance of this enum.
+        &#34;&#34;&#34;
         if sampling_rate == 80.0:
             return AudioSamplingRate[&#39;HZ_80&#39;]
         elif sampling_rate == 800.0:
@@ -70,16 +84,24 @@ class AudioSamplingRate(enum.Enum):
             return AudioSamplingRate[&#39;UNKNOWN_SAMPLING_RATE&#39;]
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning)
 class AudioSourceTuning(enum.Enum):
+    &#34;&#34;&#34;
+    Audio source tuning from app settings
+    &#34;&#34;&#34;
     UNKNOWN_TUNING: int = 0
     INFRASOUND_TUNING: int = 1
     LOW_AUDIO_TUNING: int = 2
     AUDIO_TUNING: int = 3
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor)
 class InputSensor(enum.Enum):
+    &#34;&#34;&#34;
+    Input sensors provided to additional input sensors in the app settings.
+    &#34;&#34;&#34;
     UNKNOWN_SENSOR: int = 0
     ACCELEROMETER = 1
     AMBIENT_TEMPERATURE = 2
@@ -99,8 +121,12 @@ class InputSensor(enum.Enum):
     ROTATION_VECTOR = 16
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap)
 class FftOverlap(enum.Enum):
+    &#34;&#34;&#34;
+    FFT overlap provided by the app settings
+    &#34;&#34;&#34;
     UNKNOWN: int = 0
     PERCENT_25: int = 1
     PERCENT_50: int = 2
@@ -108,9 +134,14 @@ class FftOverlap(enum.Enum):
 
 
 class AppSettings(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
+    &#34;&#34;&#34;
+    Represents a copy of the App&#39;s settings.
+    &#34;&#34;&#34;
+
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings):
         super().__init__(proto)
+        # noinspection Mypy
         self._additional_input_sensors: redvox.api1000.common.generic.ProtoRepeatedMessage[
             InputSensorProto, InputSensor] = \
             redvox.api1000.common.generic.ProtoRepeatedMessage(
@@ -123,37 +154,70 @@ class AppSettings(
 
     @staticmethod
     def new() -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Creates a new, empty AppSettings instance
+        :return: A new, empty AppSettings instance
+        &#34;&#34;&#34;
         return AppSettings(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings())
 
     def get_audio_sampling_rate(self) -&gt; AudioSamplingRate:
+        &#34;&#34;&#34;
+        :return: Returns the sampling rate provided in the settings.
+        &#34;&#34;&#34;
         return AudioSamplingRate(self.get_proto().audio_sampling_rate)
 
     def set_audio_sampling_rate(self, audio_sampling_rate: AudioSamplingRate) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets the audio sampling rate.
+        :param audio_sampling_rate: Rate to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(audio_sampling_rate, [AudioSamplingRate])
 
-        self.get_proto().audio_sampling_rate = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
-            audio_sampling_rate.name)
+        self.get_proto().audio_sampling_rate = \
+            redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
+                audio_sampling_rate.name)
         return self
 
     # todo get_samples_per_window
 
     def get_audio_source_tuning(self) -&gt; AudioSourceTuning:
+        &#34;&#34;&#34;
+        :return: The AudioSourceTuning
+        &#34;&#34;&#34;
         return AudioSourceTuning(self.get_proto().audio_source_tuning)
 
     def set_audio_source_tuning(self, audio_source_tuning: AudioSourceTuning) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets the AudioSourceTuning.
+        :param audio_source_tuning: Tuning to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(audio_source_tuning, [AudioSourceTuning])
 
-        self.get_proto().audio_source_tuning = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
-            audio_source_tuning.name)
+        self.get_proto().audio_source_tuning = \
+            redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
+                audio_source_tuning.name)
         return self
 
     def get_additional_input_sensors(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: Additional input sensors specified in the settings.
+        &#34;&#34;&#34;
         return self._additional_input_sensors
 
     def get_fft_overlap(self) -&gt; FftOverlap:
+        &#34;&#34;&#34;
+        :return: FFT overlap as specified in the settings
+        &#34;&#34;&#34;
         return FftOverlap(self.get_proto().fft_overlap)
 
     def set_fft_overlap(self, fft_overlap: FftOverlap) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets the fft overlap in the settings
+        :param fft_overlap: Overlap to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(fft_overlap, [FftOverlap])
 
         self.get_proto().fft_overlap = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap.Value(
@@ -161,197 +225,382 @@ class AppSettings(
         return self
 
     def get_automatically_record(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is automatically record set in the settings?
+        &#34;&#34;&#34;
         return self.get_proto().automatically_record
 
     def set_automatically_record(self, automatically_record: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets automatically record in the settings.
+        :param automatically_record: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(automatically_record, [bool])
         self.get_proto().automatically_record = automatically_record
         return self
 
     def get_launch_at_power_up(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is launch at power up set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().launch_at_power_up
 
     def set_launch_at_power_up(self, launch_at_power_up: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets launch at power up in settings.
+        :param launch_at_power_up: Setting to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(launch_at_power_up, [bool])
         self.get_proto().launch_at_power_up = launch_at_power_up
         return self
 
     def get_station_id(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: Station id provided in settings
+        &#34;&#34;&#34;
         return self.get_proto().station_id
 
     def set_station_id(self, station_id: str) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets the station id in the settings.
+        :param station_id: Station id to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(station_id, [str])
         self.get_proto().station_id = station_id
         return self
 
     def get_station_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: Station description set in settings.`
+        &#34;&#34;&#34;
         return self.get_proto().station_description
 
     def set_station_description(self, station_description: str) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets the station description in the settings.
+        :param station_description: Description to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(station_description, [str])
         self.get_proto().station_description = station_description
         return self
 
     def get_push_to_server(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is push to server set in the settings?
+        &#34;&#34;&#34;
         return self.get_proto().push_to_server
 
     def set_push_to_server(self, push_to_server: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets push to server in the settings.
+        :param push_to_server: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(push_to_server, [bool])
         self.get_proto().push_to_server = push_to_server
         return self
 
     def get_publish_data_as_private(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is publish data as private set in the settings?
+        &#34;&#34;&#34;
         return self.get_proto().publish_data_as_private
 
     def set_publish_data_as_private(self, publish_data_as_private: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets publish data as private in the settings.
+        :param publish_data_as_private: Setting to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(publish_data_as_private, [bool])
         self.get_proto().publish_data_as_private = publish_data_as_private
         return self
 
     def get_scramble_audio_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is scramble audio set in the settings?
+        &#34;&#34;&#34;
         return self.get_proto().scramble_audio_data
 
     def set_scramble_audio_data(self, scramble_audio_data: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets scramble audio in the settings.
+        :param scramble_audio_data: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(scramble_audio_data, [bool])
         self.get_proto().scramble_audio_data = scramble_audio_data
         return self
 
     def get_provide_backfill(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is provide backfill set in the settings?
+        &#34;&#34;&#34;
         return self.get_proto().provide_backfill
 
     def set_provide_backfill(self, provide_backfill: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets backfill in the settings.
+        :param provide_backfill: Setting to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(provide_backfill, [bool])
         self.get_proto().provide_backfill = provide_backfill
         return self
 
     def get_remove_sensor_dc_offset(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is remove dc offset set in the settings?
+        &#34;&#34;&#34;
         return self.get_proto().remove_sensor_dc_offset
 
     def set_remove_sensor_dc_offset(self, remove_sensor_dc_offset: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets remove DC offset in the settings.
+        :param remove_sensor_dc_offset: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(remove_sensor_dc_offset, [bool])
         self.get_proto().remove_sensor_dc_offset = remove_sensor_dc_offset
         return self
 
     def get_use_custom_time_sync_server(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is use custom sync server set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().use_custom_time_sync_server
 
     def set_use_custom_time_sync_server(self, use_custom_time_sync_server: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets use custom synch server in settings.
+        :param use_custom_time_sync_server: Setting to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_custom_time_sync_server, [bool])
         self.get_proto().use_custom_time_sync_server = use_custom_time_sync_server
         return self
 
     def get_time_sync_server_url(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: Custom synch url from settings.
+        &#34;&#34;&#34;
         return self.get_proto().time_sync_server_url
 
     def set_time_sync_server_url(self, time_sync_server_url: str) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets the custom synch url in the settings.
+        :param time_sync_server_url: URL to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(time_sync_server_url, [str])
         self.get_proto().time_sync_server_url = time_sync_server_url
         return self
 
     def get_use_custom_data_server(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is use custom data server set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().use_custom_data_server
 
     def set_use_custom_data_server(self, use_custom_data_server: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set use custom data server in settings.
+        :param use_custom_data_server: Setting to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_custom_data_server, [bool])
         self.get_proto().use_custom_data_server = use_custom_data_server
         return self
 
     def get_data_server_url(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: Custom data server url in settings.
+        &#34;&#34;&#34;
         return self.get_proto().data_server_url
 
     def set_data_server_url(self, data_server_url: str) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets custom data server url in settings.
+        :param data_server_url: Url to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(data_server_url, [str])
         self.get_proto().data_server_url = data_server_url
         return self
 
     def get_use_custom_auth_server(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Use custom auth server set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().use_custom_auth_server
 
     def set_use_custom_auth_server(self, use_custom_auth_server: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set use custom auth server in settings.
+        :param use_custom_auth_server: Setting to set.
+        :return: Modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_custom_auth_server, [bool])
         self.get_proto().use_custom_auth_server = use_custom_auth_server
         return self
 
     def get_auth_server_url(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: Custom auth server url from settings
+        &#34;&#34;&#34;
         return self.get_proto().auth_server_url
 
     def set_auth_server_url(self, auth_server_url: str) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set custom auth server url in settings.
+        :param auth_server_url: Url to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(auth_server_url, [str])
         self.get_proto().auth_server_url = auth_server_url
         return self
 
     def get_auto_delete_data_files(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Auto delete files set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().auto_delete_data_files
 
     def set_auto_delete_data_files(self, auto_delete_data_files: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set auto delete data files in settings.
+        :param auto_delete_data_files: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(auto_delete_data_files, [bool])
         self.get_proto().auto_delete_data_files = auto_delete_data_files
         return self
 
     def get_storage_space_allowance(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Amount of storage space allowance set in settings.
+        &#34;&#34;&#34;
         return self.get_proto().storage_space_allowance
 
     def set_storage_space_allowance(self, storage_space_allowance: float) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set storage space allowance in settings.
+        :param storage_space_allowance: Allowance to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(storage_space_allowance, [int, float])
 
         self.get_proto().storage_space_allowance = storage_space_allowance
         return self
 
     def get_use_sd_card_for_data_storage(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Use SD card set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().use_sd_card_for_data_storage
 
     def set_use_sd_card_for_data_storage(self, use_sd_card_for_data_storage: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set use SD card in settings.
+        :param use_sd_card_for_data_storage: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_sd_card_for_data_storage, [bool])
         self.get_proto().use_sd_card_for_data_storage = use_sd_card_for_data_storage
         return self
 
     def get_use_location_services(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Use location services set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().use_location_services
 
     def set_use_location_services(self, use_location_services: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets use location services in settings.
+        :param use_location_services: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_location_services, [bool])
         self.get_proto().use_location_services = use_location_services
         return self
 
     def get_use_latitude(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Custom latitude provided in settings.
+        &#34;&#34;&#34;
         return self.get_proto().use_latitude
 
     def set_use_latitude(self, use_latitude: float) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set custom latitude in settings.
+        :param use_latitude: Latitude to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_latitude, [int, float])
 
         self.get_proto().use_latitude = use_latitude
         return self
 
     def get_use_longitude(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Custom longitude from settings.
+        &#34;&#34;&#34;
         return self.get_proto().use_longitude
 
     def set_use_longitude(self, use_longitude: float) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets custom longitude in settings.
+        :param use_longitude: Longitude to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_longitude, [int, float])
 
         self.get_proto().use_longitude = use_longitude
         return self
 
     def get_use_altitude(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Custom altitude set in settings
+        &#34;&#34;&#34;
         return self.get_proto().use_altitude
 
     def set_use_altitude(self, use_altitude: float) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set custom altitude in settings.
+        :param use_altitude: Altitude to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_altitude, [int, float])
 
         self.get_proto().use_altitude = use_altitude
         return self
 
 
-def validate_app_settings(app: AppSettings) -&gt; List[str]:
+def validate_app_settings(app_settings: AppSettings) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the app settings.
+    :param app_settings: App settings to validate
+    :return: List of validation errors
+    &#34;&#34;&#34;
     errors_list = []
-    if app.get_audio_sampling_rate() not in AudioSamplingRate:
+    if app_settings.get_audio_sampling_rate() not in AudioSamplingRate:
         errors_list.append(&#34;App settings audio sample rate is not a valid sample rate&#34;)
-    if app.get_station_id() == &#34;&#34;:
+    if app_settings.get_station_id() == &#34;&#34;:
         errors_list.append(&#34;App settings station id is missing&#34;)
     return errors_list
 
 
+# noinspection Mypy,DuplicatedCode
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType)
 class NetworkType(enum.Enum):
+    &#34;&#34;&#34;
+    Network type for station metrics
+    &#34;&#34;&#34;
     UNKNOWN_NETWORK: int = 0
     NO_NETWORK: int = 1
     WIFI: int = 2
@@ -359,16 +608,24 @@ class NetworkType(enum.Enum):
     WIRED: int = 4
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock)
 class WifiWakeLock(enum.Enum):
+    &#34;&#34;&#34;
+    WiFi wake lock states for station metrics
+    &#34;&#34;&#34;
     NONE: int = 0
     HIGH_PERF: int = 1
     LOW_LATENCY: int = 2
     OTHER: int = 3
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState)
 class CellServiceState(enum.Enum):
+    &#34;&#34;&#34;
+    Cell service state for station metrics
+    &#34;&#34;&#34;
     UNKNOWN: int = 0
     EMERGENCY: int = 1
     NOMINAL: int = 2
@@ -376,8 +633,12 @@ class CellServiceState(enum.Enum):
     POWER_OFF: int = 4
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState)
 class PowerState(enum.Enum):
+    &#34;&#34;&#34;
+    Power state for station metrics
+    &#34;&#34;&#34;
     UNKNOWN_POWER_STATE: int = 0
     UNPLUGGED: int = 1
     CHARGING: int = 2
@@ -385,137 +646,225 @@ class PowerState(enum.Enum):
 
 
 class StationMetrics(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics]):
+    &#34;&#34;&#34;
+    A collection of timestamps metrics relating to station state.
+    &#34;&#34;&#34;
     # noinspection Mypy
     def __init__(self, station_metrics_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics):
         super().__init__(station_metrics_proto)
         self._timestamps = common.TimingPayload(station_metrics_proto.timestamps).set_default_unit()
-        self._network_type: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
-            station_metrics_proto,
-            station_metrics_proto.network_type,
-            _NETWORK_TYPE_FIELD_NAME,
-            NetworkType.from_proto,
-            NetworkType.into_proto
-        )
-        self._cell_service_state: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
-            station_metrics_proto,
-            station_metrics_proto.cell_service_state,
-            _CELL_SERVICE_STATE_FIELD_NAME,
-            CellServiceState.from_proto,
-            CellServiceState.into_proto
-        )
+        self._network_type: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.network_type,
+                _NETWORK_TYPE_FIELD_NAME,
+                NetworkType.from_proto,
+                NetworkType.into_proto)
+        self._cell_service_state: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.cell_service_state,
+                _CELL_SERVICE_STATE_FIELD_NAME,
+                CellServiceState.from_proto,
+                CellServiceState.into_proto)
+        # noinspection PyTypeChecker
         self._network_strength: common.SamplePayload = common.SamplePayload(station_metrics_proto.network_strength) \
             .set_unit(common.Unit.DECIBEL)
+        # noinspection PyTypeChecker
         self._temperature: common.SamplePayload = common.SamplePayload(station_metrics_proto.temperature) \
             .set_unit(common.Unit.DEGREES_CELSIUS)
+        # noinspection PyTypeChecker
         self._battery: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery) \
             .set_unit(common.Unit.PERCENTAGE)
+        # noinspection PyTypeChecker
         self._battery_current: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery_current) \
             .set_unit(common.Unit.MICROAMPERES)
+        # noinspection PyTypeChecker
         self._available_ram: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_ram) \
             .set_unit(common.Unit.BYTE)
+        # noinspection PyTypeChecker
         self._available_disk: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_disk) \
             .set_unit(common.Unit.BYTE)
+        # noinspection PyTypeChecker
         self._cpu_utilization: common.SamplePayload = common.SamplePayload(station_metrics_proto.cpu_utilization) \
             .set_unit(common.Unit.PERCENTAGE)
-        self._power_state: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
-            station_metrics_proto,
-            station_metrics_proto.power_state,
-            _POWER_STATE_FIELD_NAME,
-            PowerState.from_proto,
-            PowerState.into_proto
-        )
-        self._wifi_wake_loc: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
-            station_metrics_proto,
-            station_metrics_proto.wifi_wake_lock,
-            _WIFI_WAKE_LOCK_FIELD_NAME,
-            WifiWakeLock.from_proto,
-            WifiWakeLock.into_proto
-        )
+        self._power_state: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.power_state,
+                _POWER_STATE_FIELD_NAME,
+                PowerState.from_proto,
+                PowerState.into_proto)
+        self._wifi_wake_loc: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.wifi_wake_lock,
+                _WIFI_WAKE_LOCK_FIELD_NAME,
+                WifiWakeLock.from_proto,
+                WifiWakeLock.into_proto)
 
     @staticmethod
     def new() -&gt; &#39;StationMetrics&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty StationMetrics instance
+        &#34;&#34;&#34;
         return StationMetrics(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics())
 
     def get_timestamps(self) -&gt; common.TimingPayload:
+        &#34;&#34;&#34;
+        :return: Timestamps associated with each metric.
+        &#34;&#34;&#34;
         return self._timestamps
 
     def get_network_type(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A payload of network types.
+        &#34;&#34;&#34;
         return self._network_type
 
     def get_cell_service_state(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A payload of cell service state
+        &#34;&#34;&#34;
         return self._cell_service_state
 
     def get_network_strength(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload of network strengths
+        &#34;&#34;&#34;
         return self._network_strength
 
     def get_temperature(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload of temperatures
+        &#34;&#34;&#34;
         return self._temperature
 
     def get_battery(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload of battery remaining
+        &#34;&#34;&#34;
         return self._battery
 
     def get_battery_current(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload of battery current
+        &#34;&#34;&#34;
         return self._battery_current
 
     def get_available_ram(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload of available RAM
+        &#34;&#34;&#34;
         return self._available_ram
 
     def get_available_disk(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload of available disk
+        &#34;&#34;&#34;
         return self._available_disk
 
     def get_cpu_utilization(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload CPU utilization
+        &#34;&#34;&#34;
         return self._cpu_utilization
 
     def get_power_state(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A payload of power states
+        &#34;&#34;&#34;
         return self._power_state
 
     def get_wifi_wake_loc(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A payload of Wifi wake lock states
+        &#34;&#34;&#34;
         return self._wifi_wake_loc
 
 
 class ServiceUrls(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls]):
+    &#34;&#34;&#34;
+    A collection of URLs utilized while collecting, authenticating, and transmitting the data.
+    &#34;&#34;&#34;
     def __init__(self, service_urls_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls):
         super().__init__(service_urls_proto)
 
     @staticmethod
     def new() -&gt; &#39;ServiceUrls&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty ServiceUrls instance
+        &#34;&#34;&#34;
         return ServiceUrls(redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls())
 
     def get_auth_server(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The authentication server URL.
+        &#34;&#34;&#34;
         return self.get_proto().auth_server
 
     def set_auth_server(self, _auth_server: str) -&gt; &#39;ServiceUrls&#39;:
+        &#34;&#34;&#34;
+        Sets the authentication server url
+        :param _auth_server: Url to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(_auth_server, [str])
         self.get_proto().auth_server = _auth_server
         return self
 
     def get_synch_server(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The time synchronization URL.
+        &#34;&#34;&#34;
         return self.get_proto().synch_server
 
     def set_synch_server(self, _synch_server: str) -&gt; &#39;ServiceUrls&#39;:
+        &#34;&#34;&#34;
+        Sets the time synchronization URL.
+        :param _synch_server: URL to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(_synch_server, [str])
         self.get_proto().synch_server = _synch_server
         return self
 
     def get_acquisition_server(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The data acquisition server URL
+        &#34;&#34;&#34;
         return self.get_proto().acquisition_server
 
     def set_acquisition_server(self, _acquisition_server: str) -&gt; &#39;ServiceUrls&#39;:
+        &#34;&#34;&#34;
+        Sets the data acquisition server URL
+        :param _acquisition_server: URL to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(_acquisition_server, [str])
         self.get_proto().acquisition_server = _acquisition_server
         return self
 
 
 def validate_station_metrics(station_metrics: StationMetrics) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the station metrics.
+    :param station_metrics: Metrics to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     # only check if timestamps are valid right now
     # todo: determine if other stuff needs to be validated as well
     return common.validate_timing_payload(station_metrics.get_timestamps())
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType)
 class OsType(enum.Enum):
+    &#34;&#34;&#34;
+    Type-safe OS enumeration for station info
+    &#34;&#34;&#34;
     UNKNOWN_OS: int = 0
     ANDROID: int = 1
     IOS: int = 2
@@ -525,7 +874,10 @@ class OsType(enum.Enum):
 
 
 class StationInformation(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation]):
+    &#34;&#34;&#34;
+    A collection of station related metadata, settings, and metrics.
+    &#34;&#34;&#34;
     def __init__(self, station_information_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation):
         super().__init__(station_information_proto)
         self._app_settings: AppSettings = AppSettings(station_information_proto.app_settings)
@@ -534,99 +886,196 @@ class StationInformation(
 
     @staticmethod
     def new() -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty StationInformation instance
+        &#34;&#34;&#34;
         return StationInformation(redvox_api_m_pb2.RedvoxPacketM.StationInformation())
 
     def get_id(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station id
+        &#34;&#34;&#34;
         return self.get_proto().id
 
     def set_id(self, _id: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station id
+        :param _id: Id to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(_id, [str])
         self.get_proto().id = _id
         return self
 
     def get_uuid(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station UUID
+        &#34;&#34;&#34;
         return self.get_proto().uuid
 
     def set_uuid(self, uuid: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station uuid.
+        :param uuid: uuid to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(uuid, [str])
         self.get_proto().uuid = uuid
         return self
 
     def get_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station&#39;s description.
+        &#34;&#34;&#34;
         return self.get_proto().description
 
     def set_description(self, description: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s description
+        :param description: Description of the station
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(description, [str])
         self.get_proto().description = description
         return self
 
     def get_auth_id(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station&#39;s authentication id
+        &#34;&#34;&#34;
         return self.get_proto().auth_id
 
     def set_auth_id(self, auth_id: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s authentication id
+        :param auth_id: Authentication id to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(auth_id, [str])
         self.get_proto().auth_id = auth_id
         return self
 
     def get_make(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station&#39;s make
+        &#34;&#34;&#34;
         return self.get_proto().make
 
     def set_make(self, make: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s make
+        :param make: Make to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(make, [str])
         self.get_proto().make = make
         return self
 
     def get_model(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station&#39;s model
+        &#34;&#34;&#34;
         return self.get_proto().model
 
     def set_model(self, model: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s model
+        :param model: Model to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(model, [str])
         self.get_proto().model = model
         return self
 
     def get_os(self) -&gt; OsType:
+        &#34;&#34;&#34;
+        :return: The station&#39;s OS
+        &#34;&#34;&#34;
         return OsType(self.get_proto().os)
 
     def set_os(self, os: OsType) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s OS
+        :param os: OS to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(os, [OsType])
         self.get_proto().os = redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType.Value(os.name)
         return self
 
     def get_os_version(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station&#39;s OS version
+        &#34;&#34;&#34;
         return self.get_proto().os_version
 
     def set_os_version(self, os_version: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s OS version
+        :param os_version: OS version to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(os_version, [str])
         self.get_proto().os_version = os_version
         return self
 
     def get_app_version(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station&#39;s app version
+        &#34;&#34;&#34;
         return self.get_proto().app_version
 
     def set_app_version(self, app_version: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s app version.
+        :param app_version: App version to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(app_version, [str])
         self.get_proto().app_version = app_version
         return self
 
     def get_is_private(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: If this station was recording privately.
+        &#34;&#34;&#34;
         return self.get_proto().is_private
 
     def set_is_private(self, is_private: bool) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets if this station is recording privately.
+        :param is_private: True if private, False otherwise
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(is_private, [bool])
         self.get_proto().is_private = is_private
         return self
 
     def get_app_settings(self) -&gt; AppSettings:
+        &#34;&#34;&#34;
+        :return: This station&#39;s copy of its settings
+        &#34;&#34;&#34;
         return self._app_settings
 
     def get_station_metrics(self) -&gt; StationMetrics:
+        &#34;&#34;&#34;
+        :return: Metrics associated with this station.
+        &#34;&#34;&#34;
         return self._station_metrics
 
     def get_service_urls(self) -&gt; ServiceUrls:
+        &#34;&#34;&#34;
+        :return: URLs used to service this station.
+        &#34;&#34;&#34;
         return self._service_urls
 
 
 def validate_station_information(station_info: StationInformation) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates station information.
+    :param station_info: Station information to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     errors_list = validate_app_settings(station_info.get_app_settings())
     errors_list.extend(validate_station_metrics(station_info.get_station_metrics()))
     if station_info.get_id() == &#34;&#34;:
@@ -644,19 +1093,26 @@ def validate_station_information(station_info: StationInformation) -&gt; List[st
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.api1000.wrapped_redvox_packet.station_information.validate_app_settings"><code class="name flex">
-<span>def <span class="ident">validate_app_settings</span></span>(<span>app: <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a>) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate_app_settings</span></span>(<span>app_settings: <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a>) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Validates the app settings.
+:param app_settings: App settings to validate
+:return: List of validation errors</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def validate_app_settings(app: AppSettings) -&gt; List[str]:
+<pre><code class="python">def validate_app_settings(app_settings: AppSettings) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the app settings.
+    :param app_settings: App settings to validate
+    :return: List of validation errors
+    &#34;&#34;&#34;
     errors_list = []
-    if app.get_audio_sampling_rate() not in AudioSamplingRate:
+    if app_settings.get_audio_sampling_rate() not in AudioSamplingRate:
         errors_list.append(&#34;App settings audio sample rate is not a valid sample rate&#34;)
-    if app.get_station_id() == &#34;&#34;:
+    if app_settings.get_station_id() == &#34;&#34;:
         errors_list.append(&#34;App settings station id is missing&#34;)
     return errors_list</code></pre>
 </details>
@@ -665,12 +1121,19 @@ def validate_station_information(station_info: StationInformation) -&gt; List[st
 <span>def <span class="ident">validate_station_information</span></span>(<span>station_info: <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a>) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Validates station information.
+:param station_info: Station information to validate.
+:return: A list of validation errors.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_station_information(station_info: StationInformation) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates station information.
+    :param station_info: Station information to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     errors_list = validate_app_settings(station_info.get_app_settings())
     errors_list.extend(validate_station_metrics(station_info.get_station_metrics()))
     if station_info.get_id() == &#34;&#34;:
@@ -684,12 +1147,19 @@ def validate_station_information(station_info: StationInformation) -&gt; List[st
 <span>def <span class="ident">validate_station_metrics</span></span>(<span>station_metrics: <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationMetrics" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationMetrics">StationMetrics</a>) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Validates the station metrics.
+:param station_metrics: Metrics to validate.
+:return: A list of validation errors.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_station_metrics(station_metrics: StationMetrics) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the station metrics.
+    :param station_metrics: Metrics to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     # only check if timestamps are valid right now
     # todo: determine if other stuff needs to be validated as well
     return common.validate_timing_payload(station_metrics.get_timestamps())</code></pre>
@@ -705,15 +1175,20 @@ def validate_station_information(station_info: StationInformation) -&gt; List[st
 <span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.AppSettings)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>Represents a copy of the App's settings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class AppSettings(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
+    &#34;&#34;&#34;
+    Represents a copy of the App&#39;s settings.
+    &#34;&#34;&#34;
+
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings):
         super().__init__(proto)
+        # noinspection Mypy
         self._additional_input_sensors: redvox.api1000.common.generic.ProtoRepeatedMessage[
             InputSensorProto, InputSensor] = \
             redvox.api1000.common.generic.ProtoRepeatedMessage(
@@ -726,37 +1201,70 @@ def validate_station_information(station_info: StationInformation) -&gt; List[st
 
     @staticmethod
     def new() -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Creates a new, empty AppSettings instance
+        :return: A new, empty AppSettings instance
+        &#34;&#34;&#34;
         return AppSettings(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings())
 
     def get_audio_sampling_rate(self) -&gt; AudioSamplingRate:
+        &#34;&#34;&#34;
+        :return: Returns the sampling rate provided in the settings.
+        &#34;&#34;&#34;
         return AudioSamplingRate(self.get_proto().audio_sampling_rate)
 
     def set_audio_sampling_rate(self, audio_sampling_rate: AudioSamplingRate) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets the audio sampling rate.
+        :param audio_sampling_rate: Rate to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(audio_sampling_rate, [AudioSamplingRate])
 
-        self.get_proto().audio_sampling_rate = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
-            audio_sampling_rate.name)
+        self.get_proto().audio_sampling_rate = \
+            redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
+                audio_sampling_rate.name)
         return self
 
     # todo get_samples_per_window
 
     def get_audio_source_tuning(self) -&gt; AudioSourceTuning:
+        &#34;&#34;&#34;
+        :return: The AudioSourceTuning
+        &#34;&#34;&#34;
         return AudioSourceTuning(self.get_proto().audio_source_tuning)
 
     def set_audio_source_tuning(self, audio_source_tuning: AudioSourceTuning) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets the AudioSourceTuning.
+        :param audio_source_tuning: Tuning to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(audio_source_tuning, [AudioSourceTuning])
 
-        self.get_proto().audio_source_tuning = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
-            audio_source_tuning.name)
+        self.get_proto().audio_source_tuning = \
+            redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
+                audio_source_tuning.name)
         return self
 
     def get_additional_input_sensors(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: Additional input sensors specified in the settings.
+        &#34;&#34;&#34;
         return self._additional_input_sensors
 
     def get_fft_overlap(self) -&gt; FftOverlap:
+        &#34;&#34;&#34;
+        :return: FFT overlap as specified in the settings
+        &#34;&#34;&#34;
         return FftOverlap(self.get_proto().fft_overlap)
 
     def set_fft_overlap(self, fft_overlap: FftOverlap) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets the fft overlap in the settings
+        :param fft_overlap: Overlap to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(fft_overlap, [FftOverlap])
 
         self.get_proto().fft_overlap = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap.Value(
@@ -764,180 +1272,356 @@ def validate_station_information(station_info: StationInformation) -&gt; List[st
         return self
 
     def get_automatically_record(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is automatically record set in the settings?
+        &#34;&#34;&#34;
         return self.get_proto().automatically_record
 
     def set_automatically_record(self, automatically_record: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets automatically record in the settings.
+        :param automatically_record: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(automatically_record, [bool])
         self.get_proto().automatically_record = automatically_record
         return self
 
     def get_launch_at_power_up(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is launch at power up set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().launch_at_power_up
 
     def set_launch_at_power_up(self, launch_at_power_up: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets launch at power up in settings.
+        :param launch_at_power_up: Setting to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(launch_at_power_up, [bool])
         self.get_proto().launch_at_power_up = launch_at_power_up
         return self
 
     def get_station_id(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: Station id provided in settings
+        &#34;&#34;&#34;
         return self.get_proto().station_id
 
     def set_station_id(self, station_id: str) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets the station id in the settings.
+        :param station_id: Station id to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(station_id, [str])
         self.get_proto().station_id = station_id
         return self
 
     def get_station_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: Station description set in settings.`
+        &#34;&#34;&#34;
         return self.get_proto().station_description
 
     def set_station_description(self, station_description: str) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets the station description in the settings.
+        :param station_description: Description to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(station_description, [str])
         self.get_proto().station_description = station_description
         return self
 
     def get_push_to_server(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is push to server set in the settings?
+        &#34;&#34;&#34;
         return self.get_proto().push_to_server
 
     def set_push_to_server(self, push_to_server: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets push to server in the settings.
+        :param push_to_server: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(push_to_server, [bool])
         self.get_proto().push_to_server = push_to_server
         return self
 
     def get_publish_data_as_private(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is publish data as private set in the settings?
+        &#34;&#34;&#34;
         return self.get_proto().publish_data_as_private
 
     def set_publish_data_as_private(self, publish_data_as_private: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets publish data as private in the settings.
+        :param publish_data_as_private: Setting to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(publish_data_as_private, [bool])
         self.get_proto().publish_data_as_private = publish_data_as_private
         return self
 
     def get_scramble_audio_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is scramble audio set in the settings?
+        &#34;&#34;&#34;
         return self.get_proto().scramble_audio_data
 
     def set_scramble_audio_data(self, scramble_audio_data: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets scramble audio in the settings.
+        :param scramble_audio_data: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(scramble_audio_data, [bool])
         self.get_proto().scramble_audio_data = scramble_audio_data
         return self
 
     def get_provide_backfill(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is provide backfill set in the settings?
+        &#34;&#34;&#34;
         return self.get_proto().provide_backfill
 
     def set_provide_backfill(self, provide_backfill: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets backfill in the settings.
+        :param provide_backfill: Setting to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(provide_backfill, [bool])
         self.get_proto().provide_backfill = provide_backfill
         return self
 
     def get_remove_sensor_dc_offset(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is remove dc offset set in the settings?
+        &#34;&#34;&#34;
         return self.get_proto().remove_sensor_dc_offset
 
     def set_remove_sensor_dc_offset(self, remove_sensor_dc_offset: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets remove DC offset in the settings.
+        :param remove_sensor_dc_offset: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(remove_sensor_dc_offset, [bool])
         self.get_proto().remove_sensor_dc_offset = remove_sensor_dc_offset
         return self
 
     def get_use_custom_time_sync_server(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is use custom sync server set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().use_custom_time_sync_server
 
     def set_use_custom_time_sync_server(self, use_custom_time_sync_server: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets use custom synch server in settings.
+        :param use_custom_time_sync_server: Setting to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_custom_time_sync_server, [bool])
         self.get_proto().use_custom_time_sync_server = use_custom_time_sync_server
         return self
 
     def get_time_sync_server_url(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: Custom synch url from settings.
+        &#34;&#34;&#34;
         return self.get_proto().time_sync_server_url
 
     def set_time_sync_server_url(self, time_sync_server_url: str) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets the custom synch url in the settings.
+        :param time_sync_server_url: URL to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(time_sync_server_url, [str])
         self.get_proto().time_sync_server_url = time_sync_server_url
         return self
 
     def get_use_custom_data_server(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Is use custom data server set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().use_custom_data_server
 
     def set_use_custom_data_server(self, use_custom_data_server: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set use custom data server in settings.
+        :param use_custom_data_server: Setting to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_custom_data_server, [bool])
         self.get_proto().use_custom_data_server = use_custom_data_server
         return self
 
     def get_data_server_url(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: Custom data server url in settings.
+        &#34;&#34;&#34;
         return self.get_proto().data_server_url
 
     def set_data_server_url(self, data_server_url: str) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets custom data server url in settings.
+        :param data_server_url: Url to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(data_server_url, [str])
         self.get_proto().data_server_url = data_server_url
         return self
 
     def get_use_custom_auth_server(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Use custom auth server set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().use_custom_auth_server
 
     def set_use_custom_auth_server(self, use_custom_auth_server: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set use custom auth server in settings.
+        :param use_custom_auth_server: Setting to set.
+        :return: Modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_custom_auth_server, [bool])
         self.get_proto().use_custom_auth_server = use_custom_auth_server
         return self
 
     def get_auth_server_url(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: Custom auth server url from settings
+        &#34;&#34;&#34;
         return self.get_proto().auth_server_url
 
     def set_auth_server_url(self, auth_server_url: str) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set custom auth server url in settings.
+        :param auth_server_url: Url to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(auth_server_url, [str])
         self.get_proto().auth_server_url = auth_server_url
         return self
 
     def get_auto_delete_data_files(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Auto delete files set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().auto_delete_data_files
 
     def set_auto_delete_data_files(self, auto_delete_data_files: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set auto delete data files in settings.
+        :param auto_delete_data_files: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(auto_delete_data_files, [bool])
         self.get_proto().auto_delete_data_files = auto_delete_data_files
         return self
 
     def get_storage_space_allowance(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Amount of storage space allowance set in settings.
+        &#34;&#34;&#34;
         return self.get_proto().storage_space_allowance
 
     def set_storage_space_allowance(self, storage_space_allowance: float) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set storage space allowance in settings.
+        :param storage_space_allowance: Allowance to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(storage_space_allowance, [int, float])
 
         self.get_proto().storage_space_allowance = storage_space_allowance
         return self
 
     def get_use_sd_card_for_data_storage(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Use SD card set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().use_sd_card_for_data_storage
 
     def set_use_sd_card_for_data_storage(self, use_sd_card_for_data_storage: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set use SD card in settings.
+        :param use_sd_card_for_data_storage: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_sd_card_for_data_storage, [bool])
         self.get_proto().use_sd_card_for_data_storage = use_sd_card_for_data_storage
         return self
 
     def get_use_location_services(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Use location services set in settings?
+        &#34;&#34;&#34;
         return self.get_proto().use_location_services
 
     def set_use_location_services(self, use_location_services: bool) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets use location services in settings.
+        :param use_location_services: Setting to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_location_services, [bool])
         self.get_proto().use_location_services = use_location_services
         return self
 
     def get_use_latitude(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Custom latitude provided in settings.
+        &#34;&#34;&#34;
         return self.get_proto().use_latitude
 
     def set_use_latitude(self, use_latitude: float) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set custom latitude in settings.
+        :param use_latitude: Latitude to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_latitude, [int, float])
 
         self.get_proto().use_latitude = use_latitude
         return self
 
     def get_use_longitude(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Custom longitude from settings.
+        &#34;&#34;&#34;
         return self.get_proto().use_longitude
 
     def set_use_longitude(self, use_longitude: float) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Sets custom longitude in settings.
+        :param use_longitude: Longitude to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_longitude, [int, float])
 
         self.get_proto().use_longitude = use_longitude
         return self
 
     def get_use_altitude(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Custom altitude set in settings
+        &#34;&#34;&#34;
         return self.get_proto().use_altitude
 
     def set_use_altitude(self, use_altitude: float) -&gt; &#39;AppSettings&#39;:
+        &#34;&#34;&#34;
+        Set custom altitude in settings.
+        :param use_altitude: Altitude to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(use_altitude, [int, float])
 
         self.get_proto().use_altitude = use_altitude
@@ -954,13 +1638,18 @@ def validate_station_information(station_info: StationInformation) -&gt; List[st
 <span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Creates a new, empty AppSettings instance
+:return: A new, empty AppSettings instance</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def new() -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Creates a new, empty AppSettings instance
+    :return: A new, empty AppSettings instance
+    &#34;&#34;&#34;
     return AppSettings(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings())</code></pre>
 </details>
 </dd>
@@ -971,12 +1660,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_additional_input_sensors</span></span>(<span>self) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="../common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Additional input sensors specified in the settings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_additional_input_sensors(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+    &#34;&#34;&#34;
+    :return: Additional input sensors specified in the settings.
+    &#34;&#34;&#34;
     return self._additional_input_sensors</code></pre>
 </details>
 </dd>
@@ -984,12 +1676,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_audio_sampling_rate</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AudioSamplingRate" href="#redvox.api1000.wrapped_redvox_packet.station_information.AudioSamplingRate">AudioSamplingRate</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Returns the sampling rate provided in the settings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_audio_sampling_rate(self) -&gt; AudioSamplingRate:
+    &#34;&#34;&#34;
+    :return: Returns the sampling rate provided in the settings.
+    &#34;&#34;&#34;
     return AudioSamplingRate(self.get_proto().audio_sampling_rate)</code></pre>
 </details>
 </dd>
@@ -997,12 +1692,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_audio_source_tuning</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AudioSourceTuning" href="#redvox.api1000.wrapped_redvox_packet.station_information.AudioSourceTuning">AudioSourceTuning</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The AudioSourceTuning</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_audio_source_tuning(self) -&gt; AudioSourceTuning:
+    &#34;&#34;&#34;
+    :return: The AudioSourceTuning
+    &#34;&#34;&#34;
     return AudioSourceTuning(self.get_proto().audio_source_tuning)</code></pre>
 </details>
 </dd>
@@ -1010,12 +1708,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_auth_server_url</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Custom auth server url from settings</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_auth_server_url(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: Custom auth server url from settings
+    &#34;&#34;&#34;
     return self.get_proto().auth_server_url</code></pre>
 </details>
 </dd>
@@ -1023,12 +1724,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_auto_delete_data_files</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Auto delete files set in settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_auto_delete_data_files(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Auto delete files set in settings?
+    &#34;&#34;&#34;
     return self.get_proto().auto_delete_data_files</code></pre>
 </details>
 </dd>
@@ -1036,12 +1740,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_automatically_record</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Is automatically record set in the settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_automatically_record(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Is automatically record set in the settings?
+    &#34;&#34;&#34;
     return self.get_proto().automatically_record</code></pre>
 </details>
 </dd>
@@ -1049,12 +1756,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_data_server_url</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Custom data server url in settings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_data_server_url(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: Custom data server url in settings.
+    &#34;&#34;&#34;
     return self.get_proto().data_server_url</code></pre>
 </details>
 </dd>
@@ -1062,12 +1772,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_fft_overlap</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.FftOverlap" href="#redvox.api1000.wrapped_redvox_packet.station_information.FftOverlap">FftOverlap</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: FFT overlap as specified in the settings</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_fft_overlap(self) -&gt; FftOverlap:
+    &#34;&#34;&#34;
+    :return: FFT overlap as specified in the settings
+    &#34;&#34;&#34;
     return FftOverlap(self.get_proto().fft_overlap)</code></pre>
 </details>
 </dd>
@@ -1075,12 +1788,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_launch_at_power_up</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Is launch at power up set in settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_launch_at_power_up(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Is launch at power up set in settings?
+    &#34;&#34;&#34;
     return self.get_proto().launch_at_power_up</code></pre>
 </details>
 </dd>
@@ -1088,12 +1804,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_provide_backfill</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Is provide backfill set in the settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_provide_backfill(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Is provide backfill set in the settings?
+    &#34;&#34;&#34;
     return self.get_proto().provide_backfill</code></pre>
 </details>
 </dd>
@@ -1101,12 +1820,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_publish_data_as_private</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Is publish data as private set in the settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_publish_data_as_private(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Is publish data as private set in the settings?
+    &#34;&#34;&#34;
     return self.get_proto().publish_data_as_private</code></pre>
 </details>
 </dd>
@@ -1114,12 +1836,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_push_to_server</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Is push to server set in the settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_push_to_server(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Is push to server set in the settings?
+    &#34;&#34;&#34;
     return self.get_proto().push_to_server</code></pre>
 </details>
 </dd>
@@ -1127,12 +1852,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_remove_sensor_dc_offset</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Is remove dc offset set in the settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_remove_sensor_dc_offset(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Is remove dc offset set in the settings?
+    &#34;&#34;&#34;
     return self.get_proto().remove_sensor_dc_offset</code></pre>
 </details>
 </dd>
@@ -1140,12 +1868,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_scramble_audio_data</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Is scramble audio set in the settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_scramble_audio_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Is scramble audio set in the settings?
+    &#34;&#34;&#34;
     return self.get_proto().scramble_audio_data</code></pre>
 </details>
 </dd>
@@ -1153,12 +1884,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_station_description</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Station description set in settings.`</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_station_description(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: Station description set in settings.`
+    &#34;&#34;&#34;
     return self.get_proto().station_description</code></pre>
 </details>
 </dd>
@@ -1166,12 +1900,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_station_id</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Station id provided in settings</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_station_id(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: Station id provided in settings
+    &#34;&#34;&#34;
     return self.get_proto().station_id</code></pre>
 </details>
 </dd>
@@ -1179,12 +1916,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_storage_space_allowance</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Amount of storage space allowance set in settings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_storage_space_allowance(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: Amount of storage space allowance set in settings.
+    &#34;&#34;&#34;
     return self.get_proto().storage_space_allowance</code></pre>
 </details>
 </dd>
@@ -1192,12 +1932,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_time_sync_server_url</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Custom synch url from settings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_time_sync_server_url(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: Custom synch url from settings.
+    &#34;&#34;&#34;
     return self.get_proto().time_sync_server_url</code></pre>
 </details>
 </dd>
@@ -1205,12 +1948,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_use_altitude</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Custom altitude set in settings</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_use_altitude(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: Custom altitude set in settings
+    &#34;&#34;&#34;
     return self.get_proto().use_altitude</code></pre>
 </details>
 </dd>
@@ -1218,12 +1964,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_use_custom_auth_server</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Use custom auth server set in settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_use_custom_auth_server(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Use custom auth server set in settings?
+    &#34;&#34;&#34;
     return self.get_proto().use_custom_auth_server</code></pre>
 </details>
 </dd>
@@ -1231,12 +1980,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_use_custom_data_server</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Is use custom data server set in settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_use_custom_data_server(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Is use custom data server set in settings?
+    &#34;&#34;&#34;
     return self.get_proto().use_custom_data_server</code></pre>
 </details>
 </dd>
@@ -1244,12 +1996,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_use_custom_time_sync_server</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Is use custom sync server set in settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_use_custom_time_sync_server(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Is use custom sync server set in settings?
+    &#34;&#34;&#34;
     return self.get_proto().use_custom_time_sync_server</code></pre>
 </details>
 </dd>
@@ -1257,12 +2012,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_use_latitude</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Custom latitude provided in settings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_use_latitude(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: Custom latitude provided in settings.
+    &#34;&#34;&#34;
     return self.get_proto().use_latitude</code></pre>
 </details>
 </dd>
@@ -1270,12 +2028,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_use_location_services</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Use location services set in settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_use_location_services(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Use location services set in settings?
+    &#34;&#34;&#34;
     return self.get_proto().use_location_services</code></pre>
 </details>
 </dd>
@@ -1283,12 +2044,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_use_longitude</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Custom longitude from settings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_use_longitude(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: Custom longitude from settings.
+    &#34;&#34;&#34;
     return self.get_proto().use_longitude</code></pre>
 </details>
 </dd>
@@ -1296,12 +2060,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">get_use_sd_card_for_data_storage</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Use SD card set in settings?</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_use_sd_card_for_data_storage(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Use SD card set in settings?
+    &#34;&#34;&#34;
     return self.get_proto().use_sd_card_for_data_storage</code></pre>
 </details>
 </dd>
@@ -1309,16 +2076,24 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_audio_sampling_rate</span></span>(<span>self, audio_sampling_rate: <a title="redvox.api1000.wrapped_redvox_packet.station_information.AudioSamplingRate" href="#redvox.api1000.wrapped_redvox_packet.station_information.AudioSamplingRate">AudioSamplingRate</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the audio sampling rate.
+:param audio_sampling_rate: Rate to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_audio_sampling_rate(self, audio_sampling_rate: AudioSamplingRate) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets the audio sampling rate.
+    :param audio_sampling_rate: Rate to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(audio_sampling_rate, [AudioSamplingRate])
 
-    self.get_proto().audio_sampling_rate = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
-        audio_sampling_rate.name)
+    self.get_proto().audio_sampling_rate = \
+        redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
+            audio_sampling_rate.name)
     return self</code></pre>
 </details>
 </dd>
@@ -1326,16 +2101,24 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_audio_source_tuning</span></span>(<span>self, audio_source_tuning: <a title="redvox.api1000.wrapped_redvox_packet.station_information.AudioSourceTuning" href="#redvox.api1000.wrapped_redvox_packet.station_information.AudioSourceTuning">AudioSourceTuning</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the AudioSourceTuning.
+:param audio_source_tuning: Tuning to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_audio_source_tuning(self, audio_source_tuning: AudioSourceTuning) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets the AudioSourceTuning.
+    :param audio_source_tuning: Tuning to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(audio_source_tuning, [AudioSourceTuning])
 
-    self.get_proto().audio_source_tuning = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
-        audio_source_tuning.name)
+    self.get_proto().audio_source_tuning = \
+        redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
+            audio_source_tuning.name)
     return self</code></pre>
 </details>
 </dd>
@@ -1343,12 +2126,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_auth_server_url</span></span>(<span>self, auth_server_url: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set custom auth server url in settings.
+:param auth_server_url: Url to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_auth_server_url(self, auth_server_url: str) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Set custom auth server url in settings.
+    :param auth_server_url: Url to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(auth_server_url, [str])
     self.get_proto().auth_server_url = auth_server_url
     return self</code></pre>
@@ -1358,12 +2148,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_auto_delete_data_files</span></span>(<span>self, auto_delete_data_files: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set auto delete data files in settings.
+:param auto_delete_data_files: Setting to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_auto_delete_data_files(self, auto_delete_data_files: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Set auto delete data files in settings.
+    :param auto_delete_data_files: Setting to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(auto_delete_data_files, [bool])
     self.get_proto().auto_delete_data_files = auto_delete_data_files
     return self</code></pre>
@@ -1373,12 +2170,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_automatically_record</span></span>(<span>self, automatically_record: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets automatically record in the settings.
+:param automatically_record: Setting to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_automatically_record(self, automatically_record: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets automatically record in the settings.
+    :param automatically_record: Setting to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(automatically_record, [bool])
     self.get_proto().automatically_record = automatically_record
     return self</code></pre>
@@ -1388,12 +2192,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_data_server_url</span></span>(<span>self, data_server_url: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets custom data server url in settings.
+:param data_server_url: Url to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_data_server_url(self, data_server_url: str) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets custom data server url in settings.
+    :param data_server_url: Url to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(data_server_url, [str])
     self.get_proto().data_server_url = data_server_url
     return self</code></pre>
@@ -1403,12 +2214,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_fft_overlap</span></span>(<span>self, fft_overlap: <a title="redvox.api1000.wrapped_redvox_packet.station_information.FftOverlap" href="#redvox.api1000.wrapped_redvox_packet.station_information.FftOverlap">FftOverlap</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the fft overlap in the settings
+:param fft_overlap: Overlap to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_fft_overlap(self, fft_overlap: FftOverlap) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets the fft overlap in the settings
+    :param fft_overlap: Overlap to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(fft_overlap, [FftOverlap])
 
     self.get_proto().fft_overlap = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap.Value(
@@ -1420,12 +2238,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_launch_at_power_up</span></span>(<span>self, launch_at_power_up: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets launch at power up in settings.
+:param launch_at_power_up: Setting to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_launch_at_power_up(self, launch_at_power_up: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets launch at power up in settings.
+    :param launch_at_power_up: Setting to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(launch_at_power_up, [bool])
     self.get_proto().launch_at_power_up = launch_at_power_up
     return self</code></pre>
@@ -1435,12 +2260,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_provide_backfill</span></span>(<span>self, provide_backfill: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets backfill in the settings.
+:param provide_backfill: Setting to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_provide_backfill(self, provide_backfill: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets backfill in the settings.
+    :param provide_backfill: Setting to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(provide_backfill, [bool])
     self.get_proto().provide_backfill = provide_backfill
     return self</code></pre>
@@ -1450,12 +2282,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_publish_data_as_private</span></span>(<span>self, publish_data_as_private: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets publish data as private in the settings.
+:param publish_data_as_private: Setting to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_publish_data_as_private(self, publish_data_as_private: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets publish data as private in the settings.
+    :param publish_data_as_private: Setting to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(publish_data_as_private, [bool])
     self.get_proto().publish_data_as_private = publish_data_as_private
     return self</code></pre>
@@ -1465,12 +2304,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_push_to_server</span></span>(<span>self, push_to_server: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets push to server in the settings.
+:param push_to_server: Setting to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_push_to_server(self, push_to_server: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets push to server in the settings.
+    :param push_to_server: Setting to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(push_to_server, [bool])
     self.get_proto().push_to_server = push_to_server
     return self</code></pre>
@@ -1480,12 +2326,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_remove_sensor_dc_offset</span></span>(<span>self, remove_sensor_dc_offset: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets remove DC offset in the settings.
+:param remove_sensor_dc_offset: Setting to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_remove_sensor_dc_offset(self, remove_sensor_dc_offset: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets remove DC offset in the settings.
+    :param remove_sensor_dc_offset: Setting to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(remove_sensor_dc_offset, [bool])
     self.get_proto().remove_sensor_dc_offset = remove_sensor_dc_offset
     return self</code></pre>
@@ -1495,12 +2348,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_scramble_audio_data</span></span>(<span>self, scramble_audio_data: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets scramble audio in the settings.
+:param scramble_audio_data: Setting to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_scramble_audio_data(self, scramble_audio_data: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets scramble audio in the settings.
+    :param scramble_audio_data: Setting to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(scramble_audio_data, [bool])
     self.get_proto().scramble_audio_data = scramble_audio_data
     return self</code></pre>
@@ -1510,12 +2370,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_station_description</span></span>(<span>self, station_description: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the station description in the settings.
+:param station_description: Description to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_station_description(self, station_description: str) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets the station description in the settings.
+    :param station_description: Description to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(station_description, [str])
     self.get_proto().station_description = station_description
     return self</code></pre>
@@ -1525,12 +2392,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_station_id</span></span>(<span>self, station_id: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the station id in the settings.
+:param station_id: Station id to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_station_id(self, station_id: str) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets the station id in the settings.
+    :param station_id: Station id to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(station_id, [str])
     self.get_proto().station_id = station_id
     return self</code></pre>
@@ -1540,12 +2414,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_storage_space_allowance</span></span>(<span>self, storage_space_allowance: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set storage space allowance in settings.
+:param storage_space_allowance: Allowance to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_storage_space_allowance(self, storage_space_allowance: float) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Set storage space allowance in settings.
+    :param storage_space_allowance: Allowance to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(storage_space_allowance, [int, float])
 
     self.get_proto().storage_space_allowance = storage_space_allowance
@@ -1556,12 +2437,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_time_sync_server_url</span></span>(<span>self, time_sync_server_url: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the custom synch url in the settings.
+:param time_sync_server_url: URL to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_time_sync_server_url(self, time_sync_server_url: str) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets the custom synch url in the settings.
+    :param time_sync_server_url: URL to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(time_sync_server_url, [str])
     self.get_proto().time_sync_server_url = time_sync_server_url
     return self</code></pre>
@@ -1571,12 +2459,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_use_altitude</span></span>(<span>self, use_altitude: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set custom altitude in settings.
+:param use_altitude: Altitude to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_use_altitude(self, use_altitude: float) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Set custom altitude in settings.
+    :param use_altitude: Altitude to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(use_altitude, [int, float])
 
     self.get_proto().use_altitude = use_altitude
@@ -1587,12 +2482,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_use_custom_auth_server</span></span>(<span>self, use_custom_auth_server: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set use custom auth server in settings.
+:param use_custom_auth_server: Setting to set.
+:return: Modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_use_custom_auth_server(self, use_custom_auth_server: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Set use custom auth server in settings.
+    :param use_custom_auth_server: Setting to set.
+    :return: Modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(use_custom_auth_server, [bool])
     self.get_proto().use_custom_auth_server = use_custom_auth_server
     return self</code></pre>
@@ -1602,12 +2504,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_use_custom_data_server</span></span>(<span>self, use_custom_data_server: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set use custom data server in settings.
+:param use_custom_data_server: Setting to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_use_custom_data_server(self, use_custom_data_server: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Set use custom data server in settings.
+    :param use_custom_data_server: Setting to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(use_custom_data_server, [bool])
     self.get_proto().use_custom_data_server = use_custom_data_server
     return self</code></pre>
@@ -1617,12 +2526,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_use_custom_time_sync_server</span></span>(<span>self, use_custom_time_sync_server: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets use custom synch server in settings.
+:param use_custom_time_sync_server: Setting to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_use_custom_time_sync_server(self, use_custom_time_sync_server: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets use custom synch server in settings.
+    :param use_custom_time_sync_server: Setting to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(use_custom_time_sync_server, [bool])
     self.get_proto().use_custom_time_sync_server = use_custom_time_sync_server
     return self</code></pre>
@@ -1632,12 +2548,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_use_latitude</span></span>(<span>self, use_latitude: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set custom latitude in settings.
+:param use_latitude: Latitude to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_use_latitude(self, use_latitude: float) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Set custom latitude in settings.
+    :param use_latitude: Latitude to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(use_latitude, [int, float])
 
     self.get_proto().use_latitude = use_latitude
@@ -1648,12 +2571,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_use_location_services</span></span>(<span>self, use_location_services: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets use location services in settings.
+:param use_location_services: Setting to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_use_location_services(self, use_location_services: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets use location services in settings.
+    :param use_location_services: Setting to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(use_location_services, [bool])
     self.get_proto().use_location_services = use_location_services
     return self</code></pre>
@@ -1663,12 +2593,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_use_longitude</span></span>(<span>self, use_longitude: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets custom longitude in settings.
+:param use_longitude: Longitude to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_use_longitude(self, use_longitude: float) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Sets custom longitude in settings.
+    :param use_longitude: Longitude to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(use_longitude, [int, float])
 
     self.get_proto().use_longitude = use_longitude
@@ -1679,12 +2616,19 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">set_use_sd_card_for_data_storage</span></span>(<span>self, use_sd_card_for_data_storage: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set use SD card in settings.
+:param use_sd_card_for_data_storage: Setting to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_use_sd_card_for_data_storage(self, use_sd_card_for_data_storage: bool) -&gt; &#39;AppSettings&#39;:
+    &#34;&#34;&#34;
+    Set use SD card in settings.
+    :param use_sd_card_for_data_storage: Setting to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(use_sd_card_for_data_storage, [bool])
     self.get_proto().use_sd_card_for_data_storage = use_sd_card_for_data_storage
     return self</code></pre>
@@ -1710,12 +2654,15 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An enumeration.</p></div>
+<div class="desc"><p>Sampling Rate as provided by the app settings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class AudioSamplingRate(enum.Enum):
+    &#34;&#34;&#34;
+    Sampling Rate as provided by the app settings.
+    &#34;&#34;&#34;
     UNKNOWN_SAMPLING_RATE: int = 0
     HZ_80: int = 1
     HZ_800: int = 2
@@ -1725,6 +2672,11 @@ def new() -&gt; &#39;AppSettings&#39;:
 
     @staticmethod
     def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#39;AudioSamplingRate&#39;]:
+        &#34;&#34;&#34;
+        Convert from a numeric sampling rate into this enum.
+        :param sampling_rate: Numeric sampling rate.
+        :return: An instance of this enum.
+        &#34;&#34;&#34;
         if sampling_rate == 80.0:
             return AudioSamplingRate[&#39;HZ_80&#39;]
         elif sampling_rate == 800.0:
@@ -1787,13 +2739,20 @@ def new() -&gt; &#39;AppSettings&#39;:
 <span>def <span class="ident">from_sampling_rate</span></span>(<span>sampling_rate: float) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.station_information.AudioSamplingRate" href="#redvox.api1000.wrapped_redvox_packet.station_information.AudioSamplingRate">AudioSamplingRate</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Convert from a numeric sampling rate into this enum.
+:param sampling_rate: Numeric sampling rate.
+:return: An instance of this enum.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#39;AudioSamplingRate&#39;]:
+    &#34;&#34;&#34;
+    Convert from a numeric sampling rate into this enum.
+    :param sampling_rate: Numeric sampling rate.
+    :return: An instance of this enum.
+    &#34;&#34;&#34;
     if sampling_rate == 80.0:
         return AudioSamplingRate[&#39;HZ_80&#39;]
     elif sampling_rate == 800.0:
@@ -1830,12 +2789,15 @@ def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#39;AudioSamplingRa
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An enumeration.</p></div>
+<div class="desc"><p>Audio source tuning from app settings</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class AudioSourceTuning(enum.Enum):
+    &#34;&#34;&#34;
+    Audio source tuning from app settings
+    &#34;&#34;&#34;
     UNKNOWN_TUNING: int = 0
     INFRASOUND_TUNING: int = 1
     LOW_AUDIO_TUNING: int = 2
@@ -1900,12 +2862,15 @@ def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#39;AudioSamplingRa
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An enumeration.</p></div>
+<div class="desc"><p>Cell service state for station metrics</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class CellServiceState(enum.Enum):
+    &#34;&#34;&#34;
+    Cell service state for station metrics
+    &#34;&#34;&#34;
     UNKNOWN: int = 0
     EMERGENCY: int = 1
     NOMINAL: int = 2
@@ -1975,12 +2940,15 @@ def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#39;AudioSamplingRa
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An enumeration.</p></div>
+<div class="desc"><p>FFT overlap provided by the app settings</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class FftOverlap(enum.Enum):
+    &#34;&#34;&#34;
+    FFT overlap provided by the app settings
+    &#34;&#34;&#34;
     UNKNOWN: int = 0
     PERCENT_25: int = 1
     PERCENT_50: int = 2
@@ -2045,12 +3013,15 @@ def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#39;AudioSamplingRa
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An enumeration.</p></div>
+<div class="desc"><p>Input sensors provided to additional input sensors in the app settings.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class InputSensor(enum.Enum):
+    &#34;&#34;&#34;
+    Input sensors provided to additional input sensors in the app settings.
+    &#34;&#34;&#34;
     UNKNOWN_SENSOR: int = 0
     ACCELEROMETER = 1
     AMBIENT_TEMPERATURE = 2
@@ -2180,12 +3151,15 @@ def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#39;AudioSamplingRa
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An enumeration.</p></div>
+<div class="desc"><p>Network type for station metrics</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class NetworkType(enum.Enum):
+    &#34;&#34;&#34;
+    Network type for station metrics
+    &#34;&#34;&#34;
     UNKNOWN_NETWORK: int = 0
     NO_NETWORK: int = 1
     WIFI: int = 2
@@ -2255,12 +3229,15 @@ def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#39;AudioSamplingRa
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An enumeration.</p></div>
+<div class="desc"><p>Type-safe OS enumeration for station info</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class OsType(enum.Enum):
+    &#34;&#34;&#34;
+    Type-safe OS enumeration for station info
+    &#34;&#34;&#34;
     UNKNOWN_OS: int = 0
     ANDROID: int = 1
     IOS: int = 2
@@ -2335,12 +3312,15 @@ def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#39;AudioSamplingRa
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An enumeration.</p></div>
+<div class="desc"><p>Power state for station metrics</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class PowerState(enum.Enum):
+    &#34;&#34;&#34;
+    Power state for station metrics
+    &#34;&#34;&#34;
     UNKNOWN_POWER_STATE: int = 0
     UNPLUGGED: int = 1
     CHARGING: int = 2
@@ -2405,40 +3385,70 @@ def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#39;AudioSamplingRa
 <span>(</span><span>service_urls_proto: src.redvox_api_m.redvox_api_m_pb2.ServiceUrls)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>A collection of URLs utilized while collecting, authenticating, and transmitting the data.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ServiceUrls(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls]):
+    &#34;&#34;&#34;
+    A collection of URLs utilized while collecting, authenticating, and transmitting the data.
+    &#34;&#34;&#34;
     def __init__(self, service_urls_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls):
         super().__init__(service_urls_proto)
 
     @staticmethod
     def new() -&gt; &#39;ServiceUrls&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty ServiceUrls instance
+        &#34;&#34;&#34;
         return ServiceUrls(redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls())
 
     def get_auth_server(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The authentication server URL.
+        &#34;&#34;&#34;
         return self.get_proto().auth_server
 
     def set_auth_server(self, _auth_server: str) -&gt; &#39;ServiceUrls&#39;:
+        &#34;&#34;&#34;
+        Sets the authentication server url
+        :param _auth_server: Url to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(_auth_server, [str])
         self.get_proto().auth_server = _auth_server
         return self
 
     def get_synch_server(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The time synchronization URL.
+        &#34;&#34;&#34;
         return self.get_proto().synch_server
 
     def set_synch_server(self, _synch_server: str) -&gt; &#39;ServiceUrls&#39;:
+        &#34;&#34;&#34;
+        Sets the time synchronization URL.
+        :param _synch_server: URL to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(_synch_server, [str])
         self.get_proto().synch_server = _synch_server
         return self
 
     def get_acquisition_server(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The data acquisition server URL
+        &#34;&#34;&#34;
         return self.get_proto().acquisition_server
 
     def set_acquisition_server(self, _acquisition_server: str) -&gt; &#39;ServiceUrls&#39;:
+        &#34;&#34;&#34;
+        Sets the data acquisition server URL
+        :param _acquisition_server: URL to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(_acquisition_server, [str])
         self.get_proto().acquisition_server = _acquisition_server
         return self</code></pre>
@@ -2454,13 +3464,16 @@ def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#39;AudioSamplingRa
 <span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.ServiceUrls" href="#redvox.api1000.wrapped_redvox_packet.station_information.ServiceUrls">ServiceUrls</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A new, empty ServiceUrls instance</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def new() -&gt; &#39;ServiceUrls&#39;:
+    &#34;&#34;&#34;
+    :return: A new, empty ServiceUrls instance
+    &#34;&#34;&#34;
     return ServiceUrls(redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls())</code></pre>
 </details>
 </dd>
@@ -2471,12 +3484,15 @@ def new() -&gt; &#39;ServiceUrls&#39;:
 <span>def <span class="ident">get_acquisition_server</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The data acquisition server URL</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_acquisition_server(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The data acquisition server URL
+    &#34;&#34;&#34;
     return self.get_proto().acquisition_server</code></pre>
 </details>
 </dd>
@@ -2484,12 +3500,15 @@ def new() -&gt; &#39;ServiceUrls&#39;:
 <span>def <span class="ident">get_auth_server</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The authentication server URL.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_auth_server(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The authentication server URL.
+    &#34;&#34;&#34;
     return self.get_proto().auth_server</code></pre>
 </details>
 </dd>
@@ -2497,12 +3516,15 @@ def new() -&gt; &#39;ServiceUrls&#39;:
 <span>def <span class="ident">get_synch_server</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The time synchronization URL.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_synch_server(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The time synchronization URL.
+    &#34;&#34;&#34;
     return self.get_proto().synch_server</code></pre>
 </details>
 </dd>
@@ -2510,12 +3532,19 @@ def new() -&gt; &#39;ServiceUrls&#39;:
 <span>def <span class="ident">set_acquisition_server</span></span>(<span>self, _acquisition_server: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.ServiceUrls" href="#redvox.api1000.wrapped_redvox_packet.station_information.ServiceUrls">ServiceUrls</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the data acquisition server URL
+:param _acquisition_server: URL to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_acquisition_server(self, _acquisition_server: str) -&gt; &#39;ServiceUrls&#39;:
+    &#34;&#34;&#34;
+    Sets the data acquisition server URL
+    :param _acquisition_server: URL to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(_acquisition_server, [str])
     self.get_proto().acquisition_server = _acquisition_server
     return self</code></pre>
@@ -2525,12 +3554,19 @@ def new() -&gt; &#39;ServiceUrls&#39;:
 <span>def <span class="ident">set_auth_server</span></span>(<span>self, _auth_server: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.ServiceUrls" href="#redvox.api1000.wrapped_redvox_packet.station_information.ServiceUrls">ServiceUrls</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the authentication server url
+:param _auth_server: Url to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_auth_server(self, _auth_server: str) -&gt; &#39;ServiceUrls&#39;:
+    &#34;&#34;&#34;
+    Sets the authentication server url
+    :param _auth_server: Url to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(_auth_server, [str])
     self.get_proto().auth_server = _auth_server
     return self</code></pre>
@@ -2540,12 +3576,19 @@ def new() -&gt; &#39;ServiceUrls&#39;:
 <span>def <span class="ident">set_synch_server</span></span>(<span>self, _synch_server: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.ServiceUrls" href="#redvox.api1000.wrapped_redvox_packet.station_information.ServiceUrls">ServiceUrls</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the time synchronization URL.
+:param _synch_server: URL to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_synch_server(self, _synch_server: str) -&gt; &#39;ServiceUrls&#39;:
+    &#34;&#34;&#34;
+    Sets the time synchronization URL.
+    :param _synch_server: URL to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(_synch_server, [str])
     self.get_proto().synch_server = _synch_server
     return self</code></pre>
@@ -2571,13 +3614,16 @@ def new() -&gt; &#39;ServiceUrls&#39;:
 <span>(</span><span>station_information_proto: src.redvox_api_m.redvox_api_m_pb2.StationInformation)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>A collection of station related metadata, settings, and metrics.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class StationInformation(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation]):
+    &#34;&#34;&#34;
+    A collection of station related metadata, settings, and metrics.
+    &#34;&#34;&#34;
     def __init__(self, station_information_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation):
         super().__init__(station_information_proto)
         self._app_settings: AppSettings = AppSettings(station_information_proto.app_settings)
@@ -2586,95 +3632,187 @@ def new() -&gt; &#39;ServiceUrls&#39;:
 
     @staticmethod
     def new() -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty StationInformation instance
+        &#34;&#34;&#34;
         return StationInformation(redvox_api_m_pb2.RedvoxPacketM.StationInformation())
 
     def get_id(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station id
+        &#34;&#34;&#34;
         return self.get_proto().id
 
     def set_id(self, _id: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station id
+        :param _id: Id to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(_id, [str])
         self.get_proto().id = _id
         return self
 
     def get_uuid(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station UUID
+        &#34;&#34;&#34;
         return self.get_proto().uuid
 
     def set_uuid(self, uuid: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station uuid.
+        :param uuid: uuid to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(uuid, [str])
         self.get_proto().uuid = uuid
         return self
 
     def get_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station&#39;s description.
+        &#34;&#34;&#34;
         return self.get_proto().description
 
     def set_description(self, description: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s description
+        :param description: Description of the station
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(description, [str])
         self.get_proto().description = description
         return self
 
     def get_auth_id(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station&#39;s authentication id
+        &#34;&#34;&#34;
         return self.get_proto().auth_id
 
     def set_auth_id(self, auth_id: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s authentication id
+        :param auth_id: Authentication id to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(auth_id, [str])
         self.get_proto().auth_id = auth_id
         return self
 
     def get_make(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station&#39;s make
+        &#34;&#34;&#34;
         return self.get_proto().make
 
     def set_make(self, make: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s make
+        :param make: Make to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(make, [str])
         self.get_proto().make = make
         return self
 
     def get_model(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station&#39;s model
+        &#34;&#34;&#34;
         return self.get_proto().model
 
     def set_model(self, model: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s model
+        :param model: Model to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(model, [str])
         self.get_proto().model = model
         return self
 
     def get_os(self) -&gt; OsType:
+        &#34;&#34;&#34;
+        :return: The station&#39;s OS
+        &#34;&#34;&#34;
         return OsType(self.get_proto().os)
 
     def set_os(self, os: OsType) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s OS
+        :param os: OS to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(os, [OsType])
         self.get_proto().os = redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType.Value(os.name)
         return self
 
     def get_os_version(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station&#39;s OS version
+        &#34;&#34;&#34;
         return self.get_proto().os_version
 
     def set_os_version(self, os_version: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s OS version
+        :param os_version: OS version to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(os_version, [str])
         self.get_proto().os_version = os_version
         return self
 
     def get_app_version(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The station&#39;s app version
+        &#34;&#34;&#34;
         return self.get_proto().app_version
 
     def set_app_version(self, app_version: str) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the station&#39;s app version.
+        :param app_version: App version to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(app_version, [str])
         self.get_proto().app_version = app_version
         return self
 
     def get_is_private(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: If this station was recording privately.
+        &#34;&#34;&#34;
         return self.get_proto().is_private
 
     def set_is_private(self, is_private: bool) -&gt; &#39;StationInformation&#39;:
+        &#34;&#34;&#34;
+        Sets if this station is recording privately.
+        :param is_private: True if private, False otherwise
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(is_private, [bool])
         self.get_proto().is_private = is_private
         return self
 
     def get_app_settings(self) -&gt; AppSettings:
+        &#34;&#34;&#34;
+        :return: This station&#39;s copy of its settings
+        &#34;&#34;&#34;
         return self._app_settings
 
     def get_station_metrics(self) -&gt; StationMetrics:
+        &#34;&#34;&#34;
+        :return: Metrics associated with this station.
+        &#34;&#34;&#34;
         return self._station_metrics
 
     def get_service_urls(self) -&gt; ServiceUrls:
+        &#34;&#34;&#34;
+        :return: URLs used to service this station.
+        &#34;&#34;&#34;
         return self._service_urls</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2688,13 +3826,16 @@ def new() -&gt; &#39;ServiceUrls&#39;:
 <span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A new, empty StationInformation instance</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def new() -&gt; &#39;StationInformation&#39;:
+    &#34;&#34;&#34;
+    :return: A new, empty StationInformation instance
+    &#34;&#34;&#34;
     return StationInformation(redvox_api_m_pb2.RedvoxPacketM.StationInformation())</code></pre>
 </details>
 </dd>
@@ -2705,12 +3846,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_app_settings</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.AppSettings" href="#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings">AppSettings</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: This station's copy of its settings</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_app_settings(self) -&gt; AppSettings:
+    &#34;&#34;&#34;
+    :return: This station&#39;s copy of its settings
+    &#34;&#34;&#34;
     return self._app_settings</code></pre>
 </details>
 </dd>
@@ -2718,12 +3862,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_app_version</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The station's app version</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_app_version(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The station&#39;s app version
+    &#34;&#34;&#34;
     return self.get_proto().app_version</code></pre>
 </details>
 </dd>
@@ -2731,12 +3878,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_auth_id</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The station's authentication id</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_auth_id(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The station&#39;s authentication id
+    &#34;&#34;&#34;
     return self.get_proto().auth_id</code></pre>
 </details>
 </dd>
@@ -2744,12 +3894,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_description</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The station's description.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_description(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The station&#39;s description.
+    &#34;&#34;&#34;
     return self.get_proto().description</code></pre>
 </details>
 </dd>
@@ -2757,12 +3910,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_id</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The station id</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_id(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The station id
+    &#34;&#34;&#34;
     return self.get_proto().id</code></pre>
 </details>
 </dd>
@@ -2770,12 +3926,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_is_private</span></span>(<span>self) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: If this station was recording privately.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_is_private(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: If this station was recording privately.
+    &#34;&#34;&#34;
     return self.get_proto().is_private</code></pre>
 </details>
 </dd>
@@ -2783,12 +3942,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_make</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The station's make</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_make(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The station&#39;s make
+    &#34;&#34;&#34;
     return self.get_proto().make</code></pre>
 </details>
 </dd>
@@ -2796,12 +3958,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_model</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The station's model</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_model(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The station&#39;s model
+    &#34;&#34;&#34;
     return self.get_proto().model</code></pre>
 </details>
 </dd>
@@ -2809,12 +3974,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_os</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.OsType" href="#redvox.api1000.wrapped_redvox_packet.station_information.OsType">OsType</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The station's OS</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_os(self) -&gt; OsType:
+    &#34;&#34;&#34;
+    :return: The station&#39;s OS
+    &#34;&#34;&#34;
     return OsType(self.get_proto().os)</code></pre>
 </details>
 </dd>
@@ -2822,12 +3990,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_os_version</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The station's OS version</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_os_version(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The station&#39;s OS version
+    &#34;&#34;&#34;
     return self.get_proto().os_version</code></pre>
 </details>
 </dd>
@@ -2835,12 +4006,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_service_urls</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.ServiceUrls" href="#redvox.api1000.wrapped_redvox_packet.station_information.ServiceUrls">ServiceUrls</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: URLs used to service this station.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_service_urls(self) -&gt; ServiceUrls:
+    &#34;&#34;&#34;
+    :return: URLs used to service this station.
+    &#34;&#34;&#34;
     return self._service_urls</code></pre>
 </details>
 </dd>
@@ -2848,12 +4022,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_station_metrics</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationMetrics" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationMetrics">StationMetrics</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Metrics associated with this station.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_station_metrics(self) -&gt; StationMetrics:
+    &#34;&#34;&#34;
+    :return: Metrics associated with this station.
+    &#34;&#34;&#34;
     return self._station_metrics</code></pre>
 </details>
 </dd>
@@ -2861,12 +4038,15 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">get_uuid</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The station UUID</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_uuid(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The station UUID
+    &#34;&#34;&#34;
     return self.get_proto().uuid</code></pre>
 </details>
 </dd>
@@ -2874,12 +4054,19 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">set_app_version</span></span>(<span>self, app_version: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the station's app version.
+:param app_version: App version to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_app_version(self, app_version: str) -&gt; &#39;StationInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the station&#39;s app version.
+    :param app_version: App version to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(app_version, [str])
     self.get_proto().app_version = app_version
     return self</code></pre>
@@ -2889,12 +4076,19 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">set_auth_id</span></span>(<span>self, auth_id: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the station's authentication id
+:param auth_id: Authentication id to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_auth_id(self, auth_id: str) -&gt; &#39;StationInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the station&#39;s authentication id
+    :param auth_id: Authentication id to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(auth_id, [str])
     self.get_proto().auth_id = auth_id
     return self</code></pre>
@@ -2904,12 +4098,19 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">set_description</span></span>(<span>self, description: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the station's description
+:param description: Description of the station
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_description(self, description: str) -&gt; &#39;StationInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the station&#39;s description
+    :param description: Description of the station
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(description, [str])
     self.get_proto().description = description
     return self</code></pre>
@@ -2919,12 +4120,19 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">set_id</span></span>(<span>self, _id: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the station id
+:param _id: Id to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_id(self, _id: str) -&gt; &#39;StationInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the station id
+    :param _id: Id to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(_id, [str])
     self.get_proto().id = _id
     return self</code></pre>
@@ -2934,12 +4142,19 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">set_is_private</span></span>(<span>self, is_private: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets if this station is recording privately.
+:param is_private: True if private, False otherwise
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_is_private(self, is_private: bool) -&gt; &#39;StationInformation&#39;:
+    &#34;&#34;&#34;
+    Sets if this station is recording privately.
+    :param is_private: True if private, False otherwise
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(is_private, [bool])
     self.get_proto().is_private = is_private
     return self</code></pre>
@@ -2949,12 +4164,19 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">set_make</span></span>(<span>self, make: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the station's make
+:param make: Make to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_make(self, make: str) -&gt; &#39;StationInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the station&#39;s make
+    :param make: Make to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(make, [str])
     self.get_proto().make = make
     return self</code></pre>
@@ -2964,12 +4186,19 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">set_model</span></span>(<span>self, model: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the station's model
+:param model: Model to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_model(self, model: str) -&gt; &#39;StationInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the station&#39;s model
+    :param model: Model to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(model, [str])
     self.get_proto().model = model
     return self</code></pre>
@@ -2979,12 +4208,19 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">set_os</span></span>(<span>self, os: <a title="redvox.api1000.wrapped_redvox_packet.station_information.OsType" href="#redvox.api1000.wrapped_redvox_packet.station_information.OsType">OsType</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the station's OS
+:param os: OS to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_os(self, os: OsType) -&gt; &#39;StationInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the station&#39;s OS
+    :param os: OS to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(os, [OsType])
     self.get_proto().os = redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType.Value(os.name)
     return self</code></pre>
@@ -2994,12 +4230,19 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">set_os_version</span></span>(<span>self, os_version: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the station's OS version
+:param os_version: OS version to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_os_version(self, os_version: str) -&gt; &#39;StationInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the station&#39;s OS version
+    :param os_version: OS version to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(os_version, [str])
     self.get_proto().os_version = os_version
     return self</code></pre>
@@ -3009,12 +4252,19 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">set_uuid</span></span>(<span>self, uuid: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the station uuid.
+:param uuid: uuid to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_uuid(self, uuid: str) -&gt; &#39;StationInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the station uuid.
+    :param uuid: uuid to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(uuid, [str])
     self.get_proto().uuid = uuid
     return self</code></pre>
@@ -3040,98 +4290,147 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>(</span><span>station_metrics_proto: src.redvox_api_m.redvox_api_m_pb2.StationMetrics)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>A collection of timestamps metrics relating to station state.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class StationMetrics(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics]):
+    &#34;&#34;&#34;
+    A collection of timestamps metrics relating to station state.
+    &#34;&#34;&#34;
     # noinspection Mypy
     def __init__(self, station_metrics_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics):
         super().__init__(station_metrics_proto)
         self._timestamps = common.TimingPayload(station_metrics_proto.timestamps).set_default_unit()
-        self._network_type: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
-            station_metrics_proto,
-            station_metrics_proto.network_type,
-            _NETWORK_TYPE_FIELD_NAME,
-            NetworkType.from_proto,
-            NetworkType.into_proto
-        )
-        self._cell_service_state: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
-            station_metrics_proto,
-            station_metrics_proto.cell_service_state,
-            _CELL_SERVICE_STATE_FIELD_NAME,
-            CellServiceState.from_proto,
-            CellServiceState.into_proto
-        )
+        self._network_type: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.network_type,
+                _NETWORK_TYPE_FIELD_NAME,
+                NetworkType.from_proto,
+                NetworkType.into_proto)
+        self._cell_service_state: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.cell_service_state,
+                _CELL_SERVICE_STATE_FIELD_NAME,
+                CellServiceState.from_proto,
+                CellServiceState.into_proto)
+        # noinspection PyTypeChecker
         self._network_strength: common.SamplePayload = common.SamplePayload(station_metrics_proto.network_strength) \
             .set_unit(common.Unit.DECIBEL)
+        # noinspection PyTypeChecker
         self._temperature: common.SamplePayload = common.SamplePayload(station_metrics_proto.temperature) \
             .set_unit(common.Unit.DEGREES_CELSIUS)
+        # noinspection PyTypeChecker
         self._battery: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery) \
             .set_unit(common.Unit.PERCENTAGE)
+        # noinspection PyTypeChecker
         self._battery_current: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery_current) \
             .set_unit(common.Unit.MICROAMPERES)
+        # noinspection PyTypeChecker
         self._available_ram: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_ram) \
             .set_unit(common.Unit.BYTE)
+        # noinspection PyTypeChecker
         self._available_disk: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_disk) \
             .set_unit(common.Unit.BYTE)
+        # noinspection PyTypeChecker
         self._cpu_utilization: common.SamplePayload = common.SamplePayload(station_metrics_proto.cpu_utilization) \
             .set_unit(common.Unit.PERCENTAGE)
-        self._power_state: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
-            station_metrics_proto,
-            station_metrics_proto.power_state,
-            _POWER_STATE_FIELD_NAME,
-            PowerState.from_proto,
-            PowerState.into_proto
-        )
-        self._wifi_wake_loc: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
-            station_metrics_proto,
-            station_metrics_proto.wifi_wake_lock,
-            _WIFI_WAKE_LOCK_FIELD_NAME,
-            WifiWakeLock.from_proto,
-            WifiWakeLock.into_proto
-        )
+        self._power_state: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.power_state,
+                _POWER_STATE_FIELD_NAME,
+                PowerState.from_proto,
+                PowerState.into_proto)
+        self._wifi_wake_loc: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.wifi_wake_lock,
+                _WIFI_WAKE_LOCK_FIELD_NAME,
+                WifiWakeLock.from_proto,
+                WifiWakeLock.into_proto)
 
     @staticmethod
     def new() -&gt; &#39;StationMetrics&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty StationMetrics instance
+        &#34;&#34;&#34;
         return StationMetrics(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics())
 
     def get_timestamps(self) -&gt; common.TimingPayload:
+        &#34;&#34;&#34;
+        :return: Timestamps associated with each metric.
+        &#34;&#34;&#34;
         return self._timestamps
 
     def get_network_type(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A payload of network types.
+        &#34;&#34;&#34;
         return self._network_type
 
     def get_cell_service_state(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A payload of cell service state
+        &#34;&#34;&#34;
         return self._cell_service_state
 
     def get_network_strength(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload of network strengths
+        &#34;&#34;&#34;
         return self._network_strength
 
     def get_temperature(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload of temperatures
+        &#34;&#34;&#34;
         return self._temperature
 
     def get_battery(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload of battery remaining
+        &#34;&#34;&#34;
         return self._battery
 
     def get_battery_current(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload of battery current
+        &#34;&#34;&#34;
         return self._battery_current
 
     def get_available_ram(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload of available RAM
+        &#34;&#34;&#34;
         return self._available_ram
 
     def get_available_disk(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload of available disk
+        &#34;&#34;&#34;
         return self._available_disk
 
     def get_cpu_utilization(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: A payload CPU utilization
+        &#34;&#34;&#34;
         return self._cpu_utilization
 
     def get_power_state(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A payload of power states
+        &#34;&#34;&#34;
         return self._power_state
 
     def get_wifi_wake_loc(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A payload of Wifi wake lock states
+        &#34;&#34;&#34;
         return self._wifi_wake_loc</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -3145,13 +4444,16 @@ def new() -&gt; &#39;StationInformation&#39;:
 <span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationMetrics" href="#redvox.api1000.wrapped_redvox_packet.station_information.StationMetrics">StationMetrics</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A new, empty StationMetrics instance</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def new() -&gt; &#39;StationMetrics&#39;:
+    &#34;&#34;&#34;
+    :return: A new, empty StationMetrics instance
+    &#34;&#34;&#34;
     return StationMetrics(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics())</code></pre>
 </details>
 </dd>
@@ -3162,12 +4464,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>def <span class="ident">get_available_disk</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A payload of available disk</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_available_disk(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: A payload of available disk
+    &#34;&#34;&#34;
     return self._available_disk</code></pre>
 </details>
 </dd>
@@ -3175,12 +4480,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>def <span class="ident">get_available_ram</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A payload of available RAM</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_available_ram(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: A payload of available RAM
+    &#34;&#34;&#34;
     return self._available_ram</code></pre>
 </details>
 </dd>
@@ -3188,12 +4496,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>def <span class="ident">get_battery</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A payload of battery remaining</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_battery(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: A payload of battery remaining
+    &#34;&#34;&#34;
     return self._battery</code></pre>
 </details>
 </dd>
@@ -3201,12 +4512,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>def <span class="ident">get_battery_current</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A payload of battery current</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_battery_current(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: A payload of battery current
+    &#34;&#34;&#34;
     return self._battery_current</code></pre>
 </details>
 </dd>
@@ -3214,12 +4528,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>def <span class="ident">get_cell_service_state</span></span>(<span>self) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="../common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A payload of cell service state</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_cell_service_state(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+    &#34;&#34;&#34;
+    :return: A payload of cell service state
+    &#34;&#34;&#34;
     return self._cell_service_state</code></pre>
 </details>
 </dd>
@@ -3227,12 +4544,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>def <span class="ident">get_cpu_utilization</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A payload CPU utilization</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_cpu_utilization(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: A payload CPU utilization
+    &#34;&#34;&#34;
     return self._cpu_utilization</code></pre>
 </details>
 </dd>
@@ -3240,12 +4560,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>def <span class="ident">get_network_strength</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A payload of network strengths</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_network_strength(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: A payload of network strengths
+    &#34;&#34;&#34;
     return self._network_strength</code></pre>
 </details>
 </dd>
@@ -3253,12 +4576,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>def <span class="ident">get_network_type</span></span>(<span>self) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="../common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A payload of network types.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_network_type(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+    &#34;&#34;&#34;
+    :return: A payload of network types.
+    &#34;&#34;&#34;
     return self._network_type</code></pre>
 </details>
 </dd>
@@ -3266,12 +4592,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>def <span class="ident">get_power_state</span></span>(<span>self) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="../common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A payload of power states</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_power_state(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+    &#34;&#34;&#34;
+    :return: A payload of power states
+    &#34;&#34;&#34;
     return self._power_state</code></pre>
 </details>
 </dd>
@@ -3279,12 +4608,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>def <span class="ident">get_temperature</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A payload of temperatures</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_temperature(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: A payload of temperatures
+    &#34;&#34;&#34;
     return self._temperature</code></pre>
 </details>
 </dd>
@@ -3292,12 +4624,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>def <span class="ident">get_timestamps</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="../common/common.html#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Timestamps associated with each metric.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_timestamps(self) -&gt; common.TimingPayload:
+    &#34;&#34;&#34;
+    :return: Timestamps associated with each metric.
+    &#34;&#34;&#34;
     return self._timestamps</code></pre>
 </details>
 </dd>
@@ -3305,12 +4640,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>def <span class="ident">get_wifi_wake_loc</span></span>(<span>self) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="../common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A payload of Wifi wake lock states</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_wifi_wake_loc(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+    &#34;&#34;&#34;
+    :return: A payload of Wifi wake lock states
+    &#34;&#34;&#34;
     return self._wifi_wake_loc</code></pre>
 </details>
 </dd>
@@ -3334,12 +4672,15 @@ def new() -&gt; &#39;StationMetrics&#39;:
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An enumeration.</p></div>
+<div class="desc"><p>WiFi wake lock states for station metrics</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class WifiWakeLock(enum.Enum):
+    &#34;&#34;&#34;
+    WiFi wake lock states for station metrics
+    &#34;&#34;&#34;
     NONE: int = 0
     HIGH_PERF: int = 1
     LOW_LATENCY: int = 2

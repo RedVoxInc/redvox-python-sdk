@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>redvox.api1000.wrapped_redvox_packet.sensors.single API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="This module provides functionality for working with single channel API M sensors." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,16 @@
 <h1 class="title">Module <code>redvox.api1000.wrapped_redvox_packet.sensors.single</code></h1>
 </header>
 <section id="section-intro">
+<p>This module provides functionality for working with single channel API M sensors.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import redvox.api1000.common.common as common
+<pre><code class="python">&#34;&#34;&#34;
+This module provides functionality for working with single channel API M sensors.
+&#34;&#34;&#34;
+
+import redvox.api1000.common.common as common
 import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
@@ -36,7 +41,10 @@ import redvox.api1000.common.generic
 
 
 class Single(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Single]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Single]):
+    &#34;&#34;&#34;
+    This class encapsulates single channel sensors data and metadata
+    &#34;&#34;&#34;
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Single):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
@@ -44,24 +52,47 @@ class Single(
 
     @staticmethod
     def new() -&gt; &#39;Single&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty Single sensor instance
+        &#34;&#34;&#34;
         return Single(redvox_api_m_pb2.RedvoxPacketM.Sensors.Single())
 
     def get_sensor_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The sensor description
+        &#34;&#34;&#34;
         return self._proto.sensor_description
 
     def set_sensor_description(self, sensor_description: str) -&gt; &#39;Single&#39;:
+        &#34;&#34;&#34;
+        Sets the sensor description.
+        :param sensor_description: Description to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self
 
     def get_timestamps(self) -&gt; common.TimingPayload:
+        &#34;&#34;&#34;
+        :return: The TimingPayload which contains timestamps associated with each sample
+        &#34;&#34;&#34;
         return self._timestamps
 
     def get_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The sample payload
+        &#34;&#34;&#34;
         return self._samples
 
 
 def validate_single(single_sensor: Single, payload_unit: Optional[common.Unit] = None) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the single channel sensor.
+    :param single_sensor: Sensor to validate.
+    :param payload_unit: Expected unit
+    :return: A list of validated errors
+    &#34;&#34;&#34;
     errors_list = common.validate_timing_payload(single_sensor.get_timestamps())
     errors_list.extend(common.validate_sample_payload(single_sensor.get_samples(),
                                                       single_sensor.get_sensor_description(), payload_unit))
@@ -79,12 +110,21 @@ def validate_single(single_sensor: Single, payload_unit: Optional[common.Unit] =
 <span>def <span class="ident">validate_single</span></span>(<span>single_sensor: <a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a>, payload_unit: typing.Union[<a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a>, NoneType] = None) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Validates the single channel sensor.
+:param single_sensor: Sensor to validate.
+:param payload_unit: Expected unit
+:return: A list of validated errors</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_single(single_sensor: Single, payload_unit: Optional[common.Unit] = None) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the single channel sensor.
+    :param single_sensor: Sensor to validate.
+    :param payload_unit: Expected unit
+    :return: A list of validated errors
+    &#34;&#34;&#34;
     errors_list = common.validate_timing_payload(single_sensor.get_timestamps())
     errors_list.extend(common.validate_sample_payload(single_sensor.get_samples(),
                                                       single_sensor.get_sensor_description(), payload_unit))
@@ -101,13 +141,16 @@ def validate_single(single_sensor: Single, payload_unit: Optional[common.Unit] =
 <span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.Single)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>This class encapsulates single channel sensors data and metadata</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Single(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Single]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Single]):
+    &#34;&#34;&#34;
+    This class encapsulates single channel sensors data and metadata
+    &#34;&#34;&#34;
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Single):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
@@ -115,20 +158,37 @@ def validate_single(single_sensor: Single, payload_unit: Optional[common.Unit] =
 
     @staticmethod
     def new() -&gt; &#39;Single&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty Single sensor instance
+        &#34;&#34;&#34;
         return Single(redvox_api_m_pb2.RedvoxPacketM.Sensors.Single())
 
     def get_sensor_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The sensor description
+        &#34;&#34;&#34;
         return self._proto.sensor_description
 
     def set_sensor_description(self, sensor_description: str) -&gt; &#39;Single&#39;:
+        &#34;&#34;&#34;
+        Sets the sensor description.
+        :param sensor_description: Description to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self
 
     def get_timestamps(self) -&gt; common.TimingPayload:
+        &#34;&#34;&#34;
+        :return: The TimingPayload which contains timestamps associated with each sample
+        &#34;&#34;&#34;
         return self._timestamps
 
     def get_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The sample payload
+        &#34;&#34;&#34;
         return self._samples</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -142,13 +202,16 @@ def validate_single(single_sensor: Single, payload_unit: Optional[common.Unit] =
 <span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A new, empty Single sensor instance</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def new() -&gt; &#39;Single&#39;:
+    &#34;&#34;&#34;
+    :return: A new, empty Single sensor instance
+    &#34;&#34;&#34;
     return Single(redvox_api_m_pb2.RedvoxPacketM.Sensors.Single())</code></pre>
 </details>
 </dd>
@@ -159,12 +222,15 @@ def new() -&gt; &#39;Single&#39;:
 <span>def <span class="ident">get_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The sample payload</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: The sample payload
+    &#34;&#34;&#34;
     return self._samples</code></pre>
 </details>
 </dd>
@@ -172,12 +238,15 @@ def new() -&gt; &#39;Single&#39;:
 <span>def <span class="ident">get_sensor_description</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The sensor description</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_sensor_description(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The sensor description
+    &#34;&#34;&#34;
     return self._proto.sensor_description</code></pre>
 </details>
 </dd>
@@ -185,12 +254,15 @@ def new() -&gt; &#39;Single&#39;:
 <span>def <span class="ident">get_timestamps</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="../../common/common.html#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The TimingPayload which contains timestamps associated with each sample</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_timestamps(self) -&gt; common.TimingPayload:
+    &#34;&#34;&#34;
+    :return: The TimingPayload which contains timestamps associated with each sample
+    &#34;&#34;&#34;
     return self._timestamps</code></pre>
 </details>
 </dd>
@@ -198,12 +270,19 @@ def new() -&gt; &#39;Single&#39;:
 <span>def <span class="ident">set_sensor_description</span></span>(<span>self, sensor_description: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the sensor description.
+:param sensor_description: Description to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_sensor_description(self, sensor_description: str) -&gt; &#39;Single&#39;:
+    &#34;&#34;&#34;
+    Sets the sensor description.
+    :param sensor_description: Description to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(sensor_description, [str])
     self._proto.sensor_description = sensor_description
     return self</code></pre>

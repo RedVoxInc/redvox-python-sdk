@@ -32,7 +32,7 @@ Provides common classes and methods for interacting with various API 1000 protob
 &#34;&#34;&#34;
 
 import enum
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Union
 
 import numpy as np
 
@@ -48,6 +48,7 @@ NAN: float = float(&#34;NaN&#34;)
 EMPTY_ARRAY: np.ndarray = np.array([])
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.Unit)
 class Unit(enum.Enum):
     &#34;&#34;&#34;
@@ -112,51 +113,96 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
         return self
 
     def get_mean(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The mean.
+        &#34;&#34;&#34;
         return self._proto.mean
 
     def set_mean(self, mean: float) -&gt; &#39;SummaryStatistics&#39;:
+        &#34;&#34;&#34;
+        Sets the mean.
+        :param mean: Mean to set.
+        :return: A modified instance of this
+        &#34;&#34;&#34;
         check_type(mean, [int, float])
 
         self._proto.mean = mean
         return self
 
     def get_standard_deviation(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The standard deviation.
+        &#34;&#34;&#34;
         return self._proto.standard_deviation
 
-    def set_variance(self, standard_deviation: float) -&gt; &#39;SummaryStatistics&#39;:
+    def set_standard_deviation(self, standard_deviation: float) -&gt; &#39;SummaryStatistics&#39;:
+        &#34;&#34;&#34;
+        Set&#39;s the standard deviation.
+        :param standard_deviation: Standard deviation to set.
+        :return: A modified instance of this
+        &#34;&#34;&#34;
         check_type(standard_deviation, [int, float])
 
         self._proto.standard_deviation = standard_deviation
         return self
 
     def get_min(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The minimum.
+        &#34;&#34;&#34;
         return self._proto.min
 
     def set_min(self, min_value: float) -&gt; &#39;SummaryStatistics&#39;:
+        &#34;&#34;&#34;
+        Sets the min value.
+        :param min_value: Value to set.
+        :return: A modified instance of this
+        &#34;&#34;&#34;
         check_type(min_value, [int, float])
 
         self._proto.min = min_value
         return self
 
     def get_max(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The max.
+        &#34;&#34;&#34;
         return self._proto.max
 
     def set_max(self, max_value: float) -&gt; &#39;SummaryStatistics&#39;:
+        &#34;&#34;&#34;
+        Sets the max.
+        :param max_value: Value to set.
+        :return: A modified instance of this.
+        &#34;&#34;&#34;
         check_type(max_value, [int, float])
 
         self._proto.max = max_value
         return self
 
     def get_range(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The range.
+        &#34;&#34;&#34;
         return self._proto.range
 
     def set_range(self, range_value: float) -&gt; &#39;SummaryStatistics&#39;:
+        &#34;&#34;&#34;
+        Sets the range.
+        :param range_value: Range to set.
+        :return: A modified instance of this
+        &#34;&#34;&#34;
         check_type(range_value, [int, float])
 
         self._proto.range = range_value
         return self
 
     def update_from_values(self, values: np.ndarray) -&gt; &#39;SummaryStatistics&#39;:
+        &#34;&#34;&#34;
+        Updates the statistics from the given values.
+        :param values: Values to derive statistics from.
+        :return: A modified instance of this
+        &#34;&#34;&#34;
         check_type(values, [np.ndarray])
 
         if none_or_empty(values):
@@ -174,36 +220,71 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
 
 
 def validate_summary_statistics(stats: SummaryStatistics) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the stats.
+    :param stats: Stats to validate.
+    :return: List of validation errors.
+    &#34;&#34;&#34;
     errors_list = []
     if stats.get_count() &lt; 1:
         errors_list.append(&#34;Summary statistics contains less than 1 element&#34;)
     return errors_list
 
 
-class SamplePayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SamplePayload]):
-    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.SamplePayload):
+class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload,
+                                    redvox_api_m_pb2.RedvoxPacketM.DoubleSamplePayload]]):
+    &#34;&#34;&#34;
+    A class for managing sensor samples and the corresponding statistics.
+    &#34;&#34;&#34;
+    def __init__(self, proto: Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload,
+                                    redvox_api_m_pb2.RedvoxPacketM.DoubleSamplePayload]):
         super().__init__(proto)
         self._summary_statistics: SummaryStatistics = SummaryStatistics(proto.value_statistics)
 
     @staticmethod
     def new() -&gt; &#39;SamplePayload&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty SamplePayload
+        &#34;&#34;&#34;
         return SamplePayload(redvox_api_m_pb2.RedvoxPacketM.SamplePayload())
 
     def get_unit(self) -&gt; Unit:
+        &#34;&#34;&#34;
+        :return: The unit of this payload.
+        &#34;&#34;&#34;
+        # noinspection Mypy
         return Unit.from_proto(self._proto.unit)
 
     def set_unit(self, unit: Unit) -&gt; &#39;SamplePayload&#39;:
+        &#34;&#34;&#34;
+        Sets the unit of this payload.
+        :param unit: Unit to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(unit, [Unit])
+        # noinspection Mypy
         self._proto.unit = unit.into_proto()
         return self
 
     def get_values_count(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: The number of samples in this payload.
+        &#34;&#34;&#34;
         return len(self._proto.values)
 
     def get_values(self) -&gt; np.ndarray:
+        &#34;&#34;&#34;
+        :return: The samples from this payload.
+        &#34;&#34;&#34;
         return np.array(self._proto.values)
 
     def set_values(self, values: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;SamplePayload&#39;:
+        &#34;&#34;&#34;
+        Set&#39;s the values of this payload and optionally updates the statistics.
+        :param values: Values to set in this payload.
+        :param update_value_statistics: Optional, should the statistics be derived?
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(values, [np.ndarray])
         self._proto.values[:] = list(values)
 
@@ -213,6 +294,12 @@ class SamplePayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SamplePayload]):
         return self
 
     def append_value(self, value: float, update_value_statistics: bool = False) -&gt; &#39;SamplePayload&#39;:
+        &#34;&#34;&#34;
+        Appends a single value to the payload.
+        :param value: Value to append to the payload.
+        :param update_value_statistics: Whether the statistics should be updated.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(value, [int, float])
         self._proto.values.append(value)
 
@@ -222,6 +309,12 @@ class SamplePayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SamplePayload]):
         return self
 
     def append_values(self, values: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;SamplePayload&#39;:
+        &#34;&#34;&#34;
+        Appends multiple values to this payload.
+        :param values: Values to append.
+        :param update_value_statistics: Whether the statistics should be updated.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(values, [np.ndarray])
         self._proto.values.extend(list(values))
 
@@ -231,6 +324,11 @@ class SamplePayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SamplePayload]):
         return self
 
     def clear_values(self, update_value_statistics: bool = False) -&gt; &#39;SamplePayload&#39;:
+        &#34;&#34;&#34;
+        Clear the values in this payload.
+        :param update_value_statistics: Whether the statistics should be updated.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         self._proto.values[:] = []
 
         if update_value_statistics:
@@ -239,11 +337,21 @@ class SamplePayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SamplePayload]):
         return self
 
     def get_summary_statistics(self) -&gt; SummaryStatistics:
+        &#34;&#34;&#34;
+        :return: The SummaryStatistics object associated with this payload.
+        &#34;&#34;&#34;
         return self._summary_statistics
 
 
 def validate_sample_payload(sample_payload: SamplePayload, payload_name: Optional[str] = None,
                             payload_unit: Optional[Unit] = None) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the sample payload.
+    :param sample_payload: Payload to valid.
+    :param payload_name: Name of the payload.
+    :param payload_unit: Unit of the payload.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     errors_list = []
     if payload_unit is None:
         if sample_payload.get_unit() not in Unit.__members__.values():
@@ -276,18 +384,33 @@ def sampling_rate_statistics(timestamps: np.ndarray) -&gt; Tuple[float, float]:
 
 
 class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
+    &#34;&#34;&#34;
+    Manages collections of timestamps for unevenly sampled data.
+    &#34;&#34;&#34;
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingPayload):
         super().__init__(proto)
         self._timestamp_statistics: SummaryStatistics = SummaryStatistics(proto.timestamp_statistics)
 
     @staticmethod
     def new() -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty TimingPayload
+        &#34;&#34;&#34;
         return TimingPayload(redvox_api_m_pb2.RedvoxPacketM.TimingPayload())
 
     def set_default_unit(self) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Sets the default unit for this payload
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        # noinspection PyTypeChecker
         return self.set_unit(Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
     def update_timing_statistics_from_timestamps(self) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Update the stored statistics from the current set of timestamps.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         timestamps: np.ndarray = self.get_timestamps()
         self._timestamp_statistics.update_from_values(timestamps)
         sampling_tuple: Tuple[float, float] = sampling_rate_statistics(timestamps)
@@ -298,20 +421,43 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         return self
 
     def get_unit(self) -&gt; Unit:
+        &#34;&#34;&#34;
+        Returns the timing unit.
+        :return: The timing unit.
+        &#34;&#34;&#34;
+        # noinspection Mypy
         return Unit.from_proto(self._proto.unit)
 
     def set_unit(self, unit: Unit) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Sets the timing unit.
+        :param unit: Unit to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(unit, [Unit])
+        # noinspection Mypy
         self._proto.unit = unit.into_proto()
         return self
 
     def get_timestamps_count(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: The total number of timestamps stored in this payload
+        &#34;&#34;&#34;
         return len(self._proto.timestamps)
 
     def get_timestamps(self) -&gt; np.ndarray:
+        &#34;&#34;&#34;
+        :return: The timestamps stored in this payload
+        &#34;&#34;&#34;
         return np.array(self._proto.timestamps)
 
     def set_timestamps(self, timestamps: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Set the timestamps.
+        :param timestamps: Timestamps to set.
+        :param update_value_statistics: Should the stats be updated?
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(timestamps, [np.ndarray])
         self._proto.timestamps[:] = list(timestamps)
 
@@ -321,6 +467,12 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         return self
 
     def append_timestamp(self, timestamp: float, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Appends a single timestamp.
+        :param timestamp: Timestamp to append.
+        :param update_value_statistics: Should the stats be updated?
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(timestamp, [int, float])
         self._proto.timestamps.append(timestamp)
 
@@ -329,9 +481,15 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
 
         return self
 
-    def append_timestamps(self, values: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
-        check_type(values, [np.ndarray])
-        self._proto.timestamps.extend(list(values))
+    def append_timestamps(self, timestamps: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Append multiple timestamps.
+        :param timestamps: Timestamps to append.
+        :param update_value_statistics: Should the stats be updated?
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        check_type(timestamps, [np.ndarray])
+        self._proto.timestamps.extend(list(timestamps))
 
         if update_value_statistics:
             self.update_timing_statistics_from_timestamps()
@@ -339,6 +497,11 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         return self
 
     def clear_timestamps(self, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Clears all timestamps.
+        :param update_value_statistics: Should the stats be updated?
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         self._proto.timestamps[:] = []
 
         if update_value_statistics:
@@ -347,12 +510,23 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         return self
 
     def get_timestamp_statistics(self) -&gt; SummaryStatistics:
+        &#34;&#34;&#34;
+        :return: Statistics for these timestamps.
+        &#34;&#34;&#34;
         return self._timestamp_statistics
 
     def get_mean_sample_rate(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The mean sample rate.
+        &#34;&#34;&#34;
         return self._proto.mean_sample_rate
 
     def set_mean_sample_rate(self, mean_sample_rate: float) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Sets the mean sample rate.
+        :param mean_sample_rate: Rate to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(mean_sample_rate, [int, float])
         if mean_sample_rate &lt; 0:
             raise errors.ApiMError(&#34;mean_sample_rate must be strictly positive&#34;)
@@ -361,9 +535,17 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         return self
 
     def get_stdev_sample_rate(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Standard deviation of the sample rate.
+        &#34;&#34;&#34;
         return self._proto.stdev_sample_rate
 
     def set_stdev_sample_rate(self, stdev_sample_rate: float) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Sets the standard deviation of the sample rate.
+        :param stdev_sample_rate: Rate to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(stdev_sample_rate, [int, float])
         if stdev_sample_rate &lt; 0:
             raise errors.ApiMError(&#34;stdev_sample_rate must be strictly positive&#34;)
@@ -373,6 +555,11 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
 
 
 def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the timing payload.
+    :param timing_payload: Payload to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     errors_list = []
     # if not timing_payload.get_proto().HasField(&#34;unit&#34;):
     #     errors_list.append(&#34;Timing payload unit type is missing&#34;)
@@ -430,13 +617,24 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
 <span>def <span class="ident">validate_sample_payload</span></span>(<span>sample_payload: <a title="redvox.api1000.common.common.SamplePayload" href="#redvox.api1000.common.common.SamplePayload">SamplePayload</a>, payload_name: typing.Union[str, NoneType] = None, payload_unit: typing.Union[<a title="redvox.api1000.common.common.Unit" href="#redvox.api1000.common.common.Unit">Unit</a>, NoneType] = None) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Validates the sample payload.
+:param sample_payload: Payload to valid.
+:param payload_name: Name of the payload.
+:param payload_unit: Unit of the payload.
+:return: A list of validation errors.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_sample_payload(sample_payload: SamplePayload, payload_name: Optional[str] = None,
                             payload_unit: Optional[Unit] = None) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the sample payload.
+    :param sample_payload: Payload to valid.
+    :param payload_name: Name of the payload.
+    :param payload_unit: Unit of the payload.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     errors_list = []
     if payload_unit is None:
         if sample_payload.get_unit() not in Unit.__members__.values():
@@ -453,12 +651,19 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
 <span>def <span class="ident">validate_summary_statistics</span></span>(<span>stats: <a title="redvox.api1000.common.common.SummaryStatistics" href="#redvox.api1000.common.common.SummaryStatistics">SummaryStatistics</a>) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Validates the stats.
+:param stats: Stats to validate.
+:return: List of validation errors.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_summary_statistics(stats: SummaryStatistics) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the stats.
+    :param stats: Stats to validate.
+    :return: List of validation errors.
+    &#34;&#34;&#34;
     errors_list = []
     if stats.get_count() &lt; 1:
         errors_list.append(&#34;Summary statistics contains less than 1 element&#34;)
@@ -469,12 +674,19 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
 <span>def <span class="ident">validate_timing_payload</span></span>(<span>timing_payload: <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a>) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Validates the timing payload.
+:param timing_payload: Payload to validate.
+:return: A list of validation errors.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the timing payload.
+    :param timing_payload: Payload to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     errors_list = []
     # if not timing_payload.get_proto().HasField(&#34;unit&#34;):
     #     errors_list.append(&#34;Timing payload unit type is missing&#34;)
@@ -498,38 +710,68 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
 <dl>
 <dt id="redvox.api1000.common.common.SamplePayload"><code class="flex name class">
 <span>class <span class="ident">SamplePayload</span></span>
-<span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.SamplePayload)</span>
+<span>(</span><span>proto: typing.Union[src.redvox_api_m.redvox_api_m_pb2.SamplePayload, src.redvox_api_m.redvox_api_m_pb2.DoubleSamplePayload])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>A class for managing sensor samples and the corresponding statistics.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class SamplePayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SamplePayload]):
-    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.SamplePayload):
+<pre><code class="python">class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload,
+                                    redvox_api_m_pb2.RedvoxPacketM.DoubleSamplePayload]]):
+    &#34;&#34;&#34;
+    A class for managing sensor samples and the corresponding statistics.
+    &#34;&#34;&#34;
+    def __init__(self, proto: Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload,
+                                    redvox_api_m_pb2.RedvoxPacketM.DoubleSamplePayload]):
         super().__init__(proto)
         self._summary_statistics: SummaryStatistics = SummaryStatistics(proto.value_statistics)
 
     @staticmethod
     def new() -&gt; &#39;SamplePayload&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty SamplePayload
+        &#34;&#34;&#34;
         return SamplePayload(redvox_api_m_pb2.RedvoxPacketM.SamplePayload())
 
     def get_unit(self) -&gt; Unit:
+        &#34;&#34;&#34;
+        :return: The unit of this payload.
+        &#34;&#34;&#34;
+        # noinspection Mypy
         return Unit.from_proto(self._proto.unit)
 
     def set_unit(self, unit: Unit) -&gt; &#39;SamplePayload&#39;:
+        &#34;&#34;&#34;
+        Sets the unit of this payload.
+        :param unit: Unit to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(unit, [Unit])
+        # noinspection Mypy
         self._proto.unit = unit.into_proto()
         return self
 
     def get_values_count(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: The number of samples in this payload.
+        &#34;&#34;&#34;
         return len(self._proto.values)
 
     def get_values(self) -&gt; np.ndarray:
+        &#34;&#34;&#34;
+        :return: The samples from this payload.
+        &#34;&#34;&#34;
         return np.array(self._proto.values)
 
     def set_values(self, values: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;SamplePayload&#39;:
+        &#34;&#34;&#34;
+        Set&#39;s the values of this payload and optionally updates the statistics.
+        :param values: Values to set in this payload.
+        :param update_value_statistics: Optional, should the statistics be derived?
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(values, [np.ndarray])
         self._proto.values[:] = list(values)
 
@@ -539,6 +781,12 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
         return self
 
     def append_value(self, value: float, update_value_statistics: bool = False) -&gt; &#39;SamplePayload&#39;:
+        &#34;&#34;&#34;
+        Appends a single value to the payload.
+        :param value: Value to append to the payload.
+        :param update_value_statistics: Whether the statistics should be updated.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(value, [int, float])
         self._proto.values.append(value)
 
@@ -548,6 +796,12 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
         return self
 
     def append_values(self, values: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;SamplePayload&#39;:
+        &#34;&#34;&#34;
+        Appends multiple values to this payload.
+        :param values: Values to append.
+        :param update_value_statistics: Whether the statistics should be updated.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(values, [np.ndarray])
         self._proto.values.extend(list(values))
 
@@ -557,6 +811,11 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
         return self
 
     def clear_values(self, update_value_statistics: bool = False) -&gt; &#39;SamplePayload&#39;:
+        &#34;&#34;&#34;
+        Clear the values in this payload.
+        :param update_value_statistics: Whether the statistics should be updated.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         self._proto.values[:] = []
 
         if update_value_statistics:
@@ -565,6 +824,9 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
         return self
 
     def get_summary_statistics(self) -&gt; SummaryStatistics:
+        &#34;&#34;&#34;
+        :return: The SummaryStatistics object associated with this payload.
+        &#34;&#34;&#34;
         return self._summary_statistics</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -578,13 +840,16 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
 <span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A new, empty SamplePayload</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def new() -&gt; &#39;SamplePayload&#39;:
+    &#34;&#34;&#34;
+    :return: A new, empty SamplePayload
+    &#34;&#34;&#34;
     return SamplePayload(redvox_api_m_pb2.RedvoxPacketM.SamplePayload())</code></pre>
 </details>
 </dd>
@@ -595,12 +860,21 @@ def new() -&gt; &#39;SamplePayload&#39;:
 <span>def <span class="ident">append_value</span></span>(<span>self, value: float, update_value_statistics: bool = False) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Appends a single value to the payload.
+:param value: Value to append to the payload.
+:param update_value_statistics: Whether the statistics should be updated.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def append_value(self, value: float, update_value_statistics: bool = False) -&gt; &#39;SamplePayload&#39;:
+    &#34;&#34;&#34;
+    Appends a single value to the payload.
+    :param value: Value to append to the payload.
+    :param update_value_statistics: Whether the statistics should be updated.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     check_type(value, [int, float])
     self._proto.values.append(value)
 
@@ -614,12 +888,21 @@ def new() -&gt; &#39;SamplePayload&#39;:
 <span>def <span class="ident">append_values</span></span>(<span>self, values: numpy.ndarray, update_value_statistics: bool = False) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Appends multiple values to this payload.
+:param values: Values to append.
+:param update_value_statistics: Whether the statistics should be updated.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def append_values(self, values: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;SamplePayload&#39;:
+    &#34;&#34;&#34;
+    Appends multiple values to this payload.
+    :param values: Values to append.
+    :param update_value_statistics: Whether the statistics should be updated.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     check_type(values, [np.ndarray])
     self._proto.values.extend(list(values))
 
@@ -633,12 +916,19 @@ def new() -&gt; &#39;SamplePayload&#39;:
 <span>def <span class="ident">clear_values</span></span>(<span>self, update_value_statistics: bool = False) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Clear the values in this payload.
+:param update_value_statistics: Whether the statistics should be updated.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def clear_values(self, update_value_statistics: bool = False) -&gt; &#39;SamplePayload&#39;:
+    &#34;&#34;&#34;
+    Clear the values in this payload.
+    :param update_value_statistics: Whether the statistics should be updated.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     self._proto.values[:] = []
 
     if update_value_statistics:
@@ -651,12 +941,15 @@ def new() -&gt; &#39;SamplePayload&#39;:
 <span>def <span class="ident">get_summary_statistics</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SummaryStatistics" href="#redvox.api1000.common.common.SummaryStatistics">SummaryStatistics</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The SummaryStatistics object associated with this payload.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_summary_statistics(self) -&gt; SummaryStatistics:
+    &#34;&#34;&#34;
+    :return: The SummaryStatistics object associated with this payload.
+    &#34;&#34;&#34;
     return self._summary_statistics</code></pre>
 </details>
 </dd>
@@ -664,12 +957,16 @@ def new() -&gt; &#39;SamplePayload&#39;:
 <span>def <span class="ident">get_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="#redvox.api1000.common.common.Unit">Unit</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The unit of this payload.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_unit(self) -&gt; Unit:
+    &#34;&#34;&#34;
+    :return: The unit of this payload.
+    &#34;&#34;&#34;
+    # noinspection Mypy
     return Unit.from_proto(self._proto.unit)</code></pre>
 </details>
 </dd>
@@ -677,12 +974,15 @@ def new() -&gt; &#39;SamplePayload&#39;:
 <span>def <span class="ident">get_values</span></span>(<span>self) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The samples from this payload.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_values(self) -&gt; np.ndarray:
+    &#34;&#34;&#34;
+    :return: The samples from this payload.
+    &#34;&#34;&#34;
     return np.array(self._proto.values)</code></pre>
 </details>
 </dd>
@@ -690,12 +990,15 @@ def new() -&gt; &#39;SamplePayload&#39;:
 <span>def <span class="ident">get_values_count</span></span>(<span>self) ‑> int</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The number of samples in this payload.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_values_count(self) -&gt; int:
+    &#34;&#34;&#34;
+    :return: The number of samples in this payload.
+    &#34;&#34;&#34;
     return len(self._proto.values)</code></pre>
 </details>
 </dd>
@@ -703,13 +1006,21 @@ def new() -&gt; &#39;SamplePayload&#39;:
 <span>def <span class="ident">set_unit</span></span>(<span>self, unit: <a title="redvox.api1000.common.common.Unit" href="#redvox.api1000.common.common.Unit">Unit</a>) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the unit of this payload.
+:param unit: Unit to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_unit(self, unit: Unit) -&gt; &#39;SamplePayload&#39;:
+    &#34;&#34;&#34;
+    Sets the unit of this payload.
+    :param unit: Unit to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     check_type(unit, [Unit])
+    # noinspection Mypy
     self._proto.unit = unit.into_proto()
     return self</code></pre>
 </details>
@@ -718,12 +1029,21 @@ def new() -&gt; &#39;SamplePayload&#39;:
 <span>def <span class="ident">set_values</span></span>(<span>self, values: numpy.ndarray, update_value_statistics: bool = False) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set's the values of this payload and optionally updates the statistics.
+:param values: Values to set in this payload.
+:param update_value_statistics: Optional, should the statistics be derived?
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_values(self, values: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;SamplePayload&#39;:
+    &#34;&#34;&#34;
+    Set&#39;s the values of this payload and optionally updates the statistics.
+    :param values: Values to set in this payload.
+    :param update_value_statistics: Optional, should the statistics be derived?
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     check_type(values, [np.ndarray])
     self._proto.values[:] = list(values)
 
@@ -794,51 +1114,96 @@ def new() -&gt; &#39;SamplePayload&#39;:
         return self
 
     def get_mean(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The mean.
+        &#34;&#34;&#34;
         return self._proto.mean
 
     def set_mean(self, mean: float) -&gt; &#39;SummaryStatistics&#39;:
+        &#34;&#34;&#34;
+        Sets the mean.
+        :param mean: Mean to set.
+        :return: A modified instance of this
+        &#34;&#34;&#34;
         check_type(mean, [int, float])
 
         self._proto.mean = mean
         return self
 
     def get_standard_deviation(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The standard deviation.
+        &#34;&#34;&#34;
         return self._proto.standard_deviation
 
-    def set_variance(self, standard_deviation: float) -&gt; &#39;SummaryStatistics&#39;:
+    def set_standard_deviation(self, standard_deviation: float) -&gt; &#39;SummaryStatistics&#39;:
+        &#34;&#34;&#34;
+        Set&#39;s the standard deviation.
+        :param standard_deviation: Standard deviation to set.
+        :return: A modified instance of this
+        &#34;&#34;&#34;
         check_type(standard_deviation, [int, float])
 
         self._proto.standard_deviation = standard_deviation
         return self
 
     def get_min(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The minimum.
+        &#34;&#34;&#34;
         return self._proto.min
 
     def set_min(self, min_value: float) -&gt; &#39;SummaryStatistics&#39;:
+        &#34;&#34;&#34;
+        Sets the min value.
+        :param min_value: Value to set.
+        :return: A modified instance of this
+        &#34;&#34;&#34;
         check_type(min_value, [int, float])
 
         self._proto.min = min_value
         return self
 
     def get_max(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The max.
+        &#34;&#34;&#34;
         return self._proto.max
 
     def set_max(self, max_value: float) -&gt; &#39;SummaryStatistics&#39;:
+        &#34;&#34;&#34;
+        Sets the max.
+        :param max_value: Value to set.
+        :return: A modified instance of this.
+        &#34;&#34;&#34;
         check_type(max_value, [int, float])
 
         self._proto.max = max_value
         return self
 
     def get_range(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The range.
+        &#34;&#34;&#34;
         return self._proto.range
 
     def set_range(self, range_value: float) -&gt; &#39;SummaryStatistics&#39;:
+        &#34;&#34;&#34;
+        Sets the range.
+        :param range_value: Range to set.
+        :return: A modified instance of this
+        &#34;&#34;&#34;
         check_type(range_value, [int, float])
 
         self._proto.range = range_value
         return self
 
     def update_from_values(self, values: np.ndarray) -&gt; &#39;SummaryStatistics&#39;:
+        &#34;&#34;&#34;
+        Updates the statistics from the given values.
+        :param values: Values to derive statistics from.
+        :return: A modified instance of this
+        &#34;&#34;&#34;
         check_type(values, [np.ndarray])
 
         if none_or_empty(values):
@@ -907,12 +1272,15 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 <span>def <span class="ident">get_max</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The max.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_max(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The max.
+    &#34;&#34;&#34;
     return self._proto.max</code></pre>
 </details>
 </dd>
@@ -920,12 +1288,15 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 <span>def <span class="ident">get_mean</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The mean.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_mean(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The mean.
+    &#34;&#34;&#34;
     return self._proto.mean</code></pre>
 </details>
 </dd>
@@ -933,12 +1304,15 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 <span>def <span class="ident">get_min</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The minimum.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_min(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The minimum.
+    &#34;&#34;&#34;
     return self._proto.min</code></pre>
 </details>
 </dd>
@@ -946,12 +1320,15 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 <span>def <span class="ident">get_range</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The range.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_range(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The range.
+    &#34;&#34;&#34;
     return self._proto.range</code></pre>
 </details>
 </dd>
@@ -959,12 +1336,15 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 <span>def <span class="ident">get_standard_deviation</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The standard deviation.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_standard_deviation(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The standard deviation.
+    &#34;&#34;&#34;
     return self._proto.standard_deviation</code></pre>
 </details>
 </dd>
@@ -995,12 +1375,19 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 <span>def <span class="ident">set_max</span></span>(<span>self, max_value: float) ‑> <a title="redvox.api1000.common.common.SummaryStatistics" href="#redvox.api1000.common.common.SummaryStatistics">SummaryStatistics</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the max.
+:param max_value: Value to set.
+:return: A modified instance of this.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_max(self, max_value: float) -&gt; &#39;SummaryStatistics&#39;:
+    &#34;&#34;&#34;
+    Sets the max.
+    :param max_value: Value to set.
+    :return: A modified instance of this.
+    &#34;&#34;&#34;
     check_type(max_value, [int, float])
 
     self._proto.max = max_value
@@ -1011,12 +1398,19 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 <span>def <span class="ident">set_mean</span></span>(<span>self, mean: float) ‑> <a title="redvox.api1000.common.common.SummaryStatistics" href="#redvox.api1000.common.common.SummaryStatistics">SummaryStatistics</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the mean.
+:param mean: Mean to set.
+:return: A modified instance of this</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_mean(self, mean: float) -&gt; &#39;SummaryStatistics&#39;:
+    &#34;&#34;&#34;
+    Sets the mean.
+    :param mean: Mean to set.
+    :return: A modified instance of this
+    &#34;&#34;&#34;
     check_type(mean, [int, float])
 
     self._proto.mean = mean
@@ -1027,12 +1421,19 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 <span>def <span class="ident">set_min</span></span>(<span>self, min_value: float) ‑> <a title="redvox.api1000.common.common.SummaryStatistics" href="#redvox.api1000.common.common.SummaryStatistics">SummaryStatistics</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the min value.
+:param min_value: Value to set.
+:return: A modified instance of this</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_min(self, min_value: float) -&gt; &#39;SummaryStatistics&#39;:
+    &#34;&#34;&#34;
+    Sets the min value.
+    :param min_value: Value to set.
+    :return: A modified instance of this
+    &#34;&#34;&#34;
     check_type(min_value, [int, float])
 
     self._proto.min = min_value
@@ -1043,28 +1444,42 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 <span>def <span class="ident">set_range</span></span>(<span>self, range_value: float) ‑> <a title="redvox.api1000.common.common.SummaryStatistics" href="#redvox.api1000.common.common.SummaryStatistics">SummaryStatistics</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the range.
+:param range_value: Range to set.
+:return: A modified instance of this</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_range(self, range_value: float) -&gt; &#39;SummaryStatistics&#39;:
+    &#34;&#34;&#34;
+    Sets the range.
+    :param range_value: Range to set.
+    :return: A modified instance of this
+    &#34;&#34;&#34;
     check_type(range_value, [int, float])
 
     self._proto.range = range_value
     return self</code></pre>
 </details>
 </dd>
-<dt id="redvox.api1000.common.common.SummaryStatistics.set_variance"><code class="name flex">
-<span>def <span class="ident">set_variance</span></span>(<span>self, standard_deviation: float) ‑> <a title="redvox.api1000.common.common.SummaryStatistics" href="#redvox.api1000.common.common.SummaryStatistics">SummaryStatistics</a></span>
+<dt id="redvox.api1000.common.common.SummaryStatistics.set_standard_deviation"><code class="name flex">
+<span>def <span class="ident">set_standard_deviation</span></span>(<span>self, standard_deviation: float) ‑> <a title="redvox.api1000.common.common.SummaryStatistics" href="#redvox.api1000.common.common.SummaryStatistics">SummaryStatistics</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set's the standard deviation.
+:param standard_deviation: Standard deviation to set.
+:return: A modified instance of this</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def set_variance(self, standard_deviation: float) -&gt; &#39;SummaryStatistics&#39;:
+<pre><code class="python">def set_standard_deviation(self, standard_deviation: float) -&gt; &#39;SummaryStatistics&#39;:
+    &#34;&#34;&#34;
+    Set&#39;s the standard deviation.
+    :param standard_deviation: Standard deviation to set.
+    :return: A modified instance of this
+    &#34;&#34;&#34;
     check_type(standard_deviation, [int, float])
 
     self._proto.standard_deviation = standard_deviation
@@ -1075,12 +1490,19 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 <span>def <span class="ident">update_from_values</span></span>(<span>self, values: numpy.ndarray) ‑> <a title="redvox.api1000.common.common.SummaryStatistics" href="#redvox.api1000.common.common.SummaryStatistics">SummaryStatistics</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Updates the statistics from the given values.
+:param values: Values to derive statistics from.
+:return: A modified instance of this</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def update_from_values(self, values: np.ndarray) -&gt; &#39;SummaryStatistics&#39;:
+    &#34;&#34;&#34;
+    Updates the statistics from the given values.
+    :param values: Values to derive statistics from.
+    :return: A modified instance of this
+    &#34;&#34;&#34;
     check_type(values, [np.ndarray])
 
     if none_or_empty(values):
@@ -1117,24 +1539,39 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 <span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.TimingPayload)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>Manages collections of timestamps for unevenly sampled data.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
+    &#34;&#34;&#34;
+    Manages collections of timestamps for unevenly sampled data.
+    &#34;&#34;&#34;
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingPayload):
         super().__init__(proto)
         self._timestamp_statistics: SummaryStatistics = SummaryStatistics(proto.timestamp_statistics)
 
     @staticmethod
     def new() -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty TimingPayload
+        &#34;&#34;&#34;
         return TimingPayload(redvox_api_m_pb2.RedvoxPacketM.TimingPayload())
 
     def set_default_unit(self) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Sets the default unit for this payload
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        # noinspection PyTypeChecker
         return self.set_unit(Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
     def update_timing_statistics_from_timestamps(self) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Update the stored statistics from the current set of timestamps.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         timestamps: np.ndarray = self.get_timestamps()
         self._timestamp_statistics.update_from_values(timestamps)
         sampling_tuple: Tuple[float, float] = sampling_rate_statistics(timestamps)
@@ -1145,20 +1582,43 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
         return self
 
     def get_unit(self) -&gt; Unit:
+        &#34;&#34;&#34;
+        Returns the timing unit.
+        :return: The timing unit.
+        &#34;&#34;&#34;
+        # noinspection Mypy
         return Unit.from_proto(self._proto.unit)
 
     def set_unit(self, unit: Unit) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Sets the timing unit.
+        :param unit: Unit to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(unit, [Unit])
+        # noinspection Mypy
         self._proto.unit = unit.into_proto()
         return self
 
     def get_timestamps_count(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: The total number of timestamps stored in this payload
+        &#34;&#34;&#34;
         return len(self._proto.timestamps)
 
     def get_timestamps(self) -&gt; np.ndarray:
+        &#34;&#34;&#34;
+        :return: The timestamps stored in this payload
+        &#34;&#34;&#34;
         return np.array(self._proto.timestamps)
 
     def set_timestamps(self, timestamps: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Set the timestamps.
+        :param timestamps: Timestamps to set.
+        :param update_value_statistics: Should the stats be updated?
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(timestamps, [np.ndarray])
         self._proto.timestamps[:] = list(timestamps)
 
@@ -1168,6 +1628,12 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
         return self
 
     def append_timestamp(self, timestamp: float, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Appends a single timestamp.
+        :param timestamp: Timestamp to append.
+        :param update_value_statistics: Should the stats be updated?
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(timestamp, [int, float])
         self._proto.timestamps.append(timestamp)
 
@@ -1176,9 +1642,15 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 
         return self
 
-    def append_timestamps(self, values: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
-        check_type(values, [np.ndarray])
-        self._proto.timestamps.extend(list(values))
+    def append_timestamps(self, timestamps: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Append multiple timestamps.
+        :param timestamps: Timestamps to append.
+        :param update_value_statistics: Should the stats be updated?
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        check_type(timestamps, [np.ndarray])
+        self._proto.timestamps.extend(list(timestamps))
 
         if update_value_statistics:
             self.update_timing_statistics_from_timestamps()
@@ -1186,6 +1658,11 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
         return self
 
     def clear_timestamps(self, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Clears all timestamps.
+        :param update_value_statistics: Should the stats be updated?
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         self._proto.timestamps[:] = []
 
         if update_value_statistics:
@@ -1194,12 +1671,23 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
         return self
 
     def get_timestamp_statistics(self) -&gt; SummaryStatistics:
+        &#34;&#34;&#34;
+        :return: Statistics for these timestamps.
+        &#34;&#34;&#34;
         return self._timestamp_statistics
 
     def get_mean_sample_rate(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The mean sample rate.
+        &#34;&#34;&#34;
         return self._proto.mean_sample_rate
 
     def set_mean_sample_rate(self, mean_sample_rate: float) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Sets the mean sample rate.
+        :param mean_sample_rate: Rate to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(mean_sample_rate, [int, float])
         if mean_sample_rate &lt; 0:
             raise errors.ApiMError(&#34;mean_sample_rate must be strictly positive&#34;)
@@ -1208,9 +1696,17 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
         return self
 
     def get_stdev_sample_rate(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Standard deviation of the sample rate.
+        &#34;&#34;&#34;
         return self._proto.stdev_sample_rate
 
     def set_stdev_sample_rate(self, stdev_sample_rate: float) -&gt; &#39;TimingPayload&#39;:
+        &#34;&#34;&#34;
+        Sets the standard deviation of the sample rate.
+        :param stdev_sample_rate: Rate to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(stdev_sample_rate, [int, float])
         if stdev_sample_rate &lt; 0:
             raise errors.ApiMError(&#34;stdev_sample_rate must be strictly positive&#34;)
@@ -1229,13 +1725,16 @@ def new() -&gt; &#39;SummaryStatistics&#39;:
 <span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A new, empty TimingPayload</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def new() -&gt; &#39;TimingPayload&#39;:
+    &#34;&#34;&#34;
+    :return: A new, empty TimingPayload
+    &#34;&#34;&#34;
     return TimingPayload(redvox_api_m_pb2.RedvoxPacketM.TimingPayload())</code></pre>
 </details>
 </dd>
@@ -1246,12 +1745,21 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">append_timestamp</span></span>(<span>self, timestamp: float, update_value_statistics: bool = False) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Appends a single timestamp.
+:param timestamp: Timestamp to append.
+:param update_value_statistics: Should the stats be updated?
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def append_timestamp(self, timestamp: float, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
+    &#34;&#34;&#34;
+    Appends a single timestamp.
+    :param timestamp: Timestamp to append.
+    :param update_value_statistics: Should the stats be updated?
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     check_type(timestamp, [int, float])
     self._proto.timestamps.append(timestamp)
 
@@ -1262,17 +1770,26 @@ def new() -&gt; &#39;TimingPayload&#39;:
 </details>
 </dd>
 <dt id="redvox.api1000.common.common.TimingPayload.append_timestamps"><code class="name flex">
-<span>def <span class="ident">append_timestamps</span></span>(<span>self, values: numpy.ndarray, update_value_statistics: bool = False) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
+<span>def <span class="ident">append_timestamps</span></span>(<span>self, timestamps: numpy.ndarray, update_value_statistics: bool = False) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Append multiple timestamps.
+:param timestamps: Timestamps to append.
+:param update_value_statistics: Should the stats be updated?
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def append_timestamps(self, values: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
-    check_type(values, [np.ndarray])
-    self._proto.timestamps.extend(list(values))
+<pre><code class="python">def append_timestamps(self, timestamps: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
+    &#34;&#34;&#34;
+    Append multiple timestamps.
+    :param timestamps: Timestamps to append.
+    :param update_value_statistics: Should the stats be updated?
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    check_type(timestamps, [np.ndarray])
+    self._proto.timestamps.extend(list(timestamps))
 
     if update_value_statistics:
         self.update_timing_statistics_from_timestamps()
@@ -1284,12 +1801,19 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">clear_timestamps</span></span>(<span>self, update_value_statistics: bool = False) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Clears all timestamps.
+:param update_value_statistics: Should the stats be updated?
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def clear_timestamps(self, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
+    &#34;&#34;&#34;
+    Clears all timestamps.
+    :param update_value_statistics: Should the stats be updated?
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     self._proto.timestamps[:] = []
 
     if update_value_statistics:
@@ -1302,12 +1826,15 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">get_mean_sample_rate</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The mean sample rate.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_mean_sample_rate(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The mean sample rate.
+    &#34;&#34;&#34;
     return self._proto.mean_sample_rate</code></pre>
 </details>
 </dd>
@@ -1315,12 +1842,15 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">get_stdev_sample_rate</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Standard deviation of the sample rate.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_stdev_sample_rate(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: Standard deviation of the sample rate.
+    &#34;&#34;&#34;
     return self._proto.stdev_sample_rate</code></pre>
 </details>
 </dd>
@@ -1328,12 +1858,15 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">get_timestamp_statistics</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SummaryStatistics" href="#redvox.api1000.common.common.SummaryStatistics">SummaryStatistics</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Statistics for these timestamps.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_timestamp_statistics(self) -&gt; SummaryStatistics:
+    &#34;&#34;&#34;
+    :return: Statistics for these timestamps.
+    &#34;&#34;&#34;
     return self._timestamp_statistics</code></pre>
 </details>
 </dd>
@@ -1341,12 +1874,15 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">get_timestamps</span></span>(<span>self) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The timestamps stored in this payload</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_timestamps(self) -&gt; np.ndarray:
+    &#34;&#34;&#34;
+    :return: The timestamps stored in this payload
+    &#34;&#34;&#34;
     return np.array(self._proto.timestamps)</code></pre>
 </details>
 </dd>
@@ -1354,12 +1890,15 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">get_timestamps_count</span></span>(<span>self) ‑> int</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The total number of timestamps stored in this payload</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_timestamps_count(self) -&gt; int:
+    &#34;&#34;&#34;
+    :return: The total number of timestamps stored in this payload
+    &#34;&#34;&#34;
     return len(self._proto.timestamps)</code></pre>
 </details>
 </dd>
@@ -1367,12 +1906,18 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">get_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="#redvox.api1000.common.common.Unit">Unit</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Returns the timing unit.
+:return: The timing unit.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_unit(self) -&gt; Unit:
+    &#34;&#34;&#34;
+    Returns the timing unit.
+    :return: The timing unit.
+    &#34;&#34;&#34;
+    # noinspection Mypy
     return Unit.from_proto(self._proto.unit)</code></pre>
 </details>
 </dd>
@@ -1380,12 +1925,18 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">set_default_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the default unit for this payload
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_default_unit(self) -&gt; &#39;TimingPayload&#39;:
+    &#34;&#34;&#34;
+    Sets the default unit for this payload
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    # noinspection PyTypeChecker
     return self.set_unit(Unit.MICROSECONDS_SINCE_UNIX_EPOCH)</code></pre>
 </details>
 </dd>
@@ -1393,12 +1944,19 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">set_mean_sample_rate</span></span>(<span>self, mean_sample_rate: float) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the mean sample rate.
+:param mean_sample_rate: Rate to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_mean_sample_rate(self, mean_sample_rate: float) -&gt; &#39;TimingPayload&#39;:
+    &#34;&#34;&#34;
+    Sets the mean sample rate.
+    :param mean_sample_rate: Rate to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     check_type(mean_sample_rate, [int, float])
     if mean_sample_rate &lt; 0:
         raise errors.ApiMError(&#34;mean_sample_rate must be strictly positive&#34;)
@@ -1411,12 +1969,19 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">set_stdev_sample_rate</span></span>(<span>self, stdev_sample_rate: float) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the standard deviation of the sample rate.
+:param stdev_sample_rate: Rate to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_stdev_sample_rate(self, stdev_sample_rate: float) -&gt; &#39;TimingPayload&#39;:
+    &#34;&#34;&#34;
+    Sets the standard deviation of the sample rate.
+    :param stdev_sample_rate: Rate to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     check_type(stdev_sample_rate, [int, float])
     if stdev_sample_rate &lt; 0:
         raise errors.ApiMError(&#34;stdev_sample_rate must be strictly positive&#34;)
@@ -1429,12 +1994,21 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">set_timestamps</span></span>(<span>self, timestamps: numpy.ndarray, update_value_statistics: bool = False) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set the timestamps.
+:param timestamps: Timestamps to set.
+:param update_value_statistics: Should the stats be updated?
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_timestamps(self, timestamps: np.ndarray, update_value_statistics: bool = False) -&gt; &#39;TimingPayload&#39;:
+    &#34;&#34;&#34;
+    Set the timestamps.
+    :param timestamps: Timestamps to set.
+    :param update_value_statistics: Should the stats be updated?
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     check_type(timestamps, [np.ndarray])
     self._proto.timestamps[:] = list(timestamps)
 
@@ -1448,13 +2022,21 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">set_unit</span></span>(<span>self, unit: <a title="redvox.api1000.common.common.Unit" href="#redvox.api1000.common.common.Unit">Unit</a>) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the timing unit.
+:param unit: Unit to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_unit(self, unit: Unit) -&gt; &#39;TimingPayload&#39;:
+    &#34;&#34;&#34;
+    Sets the timing unit.
+    :param unit: Unit to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     check_type(unit, [Unit])
+    # noinspection Mypy
     self._proto.unit = unit.into_proto()
     return self</code></pre>
 </details>
@@ -1463,12 +2045,17 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <span>def <span class="ident">update_timing_statistics_from_timestamps</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Update the stored statistics from the current set of timestamps.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def update_timing_statistics_from_timestamps(self) -&gt; &#39;TimingPayload&#39;:
+    &#34;&#34;&#34;
+    Update the stored statistics from the current set of timestamps.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     timestamps: np.ndarray = self.get_timestamps()
     self._timestamp_statistics.update_from_values(timestamps)
     sampling_tuple: Tuple[float, float] = sampling_rate_statistics(timestamps)
@@ -1706,7 +2293,7 @@ def new() -&gt; &#39;TimingPayload&#39;:
 <li><code><a title="redvox.api1000.common.common.SummaryStatistics.set_mean" href="#redvox.api1000.common.common.SummaryStatistics.set_mean">set_mean</a></code></li>
 <li><code><a title="redvox.api1000.common.common.SummaryStatistics.set_min" href="#redvox.api1000.common.common.SummaryStatistics.set_min">set_min</a></code></li>
 <li><code><a title="redvox.api1000.common.common.SummaryStatistics.set_range" href="#redvox.api1000.common.common.SummaryStatistics.set_range">set_range</a></code></li>
-<li><code><a title="redvox.api1000.common.common.SummaryStatistics.set_variance" href="#redvox.api1000.common.common.SummaryStatistics.set_variance">set_variance</a></code></li>
+<li><code><a title="redvox.api1000.common.common.SummaryStatistics.set_standard_deviation" href="#redvox.api1000.common.common.SummaryStatistics.set_standard_deviation">set_standard_deviation</a></code></li>
 <li><code><a title="redvox.api1000.common.common.SummaryStatistics.update_from_values" href="#redvox.api1000.common.common.SummaryStatistics.update_from_values">update_from_values</a></code></li>
 </ul>
 </li>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>redvox.api1000.wrapped_redvox_packet.timing_information API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Contains methods for accessing and setting timing and time synchronization fields." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,16 @@
 <h1 class="title">Module <code>redvox.api1000.wrapped_redvox_packet.timing_information</code></h1>
 </header>
 <section id="section-intro">
+<p>Contains methods for accessing and setting timing and time synchronization fields.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import enum
+<pre><code class="python">&#34;&#34;&#34;
+Contains methods for accessing and setting timing and time synchronization fields.
+&#34;&#34;&#34;
+
+import enum
 from typing import List, Union
 
 import redvox.api1000.common.typing
@@ -41,111 +46,192 @@ SynchExchangeProto = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExcha
 
 
 class SynchExchange(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange]):
+    &#34;&#34;&#34;
+    Encapsulates a single complete exchange of the RedVox custom synch exchange algorithm.
+    &#34;&#34;&#34;
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange):
         super().__init__(proto)
 
     @staticmethod
     def new() -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty SynchExchange instance
+        &#34;&#34;&#34;
         exchange = SynchExchange(redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange())
         exchange.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
         return exchange
 
     def get_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        Returns the unit for exchange values.
+        :return: The unit for exchange values.
+        &#34;&#34;&#34;
+        # noinspection Mypy
         return common.Unit.from_proto(self._proto.unit)
 
     def set_default_unit(self) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the default unit for this type.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
     def set_unit(self, unit: Union[common.Unit, int]) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the unit for this exchange type
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
         self._proto.unit = unit.into_proto()
         return self
 
     def get_a1(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The A1 value of the exchange.
+        &#34;&#34;&#34;
         return self._proto.a1
 
     def set_a1(self, a1: float) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the A1 value of this exchange
+        :param a1: Value to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(a1, [int, float])
         self._proto.a1 = a1
         return self
 
     def get_a2(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The A2 value of the exchange.
+        &#34;&#34;&#34;
         return self._proto.a2
 
     def set_a2(self, a2: float) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the A2 value of this exchange
+        :param a2: Value to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(a2, [int, float])
         self._proto.a2 = a2
         return self
 
     def get_a3(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The A3 value of the exchange.
+        &#34;&#34;&#34;
         return self._proto.a3
 
     def set_a3(self, a3: float) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the A3 value of this exchange
+        :param a3: Value to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(a3, [int, float])
         self._proto.a3 = a3
         return self
 
     def get_b1(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The B1 value of the exchange.
+        &#34;&#34;&#34;
         return self._proto.b1
 
     def set_b1(self, b1: float) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the B1 value of this exchange
+        :param b1: Value to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(b1, [int, float])
         self._proto.b1 = b1
         return self
 
     def get_b2(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The B2 value of the exchange.
+        &#34;&#34;&#34;
         return self._proto.b2
 
     def set_b2(self, b2: float) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the B2 value of this exchange
+        :param b2: Value to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(b2, [int, float])
         self._proto.b2 = b2
         return self
 
     def get_b3(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The B3 value of the exchange.
+        &#34;&#34;&#34;
         return self._proto.b3
 
     def set_b3(self, b3: float) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the B3 value of this exchange
+        :param b3: Value to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(b3, [int, float])
         self._proto.b3 = b3
         return self
 
 
-def validate_synch_exchange(sync: SynchExchange) -&gt; List[str]:
+def validate_synch_exchange(synch_exchange: SynchExchange) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates a synch exchange.
+    :param synch_exchange: Exchange to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     errors_list = []
     # assume 0 (default) is an invalid value
-    if sync.get_a1() == 0:
+    if synch_exchange.get_a1() == 0:
         errors_list.append(&#34;Sync exchange a1 value is 0&#34;)
-    if sync.get_a2() == 0:
+    if synch_exchange.get_a2() == 0:
         errors_list.append(&#34;Sync exchange a2 value is 0&#34;)
-    if sync.get_a3() == 0:
+    if synch_exchange.get_a3() == 0:
         errors_list.append(&#34;Sync exchange a3 value is 0&#34;)
-    if sync.get_a1() &gt;= sync.get_a2():
+    if synch_exchange.get_a1() &gt;= synch_exchange.get_a2():
         errors_list.append(&#34;Sync exchange a1 is greater than or equal to a2&#34;)
-    if sync.get_a2() &gt; sync.get_a3():
+    if synch_exchange.get_a2() &gt; synch_exchange.get_a3():
         errors_list.append(&#34;Sync exchange a2 is greater than a3&#34;)
-    if sync.get_b1() == 0:
+    if synch_exchange.get_b1() == 0:
         errors_list.append(&#34;Sync exchange b1 value is 0&#34;)
-    if sync.get_b2() == 0:
+    if synch_exchange.get_b2() == 0:
         errors_list.append(&#34;Sync exchange b2 value is 0&#34;)
-    if sync.get_b3() == 0:
+    if synch_exchange.get_b3() == 0:
         errors_list.append(&#34;Sync exchange b3 value is 0&#34;)
-    if sync.get_b1() &gt; sync.get_b2():
+    if synch_exchange.get_b1() &gt; synch_exchange.get_b2():
         errors_list.append(&#34;Sync exchange b1 value is greater than b2&#34;)
-    if sync.get_b2() &gt;= sync.get_b3():
+    if synch_exchange.get_b2() &gt;= synch_exchange.get_b3():
         errors_list.append(&#34;Sync exchange b2 value is greater than or equal to b3&#34;)
-    if sync.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
+    if synch_exchange.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
         errors_list.append(&#34;Sync exchange unit is not microseconds since unix epoch&#34;)
     return errors_list
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod)
 class TimingScoreMethod(enum.Enum):
+    &#34;&#34;&#34;
+    Method used to score the timing.
+    &#34;&#34;&#34;
     UNKNOWN: int = 0
 
 
 class TimingInformation(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation]):
+    &#34;&#34;&#34;
+    Collection of timing information for this packet.
+    &#34;&#34;&#34;
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation):
         super().__init__(proto)
         self._synch_exchanges: redvox.api1000.common.generic.ProtoRepeatedMessage[SynchExchangeProto, SynchExchange] = \
@@ -159,127 +245,233 @@ class TimingInformation(
 
     @staticmethod
     def new() -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty TimingInformation instance
+        &#34;&#34;&#34;
         return TimingInformation(redvox_api_m_pb2.RedvoxPacketM.TimingInformation())
 
     def get_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit used for this timing information.
+        &#34;&#34;&#34;
+        # noinspection Mypy
         return common.Unit.from_proto(self._proto.unit)
 
     def set_default_unit(self) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the default time unit.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
     def set_unit(self, unit: Union[common.Unit, int]) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets a unit for this timing info.
+        :param unit: Unit to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
         self._proto.unit = unit.into_proto()
         return self
 
     def get_packet_start_os_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Packet start OS (non-monotonic) timestamp. Corresponds with first audio sample.
+        &#34;&#34;&#34;
         return self._proto.packet_start_os_timestamp
 
     def set_packet_start_os_timestamp(self, packet_start_os_timestamp) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the packet start OS (non-monotonic) timestamp. Corresponds with first audio sample.
+        :param packet_start_os_timestamp: Timestamp to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(packet_start_os_timestamp, [int, float])
         self._proto.packet_start_os_timestamp = packet_start_os_timestamp
         return self
 
     def get_packet_start_mach_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Machine (monotonic) start timestamp of packet. Corresponds with first audio sample.
+        &#34;&#34;&#34;
         return self._proto.packet_start_mach_timestamp
 
     def set_packet_start_mach_timestamp(self, packet_start_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the packet&#39;s start machine timestamp (monotonic). Corresponds with first audio sample.
+        :param packet_start_mach_timestamp:
+        :return:
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(packet_start_mach_timestamp, [int, float])
         self._proto.packet_start_mach_timestamp = packet_start_mach_timestamp
         return self
 
     def get_packet_end_os_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The packets end OS (non-monotonic) timestamp. Corresponds with the last audio sample.
+        &#34;&#34;&#34;
         return self._proto.packet_end_os_timestamp
 
     def set_packet_end_os_timestamp(self, packet_end_os_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Set the packet&#39;s end OS timestamp (non-monotonic). Corresponds with the last audio sample.
+        :param packet_end_os_timestamp: Timestamp to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(packet_end_os_timestamp, [int, float])
         self._proto.packet_end_os_timestamp = packet_end_os_timestamp
         return self
 
     def get_packet_end_mach_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The packet&#39;s end machine (monotonic) timestamp. Corresponds with the last audio sample.
+        &#34;&#34;&#34;
         return self._proto.packet_end_mach_timestamp
 
     def set_packet_end_mach_timestamp(self, packet_end_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Set the packets machine end timestamp (monotonic). Corresponds with the last audio sample.
+        :param packet_end_mach_timestamp: Timestamp to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(packet_end_mach_timestamp, [int, float])
         self._proto.packet_end_mach_timestamp = packet_end_mach_timestamp
         return self
 
     def get_server_acquisition_arrival_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Timestamp set my acquisition server on packet arrival
+        &#34;&#34;&#34;
         return self._proto.server_acquisition_arrival_timestamp
 
     def set_server_acquisition_arrival_timestamp(self,
                                                  server_acquisition_arrival_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the server acquisition timestamp.
+        :param server_acquisition_arrival_timestamp: Timestamp to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(server_acquisition_arrival_timestamp, [int, float])
         self._proto.server_acquisition_arrival_timestamp = server_acquisition_arrival_timestamp
         return self
 
     def get_app_start_mach_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Machine timestamp of when station started recording.
+        &#34;&#34;&#34;
         return self._proto.app_start_mach_timestamp
 
     def set_app_start_mach_timestamp(self, app_start_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the machine timestamp of when the app started recording.
+        :param app_start_mach_timestamp:
+        :return:
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(app_start_mach_timestamp, [int, float])
         self._proto.app_start_mach_timestamp = app_start_mach_timestamp
         return self
 
     def get_synch_exchanges(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: Synch exchanges collected during this packet.
+        &#34;&#34;&#34;
         return self._synch_exchanges
 
     def get_best_latency(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Best latency calculated from synch exchanges
+        &#34;&#34;&#34;
         return self._proto.best_latency
 
     def set_best_latency(self, best_latency: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the best latency.
+        :param best_latency: Latency to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(best_latency, [int, float])
         self._proto.best_latency = best_latency
         return self
 
     def get_best_offset(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Best offset computed from synch exchanges.
+        &#34;&#34;&#34;
         return self._proto.best_offset
 
     def set_best_offset(self, best_offset: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the best offset.
+        :param best_offset: Offset to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(best_offset, [int, float])
         self._proto.best_offset = best_offset
         return self
 
     def get_score(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Score of timing information.
+        &#34;&#34;&#34;
         return self._proto.score
 
     def set_score(self, score: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Set score of timing information.
+        :param score: Score to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(score, [float])
         self._proto.score = score
         return self
 
     def get_score_method(self) -&gt; TimingScoreMethod:
+        &#34;&#34;&#34;
+        :return: The score method used for scoring the timing information.
+        &#34;&#34;&#34;
         return TimingScoreMethod(self._proto.score_method)
 
     def set_score_method(self, score_method: TimingScoreMethod) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the score method.
+        :param score_method: Score to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(score_method, [TimingScoreMethod])
-        self._proto.os = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
+        self._proto.score_method = \
+            redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
         return self
 
 
-def validate_timing_information(timing: TimingInformation) -&gt; List[str]:
+def validate_timing_information(timing_information: TimingInformation) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates timing information
+    :param timing_information: Timing information to validate
+    :return: A a list of validation errors
+    &#34;&#34;&#34;
     errors_list = []
-    synch_vals = timing.get_synch_exchanges().get_values()
+    synch_vals = timing_information.get_synch_exchanges().get_values()
     # if we have synchronization values, we can validate them
     # otherwise we can just return an empty list since there&#39;s no point in validating nothing
     if len(synch_vals) &gt; 0:
         for sync_exch in synch_vals:
             errors_list.extend(validate_synch_exchange(sync_exch))
-    if timing.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
+    if timing_information.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
         errors_list.append(&#34;Timing information unit is not microseconds since unix epoch&#34;)
-    if timing.get_packet_start_os_timestamp() == 0:
+    if timing_information.get_packet_start_os_timestamp() == 0:
         errors_list.append(&#34;Timing information os start timestamp is 0&#34;)
-    if timing.get_packet_start_mach_timestamp() == 0:
+    if timing_information.get_packet_start_mach_timestamp() == 0:
         errors_list.append(&#34;Timing information mach start timestamp is 0&#34;)
-    if timing.get_packet_end_os_timestamp() == 0:
+    if timing_information.get_packet_end_os_timestamp() == 0:
         errors_list.append(&#34;Timing information os end timestamp is 0&#34;)
-    if timing.get_packet_end_mach_timestamp() == 0:
+    if timing_information.get_packet_end_mach_timestamp() == 0:
         errors_list.append(&#34;Timing information mach end timestamp is 0&#34;)
-    if timing.get_app_start_mach_timestamp() == 0:
+    if timing_information.get_app_start_mach_timestamp() == 0:
         errors_list.append(&#34;Timing information app mach start timestamp is 0&#34;)
-    if timing.get_packet_start_os_timestamp() &gt; timing.get_packet_end_os_timestamp():
+    if timing_information.get_packet_start_os_timestamp() &gt; timing_information.get_packet_end_os_timestamp():
         errors_list.append(&#34;Timing information os end timestamp is less than start timestamp&#34;)
-    if timing.get_packet_start_mach_timestamp() &gt; timing.get_packet_end_mach_timestamp():
+    if timing_information.get_packet_start_mach_timestamp() &gt; timing_information.get_packet_end_mach_timestamp():
         errors_list.append(&#34;Timing information mach end timestamp is less than start timestamp&#34;)
         # if timing.get_server_acquisition_arrival_timestamp() == 0:
         #     errors_list.append(&#34;Timing information server acquisition arrival timestamp is 0&#34;)
@@ -294,74 +486,88 @@ def validate_timing_information(timing: TimingInformation) -&gt; List[str]:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.api1000.wrapped_redvox_packet.timing_information.validate_synch_exchange"><code class="name flex">
-<span>def <span class="ident">validate_synch_exchange</span></span>(<span>sync: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a>) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate_synch_exchange</span></span>(<span>synch_exchange: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a>) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Validates a synch exchange.
+:param synch_exchange: Exchange to validate.
+:return: A list of validation errors.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def validate_synch_exchange(sync: SynchExchange) -&gt; List[str]:
+<pre><code class="python">def validate_synch_exchange(synch_exchange: SynchExchange) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates a synch exchange.
+    :param synch_exchange: Exchange to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     errors_list = []
     # assume 0 (default) is an invalid value
-    if sync.get_a1() == 0:
+    if synch_exchange.get_a1() == 0:
         errors_list.append(&#34;Sync exchange a1 value is 0&#34;)
-    if sync.get_a2() == 0:
+    if synch_exchange.get_a2() == 0:
         errors_list.append(&#34;Sync exchange a2 value is 0&#34;)
-    if sync.get_a3() == 0:
+    if synch_exchange.get_a3() == 0:
         errors_list.append(&#34;Sync exchange a3 value is 0&#34;)
-    if sync.get_a1() &gt;= sync.get_a2():
+    if synch_exchange.get_a1() &gt;= synch_exchange.get_a2():
         errors_list.append(&#34;Sync exchange a1 is greater than or equal to a2&#34;)
-    if sync.get_a2() &gt; sync.get_a3():
+    if synch_exchange.get_a2() &gt; synch_exchange.get_a3():
         errors_list.append(&#34;Sync exchange a2 is greater than a3&#34;)
-    if sync.get_b1() == 0:
+    if synch_exchange.get_b1() == 0:
         errors_list.append(&#34;Sync exchange b1 value is 0&#34;)
-    if sync.get_b2() == 0:
+    if synch_exchange.get_b2() == 0:
         errors_list.append(&#34;Sync exchange b2 value is 0&#34;)
-    if sync.get_b3() == 0:
+    if synch_exchange.get_b3() == 0:
         errors_list.append(&#34;Sync exchange b3 value is 0&#34;)
-    if sync.get_b1() &gt; sync.get_b2():
+    if synch_exchange.get_b1() &gt; synch_exchange.get_b2():
         errors_list.append(&#34;Sync exchange b1 value is greater than b2&#34;)
-    if sync.get_b2() &gt;= sync.get_b3():
+    if synch_exchange.get_b2() &gt;= synch_exchange.get_b3():
         errors_list.append(&#34;Sync exchange b2 value is greater than or equal to b3&#34;)
-    if sync.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
+    if synch_exchange.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
         errors_list.append(&#34;Sync exchange unit is not microseconds since unix epoch&#34;)
     return errors_list</code></pre>
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.timing_information.validate_timing_information"><code class="name flex">
-<span>def <span class="ident">validate_timing_information</span></span>(<span>timing: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a>) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate_timing_information</span></span>(<span>timing_information: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a>) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Validates timing information
+:param timing_information: Timing information to validate
+:return: A a list of validation errors</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def validate_timing_information(timing: TimingInformation) -&gt; List[str]:
+<pre><code class="python">def validate_timing_information(timing_information: TimingInformation) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates timing information
+    :param timing_information: Timing information to validate
+    :return: A a list of validation errors
+    &#34;&#34;&#34;
     errors_list = []
-    synch_vals = timing.get_synch_exchanges().get_values()
+    synch_vals = timing_information.get_synch_exchanges().get_values()
     # if we have synchronization values, we can validate them
     # otherwise we can just return an empty list since there&#39;s no point in validating nothing
     if len(synch_vals) &gt; 0:
         for sync_exch in synch_vals:
             errors_list.extend(validate_synch_exchange(sync_exch))
-    if timing.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
+    if timing_information.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
         errors_list.append(&#34;Timing information unit is not microseconds since unix epoch&#34;)
-    if timing.get_packet_start_os_timestamp() == 0:
+    if timing_information.get_packet_start_os_timestamp() == 0:
         errors_list.append(&#34;Timing information os start timestamp is 0&#34;)
-    if timing.get_packet_start_mach_timestamp() == 0:
+    if timing_information.get_packet_start_mach_timestamp() == 0:
         errors_list.append(&#34;Timing information mach start timestamp is 0&#34;)
-    if timing.get_packet_end_os_timestamp() == 0:
+    if timing_information.get_packet_end_os_timestamp() == 0:
         errors_list.append(&#34;Timing information os end timestamp is 0&#34;)
-    if timing.get_packet_end_mach_timestamp() == 0:
+    if timing_information.get_packet_end_mach_timestamp() == 0:
         errors_list.append(&#34;Timing information mach end timestamp is 0&#34;)
-    if timing.get_app_start_mach_timestamp() == 0:
+    if timing_information.get_app_start_mach_timestamp() == 0:
         errors_list.append(&#34;Timing information app mach start timestamp is 0&#34;)
-    if timing.get_packet_start_os_timestamp() &gt; timing.get_packet_end_os_timestamp():
+    if timing_information.get_packet_start_os_timestamp() &gt; timing_information.get_packet_end_os_timestamp():
         errors_list.append(&#34;Timing information os end timestamp is less than start timestamp&#34;)
-    if timing.get_packet_start_mach_timestamp() &gt; timing.get_packet_end_mach_timestamp():
+    if timing_information.get_packet_start_mach_timestamp() &gt; timing_information.get_packet_end_mach_timestamp():
         errors_list.append(&#34;Timing information mach end timestamp is less than start timestamp&#34;)
         # if timing.get_server_acquisition_arrival_timestamp() == 0:
         #     errors_list.append(&#34;Timing information server acquisition arrival timestamp is 0&#34;)
@@ -436,77 +642,146 @@ def validate_timing_information(timing: TimingInformation) -&gt; List[str]:
 <span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.SynchExchange)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>Encapsulates a single complete exchange of the RedVox custom synch exchange algorithm.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class SynchExchange(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange]):
+    &#34;&#34;&#34;
+    Encapsulates a single complete exchange of the RedVox custom synch exchange algorithm.
+    &#34;&#34;&#34;
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange):
         super().__init__(proto)
 
     @staticmethod
     def new() -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty SynchExchange instance
+        &#34;&#34;&#34;
         exchange = SynchExchange(redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange())
         exchange.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
         return exchange
 
     def get_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        Returns the unit for exchange values.
+        :return: The unit for exchange values.
+        &#34;&#34;&#34;
+        # noinspection Mypy
         return common.Unit.from_proto(self._proto.unit)
 
     def set_default_unit(self) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the default unit for this type.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
     def set_unit(self, unit: Union[common.Unit, int]) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the unit for this exchange type
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
         self._proto.unit = unit.into_proto()
         return self
 
     def get_a1(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The A1 value of the exchange.
+        &#34;&#34;&#34;
         return self._proto.a1
 
     def set_a1(self, a1: float) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the A1 value of this exchange
+        :param a1: Value to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(a1, [int, float])
         self._proto.a1 = a1
         return self
 
     def get_a2(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The A2 value of the exchange.
+        &#34;&#34;&#34;
         return self._proto.a2
 
     def set_a2(self, a2: float) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the A2 value of this exchange
+        :param a2: Value to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(a2, [int, float])
         self._proto.a2 = a2
         return self
 
     def get_a3(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The A3 value of the exchange.
+        &#34;&#34;&#34;
         return self._proto.a3
 
     def set_a3(self, a3: float) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the A3 value of this exchange
+        :param a3: Value to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(a3, [int, float])
         self._proto.a3 = a3
         return self
 
     def get_b1(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The B1 value of the exchange.
+        &#34;&#34;&#34;
         return self._proto.b1
 
     def set_b1(self, b1: float) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the B1 value of this exchange
+        :param b1: Value to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(b1, [int, float])
         self._proto.b1 = b1
         return self
 
     def get_b2(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The B2 value of the exchange.
+        &#34;&#34;&#34;
         return self._proto.b2
 
     def set_b2(self, b2: float) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the B2 value of this exchange
+        :param b2: Value to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(b2, [int, float])
         self._proto.b2 = b2
         return self
 
     def get_b3(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The B3 value of the exchange.
+        &#34;&#34;&#34;
         return self._proto.b3
 
     def set_b3(self, b3: float) -&gt; &#39;SynchExchange&#39;:
+        &#34;&#34;&#34;
+        Sets the B3 value of this exchange
+        :param b3: Value to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(b3, [int, float])
         self._proto.b3 = b3
         return self</code></pre>
@@ -522,13 +797,16 @@ def validate_timing_information(timing: TimingInformation) -&gt; List[str]:
 <span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A new, empty SynchExchange instance</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def new() -&gt; &#39;SynchExchange&#39;:
+    &#34;&#34;&#34;
+    :return: A new, empty SynchExchange instance
+    &#34;&#34;&#34;
     exchange = SynchExchange(redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange())
     exchange.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
     return exchange</code></pre>
@@ -541,12 +819,15 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">get_a1</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The A1 value of the exchange.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_a1(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The A1 value of the exchange.
+    &#34;&#34;&#34;
     return self._proto.a1</code></pre>
 </details>
 </dd>
@@ -554,12 +835,15 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">get_a2</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The A2 value of the exchange.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_a2(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The A2 value of the exchange.
+    &#34;&#34;&#34;
     return self._proto.a2</code></pre>
 </details>
 </dd>
@@ -567,12 +851,15 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">get_a3</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The A3 value of the exchange.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_a3(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The A3 value of the exchange.
+    &#34;&#34;&#34;
     return self._proto.a3</code></pre>
 </details>
 </dd>
@@ -580,12 +867,15 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">get_b1</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The B1 value of the exchange.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_b1(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The B1 value of the exchange.
+    &#34;&#34;&#34;
     return self._proto.b1</code></pre>
 </details>
 </dd>
@@ -593,12 +883,15 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">get_b2</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The B2 value of the exchange.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_b2(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The B2 value of the exchange.
+    &#34;&#34;&#34;
     return self._proto.b2</code></pre>
 </details>
 </dd>
@@ -606,12 +899,15 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">get_b3</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The B3 value of the exchange.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_b3(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The B3 value of the exchange.
+    &#34;&#34;&#34;
     return self._proto.b3</code></pre>
 </details>
 </dd>
@@ -619,12 +915,18 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">get_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Returns the unit for exchange values.
+:return: The unit for exchange values.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_unit(self) -&gt; common.Unit:
+    &#34;&#34;&#34;
+    Returns the unit for exchange values.
+    :return: The unit for exchange values.
+    &#34;&#34;&#34;
+    # noinspection Mypy
     return common.Unit.from_proto(self._proto.unit)</code></pre>
 </details>
 </dd>
@@ -632,12 +934,19 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">set_a1</span></span>(<span>self, a1: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the A1 value of this exchange
+:param a1: Value to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_a1(self, a1: float) -&gt; &#39;SynchExchange&#39;:
+    &#34;&#34;&#34;
+    Sets the A1 value of this exchange
+    :param a1: Value to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(a1, [int, float])
     self._proto.a1 = a1
     return self</code></pre>
@@ -647,12 +956,19 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">set_a2</span></span>(<span>self, a2: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the A2 value of this exchange
+:param a2: Value to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_a2(self, a2: float) -&gt; &#39;SynchExchange&#39;:
+    &#34;&#34;&#34;
+    Sets the A2 value of this exchange
+    :param a2: Value to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(a2, [int, float])
     self._proto.a2 = a2
     return self</code></pre>
@@ -662,12 +978,19 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">set_a3</span></span>(<span>self, a3: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the A3 value of this exchange
+:param a3: Value to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_a3(self, a3: float) -&gt; &#39;SynchExchange&#39;:
+    &#34;&#34;&#34;
+    Sets the A3 value of this exchange
+    :param a3: Value to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(a3, [int, float])
     self._proto.a3 = a3
     return self</code></pre>
@@ -677,12 +1000,19 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">set_b1</span></span>(<span>self, b1: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the B1 value of this exchange
+:param b1: Value to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_b1(self, b1: float) -&gt; &#39;SynchExchange&#39;:
+    &#34;&#34;&#34;
+    Sets the B1 value of this exchange
+    :param b1: Value to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(b1, [int, float])
     self._proto.b1 = b1
     return self</code></pre>
@@ -692,12 +1022,19 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">set_b2</span></span>(<span>self, b2: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the B2 value of this exchange
+:param b2: Value to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_b2(self, b2: float) -&gt; &#39;SynchExchange&#39;:
+    &#34;&#34;&#34;
+    Sets the B2 value of this exchange
+    :param b2: Value to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(b2, [int, float])
     self._proto.b2 = b2
     return self</code></pre>
@@ -707,12 +1044,19 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">set_b3</span></span>(<span>self, b3: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the B3 value of this exchange
+:param b3: Value to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_b3(self, b3: float) -&gt; &#39;SynchExchange&#39;:
+    &#34;&#34;&#34;
+    Sets the B3 value of this exchange
+    :param b3: Value to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(b3, [int, float])
     self._proto.b3 = b3
     return self</code></pre>
@@ -722,12 +1066,17 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">set_default_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the default unit for this type.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_default_unit(self) -&gt; &#39;SynchExchange&#39;:
+    &#34;&#34;&#34;
+    Sets the default unit for this type.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)</code></pre>
 </details>
 </dd>
@@ -735,13 +1084,21 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">set_unit</span></span>(<span>self, unit: typing.Union[<a title="redvox.api1000.common.common.Unit" href="../common/common.html#redvox.api1000.common.common.Unit">Unit</a>, int]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the unit for this exchange type
+:param unit: Unit to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_unit(self, unit: Union[common.Unit, int]) -&gt; &#39;SynchExchange&#39;:
+    &#34;&#34;&#34;
+    Sets the unit for this exchange type
+    :param unit: Unit to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    # noinspection Mypy
     self._proto.unit = unit.into_proto()
     return self</code></pre>
 </details>
@@ -766,13 +1123,16 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.TimingInformation)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>Collection of timing information for this packet.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class TimingInformation(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation]):
+    &#34;&#34;&#34;
+    Collection of timing information for this packet.
+    &#34;&#34;&#34;
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation):
         super().__init__(proto)
         self._synch_exchanges: redvox.api1000.common.generic.ProtoRepeatedMessage[SynchExchangeProto, SynchExchange] = \
@@ -786,101 +1146,202 @@ def new() -&gt; &#39;SynchExchange&#39;:
 
     @staticmethod
     def new() -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty TimingInformation instance
+        &#34;&#34;&#34;
         return TimingInformation(redvox_api_m_pb2.RedvoxPacketM.TimingInformation())
 
     def get_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit used for this timing information.
+        &#34;&#34;&#34;
+        # noinspection Mypy
         return common.Unit.from_proto(self._proto.unit)
 
     def set_default_unit(self) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the default time unit.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
     def set_unit(self, unit: Union[common.Unit, int]) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets a unit for this timing info.
+        :param unit: Unit to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
         self._proto.unit = unit.into_proto()
         return self
 
     def get_packet_start_os_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Packet start OS (non-monotonic) timestamp. Corresponds with first audio sample.
+        &#34;&#34;&#34;
         return self._proto.packet_start_os_timestamp
 
     def set_packet_start_os_timestamp(self, packet_start_os_timestamp) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the packet start OS (non-monotonic) timestamp. Corresponds with first audio sample.
+        :param packet_start_os_timestamp: Timestamp to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(packet_start_os_timestamp, [int, float])
         self._proto.packet_start_os_timestamp = packet_start_os_timestamp
         return self
 
     def get_packet_start_mach_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Machine (monotonic) start timestamp of packet. Corresponds with first audio sample.
+        &#34;&#34;&#34;
         return self._proto.packet_start_mach_timestamp
 
     def set_packet_start_mach_timestamp(self, packet_start_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the packet&#39;s start machine timestamp (monotonic). Corresponds with first audio sample.
+        :param packet_start_mach_timestamp:
+        :return:
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(packet_start_mach_timestamp, [int, float])
         self._proto.packet_start_mach_timestamp = packet_start_mach_timestamp
         return self
 
     def get_packet_end_os_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The packets end OS (non-monotonic) timestamp. Corresponds with the last audio sample.
+        &#34;&#34;&#34;
         return self._proto.packet_end_os_timestamp
 
     def set_packet_end_os_timestamp(self, packet_end_os_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Set the packet&#39;s end OS timestamp (non-monotonic). Corresponds with the last audio sample.
+        :param packet_end_os_timestamp: Timestamp to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(packet_end_os_timestamp, [int, float])
         self._proto.packet_end_os_timestamp = packet_end_os_timestamp
         return self
 
     def get_packet_end_mach_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The packet&#39;s end machine (monotonic) timestamp. Corresponds with the last audio sample.
+        &#34;&#34;&#34;
         return self._proto.packet_end_mach_timestamp
 
     def set_packet_end_mach_timestamp(self, packet_end_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Set the packets machine end timestamp (monotonic). Corresponds with the last audio sample.
+        :param packet_end_mach_timestamp: Timestamp to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(packet_end_mach_timestamp, [int, float])
         self._proto.packet_end_mach_timestamp = packet_end_mach_timestamp
         return self
 
     def get_server_acquisition_arrival_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Timestamp set my acquisition server on packet arrival
+        &#34;&#34;&#34;
         return self._proto.server_acquisition_arrival_timestamp
 
     def set_server_acquisition_arrival_timestamp(self,
                                                  server_acquisition_arrival_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the server acquisition timestamp.
+        :param server_acquisition_arrival_timestamp: Timestamp to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(server_acquisition_arrival_timestamp, [int, float])
         self._proto.server_acquisition_arrival_timestamp = server_acquisition_arrival_timestamp
         return self
 
     def get_app_start_mach_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Machine timestamp of when station started recording.
+        &#34;&#34;&#34;
         return self._proto.app_start_mach_timestamp
 
     def set_app_start_mach_timestamp(self, app_start_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the machine timestamp of when the app started recording.
+        :param app_start_mach_timestamp:
+        :return:
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(app_start_mach_timestamp, [int, float])
         self._proto.app_start_mach_timestamp = app_start_mach_timestamp
         return self
 
     def get_synch_exchanges(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: Synch exchanges collected during this packet.
+        &#34;&#34;&#34;
         return self._synch_exchanges
 
     def get_best_latency(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Best latency calculated from synch exchanges
+        &#34;&#34;&#34;
         return self._proto.best_latency
 
     def set_best_latency(self, best_latency: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the best latency.
+        :param best_latency: Latency to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(best_latency, [int, float])
         self._proto.best_latency = best_latency
         return self
 
     def get_best_offset(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Best offset computed from synch exchanges.
+        &#34;&#34;&#34;
         return self._proto.best_offset
 
     def set_best_offset(self, best_offset: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the best offset.
+        :param best_offset: Offset to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(best_offset, [int, float])
         self._proto.best_offset = best_offset
         return self
 
     def get_score(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: Score of timing information.
+        &#34;&#34;&#34;
         return self._proto.score
 
     def set_score(self, score: float) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Set score of timing information.
+        :param score: Score to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(score, [float])
         self._proto.score = score
         return self
 
     def get_score_method(self) -&gt; TimingScoreMethod:
+        &#34;&#34;&#34;
+        :return: The score method used for scoring the timing information.
+        &#34;&#34;&#34;
         return TimingScoreMethod(self._proto.score_method)
 
     def set_score_method(self, score_method: TimingScoreMethod) -&gt; &#39;TimingInformation&#39;:
+        &#34;&#34;&#34;
+        Sets the score method.
+        :param score_method: Score to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(score_method, [TimingScoreMethod])
-        self._proto.os = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
+        self._proto.score_method = \
+            redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
         return self</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -894,13 +1355,16 @@ def new() -&gt; &#39;SynchExchange&#39;:
 <span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A new, empty TimingInformation instance</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def new() -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    :return: A new, empty TimingInformation instance
+    &#34;&#34;&#34;
     return TimingInformation(redvox_api_m_pb2.RedvoxPacketM.TimingInformation())</code></pre>
 </details>
 </dd>
@@ -911,12 +1375,15 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">get_app_start_mach_timestamp</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Machine timestamp of when station started recording.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_app_start_mach_timestamp(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: Machine timestamp of when station started recording.
+    &#34;&#34;&#34;
     return self._proto.app_start_mach_timestamp</code></pre>
 </details>
 </dd>
@@ -924,12 +1391,15 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">get_best_latency</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Best latency calculated from synch exchanges</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_best_latency(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: Best latency calculated from synch exchanges
+    &#34;&#34;&#34;
     return self._proto.best_latency</code></pre>
 </details>
 </dd>
@@ -937,12 +1407,15 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">get_best_offset</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Best offset computed from synch exchanges.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_best_offset(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: Best offset computed from synch exchanges.
+    &#34;&#34;&#34;
     return self._proto.best_offset</code></pre>
 </details>
 </dd>
@@ -950,12 +1423,15 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">get_packet_end_mach_timestamp</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The packet's end machine (monotonic) timestamp. Corresponds with the last audio sample.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_packet_end_mach_timestamp(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The packet&#39;s end machine (monotonic) timestamp. Corresponds with the last audio sample.
+    &#34;&#34;&#34;
     return self._proto.packet_end_mach_timestamp</code></pre>
 </details>
 </dd>
@@ -963,12 +1439,15 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">get_packet_end_os_timestamp</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The packets end OS (non-monotonic) timestamp. Corresponds with the last audio sample.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_packet_end_os_timestamp(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The packets end OS (non-monotonic) timestamp. Corresponds with the last audio sample.
+    &#34;&#34;&#34;
     return self._proto.packet_end_os_timestamp</code></pre>
 </details>
 </dd>
@@ -976,12 +1455,15 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">get_packet_start_mach_timestamp</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Machine (monotonic) start timestamp of packet. Corresponds with first audio sample.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_packet_start_mach_timestamp(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: Machine (monotonic) start timestamp of packet. Corresponds with first audio sample.
+    &#34;&#34;&#34;
     return self._proto.packet_start_mach_timestamp</code></pre>
 </details>
 </dd>
@@ -989,12 +1471,15 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">get_packet_start_os_timestamp</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Packet start OS (non-monotonic) timestamp. Corresponds with first audio sample.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_packet_start_os_timestamp(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: Packet start OS (non-monotonic) timestamp. Corresponds with first audio sample.
+    &#34;&#34;&#34;
     return self._proto.packet_start_os_timestamp</code></pre>
 </details>
 </dd>
@@ -1002,12 +1487,15 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">get_score</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Score of timing information.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_score(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: Score of timing information.
+    &#34;&#34;&#34;
     return self._proto.score</code></pre>
 </details>
 </dd>
@@ -1015,12 +1503,15 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">get_score_method</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod">TimingScoreMethod</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The score method used for scoring the timing information.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_score_method(self) -&gt; TimingScoreMethod:
+    &#34;&#34;&#34;
+    :return: The score method used for scoring the timing information.
+    &#34;&#34;&#34;
     return TimingScoreMethod(self._proto.score_method)</code></pre>
 </details>
 </dd>
@@ -1028,12 +1519,15 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">get_server_acquisition_arrival_timestamp</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Timestamp set my acquisition server on packet arrival</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_server_acquisition_arrival_timestamp(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: Timestamp set my acquisition server on packet arrival
+    &#34;&#34;&#34;
     return self._proto.server_acquisition_arrival_timestamp</code></pre>
 </details>
 </dd>
@@ -1041,12 +1535,15 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">get_synch_exchanges</span></span>(<span>self) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="../common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Synch exchanges collected during this packet.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_synch_exchanges(self) -&gt; redvox.api1000.common.generic.ProtoRepeatedMessage:
+    &#34;&#34;&#34;
+    :return: Synch exchanges collected during this packet.
+    &#34;&#34;&#34;
     return self._synch_exchanges</code></pre>
 </details>
 </dd>
@@ -1054,12 +1551,16 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">get_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Unit used for this timing information.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_unit(self) -&gt; common.Unit:
+    &#34;&#34;&#34;
+    :return: Unit used for this timing information.
+    &#34;&#34;&#34;
+    # noinspection Mypy
     return common.Unit.from_proto(self._proto.unit)</code></pre>
 </details>
 </dd>
@@ -1067,12 +1568,19 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">set_app_start_mach_timestamp</span></span>(<span>self, app_start_mach_timestamp: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the machine timestamp of when the app started recording.
+:param app_start_mach_timestamp:
+:return:</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_app_start_mach_timestamp(self, app_start_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the machine timestamp of when the app started recording.
+    :param app_start_mach_timestamp:
+    :return:
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(app_start_mach_timestamp, [int, float])
     self._proto.app_start_mach_timestamp = app_start_mach_timestamp
     return self</code></pre>
@@ -1082,12 +1590,19 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">set_best_latency</span></span>(<span>self, best_latency: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the best latency.
+:param best_latency: Latency to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_best_latency(self, best_latency: float) -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the best latency.
+    :param best_latency: Latency to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(best_latency, [int, float])
     self._proto.best_latency = best_latency
     return self</code></pre>
@@ -1097,12 +1612,19 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">set_best_offset</span></span>(<span>self, best_offset: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the best offset.
+:param best_offset: Offset to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_best_offset(self, best_offset: float) -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the best offset.
+    :param best_offset: Offset to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(best_offset, [int, float])
     self._proto.best_offset = best_offset
     return self</code></pre>
@@ -1112,12 +1634,17 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">set_default_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the default time unit.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_default_unit(self) -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the default time unit.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)</code></pre>
 </details>
 </dd>
@@ -1125,12 +1652,19 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">set_packet_end_mach_timestamp</span></span>(<span>self, packet_end_mach_timestamp: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set the packets machine end timestamp (monotonic). Corresponds with the last audio sample.
+:param packet_end_mach_timestamp: Timestamp to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_packet_end_mach_timestamp(self, packet_end_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    Set the packets machine end timestamp (monotonic). Corresponds with the last audio sample.
+    :param packet_end_mach_timestamp: Timestamp to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(packet_end_mach_timestamp, [int, float])
     self._proto.packet_end_mach_timestamp = packet_end_mach_timestamp
     return self</code></pre>
@@ -1140,12 +1674,19 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">set_packet_end_os_timestamp</span></span>(<span>self, packet_end_os_timestamp: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set the packet's end OS timestamp (non-monotonic). Corresponds with the last audio sample.
+:param packet_end_os_timestamp: Timestamp to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_packet_end_os_timestamp(self, packet_end_os_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    Set the packet&#39;s end OS timestamp (non-monotonic). Corresponds with the last audio sample.
+    :param packet_end_os_timestamp: Timestamp to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(packet_end_os_timestamp, [int, float])
     self._proto.packet_end_os_timestamp = packet_end_os_timestamp
     return self</code></pre>
@@ -1155,12 +1696,19 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">set_packet_start_mach_timestamp</span></span>(<span>self, packet_start_mach_timestamp: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the packet's start machine timestamp (monotonic). Corresponds with first audio sample.
+:param packet_start_mach_timestamp:
+:return:</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_packet_start_mach_timestamp(self, packet_start_mach_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the packet&#39;s start machine timestamp (monotonic). Corresponds with first audio sample.
+    :param packet_start_mach_timestamp:
+    :return:
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(packet_start_mach_timestamp, [int, float])
     self._proto.packet_start_mach_timestamp = packet_start_mach_timestamp
     return self</code></pre>
@@ -1170,12 +1718,19 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">set_packet_start_os_timestamp</span></span>(<span>self, packet_start_os_timestamp) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the packet start OS (non-monotonic) timestamp. Corresponds with first audio sample.
+:param packet_start_os_timestamp: Timestamp to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_packet_start_os_timestamp(self, packet_start_os_timestamp) -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the packet start OS (non-monotonic) timestamp. Corresponds with first audio sample.
+    :param packet_start_os_timestamp: Timestamp to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(packet_start_os_timestamp, [int, float])
     self._proto.packet_start_os_timestamp = packet_start_os_timestamp
     return self</code></pre>
@@ -1185,12 +1740,19 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">set_score</span></span>(<span>self, score: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Set score of timing information.
+:param score: Score to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_score(self, score: float) -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    Set score of timing information.
+    :param score: Score to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(score, [float])
     self._proto.score = score
     return self</code></pre>
@@ -1200,14 +1762,22 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">set_score_method</span></span>(<span>self, score_method: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingScoreMethod">TimingScoreMethod</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the score method.
+:param score_method: Score to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_score_method(self, score_method: TimingScoreMethod) -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the score method.
+    :param score_method: Score to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(score_method, [TimingScoreMethod])
-    self._proto.os = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
+    self._proto.score_method = \
+        redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
     return self</code></pre>
 </details>
 </dd>
@@ -1215,13 +1785,20 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">set_server_acquisition_arrival_timestamp</span></span>(<span>self, server_acquisition_arrival_timestamp: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the server acquisition timestamp.
+:param server_acquisition_arrival_timestamp: Timestamp to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_server_acquisition_arrival_timestamp(self,
                                              server_acquisition_arrival_timestamp: float) -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    Sets the server acquisition timestamp.
+    :param server_acquisition_arrival_timestamp: Timestamp to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(server_acquisition_arrival_timestamp, [int, float])
     self._proto.server_acquisition_arrival_timestamp = server_acquisition_arrival_timestamp
     return self</code></pre>
@@ -1231,13 +1808,21 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>def <span class="ident">set_unit</span></span>(<span>self, unit: typing.Union[<a title="redvox.api1000.common.common.Unit" href="../common/common.html#redvox.api1000.common.common.Unit">Unit</a>, int]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets a unit for this timing info.
+:param unit: Unit to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_unit(self, unit: Union[common.Unit, int]) -&gt; &#39;TimingInformation&#39;:
+    &#34;&#34;&#34;
+    Sets a unit for this timing info.
+    :param unit: Unit to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    # noinspection Mypy
     self._proto.unit = unit.into_proto()
     return self</code></pre>
 </details>
@@ -1262,12 +1847,15 @@ def new() -&gt; &#39;TimingInformation&#39;:
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An enumeration.</p></div>
+<div class="desc"><p>Method used to score the timing.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class TimingScoreMethod(enum.Enum):
+    &#34;&#34;&#34;
+    Method used to score the timing.
+    &#34;&#34;&#34;
     UNKNOWN: int = 0</code></pre>
 </details>
 <h3>Ancestors</h3>

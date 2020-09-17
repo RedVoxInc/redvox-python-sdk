@@ -72,18 +72,19 @@ class TimeSyncData:
         acquire_travel_time: float, calculated time it took packet to reach server, default np.nan
     &#34;&#34;&#34;
 
-    def __init__(self, data_pack: Optional[sd.DataPacket] = None, station: Optional[sd.StationMetadata] = None):
+    def __init__(self, data_pack: Optional[sd.DataPacket] = None,
+                 station_metadata: Optional[sd.StationMetadata] = None):
         &#34;&#34;&#34;
         Initialize properties
-        :param data_pack: data packet
-        :param station: station metadata
+        :param data_pack: data packet metadata
+        :param station_metadata: station metadata
         &#34;&#34;&#34;
         self.best_latency: float = np.nan
         self.best_offset: float = 0
-        if station is not None and data_pack is not None:
-            self.get_timesync_data(data_pack, station)
+        if station_metadata is not None and data_pack is not None:
+            self.get_timesync_data(data_pack, station_metadata)
         else:
-            if station is None:
+            if station_metadata is None:
                 self.station_id: str = &#34;&#34;
                 self.station_start_timestamp: float = np.nan
             if data_pack is None:
@@ -106,16 +107,17 @@ class TimeSyncData:
                 # self.num_packets: int = 0
                 # self.bad_packets: List[int] = []
 
-    def get_timesync_data(self, data_pack: sd.DataPacket, station: sd.StationMetadata):
+    def get_timesync_data(self, data_pack: Optional[sd.DataPacket] = None,
+                          station_metadata: Optional[sd.StationMetadata] = None):
         &#34;&#34;&#34;
         extracts the time sync data from the data_pack object
-        :param data_pack: data packet to get data from
-        :param station: station metadata
+        :param data_pack: data packet metadata
+        :param station_metadata: station metadata
         &#34;&#34;&#34;
-        self.station_id = station.station_id
-        self.sample_rate_hz = station.timing_data.audio_sample_rate_hz
-        self.packet_num_audio_samples = data_pack.audio_sensor().num_samples()
-        self.station_start_timestamp = station.timing_data.station_start_timestamp
+        self.station_id = station_metadata.station_id
+        self.sample_rate_hz = station_metadata.timing_data.audio_sample_rate_hz
+        self.packet_num_audio_samples = data_pack.packet_duration_samples
+        self.station_start_timestamp = station_metadata.timing_data.station_start_timestamp
         self.server_acquisition_time = data_pack.server_timestamp
         self.packet_start_time = data_pack.data_start_timestamp
         self.packet_end_time = data_pack.data_end_timestamp
@@ -449,7 +451,7 @@ def get_time_sync_data_from_station(station: sd.Station) -&gt; List[TimeSyncData
     :return: a list of all TimeSyncData objects from the station
     &#34;&#34;&#34;
     timesync_list = []
-    for packet in station.station_data:
+    for packet in station.packet_data:
         timesync_list.append(TimeSyncData(packet, station.station_metadata))
     return timesync_list
 
@@ -567,7 +569,7 @@ def update_time_array_from_analysis(ts_analysis: TimeSyncAnalysis, time_array_s:
     :return: a list of all TimeSyncData objects from the station
     &#34;&#34;&#34;
     timesync_list = []
-    for packet in station.station_data:
+    for packet in station.packet_data:
         timesync_list.append(TimeSyncData(packet, station.station_metadata))
     return timesync_list</code></pre>
 </details>
@@ -1428,7 +1430,7 @@ outputs warning if a gap is detected
 </dd>
 <dt id="redvox.common.timesync.TimeSyncData"><code class="flex name class">
 <span>class <span class="ident">TimeSyncData</span></span>
-<span>(</span><span>data_pack: typing.Union[<a title="redvox.common.sensor_data.DataPacket" href="sensor_data.html#redvox.common.sensor_data.DataPacket">DataPacket</a>, NoneType] = None, station: typing.Union[<a title="redvox.common.sensor_data.StationMetadata" href="sensor_data.html#redvox.common.sensor_data.StationMetadata">StationMetadata</a>, NoneType] = None)</span>
+<span>(</span><span>data_pack: typing.Union[<a title="redvox.common.sensor_data.DataPacket" href="sensor_data.html#redvox.common.sensor_data.DataPacket">DataPacket</a>, NoneType] = None, station_metadata: typing.Union[<a title="redvox.common.sensor_data.StationMetadata" href="sensor_data.html#redvox.common.sensor_data.StationMetadata">StationMetadata</a>, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Stores latencies, offsets, and other timesync related information about a single station
@@ -1454,8 +1456,8 @@ offset_std: float, standard deviation of offsets, default np.nan
 best_tri_msg_index: int, index of the best tri-message, default np.nan
 acquire_travel_time: float, calculated time it took packet to reach server, default np.nan</p>
 <p>Initialize properties
-:param data_pack: data packet
-:param station: station metadata</p></div>
+:param data_pack: data packet metadata
+:param station_metadata: station metadata</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1486,18 +1488,19 @@ acquire_travel_time: float, calculated time it took packet to reach server, defa
         acquire_travel_time: float, calculated time it took packet to reach server, default np.nan
     &#34;&#34;&#34;
 
-    def __init__(self, data_pack: Optional[sd.DataPacket] = None, station: Optional[sd.StationMetadata] = None):
+    def __init__(self, data_pack: Optional[sd.DataPacket] = None,
+                 station_metadata: Optional[sd.StationMetadata] = None):
         &#34;&#34;&#34;
         Initialize properties
-        :param data_pack: data packet
-        :param station: station metadata
+        :param data_pack: data packet metadata
+        :param station_metadata: station metadata
         &#34;&#34;&#34;
         self.best_latency: float = np.nan
         self.best_offset: float = 0
-        if station is not None and data_pack is not None:
-            self.get_timesync_data(data_pack, station)
+        if station_metadata is not None and data_pack is not None:
+            self.get_timesync_data(data_pack, station_metadata)
         else:
-            if station is None:
+            if station_metadata is None:
                 self.station_id: str = &#34;&#34;
                 self.station_start_timestamp: float = np.nan
             if data_pack is None:
@@ -1520,16 +1523,17 @@ acquire_travel_time: float, calculated time it took packet to reach server, defa
                 # self.num_packets: int = 0
                 # self.bad_packets: List[int] = []
 
-    def get_timesync_data(self, data_pack: sd.DataPacket, station: sd.StationMetadata):
+    def get_timesync_data(self, data_pack: Optional[sd.DataPacket] = None,
+                          station_metadata: Optional[sd.StationMetadata] = None):
         &#34;&#34;&#34;
         extracts the time sync data from the data_pack object
-        :param data_pack: data packet to get data from
-        :param station: station metadata
+        :param data_pack: data packet metadata
+        :param station_metadata: station metadata
         &#34;&#34;&#34;
-        self.station_id = station.station_id
-        self.sample_rate_hz = station.timing_data.audio_sample_rate_hz
-        self.packet_num_audio_samples = data_pack.audio_sensor().num_samples()
-        self.station_start_timestamp = station.timing_data.station_start_timestamp
+        self.station_id = station_metadata.station_id
+        self.sample_rate_hz = station_metadata.timing_data.audio_sample_rate_hz
+        self.packet_num_audio_samples = data_pack.packet_duration_samples
+        self.station_start_timestamp = station_metadata.timing_data.station_start_timestamp
         self.server_acquisition_time = data_pack.server_timestamp
         self.packet_start_time = data_pack.data_start_timestamp
         self.packet_end_time = data_pack.data_end_timestamp
@@ -1598,26 +1602,27 @@ acquire_travel_time: float, calculated time it took packet to reach server, defa
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.timesync.TimeSyncData.get_timesync_data"><code class="name flex">
-<span>def <span class="ident">get_timesync_data</span></span>(<span>self, data_pack: <a title="redvox.common.sensor_data.DataPacket" href="sensor_data.html#redvox.common.sensor_data.DataPacket">DataPacket</a>, station: <a title="redvox.common.sensor_data.StationMetadata" href="sensor_data.html#redvox.common.sensor_data.StationMetadata">StationMetadata</a>)</span>
+<span>def <span class="ident">get_timesync_data</span></span>(<span>self, data_pack: typing.Union[<a title="redvox.common.sensor_data.DataPacket" href="sensor_data.html#redvox.common.sensor_data.DataPacket">DataPacket</a>, NoneType] = None, station_metadata: typing.Union[<a title="redvox.common.sensor_data.StationMetadata" href="sensor_data.html#redvox.common.sensor_data.StationMetadata">StationMetadata</a>, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>extracts the time sync data from the data_pack object
-:param data_pack: data packet to get data from
-:param station: station metadata</p></div>
+:param data_pack: data packet metadata
+:param station_metadata: station metadata</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_timesync_data(self, data_pack: sd.DataPacket, station: sd.StationMetadata):
+<pre><code class="python">def get_timesync_data(self, data_pack: Optional[sd.DataPacket] = None,
+                      station_metadata: Optional[sd.StationMetadata] = None):
     &#34;&#34;&#34;
     extracts the time sync data from the data_pack object
-    :param data_pack: data packet to get data from
-    :param station: station metadata
+    :param data_pack: data packet metadata
+    :param station_metadata: station metadata
     &#34;&#34;&#34;
-    self.station_id = station.station_id
-    self.sample_rate_hz = station.timing_data.audio_sample_rate_hz
-    self.packet_num_audio_samples = data_pack.audio_sensor().num_samples()
-    self.station_start_timestamp = station.timing_data.station_start_timestamp
+    self.station_id = station_metadata.station_id
+    self.sample_rate_hz = station_metadata.timing_data.audio_sample_rate_hz
+    self.packet_num_audio_samples = data_pack.packet_duration_samples
+    self.station_start_timestamp = station_metadata.timing_data.station_start_timestamp
     self.server_acquisition_time = data_pack.server_timestamp
     self.packet_start_time = data_pack.data_start_timestamp
     self.packet_end_time = data_pack.data_end_timestamp

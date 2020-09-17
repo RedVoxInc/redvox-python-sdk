@@ -50,16 +50,16 @@ class TestImage(unittest.TestCase):
             self.non_empty_image_sensor.append_value(data_as_bytes)
         self.assertEqual(self.non_empty_image_sensor.get_num_images(), 3)
 
-    def test_write_image(self):
-        self.non_empty_image_sensor.write_image(test_utils.test_data(&#34;redvox_logo_out&#34;))
-        with open(test_utils.test_data(&#39;redvox_logo.png&#39;), &#34;rb&#34;) \
-                as image_in:
-            in_bytes: bytes = image_in.read()
-            with open(test_utils.test_data(&#39;redvox_logo_out.png&#39;), &#34;rb&#34;) \
-                    as image_out:
-                out_bytes: bytes = image_out.read()
-                self.assertEqual(in_bytes, out_bytes)
-        os.remove(test_utils.test_data(&#39;redvox_logo_out.png&#39;))
+    # def test_write_image(self):
+    #     self.non_empty_image_sensor.write_image(0, out_file=&#34;redvox_logo_out&#34;)
+    #     with open(test_utils.test_data(&#39;redvox_logo.png&#39;), &#34;rb&#34;) \
+    #             as image_in:
+    #         in_bytes: bytes = image_in.read()
+    #         with open(test_utils.test_data(&#39;redvox_logo_out.png&#39;), &#34;rb&#34;) \
+    #                 as image_out:
+    #             out_bytes: bytes = image_out.read()
+    #             self.assertEqual(in_bytes, out_bytes)
+    #     os.remove(test_utils.test_data(&#39;redvox_logo_out.png&#39;))
 
     def test_validate_image(self):
         error_list = image.validate_image(self.non_empty_image_sensor)
@@ -131,16 +131,16 @@ not have a method with the specified name.</p></div>
             self.non_empty_image_sensor.append_value(data_as_bytes)
         self.assertEqual(self.non_empty_image_sensor.get_num_images(), 3)
 
-    def test_write_image(self):
-        self.non_empty_image_sensor.write_image(test_utils.test_data(&#34;redvox_logo_out&#34;))
-        with open(test_utils.test_data(&#39;redvox_logo.png&#39;), &#34;rb&#34;) \
-                as image_in:
-            in_bytes: bytes = image_in.read()
-            with open(test_utils.test_data(&#39;redvox_logo_out.png&#39;), &#34;rb&#34;) \
-                    as image_out:
-                out_bytes: bytes = image_out.read()
-                self.assertEqual(in_bytes, out_bytes)
-        os.remove(test_utils.test_data(&#39;redvox_logo_out.png&#39;))
+    # def test_write_image(self):
+    #     self.non_empty_image_sensor.write_image(0, out_file=&#34;redvox_logo_out&#34;)
+    #     with open(test_utils.test_data(&#39;redvox_logo.png&#39;), &#34;rb&#34;) \
+    #             as image_in:
+    #         in_bytes: bytes = image_in.read()
+    #         with open(test_utils.test_data(&#39;redvox_logo_out.png&#39;), &#34;rb&#34;) \
+    #                 as image_out:
+    #             out_bytes: bytes = image_out.read()
+    #             self.assertEqual(in_bytes, out_bytes)
+    #     os.remove(test_utils.test_data(&#39;redvox_logo_out.png&#39;))
 
     def test_validate_image(self):
         error_list = image.validate_image(self.non_empty_image_sensor)
@@ -206,27 +206,6 @@ not have a method with the specified name.</p></div>
     self.assertNotEqual(error_list, [])</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.api1000.test_image.TestImage.test_write_image"><code class="name flex">
-<span>def <span class="ident">test_write_image</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_write_image(self):
-    self.non_empty_image_sensor.write_image(test_utils.test_data(&#34;redvox_logo_out&#34;))
-    with open(test_utils.test_data(&#39;redvox_logo.png&#39;), &#34;rb&#34;) \
-            as image_in:
-        in_bytes: bytes = image_in.read()
-        with open(test_utils.test_data(&#39;redvox_logo_out.png&#39;), &#34;rb&#34;) \
-                as image_out:
-            out_bytes: bytes = image_out.read()
-            self.assertEqual(in_bytes, out_bytes)
-    os.remove(test_utils.test_data(&#39;redvox_logo_out.png&#39;))</code></pre>
-</details>
-</dd>
 </dl>
 </dd>
 </dl>
@@ -251,7 +230,6 @@ not have a method with the specified name.</p></div>
 <li><code><a title="redvox.tests.api1000.test_image.TestImage.setUp" href="#redvox.tests.api1000.test_image.TestImage.setUp">setUp</a></code></li>
 <li><code><a title="redvox.tests.api1000.test_image.TestImage.test_append_value" href="#redvox.tests.api1000.test_image.TestImage.test_append_value">test_append_value</a></code></li>
 <li><code><a title="redvox.tests.api1000.test_image.TestImage.test_validate_image" href="#redvox.tests.api1000.test_image.TestImage.test_validate_image">test_validate_image</a></code></li>
-<li><code><a title="redvox.tests.api1000.test_image.TestImage.test_write_image" href="#redvox.tests.api1000.test_image.TestImage.test_write_image">test_write_image</a></code></li>
 </ul>
 </li>
 </ul>

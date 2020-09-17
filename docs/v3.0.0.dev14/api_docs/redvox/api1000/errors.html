@@ -36,6 +36,7 @@ class ApiMError(Exception):
     &#34;&#34;&#34;
     Base API Error class. All other error classes should be subclasses of this one.
     &#34;&#34;&#34;
+
     def __init__(self, message: str):
         super().__init__(f&#34;ApiMError: {message}&#34;)
 
@@ -44,46 +45,76 @@ class SummaryStatisticsError(ApiMError):
     &#34;&#34;&#34;
     An error with summary statistics.
     &#34;&#34;&#34;
+
     def __init__(self, message: str):
         super().__init__(f&#34;SummaryStatisticsError: {message}&#34;)
 
 
 class AudioChannelError(ApiMError):
+    &#34;&#34;&#34;
+    An audio channel error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;AudioChannelError: {message}&#34;)
 
 
 class SingleChannelError(ApiMError):
+    &#34;&#34;&#34;
+    A single channel error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;SingleChannelError: {message}&#34;)
 
 
 class XyzChannelError(ApiMError):
+    &#34;&#34;&#34;
+    An xyz channel error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;XyzChannelError: {message}&#34;)
 
 
 class LocationChannelError(ApiMError):
+    &#34;&#34;&#34;
+    A location channel error
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;LocationChannelError: {message}&#34;)
 
 
 class ApiMTypeError(ApiMError):
+    &#34;&#34;&#34;
+    A type error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;ApiMTypeError: {message}&#34;)
 
 
 class WrappedRedvoxPacketMError(ApiMError):
+    &#34;&#34;&#34;
+    A wrapped packet error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;WrappedRedvoxPacketMError: {message}&#34;)
 
 
 class ApiMConcatenationError(ApiMError):
+    &#34;&#34;&#34;
+    A concatenation error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;ApiMConcatenationError: {message}&#34;)
 
 
+class ApiMImageChannelError(ApiMError):
+    def __init__(self, message: str):
+        super().__init__(f&#34;ApiMImageChannelError: {message}&#34;)
+
+
 class ApiMOtherError(ApiMError):
+    &#34;&#34;&#34;
+    A generic error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;ApiMOtherError: {message}&#34;)</code></pre>
 </details>
@@ -102,12 +133,15 @@ class ApiMOtherError(ApiMError):
 <span>(</span><span>message: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base API Error class. All other error classes should be subclasses of this one.</p></div>
+<div class="desc"><p>A concatenation error.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ApiMConcatenationError(ApiMError):
+    &#34;&#34;&#34;
+    A concatenation error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;ApiMConcatenationError: {message}&#34;)</code></pre>
 </details>
@@ -132,6 +166,7 @@ class ApiMOtherError(ApiMError):
     &#34;&#34;&#34;
     Base API Error class. All other error classes should be subclasses of this one.
     &#34;&#34;&#34;
+
     def __init__(self, message: str):
         super().__init__(f&#34;ApiMError: {message}&#34;)</code></pre>
 </details>
@@ -143,6 +178,7 @@ class ApiMOtherError(ApiMError):
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="redvox.api1000.errors.ApiMConcatenationError" href="#redvox.api1000.errors.ApiMConcatenationError">ApiMConcatenationError</a></li>
+<li><a title="redvox.api1000.errors.ApiMImageChannelError" href="#redvox.api1000.errors.ApiMImageChannelError">ApiMImageChannelError</a></li>
 <li><a title="redvox.api1000.errors.ApiMOtherError" href="#redvox.api1000.errors.ApiMOtherError">ApiMOtherError</a></li>
 <li><a title="redvox.api1000.errors.ApiMTypeError" href="#redvox.api1000.errors.ApiMTypeError">ApiMTypeError</a></li>
 <li><a title="redvox.api1000.errors.AudioChannelError" href="#redvox.api1000.errors.AudioChannelError">AudioChannelError</a></li>
@@ -153,8 +189,8 @@ class ApiMOtherError(ApiMError):
 <li><a title="redvox.api1000.errors.XyzChannelError" href="#redvox.api1000.errors.XyzChannelError">XyzChannelError</a></li>
 </ul>
 </dd>
-<dt id="redvox.api1000.errors.ApiMOtherError"><code class="flex name class">
-<span>class <span class="ident">ApiMOtherError</span></span>
+<dt id="redvox.api1000.errors.ApiMImageChannelError"><code class="flex name class">
+<span>class <span class="ident">ApiMImageChannelError</span></span>
 <span>(</span><span>message: str)</span>
 </code></dt>
 <dd>
@@ -163,7 +199,31 @@ class ApiMOtherError(ApiMError):
 <summary>
 <span>Expand source code</span>
 </summary>
+<pre><code class="python">class ApiMImageChannelError(ApiMError):
+    def __init__(self, message: str):
+        super().__init__(f&#34;ApiMImageChannelError: {message}&#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="redvox.api1000.errors.ApiMError" href="#redvox.api1000.errors.ApiMError">ApiMError</a></li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="redvox.api1000.errors.ApiMOtherError"><code class="flex name class">
+<span>class <span class="ident">ApiMOtherError</span></span>
+<span>(</span><span>message: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A generic error.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class ApiMOtherError(ApiMError):
+    &#34;&#34;&#34;
+    A generic error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;ApiMOtherError: {message}&#34;)</code></pre>
 </details>
@@ -179,12 +239,15 @@ class ApiMOtherError(ApiMError):
 <span>(</span><span>message: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base API Error class. All other error classes should be subclasses of this one.</p></div>
+<div class="desc"><p>A type error.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ApiMTypeError(ApiMError):
+    &#34;&#34;&#34;
+    A type error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;ApiMTypeError: {message}&#34;)</code></pre>
 </details>
@@ -200,12 +263,15 @@ class ApiMOtherError(ApiMError):
 <span>(</span><span>message: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base API Error class. All other error classes should be subclasses of this one.</p></div>
+<div class="desc"><p>An audio channel error.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class AudioChannelError(ApiMError):
+    &#34;&#34;&#34;
+    An audio channel error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;AudioChannelError: {message}&#34;)</code></pre>
 </details>
@@ -221,12 +287,15 @@ class ApiMOtherError(ApiMError):
 <span>(</span><span>message: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base API Error class. All other error classes should be subclasses of this one.</p></div>
+<div class="desc"><p>A location channel error</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class LocationChannelError(ApiMError):
+    &#34;&#34;&#34;
+    A location channel error
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;LocationChannelError: {message}&#34;)</code></pre>
 </details>
@@ -242,12 +311,15 @@ class ApiMOtherError(ApiMError):
 <span>(</span><span>message: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base API Error class. All other error classes should be subclasses of this one.</p></div>
+<div class="desc"><p>A single channel error.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class SingleChannelError(ApiMError):
+    &#34;&#34;&#34;
+    A single channel error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;SingleChannelError: {message}&#34;)</code></pre>
 </details>
@@ -272,6 +344,7 @@ class ApiMOtherError(ApiMError):
     &#34;&#34;&#34;
     An error with summary statistics.
     &#34;&#34;&#34;
+
     def __init__(self, message: str):
         super().__init__(f&#34;SummaryStatisticsError: {message}&#34;)</code></pre>
 </details>
@@ -287,12 +360,15 @@ class ApiMOtherError(ApiMError):
 <span>(</span><span>message: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base API Error class. All other error classes should be subclasses of this one.</p></div>
+<div class="desc"><p>A wrapped packet error.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class WrappedRedvoxPacketMError(ApiMError):
+    &#34;&#34;&#34;
+    A wrapped packet error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;WrappedRedvoxPacketMError: {message}&#34;)</code></pre>
 </details>
@@ -308,12 +384,15 @@ class ApiMOtherError(ApiMError):
 <span>(</span><span>message: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base API Error class. All other error classes should be subclasses of this one.</p></div>
+<div class="desc"><p>An xyz channel error.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class XyzChannelError(ApiMError):
+    &#34;&#34;&#34;
+    An xyz channel error.
+    &#34;&#34;&#34;
     def __init__(self, message: str):
         super().__init__(f&#34;XyzChannelError: {message}&#34;)</code></pre>
 </details>
@@ -345,6 +424,9 @@ class ApiMOtherError(ApiMError):
 </li>
 <li>
 <h4><code><a title="redvox.api1000.errors.ApiMError" href="#redvox.api1000.errors.ApiMError">ApiMError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.errors.ApiMImageChannelError" href="#redvox.api1000.errors.ApiMImageChannelError">ApiMImageChannelError</a></code></h4>
 </li>
 <li>
 <h4><code><a title="redvox.api1000.errors.ApiMOtherError" href="#redvox.api1000.errors.ApiMOtherError">ApiMOtherError</a></code></h4>

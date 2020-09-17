@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>redvox.api1000.wrapped_redvox_packet.sensors.xyz API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="This module contains functionality for working with XYZ channeled API M sensors." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,16 @@
 <h1 class="title">Module <code>redvox.api1000.wrapped_redvox_packet.sensors.xyz</code></h1>
 </header>
 <section id="section-intro">
+<p>This module contains functionality for working with XYZ channeled API M sensors.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import redvox.api1000.common.common as common
+<pre><code class="python">&#34;&#34;&#34;
+This module contains functionality for working with XYZ channeled API M sensors.
+&#34;&#34;&#34;
+
+import redvox.api1000.common.common as common
 import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
@@ -36,6 +41,9 @@ import redvox.api1000.common.generic
 
 
 class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz]):
+    &#34;&#34;&#34;
+    Encapsulates a sensor with x, y, and z data and metadata
+    &#34;&#34;&#34;
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
@@ -45,9 +53,17 @@ class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM
 
     @staticmethod
     def new() -&gt; &#39;Xyz&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty Xyz sensor instance
+        &#34;&#34;&#34;
         return Xyz(redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz())
 
     def set_unit_xyz(self, unit: common.Unit) -&gt; &#39;Xyz&#39;:
+        &#34;&#34;&#34;
+        Sets the unit of the x, y, and z channels
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(unit, [common.Unit])
         self._x_samples.set_unit(unit)
         self._y_samples.set_unit(unit)
@@ -55,27 +71,53 @@ class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM
         return self
 
     def get_sensor_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: This sensor&#39;s description
+        &#34;&#34;&#34;
         return self._proto.sensor_description
 
     def set_sensor_description(self, sensor_description: str) -&gt; &#39;Xyz&#39;:
+        &#34;&#34;&#34;
+        Sets this sensor&#39;s description
+        :param sensor_description: Description to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self
 
     def get_timestamps(self) -&gt; common.TimingPayload:
+        &#34;&#34;&#34;
+        :return: TimingPayload with timestamps associated with each sample
+        &#34;&#34;&#34;
         return self._timestamps
 
     def get_x_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: SamplePayload associated with x channel
+        &#34;&#34;&#34;
         return self._x_samples
 
     def get_y_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: SamplePayload associated with y channel
+        &#34;&#34;&#34;
         return self._y_samples
 
     def get_z_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: SamplePayload associated with z channel
+        &#34;&#34;&#34;
         return self._z_samples
 
 
 def validate_xyz(xyz_sensor: Xyz, payload_unit: Optional[common.Unit] = None) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the XYZ sensor.
+    :param xyz_sensor: Sensor to validate.
+    :param payload_unit: A list of validation errors.
+    :return:
+    &#34;&#34;&#34;
     errors_list = common.validate_timing_payload(xyz_sensor.get_timestamps())
     errors_list.extend(common.validate_sample_payload(xyz_sensor.get_x_samples(),
                                                       xyz_sensor.get_sensor_description(), payload_unit))
@@ -97,12 +139,21 @@ def validate_xyz(xyz_sensor: Xyz, payload_unit: Optional[common.Unit] = None) -&
 <span>def <span class="ident">validate_xyz</span></span>(<span>xyz_sensor: <a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, payload_unit: typing.Union[<a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a>, NoneType] = None) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Validates the XYZ sensor.
+:param xyz_sensor: Sensor to validate.
+:param payload_unit: A list of validation errors.
+:return:</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_xyz(xyz_sensor: Xyz, payload_unit: Optional[common.Unit] = None) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the XYZ sensor.
+    :param xyz_sensor: Sensor to validate.
+    :param payload_unit: A list of validation errors.
+    :return:
+    &#34;&#34;&#34;
     errors_list = common.validate_timing_payload(xyz_sensor.get_timestamps())
     errors_list.extend(common.validate_sample_payload(xyz_sensor.get_x_samples(),
                                                       xyz_sensor.get_sensor_description(), payload_unit))
@@ -123,12 +174,15 @@ def validate_xyz(xyz_sensor: Xyz, payload_unit: Optional[common.Unit] = None) -&
 <span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.Xyz)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>Encapsulates a sensor with x, y, and z data and metadata</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz]):
+    &#34;&#34;&#34;
+    Encapsulates a sensor with x, y, and z data and metadata
+    &#34;&#34;&#34;
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
@@ -138,9 +192,17 @@ def validate_xyz(xyz_sensor: Xyz, payload_unit: Optional[common.Unit] = None) -&
 
     @staticmethod
     def new() -&gt; &#39;Xyz&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty Xyz sensor instance
+        &#34;&#34;&#34;
         return Xyz(redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz())
 
     def set_unit_xyz(self, unit: common.Unit) -&gt; &#39;Xyz&#39;:
+        &#34;&#34;&#34;
+        Sets the unit of the x, y, and z channels
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(unit, [common.Unit])
         self._x_samples.set_unit(unit)
         self._y_samples.set_unit(unit)
@@ -148,23 +210,43 @@ def validate_xyz(xyz_sensor: Xyz, payload_unit: Optional[common.Unit] = None) -&
         return self
 
     def get_sensor_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: This sensor&#39;s description
+        &#34;&#34;&#34;
         return self._proto.sensor_description
 
     def set_sensor_description(self, sensor_description: str) -&gt; &#39;Xyz&#39;:
+        &#34;&#34;&#34;
+        Sets this sensor&#39;s description
+        :param sensor_description: Description to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(sensor_description, [str])
         self._proto.sensor_description = sensor_description
         return self
 
     def get_timestamps(self) -&gt; common.TimingPayload:
+        &#34;&#34;&#34;
+        :return: TimingPayload with timestamps associated with each sample
+        &#34;&#34;&#34;
         return self._timestamps
 
     def get_x_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: SamplePayload associated with x channel
+        &#34;&#34;&#34;
         return self._x_samples
 
     def get_y_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: SamplePayload associated with y channel
+        &#34;&#34;&#34;
         return self._y_samples
 
     def get_z_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: SamplePayload associated with z channel
+        &#34;&#34;&#34;
         return self._z_samples</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -178,13 +260,16 @@ def validate_xyz(xyz_sensor: Xyz, payload_unit: Optional[common.Unit] = None) -&
 <span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A new, empty Xyz sensor instance</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def new() -&gt; &#39;Xyz&#39;:
+    &#34;&#34;&#34;
+    :return: A new, empty Xyz sensor instance
+    &#34;&#34;&#34;
     return Xyz(redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz())</code></pre>
 </details>
 </dd>
@@ -195,12 +280,15 @@ def new() -&gt; &#39;Xyz&#39;:
 <span>def <span class="ident">get_sensor_description</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: This sensor's description</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_sensor_description(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: This sensor&#39;s description
+    &#34;&#34;&#34;
     return self._proto.sensor_description</code></pre>
 </details>
 </dd>
@@ -208,12 +296,15 @@ def new() -&gt; &#39;Xyz&#39;:
 <span>def <span class="ident">get_timestamps</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="../../common/common.html#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: TimingPayload with timestamps associated with each sample</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_timestamps(self) -&gt; common.TimingPayload:
+    &#34;&#34;&#34;
+    :return: TimingPayload with timestamps associated with each sample
+    &#34;&#34;&#34;
     return self._timestamps</code></pre>
 </details>
 </dd>
@@ -221,12 +312,15 @@ def new() -&gt; &#39;Xyz&#39;:
 <span>def <span class="ident">get_x_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: SamplePayload associated with x channel</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_x_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: SamplePayload associated with x channel
+    &#34;&#34;&#34;
     return self._x_samples</code></pre>
 </details>
 </dd>
@@ -234,12 +328,15 @@ def new() -&gt; &#39;Xyz&#39;:
 <span>def <span class="ident">get_y_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: SamplePayload associated with y channel</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_y_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: SamplePayload associated with y channel
+    &#34;&#34;&#34;
     return self._y_samples</code></pre>
 </details>
 </dd>
@@ -247,12 +344,15 @@ def new() -&gt; &#39;Xyz&#39;:
 <span>def <span class="ident">get_z_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: SamplePayload associated with z channel</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_z_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: SamplePayload associated with z channel
+    &#34;&#34;&#34;
     return self._z_samples</code></pre>
 </details>
 </dd>
@@ -260,12 +360,19 @@ def new() -&gt; &#39;Xyz&#39;:
 <span>def <span class="ident">set_sensor_description</span></span>(<span>self, sensor_description: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets this sensor's description
+:param sensor_description: Description to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_sensor_description(self, sensor_description: str) -&gt; &#39;Xyz&#39;:
+    &#34;&#34;&#34;
+    Sets this sensor&#39;s description
+    :param sensor_description: Description to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(sensor_description, [str])
     self._proto.sensor_description = sensor_description
     return self</code></pre>
@@ -275,12 +382,19 @@ def new() -&gt; &#39;Xyz&#39;:
 <span>def <span class="ident">set_unit_xyz</span></span>(<span>self, unit: <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the unit of the x, y, and z channels
+:param unit: Unit to set
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_unit_xyz(self, unit: common.Unit) -&gt; &#39;Xyz&#39;:
+    &#34;&#34;&#34;
+    Sets the unit of the x, y, and z channels
+    :param unit: Unit to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(unit, [common.Unit])
     self._x_samples.set_unit(unit)
     self._y_samples.set_unit(unit)

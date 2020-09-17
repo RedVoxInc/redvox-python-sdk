@@ -43,8 +43,8 @@ from google.protobuf.json_format import MessageToJson, MessageToDict
 from redvox.api1000.common.metadata import Metadata
 from redvox.api1000.common.lz4 import compress
 
-T = TypeVar(&#39;T&#39;) # Type parameter for transformed wrapper type
-P = TypeVar(&#39;P&#39;) # Type parameter for protobuf type
+T = TypeVar(&#39;T&#39;)  # Type parameter for transformed wrapper type
+P = TypeVar(&#39;P&#39;)  # Type parameter for protobuf type
 
 
 class ProtoRepeatedMessage(Generic[P, T]):

@@ -38,7 +38,7 @@ def compress(data: bytes, compression_level: int = 12) -&gt; bytes:
     &#34;&#34;&#34;
     Compresses the provided data using the LZ4 frame protocol.
     :param data: The bytes to compress.
-    :param compression_level: A value between 0 and 16 where 0 os faster but less compression and 16 is slower, but
+    :param compression_level: A value between 0 and 12 where 0 os faster but less compression and 12 is slower, but
                               provides more compression.
     :return: Compressed bytes.
     &#34;&#34;&#34;
@@ -67,7 +67,7 @@ def decompress(data: bytes) -&gt; bytes:
 <dd>
 <div class="desc"><p>Compresses the provided data using the LZ4 frame protocol.
 :param data: The bytes to compress.
-:param compression_level: A value between 0 and 16 where 0 os faster but less compression and 16 is slower, but
+:param compression_level: A value between 0 and 12 where 0 os faster but less compression and 12 is slower, but
 provides more compression.
 :return: Compressed bytes.</p></div>
 <details class="source">
@@ -78,7 +78,7 @@ provides more compression.
     &#34;&#34;&#34;
     Compresses the provided data using the LZ4 frame protocol.
     :param data: The bytes to compress.
-    :param compression_level: A value between 0 and 16 where 0 os faster but less compression and 16 is slower, but
+    :param compression_level: A value between 0 and 12 where 0 os faster but less compression and 12 is slower, but
                               provides more compression.
     :return: Compressed bytes.
     &#34;&#34;&#34;

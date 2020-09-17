@@ -31,7 +31,7 @@
 This module provides a high level API for creating, reading, and editing RedVox compliant API 1000 files.
 &#34;&#34;&#34;
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import os.path
 from functools import total_ordering
 from typing import Optional, List
@@ -258,23 +258,50 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         return self._proto.sub_api
 
     def set_sub_api(self, sub_api: float) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Sets the sub_api.
+        :param sub_api: sub_api to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(sub_api, [int, float])
         self._proto.sub_api = sub_api
         return self
 
     def get_station_information(self) -&gt; _station_information.StationInformation:
+        &#34;&#34;&#34;
+        :return: An instance of StationInformation
+        &#34;&#34;&#34;
         return self._station_information
 
     def get_timing_information(self) -&gt; _timing_information.TimingInformation:
+        &#34;&#34;&#34;
+        :return: An instance of TimingInformation
+        &#34;&#34;&#34;
         return self._timing_information
 
     def get_sensors(self) -&gt; _sensors.Sensors:
+        &#34;&#34;&#34;
+        :return: An instance of Sensors
+        &#34;&#34;&#34;
         return self._sensors
 
     def get_event_streams(self) -&gt; ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A collection of event streams.
+        &#34;&#34;&#34;
         return self._event_streams
 
     # todo: add packet_duration calculations that don&#39;t rely on sensors existing if possible
+
+    def get_packet_duration(self) -&gt; timedelta:
+        &#34;&#34;&#34;
+        :return: Packet duration as a timedelta
+        &#34;&#34;&#34;
+        audio = self.get_sensors().get_audio()
+        if audio is not None:
+            return audio.get_duration()
+        else:
+            return timedelta(seconds=0)
 
     def get_packet_duration_s(self) -&gt; float:
         &#34;&#34;&#34;
@@ -366,6 +393,11 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
 
 
 def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates a wrapped packet.
+    :param wrapped_packet: Packet to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     errors_list = _station_information.validate_station_information(wrapped_packet.get_station_information())
     errors_list.extend(_timing_information.validate_timing_information(wrapped_packet.get_timing_information()))
     errors_list.extend(_sensors.validate_sensors(wrapped_packet.get_sensors()))
@@ -385,12 +417,19 @@ def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -&gt; List[str
 <span>def <span class="ident">validate_wrapped_packet</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Validates a wrapped packet.
+:param wrapped_packet: Packet to validate.
+:return: A list of validation errors.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates a wrapped packet.
+    :param wrapped_packet: Packet to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
     errors_list = _station_information.validate_station_information(wrapped_packet.get_station_information())
     errors_list.extend(_timing_information.validate_timing_information(wrapped_packet.get_timing_information()))
     errors_list.extend(_sensors.validate_sensors(wrapped_packet.get_sensors()))
@@ -795,23 +834,50 @@ def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -&gt; List[str
         return self._proto.sub_api
 
     def set_sub_api(self, sub_api: float) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Sets the sub_api.
+        :param sub_api: sub_api to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         redvox.api1000.common.typing.check_type(sub_api, [int, float])
         self._proto.sub_api = sub_api
         return self
 
     def get_station_information(self) -&gt; _station_information.StationInformation:
+        &#34;&#34;&#34;
+        :return: An instance of StationInformation
+        &#34;&#34;&#34;
         return self._station_information
 
     def get_timing_information(self) -&gt; _timing_information.TimingInformation:
+        &#34;&#34;&#34;
+        :return: An instance of TimingInformation
+        &#34;&#34;&#34;
         return self._timing_information
 
     def get_sensors(self) -&gt; _sensors.Sensors:
+        &#34;&#34;&#34;
+        :return: An instance of Sensors
+        &#34;&#34;&#34;
         return self._sensors
 
     def get_event_streams(self) -&gt; ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A collection of event streams.
+        &#34;&#34;&#34;
         return self._event_streams
 
     # todo: add packet_duration calculations that don&#39;t rely on sensors existing if possible
+
+    def get_packet_duration(self) -&gt; timedelta:
+        &#34;&#34;&#34;
+        :return: Packet duration as a timedelta
+        &#34;&#34;&#34;
+        audio = self.get_sensors().get_audio()
+        if audio is not None:
+            return audio.get_duration()
+        else:
+            return timedelta(seconds=0)
 
     def get_packet_duration_s(self) -&gt; float:
         &#34;&#34;&#34;
@@ -1119,13 +1185,36 @@ Directory structure for this packet when using structured layout</p></div>
 <span>def <span class="ident">get_event_streams</span></span>(<span>self) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="../common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: A collection of event streams.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_event_streams(self) -&gt; ProtoRepeatedMessage:
+    &#34;&#34;&#34;
+    :return: A collection of event streams.
+    &#34;&#34;&#34;
     return self._event_streams</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_packet_duration"><code class="name flex">
+<span>def <span class="ident">get_packet_duration</span></span>(<span>self) ‑> datetime.timedelta</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Packet duration as a timedelta</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_packet_duration(self) -&gt; timedelta:
+    &#34;&#34;&#34;
+    :return: Packet duration as a timedelta
+    &#34;&#34;&#34;
+    audio = self.get_sensors().get_audio()
+    if audio is not None:
+        return audio.get_duration()
+    else:
+        return timedelta(seconds=0)</code></pre>
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_packet_duration_s"><code class="name flex">
@@ -1153,12 +1242,15 @@ Directory structure for this packet when using structured layout</p></div>
 <span>def <span class="ident">get_sensors</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors" href="sensors/sensors.html#redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors">Sensors</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: An instance of Sensors</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_sensors(self) -&gt; _sensors.Sensors:
+    &#34;&#34;&#34;
+    :return: An instance of Sensors
+    &#34;&#34;&#34;
     return self._sensors</code></pre>
 </details>
 </dd>
@@ -1166,12 +1258,15 @@ Directory structure for this packet when using structured layout</p></div>
 <span>def <span class="ident">get_station_information</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: An instance of StationInformation</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_station_information(self) -&gt; _station_information.StationInformation:
+    &#34;&#34;&#34;
+    :return: An instance of StationInformation
+    &#34;&#34;&#34;
     return self._station_information</code></pre>
 </details>
 </dd>
@@ -1197,12 +1292,15 @@ Directory structure for this packet when using structured layout</p></div>
 <span>def <span class="ident">get_timing_information</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="timing_information.html#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: An instance of TimingInformation</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_timing_information(self) -&gt; _timing_information.TimingInformation:
+    &#34;&#34;&#34;
+    :return: An instance of TimingInformation
+    &#34;&#34;&#34;
     return self._timing_information</code></pre>
 </details>
 </dd>
@@ -1232,12 +1330,19 @@ Directory structure for this packet when using structured layout</p></div>
 <span>def <span class="ident">set_sub_api</span></span>(<span>self, sub_api: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the sub_api.
+:param sub_api: sub_api to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_sub_api(self, sub_api: float) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    Sets the sub_api.
+    :param sub_api: sub_api to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     redvox.api1000.common.typing.check_type(sub_api, [int, float])
     self._proto.sub_api = sub_api
     return self</code></pre>
@@ -1507,6 +1612,7 @@ Directory structure for this packet when using structured layout</p></div>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_json_path" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_json_path">from_json_path</a></code></li>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_api" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_api">get_api</a></code></li>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_event_streams" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_event_streams">get_event_streams</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_packet_duration" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_packet_duration">get_packet_duration</a></code></li>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_packet_duration_s" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_packet_duration_s">get_packet_duration_s</a></code></li>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_sensors" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_sensors">get_sensors</a></code></li>
 <li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_station_information" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_station_information">get_station_information</a></code></li>

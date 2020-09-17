@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>redvox.api1000.wrapped_redvox_packet.event_streams API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="This module provides a wrapper for API M event streams which are used to record events derived from sensor data on stations." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,16 @@
 <h1 class="title">Module <code>redvox.api1000.wrapped_redvox_packet.event_streams</code></h1>
 </header>
 <section id="section-intro">
+<p>This module provides a wrapper for API M event streams which are used to record events derived from sensor data on stations.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from redvox.api1000.common.common import TimingPayload
+<pre><code class="python">&#34;&#34;&#34;
+This module provides a wrapper for API M event streams which are used to record events derived from sensor data on stations.
+&#34;&#34;&#34;
+
+from redvox.api1000.common.common import TimingPayload
 from redvox.api1000.common.generic import ProtoBase, ProtoRepeatedMessage
 from redvox.api1000.common.mapping import Mapping
 from redvox.api1000.common.typing import check_type
@@ -34,6 +39,9 @@ from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 
 
 class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
+    &#34;&#34;&#34;
+    Represents a single Event
+    &#34;&#34;&#34;
     def __init__(self, proto: RedvoxPacketM.EventStream.Event):
         super().__init__(proto)
         self.__string_payload: Mapping[str] = Mapping(proto.string_payload, str)
@@ -42,27 +50,50 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
         self.__byte_payload: Mapping[bytes] = Mapping(proto.byte_payload, bytes)
 
     def get_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The event description.
+        &#34;&#34;&#34;
         return self._proto.description
 
     def set_description(self, description: str) -&gt; &#39;Event&#39;:
+        &#34;&#34;&#34;
+        Sets the event description.
+        :param description: Description to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(description, [str])
         self._proto.description = description
         return self
 
     def get_string_payload(self) -&gt; Mapping[str]:
+        &#34;&#34;&#34;
+        :return: The string event payload which maps string keys to string values.
+        &#34;&#34;&#34;
         return self.__string_payload
 
     def get_numeric_payload(self) -&gt; Mapping[float]:
+        &#34;&#34;&#34;
+        :return: The numeric event payload which maps string keys to numeric values.
+        &#34;&#34;&#34;
         return self.__numeric_payload
 
     def get_boolean_payload(self) -&gt; Mapping[bool]:
+        &#34;&#34;&#34;
+        :return: The boolean event payload which maps string keys to boolean values.
+        &#34;&#34;&#34;
         return self.__boolean_payload
 
     def get_byte_payload(self) -&gt; Mapping[bytes]:
+        &#34;&#34;&#34;
+        :return: The byte event payload which maps string keys to bytes values.
+        &#34;&#34;&#34;
         return self.__byte_payload
 
 
 class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
+    &#34;&#34;&#34;
+    A collection of Events.
+    &#34;&#34;&#34;
     def __init__(self, proto: RedvoxPacketM.EventStream):
         super().__init__(proto)
         self.__timestamps: TimingPayload = TimingPayload(proto.timestamps)
@@ -75,17 +106,31 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
         )
 
     def get_name(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: EventStream name.
+        &#34;&#34;&#34;
         return self._proto.name
 
     def set_name(self, name: str) -&gt; &#39;EventStream&#39;:
+        &#34;&#34;&#34;
+        Sets the name of this event stream.
+        :param name: Name to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         check_type(name, [str])
         self._proto.name = name
         return self
 
     def get_timestamps(self) -&gt; TimingPayload:
+        &#34;&#34;&#34;
+        :return: Timestamps associated with each event.
+        &#34;&#34;&#34;
         return self.__timestamps
 
     def get_events(self) -&gt; ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: List of Events.
+        &#34;&#34;&#34;
         return self.__events</code></pre>
 </details>
 </section>
@@ -103,12 +148,15 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
 <span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.Event)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>Represents a single Event</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
+    &#34;&#34;&#34;
+    Represents a single Event
+    &#34;&#34;&#34;
     def __init__(self, proto: RedvoxPacketM.EventStream.Event):
         super().__init__(proto)
         self.__string_payload: Mapping[str] = Mapping(proto.string_payload, str)
@@ -117,23 +165,43 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
         self.__byte_payload: Mapping[bytes] = Mapping(proto.byte_payload, bytes)
 
     def get_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The event description.
+        &#34;&#34;&#34;
         return self._proto.description
 
     def set_description(self, description: str) -&gt; &#39;Event&#39;:
+        &#34;&#34;&#34;
+        Sets the event description.
+        :param description: Description to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
         check_type(description, [str])
         self._proto.description = description
         return self
 
     def get_string_payload(self) -&gt; Mapping[str]:
+        &#34;&#34;&#34;
+        :return: The string event payload which maps string keys to string values.
+        &#34;&#34;&#34;
         return self.__string_payload
 
     def get_numeric_payload(self) -&gt; Mapping[float]:
+        &#34;&#34;&#34;
+        :return: The numeric event payload which maps string keys to numeric values.
+        &#34;&#34;&#34;
         return self.__numeric_payload
 
     def get_boolean_payload(self) -&gt; Mapping[bool]:
+        &#34;&#34;&#34;
+        :return: The boolean event payload which maps string keys to boolean values.
+        &#34;&#34;&#34;
         return self.__boolean_payload
 
     def get_byte_payload(self) -&gt; Mapping[bytes]:
+        &#34;&#34;&#34;
+        :return: The byte event payload which maps string keys to bytes values.
+        &#34;&#34;&#34;
         return self.__byte_payload</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -147,12 +215,15 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
 <span>def <span class="ident">get_boolean_payload</span></span>(<span>self) ‑> <a title="redvox.api1000.common.mapping.Mapping" href="../common/mapping.html#redvox.api1000.common.mapping.Mapping">Mapping</a>[bool]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The boolean event payload which maps string keys to boolean values.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_boolean_payload(self) -&gt; Mapping[bool]:
+    &#34;&#34;&#34;
+    :return: The boolean event payload which maps string keys to boolean values.
+    &#34;&#34;&#34;
     return self.__boolean_payload</code></pre>
 </details>
 </dd>
@@ -160,12 +231,15 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
 <span>def <span class="ident">get_byte_payload</span></span>(<span>self) ‑> <a title="redvox.api1000.common.mapping.Mapping" href="../common/mapping.html#redvox.api1000.common.mapping.Mapping">Mapping</a>[bytes]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The byte event payload which maps string keys to bytes values.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_byte_payload(self) -&gt; Mapping[bytes]:
+    &#34;&#34;&#34;
+    :return: The byte event payload which maps string keys to bytes values.
+    &#34;&#34;&#34;
     return self.__byte_payload</code></pre>
 </details>
 </dd>
@@ -173,12 +247,15 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
 <span>def <span class="ident">get_description</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The event description.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_description(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The event description.
+    &#34;&#34;&#34;
     return self._proto.description</code></pre>
 </details>
 </dd>
@@ -186,12 +263,15 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
 <span>def <span class="ident">get_numeric_payload</span></span>(<span>self) ‑> <a title="redvox.api1000.common.mapping.Mapping" href="../common/mapping.html#redvox.api1000.common.mapping.Mapping">Mapping</a>[float]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The numeric event payload which maps string keys to numeric values.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_numeric_payload(self) -&gt; Mapping[float]:
+    &#34;&#34;&#34;
+    :return: The numeric event payload which maps string keys to numeric values.
+    &#34;&#34;&#34;
     return self.__numeric_payload</code></pre>
 </details>
 </dd>
@@ -199,12 +279,15 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
 <span>def <span class="ident">get_string_payload</span></span>(<span>self) ‑> <a title="redvox.api1000.common.mapping.Mapping" href="../common/mapping.html#redvox.api1000.common.mapping.Mapping">Mapping</a>[str]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: The string event payload which maps string keys to string values.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_string_payload(self) -&gt; Mapping[str]:
+    &#34;&#34;&#34;
+    :return: The string event payload which maps string keys to string values.
+    &#34;&#34;&#34;
     return self.__string_payload</code></pre>
 </details>
 </dd>
@@ -212,12 +295,19 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
 <span>def <span class="ident">set_description</span></span>(<span>self, description: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.event_streams.Event" href="#redvox.api1000.wrapped_redvox_packet.event_streams.Event">Event</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the event description.
+:param description: Description to set.
+:return: A modified instance of self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_description(self, description: str) -&gt; &#39;Event&#39;:
+    &#34;&#34;&#34;
+    Sets the event description.
+    :param description: Description to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
     check_type(description, [str])
     self._proto.description = description
     return self</code></pre>
@@ -243,12 +333,15 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
 <span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.EventStream)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class represents common routines between all sub-messages in API M.</p></div>
+<div class="desc"><p>A collection of Events.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
+    &#34;&#34;&#34;
+    A collection of Events.
+    &#34;&#34;&#34;
     def __init__(self, proto: RedvoxPacketM.EventStream):
         super().__init__(proto)
         self.__timestamps: TimingPayload = TimingPayload(proto.timestamps)
@@ -261,17 +354,31 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
         )
 
     def get_name(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: EventStream name.
+        &#34;&#34;&#34;
         return self._proto.name
 
     def set_name(self, name: str) -&gt; &#39;EventStream&#39;:
+        &#34;&#34;&#34;
+        Sets the name of this event stream.
+        :param name: Name to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
         check_type(name, [str])
         self._proto.name = name
         return self
 
     def get_timestamps(self) -&gt; TimingPayload:
+        &#34;&#34;&#34;
+        :return: Timestamps associated with each event.
+        &#34;&#34;&#34;
         return self.__timestamps
 
     def get_events(self) -&gt; ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: List of Events.
+        &#34;&#34;&#34;
         return self.__events</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -285,12 +392,15 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
 <span>def <span class="ident">get_events</span></span>(<span>self) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="../common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: List of Events.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_events(self) -&gt; ProtoRepeatedMessage:
+    &#34;&#34;&#34;
+    :return: List of Events.
+    &#34;&#34;&#34;
     return self.__events</code></pre>
 </details>
 </dd>
@@ -298,12 +408,15 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
 <span>def <span class="ident">get_name</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: EventStream name.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_name(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: EventStream name.
+    &#34;&#34;&#34;
     return self._proto.name</code></pre>
 </details>
 </dd>
@@ -311,12 +424,15 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
 <span>def <span class="ident">get_timestamps</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="../common/common.html#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: Timestamps associated with each event.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_timestamps(self) -&gt; TimingPayload:
+    &#34;&#34;&#34;
+    :return: Timestamps associated with each event.
+    &#34;&#34;&#34;
     return self.__timestamps</code></pre>
 </details>
 </dd>
@@ -324,12 +440,19 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
 <span>def <span class="ident">set_name</span></span>(<span>self, name: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.event_streams.EventStream" href="#redvox.api1000.wrapped_redvox_packet.event_streams.EventStream">EventStream</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Sets the name of this event stream.
+:param name: Name to set.
+:return: A modified instance of self.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_name(self, name: str) -&gt; &#39;EventStream&#39;:
+    &#34;&#34;&#34;
+    Sets the name of this event stream.
+    :param name: Name to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
     check_type(name, [str])
     self._proto.name = name
     return self</code></pre>
