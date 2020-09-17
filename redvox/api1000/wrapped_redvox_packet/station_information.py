@@ -21,6 +21,7 @@ _WIFI_WAKE_LOCK_FIELD_NAME: str = "wifi_wake_lock"
 InputSensorProto = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate)
 class AudioSamplingRate(enum.Enum):
     """
@@ -54,6 +55,7 @@ class AudioSamplingRate(enum.Enum):
             return AudioSamplingRate['UNKNOWN_SAMPLING_RATE']
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning)
 class AudioSourceTuning(enum.Enum):
     """
@@ -65,6 +67,7 @@ class AudioSourceTuning(enum.Enum):
     AUDIO_TUNING: int = 3
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor)
 class InputSensor(enum.Enum):
     """
@@ -102,7 +105,7 @@ class FftOverlap(enum.Enum):
 
 
 class AppSettings(
-    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
+        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
     """
     Represents a copy of the App's settings.
     """
@@ -142,8 +145,9 @@ class AppSettings(
         """
         redvox.api1000.common.typing.check_type(audio_sampling_rate, [AudioSamplingRate])
 
-        self.get_proto().audio_sampling_rate = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
-            audio_sampling_rate.name)
+        self.get_proto().audio_sampling_rate = \
+            redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
+                audio_sampling_rate.name)
         return self
 
     # todo get_samples_per_window
@@ -162,8 +166,9 @@ class AppSettings(
         """
         redvox.api1000.common.typing.check_type(audio_source_tuning, [AudioSourceTuning])
 
-        self.get_proto().audio_source_tuning = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
-            audio_source_tuning.name)
+        self.get_proto().audio_source_tuning = \
+            redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
+                audio_source_tuning.name)
         return self
 
     def get_additional_input_sensors(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
@@ -561,6 +566,7 @@ def validate_app_settings(app_settings: AppSettings) -> List[str]:
     return errors_list
 
 
+# noinspection Mypy,DuplicatedCode
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType)
 class NetworkType(enum.Enum):
     """
@@ -573,6 +579,7 @@ class NetworkType(enum.Enum):
     WIRED: int = 4
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock)
 class WifiWakeLock(enum.Enum):
     """
@@ -584,6 +591,7 @@ class WifiWakeLock(enum.Enum):
     OTHER: int = 3
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState)
 class CellServiceState(enum.Enum):
     """
@@ -596,6 +604,7 @@ class CellServiceState(enum.Enum):
     POWER_OFF: int = 4
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState)
 class PowerState(enum.Enum):
     """
@@ -616,48 +625,55 @@ class StationMetrics(
     def __init__(self, station_metrics_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics):
         super().__init__(station_metrics_proto)
         self._timestamps = common.TimingPayload(station_metrics_proto.timestamps).set_default_unit()
-        self._network_type: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
-            station_metrics_proto,
-            station_metrics_proto.network_type,
-            _NETWORK_TYPE_FIELD_NAME,
-            NetworkType.from_proto,
-            NetworkType.into_proto
-        )
-        self._cell_service_state: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
-            station_metrics_proto,
-            station_metrics_proto.cell_service_state,
-            _CELL_SERVICE_STATE_FIELD_NAME,
-            CellServiceState.from_proto,
-            CellServiceState.into_proto
-        )
+        self._network_type: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.network_type,
+                _NETWORK_TYPE_FIELD_NAME,
+                NetworkType.from_proto,
+                NetworkType.into_proto)
+        self._cell_service_state: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.cell_service_state,
+                _CELL_SERVICE_STATE_FIELD_NAME,
+                CellServiceState.from_proto,
+                CellServiceState.into_proto)
+        # noinspection PyTypeChecker
         self._network_strength: common.SamplePayload = common.SamplePayload(station_metrics_proto.network_strength) \
             .set_unit(common.Unit.DECIBEL)
+        # noinspection PyTypeChecker
         self._temperature: common.SamplePayload = common.SamplePayload(station_metrics_proto.temperature) \
             .set_unit(common.Unit.DEGREES_CELSIUS)
+        # noinspection PyTypeChecker
         self._battery: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery) \
             .set_unit(common.Unit.PERCENTAGE)
+        # noinspection PyTypeChecker
         self._battery_current: common.SamplePayload = common.SamplePayload(station_metrics_proto.battery_current) \
             .set_unit(common.Unit.MICROAMPERES)
+        # noinspection PyTypeChecker
         self._available_ram: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_ram) \
             .set_unit(common.Unit.BYTE)
+        # noinspection PyTypeChecker
         self._available_disk: common.SamplePayload = common.SamplePayload(station_metrics_proto.available_disk) \
             .set_unit(common.Unit.BYTE)
+        # noinspection PyTypeChecker
         self._cpu_utilization: common.SamplePayload = common.SamplePayload(station_metrics_proto.cpu_utilization) \
             .set_unit(common.Unit.PERCENTAGE)
-        self._power_state: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
-            station_metrics_proto,
-            station_metrics_proto.power_state,
-            _POWER_STATE_FIELD_NAME,
-            PowerState.from_proto,
-            PowerState.into_proto
-        )
-        self._wifi_wake_loc: redvox.api1000.common.generic.ProtoRepeatedMessage = redvox.api1000.common.generic.ProtoRepeatedMessage(
-            station_metrics_proto,
-            station_metrics_proto.wifi_wake_lock,
-            _WIFI_WAKE_LOCK_FIELD_NAME,
-            WifiWakeLock.from_proto,
-            WifiWakeLock.into_proto
-        )
+        self._power_state: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.power_state,
+                _POWER_STATE_FIELD_NAME,
+                PowerState.from_proto,
+                PowerState.into_proto)
+        self._wifi_wake_loc: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.wifi_wake_lock,
+                _WIFI_WAKE_LOCK_FIELD_NAME,
+                WifiWakeLock.from_proto,
+                WifiWakeLock.into_proto)
 
     @staticmethod
     def new() -> 'StationMetrics':
