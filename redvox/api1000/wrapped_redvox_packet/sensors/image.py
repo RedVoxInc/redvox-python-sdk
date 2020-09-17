@@ -6,6 +6,7 @@ import enum
 import os.path
 import redvox.api1000.common.generic
 import redvox.api1000.common.common as common
+import redvox.api1000.gui.image_viewer as image_viewer
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
 from redvox.api1000.common.decorators import wrap_enum
@@ -173,6 +174,11 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         indices = indices if indices is not None else list(range(0, self.get_num_images()))
         return list(map(lambda i: self.write_image(i, base_dir), indices))
 
+    def gallery(self):
+        """
+        Opens a simple image gallery for viewing images in packet
+        """
+        image_viewer.start_gui(self)
 
 def validate_image(image_sensor: Image) -> List[str]:
     """
