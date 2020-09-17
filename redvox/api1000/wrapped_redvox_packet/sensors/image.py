@@ -3,6 +3,7 @@ This module provides functionality for working with API M image sensors.
 """
 
 import enum
+import os.path
 import redvox.api1000.common.generic
 import redvox.api1000.common.common as common
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
@@ -10,6 +11,8 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 from redvox.api1000.common.decorators import wrap_enum
 from redvox.api1000.common.typing import check_type
 from typing import List, Optional
+
+from redvox.api1000.errors import ApiMImageChannelError
 
 
 # noinspection Mypy
@@ -45,6 +48,9 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         # noinspection Mypy
         return ImageCodec.from_proto(self._proto.image_codec)
+
+    def get_file_ext(self) -> str:
+        return self.get_image_codec().name.lower()
 
     def set_image_codec(self, codec: ImageCodec) -> 'Image':
         """
@@ -129,24 +135,43 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return len(self.get_samples())
 
-    def write_image(self, out_file: Optional[str] = None, index: int = 0):
+    def write_image(self,
+                    index: int,
+                    base_dir: str = ".",
+                    out_file: Optional[str] = None) -> str:
         """
-        Prints the image at index in the data as out_file.image_codec, where image_codec is defined by the sensor
-        :param out_file: the name of the output file
-        :param index: the index of the image to print
+        Writes an image to disk.
+        :param base_dir: Base directory to write image to (default: ".")
+        :param out_file: Optional file name (sans extension) (default: timestamp of image)
+        :param index: Index of image to be written.
+        :return: Path of written file.
         """
-        # invalid indices get converted to the closest valid index
-        if index < 0:
-            index = 0
-        elif index >= self.get_num_images():
-            index = self.get_num_images() - 1
-        # append the image codec to the file name
-        if out_file is None:
-            out_file = str(self._timestamps.get_timestamps()[index])
-        out_file = out_file + "." + self.get_image_codec().name.lower()
-        with open(out_file, 'wb') as image_out:
-            data_as_bytes: bytes = self.get_samples()[index]
-            image_out.write(data_as_bytes)
+        if index < 0 or index >= self.get_num_images():
+            raise ApiMImageChannelError(f"Index={index} must be > 0 and < {self.get_num_images()}")
+
+        ext: str = self.get_file_ext()
+        base_name: str = str(int(self._timestamps.get_timestamps()[index])) if out_file is None else out_file
+        file_name: str = f"{base_name}.{ext}"
+        file_path: str = os.path.join(base_dir, file_name)
+
+        with open(file_path, 'wb') as image_out:
+            img_bytes: bytes = self.get_samples()[index]
+            image_out.write(img_bytes)
+
+        return file_path
+
+    def write_images(self,
+                     indices: Optional[List[int]] = None,
+                     base_dir: str = ".") -> List[str]:
+        """
+        Write multiple images to disk.
+        :param base_dir: Base directory to write images to (default: ".").
+        :param indices: Optional list of indices for images to write. If this is None, all images will be written.
+        :return: List of written file paths.
+        """
+
+        indices = indices if indices is not None else list(range(0, self.get_num_images()))
+        return list(map(lambda i: self.write_image(i, base_dir), indices))
 
 
 def validate_image(image_sensor: Image) -> List[str]:

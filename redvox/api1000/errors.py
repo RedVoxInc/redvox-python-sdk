@@ -7,6 +7,7 @@ class ApiMError(Exception):
     """
     Base API Error class. All other error classes should be subclasses of this one.
     """
+
     def __init__(self, message: str):
         super().__init__(f"ApiMError: {message}")
 
@@ -15,6 +16,7 @@ class SummaryStatisticsError(ApiMError):
     """
     An error with summary statistics.
     """
+
     def __init__(self, message: str):
         super().__init__(f"SummaryStatisticsError: {message}")
 
@@ -73,6 +75,11 @@ class ApiMConcatenationError(ApiMError):
     """
     def __init__(self, message: str):
         super().__init__(f"ApiMConcatenationError: {message}")
+
+
+class ApiMImageChannelError(ApiMError):
+    def __init__(self, message: str):
+        super().__init__(f"ApiMImageChannelError: {message}")
 
 
 class ApiMOtherError(ApiMError):
