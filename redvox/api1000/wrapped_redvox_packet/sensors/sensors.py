@@ -2,7 +2,7 @@
 This module encapsulates available sensor types.
 """
 
-from typing import Optional, List, Literal
+from typing import Optional, List
 
 import redvox.api1000.common.common as common
 import redvox.api1000.common.typing
