@@ -9,7 +9,7 @@ def compress(data: bytes, compression_level: int = 12) -> bytes:
     """
     Compresses the provided data using the LZ4 frame protocol.
     :param data: The bytes to compress.
-    :param compression_level: A value between 0 and 16 where 0 os faster but less compression and 16 is slower, but
+    :param compression_level: A value between 0 and 12 where 0 os faster but less compression and 12 is slower, but
                               provides more compression.
     :return: Compressed bytes.
     """
