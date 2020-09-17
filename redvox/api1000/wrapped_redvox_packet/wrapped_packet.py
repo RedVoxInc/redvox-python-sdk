@@ -2,7 +2,7 @@
 This module provides a high level API for creating, reading, and editing RedVox compliant API 1000 files.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import os.path
 from functools import total_ordering
 from typing import Optional, List
@@ -229,23 +229,50 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         return self._proto.sub_api
 
     def set_sub_api(self, sub_api: float) -> 'WrappedRedvoxPacketM':
+        """
+        Sets the sub_api.
+        :param sub_api: sub_api to set.
+        :return: A modified instance of self.
+        """
         redvox.api1000.common.typing.check_type(sub_api, [int, float])
         self._proto.sub_api = sub_api
         return self
 
     def get_station_information(self) -> _station_information.StationInformation:
+        """
+        :return: An instance of StationInformation
+        """
         return self._station_information
 
     def get_timing_information(self) -> _timing_information.TimingInformation:
+        """
+        :return: An instance of TimingInformation
+        """
         return self._timing_information
 
     def get_sensors(self) -> _sensors.Sensors:
+        """
+        :return: An instance of Sensors
+        """
         return self._sensors
 
     def get_event_streams(self) -> ProtoRepeatedMessage:
+        """
+        :return: A collection of event streams.
+        """
         return self._event_streams
 
     # todo: add packet_duration calculations that don't rely on sensors existing if possible
+
+    def get_packet_duration(self) -> timedelta:
+        """
+        :return: Packet duration as a timedelta
+        """
+        audio = self.get_sensors().get_audio()
+        if audio is not None:
+            return audio.get_duration()
+        else:
+            return timedelta(seconds=0)
 
     def get_packet_duration_s(self) -> float:
         """
@@ -337,6 +364,11 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
 
 
 def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -> List[str]:
+    """
+    Validates a wrapped packet.
+    :param wrapped_packet: Packet to validate.
+    :return: A list of validation errors.
+    """
     errors_list = _station_information.validate_station_information(wrapped_packet.get_station_information())
     errors_list.extend(_timing_information.validate_timing_information(wrapped_packet.get_timing_information()))
     errors_list.extend(_sensors.validate_sensors(wrapped_packet.get_sensors()))
