@@ -1,17 +1,52 @@
 import sys
-from dataclasses import dataclass
 import datetime
-from typing import Dict, List, Optional
+from typing import Optional
 
 import numpy as np
-from PySide2.QtCore import QStringListModel
-from PySide2.QtGui import QStandardItemModel, QStandardItem, QPixmap
-from PySide2.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QLabel, QListView, QTableView, QSplitter, \
-    QListWidget, QTableWidget, QTableWidgetItem, QHeaderView
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QPixmap
+from PySide2.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem, \
+    QHeaderView, QSizePolicy, QAbstractItemView
 
 import redvox
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet.sensors.image import Image
+
+
+class ImageSelectionWidget(QTableWidget):
+    def __init__(self,
+                 image_sensor: Image,
+                 parent: Optional[QWidget] = None):
+        super().__init__(image_sensor.get_num_images(), 2, parent=parent)
+
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.resizeColumnsToContents()
+
+        extension: str = image_sensor.get_file_ext()
+        timestamps: np.ndarray = image_sensor.get_timestamps().get_timestamps()
+
+        self.setHorizontalHeaderLabels(["File Name", "Image Sampled At"])
+        for (i, ts) in enumerate(timestamps):
+            name: str = f"{round(ts)}.{extension}"
+            dt: datetime.datetime = datetime.datetime.utcfromtimestamp(ts / 1_000_000.0)
+            self.setItem(i, 0, QTableWidgetItem(name))
+            self.setItem(i, 1, QTableWidgetItem(str(dt)))
+
+
+class ImageViewWidget(QLabel):
+    def __init__(self, parent: Optional[QWidget] = None):
+        super().__init__(parent=None)
+
+        self.setAlignment(Qt.AlignCenter)
+
+    def set_image(self, buf: bytes):
+        pix = QPixmap()
+        pix.loadFromData(buf)
+        self.setPixmap(pix.scaled(self.width(),
+                                  self.height(),
+                                  Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                  Qt.TransformationMode.SmoothTransformation))
 
 
 class ImageViewer(QWidget):
@@ -19,30 +54,19 @@ class ImageViewer(QWidget):
         super().__init__(parent)
         self.setLayout(QHBoxLayout(self))
 
-        ext: str = image_sensor.get_file_ext()
-        tss: np.ndarray = image_sensor.get_timestamps().get_timestamps()
+        image_selection_widget = ImageSelectionWidget(image_sensor)
+        size_policy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        size_policy.setHorizontalStretch(1)
+        image_selection_widget.setSizePolicy(size_policy)
+        self.layout().addWidget(image_selection_widget)
 
-        image_list: QTableWidget = QTableWidget(image_sensor.get_num_images(), 2, self)
-        image_list.setHorizontalHeaderLabels(["File Name", "Image Sampled"])
-        image_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        image_view_widget = ImageViewWidget()
+        size_policy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        size_policy.setHorizontalStretch(2)
+        image_view_widget.setSizePolicy(size_policy)
+        self.layout().addWidget(image_view_widget)
 
-        for (i, ts) in enumerate(tss):
-            name: str = f"{round(ts)}.{ext}"
-            dt: datetime.datetime = datetime.datetime.utcfromtimestamp(ts / 1_000_000.0)
-            image_list.setItem(i, 0, QTableWidgetItem(name))
-            image_list.setItem(i, 1, QTableWidgetItem(str(dt)))
-
-        self.layout().addWidget(image_list)
-
-        label = QLabel(parent=self)
-        pix = QPixmap()
-        pix.loadFromData(image_sensor.get_samples()[0])
-
-        label.setPixmap(pix)
-        label.setsi
-
-
-        self.layout().addWidget(label)
+        image_view_widget.set_image(image_sensor.get_samples()[0])
 
 
 class MainWindow(QMainWindow):
