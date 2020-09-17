@@ -19,6 +19,7 @@ NAN: float = float("NaN")
 EMPTY_ARRAY: np.ndarray = np.array([])
 
 
+# noinspection Mypy
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.Unit)
 class Unit(enum.Enum):
     """
@@ -222,6 +223,7 @@ class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload
         """
         :return: The unit of this payload.
         """
+        # noinspection Mypy
         return Unit.from_proto(self._proto.unit)
 
     def set_unit(self, unit: Unit) -> 'SamplePayload':
@@ -231,6 +233,7 @@ class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload
         :return: A modified instance of self
         """
         check_type(unit, [Unit])
+        # noinspection Mypy
         self._proto.unit = unit.into_proto()
         return self
 
@@ -403,6 +406,7 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         :return: A modified instance of self
         """
         check_type(unit, [Unit])
+        # noinspection Mypy
         self._proto.unit = unit.into_proto()
         return self
 
