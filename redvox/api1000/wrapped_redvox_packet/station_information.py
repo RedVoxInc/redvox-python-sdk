@@ -1,3 +1,7 @@
+"""
+This module provides access to underlying station information from RedVox API M data.
+"""
+
 import enum
 from typing import List, Optional
 
@@ -19,6 +23,9 @@ InputSensorProto = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings
 
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate)
 class AudioSamplingRate(enum.Enum):
+    """
+    Sampling Rate as provided by the app settings.
+    """
     UNKNOWN_SAMPLING_RATE: int = 0
     HZ_80: int = 1
     HZ_800: int = 2
@@ -28,6 +35,11 @@ class AudioSamplingRate(enum.Enum):
 
     @staticmethod
     def from_sampling_rate(sampling_rate: float) -> Optional['AudioSamplingRate']:
+        """
+        Convert from a numeric sampling rate into this enum.
+        :param sampling_rate: Numeric sampling rate.
+        :return: An instance of this enum.
+        """
         if sampling_rate == 80.0:
             return AudioSamplingRate['HZ_80']
         elif sampling_rate == 800.0:
@@ -44,6 +56,9 @@ class AudioSamplingRate(enum.Enum):
 
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning)
 class AudioSourceTuning(enum.Enum):
+    """
+    Audio source tuning from app settings
+    """
     UNKNOWN_TUNING: int = 0
     INFRASOUND_TUNING: int = 1
     LOW_AUDIO_TUNING: int = 2
@@ -52,6 +67,9 @@ class AudioSourceTuning(enum.Enum):
 
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor)
 class InputSensor(enum.Enum):
+    """
+    Input sensors provided to additional input sensors in the app settings.
+    """
     UNKNOWN_SENSOR: int = 0
     ACCELEROMETER = 1
     AMBIENT_TEMPERATURE = 2
@@ -73,6 +91,9 @@ class InputSensor(enum.Enum):
 
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap)
 class FftOverlap(enum.Enum):
+    """
+    FFT overlap provided by the app settings
+    """
     UNKNOWN: int = 0
     PERCENT_25: int = 1
     PERCENT_50: int = 2
@@ -81,6 +102,9 @@ class FftOverlap(enum.Enum):
 
 class AppSettings(
     redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
+    """
+    Represents a copy of the App's settings.
+    """
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings):
         super().__init__(proto)
         self._additional_input_sensors: redvox.api1000.common.generic.ProtoRepeatedMessage[
@@ -95,9 +119,16 @@ class AppSettings(
 
     @staticmethod
     def new() -> 'AppSettings':
+        """
+        Creates a new, empty AppSettings instance
+        :return: A new, empty AppSettings instance
+        """
         return AppSettings(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings())
 
     def get_audio_sampling_rate(self) -> AudioSamplingRate:
+        """
+        :return: Returns the sampling rate provided in the settings.
+        """
         return AudioSamplingRate(self.get_proto().audio_sampling_rate)
 
     def set_audio_sampling_rate(self, audio_sampling_rate: AudioSamplingRate) -> 'AppSettings':

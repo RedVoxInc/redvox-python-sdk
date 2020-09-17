@@ -83,18 +83,34 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
         return self
 
     def get_mean(self) -> float:
+        """
+        :return: The mean.
+        """
         return self._proto.mean
 
     def set_mean(self, mean: float) -> 'SummaryStatistics':
+        """
+        Sets the mean.
+        :param mean: Mean to set.
+        :return: A modified instance of this
+        """
         check_type(mean, [int, float])
 
         self._proto.mean = mean
         return self
 
     def get_standard_deviation(self) -> float:
+        """
+        :return: The standard deviation.
+        """
         return self._proto.standard_deviation
 
     def set_variance(self, standard_deviation: float) -> 'SummaryStatistics':
+        """
+        Set's the variance.
+        :param standard_deviation: Variance to set.
+        :return:
+        """
         check_type(standard_deviation, [int, float])
 
         self._proto.standard_deviation = standard_deviation
