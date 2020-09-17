@@ -58,7 +58,7 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
     # there are 9 api900 sensors
     if wrapped_packet.has_microphone_sensor():
         sample_rate_hz = wrapped_packet.microphone_sensor().sample_rate_hz()
-        data_for_df = wrapped_packet.microphone_sensor().payload_values()
+        data_for_df = wrapped_packet.microphone_sensor().payload_values().astype(float)
         timestamps = calc_evenly_sampled_timestamps(
             wrapped_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc(),
             fs.get_num_points_from_sample_rate(sample_rate_hz), sample_rate_hz)
@@ -120,12 +120,12 @@ def load_station_from_api900(directory: str, start_timestamp_utc_s: Optional[int
                                "Redvox", api900_packet.app_version(), api900_packet.is_scrambled(), timing)
     data_dict = read_api900_wrapped_packet(api900_packet)
     packet_data = DataPacket(api900_packet.server_timestamp_epoch_microseconds_utc(),
-                             api900_packet.app_file_start_timestamp_machine(), data_dict,
+                             api900_packet.app_file_start_timestamp_machine(),
                              api900_packet.start_timestamp_us_utc(), int(api900_packet.end_timestamp_us_utc()),
                              api900_packet.time_synchronization_sensor().payload_values(),
                              api900_packet.best_latency(), api900_packet.best_offset())
     packet_list: List[DataPacket] = [packet_data]
-    return Station(metadata, packet_list)
+    return Station(metadata, data_dict, packet_list)
 
 
 def load_file_range_from_api900(directory: str,
@@ -163,6 +163,7 @@ def load_file_range_from_api900(directory: str,
                                    "Redvox", wrapped_packets[0].app_version(), wrapped_packets[0].is_scrambled(),
                                    timing)
         # add data from packets
+        new_station = Station(metadata)
         packet_list: List[DataPacket] = []
         for packet in wrapped_packets:
             if packet.has_time_synchronization_sensor():
@@ -170,14 +171,19 @@ def load_file_range_from_api900(directory: str,
             else:
                 time_sync = None
             data_dict = read_api900_wrapped_packet(packet)
+            for sensor_type, sensor_data in data_dict.items():
+                new_station.append_sensor(sensor_type, sensor_data)
             packet_data = DataPacket(packet.server_timestamp_epoch_microseconds_utc(),
-                                     packet.app_file_start_timestamp_machine(), data_dict,
+                                     packet.app_file_start_timestamp_machine(),
+                                     data_dict[SensorType.AUDIO].num_samples(),
+                                     data_dict[SensorType.AUDIO].data_duration_s(),
                                      packet.start_timestamp_us_utc(), packet.end_timestamp_us_utc(),
                                      time_sync, packet.best_latency(), packet.best_offset())
             packet_list.append(packet_data)
+        new_station.packet_data = packet_list
 
         # create the Station data object
-        all_stations.append(Station(metadata, packet_list))
+        all_stations.append(new_station)
 
     return all_stations
 
@@ -350,13 +356,15 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
     time_sync = np.array(read_packet.get_timing_information().get_synch_exchanges().get_values())
     data_dict = load_apim_wrapped_packet(read_packet)
     packet_data = DataPacket(read_packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
-                             read_packet.get_timing_information().get_app_start_mach_timestamp(), data_dict,
+                             read_packet.get_timing_information().get_app_start_mach_timestamp(),
+                             data_dict[SensorType.AUDIO].num_samples(),
+                             data_dict[SensorType.AUDIO].data_duration_s(),
                              read_packet.get_timing_information().get_packet_start_mach_timestamp(),
                              read_packet.get_timing_information().get_packet_end_mach_timestamp(),
                              time_sync, read_packet.get_timing_information().get_best_latency(),
                              read_packet.get_timing_information().get_best_offset())
     packet_list: List[DataPacket] = [packet_data]
-    return Station(metadata, packet_list)
+    return Station(metadata, data_dict, packet_list)
 
 
 def load_from_file_range_api_m(directory: str,
@@ -397,21 +405,26 @@ def load_from_file_range_api_m(directory: str,
                 raise ValueError("Packet is missing Audio sensor!")
         else:
             raise ValueError("First Packet is missing!")
+        new_station = Station(metadata)
         # add data from packets
         packet_list: List[DataPacket] = []
         for packet in read_packets.wrapped_packets:
             time_sync = np.array(packet.get_timing_information().get_synch_exchanges().get_values())
             data_dict = load_apim_wrapped_packet(packet)
+            new_station.append_station_data(data_dict)
             packet_data = DataPacket(packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
-                                     packet.get_timing_information().get_app_start_mach_timestamp(), data_dict,
+                                     packet.get_timing_information().get_app_start_mach_timestamp(),
+                                     data_dict[SensorType.AUDIO].num_samples(),
+                                     data_dict[SensorType.AUDIO].data_duration_s(),
                                      packet.get_timing_information().get_packet_start_mach_timestamp(),
                                      packet.get_timing_information().get_packet_end_mach_timestamp(),
                                      time_sync, packet.get_timing_information().get_best_latency(),
                                      packet.get_timing_information().get_best_offset())
             packet_list.append(packet_data)
+        new_station.packet_data = packet_list
 
         # create the Station data object
-        all_stations.append(Station(metadata, packet_list))
+        all_stations.append(new_station)
     return all_stations
 
 
@@ -438,8 +451,8 @@ def load_from_mseed(file_path: str) -> List[Station]:
         timestamps = calc_evenly_sampled_timestamps(start_time, int(record_info["npts"]), sample_rate_hz)
         sensor_data = SensorData(record_info["channel"], pd.DataFrame(data_for_df, index=timestamps, columns=["BDF"]),
                                  record_info["sampling_rate"], True)
-        data_packet = DataPacket(np.nan, start_time, {SensorType.AUDIO: sensor_data}, start_time, end_time)
-        stations.append(Station(metadata, [data_packet]))
+        data_packet = DataPacket(np.nan, start_time, start_time, end_time)
+        stations.append(Station(metadata, {SensorType.AUDIO: sensor_data}, [data_packet]))
     return stations
 
 
@@ -501,21 +514,35 @@ def read_all_in_dir(directory: str,
     return stations
 
 
-def read_api900_in_dir_exact(directory: str,
-                             start_timestamp_utc_s: Optional[int] = None,
-                             end_timestamp_utc_s: Optional[int] = None,
-                             start_padding_s: int = 120,
-                             end_padding_s: int = 120,
-                             gap_time_s: float = 5,
-                             redvox_ids: Optional[List[str]] = None,
-                             apply_correction: bool = False,
-                             structured_layout: bool = False,
-                             concat_continuous_segments: bool = True) -> Dict[str, Dict[SensorType, SensorData]]:
+def read_data_window_api900(directory: str,
+                            redvox_ids: Optional[List[str]] = None,
+                            start_timestamp_utc_s: Optional[int] = None,
+                            end_timestamp_utc_s: Optional[int] = None,
+                            start_padding_s: int = 120,
+                            end_padding_s: int = 120,
+                            gap_time_s: float = 5,
+                            apply_correction: bool = False,
+                            structured_layout: bool = False) -> Dict[str, Station]:
+    """
+    read data from a specified window in the directory
+    :param directory: the directory containing the files to read
+    :param redvox_ids: the specific ids to search for, default None (gets all ids)
+    :param start_timestamp_utc_s: start timestamp of window to search for in seconds since epoch utc,
+                                    default None (gets all times)
+    :param end_timestamp_utc_s: end timestamp of window to search for in seconds since epoch utc,
+                                    default None (gets all times)
+    :param start_padding_s: amount of seconds to include in search before start_timestamp_utc_s, default 120
+    :param end_padding_s: amount of seconds to include in search after end_timestamp_utc_s, default 120
+    :param gap_time_s: amount of seconds to consider as a gap, default 5
+    :param apply_correction: if True, applies timing correction to the data before returning, default False
+    :param structured_layout: if True, the input directory is specially structured for api900 data, default False
+    :return: a dictionary of station id and Station information
+    """
     data = api900_io.read_rdvxz_file_range(directory, start_timestamp_utc_s - start_padding_s,
                                            end_timestamp_utc_s + end_padding_s, redvox_ids,
-                                           structured_layout, concat_continuous_segments)
+                                           structured_layout, False)
     # create the object to store the data
-    return_dict: Dict[str, Dict[SensorType, SensorData]] = {}
+    all_stations: Dict[str, Station] = {}
 
     # correct data, then convert to SensorData
     for redvox_id, wrapped_packets in data.items():
@@ -525,14 +552,15 @@ def read_api900_in_dir_exact(directory: str,
         if apply_correction:
             sync_packet_time_900(wrapped_packets)
         # prepare an empty dict to add data to
-        return_dict[short_id] = {}
+        metadata = StationMetadata(short_id, wrapped_packets[0].device_make(), wrapped_packets[0].device_model())
+        result_station = Station(metadata)
         for packet in wrapped_packets:
             # read in the packets' data
             for sensor_type, sensor_data in read_api900_wrapped_packet(packet).items():
-                if sensor_type in return_dict[short_id].keys():
+                if sensor_type in result_station.station_data.keys():
                     if sensor_type == SensorType.AUDIO:
                         # detect gap between last added timestamp and new data start timestamp
-                        last_timestamp = return_dict[short_id][SensorType.AUDIO].last_data_timestamp()
+                        last_timestamp = result_station.station_data[SensorType.AUDIO].last_data_timestamp()
                         first_timestamp = sensor_data.first_data_timestamp()
                         time_diff: float = first_timestamp - last_timestamp
                         if time_diff > dtu.seconds_to_microseconds(gap_time_s):
@@ -543,65 +571,68 @@ def read_api900_in_dir_exact(directory: str,
                             empty_points = np.empty(missing_points - 1)
                             empty_points[:] = np.nan
                             empty_df = pd.DataFrame(empty_points, index=gap_times, columns=["microphone"])
-                            return_dict[short_id][SensorType.AUDIO].data_df = \
-                                pd.concat([return_dict[short_id][SensorType.AUDIO].data_df, empty_df])
-                    return_dict[short_id][sensor_type].data_df = \
-                        pd.concat([return_dict[short_id][sensor_type].data_df, sensor_data.data_df])
+                            result_station.station_data[SensorType.AUDIO].data_df = \
+                                pd.concat([result_station.station_data[SensorType.AUDIO].data_df, empty_df])
+                    result_station.station_data[sensor_type].data_df = \
+                        pd.concat([result_station.station_data[sensor_type].data_df, sensor_data.data_df])
                 else:
-                    return_dict[short_id][sensor_type] = sensor_data
+                    result_station.station_data[sensor_type] = sensor_data
+        all_stations[short_id] = result_station
 
-    # fill in gaps and truncate
+    # check if ids in station
     for ids in redvox_ids:
-        if ids not in return_dict.keys():
+        if ids not in all_stations.keys():
             # error handling
             print(f"WARNING: {ids} doesn't have any data to read")
-        else:
-            # prepare a bunch of information to be used later
-            # compute the length in seconds of one sample
-            one_sample_s = 1 / return_dict[ids][SensorType.AUDIO].sample_rate
-            # get the start and end timestamps + 1 sample to be safe
-            start_timestamp = int(dtu.seconds_to_microseconds(start_timestamp_utc_s - one_sample_s))
-            end_timestamp = int(dtu.seconds_to_microseconds(end_timestamp_utc_s + one_sample_s))
-            # TRUNCATE!  get only the timestamps between the start and end timestamps
-            for sensor_types in return_dict[ids].keys():
-                # get the timestamps of the data
-                df_timestamps = return_dict[ids][sensor_types].data_df.index.to_numpy()
-                temp = np.where(
-                    (start_timestamp < df_timestamps) & (df_timestamps < end_timestamp))[0]
-                new_df = return_dict[ids][sensor_types].data_df.iloc[temp]
-                return_dict[ids][sensor_types].data_df = new_df
-            if len(return_dict[ids][SensorType.AUDIO].data_df.values) < 1:
-                print(f"WARNING: {ids} audio sensor has been truncated and no valid data remains!")
-                return_dict.pop(ids)
-            else:
-                # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
-                new_df = return_dict[ids][SensorType.AUDIO].data_df
-                first_timestamp = return_dict[ids][SensorType.AUDIO].first_data_timestamp()
-                start_diff = first_timestamp - dtu.seconds_to_microseconds(start_timestamp_utc_s)
-                if start_diff > 0:
-                    num_missing_samples = int(dtu.microseconds_to_seconds(start_diff) *
-                                              return_dict[ids][SensorType.AUDIO].sample_rate)
-                    time_before = np.vectorize(
-                        lambda t: first_timestamp - dtu.seconds_to_microseconds(t * one_sample_s))(
-                        list(range(1, num_missing_samples)))
-                    time_before = time_before[::-1]
-                    data = np.empty(num_missing_samples - 1)
-                    data[:] = np.nan
-                    new_df_values = pd.DataFrame(data, index=time_before, columns=["microphone"])
-                    new_df = new_df_values.append(new_df)
-                last_timestamp = return_dict[ids][SensorType.AUDIO].data_df.index[-1]
-                last_diff = dtu.seconds_to_microseconds(end_timestamp_utc_s) - last_timestamp
-                if last_diff > 0:
-                    num_missing_samples = int(dtu.microseconds_to_seconds(last_diff) *
-                                              return_dict[ids][SensorType.AUDIO].sample_rate)
-                    time_after = np.vectorize(
-                        lambda t: last_timestamp + dtu.seconds_to_microseconds(t * one_sample_s))(
-                        list(range(1, num_missing_samples)))
-                    data = np.empty(num_missing_samples - 1)
-                    data[:] = np.nan
-                    new_df_values = pd.DataFrame(data, index=time_after, columns=["microphone"])
-                    new_df = new_df.append(new_df_values)
-                # ALL DONE!  set the dataframe to the updated dataframe
-                return_dict[ids][SensorType.AUDIO].data_df = new_df
 
-    return return_dict
+    # fill in gaps and truncate
+    for station_id, station in all_stations.items():
+        # prepare a bunch of information to be used later
+        # compute the length in seconds of one sample
+        one_sample_s = 1 / station.station_data[SensorType.AUDIO].sample_rate
+        # get the start and end timestamps + 1 sample to be safe
+        start_timestamp = int(dtu.seconds_to_microseconds(start_timestamp_utc_s - one_sample_s))
+        end_timestamp = int(dtu.seconds_to_microseconds(end_timestamp_utc_s + one_sample_s))
+        # TRUNCATE!  get only the timestamps between the start and end timestamps
+        for sensor_types in station.station_data.keys():
+            # get the timestamps of the data
+            df_timestamps = station.station_data[sensor_types].data_df.index.to_numpy()
+            temp = np.where(
+                (start_timestamp < df_timestamps) & (df_timestamps < end_timestamp))[0]
+            new_df = station.station_data[sensor_types].data_df.iloc[temp]
+            station.station_data[sensor_types].data_df = new_df
+        if len(station.station_data[SensorType.AUDIO].data_df.values) < 1:
+            print(f"WARNING: {station.station_metadata.station_id} audio sensor has been truncated and "
+                  f"no valid data remains!")
+        else:
+            # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
+            new_df = station.station_data[SensorType.AUDIO].data_df
+            first_timestamp = station.station_data[SensorType.AUDIO].first_data_timestamp()
+            start_diff = first_timestamp - dtu.seconds_to_microseconds(start_timestamp_utc_s)
+            if start_diff > 0:
+                num_missing_samples = int(dtu.microseconds_to_seconds(start_diff) *
+                                          station.station_data[SensorType.AUDIO].sample_rate)
+                time_before = np.vectorize(
+                    lambda t: first_timestamp - dtu.seconds_to_microseconds(t * one_sample_s))(
+                    list(range(1, num_missing_samples)))
+                time_before = time_before[::-1]
+                data = np.empty(num_missing_samples - 1)
+                data[:] = np.nan
+                new_df_values = pd.DataFrame(data, index=time_before, columns=["microphone"])
+                new_df = new_df_values.append(new_df)
+            last_timestamp = station.station_data[SensorType.AUDIO].data_df.index[-1]
+            last_diff = dtu.seconds_to_microseconds(end_timestamp_utc_s) - last_timestamp
+            if last_diff > 0:
+                num_missing_samples = int(dtu.microseconds_to_seconds(last_diff) *
+                                          station.station_data[SensorType.AUDIO].sample_rate)
+                time_after = np.vectorize(
+                    lambda t: last_timestamp + dtu.seconds_to_microseconds(t * one_sample_s))(
+                    list(range(1, num_missing_samples)))
+                data = np.empty(num_missing_samples - 1)
+                data[:] = np.nan
+                new_df_values = pd.DataFrame(data, index=time_after, columns=["microphone"])
+                new_df = new_df.append(new_df_values)
+            # ALL DONE!  set the dataframe to the updated dataframe
+            station.station_data[SensorType.AUDIO].data_df = new_df
+
+    return all_stations

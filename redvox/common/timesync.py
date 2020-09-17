@@ -39,18 +39,19 @@ class TimeSyncData:
         acquire_travel_time: float, calculated time it took packet to reach server, default np.nan
     """
 
-    def __init__(self, data_pack: Optional[sd.DataPacket] = None, station: Optional[sd.StationMetadata] = None):
+    def __init__(self, data_pack: Optional[sd.DataPacket] = None,
+                 station_metadata: Optional[sd.StationMetadata] = None):
         """
         Initialize properties
-        :param data_pack: data packet
-        :param station: station metadata
+        :param data_pack: data packet metadata
+        :param station_metadata: station metadata
         """
         self.best_latency: float = np.nan
         self.best_offset: float = 0
-        if station is not None and data_pack is not None:
-            self.get_timesync_data(data_pack, station)
+        if station_metadata is not None and data_pack is not None:
+            self.get_timesync_data(data_pack, station_metadata)
         else:
-            if station is None:
+            if station_metadata is None:
                 self.station_id: str = ""
                 self.station_start_timestamp: float = np.nan
             if data_pack is None:
@@ -73,16 +74,17 @@ class TimeSyncData:
                 # self.num_packets: int = 0
                 # self.bad_packets: List[int] = []
 
-    def get_timesync_data(self, data_pack: sd.DataPacket, station: sd.StationMetadata):
+    def get_timesync_data(self, data_pack: Optional[sd.DataPacket] = None,
+                          station_metadata: Optional[sd.StationMetadata] = None):
         """
         extracts the time sync data from the data_pack object
-        :param data_pack: data packet to get data from
-        :param station: station metadata
+        :param data_pack: data packet metadata
+        :param station_metadata: station metadata
         """
-        self.station_id = station.station_id
-        self.sample_rate_hz = station.timing_data.audio_sample_rate_hz
-        self.packet_num_audio_samples = data_pack.audio_sensor().num_samples()
-        self.station_start_timestamp = station.timing_data.station_start_timestamp
+        self.station_id = station_metadata.station_id
+        self.sample_rate_hz = station_metadata.timing_data.audio_sample_rate_hz
+        self.packet_num_audio_samples = data_pack.packet_duration_samples
+        self.station_start_timestamp = station_metadata.timing_data.station_start_timestamp
         self.server_acquisition_time = data_pack.server_timestamp
         self.packet_start_time = data_pack.data_start_timestamp
         self.packet_end_time = data_pack.data_end_timestamp
@@ -416,7 +418,7 @@ def get_time_sync_data_from_station(station: sd.Station) -> List[TimeSyncData]:
     :return: a list of all TimeSyncData objects from the station
     """
     timesync_list = []
-    for packet in station.station_data:
+    for packet in station.packet_data:
         timesync_list.append(TimeSyncData(packet, station.station_metadata))
     return timesync_list
 
