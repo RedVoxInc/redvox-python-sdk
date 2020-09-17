@@ -16,6 +16,7 @@ from redvox.api1000.wrapped_redvox_packet.sensors.image import Image
 class ImageSelectionWidget(QTableWidget):
     def __init__(self,
                  image_sensor: Image,
+                 image_view_widget: 'ImageViewWidget',
                  parent: Optional[QWidget] = None):
         super().__init__(image_sensor.get_num_images(), 2, parent=parent)
 
@@ -33,6 +34,12 @@ class ImageSelectionWidget(QTableWidget):
             self.setItem(i, 0, QTableWidgetItem(name))
             self.setItem(i, 1, QTableWidgetItem(str(dt)))
 
+        def __update_image_at_row(row: int):
+            buf = image_sensor.get_samples()[row]
+            image_view_widget.set_image(buf)
+
+        self.cellClicked.connect(lambda r: __update_image_at_row(r))
+
 
 class ImageViewWidget(QLabel):
     def __init__(self, parent: Optional[QWidget] = None):
@@ -45,7 +52,7 @@ class ImageViewWidget(QLabel):
         pix.loadFromData(buf)
         self.setPixmap(pix.scaled(self.width(),
                                   self.height(),
-                                  Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                  Qt.AspectRatioMode.KeepAspectRatio,
                                   Qt.TransformationMode.SmoothTransformation))
 
 
@@ -54,19 +61,17 @@ class ImageViewer(QWidget):
         super().__init__(parent)
         self.setLayout(QHBoxLayout(self))
 
-        image_selection_widget = ImageSelectionWidget(image_sensor)
+        image_view_widget = ImageViewWidget()
+        image_selection_widget = ImageSelectionWidget(image_sensor, image_view_widget)
         size_policy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
         size_policy.setHorizontalStretch(1)
         image_selection_widget.setSizePolicy(size_policy)
         self.layout().addWidget(image_selection_widget)
 
-        image_view_widget = ImageViewWidget()
         size_policy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         size_policy.setHorizontalStretch(2)
         image_view_widget.setSizePolicy(size_policy)
         self.layout().addWidget(image_view_widget)
-
-        image_view_widget.set_image(image_sensor.get_samples()[0])
 
 
 class MainWindow(QMainWindow):
