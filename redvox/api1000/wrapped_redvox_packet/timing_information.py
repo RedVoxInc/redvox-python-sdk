@@ -410,7 +410,8 @@ class TimingInformation(
         :return: A modified instance of self.
         """
         redvox.api1000.common.typing.check_type(score_method, [TimingScoreMethod])
-        self._proto.score_method = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
+        self._proto.score_method = \
+            redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
         return self
 
 
