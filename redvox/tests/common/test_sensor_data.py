@@ -5,6 +5,7 @@ import os
 import unittest
 import pandas as pd
 import redvox.tests as tests
+import numpy as np
 from redvox.common import sensor_data as sd, load_sensor_data as load_sd
 
 
@@ -18,37 +19,35 @@ class SensorDataTest(unittest.TestCase):
         self.all_data = load_sd.read_all_in_dir(tests.TEST_DATA_DIR, redvox_ids=["1637650010", "0000000001"])
 
     def test_api900_station(self):
-        self.assertEqual(len(self.api900_station.station_data), 1)
-        for sensor in self.api900_station.station_data:
-            self.assertIsNone(sensor.packet_best_latency)
-            self.assertEqual(len(sensor.sensor_data_dict), 5)
-            self.assertEqual(sensor.audio_sensor().sample_rate, 80)
-            self.assertTrue(sensor.audio_sensor().is_sample_rate_fixed)
-            self.assertEqual(sensor.location_sensor().data_df.shape, (2, 5))
+        self.assertEqual(len(self.api900_station.packet_data), 1)
+        self.assertEqual(len(self.api900_station.station_data), 5)
+        self.assertTrue(np.isnan(self.api900_station.packet_data[0].packet_best_latency))
+        self.assertEqual(self.api900_station.audio_sensor().sample_rate, 80)
+        self.assertTrue(self.api900_station.audio_sensor().is_sample_rate_fixed)
+        self.assertEqual(self.api900_station.location_sensor().data_df.shape, (2, 5))
 
     def test_apim_station(self):
-        self.assertEqual(len(self.apim_station.station_data), 1)
-        sensor = self.apim_station.station_data[0]
-        self.assertEqual(sensor.packet_best_latency, 1296.0)
-        self.assertEqual(len(sensor.sensor_data_dict), 2)
-        self.assertEqual(sensor.audio_sensor().sample_rate, 48000.0)
-        self.assertTrue(sensor.audio_sensor().is_sample_rate_fixed)
-        self.assertEqual(sensor.location_sensor().data_df.shape, (1, 9))
+        self.assertEqual(len(self.apim_station.packet_data), 1)
+        self.assertEqual(self.apim_station.packet_data[0].packet_best_latency, 1296.0)
+        self.assertEqual(len(self.apim_station.station_data), 2)
+        self.assertEqual(self.apim_station.audio_sensor().sample_rate, 48000.0)
+        self.assertTrue(self.apim_station.audio_sensor().is_sample_rate_fixed)
+        self.assertEqual(self.apim_station.location_sensor().data_df.shape, (1, 9))
 
     def test_create_read_update_delete_audio_sensor(self):
-        self.assertTrue(self.api900_station.station_data[0].has_audio_sensor())
+        self.assertTrue(self.api900_station.has_audio_sensor())
         audio_sensor = sd.SensorData("test_audio", pd.DataFrame([1, 2, 3, 4], columns=["microphone"],
                                                                 index=[10, 20, 30, 40]), 1, True)
-        self.api900_station.station_data[0].set_audio_sensor(audio_sensor)
-        self.assertTrue(self.api900_station.station_data[0].has_audio_sensor())
-        self.assertEqual(self.api900_station.station_data[0].audio_sensor().sample_rate, 1)
-        self.assertEqual(self.api900_station.station_data[0].audio_sensor().num_samples(), 4)
-        self.assertEqual(self.api900_station.station_data[0].audio_sensor().first_data_timestamp(), 10)
-        self.api900_station.station_data[0].set_audio_sensor(None)
-        self.assertFalse(self.api900_station.station_data[0].has_audio_sensor())
+        self.api900_station.set_audio_sensor(audio_sensor)
+        self.assertTrue(self.api900_station.has_audio_sensor())
+        self.assertEqual(self.api900_station.audio_sensor().sample_rate, 1)
+        self.assertEqual(self.api900_station.audio_sensor().num_samples(), 4)
+        self.assertEqual(self.api900_station.audio_sensor().first_data_timestamp(), 10)
+        self.api900_station.set_audio_sensor(None)
+        self.assertFalse(self.api900_station.has_audio_sensor())
 
     def test_mseed_read(self):
-        self.assertEqual(self.mseed_data[0].station_data[0].audio_sensor().num_samples(), 6001)
+        self.assertEqual(self.mseed_data[0].audio_sensor().num_samples(), 6001)
         self.assertEqual(self.mseed_data[0].station_metadata.station_network_name, "UH")
         self.assertEqual(self.mseed_data[0].station_metadata.station_name, "MB3")
         self.assertEqual(self.mseed_data[0].station_metadata.station_channel_name, "BDF")
@@ -56,32 +55,28 @@ class SensorDataTest(unittest.TestCase):
     def test_read_any_dir(self):
         # api900 station
         station = self.all_data[0]
-        self.assertEqual(len(station.station_data), 1)
-        sensor = station.station_data[0]
-        self.assertIsNone(sensor.packet_best_latency)
-        self.assertEqual(len(sensor.sensor_data_dict), 5)
-        self.assertEqual(sensor.audio_sensor().sample_rate, 80)
-        self.assertTrue(sensor.audio_sensor().is_sample_rate_fixed)
-        self.assertEqual(sensor.audio_sensor().data_duration_s(), 51.2)
-        self.assertEqual(sensor.location_sensor().data_df.shape, (2, 5))
-        self.assertEqual(sensor.location_sensor().data_duration_s(), 51.2)
-        self.assertEqual(len(self.apim_station.station_data), 1)
+        self.assertEqual(len(station.packet_data), 1)
+        self.assertIsNone(station.packet_data[0].packet_best_latency)
+        self.assertEqual(len(station.station_data), 5)
+        self.assertEqual(station.audio_sensor().sample_rate, 80)
+        self.assertTrue(station.audio_sensor().is_sample_rate_fixed)
+        self.assertEqual(station.audio_sensor().data_duration_s(), 51.2)
+        self.assertEqual(station.location_sensor().data_df.shape, (2, 5))
+        self.assertEqual(station.location_sensor().data_duration_s(), 51.2)
         # api m station
         station = self.all_data[1]
-        self.assertEqual(len(station.station_data), 3)
-        sensor = station.station_data[0]
-        self.assertEqual(sensor.packet_best_latency, 1296.0)
-        self.assertEqual(len(sensor.sensor_data_dict), 2)
-        self.assertEqual(sensor.audio_sensor().sample_rate, 48000.0)
-        self.assertTrue(sensor.audio_sensor().is_sample_rate_fixed)
-        self.assertEqual(sensor.audio_sensor().data_duration_s(), 5.0)
-        self.assertEqual(sensor.location_sensor().data_df.shape, (1, 9))
-        self.assertEqual(sensor.location_sensor().data_duration_s(), 5.0)
+        self.assertEqual(len(station.packet_data), 3)
+        self.assertEqual(station.packet_data[0].packet_best_latency, 1296.0)
+        self.assertEqual(len(station.station_data), 2)
+        self.assertEqual(station.audio_sensor().sample_rate, 48000.0)
+        self.assertTrue(station.audio_sensor().is_sample_rate_fixed)
+        self.assertEqual(station.audio_sensor().data_duration_s(), 15.0)
+        self.assertEqual(station.location_sensor().data_df.shape, (3, 9))
+        self.assertEqual(station.location_sensor().data_duration_s(), 15.0)
         # mseed station
         station = self.all_data[2]
         self.assertEqual(len(station.station_data), 1)
-        sensor = station.station_data[0]
-        self.assertEqual(sensor.audio_sensor().num_samples(), 6001)
+        self.assertEqual(station.audio_sensor().num_samples(), 6001)
         self.assertEqual(station.station_metadata.station_network_name, "UH")
         self.assertEqual(station.station_metadata.station_name, "MB3")
         self.assertEqual(station.station_metadata.station_channel_name, "BDF")
