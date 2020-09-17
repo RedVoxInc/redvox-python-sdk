@@ -5,7 +5,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 from PySide2.QtCore import QStringListModel
-from PySide2.QtGui import QStandardItemModel, QStandardItem
+from PySide2.QtGui import QStandardItemModel, QStandardItem, QPixmap
 from PySide2.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QLabel, QListView, QTableView, QSplitter, \
     QListWidget, QTableWidget, QTableWidgetItem, QHeaderView
 
@@ -23,7 +23,7 @@ class ImageViewer(QWidget):
         tss: np.ndarray = image_sensor.get_timestamps().get_timestamps()
 
         image_list: QTableWidget = QTableWidget(image_sensor.get_num_images(), 2, self)
-        image_list.setHorizontalHeaderLabels(["File Name", "Image Taken"])
+        image_list.setHorizontalHeaderLabels(["File Name", "Image Sampled"])
         image_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         for (i, ts) in enumerate(tss):
@@ -33,7 +33,16 @@ class ImageViewer(QWidget):
             image_list.setItem(i, 1, QTableWidgetItem(str(dt)))
 
         self.layout().addWidget(image_list)
-        self.layout().addWidget(QLabel("bar"))
+
+        label = QLabel(parent=self)
+        pix = QPixmap()
+        pix.loadFromData(image_sensor.get_samples()[0])
+
+        label.setPixmap(pix)
+        label.setsi
+
+
+        self.layout().addWidget(label)
 
 
 class MainWindow(QMainWindow):
@@ -51,6 +60,6 @@ def start_gui(image_sensor: Image) -> None:
 
 
 if __name__ == "__main__":
-    path = "/home/opq/data/api_m_image/1637680002_1600191160612108.rdvxm"
+    path = "/Users/anthony/data/api_m_image/1637680002_1600191734626184.rdvxm"
     packet = WrappedRedvoxPacketM.from_compressed_path(path)
     start_gui(packet.get_sensors().get_image())
