@@ -175,6 +175,11 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
 
 
 def validate_image(image_sensor: Image) -> List[str]:
+    """
+    Validates the image sensor.
+    :param image_sensor: Image sensor to validate.
+    :return: A list of validation errors.
+    """
     errors_list = common.validate_timing_payload(image_sensor.get_timestamps())
     if image_sensor.get_image_codec() not in ImageCodec.__members__.values():
         errors_list.append("Image sensor image codec is unknown")
