@@ -272,7 +272,7 @@ def __parse_structured_layout(base_dir: str,
     for year in __list_subdirs(base_dir, __VALID_YEARS):
         for month in __list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
             for day in __list_subdirs(os.path.join(base_dir, year, month), __VALID_DATES):
-                for hour in __list_subdirs(os.path.join(base_dir, year, day), __VALID_HOURS):
+                for hour in __list_subdirs(os.path.join(base_dir, year, month, day), __VALID_HOURS):
                     # Before scanning for *.rdvxm files, let's see if the current year, month, day, hour are in the
                     # filter's range. If not, we can short circuit and skip getting the *.rdvxm files.
                     if not read_filter.filter_dt(datetime(int(year),
