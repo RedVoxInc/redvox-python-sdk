@@ -287,7 +287,7 @@ def __parse_structured_layout(base_dir: str,
                                                          month,
                                                          day,
                                                          hour,
-                                                         f"*.{read_filter.extension}"))
+                                                         f"*{read_filter.extension}"))
                     # Filer paths that match the predicate
                     valid_paths: List[str] = list(filter(lambda path: read_filter.filter_path(path), paths))
                     if len(valid_paths) > 0:
