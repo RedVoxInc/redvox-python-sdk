@@ -7,12 +7,13 @@ from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
 from functools import reduce
 from glob import glob
+from multiprocessing.dummy import Pool
 import os.path
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Set
 
+# from pathos.multiprocessing import ProcessPool
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType
-
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
 
@@ -43,7 +44,7 @@ class StationSummary:
                                            timedelta(seconds=0.0))
         start_dt: datetime = dt_us(first_packet.get_timing_information().get_packet_start_mach_timestamp())
         end_dt: datetime = dt_us(last_packet.get_timing_information().get_packet_start_mach_timestamp()) + \
-                            last_packet.get_packet_duration()
+                           last_packet.get_packet_duration()
 
         station_info = first_packet.get_station_information()
         audio = first_packet.get_sensors().get_audio()
@@ -249,6 +250,12 @@ __VALID_DATES: Set[str] = {f"{i:02}" for i in range(1, 32)}
 __VALID_HOURS: Set[str] = {f"{i:02}" for i in range(0, 24)}
 
 
+def __deserialize_parallel(paths: List[str]) -> List[WrappedRedvoxPacketM]:
+    return list(map(WrappedRedvoxPacketM.from_compressed_path, paths))
+    # pool = Pool(processes=16)
+    # return list(pool.map(WrappedRedvoxPacketM.from_compressed_path, paths))
+
+
 def __list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
     """
     Lists sub-directors in a given base directory that match the provided choices.
@@ -315,7 +322,7 @@ def read_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Re
     :return: A ReadResult
     """
     paths: List[str] = __parse_structured_layout(base_dir, read_filter)
-    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
+    wrapped_packets: List[WrappedRedvoxPacketM] = sorted(__deserialize_parallel(paths))
     return ReadResult.from_packets(wrapped_packets)
 
 
