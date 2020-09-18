@@ -180,7 +180,7 @@ class ReadResult:
 
         for id_uuid, packets in self.station_id_uuid_to_packets.items():
             s: List[str] = id_uuid.split(":")
-            self.__station_id_to_id_uuid[s[0]] = s[1]
+            self.__station_id_to_id_uuid[s[0]] = id_uuid
             self.__station_summaries.append(StationSummary.from_packets(packets))
 
     @staticmethod

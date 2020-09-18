@@ -9,9 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
-### 3.0.0a3 (2020-09-18)
+### 3.0.0a4 (2020-09-18)
 
 * Improvements to raw_io. Include new summaries in ReadResult.
+* Fix bug where querying with just the short ID was not working correctly
 
 ### 3.0.0a2 (2020-09-17)
 
