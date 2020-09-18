@@ -3,7 +3,7 @@ This module provides low level aggregate read functionality for RedVox API M dat
 """
 
 from collections import defaultdict
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from dataclasses import dataclass
 from functools import reduce
 from glob import glob
@@ -15,7 +15,6 @@ from typing import Dict, Iterator, List, Optional, Set
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
-
 
 @dataclass
 class StationSummary:
@@ -308,8 +307,7 @@ def __parse_structured_layout(base_dir: str,
                     if not read_filter.filter_dt(datetime(int(year),
                                                           int(month),
                                                           int(day),
-                                                          int(hour),
-                                                          tzinfo=timezone.utc)):
+                                                          int(hour))):
                         continue
 
                     paths: List[str] = glob(os.path.join(base_dir,
