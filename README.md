@@ -9,7 +9,7 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
-### 3.0.0a1 (2020-09-17)
+### 3.0.0a2 (2020-09-17)
 
 * First alpha release supporting API M
 
