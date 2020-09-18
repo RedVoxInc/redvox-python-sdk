@@ -32,6 +32,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
     """
     This class encapsulates metadata and data associated with the image sensor.
     """
+
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Image):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
@@ -179,6 +180,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         Opens a simple image gallery for viewing images in packet
         """
         image_viewer.start_gui(self)
+
 
 def validate_image(image_sensor: Image) -> List[str]:
     """
