@@ -7,12 +7,11 @@ from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
 from functools import reduce
 from glob import glob
-from multiprocessing.dummy import Pool
+from multiprocessing import Pool
 import os.path
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Set
 
-# from pathos.multiprocessing import ProcessPool
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
@@ -249,11 +248,35 @@ __VALID_MONTHS: Set[str] = {f"{i:02}" for i in range(1, 13)}
 __VALID_DATES: Set[str] = {f"{i:02}" for i in range(1, 32)}
 __VALID_HOURS: Set[str] = {f"{i:02}" for i in range(0, 24)}
 
+import redvox.api1000.proto.redvox_api_m_pb2 as pb
+from redvox.api1000.common.lz4 import decompress
 
-def __deserialize_parallel(paths: List[str]) -> List[WrappedRedvoxPacketM]:
-    return list(map(WrappedRedvoxPacketM.from_compressed_path, paths))
-    # pool = Pool(processes=16)
-    # return list(pool.map(WrappedRedvoxPacketM.from_compressed_path, paths))
+
+def __deserialize_path(path: str):
+    with open(path, "rb") as fin:
+        buf: bytes = fin.read()
+        debuf: bytes = decompress(buf)
+        proto: pb.RedvoxPacketM = pb.RedvoxPacketM()
+        proto.ParseFromString(debuf)
+        return proto
+
+
+def __deserialize_paths(paths: List[str], parallel: bool = False) -> List[WrappedRedvoxPacketM]:
+    """
+    Deserialize a list of paths into a list of WrappedRedvoxPacketMs
+    :param paths: Paths to deserialize
+    :param parallel: If True, a process pool is used to perform all decompression and deserialization. After
+                     decompression and deserialization, wrapping takes place in the original process. If False,
+                     decompression, deserialization, and wrapping take place in the original process serially.
+
+    :return: A list of WrappedRedvoxPacketMs.
+    """
+    if parallel:
+        pool = Pool()
+        deserialized = list(pool.map(__deserialize_path, paths))
+        return list(map(lambda de: WrappedRedvoxPacketM(de), deserialized))
+    else:
+        return list(map(WrappedRedvoxPacketM.from_compressed_path, paths))
 
 
 def __list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
@@ -313,28 +336,36 @@ def read_bufs(bufs: List[bytes]) -> ReadResult:
     return ReadResult.from_packets(wrapped_packets)
 
 
-def read_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> ReadResult:
+def read_structured(base_dir: str, read_filter: ReadFilter = ReadFilter(), parallel: bool = False) -> ReadResult:
     """
     Read structured API M data. Structured API data is stored using the following directory hierarchy.
         api1000/[YYYY]/[MM]/[DD]/[HH]/*.rdvxm
     :param base_dir: Base directory of structured data (should be named api1000)
     :param read_filter: Filter to apply to files.
+    :param parallel: Experimental feature. When enabled, packet reading, decompression, and initial deserialization
+                     will take place in parallel (one process per CPU). This can decrease reading time for medium
+                     sized data sets, but comes with additional memory overhead that can negatively impact reading of
+                     small and large data sets.
     :return: A ReadResult
     """
     paths: List[str] = __parse_structured_layout(base_dir, read_filter)
-    wrapped_packets: List[WrappedRedvoxPacketM] = sorted(__deserialize_parallel(paths))
+    wrapped_packets: List[WrappedRedvoxPacketM] = __deserialize_paths(paths, parallel)
     return ReadResult.from_packets(wrapped_packets)
 
 
-def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> ReadResult:
+def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter(), parallel: bool = False) -> ReadResult:
     """
     Reads RedVox files from a provided directory.
     :param base_dir: Directory to read files from.
     :param read_filter: Filter to filter files with.
+    :param parallel: Experimental feature. When enabled, packet reading, decompression, and initial deserialization
+                     will take place in parallel (one process per CPU). This can decrease reading time for medium
+                     sized data sets, but comes with additional memory overhead that can negatively impact reading of
+                     small and large data sets.
     :return: A ReadResult.
     """
     pattern: str = os.path.join(base_dir, f"*{read_filter.extension}")
-    paths: List[str] = glob(os.path.join(base_dir, f"*{read_filter.extension}"))
+    paths: List[str] = glob(os.path.join(base_dir, pattern))
     paths = list(filter(lambda path: read_filter.filter_path(path), paths))
-    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
+    wrapped_packets: List[WrappedRedvoxPacketM] = __deserialize_paths(paths, parallel)
     return ReadResult.from_packets(wrapped_packets)
