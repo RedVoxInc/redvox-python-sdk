@@ -3,15 +3,60 @@ This module provides low level aggregate read functionality for RedVox API M dat
 """
 
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
+from functools import reduce
 from glob import glob
 import os.path
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Set
 
+from redvox.api1000.wrapped_redvox_packet.station_information import OsType
+
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
+
+
+@dataclass
+class StationSummary:
+    station_id: str
+    station_uuid: str
+    auth_id: str
+    os: OsType
+    os_version: str
+    app_version: str
+    audio_sampling_rate: float
+    total_packets: int
+    total_duration: timedelta
+    start_dt: datetime
+    end_dt: datetime
+
+    @staticmethod
+    def from_packets(packets: List[WrappedRedvoxPacketM]) -> 'StationSummary':
+        first_packet: WrappedRedvoxPacketM = packets[0]
+        last_packet: WrappedRedvoxPacketM = packets[-1]
+        total_duration: timedelta = reduce(lambda acc, packet: acc + packet.get_packet_duration(),
+                                           packets,
+                                           timedelta(seconds=0.0))
+        start_dt: datetime = dt_us(first_packet.get_timing_information().get_packet_start_mach_timestamp())
+        end_dt: datetime = dt_us(last_packet.get_timing_information().get_packet_start_mach_timestamp()) + \
+                           last_packet.get_packet_duration()
+
+        station_info = first_packet.get_station_information()
+        audio = first_packet.get_sensors().get_audio()
+        return StationSummary(
+            station_info.get_id(),
+            station_info.get_uuid(),
+            station_info.get_auth_id(),
+            station_info.get_os(),
+            station_info.get_os_version(),
+            station_info.get_app_version(),
+            audio.get_sample_rate(),
+            len(packets),
+            total_duration,
+            start_dt,
+            end_dt
+        )
 
 
 @dataclass
@@ -120,6 +165,7 @@ class ReadResult:
     """
     Result of reading multiple API M files.
     """
+
     def __init__(self,
                  station_id_uuid_to_packets: Dict[str, List[WrappedRedvoxPacketM]]):
         """
@@ -127,10 +173,12 @@ class ReadResult:
         """
         self.station_id_uuid_to_packets: Dict[str, List[WrappedRedvoxPacketM]] = station_id_uuid_to_packets
         self.__station_id_to_id_uuid: Dict[str, str] = {}
+        self.__station_summaries: List[StationSummary] = []
 
         for id_uuid, packets in self.station_id_uuid_to_packets.items():
             s: List[str] = id_uuid.split(":")
             self.__station_id_to_id_uuid[s[0]] = s[1]
+            self.__station_summaries.append(StationSummary.from_packets(packets))
 
     @staticmethod
     def from_packets(packets: List[WrappedRedvoxPacketM]) -> 'ReadResult':
@@ -172,11 +220,11 @@ class ReadResult:
 
         return []
 
-    def get_station_id_uuids(self) -> List[str]:
+    def get_station_summaries(self) -> List[StationSummary]:
         """
-        :return: A list of station_id:uuids contained in this ReadResult
+        :return: A list of StationSummaries contained in this ReadResult
         """
-        return list(self.station_id_uuid_to_packets.keys())
+        return self.__station_summaries
 
     def get_packets_for_station_id(self, station_id: str) -> List[WrappedRedvoxPacketM]:
         """
@@ -192,10 +240,10 @@ class ReadResult:
 
 # We need to parse the API M structured directory structure. Here, we enumerate the valid values for the various
 # levels in the hierarchy.
-__VALID_YEARS:  Set[str] = {f"{i:04}" for i in range(2018, 2031)}
+__VALID_YEARS: Set[str] = {f"{i:04}" for i in range(2018, 2031)}
 __VALID_MONTHS: Set[str] = {f"{i:02}" for i in range(1, 13)}
-__VALID_DATES:  Set[str] = {f"{i:02}" for i in range(1, 32)}
-__VALID_HOURS:  Set[str] = {f"{i:02}" for i in range(0, 24)}
+__VALID_DATES: Set[str] = {f"{i:02}" for i in range(1, 32)}
+__VALID_HOURS: Set[str] = {f"{i:02}" for i in range(0, 24)}
 
 
 def __list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
@@ -275,8 +323,8 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> 
     :param read_filter: Filter to filter files with.
     :return: A ReadResult.
     """
-    paths: List[str] = glob(os.path.join(base_dir, f"*.{read_filter.extension}"))
+    pattern: str = os.path.join(base_dir, f"*{read_filter.extension}")
+    paths: List[str] = glob(os.path.join(base_dir, f"*{read_filter.extension}"))
     paths = list(filter(lambda path: read_filter.filter_path(path), paths))
     wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
     return ReadResult.from_packets(wrapped_packets)
-
