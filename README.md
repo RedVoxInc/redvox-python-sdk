@@ -2,12 +2,16 @@
 
 This repository contains code for reading and working with the RedVox API 900 and API 1000 (M) data formats.
 
-* API 1000 Documentation (M): https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v3.0.0a1/README.md
+* API 1000 Documentation (M): https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v3.0.0a3/README.md
 * API 900 Documentation: https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/docs/v2.9.10/redvox-api900-docs.md
 
 ![Bitbucket Pipelines branch](https://img.shields.io/bitbucket/pipelines/redvoxhi/redvox-api900-python-reader/master)
 
 ## Changelog
+
+### 3.0.0a3 (2020-09-18)
+
+* Improvements to raw_io. Include new summaries in ReadResult.
 
 ### 3.0.0a2 (2020-09-17)
 

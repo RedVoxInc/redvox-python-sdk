@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>redvox.api900.timesync.tri_message_stats API documentation</title>
+<meta name="description" content="Modules for extracting time synchronization statistics according to Tri-Message protocol. All functions assume
+payload for ONE data packet/decoder …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.api900.timesync.tri_message_stats</code></h1>
+</header>
+<section id="section-intro">
+<p>Modules for extracting time synchronization statistics according to Tri-Message protocol. All functions assume
+payload for ONE data packet/decoder ONLY. These modules will be called separately by API800 and API900 loaders, they
+are in themselves helper functions. They do not depend on API formats, they take the time sync payloads as parameters
+and use Tri-Message protocol to compute latencies, check criteria, and correct the "machine" start time B0 based on the
+minimum latencies.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Modules for extracting time synchronization statistics according to Tri-Message protocol. All functions assume
+payload for ONE data packet/decoder ONLY. These modules will be called separately by API800 and API900 loaders, they
+are in themselves helper functions. They do not depend on API formats, they take the time sync payloads as parameters
+and use Tri-Message protocol to compute latencies, check criteria, and correct the &#34;machine&#34; start time B0 based on the
+minimum latencies.
+&#34;&#34;&#34;
+
+from typing import Dict, List, Optional, Tuple, Union
+
+# noinspection Mypy
+import numpy as np
+
+
+class TriMessageStats:
+    &#34;&#34;&#34;
+    Stores statistics about the tri-message exchanges
+    ALL timestamps in microseconds
+    Properties:
+        packet_id: an identifier for the packet that contains the data.  Used for reporting purposes
+        latency1: latencies measured by timestamps 1 and 2
+        latency3: latencies measured by timestamps 2 and 3
+        offset1: offsets measured by timestamps 1 and 2
+        offset3: offsets measured by timestamps 2 and 3
+        best_latency: minimum latency that meets all criteria
+        best_offset: best offset that meets all criteria
+        best_latency_array_index: number of latency array with best latency
+        best_latency_index: index in latency array of best latency
+        num_messages: number of tri-message exchanges
+    &#34;&#34;&#34;
+
+    def __init__(self,
+                 packet_id: Union[str, int],
+                 a1: np.ndarray,
+                 a2: np.ndarray,
+                 a3: np.ndarray,
+                 b1: np.ndarray,
+                 b2: np.ndarray,
+                 b3: np.ndarray):
+        &#34;&#34;&#34;
+        Calculate latency, offset, and their qualities.
+        :param packet_id: an identifier for reporting purposes
+        :param a1: array of server timestamp 1
+        :param a2: array of server timestamp 2
+        :param a3: array of server timestamp 3
+        :param b1: array of device timestamp 1
+        :param b2: array of device timestamp 2
+        :param b3: array of device timestamp 3
+        &#34;&#34;&#34;
+        self.packet_id: Union[str, int] = packet_id
+        self.num_messages: int = len(a1)
+        # compute latencies and offsets
+        latencies_tuple: Tuple[np.ndarray, np.ndarray] = latencies(a1, a2, a3, b1, b2, b3)
+        self.latency1: np.ndarray = latencies_tuple[0]
+        self.latency3: np.ndarray = latencies_tuple[1]
+        offsets_tuple: Tuple[np.ndarray, np.ndarray] = offsets(a1, a2, a3, b1, b2, b3)
+        self.offset1: np.ndarray = offsets_tuple[0]
+        self.offset3: np.ndarray = offsets_tuple[1]
+
+        self.best_latency: Optional[float] = None
+        self.best_latency_array_index: Optional[int] = None
+        self.best_latency_index: Optional[int] = None
+        self.best_offset: Optional[float] = 0.0
+
+        self.find_best_latency()
+        self.find_best_offset()
+
+    def find_best_latency(self) -&gt; None:
+        &#34;&#34;&#34;
+        Finds the best latency among the latencies
+        &#34;&#34;&#34;
+        try:
+            # find value and index of minimum latency of nonzero latencies
+            d1_min: float = np.min(self.latency1[self.latency1 != 0])
+            d3_min: float = np.min(self.latency3[self.latency3 != 0])
+
+            if d3_min &gt; d1_min:
+                self.best_latency = d1_min  # server round trip is shorter
+                self.best_latency_array_index = 1
+                self.best_latency_index = np.where(self.latency1 == d1_min)[0][0]
+            else:
+                self.best_latency = d3_min
+                self.best_latency_array_index = 3
+                self.best_latency_index = np.where(self.latency3 == d3_min)[0][0]
+        except ValueError:
+            # all latencies for one of the arrays is zero; the data is untrustworthy.  set the defaults
+            self.best_latency = None
+            self.best_latency_array_index = None
+            self.best_latency_index = None
+
+    def find_best_offset(self) -&gt; None:
+        &#34;&#34;&#34;
+        Finds the best offset among the offsets
+        &#34;&#34;&#34;
+        # if no best latency, find it
+        if self.best_latency is None:
+            self.find_best_latency()
+        # best latency = best offset, if best latency is still None, best offset is 0.0
+        if self.best_latency_array_index == 1:
+            self.best_offset = self.offset1[self.best_latency_index]
+        elif self.best_latency_array_index == 3:
+            self.best_offset = self.offset3[self.best_latency_index]
+        else:
+            self.best_offset = 0.0
+
+    def set_latency(self,
+                    a1_coeffs: np.ndarray,
+                    a2_coeffs: np.ndarray,
+                    a3_coeffs: np.ndarray,
+                    b1_coeffs: np.ndarray,
+                    b2_coeffs: np.ndarray,
+                    b3_coeffs: np.ndarray) -&gt; None:
+        &#34;&#34;&#34;
+        set the latency and find the best
+        :param a1_coeffs: server timestamp 1
+        :param a2_coeffs: server timestamp 2
+        :param a3_coeffs: server timestamp 3
+        :param b1_coeffs: device timestamp 1
+        :param b2_coeffs: device timestamp 2
+        :param b3_coeffs: device timestamp 3
+        &#34;&#34;&#34;
+        # compute latencies
+        self.latency1, self.latency3 = latencies(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+        self.find_best_latency()
+
+    def set_offset(self,
+                   a1_coeffs: np.ndarray,
+                   a2_coeffs: np.ndarray,
+                   a3_coeffs: np.ndarray,
+                   b1_coeffs: np.ndarray,
+                   b2_coeffs: np.ndarray,
+                   b3_coeffs: np.ndarray) -&gt; None:
+        &#34;&#34;&#34;
+        set the offset and find the best
+        :param a1_coeffs: server timestamp 1
+        :param a2_coeffs: server timestamp 2
+        :param a3_coeffs: server timestamp 3
+        :param b1_coeffs: device timestamp 1
+        :param b2_coeffs: device timestamp 2
+        :param b3_coeffs: device timestamp 3
+        &#34;&#34;&#34;
+        # latency calculations are required:
+        if self.best_latency is None:
+            self.set_latency(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+        # compute offsets
+        self.offset1, self.offset3 = offsets(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+        self.find_best_offset()
+
+
+def latencies(a1_coeffs: np.ndarray,
+              a2_coeffs: np.ndarray,
+              a3_coeffs: np.ndarray,
+              b1_coeffs: np.ndarray,
+              b2_coeffs: np.ndarray,
+              b3_coeffs: np.ndarray) -&gt; Tuple[np.ndarray, np.ndarray]:
+    &#34;&#34;&#34;
+    Compute latencies in microseconds based on message exchange timestamps.
+
+    Parameters
+    ----------
+    a1_coeffs, ... b3_coeffs: tri-message timestamps as loaded in transmit_receive_timestamps_microsec
+
+    Returns
+    -------
+    d1_coeffs: array of server round trip latencies in microseconds
+    d3_coeffs: array of device round trip latencies in microseconds
+    &#34;&#34;&#34;
+    # Compute latencies in microseconds
+    d1_coeffs: np.ndarray = 0.5 * ((a2_coeffs - a1_coeffs) - (b2_coeffs - b1_coeffs))
+    d3_coeffs: np.ndarray = 0.5 * ((b3_coeffs - b2_coeffs) - (a3_coeffs - a2_coeffs))
+
+    # convert negative latencies to 0.  negative latencies should not exist naturally
+    d1_coeffs[d1_coeffs &lt; 0] = 0
+    d3_coeffs[d3_coeffs &lt; 0] = 0
+
+    return d1_coeffs, d3_coeffs
+
+
+def offsets(a1_coeffs: np.ndarray,
+            a2_coeffs: np.ndarray,
+            a3_coeffs: np.ndarray,
+            b1_coeffs: np.ndarray,
+            b2_coeffs: np.ndarray,
+            b3_coeffs: np.ndarray) -&gt; Tuple[np.ndarray, np.ndarray]:
+    &#34;&#34;&#34;
+    Compute offsets in microseconds based on message exchange timestamps.
+
+    Parameters
+    ----------
+    a1_coeffs, ... b3_coeffs: tri-message timestamps as loaded in transmit_receive_timestamps_microsec
+
+    Returns
+    -------
+    o1_coeffs: array of server round trip latencies in microseconds
+    o3_coeffs: array of device round trip latencies in microseconds
+    &#34;&#34;&#34;
+    # assume the generic equation f = a - b + d
+    # where d is latency, f is offset, b is machine time and a is time sync server time
+    # refer to latency equations above for definitions of d1_coeffs and d3_coeffs
+    # with latency d1_coeffs, the equation is f1 = a1_coeffs - b1_coeffs + d1_coeffs
+    # with latency d3_coeffs, the equation is f3 = a3_coeffs - b3_coeffs + d3_coeffs
+    # In the absence of latency, offset can be calculated this way:
+    # o1_coeffs = (a1_coeffs - b1_coeffs + a2_coeffs - b2_coeffs) / 2.
+    # o3_coeffs = (a3_coeffs - b3_coeffs + a2_coeffs - b2_coeffs) / 2.
+    # get latencies
+    latencies_tuple: Tuple[np.ndarray, np.ndarray] = latencies(a1_coeffs,
+                                                               a2_coeffs,
+                                                               a3_coeffs,
+                                                               b1_coeffs,
+                                                               b2_coeffs,
+                                                               b3_coeffs)
+    d1_coeffs: np.ndarray = latencies_tuple[0]
+    d3_coeffs: np.ndarray = latencies_tuple[1]
+    # use latency to compute offset in microseconds
+    o1_coeffs: np.ndarray = a1_coeffs - b1_coeffs + d1_coeffs
+    o3_coeffs: np.ndarray = a3_coeffs - b3_coeffs + d3_coeffs
+
+    return o1_coeffs, o3_coeffs
+
+
+def validate_timestamps(a1_coeffs: np.ndarray, a2_coeffs: np.ndarray, a3_coeffs: np.ndarray,
+                        b1_coeffs: np.ndarray, b2_coeffs: np.ndarray, b3_coeffs: np.ndarray) -&gt; \
+        Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    &#34;&#34;&#34;
+    it&#39;s possible some of the tri-message values are duplicated; the duplicates and other invalid times
+    must be removed.
+
+       Parameters
+       -------
+       a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs: arrays of message exchange timestamps
+
+       Returns
+       -------
+       a1_coeffs[valid_indices], a2_coeffs[valid_indices], a3_coeffs[valid_indices],
+       b1_coeffs[valid_indices], b2_coeffs[valid_indices], b3_coeffs[valid_indices]:
+       arrays of valid message exchange timestamps
+    &#34;&#34;&#34;
+    num_timestamps = len(a1_coeffs)
+    # if length is 1 or less, no need to validate, just return all the values
+    if num_timestamps &lt;= 1:
+        return a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
+    # if here, there&#39;s more than 1 exchange to check
+    valid_times: List[Dict] = [{}, {}, {}, {}, {}, {}]
+    valid_indices = []
+    all_timestamps = [a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs]
+    # for each set of timestamps a1x, a2x, etc. in all exchanges
+    for data_index in range(6):
+        for time_index in range(num_timestamps):
+            # compare the time to existing information
+            time = all_timestamps[data_index][time_index]
+            if time not in valid_times:
+                # it&#39;s not in valid times, it&#39;s a new time
+                valid_times[data_index][time] = time_index
+    for index in valid_times[0].values():
+        # if it&#39;s not in the first one, it&#39;s not valid.  if it doesn&#39;t show up in all others, it&#39;s not valid
+        if index in valid_times[1].values() and index in valid_times[2].values() and \
+                index in valid_times[3].values() and index in valid_times[4].values() and \
+                index in valid_times[5].values():
+            valid_indices.append(index)
+    return a1_coeffs[valid_indices], a2_coeffs[valid_indices], a3_coeffs[valid_indices], \
+        b1_coeffs[valid_indices], b2_coeffs[valid_indices], b3_coeffs[valid_indices]
+
+
+def transmit_receive_timestamps_microsec(coeffs: np.ndarray) -&gt; Tuple[
+        np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    &#34;&#34;&#34;
+       Recover Tri-Message timestamp coefficients. Uses concept of
+       Tri-Message to synchronize a device with a reference server:
+
+           First, server A transmits a message to device B with timestamp a1_coeffs. B receives the message at timestamp
+            b1_coeffs. B then transmits a message back to A with timestamp b2_coeffs. A receives this message at
+            timestamp a2_coeffs. A transmits a second message to B at timestamp a3_coeffs. B receives the message at
+            timestamp b3_coeffs.
+
+       Parameters
+       ----------
+       coeffs: array of tri-message coefficients (a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+
+       Returns
+       -------
+       a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs: arrays of message exchange timestamps
+    &#34;&#34;&#34;
+
+    if len(coeffs) % 6 != 0:
+        raise Exception(&#34;Tri-Message contains partial exchange, unsafe to use it for computations.&#34;)
+
+    # Timing coefficients
+    step: int = 6  # each tri-message exchange contains 6 timestamps, 3 from server and 3 from device
+    stop: int = int(len(coeffs) / 6) * step
+
+    a1_coeffs: np.ndarray = coeffs[0: stop: step]  # server first transmit timestamps in epoch microseconds
+    a2_coeffs: np.ndarray = coeffs[1: stop: step]  # server first receive timestamps in epoch microseconds
+    a3_coeffs: np.ndarray = coeffs[2: stop: step]  # server second transmit timestamps in epoch microseconds
+    b1_coeffs: np.ndarray = coeffs[3: stop: step]  # device first receive timestamps in mach microseconds
+    b2_coeffs: np.ndarray = coeffs[4: stop: step]  # device first transmit timestamps in mach microseconds
+    b3_coeffs: np.ndarray = coeffs[5: stop: step]  # device second receive timestamps in mach microseconds
+
+    # make sure each tri-message exchange contains 6 timestamps (done with modulo check above)
+    # assert len(a1_coeffs) == len(a2_coeffs) == len(a3_coeffs) == len(b1_coeffs) == len(b2_coeffs) == len(b3_coeffs)
+
+    return a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.api900.timesync.tri_message_stats.latencies"><code class="name flex">
+<span>def <span class="ident">latencies</span></span>(<span>a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> typing.Tuple[numpy.ndarray, numpy.ndarray]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute latencies in microseconds based on message exchange timestamps.</p>
+<h2 id="parameters">Parameters</h2>
+<p>a1_coeffs, &hellip; b3_coeffs: tri-message timestamps as loaded in transmit_receive_timestamps_microsec</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>d1_coeffs</code></strong> :&ensp;<code>array</code> of <code>server round trip <a title="redvox.api900.timesync.tri_message_stats.latencies" href="#redvox.api900.timesync.tri_message_stats.latencies">latencies()</a> in microseconds</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>d3_coeffs</code></strong> :&ensp;<code>array</code> of <code>device round trip <a title="redvox.api900.timesync.tri_message_stats.latencies" href="#redvox.api900.timesync.tri_message_stats.latencies">latencies()</a> in microseconds</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def latencies(a1_coeffs: np.ndarray,
+              a2_coeffs: np.ndarray,
+              a3_coeffs: np.ndarray,
+              b1_coeffs: np.ndarray,
+              b2_coeffs: np.ndarray,
+              b3_coeffs: np.ndarray) -&gt; Tuple[np.ndarray, np.ndarray]:
+    &#34;&#34;&#34;
+    Compute latencies in microseconds based on message exchange timestamps.
+
+    Parameters
+    ----------
+    a1_coeffs, ... b3_coeffs: tri-message timestamps as loaded in transmit_receive_timestamps_microsec
+
+    Returns
+    -------
+    d1_coeffs: array of server round trip latencies in microseconds
+    d3_coeffs: array of device round trip latencies in microseconds
+    &#34;&#34;&#34;
+    # Compute latencies in microseconds
+    d1_coeffs: np.ndarray = 0.5 * ((a2_coeffs - a1_coeffs) - (b2_coeffs - b1_coeffs))
+    d3_coeffs: np.ndarray = 0.5 * ((b3_coeffs - b2_coeffs) - (a3_coeffs - a2_coeffs))
+
+    # convert negative latencies to 0.  negative latencies should not exist naturally
+    d1_coeffs[d1_coeffs &lt; 0] = 0
+    d3_coeffs[d3_coeffs &lt; 0] = 0
+
+    return d1_coeffs, d3_coeffs</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.timesync.tri_message_stats.offsets"><code class="name flex">
+<span>def <span class="ident">offsets</span></span>(<span>a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> typing.Tuple[numpy.ndarray, numpy.ndarray]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute offsets in microseconds based on message exchange timestamps.</p>
+<h2 id="parameters">Parameters</h2>
+<p>a1_coeffs, &hellip; b3_coeffs: tri-message timestamps as loaded in transmit_receive_timestamps_microsec</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>o1_coeffs</code></strong> :&ensp;<code>array</code> of <code>server round trip <a title="redvox.api900.timesync.tri_message_stats.latencies" href="#redvox.api900.timesync.tri_message_stats.latencies">latencies()</a> in microseconds</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>o3_coeffs</code></strong> :&ensp;<code>array</code> of <code>device round trip <a title="redvox.api900.timesync.tri_message_stats.latencies" href="#redvox.api900.timesync.tri_message_stats.latencies">latencies()</a> in microseconds</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def offsets(a1_coeffs: np.ndarray,
+            a2_coeffs: np.ndarray,
+            a3_coeffs: np.ndarray,
+            b1_coeffs: np.ndarray,
+            b2_coeffs: np.ndarray,
+            b3_coeffs: np.ndarray) -&gt; Tuple[np.ndarray, np.ndarray]:
+    &#34;&#34;&#34;
+    Compute offsets in microseconds based on message exchange timestamps.
+
+    Parameters
+    ----------
+    a1_coeffs, ... b3_coeffs: tri-message timestamps as loaded in transmit_receive_timestamps_microsec
+
+    Returns
+    -------
+    o1_coeffs: array of server round trip latencies in microseconds
+    o3_coeffs: array of device round trip latencies in microseconds
+    &#34;&#34;&#34;
+    # assume the generic equation f = a - b + d
+    # where d is latency, f is offset, b is machine time and a is time sync server time
+    # refer to latency equations above for definitions of d1_coeffs and d3_coeffs
+    # with latency d1_coeffs, the equation is f1 = a1_coeffs - b1_coeffs + d1_coeffs
+    # with latency d3_coeffs, the equation is f3 = a3_coeffs - b3_coeffs + d3_coeffs
+    # In the absence of latency, offset can be calculated this way:
+    # o1_coeffs = (a1_coeffs - b1_coeffs + a2_coeffs - b2_coeffs) / 2.
+    # o3_coeffs = (a3_coeffs - b3_coeffs + a2_coeffs - b2_coeffs) / 2.
+    # get latencies
+    latencies_tuple: Tuple[np.ndarray, np.ndarray] = latencies(a1_coeffs,
+                                                               a2_coeffs,
+                                                               a3_coeffs,
+                                                               b1_coeffs,
+                                                               b2_coeffs,
+                                                               b3_coeffs)
+    d1_coeffs: np.ndarray = latencies_tuple[0]
+    d3_coeffs: np.ndarray = latencies_tuple[1]
+    # use latency to compute offset in microseconds
+    o1_coeffs: np.ndarray = a1_coeffs - b1_coeffs + d1_coeffs
+    o3_coeffs: np.ndarray = a3_coeffs - b3_coeffs + d3_coeffs
+
+    return o1_coeffs, o3_coeffs</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.timesync.tri_message_stats.transmit_receive_timestamps_microsec"><code class="name flex">
+<span>def <span class="ident">transmit_receive_timestamps_microsec</span></span>(<span>coeffs: numpy.ndarray) ‑> typing.Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Recover Tri-Message timestamp coefficients. Uses concept of
+Tri-Message to synchronize a device with a reference server:</p>
+<pre><code>First, server A transmits a message to device B with timestamp a1_coeffs. B receives the message at timestamp
+ b1_coeffs. B then transmits a message back to A with timestamp b2_coeffs. A receives this message at
+ timestamp a2_coeffs. A transmits a second message to B at timestamp a3_coeffs. B receives the message at
+ timestamp b3_coeffs.
+</code></pre>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>coeffs</code></strong> :&ensp;<code>array</code> of <code>tri-message coefficients (a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>a1_coeffs</code></strong>, <strong><code>a2_coeffs</code></strong>, <strong><code>a3_coeffs</code></strong>, <strong><code>b1_coeffs</code></strong>, <strong><code>b2_coeffs</code></strong>, <strong><code>b3_coeffs</code></strong> :&ensp;<code>arrays</code> of <code>message exchange timestamps</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transmit_receive_timestamps_microsec(coeffs: np.ndarray) -&gt; Tuple[
+        np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    &#34;&#34;&#34;
+       Recover Tri-Message timestamp coefficients. Uses concept of
+       Tri-Message to synchronize a device with a reference server:
+
+           First, server A transmits a message to device B with timestamp a1_coeffs. B receives the message at timestamp
+            b1_coeffs. B then transmits a message back to A with timestamp b2_coeffs. A receives this message at
+            timestamp a2_coeffs. A transmits a second message to B at timestamp a3_coeffs. B receives the message at
+            timestamp b3_coeffs.
+
+       Parameters
+       ----------
+       coeffs: array of tri-message coefficients (a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+
+       Returns
+       -------
+       a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs: arrays of message exchange timestamps
+    &#34;&#34;&#34;
+
+    if len(coeffs) % 6 != 0:
+        raise Exception(&#34;Tri-Message contains partial exchange, unsafe to use it for computations.&#34;)
+
+    # Timing coefficients
+    step: int = 6  # each tri-message exchange contains 6 timestamps, 3 from server and 3 from device
+    stop: int = int(len(coeffs) / 6) * step
+
+    a1_coeffs: np.ndarray = coeffs[0: stop: step]  # server first transmit timestamps in epoch microseconds
+    a2_coeffs: np.ndarray = coeffs[1: stop: step]  # server first receive timestamps in epoch microseconds
+    a3_coeffs: np.ndarray = coeffs[2: stop: step]  # server second transmit timestamps in epoch microseconds
+    b1_coeffs: np.ndarray = coeffs[3: stop: step]  # device first receive timestamps in mach microseconds
+    b2_coeffs: np.ndarray = coeffs[4: stop: step]  # device first transmit timestamps in mach microseconds
+    b3_coeffs: np.ndarray = coeffs[5: stop: step]  # device second receive timestamps in mach microseconds
+
+    # make sure each tri-message exchange contains 6 timestamps (done with modulo check above)
+    # assert len(a1_coeffs) == len(a2_coeffs) == len(a3_coeffs) == len(b1_coeffs) == len(b2_coeffs) == len(b3_coeffs)
+
+    return a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.timesync.tri_message_stats.validate_timestamps"><code class="name flex">
+<span>def <span class="ident">validate_timestamps</span></span>(<span>a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> typing.Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>it's possible some of the tri-message values are duplicated; the duplicates and other invalid times
+must be removed.</p>
+<p>Parameters</p>
+<hr>
+<p>a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs: arrays of message exchange timestamps</p>
+<p>Returns</p>
+<hr>
+<p>a1_coeffs[valid_indices], a2_coeffs[valid_indices], a3_coeffs[valid_indices],
+b1_coeffs[valid_indices], b2_coeffs[valid_indices], b3_coeffs[valid_indices]:
+arrays of valid message exchange timestamps</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_timestamps(a1_coeffs: np.ndarray, a2_coeffs: np.ndarray, a3_coeffs: np.ndarray,
+                        b1_coeffs: np.ndarray, b2_coeffs: np.ndarray, b3_coeffs: np.ndarray) -&gt; \
+        Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    &#34;&#34;&#34;
+    it&#39;s possible some of the tri-message values are duplicated; the duplicates and other invalid times
+    must be removed.
+
+       Parameters
+       -------
+       a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs: arrays of message exchange timestamps
+
+       Returns
+       -------
+       a1_coeffs[valid_indices], a2_coeffs[valid_indices], a3_coeffs[valid_indices],
+       b1_coeffs[valid_indices], b2_coeffs[valid_indices], b3_coeffs[valid_indices]:
+       arrays of valid message exchange timestamps
+    &#34;&#34;&#34;
+    num_timestamps = len(a1_coeffs)
+    # if length is 1 or less, no need to validate, just return all the values
+    if num_timestamps &lt;= 1:
+        return a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
+    # if here, there&#39;s more than 1 exchange to check
+    valid_times: List[Dict] = [{}, {}, {}, {}, {}, {}]
+    valid_indices = []
+    all_timestamps = [a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs]
+    # for each set of timestamps a1x, a2x, etc. in all exchanges
+    for data_index in range(6):
+        for time_index in range(num_timestamps):
+            # compare the time to existing information
+            time = all_timestamps[data_index][time_index]
+            if time not in valid_times:
+                # it&#39;s not in valid times, it&#39;s a new time
+                valid_times[data_index][time] = time_index
+    for index in valid_times[0].values():
+        # if it&#39;s not in the first one, it&#39;s not valid.  if it doesn&#39;t show up in all others, it&#39;s not valid
+        if index in valid_times[1].values() and index in valid_times[2].values() and \
+                index in valid_times[3].values() and index in valid_times[4].values() and \
+                index in valid_times[5].values():
+            valid_indices.append(index)
+    return a1_coeffs[valid_indices], a2_coeffs[valid_indices], a3_coeffs[valid_indices], \
+        b1_coeffs[valid_indices], b2_coeffs[valid_indices], b3_coeffs[valid_indices]</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.api900.timesync.tri_message_stats.TriMessageStats"><code class="flex name class">
+<span>class <span class="ident">TriMessageStats</span></span>
+<span>(</span><span>packet_id: typing.Union[str, int], a1: numpy.ndarray, a2: numpy.ndarray, a3: numpy.ndarray, b1: numpy.ndarray, b2: numpy.ndarray, b3: numpy.ndarray)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Stores statistics about the tri-message exchanges
+ALL timestamps in microseconds</p>
+<h2 id="properties">Properties</h2>
+<p>packet_id: an identifier for the packet that contains the data.
+Used for reporting purposes
+latency1: latencies measured by timestamps 1 and 2
+latency3: latencies measured by timestamps 2 and 3
+offset1: offsets measured by timestamps 1 and 2
+offset3: offsets measured by timestamps 2 and 3
+best_latency: minimum latency that meets all criteria
+best_offset: best offset that meets all criteria
+best_latency_array_index: number of latency array with best latency
+best_latency_index: index in latency array of best latency
+num_messages: number of tri-message exchanges</p>
+<p>Calculate latency, offset, and their qualities.
+:param packet_id: an identifier for reporting purposes
+:param a1: array of server timestamp 1
+:param a2: array of server timestamp 2
+:param a3: array of server timestamp 3
+:param b1: array of device timestamp 1
+:param b2: array of device timestamp 2
+:param b3: array of device timestamp 3</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TriMessageStats:
+    &#34;&#34;&#34;
+    Stores statistics about the tri-message exchanges
+    ALL timestamps in microseconds
+    Properties:
+        packet_id: an identifier for the packet that contains the data.  Used for reporting purposes
+        latency1: latencies measured by timestamps 1 and 2
+        latency3: latencies measured by timestamps 2 and 3
+        offset1: offsets measured by timestamps 1 and 2
+        offset3: offsets measured by timestamps 2 and 3
+        best_latency: minimum latency that meets all criteria
+        best_offset: best offset that meets all criteria
+        best_latency_array_index: number of latency array with best latency
+        best_latency_index: index in latency array of best latency
+        num_messages: number of tri-message exchanges
+    &#34;&#34;&#34;
+
+    def __init__(self,
+                 packet_id: Union[str, int],
+                 a1: np.ndarray,
+                 a2: np.ndarray,
+                 a3: np.ndarray,
+                 b1: np.ndarray,
+                 b2: np.ndarray,
+                 b3: np.ndarray):
+        &#34;&#34;&#34;
+        Calculate latency, offset, and their qualities.
+        :param packet_id: an identifier for reporting purposes
+        :param a1: array of server timestamp 1
+        :param a2: array of server timestamp 2
+        :param a3: array of server timestamp 3
+        :param b1: array of device timestamp 1
+        :param b2: array of device timestamp 2
+        :param b3: array of device timestamp 3
+        &#34;&#34;&#34;
+        self.packet_id: Union[str, int] = packet_id
+        self.num_messages: int = len(a1)
+        # compute latencies and offsets
+        latencies_tuple: Tuple[np.ndarray, np.ndarray] = latencies(a1, a2, a3, b1, b2, b3)
+        self.latency1: np.ndarray = latencies_tuple[0]
+        self.latency3: np.ndarray = latencies_tuple[1]
+        offsets_tuple: Tuple[np.ndarray, np.ndarray] = offsets(a1, a2, a3, b1, b2, b3)
+        self.offset1: np.ndarray = offsets_tuple[0]
+        self.offset3: np.ndarray = offsets_tuple[1]
+
+        self.best_latency: Optional[float] = None
+        self.best_latency_array_index: Optional[int] = None
+        self.best_latency_index: Optional[int] = None
+        self.best_offset: Optional[float] = 0.0
+
+        self.find_best_latency()
+        self.find_best_offset()
+
+    def find_best_latency(self) -&gt; None:
+        &#34;&#34;&#34;
+        Finds the best latency among the latencies
+        &#34;&#34;&#34;
+        try:
+            # find value and index of minimum latency of nonzero latencies
+            d1_min: float = np.min(self.latency1[self.latency1 != 0])
+            d3_min: float = np.min(self.latency3[self.latency3 != 0])
+
+            if d3_min &gt; d1_min:
+                self.best_latency = d1_min  # server round trip is shorter
+                self.best_latency_array_index = 1
+                self.best_latency_index = np.where(self.latency1 == d1_min)[0][0]
+            else:
+                self.best_latency = d3_min
+                self.best_latency_array_index = 3
+                self.best_latency_index = np.where(self.latency3 == d3_min)[0][0]
+        except ValueError:
+            # all latencies for one of the arrays is zero; the data is untrustworthy.  set the defaults
+            self.best_latency = None
+            self.best_latency_array_index = None
+            self.best_latency_index = None
+
+    def find_best_offset(self) -&gt; None:
+        &#34;&#34;&#34;
+        Finds the best offset among the offsets
+        &#34;&#34;&#34;
+        # if no best latency, find it
+        if self.best_latency is None:
+            self.find_best_latency()
+        # best latency = best offset, if best latency is still None, best offset is 0.0
+        if self.best_latency_array_index == 1:
+            self.best_offset = self.offset1[self.best_latency_index]
+        elif self.best_latency_array_index == 3:
+            self.best_offset = self.offset3[self.best_latency_index]
+        else:
+            self.best_offset = 0.0
+
+    def set_latency(self,
+                    a1_coeffs: np.ndarray,
+                    a2_coeffs: np.ndarray,
+                    a3_coeffs: np.ndarray,
+                    b1_coeffs: np.ndarray,
+                    b2_coeffs: np.ndarray,
+                    b3_coeffs: np.ndarray) -&gt; None:
+        &#34;&#34;&#34;
+        set the latency and find the best
+        :param a1_coeffs: server timestamp 1
+        :param a2_coeffs: server timestamp 2
+        :param a3_coeffs: server timestamp 3
+        :param b1_coeffs: device timestamp 1
+        :param b2_coeffs: device timestamp 2
+        :param b3_coeffs: device timestamp 3
+        &#34;&#34;&#34;
+        # compute latencies
+        self.latency1, self.latency3 = latencies(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+        self.find_best_latency()
+
+    def set_offset(self,
+                   a1_coeffs: np.ndarray,
+                   a2_coeffs: np.ndarray,
+                   a3_coeffs: np.ndarray,
+                   b1_coeffs: np.ndarray,
+                   b2_coeffs: np.ndarray,
+                   b3_coeffs: np.ndarray) -&gt; None:
+        &#34;&#34;&#34;
+        set the offset and find the best
+        :param a1_coeffs: server timestamp 1
+        :param a2_coeffs: server timestamp 2
+        :param a3_coeffs: server timestamp 3
+        :param b1_coeffs: device timestamp 1
+        :param b2_coeffs: device timestamp 2
+        :param b3_coeffs: device timestamp 3
+        &#34;&#34;&#34;
+        # latency calculations are required:
+        if self.best_latency is None:
+            self.set_latency(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+        # compute offsets
+        self.offset1, self.offset3 = offsets(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+        self.find_best_offset()</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api900.timesync.tri_message_stats.TriMessageStats.find_best_latency"><code class="name flex">
+<span>def <span class="ident">find_best_latency</span></span>(<span>self) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Finds the best latency among the latencies</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_best_latency(self) -&gt; None:
+    &#34;&#34;&#34;
+    Finds the best latency among the latencies
+    &#34;&#34;&#34;
+    try:
+        # find value and index of minimum latency of nonzero latencies
+        d1_min: float = np.min(self.latency1[self.latency1 != 0])
+        d3_min: float = np.min(self.latency3[self.latency3 != 0])
+
+        if d3_min &gt; d1_min:
+            self.best_latency = d1_min  # server round trip is shorter
+            self.best_latency_array_index = 1
+            self.best_latency_index = np.where(self.latency1 == d1_min)[0][0]
+        else:
+            self.best_latency = d3_min
+            self.best_latency_array_index = 3
+            self.best_latency_index = np.where(self.latency3 == d3_min)[0][0]
+    except ValueError:
+        # all latencies for one of the arrays is zero; the data is untrustworthy.  set the defaults
+        self.best_latency = None
+        self.best_latency_array_index = None
+        self.best_latency_index = None</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.timesync.tri_message_stats.TriMessageStats.find_best_offset"><code class="name flex">
+<span>def <span class="ident">find_best_offset</span></span>(<span>self) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Finds the best offset among the offsets</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_best_offset(self) -&gt; None:
+    &#34;&#34;&#34;
+    Finds the best offset among the offsets
+    &#34;&#34;&#34;
+    # if no best latency, find it
+    if self.best_latency is None:
+        self.find_best_latency()
+    # best latency = best offset, if best latency is still None, best offset is 0.0
+    if self.best_latency_array_index == 1:
+        self.best_offset = self.offset1[self.best_latency_index]
+    elif self.best_latency_array_index == 3:
+        self.best_offset = self.offset3[self.best_latency_index]
+    else:
+        self.best_offset = 0.0</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.timesync.tri_message_stats.TriMessageStats.set_latency"><code class="name flex">
+<span>def <span class="ident">set_latency</span></span>(<span>self, a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>set the latency and find the best
+:param a1_coeffs: server timestamp 1
+:param a2_coeffs: server timestamp 2
+:param a3_coeffs: server timestamp 3
+:param b1_coeffs: device timestamp 1
+:param b2_coeffs: device timestamp 2
+:param b3_coeffs: device timestamp 3</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_latency(self,
+                a1_coeffs: np.ndarray,
+                a2_coeffs: np.ndarray,
+                a3_coeffs: np.ndarray,
+                b1_coeffs: np.ndarray,
+                b2_coeffs: np.ndarray,
+                b3_coeffs: np.ndarray) -&gt; None:
+    &#34;&#34;&#34;
+    set the latency and find the best
+    :param a1_coeffs: server timestamp 1
+    :param a2_coeffs: server timestamp 2
+    :param a3_coeffs: server timestamp 3
+    :param b1_coeffs: device timestamp 1
+    :param b2_coeffs: device timestamp 2
+    :param b3_coeffs: device timestamp 3
+    &#34;&#34;&#34;
+    # compute latencies
+    self.latency1, self.latency3 = latencies(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+    self.find_best_latency()</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.timesync.tri_message_stats.TriMessageStats.set_offset"><code class="name flex">
+<span>def <span class="ident">set_offset</span></span>(<span>self, a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>set the offset and find the best
+:param a1_coeffs: server timestamp 1
+:param a2_coeffs: server timestamp 2
+:param a3_coeffs: server timestamp 3
+:param b1_coeffs: device timestamp 1
+:param b2_coeffs: device timestamp 2
+:param b3_coeffs: device timestamp 3</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_offset(self,
+               a1_coeffs: np.ndarray,
+               a2_coeffs: np.ndarray,
+               a3_coeffs: np.ndarray,
+               b1_coeffs: np.ndarray,
+               b2_coeffs: np.ndarray,
+               b3_coeffs: np.ndarray) -&gt; None:
+    &#34;&#34;&#34;
+    set the offset and find the best
+    :param a1_coeffs: server timestamp 1
+    :param a2_coeffs: server timestamp 2
+    :param a3_coeffs: server timestamp 3
+    :param b1_coeffs: device timestamp 1
+    :param b2_coeffs: device timestamp 2
+    :param b3_coeffs: device timestamp 3
+    &#34;&#34;&#34;
+    # latency calculations are required:
+    if self.best_latency is None:
+        self.set_latency(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+    # compute offsets
+    self.offset1, self.offset3 = offsets(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+    self.find_best_offset()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.api900.timesync" href="index.html">redvox.api900.timesync</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.api900.timesync.tri_message_stats.latencies" href="#redvox.api900.timesync.tri_message_stats.latencies">latencies</a></code></li>
+<li><code><a title="redvox.api900.timesync.tri_message_stats.offsets" href="#redvox.api900.timesync.tri_message_stats.offsets">offsets</a></code></li>
+<li><code><a title="redvox.api900.timesync.tri_message_stats.transmit_receive_timestamps_microsec" href="#redvox.api900.timesync.tri_message_stats.transmit_receive_timestamps_microsec">transmit_receive_timestamps_microsec</a></code></li>
+<li><code><a title="redvox.api900.timesync.tri_message_stats.validate_timestamps" href="#redvox.api900.timesync.tri_message_stats.validate_timestamps">validate_timestamps</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.api900.timesync.tri_message_stats.TriMessageStats" href="#redvox.api900.timesync.tri_message_stats.TriMessageStats">TriMessageStats</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api900.timesync.tri_message_stats.TriMessageStats.find_best_latency" href="#redvox.api900.timesync.tri_message_stats.TriMessageStats.find_best_latency">find_best_latency</a></code></li>
+<li><code><a title="redvox.api900.timesync.tri_message_stats.TriMessageStats.find_best_offset" href="#redvox.api900.timesync.tri_message_stats.TriMessageStats.find_best_offset">find_best_offset</a></code></li>
+<li><code><a title="redvox.api900.timesync.tri_message_stats.TriMessageStats.set_latency" href="#redvox.api900.timesync.tri_message_stats.TriMessageStats.set_latency">set_latency</a></code></li>
+<li><code><a title="redvox.api900.timesync.tri_message_stats.TriMessageStats.set_offset" href="#redvox.api900.timesync.tri_message_stats.TriMessageStats.set_offset">set_offset</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
