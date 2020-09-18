@@ -274,9 +274,9 @@ def __deserialize_paths(paths: List[str], parallel: bool = False) -> List[Wrappe
     if parallel:
         pool = Pool()
         deserialized = list(pool.map(__deserialize_path, paths))
-        return list(map(lambda de: WrappedRedvoxPacketM(de), deserialized))
+        return sorted(list(map(lambda de: WrappedRedvoxPacketM(de), deserialized)))
     else:
-        return list(map(WrappedRedvoxPacketM.from_compressed_path, paths))
+        return sorted(list(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
 
 
 def __list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
