@@ -336,36 +336,28 @@ def read_bufs(bufs: List[bytes]) -> ReadResult:
     return ReadResult.from_packets(wrapped_packets)
 
 
-def read_structured(base_dir: str, read_filter: ReadFilter = ReadFilter(), parallel: bool = False) -> ReadResult:
+def read_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> ReadResult:
     """
     Read structured API M data. Structured API data is stored using the following directory hierarchy.
         api1000/[YYYY]/[MM]/[DD]/[HH]/*.rdvxm
     :param base_dir: Base directory of structured data (should be named api1000)
     :param read_filter: Filter to apply to files.
-    :param parallel: Experimental feature. When enabled, packet reading, decompression, and initial deserialization
-                     will take place in parallel (one process per CPU). This can decrease reading time for medium
-                     sized data sets, but comes with additional memory overhead that can negatively impact reading of
-                     small and large data sets.
     :return: A ReadResult
     """
     paths: List[str] = __parse_structured_layout(base_dir, read_filter)
-    wrapped_packets: List[WrappedRedvoxPacketM] = __deserialize_paths(paths, parallel)
+    wrapped_packets: List[WrappedRedvoxPacketM] = __deserialize_paths(paths)
     return ReadResult.from_packets(wrapped_packets)
 
 
-def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter(), parallel: bool = False) -> ReadResult:
+def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> ReadResult:
     """
     Reads RedVox files from a provided directory.
     :param base_dir: Directory to read files from.
     :param read_filter: Filter to filter files with.
-    :param parallel: Experimental feature. When enabled, packet reading, decompression, and initial deserialization
-                     will take place in parallel (one process per CPU). This can decrease reading time for medium
-                     sized data sets, but comes with additional memory overhead that can negatively impact reading of
-                     small and large data sets.
     :return: A ReadResult.
     """
     pattern: str = os.path.join(base_dir, f"*{read_filter.extension}")
     paths: List[str] = glob(os.path.join(base_dir, pattern))
     paths = list(filter(lambda path: read_filter.filter_path(path), paths))
-    wrapped_packets: List[WrappedRedvoxPacketM] = __deserialize_paths(paths, parallel)
+    wrapped_packets: List[WrappedRedvoxPacketM] = __deserialize_paths(paths)
     return ReadResult.from_packets(wrapped_packets)
