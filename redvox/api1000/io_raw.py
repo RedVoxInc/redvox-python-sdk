@@ -19,6 +19,9 @@ from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc a
 
 @dataclass
 class StationSummary:
+    """
+    Contains a summary of each stations data read result.
+    """
     station_id: str
     station_uuid: str
     auth_id: str
@@ -40,7 +43,7 @@ class StationSummary:
                                            timedelta(seconds=0.0))
         start_dt: datetime = dt_us(first_packet.get_timing_information().get_packet_start_mach_timestamp())
         end_dt: datetime = dt_us(last_packet.get_timing_information().get_packet_start_mach_timestamp()) + \
-                           last_packet.get_packet_duration()
+                            last_packet.get_packet_duration()
 
         station_info = first_packet.get_station_information()
         audio = first_packet.get_sensors().get_audio()
@@ -51,7 +54,7 @@ class StationSummary:
             station_info.get_os(),
             station_info.get_os_version(),
             station_info.get_app_version(),
-            audio.get_sample_rate(),
+            audio.get_sample_rate() if audio is not None else float("NaN"),
             len(packets),
             total_duration,
             start_dt,
