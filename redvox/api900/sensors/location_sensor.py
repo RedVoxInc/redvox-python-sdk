@@ -213,3 +213,18 @@ class LocationSensor(UnevenlySampledSensor):
         :return: The standard deviation accuracy component of this channel's payload.
         """
         return self._unevenly_sampled_channel.get_value_std(api900_pb2.ACCURACY)
+
+    def get_payload_lat_lon(self) -> numpy.array:
+        """
+        Returns the preset latitude and longitude of the sensor;
+        there should only be one latitude and one longitude in the payload.
+        :return: a latitude and longitude value as a numpy array.
+        """
+        return self._unevenly_sampled_channel.payload
+
+    def check_for_preset_lat_lon(self) -> bool:
+        """
+        Check if there is only one latitude and one longitude value in the payload.
+        :return: If and only if there is one latitude and one longitude value in the payload.
+        """
+        return len(self._unevenly_sampled_channel.payload) == 2

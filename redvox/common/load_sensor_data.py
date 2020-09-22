@@ -13,8 +13,113 @@ from redvox.common import file_statistics as fs
 from redvox.common import date_time_utils as dtu
 from redvox.common.sensor_data import SensorType, SensorData, Station, StationTiming, StationMetadata, DataPacket
 from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
-from redvox.api900.timesync.api900_timesync import sync_packet_time_900
 from redvox.api1000.wrapped_redvox_packet import wrapped_packet as apim_wp
+from redvox.api1000.io_raw import ReadFilter
+from dataclasses import dataclass
+from datetime import datetime
+
+
+@dataclass
+class StationSummary:
+    """
+    Contains a summary of each stations data read result.
+    """
+    station_id: str
+    station_uuid: str
+    os: str
+    os_version: str
+    app_version: str
+    audio_sampling_rate: float
+    total_duration: float
+    start_dt: datetime
+    end_dt: datetime
+
+    @staticmethod
+    def from_station(station: Station) -> 'StationSummary':
+        total_duration: float = station.audio_sensor().data_duration_s()
+        start_dt: datetime = dtu.datetime_from_epoch_microseconds_utc(station.audio_sensor().first_data_timestamp())
+        end_dt: datetime = dtu.datetime_from_epoch_microseconds_utc(station.audio_sensor().last_data_timestamp())
+
+        station_info = station.station_metadata
+        audio = station.audio_sensor()
+        return StationSummary(
+            station_info.station_id,
+            station_info.station_uuid,
+            station_info.station_os if station_info.station_os is not None else "OS UNKNOWN",
+            station_info.station_os_version if station_info.station_os_version is not None else "OS VERSION UNKNOWN",
+            station_info.station_app_version if station_info.station_app_version is not None else "APP VERSION UNKNOWN",
+            audio.sample_rate if audio is not None else float("NaN"),
+            total_duration,
+            start_dt,
+            end_dt
+        )
+
+
+class ReadResult:
+    """
+    Stores station information after being read from files
+    """
+    def __init__(self,
+                 station_id_uuid_to_stations: Dict[str, Station]):
+        """
+        :param station_id_uuid_to_stations: station_id:station_uuid -> station information
+        """
+        self.station_id_uuid_to_stations: Dict[str, Station] = station_id_uuid_to_stations
+        self.__station_id_to_id_uuid: Dict[str, str] = {}
+        self.__station_summaries: List[StationSummary] = []
+
+        self.update_metadata()
+
+    def update_metadata(self):
+        """
+        updates ids:uuids pairs and summary information
+        """
+        for id_uuid, station in self.station_id_uuid_to_stations.items():
+            s: List[str] = id_uuid.split(":")
+            self.__station_id_to_id_uuid[s[0]] = s[1]
+            self.__station_summaries.append(StationSummary.from_station(station))
+
+    def check_for_id(self, check_id: str) -> bool:
+        """
+        Look at keys and shortened keys in for the check_id; must be id or uuid combination
+        :param check_id: id to look for
+        :return: True if check_id is in the ReadResult
+        """
+        return check_id in self.__station_id_to_id_uuid.keys() or check_id in self.__station_id_to_id_uuid.values()
+
+    def get_station(self, station_id: str) -> Optional[Station]:
+        """
+        Find the station identified by the station_id given; it can be id or id:uuid
+        :param station_id: str id of station; can be id or id:uuid
+        :return: the station if it exists, None otherwise
+        """
+        if ":" in station_id:
+            return self.station_id_uuid_to_stations[station_id]
+        elif self.check_for_id(station_id):
+            return self.station_id_uuid_to_stations[f"{station_id}:{self.__station_id_to_id_uuid[station_id]}"]
+        print(f"WARNING: ReadResult attempted to read station id: {station_id}, but could not find id in results")
+        return None
+
+    def append_station(self, new_station_id: str, new_station: Station):
+        """
+        adds a station to the ReadResult.  Appends data to existing stations
+        :param new_station_id: id of station to add
+        :param new_station: Station object to add
+        """
+        if self.check_for_id(new_station_id):
+            self.station_id_uuid_to_stations[new_station_id].append_station_data(new_station.station_data)
+        else:
+            self.station_id_uuid_to_stations[new_station_id] = new_station
+            self.__station_id_to_id_uuid[new_station.station_metadata.station_id] = \
+                new_station.station_metadata.station_uuid
+
+    def append(self, new_stations: 'ReadResult'):
+        """
+        adds stations to the ReadResult
+        :param new_stations: stations to add
+        """
+        for new_station_id, new_station in new_stations.station_id_uuid_to_stations.items():
+            self.append_station(new_station_id, new_station)
 
 
 def calc_evenly_sampled_timestamps(start: float, samples: int, rate_hz: float) -> np.array:
@@ -38,12 +143,13 @@ def read_api900_non_mic_sensor(sensor: api900_io.RedvoxSensor, packet_length_s: 
     """
     timestamps = sensor.timestamps_microseconds_utc()
     if type(sensor) in [api900_io.AccelerometerSensor, api900_io.MagnetometerSensor, api900_io.GyroscopeSensor]:
-        data_for_df = np.transpose([sensor.payload_values_x(), sensor.payload_values_y(), sensor.payload_values_z()])
-        columns = [f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
+        data_for_df = np.transpose([timestamps,
+                                    sensor.payload_values_x(), sensor.payload_values_y(), sensor.payload_values_z()])
+        columns = ["timestamps", f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
     else:
-        data_for_df = np.transpose(sensor.payload_values())
-        columns = [column_id]
-    return SensorData(sensor.sensor_name(), pd.DataFrame(data_for_df, index=timestamps, columns=columns),
+        data_for_df = np.transpose([timestamps, sensor.payload_values()])
+        columns = ["timestamps", column_id]
+    return SensorData(sensor.sensor_name(), pd.DataFrame(data_for_df, columns=columns),
                       len(timestamps) / packet_length_s, False)
 
 
@@ -58,12 +164,12 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
     # there are 9 api900 sensors
     if wrapped_packet.has_microphone_sensor():
         sample_rate_hz = wrapped_packet.microphone_sensor().sample_rate_hz()
-        data_for_df = wrapped_packet.microphone_sensor().payload_values().astype(float)
         timestamps = calc_evenly_sampled_timestamps(
             wrapped_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc(),
             fs.get_num_points_from_sample_rate(sample_rate_hz), sample_rate_hz)
+        data_for_df = np.transpose([timestamps, wrapped_packet.microphone_sensor().payload_values().astype(float)])
         data_dict[SensorType.AUDIO] = SensorData(wrapped_packet.microphone_sensor().sensor_name(),
-                                                 pd.DataFrame(data_for_df, index=timestamps, columns=["microphone"]),
+                                                 pd.DataFrame(data_for_df, columns=["timestamps", "microphone"]),
                                                  sample_rate_hz, True)
     if wrapped_packet.has_accelerometer_sensor():
         data_dict[SensorType.ACCELEROMETER] = read_api900_non_mic_sensor(wrapped_packet.accelerometer_sensor(),
@@ -88,36 +194,42 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
                                                                  packet_length_s, "image")
     if wrapped_packet.has_location_sensor():
         timestamps = wrapped_packet.location_sensor().timestamps_microseconds_utc()
-        data_for_df = np.transpose([wrapped_packet.location_sensor().payload_values_latitude(),
-                                    wrapped_packet.location_sensor().payload_values_longitude(),
-                                    wrapped_packet.location_sensor().payload_values_altitude(),
-                                    wrapped_packet.location_sensor().payload_values_speed(),
-                                    wrapped_packet.location_sensor().payload_values_accuracy()])
-        columns = ["latitude", "longitude", "altitude", "speed", "accuracy"]
+        if wrapped_packet.location_sensor().check_for_preset_lat_lon():
+            lat_lon = wrapped_packet.location_sensor().get_payload_lat_lon()
+            data_for_df = np.array([[timestamps[0], lat_lon[0], lat_lon[1], np.nan, np.nan, np.nan]])
+        else:
+            data_for_df = np.transpose([timestamps,
+                                        wrapped_packet.location_sensor().payload_values_latitude(),
+                                        wrapped_packet.location_sensor().payload_values_longitude(),
+                                        wrapped_packet.location_sensor().payload_values_altitude(),
+                                        wrapped_packet.location_sensor().payload_values_speed(),
+                                        wrapped_packet.location_sensor().payload_values_accuracy()])
+        columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "accuracy"]
         data_dict[SensorType.LOCATION] = SensorData(wrapped_packet.location_sensor().sensor_name(),
-                                                    pd.DataFrame(data_for_df, index=timestamps, columns=columns),
+                                                    pd.DataFrame(data_for_df, columns=columns),
                                                     len(timestamps) / packet_length_s, False)
     return data_dict
 
 
-def load_station_from_api900(directory: str, start_timestamp_utc_s: Optional[int] = None,
+def load_station_from_api900(api900_packet: api900_io.WrappedRedvoxPacket,
+                             start_timestamp_utc_s: Optional[int] = None,
                              end_timestamp_utc_s: Optional[int] = None) -> Station:
     """
-    reads in station data from a single api900 file
-    :param directory: string of the file to read from
+    reads in station data from a single wrapped api900 packet
+    :param api900_packet: wrapped api900 packet to read from
     :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
     :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
     :return: a station Object
     """
-    api900_packet = api900_io.read_rdvxz_file(directory)
-    # set station metadata and timing based on first packet
+    # set station metadata and timing
     timing = StationTiming(api900_packet.mach_time_zero(), api900_packet.microphone_sensor().sample_rate_hz(),
                            api900_packet.app_file_start_timestamp_epoch_microseconds_utc(),
                            start_timestamp_utc_s, end_timestamp_utc_s,
                            api900_packet.best_latency(), api900_packet.best_offset())
-    metadata = StationMetadata(api900_packet.redvox_id(), api900_packet.device_make(), api900_packet.device_model(),
-                               api900_packet.device_os(), api900_packet.device_os_version(),
-                               "Redvox", api900_packet.app_version(), api900_packet.is_scrambled(), timing)
+    metadata = StationMetadata(api900_packet.redvox_id(), api900_packet.device_make(),
+                               api900_packet.device_model(), False, api900_packet.device_os(),
+                               api900_packet.device_os_version(), "Redvox", api900_packet.app_version(),
+                               api900_packet.is_scrambled(), timing, station_uuid=api900_packet.uuid())
     data_dict = read_api900_wrapped_packet(api900_packet)
     packet_data = DataPacket(api900_packet.server_timestamp_epoch_microseconds_utc(),
                              api900_packet.app_file_start_timestamp_machine(),
@@ -128,12 +240,25 @@ def load_station_from_api900(directory: str, start_timestamp_utc_s: Optional[int
     return Station(metadata, data_dict, packet_list)
 
 
+def load_station_from_api900_file(directory: str, start_timestamp_utc_s: Optional[int] = None,
+                                  end_timestamp_utc_s: Optional[int] = None) -> Station:
+    """
+    reads in station data from a single api900 file
+    :param directory: string of the file to read from
+    :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
+    :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
+    :return: a station Object
+    """
+    api900_packet = api900_io.read_rdvxz_file(directory)
+    return load_station_from_api900(api900_packet, start_timestamp_utc_s, end_timestamp_utc_s)
+
+
 def load_file_range_from_api900(directory: str,
                                 start_timestamp_utc_s: Optional[int] = None,
                                 end_timestamp_utc_s: Optional[int] = None,
                                 redvox_ids: Optional[List[str]] = None,
                                 structured_layout: bool = False,
-                                concat_continuous_segments: bool = True) -> List[Station]:
+                                concat_continuous_segments: bool = True) -> ReadResult:
     """
     reads in api900 data from a directory and returns a list of stations
     note that the param descriptions are taken directly from api900.reader.read_rdvxz_file_range
@@ -148,7 +273,7 @@ def load_file_range_from_api900(directory: str,
                                        into multiple continuous rdvxz files separated at gaps.
     :return: a list of Station objects that contain the data
     """
-    all_stations: List[Station] = []
+    all_stations: ReadResult = ReadResult({})
     all_data = api900_io.read_rdvxz_file_range(directory, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids,
                                                structured_layout, concat_continuous_segments)
     for redvox_id, wrapped_packets in all_data.items():
@@ -158,10 +283,10 @@ def load_file_range_from_api900(directory: str,
                                wrapped_packets[0].app_file_start_timestamp_epoch_microseconds_utc(),
                                start_timestamp_utc_s, end_timestamp_utc_s,
                                wrapped_packets[0].best_latency(), wrapped_packets[0].best_offset())
-        metadata = StationMetadata(redvox_id, wrapped_packets[0].device_make(), wrapped_packets[0].device_model(),
-                                   wrapped_packets[0].device_os(), wrapped_packets[0].device_os_version(),
-                                   "Redvox", wrapped_packets[0].app_version(), wrapped_packets[0].is_scrambled(),
-                                   timing)
+        metadata = StationMetadata(wrapped_packets[0].redvox_id(), wrapped_packets[0].device_make(),
+                                   wrapped_packets[0].device_model(), False, wrapped_packets[0].device_os(),
+                                   wrapped_packets[0].device_os_version(), "Redvox", wrapped_packets[0].app_version(),
+                                   wrapped_packets[0].is_scrambled(), timing, station_uuid=wrapped_packets[0].uuid())
         # add data from packets
         new_station = Station(metadata)
         packet_list: List[DataPacket] = []
@@ -183,7 +308,7 @@ def load_file_range_from_api900(directory: str,
         new_station.packet_data = packet_list
 
         # create the Station data object
-        all_stations.append(new_station)
+        all_stations.append_station(redvox_id, new_station)
 
     return all_stations
 
@@ -197,11 +322,12 @@ def read_apim_xyz_sensor(sensor: xyz.Xyz, packet_length_s: float, column_id: str
     :return: generic SensorData object
     """
     timestamps = sensor.get_timestamps().get_timestamps()
-    data_for_df = np.transpose([sensor.get_x_samples().get_values(),
+    data_for_df = np.transpose([timestamps,
+                                sensor.get_x_samples().get_values(),
                                 sensor.get_y_samples().get_values(),
                                 sensor.get_z_samples().get_values()])
-    columns = [f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
-    return SensorData(sensor.get_sensor_description(), pd.DataFrame(data_for_df, index=timestamps, columns=columns),
+    columns = ["timestamps", f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
+    return SensorData(sensor.get_sensor_description(), pd.DataFrame(data_for_df, columns=columns),
                       len(timestamps) / packet_length_s, False)
 
 
@@ -214,9 +340,9 @@ def read_apim_single_sensor(sensor: single.Single, packet_length_s: float, colum
     :return: generic SensorData object
     """
     timestamps = sensor.get_timestamps().get_timestamps()
-    data_for_df = np.transpose([sensor.get_samples().get_values()])
-    columns = [column_id]
-    return SensorData(sensor.get_sensor_description(), pd.DataFrame(data_for_df, index=timestamps, columns=columns),
+    data_for_df = np.transpose([timestamps, sensor.get_samples().get_values()])
+    columns = ["timestamps", column_id]
+    return SensorData(sensor.get_sensor_description(), pd.DataFrame(data_for_df, columns=columns),
                       len(timestamps) / packet_length_s, False)
 
 
@@ -235,7 +361,8 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
         timestamps = calc_evenly_sampled_timestamps(sensors.get_audio().get_first_sample_timestamp(),
                                                     len(data_for_df), sample_rate_hz)
         data_dict[SensorType.AUDIO] = SensorData(sensors.get_audio().get_sensor_description(),
-                                                 pd.DataFrame(data_for_df, index=timestamps, columns=["microphone"]),
+                                                 pd.DataFrame(np.transpose([timestamps, data_for_df]),
+                                                              columns=["timestamps", "microphone"]),
                                                  sample_rate_hz, True)
         # if audio exists, use it to get the packet duration, otherwise calculate using the packets' timestamps
         packet_length_s: float = sensors.get_audio().get_duration_s()
@@ -249,7 +376,7 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
         timestamps = calc_evenly_sampled_timestamps(sensors.get_compressed_audio().get_first_sample_timestamp(),
                                                     len(data_for_df), sample_rate_hz)
         data_dict[SensorType.COMPRESSED_AUDIO] = SensorData(sensors.get_compressed_audio().get_sensor_description(),
-                                                            pd.DataFrame(data_for_df, index=timestamps,
+                                                            pd.DataFrame(np.transpose([timestamps, data_for_df]),
                                                                          columns=["compressed_audio"]),
                                                             sample_rate_hz, True)
     if sensors.has_accelerometer() and sensors.validate_accelerometer():
@@ -285,13 +412,14 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
                                                                           packet_length_s, "rel_humidity")
     if sensors.has_image() and sensors.validate_image():
         timestamps = sensors.get_image().get_timestamps().get_timestamps()
-        data_for_df = sensors.get_image().get_samples()
+        data_for_df = np.transpose([timestamps, sensors.get_image().get_samples()])
         data_dict[SensorType.IMAGE] = SensorData(sensors.get_image().get_sensor_description(),
-                                                 pd.DataFrame(data_for_df, index=timestamps, columns=["image"]),
+                                                 pd.DataFrame(data_for_df, columns=["image"]),
                                                  len(timestamps) / packet_length_s, False)
     if sensors.has_location() and sensors.validate_location():
         timestamps = sensors.get_location().get_timestamps().get_timestamps()
-        data_for_df = np.transpose([sensors.get_location().get_latitude_samples().get_values(),
+        data_for_df = np.transpose([timestamps,
+                                    sensors.get_location().get_latitude_samples().get_values(),
                                     sensors.get_location().get_longitude_samples().get_values(),
                                     sensors.get_location().get_altitude_samples().get_values(),
                                     sensors.get_location().get_speed_samples().get_values(),
@@ -300,14 +428,15 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
                                     sensors.get_location().get_vertical_accuracy_samples().get_values(),
                                     sensors.get_location().get_speed_samples().get_values(),
                                     sensors.get_location().get_bearing_accuracy_samples().get_values()])
-        columns = ["latitude", "longitude", "altitude", "speed", "bearing",
+        columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "bearing",
                    "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy"]
         data_dict[SensorType.LOCATION] = SensorData(sensors.get_location().get_sensor_description(),
-                                                    pd.DataFrame(data_for_df, index=timestamps, columns=columns),
+                                                    pd.DataFrame(data_for_df, columns=columns),
                                                     len(timestamps) / packet_length_s, False)
     elif sensors.has_location() and sensors.get_location().get_last_best_location():
         timestamps = [sensors.get_location().get_last_best_location().get_latitude_longitude_timestamp().get_mach()]
-        data_for_df = np.transpose([[sensors.get_location().get_last_best_location().get_latitude()],
+        data_for_df = np.transpose([[timestamps],
+                                    [sensors.get_location().get_last_best_location().get_latitude()],
                                     [sensors.get_location().get_last_best_location().get_longitude()],
                                     [sensors.get_location().get_last_best_location().get_altitude()],
                                     [sensors.get_location().get_last_best_location().get_speed()],
@@ -316,10 +445,10 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
                                     [sensors.get_location().get_last_best_location().get_vertical_accuracy()],
                                     [sensors.get_location().get_last_best_location().get_speed_accuracy()],
                                     [sensors.get_location().get_last_best_location().get_bearing_accuracy()]])
-        columns = ["latitude", "longitude", "altitude", "speed", "bearing",
+        columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "bearing",
                    "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy"]
         data_dict[SensorType.LOCATION] = SensorData(sensors.get_location().get_sensor_description(),
-                                                    pd.DataFrame(data_for_df, index=timestamps, columns=columns),
+                                                    pd.DataFrame(data_for_df, columns=columns),
                                                     len(timestamps) / packet_length_s, False)
     return data_dict
 
@@ -346,12 +475,12 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
         raise ValueError("Station is missing Audio sensor!")
     metadata = StationMetadata(read_packet.get_station_information().get_id(),
                                read_packet.get_station_information().get_make(),
-                               read_packet.get_station_information().get_model(),
+                               read_packet.get_station_information().get_model(), False,
                                read_packet.get_station_information().get_os().name,
                                read_packet.get_station_information().get_os_version(), "Redvox",
                                read_packet.get_station_information().get_app_version(),
                                read_packet.get_station_information().get_app_settings().get_scramble_audio_data(),
-                               timing)
+                               timing, station_uuid=read_packet.get_station_information().get_uuid())
     # add data from packets
     time_sync = np.array(read_packet.get_timing_information().get_synch_exchanges().get_values())
     data_dict = load_apim_wrapped_packet(read_packet)
@@ -371,7 +500,7 @@ def load_from_file_range_api_m(directory: str,
                                start_timestamp_utc_s: Optional[int] = None,
                                end_timestamp_utc_s: Optional[int] = None,
                                redvox_ids: Optional[List[str]] = None,
-                               structured_layout: bool = False) -> List[Station]:
+                               structured_layout: bool = False) -> ReadResult:
     """
     reads in api M data from a directory and returns a list of stations
     :param directory: The root directory of the data. If structured_layout is False, then this directory will
@@ -383,7 +512,7 @@ def load_from_file_range_api_m(directory: str,
     :param structured_layout: An optional value to define if this is loading structured data, default False.
     :return: a list of Station objects that contain the data
     """
-    all_stations: List[Station] = []
+    all_stations: ReadResult = ReadResult({})
     all_data = apim_io.read_structured(directory, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids,
                                        structured_layout)
     for read_packets in all_data.all_wrapped_packets:
@@ -398,9 +527,10 @@ def load_from_file_range_api_m(directory: str,
                                        first_pack.get_timing_information().get_best_offset())
                 station_info = first_pack.get_station_information()
                 metadata = StationMetadata(read_packets.redvox_id, station_info.get_make(), station_info.get_model(),
-                                           station_info.get_os().name, station_info.get_os_version(), "Redvox",
-                                           station_info.get_app_version(),
-                                           station_info.get_app_settings().get_scramble_audio_data(), timing)
+                                           False, station_info.get_os().name, station_info.get_os_version(),
+                                           "Redvox", station_info.get_app_version(),
+                                           station_info.get_app_settings().get_scramble_audio_data(), timing,
+                                           station_uuid=read_packets.uuid)
             else:
                 raise ValueError("Packet is missing Audio sensor!")
         else:
@@ -424,35 +554,36 @@ def load_from_file_range_api_m(directory: str,
         new_station.packet_data = packet_list
 
         # create the Station data object
-        all_stations.append(new_station)
+        all_stations.append_station(f"{read_packets.redvox_id}:{read_packets.uuid}", new_station)
     return all_stations
 
 
-def load_from_mseed(file_path: str) -> List[Station]:
+def load_from_mseed(file_path: str) -> ReadResult:
     """
     load station data from a miniseed file
     :param file_path: the location of the miniseed file
     :return: a list of Station objects that contain the data
     """
-    stations: List[Station] = []
+    stations: ReadResult = ReadResult({})
     strm = read(file_path)
     for data_stream in strm:
         record_info = data_stream.meta
         start_time = int(dtu.seconds_to_microseconds(data_stream.meta["starttime"].timestamp))
         end_time = int(dtu.seconds_to_microseconds(data_stream.meta["endtime"].timestamp))
         station_timing = StationTiming(np.nan, record_info["sampling_rate"], start_time, start_time, end_time)
-        metadata = StationMetadata(record_info["network"] + record_info["station"] + "_" + record_info["location"],
-                                   "mb3_make", "mb3_model", "mb3_os", "mb3_os_vers", "mb3_recorder",
-                                   "mb3_recorder_version", False, station_timing, record_info["calib"],
-                                   record_info["network"], record_info["station"], record_info["location"],
-                                   record_info["channel"], record_info["mseed"]["encoding"])
+        station_id = f'{record_info["network"]}{record_info["station"]}_{record_info["location"]}'
+        metadata = StationMetadata(station_id, "mb3_make", "mb3_model", False, "mb3_os", "mb3_os_vers",
+                                   "mb3_recorder", "mb3_recorder_version", False, station_timing,
+                                   record_info["calib"], record_info["network"], record_info["station"],
+                                   record_info["location"], record_info["channel"], record_info["mseed"]["encoding"])
         sample_rate_hz = record_info["sampling_rate"]
-        data_for_df = data_stream.data
         timestamps = calc_evenly_sampled_timestamps(start_time, int(record_info["npts"]), sample_rate_hz)
-        sensor_data = SensorData(record_info["channel"], pd.DataFrame(data_for_df, index=timestamps, columns=["BDF"]),
+        data_for_df = np.transpose([timestamps, data_stream.data])
+        sensor_data = SensorData(record_info["channel"], pd.DataFrame(data_for_df, columns=["timestamps", "BDF"]),
                                  record_info["sampling_rate"], True)
         data_packet = DataPacket(np.nan, start_time, start_time, end_time)
-        stations.append(Station(metadata, {SensorType.AUDIO: sensor_data}, [data_packet]))
+        stations.append_station(f"{station_id}:{station_id}", Station(metadata, {SensorType.AUDIO: sensor_data},
+                                                                      [data_packet]))
     return stations
 
 
@@ -460,8 +591,7 @@ def read_all_in_dir(directory: str,
                     start_timestamp_utc_s: Optional[int] = None,
                     end_timestamp_utc_s: Optional[int] = None,
                     redvox_ids: Optional[List[str]] = None,
-                    structured_layout: bool = False,
-                    concat_continuous_segments: bool = True) -> List[Station]:
+                    structured_layout: bool = False) -> ReadResult:
     """
     load all data files in the directory
     :param directory: location of all the files; if structured_layout is True, the directory contains a root api1000,
@@ -470,169 +600,33 @@ def read_all_in_dir(directory: str,
     :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
     :param redvox_ids: An optional list of redvox_ids to filter against, default empty list
     :param structured_layout: An optional value to define if this is loading structured data, default False.
-    :param concat_continuous_segments: An optional value to define if this function should concatenate rdvxz files
-                                       into multiple continuous rdvxz files separated at gaps.  ONLY WORKS FOR API900
     :return: a list of Station objects that contain the data
     """
     # create the object to store the data
-    stations: List[Station] = []
+    stations: ReadResult = ReadResult({})
     # if structured_layout, there should be a specifically named folder in directory
     if structured_layout:
         api900_dir = os.path.join(directory, "api900")
-        if os.path.exists(api900_dir):
-            # get api900 data
-            stations.extend(load_file_range_from_api900(api900_dir, start_timestamp_utc_s, end_timestamp_utc_s,
-                                                        redvox_ids, True, concat_continuous_segments))
         apim_dir = os.path.join(directory, "api1000")
-        if os.path.exists(apim_dir):
-            # get api1000 data
-            stations.extend(load_from_file_range_api_m(apim_dir, start_timestamp_utc_s, end_timestamp_utc_s,
-                                                       redvox_ids, True))
         mseed_dir = os.path.join(directory, "mseed")
-        if os.path.exists(mseed_dir):
-            # get mseed data
-            all_paths = glob.glob(os.path.join(mseed_dir, "*.mseed"))
-            for path in all_paths:
-                mseed_data = load_from_mseed(path)
-                for mseed_station in mseed_data:
-                    if mseed_station.station_metadata.station_id in redvox_ids:
-                        stations.append(mseed_station)
-        else:
-            # structured layout requires api1000 or api900 directory
-            raise ValueError(f"{directory} does not contain api900 or api1000 directory.")
-    # load files from unstructured layout
-    # get unstructured api 900 data
-    stations.extend(load_file_range_from_api900(directory, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids,
-                                                False, concat_continuous_segments))
-    # get unstructured api m data
-    stations.extend(load_from_file_range_api_m(directory, start_timestamp_utc_s, end_timestamp_utc_s,
-                                               redvox_ids, False))
-    # get miniseed data
-    mseed_paths = glob.glob(os.path.join(directory, "*.mseed"))
-    for path in mseed_paths:
-        stations.extend(load_from_mseed(path))
+        # check if none of the paths exists
+        if not (os.path.exists(api900_dir) or os.path.exists(apim_dir) or os.path.exists(mseed_dir)):
+            # no specially named directory found; raise error
+            raise ValueError(f"{directory} does not contain api900, api1000 or mseed directory.")
+    else:
+        # load files from unstructured layout; everything is sitting in the main directory
+        api900_dir = directory
+        apim_dir = directory
+        mseed_dir = directory
+
+    # get api900 data
+    stations.append(load_file_range_from_api900(api900_dir, start_timestamp_utc_s, end_timestamp_utc_s,
+                                                redvox_ids, structured_layout, False))
+    # get api1000 data
+    stations.append(load_from_file_range_api_m(apim_dir, start_timestamp_utc_s, end_timestamp_utc_s,
+                                               redvox_ids, structured_layout))
+    # get mseed data
+    all_paths = glob.glob(os.path.join(mseed_dir, "*.mseed"))
+    for path in all_paths:
+        stations.append(load_from_mseed(path))
     return stations
-
-
-def read_data_window_api900(directory: str,
-                            redvox_ids: Optional[List[str]] = None,
-                            start_timestamp_utc_s: Optional[int] = None,
-                            end_timestamp_utc_s: Optional[int] = None,
-                            start_padding_s: int = 120,
-                            end_padding_s: int = 120,
-                            gap_time_s: float = 5,
-                            apply_correction: bool = False,
-                            structured_layout: bool = False) -> Dict[str, Station]:
-    """
-    read data from a specified window in the directory
-    :param directory: the directory containing the files to read
-    :param redvox_ids: the specific ids to search for, default None (gets all ids)
-    :param start_timestamp_utc_s: start timestamp of window to search for in seconds since epoch utc,
-                                    default None (gets all times)
-    :param end_timestamp_utc_s: end timestamp of window to search for in seconds since epoch utc,
-                                    default None (gets all times)
-    :param start_padding_s: amount of seconds to include in search before start_timestamp_utc_s, default 120
-    :param end_padding_s: amount of seconds to include in search after end_timestamp_utc_s, default 120
-    :param gap_time_s: amount of seconds to consider as a gap, default 5
-    :param apply_correction: if True, applies timing correction to the data before returning, default False
-    :param structured_layout: if True, the input directory is specially structured for api900 data, default False
-    :return: a dictionary of station id and Station information
-    """
-    data = api900_io.read_rdvxz_file_range(directory, start_timestamp_utc_s - start_padding_s,
-                                           end_timestamp_utc_s + end_padding_s, redvox_ids,
-                                           structured_layout, False)
-    # create the object to store the data
-    all_stations: Dict[str, Station] = {}
-
-    # correct data, then convert to SensorData
-    for redvox_id, wrapped_packets in data.items():
-        # get the id
-        short_id = wrapped_packets[0].redvox_id()
-        # apply correction if needed
-        if apply_correction:
-            sync_packet_time_900(wrapped_packets)
-        # prepare an empty dict to add data to
-        metadata = StationMetadata(short_id, wrapped_packets[0].device_make(), wrapped_packets[0].device_model())
-        result_station = Station(metadata)
-        for packet in wrapped_packets:
-            # read in the packets' data
-            for sensor_type, sensor_data in read_api900_wrapped_packet(packet).items():
-                if sensor_type in result_station.station_data.keys():
-                    if sensor_type == SensorType.AUDIO:
-                        # detect gap between last added timestamp and new data start timestamp
-                        last_timestamp = result_station.station_data[SensorType.AUDIO].last_data_timestamp()
-                        first_timestamp = sensor_data.first_data_timestamp()
-                        time_diff: float = first_timestamp - last_timestamp
-                        if time_diff > dtu.seconds_to_microseconds(gap_time_s):
-                            missing_points = int(dtu.microseconds_to_seconds(time_diff) * sensor_data.sample_rate)
-                            gap_times = np.vectorize(
-                                lambda t: last_timestamp + dtu.seconds_to_microseconds(t / sensor_data.sample_rate))(
-                                list(range(1, missing_points)))
-                            empty_points = np.empty(missing_points - 1)
-                            empty_points[:] = np.nan
-                            empty_df = pd.DataFrame(empty_points, index=gap_times, columns=["microphone"])
-                            result_station.station_data[SensorType.AUDIO].data_df = \
-                                pd.concat([result_station.station_data[SensorType.AUDIO].data_df, empty_df])
-                    result_station.station_data[sensor_type].data_df = \
-                        pd.concat([result_station.station_data[sensor_type].data_df, sensor_data.data_df])
-                else:
-                    result_station.station_data[sensor_type] = sensor_data
-        all_stations[short_id] = result_station
-
-    # check if ids in station
-    for ids in redvox_ids:
-        if ids not in all_stations.keys():
-            # error handling
-            print(f"WARNING: {ids} doesn't have any data to read")
-
-    # fill in gaps and truncate
-    for station_id, station in all_stations.items():
-        # prepare a bunch of information to be used later
-        # compute the length in seconds of one sample
-        one_sample_s = 1 / station.station_data[SensorType.AUDIO].sample_rate
-        # get the start and end timestamps + 1 sample to be safe
-        start_timestamp = int(dtu.seconds_to_microseconds(start_timestamp_utc_s - one_sample_s))
-        end_timestamp = int(dtu.seconds_to_microseconds(end_timestamp_utc_s + one_sample_s))
-        # TRUNCATE!  get only the timestamps between the start and end timestamps
-        for sensor_types in station.station_data.keys():
-            # get the timestamps of the data
-            df_timestamps = station.station_data[sensor_types].data_df.index.to_numpy()
-            temp = np.where(
-                (start_timestamp < df_timestamps) & (df_timestamps < end_timestamp))[0]
-            new_df = station.station_data[sensor_types].data_df.iloc[temp]
-            station.station_data[sensor_types].data_df = new_df
-        if len(station.station_data[SensorType.AUDIO].data_df.values) < 1:
-            print(f"WARNING: {station.station_metadata.station_id} audio sensor has been truncated and "
-                  f"no valid data remains!")
-        else:
-            # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
-            new_df = station.station_data[SensorType.AUDIO].data_df
-            first_timestamp = station.station_data[SensorType.AUDIO].first_data_timestamp()
-            start_diff = first_timestamp - dtu.seconds_to_microseconds(start_timestamp_utc_s)
-            if start_diff > 0:
-                num_missing_samples = int(dtu.microseconds_to_seconds(start_diff) *
-                                          station.station_data[SensorType.AUDIO].sample_rate)
-                time_before = np.vectorize(
-                    lambda t: first_timestamp - dtu.seconds_to_microseconds(t * one_sample_s))(
-                    list(range(1, num_missing_samples)))
-                time_before = time_before[::-1]
-                data = np.empty(num_missing_samples - 1)
-                data[:] = np.nan
-                new_df_values = pd.DataFrame(data, index=time_before, columns=["microphone"])
-                new_df = new_df_values.append(new_df)
-            last_timestamp = station.station_data[SensorType.AUDIO].data_df.index[-1]
-            last_diff = dtu.seconds_to_microseconds(end_timestamp_utc_s) - last_timestamp
-            if last_diff > 0:
-                num_missing_samples = int(dtu.microseconds_to_seconds(last_diff) *
-                                          station.station_data[SensorType.AUDIO].sample_rate)
-                time_after = np.vectorize(
-                    lambda t: last_timestamp + dtu.seconds_to_microseconds(t * one_sample_s))(
-                    list(range(1, num_missing_samples)))
-                data = np.empty(num_missing_samples - 1)
-                data[:] = np.nan
-                new_df_values = pd.DataFrame(data, index=time_after, columns=["microphone"])
-                new_df = new_df.append(new_df_values)
-            # ALL DONE!  set the dataframe to the updated dataframe
-            station.station_data[SensorType.AUDIO].data_df = new_df
-
-    return all_stations

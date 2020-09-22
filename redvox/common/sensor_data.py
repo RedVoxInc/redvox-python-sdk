@@ -39,7 +39,8 @@ class SensorData:
     Generic SensorData class for API-independent analysis
     Properties:
         name: string, name of sensor
-        data_df: dataframe of the sensor data; timestamps are the index, columns are the data fields
+        data_df: dataframe of the sensor data; always has timestamps as the first column,
+                    the other columns are the data fields
         sample_rate: float, sample rate in Hz of the sensor, default np.nan
         is_sample_rate_fixed: bool, True if sample rate is constant, default False
     """
@@ -53,36 +54,46 @@ class SensorData:
         append the new data to the dataframe
         :return: the updated SensorData object
         """
-        self.data_df = pd.concat([self.data_df, new_data])
+        self.data_df = pd.concat([self.data_df, new_data], ignore_index=True)
         return self
 
-    def get_samples(self) -> np.array:
+    def samples(self) -> np.ndarray:
         """
         gets the samples of dataframe
         :return: the data values of the dataframe as a numpy ndarray
         """
-        return self.data_df.T.to_numpy()
+        return self.data_df.iloc[:, 1:].T.to_numpy()
 
-    def sensor_timestamps(self) -> np.array:
+    def get_channel(self, channel_name: str) -> np.array:
+        """
+        gets the channel specified
+        :param channel_name: the name of the channel to get data for
+        :return: the data values of the channel as a numpy array
+        """
+        if channel_name not in self.data_df.columns:
+            raise ValueError(f"WARNING: {channel_name} does not exist; try one of {self.data_fields()}")
+        return self.data_df[channel_name].to_numpy()
+
+    def data_timestamps(self) -> np.array:
         """
         get the timestamps from the dataframe
-        :return: a list of timestamps
+        :return: the timestamps as a numpy array
         """
-        return self.data_df.index.to_numpy()
+        return self.data_df["timestamps"].to_numpy()
 
     def first_data_timestamp(self) -> float:
         """
         get the first timestamp of the data
         :return: timestamp of the first data point
         """
-        return self.data_df.index[0]
+        return self.data_df["timestamps"].iloc[0]
 
     def last_data_timestamp(self) -> float:
         """
         get the last timestamp of the data
         :return: timestamp of the last data point
         """
-        return self.data_df.index[-1]
+        return self.data_df["timestamps"].iloc[-1]
 
     def num_samples(self) -> int:
         """
@@ -98,12 +109,27 @@ class SensorData:
         """
         return self.num_samples() / self.sample_rate
 
-    def sensor_data_fields(self) -> List[str]:
+    def data_fields(self) -> List[str]:
         """
         get the data fields of the sensor
-        :return: the names of the data fields of the sensor
+        :return: a list of the names of the data fields of the sensor
         """
         return self.data_df.columns.to_list()
+
+    def update_data_timestamps(self, time_delta: float):
+        """
+        adds the time_delta to the sensor's timestamps; use negative values to go backwards in time
+        :param time_delta: time to add to sensor's timestamps
+        """
+        new_timestamps = self.data_timestamps() + time_delta
+        self.data_df["timestamps"] = new_timestamps
+
+    def sort_by_data_timestamps(self, ascending: bool = True):
+        """
+        sorts the data based on timestamps
+        :param ascending: if True, timestamps are sorted in ascending order
+        """
+        self.data_df = self.data_df.sort_values("timestamps", ascending=ascending)
 
 
 @dataclass
@@ -160,6 +186,8 @@ class StationMetadata:
         station_id: str, id of the station
         station_make: str, maker of the station
         station_model: str, model of the station
+        station_timing_is_corrected: bool, if True, the station's timestamps have been altered from their raw values
+                                        default False
         station_os: optional str, operating system of the station, default None
         station_os_version: optional str, station OS version, default None
         station_app: optional str, the name of the recording software used by the station, default None
@@ -172,10 +200,12 @@ class StationMetadata:
         station_location_name: optional str, name/code of location station is at, default None
         station_channel_name: optional str, name/code of channel station is recording, default None
         station_channel_encoding: optional str, name/code of channel encoding method, default None
+        station_uuid: optional str, uuid of the station, default is the same value as station_id
     """
     station_id: str
     station_make: str
     station_model: str
+    station_timing_is_corrected: bool = False
     station_os: Optional[str] = None
     station_os_version: Optional[str] = None
     station_app: Optional[str] = None
@@ -188,6 +218,14 @@ class StationMetadata:
     station_location_name: Optional[str] = None
     station_channel_name: Optional[str] = None
     station_channel_encoding: Optional[str] = None
+    station_uuid: Optional[str] = None
+
+    def __post_init__(self):
+        """
+        if the station_uuid is None, set it to be station_id
+        """
+        if not self.station_uuid:
+            self.station_uuid = self.station_id
 
 
 @dataclass
@@ -723,3 +761,35 @@ class Station:
         if compaudio_sensor is not None:
             self._add_sensor(SensorType.COMPRESSED_AUDIO, compaudio_sensor)
         return self
+
+    def update_timestamps(self):
+        """
+        updates the timestamps in all SensorData objects using the station_best_offset of the station_timing
+        """
+        if self.station_metadata.station_timing_is_corrected:
+            print("WARNING: Timestamps already corrected!")
+        else:
+            delta = self.station_metadata.timing_data.station_best_offset
+            for sensor in self.station_data.values():
+                sensor.update_data_timestamps(delta)
+            for packet in self.packet_data:
+                packet.data_start_timestamp += delta
+                packet.data_end_timestamp += delta
+            self.station_metadata.timing_data.station_first_data_timestamp += delta
+            self.station_metadata.station_timing_is_corrected = True
+
+    def revert_timestamps(self):
+        """
+        reverts the timestamps in all SensorData objects using the station_best_offset of the station_timing
+        """
+        if self.station_metadata.station_timing_is_corrected:
+            delta = self.station_metadata.timing_data.station_best_offset
+            for sensor in self.station_data.values():
+                sensor.update_data_timestamps(-delta)
+            for packet in self.packet_data:
+                packet.data_start_timestamp -= delta
+                packet.data_end_timestamp -= delta
+            self.station_metadata.timing_data.station_first_data_timestamp -= delta
+            self.station_metadata.station_timing_is_corrected = False
+        else:
+            print("WARNING: Cannot revert timestamps that are not corrected!")
