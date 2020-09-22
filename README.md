@@ -9,6 +9,13 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a7 (2020-09-22)
+
+* Added DataWindow class; a station agnostic way of getting exactly the time window of data requested
+* Updated SensorData functions to return numpy arrays
+* Updated SensorData function names to better match what is being returned
+* Added functionality to return user-specified location values from api900 location sensors
+
 ### 3.0.0a6 (2020-09-18)
 
 * Improvements to raw_io. Include new summaries in ReadResult.

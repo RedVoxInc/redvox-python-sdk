@@ -14,7 +14,6 @@ from redvox.common import date_time_utils as dtu
 from redvox.common.sensor_data import SensorType, SensorData, Station, StationTiming, StationMetadata, DataPacket
 from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
 from redvox.api1000.wrapped_redvox_packet import wrapped_packet as apim_wp
-from redvox.api1000.io_raw import ReadFilter
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -99,6 +98,13 @@ class ReadResult:
             return self.station_id_uuid_to_stations[f"{station_id}:{self.__station_id_to_id_uuid[station_id]}"]
         print(f"WARNING: ReadResult attempted to read station id: {station_id}, but could not find id in results")
         return None
+
+    def get_all_stations(self) -> List[Station]:
+        """
+        Return a list of all stations in the ReadResult
+        :return: a list of all stations
+        """
+        return list(self.station_id_uuid_to_stations.values())
 
     def append_station(self, new_station_id: str, new_station: Station):
         """
@@ -606,9 +612,18 @@ def read_all_in_dir(directory: str,
     stations: ReadResult = ReadResult({})
     # if structured_layout, there should be a specifically named folder in directory
     if structured_layout:
-        api900_dir = os.path.join(directory, "api900")
-        apim_dir = os.path.join(directory, "api1000")
-        mseed_dir = os.path.join(directory, "mseed")
+        if "api900" not in directory:
+            api900_dir = os.path.join(directory, "api900")
+        else:
+            api900_dir = directory
+        if "api1000" not in directory:
+            apim_dir = os.path.join(directory, "api1000")
+        else:
+            apim_dir = directory
+        if "mseed" not in directory:
+            mseed_dir = os.path.join(directory, "mseed")
+        else:
+            mseed_dir = directory
         # check if none of the paths exists
         if not (os.path.exists(api900_dir) or os.path.exists(apim_dir) or os.path.exists(mseed_dir)):
             # no specially named directory found; raise error

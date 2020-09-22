@@ -3,11 +3,11 @@ This module creates specific time-bounded segments of data for users
 """
 import pandas as pd
 import numpy as np
-from typing import Dict, Optional, Set
-from dataclasses import dataclass, field
+from typing import Optional, Set
+from dataclasses import dataclass
 from redvox.common import date_time_utils as dtu
 from datetime import datetime
-from redvox.common.sensor_data import SensorType, SensorData, Station
+from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.load_sensor_data import ReadResult, read_all_in_dir
 
 
@@ -26,6 +26,9 @@ class DataWindow:
     apply_correction: bool = False
     structured_layout: bool = False
     stations: Optional[ReadResult] = None
+
+    def __post_init__(self):
+        self.read_data_window()
 
     def _pad_start_datetime_s(self) -> float:
         """
