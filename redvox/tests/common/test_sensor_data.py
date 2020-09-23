@@ -64,7 +64,7 @@ class SensorDataTest(unittest.TestCase):
         # api900 station
         station = self.all_data.get_station("1637650010")
         self.assertEqual(len(station.packet_data), 1)
-        self.assertIsNone(station.packet_data[0].packet_best_latency)
+        self.assertTrue(np.isnan(station.packet_data[0].packet_best_latency))
         self.assertEqual(len(station.station_data), 5)
         self.assertEqual(station.audio_sensor().sample_rate, 80)
         self.assertTrue(station.audio_sensor().is_sample_rate_fixed)

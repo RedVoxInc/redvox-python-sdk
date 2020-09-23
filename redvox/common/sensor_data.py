@@ -152,8 +152,8 @@ class DataPacket:
     data_start_timestamp: float = np.nan
     data_end_timestamp: float = np.nan
     timesync: Optional[np.array] = None
-    packet_best_latency: Optional[float] = np.nan
-    packet_best_offset: Optional[float] = 0.0
+    packet_best_latency: float = np.nan
+    packet_best_offset: float = 0.0
 
 
 @dataclass
@@ -162,10 +162,10 @@ class StationTiming:
     Generic StationTiming class for API-independent analysis
     Properties:
         start_timestamp: float, timestamp when station started recording
-        episode_start_timestamp_s: float, timestamp of start of segment of interest in seconds since epoch UTC
-        episode_end_timestamp_s: float, timestamp of end of segment of interest in seconds since epoch UTC
         audio_sample_rate_hz: float, sample rate in hz of audio sensor
         station_first_data_timestamp: float, first timestamp chronologically of the data
+        episode_start_timestamp_s: float, timestamp of start of segment of interest in seconds since epoch UTC
+        episode_end_timestamp_s: float, timestamp of end of segment of interest in seconds since epoch UTC
         station_best_latency: float, best latency of data, default np.nan
         station_best_offset: float, best offset of data, default 0.0
     """
@@ -279,12 +279,31 @@ class Station:
         else:
             self.station_data[sensor_type] = sensor
 
-    def has_audio_data(self) -> bool:
+    def find_best_latency(self):
         """
-        check if the audio sensor has any data
-        :return: True if audio sensor has any data
+        finds the best latency of the station, then sets the timing information appropriately
         """
-        return self.has_audio_sensor() and self.audio_sensor().num_samples() > 0
+        if not self.station_metadata.timing_data or np.isnan(self.station_metadata.timing_data.station_best_latency):
+            if len(self.packet_data) > 0:
+                packet_latencies = []
+                packet_offsets = []
+                for packet in self.packet_data:
+                    if not np.isnan(packet.packet_best_latency):
+                        packet_latencies.append(packet.packet_best_latency)
+                        packet_offsets.append(packet.packet_best_offset)
+                if len(packet_latencies) > 0:
+                    best_latency_index = np.argwhere(packet_latencies == np.min(packet_latencies))[0][0]
+                    if self.station_metadata.timing_data:
+                        self.station_metadata.timing_data.station_best_latency = packet_latencies[best_latency_index]
+                        self.station_metadata.timing_data.station_best_offset = packet_offsets[best_latency_index]
+                    else:
+                        self.station_metadata.timing_data = \
+                            StationTiming(self.packet_data[0].packet_app_start_timestamp,
+                                          self.packet_data[0].packet_duration_samples /
+                                          self.packet_data[0].packet_duration_s,
+                                          self.packet_data[0].data_start_timestamp,
+                                          station_best_latency=packet_latencies[best_latency_index],
+                                          station_best_offset=packet_offsets[best_latency_index])
 
     def has_audio_sensor(self) -> bool:
         """
@@ -292,6 +311,13 @@ class Station:
         :return: True if audio sensor exists
         """
         return SensorType.AUDIO in self.station_data.keys()
+
+    def has_audio_data(self) -> bool:
+        """
+        check if the audio sensor has any data
+        :return: True if audio sensor has any data
+        """
+        return self.has_audio_sensor() and self.audio_sensor().num_samples() > 0
 
     def audio_sensor(self) -> Optional[SensorData]:
         """
@@ -314,19 +340,19 @@ class Station:
             self._add_sensor(SensorType.AUDIO, audio_sensor)
         return self
 
-    def has_location_data(self) -> bool:
-        """
-        check if the location sensor has any data
-        :return: True if location sensor has any data
-        """
-        return self.has_location_sensor() and self.location_sensor().num_samples() > 0
-
     def has_location_sensor(self) -> bool:
         """
         check if location sensor is in sensor_data_dict
         :return: True if location sensor exists
         """
         return SensorType.LOCATION in self.station_data.keys()
+
+    def has_location_data(self) -> bool:
+        """
+        check if the location sensor has any data
+        :return: True if location sensor has any data
+        """
+        return self.has_location_sensor() and self.location_sensor().num_samples() > 0
 
     def location_sensor(self) -> Optional[SensorData]:
         """
@@ -356,6 +382,13 @@ class Station:
         """
         return SensorType.ACCELEROMETER in self.station_data.keys()
 
+    def has_accelerometer_data(self) -> bool:
+        """
+        check if the accelerometer sensor has any data
+        :return: True if accelerometer sensor has any data
+        """
+        return self.has_accelerometer_sensor() and self.accelerometer_sensor().num_samples() > 0
+
     def accelerometer_sensor(self) -> Optional[SensorData]:
         """
         return the accelerometer sensor if it exists
@@ -383,6 +416,13 @@ class Station:
         :return: True if magnetometer sensor exists
         """
         return SensorType.MAGNETOMETER in self.station_data.keys()
+
+    def has_magnetometer_data(self) -> bool:
+        """
+        check if the magnetometer sensor has any data
+        :return: True if magnetometer sensor has any data
+        """
+        return self.has_magnetometer_sensor() and self.magnetometer_sensor().num_samples() > 0
 
     def magnetometer_sensor(self) -> Optional[SensorData]:
         """
@@ -412,6 +452,13 @@ class Station:
         """
         return SensorType.GYROSCOPE in self.station_data.keys()
 
+    def has_gyroscope_data(self) -> bool:
+        """
+        check if the gyroscope sensor has any data
+        :return: True if gyroscope sensor has any data
+        """
+        return self.has_gyroscope_sensor() and self.gyroscope_sensor().num_samples() > 0
+
     def gyroscope_sensor(self) -> Optional[SensorData]:
         """
         return the gyroscope sensor if it exists
@@ -439,6 +486,13 @@ class Station:
         :return: True if barometer sensor exists
         """
         return SensorType.PRESSURE in self.station_data.keys()
+
+    def has_barometer_data(self) -> bool:
+        """
+        check if the barometer sensor has any data
+        :return: True if barometer sensor has any data
+        """
+        return self.has_barometer_sensor() and self.barometer_sensor().num_samples() > 0
 
     def barometer_sensor(self) -> Optional[SensorData]:
         """
@@ -468,6 +522,13 @@ class Station:
         """
         return SensorType.LIGHT in self.station_data.keys()
 
+    def has_light_data(self) -> bool:
+        """
+        check if the light sensor has any data
+        :return: True if light sensor has any data
+        """
+        return self.has_light_sensor() and self.light_sensor().num_samples() > 0
+
     def light_sensor(self) -> Optional[SensorData]:
         """
         return the light sensor if it exists
@@ -495,6 +556,13 @@ class Station:
         :return: True if infrared sensor exists
         """
         return SensorType.INFRARED in self.station_data.keys()
+
+    def has_infrared_data(self) -> bool:
+        """
+        check if the infrared sensor has any data
+        :return: True if infrared sensor has any data
+        """
+        return self.has_infrared_sensor() and self.infrared_sensor().num_samples() > 0
 
     def infrared_sensor(self) -> Optional[SensorData]:
         """
@@ -524,6 +592,13 @@ class Station:
         """
         return SensorType.IMAGE in self.station_data.keys()
 
+    def has_image_data(self) -> bool:
+        """
+        check if the image sensor has any data
+        :return: True if image sensor has any data
+        """
+        return self.has_image_sensor() and self.image_sensor().num_samples() > 0
+
     def image_sensor(self) -> Optional[SensorData]:
         """
         return the image sensor if it exists
@@ -551,6 +626,13 @@ class Station:
         :return: True if ambient temperature sensor exists
         """
         return SensorType.TEMPERATURE in self.station_data.keys()
+
+    def has_ambient_temperature_data(self) -> bool:
+        """
+        check if the ambient temperature sensor has any data
+        :return: True if ambient temperature sensor has any data
+        """
+        return self.has_ambient_temperature_sensor() and self.ambient_temperature_sensor().num_samples() > 0
 
     def ambient_temperature_sensor(self) -> Optional[SensorData]:
         """
@@ -580,6 +662,13 @@ class Station:
         """
         return SensorType.GRAVITY in self.station_data.keys()
 
+    def has_gravity_data(self) -> bool:
+        """
+        check if the gravity sensor has any data
+        :return: True if gravity sensor has any data
+        """
+        return self.has_gravity_sensor() and self.gravity_sensor().num_samples() > 0
+
     def gravity_sensor(self) -> Optional[SensorData]:
         """
         return the gravity sensor if it exists
@@ -607,6 +696,13 @@ class Station:
         :return: True if linear acceleration sensor exists
         """
         return SensorType.LINEAR_ACCELERATION in self.station_data.keys()
+
+    def has_linear_acceleration_data(self) -> bool:
+        """
+        check if the linear acceleration sensor has any data
+        :return: True if linear acceleration sensor has any data
+        """
+        return self.has_linear_acceleration_sensor() and self.linear_acceleration_sensor().num_samples() > 0
 
     def linear_acceleration_sensor(self) -> Optional[SensorData]:
         """
@@ -636,6 +732,13 @@ class Station:
         """
         return SensorType.ORIENTATION in self.station_data.keys()
 
+    def has_orientation_data(self) -> bool:
+        """
+        check if the orientation sensor has any data
+        :return: True if orientation sensor has any data
+        """
+        return self.has_orientation_sensor() and self.orientation_sensor().num_samples() > 0
+
     def orientation_sensor(self) -> Optional[SensorData]:
         """
         return the orientation sensor if it exists
@@ -663,6 +766,13 @@ class Station:
         :return: True if proximity sensor exists
         """
         return SensorType.PROXIMITY in self.station_data.keys()
+
+    def has_proximity_data(self) -> bool:
+        """
+        check if the proximity sensor has any data
+        :return: True if proximity sensor has any data
+        """
+        return self.has_proximity_sensor() and self.proximity_sensor().num_samples() > 0
 
     def proximity_sensor(self) -> Optional[SensorData]:
         """
@@ -692,6 +802,13 @@ class Station:
         """
         return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
 
+    def has_relative_humidity_data(self) -> bool:
+        """
+        check if the relative humidity sensor has any data
+        :return: True if relative humidity sensor has any data
+        """
+        return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() > 0
+
     def relative_humidity_sensor(self) -> Optional[SensorData]:
         """
         return the relative humidity sensor if it exists
@@ -720,6 +837,13 @@ class Station:
         """
         return SensorType.ROTATION_VECTOR in self.station_data.keys()
 
+    def has_rotation_vector_data(self) -> bool:
+        """
+        check if the rotation vector sensor has any data
+        :return: True if rotation vector sensor has any data
+        """
+        return self.has_rotation_vector_sensor() and self.rotation_vector_sensor().num_samples() > 0
+
     def rotation_vector_sensor(self) -> Optional[SensorData]:
         """
         return the rotation vector sensor if it exists
@@ -747,6 +871,13 @@ class Station:
         :return: True if compressed audio sensor exists
         """
         return SensorType.COMPRESSED_AUDIO in self.station_data.keys()
+
+    def has_compressed_audio_data(self) -> bool:
+        """
+        check if the compressed audio sensor has any data
+        :return: True if compressed audio sensor has any data
+        """
+        return self.has_compressed_audio_sensor() and self.compressed_audio_sensor().num_samples() > 0
 
     def compressed_audio_sensor(self) -> Optional[SensorData]:
         """

@@ -294,8 +294,7 @@ def load_file_range_from_api900(directory: str,
         timing = StationTiming(wrapped_packets[0].mach_time_zero(),
                                wrapped_packets[0].microphone_sensor().sample_rate_hz(),
                                wrapped_packets[0].app_file_start_timestamp_epoch_microseconds_utc(),
-                               start_timestamp_utc_s, end_timestamp_utc_s,
-                               wrapped_packets[0].best_latency(), wrapped_packets[0].best_offset())
+                               start_timestamp_utc_s, end_timestamp_utc_s)
         metadata = StationMetadata(wrapped_packets[0].redvox_id(), wrapped_packets[0].device_make(),
                                    wrapped_packets[0].device_model(), False, wrapped_packets[0].device_os(),
                                    wrapped_packets[0].device_os_version(), "Redvox", wrapped_packets[0].app_version(),
@@ -316,9 +315,13 @@ def load_file_range_from_api900(directory: str,
                                      data_dict[SensorType.AUDIO].num_samples(),
                                      data_dict[SensorType.AUDIO].data_duration_s(),
                                      packet.start_timestamp_us_utc(), packet.end_timestamp_us_utc(),
-                                     time_sync, packet.best_latency(), packet.best_offset())
+                                     time_sync, np.nan if packet.best_latency() is None else packet.best_latency(),
+                                     0.0 if packet.best_offset() is None else packet.best_offset())
             packet_list.append(packet_data)
         new_station.packet_data = packet_list
+
+        # get the best timing values for the station
+        new_station.find_best_latency()
 
         # create the Station data object
         all_stations.append_station(redvox_id, new_station)
@@ -503,7 +506,10 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
                              data_dict[SensorType.AUDIO].data_duration_s(),
                              read_packet.get_timing_information().get_packet_start_mach_timestamp(),
                              read_packet.get_timing_information().get_packet_end_mach_timestamp(),
-                             time_sync, read_packet.get_timing_information().get_best_latency(),
+                             time_sync,
+                             np.nan if read_packet.get_timing_information().get_best_latency() is None else
+                             read_packet.get_timing_information().get_best_latency(),
+                             0.0 if read_packet.get_timing_information().get_best_offset() is None else
                              read_packet.get_timing_information().get_best_offset())
     packet_list: List[DataPacket] = [packet_data]
     return Station(metadata, data_dict, packet_list)

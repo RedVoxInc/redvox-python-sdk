@@ -26,7 +26,7 @@ class DataWindowTest(unittest.TestCase):
     def test_read_data_window(self):
         self.assertTrue(len(self.datawindow.stations.station_id_uuid_to_stations), 2)
         test_station = self.datawindow.stations.get_station("0000000001")
-        self.assertTrue(test_station.has_audio_sensor())
+        self.assertTrue(test_station.has_audio_data())
         self.assertEqual(test_station.audio_sensor().num_samples(), 720000)
         test_station = self.datawindow.stations.get_station("1637650010")
         self.assertTrue(test_station.has_audio_sensor())
@@ -35,6 +35,15 @@ class DataWindowTest(unittest.TestCase):
         self.assertTrue(test_station.has_barometer_sensor())
         self.assertTrue(test_station.has_location_sensor())
 
+
+class GapFillerTest(unittest.TestCase):
+    def setUp(self):
+        timestamps = [dt.seconds_to_microseconds(10), dt.seconds_to_microseconds(30), dt.seconds_to_microseconds(100)]
+        self.dataframe = pd.DataFrame(np.transpose([timestamps, [1, 3, 10]]), columns=["timestamps", "temp"])
+
+    def test_gap_filler(self):
+        filled_dataframe = dw.gap_filler(self.dataframe, .1, 5)
+        self.assertEqual(filled_dataframe.shape, (10, 2))
 
 # class OtherTest(unittest.TestCase):
 #     def test_mytest(self):

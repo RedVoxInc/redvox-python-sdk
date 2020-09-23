@@ -11,23 +11,49 @@ from redvox.common.sensor_data import SensorData
 from redvox.common.load_sensor_data import ReadResult, read_all_in_dir
 
 
+DEFAULT_GAP_TIME_S: float = 0.5
+DEFAULT_START_PADDING_S: float = 120.
+DEFAULT_END_PADDING_S: float = 120.
+
+
 @dataclass
 class DataWindow:
     """
     Holds the data for a given time window
+    Properties:
+        input_directory: string, directory that contains the files to read data from.  REQUIRED
+        station_ids: optional set of strings, list of station ids to filter on.
+                        If empty or None, get any ids found in the input directory.  Default None
+        start_datetime: optional datetime, start datetime of the window.
+                        If None, uses the first timestamp of the filtered data.  Default None
+        end_datetime: optional datetime, end datetime of the window.
+                        If None, uses the last timestamp of the filtered data.  Default None
+        start_padding_s: float, the amount of seconds to include before the start_datetime
+                            when filtering data.  Default DEFAULT_START_PADDING_S
+        end_padding_s: float, the amount of seconds to include after the end_datetime
+                        when filtering data.  Default DEFAULT_END_PADDING_S
+        gap_time_s: float, the minimum amount of seconds between data points that would indicate a gap.
+                    Default DEFAULT_GAP_TIME_S
+        apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default False
+        structured_layout: bool, if True, the input_directory contains specially named and organized
+                            directories of data.  Default False
+        stations: optional ReadResult, the results of reading the data from input_directory
     """
     input_directory: str
     station_ids: Optional[Set[str]] = None
     start_datetime: Optional[datetime] = None
     end_datetime: Optional[datetime] = None
-    start_padding_s: float = 120
-    end_padding_s: float = 120
-    gap_time_s: float = .5
+    start_padding_s: float = DEFAULT_START_PADDING_S
+    end_padding_s: float = DEFAULT_END_PADDING_S
+    gap_time_s: float = DEFAULT_GAP_TIME_S
     apply_correction: bool = False
     structured_layout: bool = False
     stations: Optional[ReadResult] = None
 
     def __post_init__(self):
+        """
+        loads the data after initialization
+        """
         self.read_data_window()
 
     def _has_time_window(self) -> bool:
@@ -86,7 +112,7 @@ class DataWindow:
             # add the gap data to the result dataframe
             result_df = result_df.append(create_empty_df(last_data_timestamp, sample_rate_hz, data_df.columns,
                                                          num_missing_samples), ignore_index=True)
-        return result_df.sort_values("timestamps")
+        return result_df.sort_values("timestamps", ignore_index=True)
 
     def fill_sensor_gap(self, sensor: SensorData):
         """
@@ -135,7 +161,7 @@ class DataWindow:
                     one_sample_s = 1 / station.audio_sensor().sample_rate
                 else:
                     # print warning and use 0 as the size of one sample
-                    print(f"WARNING: {station.station_metadata.station_id} audio sensor does not exist!")
+                    print(f"WARNING: {station_id} audio sensor does not exist!")
                     one_sample_s = 0
                 # get the start and end timestamps + 1 sample to be safe
                 if self.start_datetime:
@@ -154,8 +180,9 @@ class DataWindow:
                     df_timestamps = station.station_data[sensor_types].data_timestamps()
                     temp = np.where(
                         (start_timestamp < df_timestamps) & (df_timestamps < end_timestamp))[0]
-                    new_df = station.station_data[sensor_types].data_df.iloc[temp].reset_index(drop=True)
-                    station.station_data[sensor_types].data_df = new_df
+                    # reset the dataframe to only be the data in the window
+                    station.station_data[sensor_types].data_df = \
+                        station.station_data[sensor_types].data_df.iloc[temp].reset_index(drop=True)
                     # oops, all the samples have been cut off
                     if station.station_data[sensor_types].num_samples() < 1:
                         print(f"WARNING: {station.station_metadata.station_id} {sensor_types} sensor "
@@ -167,7 +194,8 @@ class DataWindow:
                     self.pad_sensor_data(station.audio_sensor())
 
 
-def gap_filler(data_df: pd.DataFrame, sample_rate_hz: float, gap_duration_s: float = 5.0) -> pd.DataFrame:
+def gap_filler(data_df: pd.DataFrame, sample_rate_hz: float,
+               gap_duration_s: float = DEFAULT_GAP_TIME_S) -> pd.DataFrame:
     """
     fills gaps in the dataframe with np.nan by interpolating timestamps
     :param data_df: dataframe with timestamps as column "timestamps"
@@ -182,13 +210,13 @@ def gap_filler(data_df: pd.DataFrame, sample_rate_hz: float, gap_duration_s: flo
     data_duration_s = dtu.microseconds_to_seconds(last_data_timestamp - first_data_timestamp)
     tolerance = gap_duration_s * sample_rate_hz
     num_points = len(data_time_stamps)
-    expected_num_points = sample_rate_hz * data_duration_s  # expected number of points for the data
+    expected_num_points = int(sample_rate_hz * data_duration_s)  # expected number of points for the data
     one_sample_s = 1 / sample_rate_hz
     result_df = data_df.copy()
     # if there are less points than our expected amount - tolerance points, we have gaps to fill
     if num_points < expected_num_points - tolerance:
         # if the data we're looking at is short enough, we can start comparing points
-        if data_duration_s < gap_duration_s or num_points < sample_rate_hz / 2:
+        if data_duration_s < gap_duration_s or num_points < 1000:
             # look at every timestamp except the last one
             for index in range(0, num_points - 1):
                 # compare that timestamp to the next
@@ -198,7 +226,7 @@ def gap_filler(data_df: pd.DataFrame, sample_rate_hz: float, gap_duration_s: flo
                     # calc samples to add, subtracting 1 to prevent copying existing data
                     num_new_samples = int(time_diff * sample_rate_hz) - 1
                     # add the gap data to the result dataframe
-                    result_df = result_df.append(create_empty_df(first_data_timestamp, sample_rate_hz,
+                    result_df = result_df.append(create_empty_df(data_time_stamps[index], sample_rate_hz,
                                                                  data_df.columns, num_new_samples), ignore_index=True)
         else:
             # gap's too big, divide and conquer using recursion!
@@ -209,7 +237,7 @@ def gap_filler(data_df: pd.DataFrame, sample_rate_hz: float, gap_duration_s: flo
             first_data_df = gap_filler(first_data_df, sample_rate_hz, gap_duration_s)
             second_data_df = gap_filler(second_data_df, sample_rate_hz, gap_duration_s)
             result_df = first_data_df.append(second_data_df, ignore_index=True)
-    return result_df.sort_values("timestamps")
+    return result_df.sort_values("timestamps", ignore_index=True)
 
 
 def create_empty_df(start_timestamp: float, sample_rate_hz: float, columns: pd.Index,
@@ -227,13 +255,12 @@ def create_empty_df(start_timestamp: float, sample_rate_hz: float, columns: pd.I
     one_sample_s = 1 / sample_rate_hz
     if add_to_start:
         new_timestamps = np.vectorize(lambda t: start_timestamp - dtu.seconds_to_microseconds(t * one_sample_s))(
-            list(range(1, num_samples_to_add)))
+            list(range(1, num_samples_to_add + 1)))
         new_timestamps = new_timestamps[::-1]
     else:
         new_timestamps = np.vectorize(lambda t: start_timestamp + dtu.seconds_to_microseconds(t * one_sample_s))(
-            list(range(1, num_samples_to_add)))
+            list(range(1, num_samples_to_add + 1)))
     empty_df = pd.DataFrame([], columns=columns)
-    # add the gap data to a temporary dataframe
     for column_index in columns:
         if column_index == "timestamps":
             empty_df["timestamps"] = new_timestamps
