@@ -9,6 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a8 (2020-09-22)
+
+* Improvements to DataWindow, SensorData, and Station classes
+
 ### 3.0.0a7 (2020-09-22)
 
 * Added DataWindow class; a station agnostic way of getting exactly the time window of data requested
