@@ -59,51 +59,6 @@ class DataWindow:
             if self.apply_correction:
                 station.update_timestamps()
 
-    def gap_filler(self, data_df: pd.DataFrame, sample_rate_hz: float, gap_duration_s: float = 5.0) -> pd.DataFrame:
-        """
-        fills gaps in the dataframe with np.nan by interpolating timestamps
-        :param data_df: dataframe with timestamps as column "timestamps"
-        :param sample_rate_hz: constant sample rate of data in hz
-        :param gap_duration_s: duration in seconds of minimum missing data to be considered a gap
-        :return: dataframe without gaps
-        """
-        # extract the necessary information to compute gap size and gap timestamps
-        data_time_stamps = data_df.sort_values("timestamps")["timestamps"].to_numpy()
-        first_data_timestamp = data_time_stamps[0]
-        last_data_timestamp = data_time_stamps[-1]
-        data_duration_s = dtu.microseconds_to_seconds(last_data_timestamp - first_data_timestamp)
-        tolerance = gap_duration_s * sample_rate_hz
-        num_points = len(data_time_stamps)
-        expected_num_points = sample_rate_hz * data_duration_s  # expected number of points for the data
-        one_sample_s = 1 / sample_rate_hz
-        result_df = data_df.copy()
-        # if there are less points than our expected amount - tolerance points, we have gaps to fill
-        if num_points < expected_num_points - tolerance:
-            # if the data we're looking at is short enough, we can start comparing points
-            if data_duration_s < gap_duration_s or num_points < sample_rate_hz / 2:
-                # look at every timestamp except the last one
-                for index in range(0, num_points - 1):
-                    # compare that timestamp to the next
-                    time_diff = dtu.microseconds_to_seconds(data_time_stamps[index + 1] - data_time_stamps[index])
-                    # anything bigger than one sample needs to be filled
-                    if time_diff > one_sample_s:
-                        # calc samples to add, subtracting 1 to prevent copying existing data
-                        num_new_samples = int(time_diff * sample_rate_hz) - 1
-                        # add the gap data to the result dataframe
-                        result_df = result_df.append(create_empty_df(first_data_timestamp, sample_rate_hz,
-                                                                     data_df.columns, num_new_samples),
-                                                     ignore_index=True)
-            else:
-                # gap's too big, divide and conquer using recursion!
-                half_samples = int(num_points / 2)
-                first_data_df = data_df.iloc[:half_samples].copy().reset_index(drop=True)
-                second_data_df = data_df.iloc[half_samples:].copy().reset_index(drop=True)
-                # give half the samples and expected duration to each recursive call
-                first_data_df = self.gap_filler(first_data_df, sample_rate_hz, gap_duration_s)
-                second_data_df = self.gap_filler(second_data_df, sample_rate_hz, gap_duration_s)
-                result_df = first_data_df.append(second_data_df, ignore_index=True)
-        return result_df.sort_values("timestamps")
-
     def data_padder(self, data_df: pd.DataFrame, sample_rate_hz: float) -> pd.DataFrame:
         """
         Pad the start and end of the dataframe with np.nan
@@ -139,7 +94,7 @@ class DataWindow:
         :param sensor: a sensor with timestamps and data
         """
         if sensor.is_sample_rate_fixed:
-            sensor.data_df = self.gap_filler(sensor.data_df, sensor.sample_rate, self.gap_time_s)
+            sensor.data_df = gap_filler(sensor.data_df, sensor.sample_rate, self.gap_time_s)
 
     def pad_sensor_data(self, sensor: SensorData):
         """
@@ -212,10 +167,56 @@ class DataWindow:
                     self.pad_sensor_data(station.audio_sensor())
 
 
+def gap_filler(data_df: pd.DataFrame, sample_rate_hz: float, gap_duration_s: float = 5.0) -> pd.DataFrame:
+    """
+    fills gaps in the dataframe with np.nan by interpolating timestamps
+    :param data_df: dataframe with timestamps as column "timestamps"
+    :param sample_rate_hz: constant sample rate of data in hz
+    :param gap_duration_s: duration in seconds of minimum missing data to be considered a gap
+    :return: dataframe without gaps
+    """
+    # extract the necessary information to compute gap size and gap timestamps
+    data_time_stamps = data_df.sort_values("timestamps")["timestamps"].to_numpy()
+    first_data_timestamp = data_time_stamps[0]
+    last_data_timestamp = data_time_stamps[-1]
+    data_duration_s = dtu.microseconds_to_seconds(last_data_timestamp - first_data_timestamp)
+    tolerance = gap_duration_s * sample_rate_hz
+    num_points = len(data_time_stamps)
+    expected_num_points = sample_rate_hz * data_duration_s  # expected number of points for the data
+    one_sample_s = 1 / sample_rate_hz
+    result_df = data_df.copy()
+    # if there are less points than our expected amount - tolerance points, we have gaps to fill
+    if num_points < expected_num_points - tolerance:
+        # if the data we're looking at is short enough, we can start comparing points
+        if data_duration_s < gap_duration_s or num_points < sample_rate_hz / 2:
+            # look at every timestamp except the last one
+            for index in range(0, num_points - 1):
+                # compare that timestamp to the next
+                time_diff = dtu.microseconds_to_seconds(data_time_stamps[index + 1] - data_time_stamps[index])
+                # anything bigger than one sample needs to be filled
+                if time_diff > one_sample_s:
+                    # calc samples to add, subtracting 1 to prevent copying existing data
+                    num_new_samples = int(time_diff * sample_rate_hz) - 1
+                    # add the gap data to the result dataframe
+                    result_df = result_df.append(create_empty_df(first_data_timestamp, sample_rate_hz,
+                                                                 data_df.columns, num_new_samples), ignore_index=True)
+        else:
+            # gap's too big, divide and conquer using recursion!
+            half_samples = int(num_points / 2)
+            first_data_df = data_df.iloc[:half_samples].copy().reset_index(drop=True)
+            second_data_df = data_df.iloc[half_samples:].copy().reset_index(drop=True)
+            # give half the samples and expected duration to each recursive call
+            first_data_df = gap_filler(first_data_df, sample_rate_hz, gap_duration_s)
+            second_data_df = gap_filler(second_data_df, sample_rate_hz, gap_duration_s)
+            result_df = first_data_df.append(second_data_df, ignore_index=True)
+    return result_df.sort_values("timestamps")
+
+
 def create_empty_df(start_timestamp: float, sample_rate_hz: float, columns: pd.Index,
                     num_samples_to_add: int, add_to_start: bool = False) -> pd.DataFrame:
     """
     Creates an empty dataframe with num_samples_to_add - 1 timestamps, using columns as the columns
+    The one timestamp not being added would be a copy of the start timestamp.
     :param start_timestamp: timestamp to start calculating other timestamps from
     :param sample_rate_hz: fixed sample rate of data in hz
     :param columns: the non-timestamp columns of the dataframe
@@ -238,4 +239,5 @@ def create_empty_df(start_timestamp: float, sample_rate_hz: float, columns: pd.I
             empty_df["timestamps"] = new_timestamps
         else:
             empty_df[column_index] = np.nan
+    # return a dataframe with only timestamps
     return empty_df
