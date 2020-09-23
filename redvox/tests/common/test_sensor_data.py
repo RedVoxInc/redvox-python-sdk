@@ -16,8 +16,8 @@ class SensorDataTest(unittest.TestCase):
         self.apim_station = load_sd.load_station_from_apim(os.path.join(tests.TEST_DATA_DIR,
                                                                         "0000000001_1597189452945991.rdvxm"))
         self.mseed_data = load_sd.load_from_mseed(os.path.join(tests.TEST_DATA_DIR, "out.mseed"))
-        self.api900test = load_sd.read_all_in_dir("/Users/tyler/Documents", redvox_ids=["1637681014"], structured_layout=True)
-        self.all_data = load_sd.read_all_in_dir(tests.TEST_DATA_DIR, redvox_ids=["1637650010", "0000000001"])
+        self.all_data = load_sd.read_all_in_dir(tests.TEST_DATA_DIR,
+                                                redvox_ids=["1637650010", "0000000001", "UHMB3_00"])
 
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station.packet_data), 1)
@@ -59,6 +59,8 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(mb3_station.station_metadata.station_channel_name, "BDF")
 
     def test_read_any_dir(self):
+        self.assertEqual(len(self.all_data.station_id_uuid_to_stations), 3)
+        self.assertEqual(len(self.all_data.get_station_summaries()), 3)
         # api900 station
         station = self.all_data.get_station("1637650010")
         self.assertEqual(len(station.packet_data), 1)

@@ -106,6 +106,12 @@ class ReadResult:
         """
         return list(self.station_id_uuid_to_stations.values())
 
+    def get_station_summaries(self) -> List[StationSummary]:
+        """
+        :return: A list of StationSummaries contained in this ReadResult
+        """
+        return self.__station_summaries
+
     def append_station(self, new_station_id: str, new_station: Station):
         """
         adds a station to the ReadResult.  Appends data to existing stations
@@ -118,6 +124,7 @@ class ReadResult:
             self.station_id_uuid_to_stations[new_station_id] = new_station
             self.__station_id_to_id_uuid[new_station.station_metadata.station_id] = \
                 new_station.station_metadata.station_uuid
+            self.__station_summaries.append(StationSummary.from_station(new_station))
 
     def append(self, new_stations: 'ReadResult'):
         """
@@ -564,10 +571,11 @@ def load_from_file_range_api_m(directory: str,
     return all_stations
 
 
-def load_from_mseed(file_path: str) -> ReadResult:
+def load_from_mseed(file_path: str, station_ids: Optional[List[str]] = None) -> ReadResult:
     """
     load station data from a miniseed file
     :param file_path: the location of the miniseed file
+    :param station_ids: the station ids to search for, default None; if None, get all stations
     :return: a list of Station objects that contain the data
     """
     stations: ReadResult = ReadResult({})
@@ -588,8 +596,9 @@ def load_from_mseed(file_path: str) -> ReadResult:
         sensor_data = SensorData(record_info["channel"], pd.DataFrame(data_for_df, columns=["timestamps", "BDF"]),
                                  record_info["sampling_rate"], True)
         data_packet = DataPacket(np.nan, start_time, start_time, end_time)
-        stations.append_station(f"{station_id}:{station_id}", Station(metadata, {SensorType.AUDIO: sensor_data},
-                                                                      [data_packet]))
+        if station_ids is None or station_id in station_ids:
+            stations.append_station(f"{station_id}:{station_id}", Station(metadata, {SensorType.AUDIO: sensor_data},
+                                                                          [data_packet]))
     return stations
 
 
@@ -643,5 +652,5 @@ def read_all_in_dir(directory: str,
     # get mseed data
     all_paths = glob.glob(os.path.join(mseed_dir, "*.mseed"))
     for path in all_paths:
-        stations.append(load_from_mseed(path))
+        stations.append(load_from_mseed(path, redvox_ids))
     return stations

@@ -314,6 +314,13 @@ class Station:
             self._add_sensor(SensorType.AUDIO, audio_sensor)
         return self
 
+    def has_location_data(self) -> bool:
+        """
+        check if the location sensor has any data
+        :return: True if location sensor has any data
+        """
+        return self.has_location_sensor() and self.location_sensor().num_samples() > 0
+
     def has_location_sensor(self) -> bool:
         """
         check if location sensor is in sensor_data_dict
@@ -769,13 +776,16 @@ class Station:
         if self.station_metadata.station_timing_is_corrected:
             print("WARNING: Timestamps already corrected!")
         else:
-            delta = self.station_metadata.timing_data.station_best_offset
-            for sensor in self.station_data.values():
-                sensor.update_data_timestamps(delta)
-            for packet in self.packet_data:
-                packet.data_start_timestamp += delta
-                packet.data_end_timestamp += delta
-            self.station_metadata.timing_data.station_first_data_timestamp += delta
+            if not self.station_metadata.timing_data:
+                print("WARNING: Station does not have timing data, assuming existing values are the correct ones!")
+            else:
+                delta = self.station_metadata.timing_data.station_best_offset
+                for sensor in self.station_data.values():
+                    sensor.update_data_timestamps(delta)
+                for packet in self.packet_data:
+                    packet.data_start_timestamp += delta
+                    packet.data_end_timestamp += delta
+                self.station_metadata.timing_data.station_first_data_timestamp += delta
             self.station_metadata.station_timing_is_corrected = True
 
     def revert_timestamps(self):
@@ -783,13 +793,16 @@ class Station:
         reverts the timestamps in all SensorData objects using the station_best_offset of the station_timing
         """
         if self.station_metadata.station_timing_is_corrected:
-            delta = self.station_metadata.timing_data.station_best_offset
-            for sensor in self.station_data.values():
-                sensor.update_data_timestamps(-delta)
-            for packet in self.packet_data:
-                packet.data_start_timestamp -= delta
-                packet.data_end_timestamp -= delta
-            self.station_metadata.timing_data.station_first_data_timestamp -= delta
-            self.station_metadata.station_timing_is_corrected = False
+            if not self.station_metadata.timing_data:
+                print("WARNING: Station does not have timing data, assuming existing values are the correct ones!")
+            else:
+                delta = self.station_metadata.timing_data.station_best_offset
+                for sensor in self.station_data.values():
+                    sensor.update_data_timestamps(-delta)
+                for packet in self.packet_data:
+                    packet.data_start_timestamp -= delta
+                    packet.data_end_timestamp -= delta
+                self.station_metadata.timing_data.station_first_data_timestamp -= delta
+                self.station_metadata.station_timing_is_corrected = False
         else:
             print("WARNING: Cannot revert timestamps that are not corrected!")
