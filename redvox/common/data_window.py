@@ -6,7 +6,6 @@ import numpy as np
 from typing import Optional, Set
 from dataclasses import dataclass
 from redvox.common import date_time_utils as dtu
-from datetime import datetime
 from redvox.common.sensor_data import SensorData
 from redvox.common.load_sensor_data import ReadResult, read_all_in_dir
 
@@ -41,8 +40,8 @@ class DataWindow:
     """
     input_directory: str
     station_ids: Optional[Set[str]] = None
-    start_datetime: Optional[datetime] = None
-    end_datetime: Optional[datetime] = None
+    start_datetime: Optional[dtu.datetime] = None
+    end_datetime: Optional[dtu.datetime] = None
     start_padding_s: float = DEFAULT_START_PADDING_S
     end_padding_s: float = DEFAULT_END_PADDING_S
     gap_time_s: float = DEFAULT_GAP_TIME_S
@@ -178,15 +177,29 @@ class DataWindow:
                 for sensor_types in station.station_data.keys():
                     # get the timestamps of the data
                     df_timestamps = station.station_data[sensor_types].data_timestamps()
+                    if len(df_timestamps) < 1:
+                        print(f"WARNING: Data window for {station.station_metadata.station_id} {sensor_types.value} "
+                              f"sensor has no data points!")
+                        break  # cannot truncate sensor if nothing to truncate!
                     temp = np.where(
                         (start_timestamp < df_timestamps) & (df_timestamps < end_timestamp))[0]
-                    # reset the dataframe to only be the data in the window
+                    # oops, all the samples have been cut off
+                    if len(temp) < 1:
+                        print(f"WARNING: Data window for {station.station_metadata.station_id} {sensor_types.value} "
+                              f"sensor has truncated all valid values; returning two closest points instead!")
+                        first_half = np.where(start_timestamp > df_timestamps)[0]
+                        second_half = np.where(end_timestamp < df_timestamps)[0]
+                        if len(first_half) < 1:
+                            temp = [second_half[0], second_half[1]]
+                        elif len(second_half) < 1:
+                            temp = [first_half[-2], first_half[-1]]
+                        else:
+                            temp = [first_half[-1], second_half[0]]
                     station.station_data[sensor_types].data_df = \
                         station.station_data[sensor_types].data_df.iloc[temp].reset_index(drop=True)
-                    # oops, all the samples have been cut off
-                    if station.station_data[sensor_types].num_samples() < 1:
-                        print(f"WARNING: {station.station_metadata.station_id} {sensor_types} sensor "
-                              f"has been truncated and no valid data remains!")
+                station.packet_data = [p for p in station.packet_data
+                                       if p.data_end_timestamp > start_timestamp and
+                                       p.data_start_timestamp < end_timestamp]
                 if station.has_audio_data():
                     # GAP FILL
                     self.fill_sensor_gap(station.audio_sensor())

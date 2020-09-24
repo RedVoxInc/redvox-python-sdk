@@ -1,16 +1,12 @@
 """
 tests for data window objects
 """
-import os
 import unittest
 import pandas as pd
 import redvox.tests as tests
 import numpy as np
-from datetime import timedelta
 import redvox.common.date_time_utils as dt
-from typing import List
 from redvox.common import data_window as dw
-from dataclasses import dataclass
 
 
 class DataWindowTest(unittest.TestCase):

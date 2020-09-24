@@ -14,7 +14,6 @@ from redvox.common.sensor_data import SensorType, SensorData, Station, StationTi
 from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
 from redvox.api1000.wrapped_redvox_packet import wrapped_packet as apim_wp
 from dataclasses import dataclass
-from datetime import datetime
 
 
 @dataclass
@@ -29,14 +28,14 @@ class StationSummary:
     app_version: str
     audio_sampling_rate: float
     total_duration: float
-    start_dt: datetime
-    end_dt: datetime
+    start_dt: dtu.datetime
+    end_dt: dtu.datetime
 
     @staticmethod
     def from_station(station: Station) -> 'StationSummary':
         total_duration: float = station.audio_sensor().data_duration_s()
-        start_dt: datetime = dtu.datetime_from_epoch_microseconds_utc(station.audio_sensor().first_data_timestamp())
-        end_dt: datetime = dtu.datetime_from_epoch_microseconds_utc(station.audio_sensor().last_data_timestamp())
+        start_dt: dtu.datetime = dtu.datetime_from_epoch_microseconds_utc(station.audio_sensor().first_data_timestamp())
+        end_dt: dtu.datetime = dtu.datetime_from_epoch_microseconds_utc(station.audio_sensor().last_data_timestamp())
 
         station_info = station.station_metadata
         audio = station.audio_sensor()
