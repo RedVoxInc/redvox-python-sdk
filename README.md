@@ -9,6 +9,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a9 (2020-09-23)
+
+* Data reading functions properly set station's best latency and offset
+* Updated DataWindow default values for gap duration to 0.5 seconds and padding to 120 seconds
+
 ### 3.0.0a8 (2020-09-22)
 
 * Improvements to DataWindow, SensorData, and Station classes

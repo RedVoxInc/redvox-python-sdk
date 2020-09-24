@@ -279,32 +279,6 @@ class Station:
         else:
             self.station_data[sensor_type] = sensor
 
-    def find_best_latency(self):
-        """
-        finds the best latency of the station, then sets the timing information appropriately
-        """
-        if not self.station_metadata.timing_data or np.isnan(self.station_metadata.timing_data.station_best_latency):
-            if len(self.packet_data) > 0:
-                packet_latencies = []
-                packet_offsets = []
-                for packet in self.packet_data:
-                    if not np.isnan(packet.packet_best_latency):
-                        packet_latencies.append(packet.packet_best_latency)
-                        packet_offsets.append(packet.packet_best_offset)
-                if len(packet_latencies) > 0:
-                    best_latency_index = np.argwhere(packet_latencies == np.min(packet_latencies))[0][0]
-                    if self.station_metadata.timing_data:
-                        self.station_metadata.timing_data.station_best_latency = packet_latencies[best_latency_index]
-                        self.station_metadata.timing_data.station_best_offset = packet_offsets[best_latency_index]
-                    else:
-                        self.station_metadata.timing_data = \
-                            StationTiming(self.packet_data[0].packet_app_start_timestamp,
-                                          self.packet_data[0].packet_duration_samples /
-                                          self.packet_data[0].packet_duration_s,
-                                          self.packet_data[0].data_start_timestamp,
-                                          station_best_latency=packet_latencies[best_latency_index],
-                                          station_best_offset=packet_offsets[best_latency_index])
-
     def has_audio_sensor(self) -> bool:
         """
         check if audio sensor is in sensor_data_dict
