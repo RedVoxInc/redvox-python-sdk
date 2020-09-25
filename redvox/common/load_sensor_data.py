@@ -11,6 +11,7 @@ from redvox.api1000 import io as apim_io
 from redvox.api900 import reader as api900_io
 from redvox.common import file_statistics as fs, date_time_utils as dtu, timesync as ts
 from redvox.common.sensor_data import SensorType, SensorData, Station, StationTiming, StationMetadata, DataPacket
+from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
 from redvox.api1000.wrapped_redvox_packet import wrapped_packet as apim_wp
 from dataclasses import dataclass
@@ -207,15 +208,17 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
         timestamps = wrapped_packet.location_sensor().timestamps_microseconds_utc()
         if wrapped_packet.location_sensor().check_for_preset_lat_lon():
             lat_lon = wrapped_packet.location_sensor().get_payload_lat_lon()
-            data_for_df = np.array([[timestamps[0], lat_lon[0], lat_lon[1], np.nan, np.nan, np.nan]])
+            data_for_df = np.array([[timestamps[0], lat_lon[0], lat_lon[1], np.nan, np.nan, np.nan,
+                                     LocationProvider.USER]])
         else:
             data_for_df = np.transpose([timestamps,
                                         wrapped_packet.location_sensor().payload_values_latitude(),
                                         wrapped_packet.location_sensor().payload_values_longitude(),
                                         wrapped_packet.location_sensor().payload_values_altitude(),
                                         wrapped_packet.location_sensor().payload_values_speed(),
-                                        wrapped_packet.location_sensor().payload_values_accuracy()])
-        columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "accuracy"]
+                                        wrapped_packet.location_sensor().payload_values_accuracy(),
+                                        np.full(len(timestamps), np.nan)])
+        columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "accuracy", "location_provider"]
         data_dict[SensorType.LOCATION] = SensorData(wrapped_packet.location_sensor().sensor_name(),
                                                     pd.DataFrame(data_for_df, columns=columns),
                                                     len(timestamps) / packet_length_s, False)
@@ -446,37 +449,40 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
         data_dict[SensorType.IMAGE] = SensorData(sensors.get_image().get_sensor_description(),
                                                  pd.DataFrame(data_for_df, columns=["image"]),
                                                  len(timestamps) / packet_length_s, False)
-    if sensors.has_location() and sensors.validate_location():
-        timestamps = sensors.get_location().get_timestamps().get_timestamps()
-        data_for_df = np.transpose([timestamps,
-                                    sensors.get_location().get_latitude_samples().get_values(),
-                                    sensors.get_location().get_longitude_samples().get_values(),
-                                    sensors.get_location().get_altitude_samples().get_values(),
-                                    sensors.get_location().get_speed_samples().get_values(),
-                                    sensors.get_location().get_bearing_samples().get_values(),
-                                    sensors.get_location().get_horizontal_accuracy_samples().get_values(),
-                                    sensors.get_location().get_vertical_accuracy_samples().get_values(),
-                                    sensors.get_location().get_speed_samples().get_values(),
-                                    sensors.get_location().get_bearing_accuracy_samples().get_values()])
+    if sensors.has_location():
+        if sensors.validate_location():
+            timestamps = sensors.get_location().get_timestamps().get_timestamps()
+            data_for_df = np.transpose([timestamps,
+                                        sensors.get_location().get_latitude_samples().get_values(),
+                                        sensors.get_location().get_longitude_samples().get_values(),
+                                        sensors.get_location().get_altitude_samples().get_values(),
+                                        sensors.get_location().get_speed_samples().get_values(),
+                                        sensors.get_location().get_bearing_samples().get_values(),
+                                        sensors.get_location().get_horizontal_accuracy_samples().get_values(),
+                                        sensors.get_location().get_vertical_accuracy_samples().get_values(),
+                                        sensors.get_location().get_speed_samples().get_values(),
+                                        sensors.get_location().get_bearing_accuracy_samples().get_values(),
+                                        sensors.get_location().get_location_providers().get_values()])
+        elif sensors.get_location().get_last_best_location():
+            timestamps = [sensors.get_location().get_last_best_location().get_latitude_longitude_timestamp().get_mach()]
+            data_for_df = np.transpose([[timestamps],
+                                        [sensors.get_location().get_last_best_location().get_latitude()],
+                                        [sensors.get_location().get_last_best_location().get_longitude()],
+                                        [sensors.get_location().get_last_best_location().get_altitude()],
+                                        [sensors.get_location().get_last_best_location().get_speed()],
+                                        [sensors.get_location().get_last_best_location().get_bearing()],
+                                        [sensors.get_location().get_last_best_location().get_horizontal_accuracy()],
+                                        [sensors.get_location().get_last_best_location().get_vertical_accuracy()],
+                                        [sensors.get_location().get_last_best_location().get_speed_accuracy()],
+                                        [sensors.get_location().get_last_best_location().get_bearing_accuracy()],
+                                        [sensors.get_location().get_last_best_location().get_location_provider()]])
+        else:
+            # well, there's no location, so there's nothing left to do but
+            return data_dict
+        # if here, location was good, add it in
         columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "bearing",
-                   "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy"]
-        data_dict[SensorType.LOCATION] = SensorData(sensors.get_location().get_sensor_description(),
-                                                    pd.DataFrame(data_for_df, columns=columns),
-                                                    len(timestamps) / packet_length_s, False)
-    elif sensors.has_location() and sensors.get_location().get_last_best_location():
-        timestamps = [sensors.get_location().get_last_best_location().get_latitude_longitude_timestamp().get_mach()]
-        data_for_df = np.transpose([[timestamps],
-                                    [sensors.get_location().get_last_best_location().get_latitude()],
-                                    [sensors.get_location().get_last_best_location().get_longitude()],
-                                    [sensors.get_location().get_last_best_location().get_altitude()],
-                                    [sensors.get_location().get_last_best_location().get_speed()],
-                                    [sensors.get_location().get_last_best_location().get_bearing()],
-                                    [sensors.get_location().get_last_best_location().get_horizontal_accuracy()],
-                                    [sensors.get_location().get_last_best_location().get_vertical_accuracy()],
-                                    [sensors.get_location().get_last_best_location().get_speed_accuracy()],
-                                    [sensors.get_location().get_last_best_location().get_bearing_accuracy()]])
-        columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "bearing",
-                   "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy"]
+                   "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy",
+                   "location_provider"]
         data_dict[SensorType.LOCATION] = SensorData(sensors.get_location().get_sensor_description(),
                                                     pd.DataFrame(data_for_df, columns=columns),
                                                     len(timestamps) / packet_length_s, False)

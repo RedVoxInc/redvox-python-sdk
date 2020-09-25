@@ -178,14 +178,14 @@ class DataWindow:
                     # get the timestamps of the data
                     df_timestamps = station.station_data[sensor_types].data_timestamps()
                     if len(df_timestamps) < 1:
-                        print(f"WARNING: Data window for {station.station_metadata.station_id} {sensor_types.value} "
+                        print(f"WARNING: Data window for {station.station_metadata.station_id} {sensor_types.name} "
                               f"sensor has no data points!")
                         break  # cannot truncate sensor if nothing to truncate!
                     temp = np.where(
                         (start_timestamp < df_timestamps) & (df_timestamps < end_timestamp))[0]
                     # oops, all the samples have been cut off
                     if len(temp) < 1:
-                        print(f"WARNING: Data window for {station.station_metadata.station_id} {sensor_types.value} "
+                        print(f"WARNING: Data window for {station.station_metadata.station_id} {sensor_types.name} "
                               f"sensor has truncated all valid values; returning two closest points instead!")
                         first_half = np.where(start_timestamp > df_timestamps)[0]
                         second_half = np.where(end_timestamp < df_timestamps)[0]
