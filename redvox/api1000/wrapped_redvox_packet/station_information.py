@@ -150,7 +150,21 @@ class AppSettings(
                 audio_sampling_rate.name)
         return self
 
-    # todo get_samples_per_window
+    def get_samples_per_window(self) -> float:
+        """
+        :return: The number of samples per window as defined in the app settings.
+        """
+        return self.get_proto().samples_per_window
+
+    def set_samples_per_window(self, samples_per_window: float) -> 'AppSettings':
+        """
+        Sets the number of samples per window for storage in the app settings.
+        :param samples_per_window: Samples per window.
+        :return: A modified instance of self.
+        """
+        redvox.api1000.common.typing.check_type(samples_per_window, [int, float])
+        self.get_proto().samples_per_window = samples_per_window
+        return self
 
     def get_audio_source_tuning(self) -> AudioSourceTuning:
         """

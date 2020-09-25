@@ -194,83 +194,85 @@ message RedvoxPacketM {
             // The selected audio sampling rate
             AudioSamplingRate audio_sampling_rate = 1;
 
+            float samples_per_window = 2;
+
             // The selected audio source tuning
-            AudioSourceTuning audio_source_tuning = 2;
+            AudioSourceTuning audio_source_tuning = 3;
 
             // Additional input sensors
-            repeated InputSensor additional_input_sensors = 3;
+            repeated InputSensor additional_input_sensors = 4;
 
             // Station automatically records on start
-            bool automatically_record = 4;
+            bool automatically_record = 5;
 
             // App automatically starts on station
-            bool launch_at_power_up = 5;
+            bool launch_at_power_up = 6;
 
             // User selectable station id
-            string station_id = 6;
+            string station_id = 7;
 
             // User selectable station description
-            string station_description = 7;
+            string station_description = 8;
 
             // Is station data pushed to server?
-            bool push_to_server = 8;
+            bool push_to_server = 9;
 
             // Is station data published as private?
-            bool publish_data_as_private = 9;
+            bool publish_data_as_private = 10;
 
             // Is station audio data scrambled?
-            bool scramble_audio_data = 10;
+            bool scramble_audio_data = 11;
 
             // Should station backfill unsent data?
-            bool provide_backfill = 11;
+            bool provide_backfill = 12;
 
             // Does station remove DC offset?
-            bool remove_sensor_dc_offset = 12;
+            bool remove_sensor_dc_offset = 13;
 
             // Station FFT overlap
-            FftOverlap fft_overlap = 13;
+            FftOverlap fft_overlap = 14;
 
             // Should station use custom time synch server?
-            bool use_custom_time_sync_server = 14;
+            bool use_custom_time_sync_server = 15;
 
             // URL of custom time synch server
-            string time_sync_server_url = 15;
+            string time_sync_server_url = 16;
 
             // Should station use custom data server?
-            bool use_custom_data_server = 16;
+            bool use_custom_data_server = 17;
 
             // URL of custom data server
-            string data_server_url = 17;
+            string data_server_url = 18;
 
             // Should station use custom auth server
-            bool use_custom_auth_server = 18;
+            bool use_custom_auth_server = 19;
 
             // URL of custom auth server
-            string auth_server_url = 19;
+            string auth_server_url = 20;
 
             // Should station auto delete data?
-            bool auto_delete_data_files = 20;
+            bool auto_delete_data_files = 21;
 
             // Station data allowance in bytes
-            float storage_space_allowance = 21;
+            float storage_space_allowance = 22;
 
             // Should station use SD card for storage?
-            bool use_sd_card_for_data_storage = 22;
+            bool use_sd_card_for_data_storage = 23;
 
             // Should station use location services?
-            bool use_location_services = 23;
+            bool use_location_services = 24;
 
             // User set latitude decimal degrees
-            double use_latitude = 24;
+            double use_latitude = 25;
 
             // User set longitude decimal degrees
-            double use_longitude = 25;
+            double use_longitude = 26;
 
             // User set altitude meters
-            float use_altitude = 26;
+            float use_altitude = 27;
 
             // A map from string to string for including untyped metadata
-            map<string, string> metadata = 27;
+            map<string, string> metadata = 28;
 
             // Configured FFT overlap
             enum FftOverlap {
@@ -916,6 +918,9 @@ message AcquisitionRequest {
 
     // The compressed packet to send
     bytes payload = 5;
+
+    // A variable that starts at 0 when the data stream starts and increments by one for each transmission
+    int64 seq_id = 6;
 }
 
 // Response from data acquisition services.
@@ -932,6 +937,9 @@ message AcquisitionResponse {
     // If set, client to should attempt to resend the file
     // otherwise, don't resend the file.
     bool resend = 4;
+
+    // A copy of the seq_id provided in the AcquisitionRequest
+    int64 seq_id = 5;
 
     enum ResponseType {
         // Unknown (default) response type
