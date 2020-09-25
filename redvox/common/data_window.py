@@ -6,7 +6,7 @@ import numpy as np
 from typing import Optional, Set
 from dataclasses import dataclass
 from redvox.common import date_time_utils as dtu
-from redvox.common.sensor_data import SensorData
+from redvox.common.sensor_data import SensorData, SensorType
 from redvox.common.load_sensor_data import ReadResult, read_all_in_dir
 
 
@@ -186,17 +186,21 @@ class DataWindow:
                     # oops, all the samples have been cut off
                     if len(temp) < 1:
                         print(f"WARNING: Data window for {station.station_metadata.station_id} {sensor_types.name} "
-                              f"sensor has truncated all valid values; returning two closest points instead!")
-                        first_half = np.where(start_timestamp > df_timestamps)[0]
-                        second_half = np.where(end_timestamp < df_timestamps)[0]
-                        if len(first_half) < 1:
-                            temp = [second_half[0], second_half[1]]
-                        elif len(second_half) < 1:
-                            temp = [first_half[-2], first_half[-1]]
-                        else:
-                            temp = [first_half[-1], second_half[0]]
+                              f"sensor has truncated all valid values")
+                        # we care if it's not audio data being eliminated
+                        if sensor_types != SensorType.AUDIO:
+                            print("Returning two closest points instead!")
+                            first_half = np.where(start_timestamp > df_timestamps)[0]
+                            second_half = np.where(end_timestamp < df_timestamps)[0]
+                            if len(first_half) < 1:
+                                temp = [second_half[0], second_half[1]]
+                            elif len(second_half) < 1:
+                                temp = [first_half[-2], first_half[-1]]
+                            else:
+                                temp = [first_half[-1], second_half[0]]
                     station.station_data[sensor_types].data_df = \
                         station.station_data[sensor_types].data_df.iloc[temp].reset_index(drop=True)
+                # truncate packets to include only the ones with the data for the window
                 station.packet_data = [p for p in station.packet_data
                                        if p.data_end_timestamp > start_timestamp and
                                        p.data_start_timestamp < end_timestamp]
