@@ -186,10 +186,10 @@ class DataWindow:
                     # oops, all the samples have been cut off
                     if len(temp) < 1:
                         print(f"WARNING: Data window for {station.station_metadata.station_id} {sensor_types.name} "
-                              f"sensor has truncated all valid values")
+                              f"sensor has truncated all data points")
                         # we care if it's not audio data being eliminated
                         if sensor_types != SensorType.AUDIO:
-                            print("Returning two closest points instead!")
+                            print("Returning two closest data points instead!")
                             first_half = np.where(start_timestamp > df_timestamps)[0]
                             second_half = np.where(end_timestamp < df_timestamps)[0]
                             if len(first_half) < 1:
