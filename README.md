@@ -9,10 +9,16 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a10 (2020-09-24)
+
+* Data reading functions include location provider value
+* Data reading functions include the 2 nearest points if truncation removes all data
+
 ### 3.0.0a9 (2020-09-23)
 
 * Data reading functions properly set station's best latency and offset
 * Updated DataWindow default values for gap duration to 0.5 seconds and padding to 120 seconds
+* Added getters and setters for num samples per window in app settings
 
 ### 3.0.0a8 (2020-09-22)
 
