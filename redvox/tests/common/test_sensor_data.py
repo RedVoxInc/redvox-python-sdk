@@ -26,7 +26,7 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(self.api900_station.station_metadata.timing_data.station_best_latency, 70278.0)
         self.assertEqual(self.api900_station.audio_sensor().sample_rate, 80)
         self.assertTrue(self.api900_station.audio_sensor().is_sample_rate_fixed)
-        self.assertEqual(self.api900_station.location_sensor().data_df.shape, (2, 6))
+        self.assertEqual(self.api900_station.location_sensor().data_df.shape, (2, 7))
 
     def test_apim_station(self):
         self.assertEqual(len(self.apim_station.packet_data), 1)
@@ -34,7 +34,7 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(len(self.apim_station.station_data), 2)
         self.assertEqual(self.apim_station.audio_sensor().sample_rate, 48000.0)
         self.assertTrue(self.apim_station.audio_sensor().is_sample_rate_fixed)
-        self.assertEqual(self.apim_station.location_sensor().data_df.shape, (1, 10))
+        self.assertEqual(self.apim_station.location_sensor().data_df.shape, (1, 11))
 
     def test_create_read_update_delete_audio_sensor(self):
         self.assertTrue(self.api900_station.has_audio_sensor())
@@ -70,7 +70,7 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(station.audio_sensor().sample_rate, 80)
         self.assertTrue(station.audio_sensor().is_sample_rate_fixed)
         self.assertEqual(station.audio_sensor().data_duration_s(), 51.2)
-        self.assertEqual(station.location_sensor().data_df.shape, (2, 6))
+        self.assertEqual(station.location_sensor().data_df.shape, (2, 7))
         self.assertEqual(station.location_sensor().data_duration_s(), 51.2)
         # api m station
         station = self.all_data.get_station("0000000001")
@@ -80,7 +80,7 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(station.audio_sensor().sample_rate, 48000.0)
         self.assertTrue(station.audio_sensor().is_sample_rate_fixed)
         self.assertEqual(station.audio_sensor().data_duration_s(), 15.0)
-        self.assertEqual(station.location_sensor().data_df.shape, (3, 10))
+        self.assertEqual(station.location_sensor().data_df.shape, (3, 11))
         self.assertEqual(station.location_sensor().data_duration_s(), 15.0)
         # mseed station
         station = self.all_data.get_station("UHMB3_00")
