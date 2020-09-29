@@ -12,10 +12,14 @@ import os.path
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Set
 
+from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
+from redvox.api1000.common.lz4 import decompress
+import redvox.api1000.proto.redvox_api_m_pb2 as pb
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
 
+
+# noinspection DuplicatedCode
 @dataclass
 class StationSummary:
     """
@@ -247,9 +251,6 @@ __VALID_MONTHS: Set[str] = {f"{i:02}" for i in range(1, 13)}
 __VALID_DATES: Set[str] = {f"{i:02}" for i in range(1, 32)}
 __VALID_HOURS: Set[str] = {f"{i:02}" for i in range(0, 24)}
 
-import redvox.api1000.proto.redvox_api_m_pb2 as pb
-from redvox.api1000.common.lz4 import decompress
-
 
 def __deserialize_path(path: str):
     with open(path, "rb") as fin:
@@ -359,3 +360,31 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> 
     paths = list(filter(lambda path: read_filter.filter_path(path), paths))
     wrapped_packets: List[WrappedRedvoxPacketM] = __deserialize_paths(paths)
     return ReadResult.from_packets(wrapped_packets)
+
+
+def stream_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Iterator[WrappedRedvoxPacketM]:
+    """
+    Lazily loads API M data from a structured layout.
+    :param base_dir: Directory to read files from.
+    :param read_filter: Filter to filter files with.
+    :return: An iterator that reads and loads one WrappedRedvoxPacketM at a time.
+    """
+    paths: List[str] = __parse_structured_layout(base_dir, read_filter)
+
+    for path in paths:
+        yield WrappedRedvoxPacketM.from_compressed_path(path)
+
+
+def stream_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Iterator[WrappedRedvoxPacketM]:
+    """
+    Lazily loads API M data from an unstructured layout.
+    :param base_dir: Directory to read files from.
+    :param read_filter: Filter to filter files with.
+    :return: An iterator that reads and loads one WrappedRedvoxPacketM at a time.
+    """
+    pattern: str = os.path.join(base_dir, f"*{read_filter.extension}")
+    paths: List[str] = glob(os.path.join(base_dir, pattern))
+    paths = list(filter(lambda path: read_filter.filter_path(path), paths))
+
+    for path in paths:
+        yield WrappedRedvoxPacketM.from_compressed_path(path)

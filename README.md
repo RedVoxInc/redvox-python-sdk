@@ -9,6 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a12 (2020-09-29)
+
+* Add methods for lazily streaming data from the file system.
+
 ### 3.0.0a11 (2020-09-29)
 
 * Add gallery command to CLI for viewing API M image data
