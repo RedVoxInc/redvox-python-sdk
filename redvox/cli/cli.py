@@ -8,6 +8,11 @@ import os.path
 import sys
 from typing import Dict, List, Optional
 
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+
+from redvox.api1000.gui.image_viewer import start_gui
+from redvox.api1000.wrapped_redvox_packet.sensors.image import Image, ImageCodec
+
 import redvox.cloud.api as cloud_api
 import redvox.cloud.client as cloud_client
 import redvox.cloud.data_api as data_api
@@ -21,6 +26,7 @@ log = logging.getLogger(__name__)
 def check_path(path: str, path_is_file: bool = True, file_ext: Optional[str] = None) -> bool:
     """
     Checks that the passed in path exists.
+    :param file_ext: Optional extension to check.
     :param path: The path to check.
     :param path_is_file: The path is a file when True or a directory when False.
     :return: True if the path exists, False otherwise.
@@ -266,6 +272,37 @@ def data_req_report_args(args) -> None:
                                    args.secret_token))
 
 
+def gallery(rdvxm_paths: List[str]) -> bool:
+    """
+    Displays a gallery of images from the combined images collected from the given paths.
+    :param rdvxm_paths: Paths to collect images from.
+    :return: True if this completes successfully, False otherwise
+    """
+    # Create a new image sensor to hold images from all packets
+    image: Image = Image.new()
+    # noinspection PyTypeChecker
+    image.set_image_codec(ImageCodec.JPG)
+
+    packets: List[WrappedRedvoxPacketM] = list(map(WrappedRedvoxPacketM.from_compressed_path, rdvxm_paths))
+
+    for packet in packets:
+        image_sensor: Optional[Image] = packet.get_sensors().get_image()
+        if image_sensor is not None:
+            image.get_timestamps().append_timestamps(image_sensor.get_timestamps().get_timestamps())
+            image.append_values(image_sensor.get_samples())
+
+    start_gui(image)
+    return True
+
+
+def gallery_args(args) -> None:
+    """
+    CLI function for opening image gallery.
+    :param args: Args for passing to gallery function.
+    """
+    determine_exit(gallery(args.rdvxm_paths))
+
+
 def main():
     """
     Entry point into the CLI.
@@ -282,6 +319,13 @@ def main():
     sub_parser = parser.add_subparsers()
     sub_parser.required = True
     sub_parser.dest = "command"
+
+    # Gallery
+    gallery_parser = sub_parser.add_parser("gallery")
+    gallery_parser.add_argument("rdvxm_paths",
+                                help="One or more rdvxm files",
+                                nargs="+")
+    gallery_parser.set_defaults(func=gallery_args)
 
     # rdvxz -> rdvxm
     rdvxz_to_rdvxm_parser = sub_parser.add_parser("rdvxz_to_rdvxm",

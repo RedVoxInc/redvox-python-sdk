@@ -119,7 +119,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         :param images: Images to append as a list of bytes objects.
         :return: A modified instance of self
         """
-        check_type(images, [List[bytes]])
+        check_type(images, [List])
         self._proto.samples.extend(list(images))
         return self
 
