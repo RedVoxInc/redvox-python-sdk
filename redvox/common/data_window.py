@@ -49,12 +49,6 @@ class DataWindow:
     structured_layout: bool = False
     stations: Optional[ReadResult] = None
 
-    def __post_init__(self):
-        """
-        loads the data after initialization
-        """
-        self.read_data()
-
     def copy(self) -> 'DataWindow':
         """
         :return: a copy of the DataWindow
