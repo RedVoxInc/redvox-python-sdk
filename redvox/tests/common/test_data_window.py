@@ -45,10 +45,10 @@ class GapFillerTest(unittest.TestCase):
 # class OtherTest(unittest.TestCase):
 #     def test_mytest(self):
 #         from datetime import datetime, timedelta
-#         input_dir = "/Users/tyler/IdeaProjects/redvox-projects/tyler/test_read_data"
-#         station_ids = {"1637610011", "1637610015"}
+#         input_dir = "/Users/tyler/Documents/api900"
+#         station_ids = {"1637620003", "1637610015", "1637610013"}
 #         # please note that InputSettings is a temporary stand-in for a config file
-#         settings = [2020, 7, 11, 19, 55, 30, 60]
+#         settings = [2020, 7, 11, 22, 15, 30, 300]
 #         start_timestamp_s: datetime = dt.datetime_from(settings[0],
 #                                                        settings[1],
 #                                                        settings[2],
@@ -60,7 +60,8 @@ class GapFillerTest(unittest.TestCase):
 #         datawindow = dw.DataWindow(input_directory=input_dir,
 #                                    station_ids=station_ids,
 #                                    start_datetime=start_timestamp_s,
-#                                    end_datetime=end_timestamp_s)
+#                                    end_datetime=end_timestamp_s,
+#                                    structured_layout=True)
 #         new_datawindow = datawindow.create_window()
 #         for station in new_datawindow.stations.get_all_stations():
 #             print(f"station id: {station.station_metadata.station_id}")

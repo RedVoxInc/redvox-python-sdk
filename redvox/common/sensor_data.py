@@ -53,7 +53,16 @@ class SensorData:
     is_sample_rate_fixed: bool = False
 
     def copy(self) -> 'SensorData':
+        """
+        :return: An exact copy of the SensorData object
+        """
         return SensorData(self.name, self.data_df.copy(), self.sample_rate, self.is_sample_rate_fixed)
+
+    def is_sample_interval_invalid(self) -> bool:
+        """
+        :return: True if sample interval is np.nan or equal to 0.0
+        """
+        return np.isnan(self.sample_interval_s) or self.sample_interval_s == 0.0
 
     def append_data(self, new_data: pd.DataFrame) -> 'SensorData':
         """
@@ -64,14 +73,22 @@ class SensorData:
         timestamps = np.array(self.data_timestamps())
         self.data_df = pd.concat([self.data_df, new_data], ignore_index=True)
         if not self.is_sample_rate_fixed:
-            if len(new_data["timestamps"] > 1):
+            if len(new_data["timestamps"].to_numpy()) > 1:
                 if np.isnan(self.sample_interval_s):
                     self.sample_interval_s = \
-                        dtu.microseconds_to_seconds(float(np.mean(np.diff(new_data["timestamps"]))))
+                        dtu.microseconds_to_seconds(float(np.mean(np.diff(new_data["timestamps"].to_numpy()))))
                 else:
                     self.sample_interval_s = dtu.microseconds_to_seconds(float(np.mean(
-                        np.concatenate([np.diff(timestamps), np.diff(new_data["timestamps"])]))))
-                self.sample_rate = 1 / self.sample_interval_s
+                        np.concatenate([np.diff(timestamps), np.diff(new_data["timestamps"].to_numpy())]))))
+            else:
+                timestamps = np.array(self.data_timestamps())
+                # try getting the sample interval based on the new ensemble
+                if len(timestamps) > 1:
+                    self.sample_interval_s = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+        if self.is_sample_interval_invalid():
+            self.sample_rate = np.nan
+        else:
+            self.sample_rate = 1 / self.sample_interval_s
         return self
 
     def samples(self) -> np.ndarray:

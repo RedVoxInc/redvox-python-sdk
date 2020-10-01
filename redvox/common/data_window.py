@@ -216,6 +216,9 @@ class DataWindow:
                                 ids_to_pop.append(station.station_metadata.station_id)
                             break
                     sensor.data_df = sensor.data_df.iloc[temp].reset_index(drop=True)
+                    if sensor.is_sample_interval_invalid():
+                        print(f"WARNING: {sensor_type.name} has undefined sample interval and sample rate!")
+                        break
                     # GAP FILL
                     sensor.data_df = gap_filler(sensor.data_df, sensor.sample_interval_s)
                     # PAD DATA
