@@ -9,6 +9,14 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a13 (2020-10-01)
+
+* DataWindow will properly bound the data within the start and end times
+* DataWindow will fill gaps in data based on the existing data's sample interval
+* DataWindow will keep previous locations if none exist between start and end times
+* Sensors will properly preserve the mean sample interval as new data is added
+* Added function to get time sync exchanges from API M packet
+
 ### 3.0.0a12 (2020-09-29)
 
 * Add methods for lazily streaming data from the file system.
