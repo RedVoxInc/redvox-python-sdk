@@ -20,10 +20,12 @@ class SensorDataTest(unittest.TestCase):
                                                 redvox_ids=["1637650010", "0000000001", "UHMB3_00"])
 
     def test_pop_station(self):
-        self.all_data.pop_station("1637650010")
+        self.all_data.pop_station("1107483069")
         self.assertEqual(len(self.all_data.get_station_summaries()), 2)
-        self.all_data.pop_station("1637650010")
-        self.assertEqual(len(self.all_data.get_station_summaries()), 2)
+        self.all_data.pop_station("0000000001")
+        self.assertEqual(len(self.all_data.get_station_summaries()), 1)
+        self.all_data.pop_station("UHMB3_00:UHMB3_00")
+        self.assertEqual(len(self.all_data.get_station_summaries()), 0)
 
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station.packet_data), 1)
