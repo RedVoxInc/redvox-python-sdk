@@ -64,14 +64,14 @@ class SensorData:
         timestamps = np.array(self.data_timestamps())
         self.data_df = pd.concat([self.data_df, new_data], ignore_index=True)
         if not self.is_sample_rate_fixed:
-            if len(timestamps) + len(new_data["timestamps"]) > 1:
-                self.sample_interval_s = \
-                    dtu.microseconds_to_seconds(float(np.mean(
+            if len(new_data["timestamps"] > 1):
+                if np.isnan(self.sample_interval_s):
+                    self.sample_interval_s = \
+                        dtu.microseconds_to_seconds(float(np.mean(np.diff(new_data["timestamps"]))))
+                else:
+                    self.sample_interval_s = dtu.microseconds_to_seconds(float(np.mean(
                         np.concatenate([np.diff(timestamps), np.diff(new_data["timestamps"])]))))
                 self.sample_rate = 1 / self.sample_interval_s
-            else:
-                self.sample_interval_s = np.nan
-                self.sample_rate = np.nan
         return self
 
     def samples(self) -> np.ndarray:
