@@ -83,7 +83,7 @@ class TimeSyncData:
         """
         self.station_id = station_metadata.station_id
         self.sample_rate_hz = station_metadata.timing_data.audio_sample_rate_hz
-        self.packet_num_audio_samples = data_pack.packet_duration_samples
+        self.packet_num_audio_samples = data_pack.packet_num_audio_samples
         self.station_start_timestamp = station_metadata.timing_data.station_start_timestamp
         self.server_acquisition_time = data_pack.server_timestamp
         self.packet_start_time = data_pack.data_start_timestamp
