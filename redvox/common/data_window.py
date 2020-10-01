@@ -200,18 +200,26 @@ class DataWindow:
                         break
                     temp = np.where(
                         (start_timestamp < df_timestamps) & (df_timestamps < end_timestamp))[0]
-                    sensor.data_df = sensor.data_df.iloc[temp].reset_index(drop=True)
                     # oops, all the samples have been cut off
                     if len(temp) < 1:
                         print(f"WARNING: Data window for {station.station_metadata.station_id} {sensor_type.name} "
                               f"sensor has truncated all data points")
-                        if sensor_type == SensorType.AUDIO:
-                            ids_to_pop.append(station.station_metadata.station_id)
-                    else:
-                        # GAP FILL
-                        sensor.data_df = gap_filler(sensor.data_df, sensor.sample_interval_s)
-                        # PAD DATA
-                        sensor.data_df = new_data_window.data_padder(sensor.data_df, sensor.sample_interval_s)
+                        if sensor_type == SensorType.LOCATION:
+                            # take the locations before the start_timestamp as valid locations
+                            temp = np.where(df_timestamps < end_timestamp)[0]
+                            if len(temp) < 1:
+                                break
+                            else:
+                                print(f"Using all {sensor_type.name} data points before {end_timestamp} instead")
+                        else:
+                            if sensor_type == SensorType.AUDIO:
+                                ids_to_pop.append(station.station_metadata.station_id)
+                            break
+                    sensor.data_df = sensor.data_df.iloc[temp].reset_index(drop=True)
+                    # GAP FILL
+                    sensor.data_df = gap_filler(sensor.data_df, sensor.sample_interval_s)
+                    # PAD DATA
+                    sensor.data_df = new_data_window.data_padder(sensor.data_df, sensor.sample_interval_s)
             # remove any station without audio sensor
             for ids in ids_to_pop:
                 new_data_window.stations.pop_station(ids)
