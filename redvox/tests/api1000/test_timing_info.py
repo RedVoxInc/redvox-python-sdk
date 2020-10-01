@@ -53,3 +53,9 @@ class TestTimingInfo(unittest.TestCase):
         self.assertEqual(error_list, [])
         error_list = timing.validate_timing_information(self.empty_timing_info)
         self.assertNotEqual(error_list, [])
+
+    def test_get_synch_exchange_array(self):
+        synch_exchange_array = self.non_empty_timing_info.get_synch_exchange_array()
+        self.assertEqual(len(synch_exchange_array), 6)
+        self.assertEqual(synch_exchange_array[0], 1000)
+        self.assertEqual(synch_exchange_array[5], 5602)

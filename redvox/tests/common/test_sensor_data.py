@@ -19,6 +19,12 @@ class SensorDataTest(unittest.TestCase):
         self.all_data = load_sd.read_all_in_dir(tests.TEST_DATA_DIR,
                                                 redvox_ids=["1637650010", "0000000001", "UHMB3_00"])
 
+    def test_pop_station(self):
+        self.all_data.pop_station("1637650010")
+        self.assertEqual(len(self.all_data.get_station_summaries()), 2)
+        self.all_data.pop_station("1637650010")
+        self.assertEqual(len(self.all_data.get_station_summaries()), 2)
+
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station.packet_data), 1)
         self.assertEqual(len(self.api900_station.station_data), 5)
@@ -69,9 +75,9 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(len(station.station_data), 5)
         self.assertEqual(station.audio_sensor().sample_rate, 80)
         self.assertTrue(station.audio_sensor().is_sample_rate_fixed)
-        self.assertEqual(station.audio_sensor().data_duration_s(), 51.2)
+        self.assertAlmostEqual(station.audio_sensor().data_duration_s(), 51.2, 1)
         self.assertEqual(station.location_sensor().data_df.shape, (2, 7))
-        self.assertEqual(station.location_sensor().data_duration_s(), 51.2)
+        self.assertAlmostEqual(station.location_sensor().data_duration_s(), 40.04, 2)
         # api m station
         station = self.all_data.get_station("0000000001")
         self.assertEqual(len(station.packet_data), 3)
@@ -79,9 +85,9 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(len(station.station_data), 2)
         self.assertEqual(station.audio_sensor().sample_rate, 48000.0)
         self.assertTrue(station.audio_sensor().is_sample_rate_fixed)
-        self.assertEqual(station.audio_sensor().data_duration_s(), 15.0)
+        self.assertAlmostEqual(station.audio_sensor().data_duration_s(), 15.0, 2)
         self.assertEqual(station.location_sensor().data_df.shape, (3, 11))
-        self.assertEqual(station.location_sensor().data_duration_s(), 15.0)
+        self.assertAlmostEqual(station.location_sensor().data_duration_s(), 10.0, 3)
         # mseed station
         station = self.all_data.get_station("UHMB3_00")
         self.assertEqual(len(station.station_data), 1)

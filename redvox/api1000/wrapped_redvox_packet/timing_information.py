@@ -349,6 +349,19 @@ class TimingInformation(
         """
         return self._synch_exchanges
 
+    def get_synch_exchange_array(self) -> List[float]:
+        """
+        Get the packet's synch exchanges as a single list of timestamps, with each synch exchange in
+        a1, a2, a3, b1, b2, b3 order
+        :return: The packet's synch exchanges as a single list of timestamps
+        """
+        time_sync_exchanges = self.get_synch_exchanges().get_values()
+        time_sync = []
+        for exchange in time_sync_exchanges:
+            time_sync.extend([exchange.get_a1(), exchange.get_a2(), exchange.get_a3(),
+                              exchange.get_b1(), exchange.get_b2(), exchange.get_b3()])
+        return time_sync
+
     def get_best_latency(self) -> float:
         """
         :return: Best latency calculated from synch exchanges

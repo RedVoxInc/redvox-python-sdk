@@ -77,6 +77,40 @@ class ReadResult:
             self.__station_id_to_id_uuid[s[0]] = s[1]
             self.__station_summaries.append(StationSummary.from_station(station))
 
+    def __get_station_id_by_uuid(self, uuid: str) -> str:
+        """
+        given a uuid, returns the station_id
+        :param uuid: uuid to search for
+        :return: the station_id of the uuid, or an empty string if uuid doesn't exist
+        """
+        for station_id, station_uuid in self.__station_id_to_id_uuid.items():
+            if station_uuid == uuid:
+                return station_id
+        return ""
+
+    def pop_station(self, station_id: str) -> 'ReadResult':
+        """
+        removes a station from the ReadResult; station_id can be one of id, uuid or id:uuid
+        :param station_id: station to remove
+        :return: copy of ReadResult without the station_id specified
+        """
+        if ":" in station_id:
+            s: List[str] = station_id.split(":")
+            station_id = s[0]
+        elif station_id in self.__station_id_to_id_uuid.values():  # check if uuid was given
+            station_id = self.__get_station_id_by_uuid(station_id)
+        if self.check_for_id(station_id):
+            self.station_id_uuid_to_stations.pop(f"{station_id}:{self.__station_id_to_id_uuid[station_id]}")
+            self.__station_id_to_id_uuid.pop(station_id)
+            summaries = self.__station_summaries.copy()  # put summaries into temp variable
+            self.__station_summaries.clear()             # clear summaries and rebuild
+            for summary in summaries:
+                if summary.station_id != station_id:
+                    self.__station_summaries.append(summary)
+        else:
+            print(f"ReadResult cannot remove station {station_id} because it does not exist")
+        return self
+
     def check_for_id(self, check_id: str) -> bool:
         """
         Look at keys and shortened keys in for the check_id; must be id or uuid combination
@@ -145,15 +179,18 @@ def calc_evenly_sampled_timestamps(start: float, samples: int, rate_hz: float) -
     return np.array(start + dtu.seconds_to_microseconds(np.arange(0, samples) / rate_hz))
 
 
-def read_api900_non_mic_sensor(sensor: api900_io.RedvoxSensor, packet_length_s: float, column_id: str) -> SensorData:
+def read_api900_non_mic_sensor(sensor: api900_io.RedvoxSensor, column_id: str) -> SensorData:
     """
     read a sensor that does not have mic data from an api900 data packet
     :param sensor: the non-mic api900 sensor to read
-    :param packet_length_s: float, the length of the data packet in seconds
     :param column_id: string, used to name the columns
     :return: generic SensorData object
     """
     timestamps = sensor.timestamps_microseconds_utc()
+    if len(timestamps) > 1:
+        sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+    else:
+        sample_interval = np.nan
     if type(sensor) in [api900_io.AccelerometerSensor, api900_io.MagnetometerSensor, api900_io.GyroscopeSensor]:
         data_for_df = np.transpose([timestamps,
                                     sensor.payload_values_x(), sensor.payload_values_y(), sensor.payload_values_z()])
@@ -161,8 +198,8 @@ def read_api900_non_mic_sensor(sensor: api900_io.RedvoxSensor, packet_length_s: 
     else:
         data_for_df = np.transpose([timestamps, sensor.payload_values()])
         columns = ["timestamps", column_id]
-    return SensorData(sensor.sensor_name(), pd.DataFrame(data_for_df, columns=columns),
-                      len(timestamps) / packet_length_s, False)
+    return SensorData(sensor.sensor_name(), pd.DataFrame(data_for_df, columns=columns), 1 / sample_interval,
+                      sample_interval, False)
 
 
 def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) -> Dict[SensorType, SensorData]:
@@ -171,7 +208,6 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
     :param wrapped_packet: a wrapped api900 redvox packet
     :return: a dictionary containing all the sensor data
     """
-    packet_length_s: float = wrapped_packet.duration_s()
     data_dict: Dict[SensorType, SensorData] = {}
     # there are 9 api900 sensors
     if wrapped_packet.has_microphone_sensor():
@@ -182,30 +218,29 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
         data_for_df = np.transpose([timestamps, wrapped_packet.microphone_sensor().payload_values().astype(float)])
         data_dict[SensorType.AUDIO] = SensorData(wrapped_packet.microphone_sensor().sensor_name(),
                                                  pd.DataFrame(data_for_df, columns=["timestamps", "microphone"]),
-                                                 sample_rate_hz, True)
+                                                 sample_rate_hz, 1 / sample_rate_hz, True)
     if wrapped_packet.has_accelerometer_sensor():
-        data_dict[SensorType.ACCELEROMETER] = read_api900_non_mic_sensor(wrapped_packet.accelerometer_sensor(),
-                                                                         packet_length_s, "accelerometer")
+        data_dict[SensorType.ACCELEROMETER] = \
+            read_api900_non_mic_sensor(wrapped_packet.accelerometer_sensor(), "accelerometer")
     if wrapped_packet.has_magnetometer_sensor():
-        data_dict[SensorType.MAGNETOMETER] = read_api900_non_mic_sensor(wrapped_packet.magnetometer_sensor(),
-                                                                        packet_length_s, "magnetometer")
+        data_dict[SensorType.MAGNETOMETER] = \
+            read_api900_non_mic_sensor(wrapped_packet.magnetometer_sensor(), "magnetometer")
     if wrapped_packet.has_gyroscope_sensor():
-        data_dict[SensorType.GYROSCOPE] = read_api900_non_mic_sensor(wrapped_packet.gyroscope_sensor(),
-                                                                     packet_length_s, "gyroscope")
+        data_dict[SensorType.GYROSCOPE] = read_api900_non_mic_sensor(wrapped_packet.gyroscope_sensor(), "gyroscope")
     if wrapped_packet.has_barometer_sensor():
-        data_dict[SensorType.PRESSURE] = read_api900_non_mic_sensor(wrapped_packet.barometer_sensor(),
-                                                                    packet_length_s, "barometer")
+        data_dict[SensorType.PRESSURE] = read_api900_non_mic_sensor(wrapped_packet.barometer_sensor(), "barometer")
     if wrapped_packet.has_light_sensor():
-        data_dict[SensorType.LIGHT] = read_api900_non_mic_sensor(wrapped_packet.light_sensor(),
-                                                                 packet_length_s, "light")
+        data_dict[SensorType.LIGHT] = read_api900_non_mic_sensor(wrapped_packet.light_sensor(), "light")
     if wrapped_packet.has_infrared_sensor():
-        data_dict[SensorType.INFRARED] = read_api900_non_mic_sensor(wrapped_packet.infrared_sensor(),
-                                                                    packet_length_s, "infrared")
+        data_dict[SensorType.INFRARED] = read_api900_non_mic_sensor(wrapped_packet.infrared_sensor(), "infrared")
     if wrapped_packet.has_image_sensor():
-        data_dict[SensorType.IMAGE] = read_api900_non_mic_sensor(wrapped_packet.image_sensor(),
-                                                                 packet_length_s, "image")
+        data_dict[SensorType.IMAGE] = read_api900_non_mic_sensor(wrapped_packet.image_sensor(), "image")
     if wrapped_packet.has_location_sensor():
         timestamps = wrapped_packet.location_sensor().timestamps_microseconds_utc()
+        if len(timestamps) > 1:
+            sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+        else:
+            sample_interval = np.nan
         if wrapped_packet.location_sensor().check_for_preset_lat_lon():
             lat_lon = wrapped_packet.location_sensor().get_payload_lat_lon()
             data_for_df = np.array([[timestamps[0], lat_lon[0], lat_lon[1], np.nan, np.nan, np.nan,
@@ -221,7 +256,7 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
         columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "accuracy", "location_provider"]
         data_dict[SensorType.LOCATION] = SensorData(wrapped_packet.location_sensor().sensor_name(),
                                                     pd.DataFrame(data_for_df, columns=columns),
-                                                    len(timestamps) / packet_length_s, False)
+                                                    1 / sample_interval, sample_interval, False)
     return data_dict
 
 
@@ -251,7 +286,7 @@ def load_station_from_api900(api900_packet: api900_io.WrappedRedvoxPacket,
                              len(api900_packet.microphone_sensor().payload_values()),
                              len(api900_packet.microphone_sensor().payload_values()) /
                              api900_packet.microphone_sensor().sample_rate_hz(),
-                             api900_packet.start_timestamp_us_utc(), int(api900_packet.end_timestamp_us_utc()),
+                             float(api900_packet.start_timestamp_us_utc()), api900_packet.end_timestamp_us_utc(),
                              api900_packet.time_synchronization_sensor().payload_values(),
                              np.nan if api900_packet.best_latency() is None else api900_packet.best_latency(),
                              0.0 if api900_packet.best_offset() is None else api900_packet.best_offset())
@@ -322,13 +357,12 @@ def load_file_range_from_api900(directory: str,
             else:
                 time_sync = None
             data_dict = read_api900_wrapped_packet(packet)
-            for sensor_type, sensor_data in data_dict.items():
-                new_station.append_sensor(sensor_type, sensor_data)
+            new_station.append_station_data(data_dict)
             packet_data = DataPacket(packet.server_timestamp_epoch_microseconds_utc(),
                                      packet.app_file_start_timestamp_machine(),
                                      data_dict[SensorType.AUDIO].num_samples(),
                                      data_dict[SensorType.AUDIO].data_duration_s(),
-                                     packet.start_timestamp_us_utc(), packet.end_timestamp_us_utc(),
+                                     float(packet.start_timestamp_us_utc()), packet.end_timestamp_us_utc(),
                                      time_sync, np.nan if packet.best_latency() is None else packet.best_latency(),
                                      0.0 if packet.best_offset() is None else packet.best_offset())
             packet_list.append(packet_data)
@@ -346,37 +380,43 @@ def load_file_range_from_api900(directory: str,
     return all_stations
 
 
-def read_apim_xyz_sensor(sensor: xyz.Xyz, packet_length_s: float, column_id: str) -> SensorData:
+def read_apim_xyz_sensor(sensor: xyz.Xyz, column_id: str) -> SensorData:
     """
     read a sensor that has xyz data channels from an api M data packet
     :param sensor: the xyz api M sensor to read
-    :param packet_length_s: float, the length of the data packet in seconds
     :param column_id: string, used to name the columns
     :return: generic SensorData object
     """
     timestamps = sensor.get_timestamps().get_timestamps()
+    if len(timestamps) > 1:
+        sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+    else:
+        sample_interval = np.nan
     data_for_df = np.transpose([timestamps,
                                 sensor.get_x_samples().get_values(),
                                 sensor.get_y_samples().get_values(),
                                 sensor.get_z_samples().get_values()])
     columns = ["timestamps", f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
     return SensorData(sensor.get_sensor_description(), pd.DataFrame(data_for_df, columns=columns),
-                      len(timestamps) / packet_length_s, False)
+                      1 / sample_interval, sample_interval, False)
 
 
-def read_apim_single_sensor(sensor: single.Single, packet_length_s: float, column_id: str) -> SensorData:
+def read_apim_single_sensor(sensor: single.Single, column_id: str) -> SensorData:
     """
     read a sensor that has a single data channel from an api M data packet
     :param sensor: the single channel api M sensor to read
-    :param packet_length_s: float, the length of the data packet in seconds
     :param column_id: string, used to name the columns
     :return: generic SensorData object
     """
     timestamps = sensor.get_timestamps().get_timestamps()
+    if len(timestamps) > 1:
+        sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+    else:
+        sample_interval = np.nan
     data_for_df = np.transpose([timestamps, sensor.get_samples().get_values()])
     columns = ["timestamps", column_id]
     return SensorData(sensor.get_sensor_description(), pd.DataFrame(data_for_df, columns=columns),
-                      len(timestamps) / packet_length_s, False)
+                      sample_interval, sample_interval, False)
 
 
 def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Dict[SensorType, SensorData]:
@@ -396,13 +436,7 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
         data_dict[SensorType.AUDIO] = SensorData(sensors.get_audio().get_sensor_description(),
                                                  pd.DataFrame(np.transpose([timestamps, data_for_df]),
                                                               columns=["timestamps", "microphone"]),
-                                                 sample_rate_hz, True)
-        # if audio exists, use it to get the packet duration, otherwise calculate using the packets' timestamps
-        packet_length_s: float = sensors.get_audio().get_duration_s()
-    else:
-        packet_length_s = \
-            dtu.microseconds_to_seconds(wrapped_packet.get_timing_information().get_packet_end_mach_timestamp() -
-                                        wrapped_packet.get_timing_information().get_packet_start_mach_timestamp())
+                                                 sample_rate_hz, 1 / sample_rate_hz, True)
     if sensors.has_compress_audio() and sensors.validate_compressed_audio():
         sample_rate_hz = sensors.get_compressed_audio().get_sample_rate()
         data_for_df = sensors.get_compressed_audio().get_samples().get_values()
@@ -411,47 +445,50 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
         data_dict[SensorType.COMPRESSED_AUDIO] = SensorData(sensors.get_compressed_audio().get_sensor_description(),
                                                             pd.DataFrame(np.transpose([timestamps, data_for_df]),
                                                                          columns=["compressed_audio"]),
-                                                            sample_rate_hz, True)
+                                                            sample_rate_hz, 1 / sample_rate_hz, True)
     if sensors.has_accelerometer() and sensors.validate_accelerometer():
-        data_dict[SensorType.ACCELEROMETER] = read_apim_xyz_sensor(sensors.get_accelerometer(),
-                                                                   packet_length_s, "accelerometer")
+        data_dict[SensorType.ACCELEROMETER] = read_apim_xyz_sensor(sensors.get_accelerometer(), "accelerometer")
     if sensors.has_magnetometer() and sensors.validate_magnetometer():
-        data_dict[SensorType.MAGNETOMETER] = read_apim_xyz_sensor(sensors.get_magnetometer(),
-                                                                  packet_length_s, "magnetometer")
+        data_dict[SensorType.MAGNETOMETER] = read_apim_xyz_sensor(sensors.get_magnetometer(), "magnetometer")
     if sensors.has_linear_acceleration() and sensors.validate_accelerometer():
         data_dict[SensorType.LINEAR_ACCELERATION] = read_apim_xyz_sensor(sensors.get_linear_acceleration(),
-                                                                         packet_length_s, "linear_accel")
+                                                                         "linear_accel")
     if sensors.has_orientation() and sensors.validate_orientation():
-        data_dict[SensorType.ORIENTATION] = read_apim_xyz_sensor(sensors.get_orientation(),
-                                                                 packet_length_s, "orientation")
+        data_dict[SensorType.ORIENTATION] = read_apim_xyz_sensor(sensors.get_orientation(), "orientation")
     if sensors.has_rotation_vector() and sensors.validate_rotation_vector():
-        data_dict[SensorType.ROTATION_VECTOR] = read_apim_xyz_sensor(sensors.get_rotation_vector(),
-                                                                     packet_length_s, "rotation_vector")
+        data_dict[SensorType.ROTATION_VECTOR] = read_apim_xyz_sensor(sensors.get_rotation_vector(), "rotation_vector")
     if sensors.has_gyroscope() and sensors.validate_gyroscope():
-        data_dict[SensorType.GYROSCOPE] = read_apim_xyz_sensor(sensors.get_gyroscope(), packet_length_s, "gyroscope")
+        data_dict[SensorType.GYROSCOPE] = read_apim_xyz_sensor(sensors.get_gyroscope(), "gyroscope")
     if sensors.has_gravity() and sensors.validate_gravity():
-        data_dict[SensorType.GRAVITY] = read_apim_xyz_sensor(sensors.get_gravity(), packet_length_s, "gravity")
+        data_dict[SensorType.GRAVITY] = read_apim_xyz_sensor(sensors.get_gravity(), "gravity")
     if sensors.has_pressure() and sensors.validate_pressure():
-        data_dict[SensorType.PRESSURE] = read_apim_single_sensor(sensors.get_pressure(), packet_length_s, "barometer")
+        data_dict[SensorType.PRESSURE] = read_apim_single_sensor(sensors.get_pressure(), "barometer")
     if sensors.has_light() and sensors.validate_light():
-        data_dict[SensorType.LIGHT] = read_apim_single_sensor(sensors.get_light(), packet_length_s, "light")
+        data_dict[SensorType.LIGHT] = read_apim_single_sensor(sensors.get_light(), "light")
     if sensors.has_proximity() and sensors.validate_proximity():
-        data_dict[SensorType.PROXIMITY] = read_apim_single_sensor(sensors.get_proximity(), packet_length_s, "proximity")
+        data_dict[SensorType.PROXIMITY] = read_apim_single_sensor(sensors.get_proximity(), "proximity")
     if sensors.has_ambient_temperature() and sensors.validate_ambient_temperature():
-        data_dict[SensorType.TEMPERATURE] = read_apim_single_sensor(sensors.get_ambient_temperature(),
-                                                                    packet_length_s, "ambient_temp")
+        data_dict[SensorType.TEMPERATURE] = read_apim_single_sensor(sensors.get_ambient_temperature(), "ambient_temp")
     if sensors.has_relative_humidity() and sensors.validate_relative_humidity():
         data_dict[SensorType.RELATIVE_HUMIDITY] = read_apim_single_sensor(sensors.get_relative_humidity(),
-                                                                          packet_length_s, "rel_humidity")
+                                                                          "rel_humidity")
     if sensors.has_image() and sensors.validate_image():
         timestamps = sensors.get_image().get_timestamps().get_timestamps()
+        if len(timestamps) > 1:
+            sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+        else:
+            sample_interval = np.nan
         data_for_df = np.transpose([timestamps, sensors.get_image().get_samples()])
         data_dict[SensorType.IMAGE] = SensorData(sensors.get_image().get_sensor_description(),
                                                  pd.DataFrame(data_for_df, columns=["image"]),
-                                                 len(timestamps) / packet_length_s, False)
+                                                 1 / sample_interval, sample_interval, False)
     if sensors.has_location():
         if sensors.validate_location():
             timestamps = sensors.get_location().get_timestamps().get_timestamps()
+            if len(timestamps) > 1:
+                sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+            else:
+                sample_interval = np.nan
             data_for_df = np.transpose([timestamps,
                                         sensors.get_location().get_latitude_samples().get_values(),
                                         sensors.get_location().get_longitude_samples().get_values(),
@@ -465,6 +502,7 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
                                         sensors.get_location().get_location_providers().get_values()])
         elif sensors.get_location().get_last_best_location():
             timestamps = [sensors.get_location().get_last_best_location().get_latitude_longitude_timestamp().get_mach()]
+            sample_interval = np.nan
             data_for_df = np.transpose([[timestamps],
                                         [sensors.get_location().get_last_best_location().get_latitude()],
                                         [sensors.get_location().get_last_best_location().get_longitude()],
@@ -485,7 +523,7 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
                    "location_provider"]
         data_dict[SensorType.LOCATION] = SensorData(sensors.get_location().get_sensor_description(),
                                                     pd.DataFrame(data_for_df, columns=columns),
-                                                    len(timestamps) / packet_length_s, False)
+                                                    1 / sample_interval, sample_interval, False)
     return data_dict
 
 
@@ -584,18 +622,14 @@ def load_from_file_range_api_m(directory: str,
                                            station_info.get_app_settings().get_scramble_audio_data(), timing,
                                            station_uuid=read_packets.uuid)
             else:
-                raise ValueError("Packet is missing Audio sensor!")
+                raise ValueError("Error reading data window: Packet is missing Audio sensor!")
         else:
-            raise ValueError("First Packet is missing!")
+            raise ValueError("Error reading data window: First packet of data is missing!")
         new_station = Station(metadata)
         # add data from packets
         packet_list: List[DataPacket] = []
         for packet in read_packets.wrapped_packets:
-            time_sync_exchanges = packet.get_timing_information().get_synch_exchanges().get_values()
-            time_sync = []
-            for exchange in time_sync_exchanges:
-                time_sync.extend([exchange.get_a1(), exchange.get_a2(), exchange.get_a3(),
-                                  exchange.get_b1(), exchange.get_b2(), exchange.get_b3()])
+            time_sync = packet.get_timing_information().get_synch_exchange_array()
             data_dict = load_apim_wrapped_packet(packet)
             new_station.append_station_data(data_dict)
             packet_data = DataPacket(packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
