@@ -43,13 +43,15 @@ class SensorData:
         data_df: dataframe of the sensor data; always has timestamps as the first column,
                     the other columns are the data fields
         sample_rate: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
-        sample_interval: float, mean duration in seconds between samples, default np.nan, usually 1/sample_rate
+        sample_interval_s: float, mean duration in seconds between samples, default np.nan, usually 1/sample_rate
+        sample_interval_std_s: float, standard deviation in seconds between samples, default np.nan
         is_sample_rate_fixed: bool, True if sample rate is constant, default False
     """
     name: str
     data_df: pd.DataFrame
     sample_rate: float = np.nan
     sample_interval_s: float = np.nan
+    sample_interval_std_s: float = np.nan
     is_sample_rate_fixed: bool = False
 
     def copy(self) -> 'SensorData':
@@ -77,18 +79,23 @@ class SensorData:
                 if np.isnan(self.sample_interval_s):
                     self.sample_interval_s = \
                         dtu.microseconds_to_seconds(float(np.mean(np.diff(new_data["timestamps"].to_numpy()))))
+                    self.sample_interval_std_s = \
+                        dtu.microseconds_to_seconds(float(np.std(np.diff(new_data["timestamps"].to_numpy()))))
                 else:
                     self.sample_interval_s = dtu.microseconds_to_seconds(float(np.mean(
+                        np.concatenate([np.diff(timestamps), np.diff(new_data["timestamps"].to_numpy())]))))
+                    self.sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(
                         np.concatenate([np.diff(timestamps), np.diff(new_data["timestamps"].to_numpy())]))))
             else:
                 timestamps = np.array(self.data_timestamps())
                 # try getting the sample interval based on the new ensemble
                 if len(timestamps) > 1:
                     self.sample_interval_s = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
-        if self.is_sample_interval_invalid():
-            self.sample_rate = np.nan
-        else:
-            self.sample_rate = 1 / self.sample_interval_s
+                    self.sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
+            if self.is_sample_interval_invalid():
+                self.sample_rate = np.nan
+            else:
+                self.sample_rate = 1 / self.sample_interval_s
         return self
 
     def samples(self) -> np.ndarray:

@@ -9,6 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a14 (2020-10-02)
+
+* Added sample interval standard deviation to SensorData
+
 ### 3.0.0a13 (2020-10-01)
 
 * DataWindow will properly bound the data within the start and end times
