@@ -58,7 +58,8 @@ class SensorData:
         """
         :return: An exact copy of the SensorData object
         """
-        return SensorData(self.name, self.data_df.copy(), self.sample_rate, self.is_sample_rate_fixed)
+        return SensorData(self.name, self.data_df.copy(), self.sample_rate, self.sample_interval_s,
+                          self.sample_interval_std_s, self.is_sample_rate_fixed)
 
     def is_sample_interval_invalid(self) -> bool:
         """

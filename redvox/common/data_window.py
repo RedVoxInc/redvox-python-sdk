@@ -147,12 +147,12 @@ class DataWindow:
                 ids_to_pop.append(ids)
         for ids in ids_to_pop:
             self.stations.pop_station(ids)
-        # calculate time differences in audio samples
         for station in self.stations.get_all_stations():
             # apply time correction
             if self.apply_correction:
                 station.update_timestamps()
             for packet in range(len(station.packet_data) - 1):
+                # find gaps in packets
                 data_start = station.packet_data[packet].data_start_timestamp
                 data_num_samples = station.packet_data[packet].packet_num_audio_samples
                 next_packet_start_index = \
@@ -166,8 +166,8 @@ class DataWindow:
 
     def create_window(self) -> 'DataWindow':
         """
-        constrain the data to the window specified by the parameters
-        :return: only the data in the window specified by the parameters
+        constrain the data to the window specified by the properties of the DataWindow object
+        :return: A data window with only the data in the window specified by the properties
         """
         if self._has_time_window():
             new_data_window = self.copy()
@@ -189,6 +189,8 @@ class DataWindow:
                 station.packet_data = [p for p in station.packet_data
                                        if p.data_end_timestamp > start_timestamp and
                                        p.data_start_timestamp < end_timestamp]
+                station.station_metadata.timing_data.episode_start_timestamp_s = start_timestamp
+                station.station_metadata.timing_data.episode_end_timestamp_s = end_timestamp
                 for sensor_type, sensor in station.station_data.items():
                     # TRUNCATE!  get only the timestamps between the start and end timestamps
                     df_timestamps = sensor.data_timestamps()
@@ -223,6 +225,9 @@ class DataWindow:
                     sensor.data_df = gap_filler(sensor.data_df, sensor.sample_interval_s)
                     # PAD DATA
                     sensor.data_df = new_data_window.data_padder(sensor.data_df, sensor.sample_interval_s)
+                # reassign the station's metadata to match up with updated sensor data
+                station.station_metadata.timing_data.station_first_data_timestamp = \
+                    station.audio_sensor().first_data_timestamp()
             # remove any station without audio sensor
             for ids in ids_to_pop:
                 new_data_window.stations.pop_station(ids)

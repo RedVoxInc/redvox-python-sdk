@@ -276,7 +276,7 @@ def load_station_from_api900(api900_packet: api900_io.WrappedRedvoxPacket,
     """
     # set station metadata and timing
     timing = StationTiming(api900_packet.mach_time_zero(), api900_packet.microphone_sensor().sample_rate_hz(),
-                           api900_packet.app_file_start_timestamp_epoch_microseconds_utc(),
+                           api900_packet.microphone_sensor().first_sample_timestamp_epoch_microseconds_utc(),
                            start_timestamp_utc_s, end_timestamp_utc_s,
                            np.nan if api900_packet.best_latency() is None else api900_packet.best_latency(),
                            0.0 if api900_packet.best_offset() is None else api900_packet.best_offset())
@@ -343,7 +343,7 @@ def load_file_range_from_api900(directory: str,
         # set station metadata and timing based on first packet
         timing = StationTiming(wrapped_packets[0].mach_time_zero(),
                                wrapped_packets[0].microphone_sensor().sample_rate_hz(),
-                               wrapped_packets[0].app_file_start_timestamp_epoch_microseconds_utc(),
+                               wrapped_packets[0].microphone_sensor().first_sample_timestamp_epoch_microseconds_utc(),
                                start_timestamp_utc_s, end_timestamp_utc_s,
                                np.nan if wrapped_packets[0].best_latency() is None else
                                wrapped_packets[0].best_latency(),
