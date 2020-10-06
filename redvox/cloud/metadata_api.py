@@ -281,7 +281,7 @@ class DbPacket:
     def from_dict(json_dict: Dict) -> 'DbPacket':
         return DbPacket(
             _get("_id", json_dict),
-            WrappedRedvoxPacketM.from_json(_get("metadata", json_dict, default="{}")),
+            WrappedRedvoxPacketM.from_json(json.dumps(json_dict["metadata"])),
             AdditionalMetadata.from_dict(_get("additional_metadata", json_dict))
         )
 
@@ -291,8 +291,11 @@ class MetadataRespM:
     db_packets: List[DbPacket]
 
     @staticmethod
-    def from_json(json_dicts: List[Dict]) -> List[DbPacket]:
-        return list(map(DbPacket.from_dict, json_dicts))
+    def from_json(json_dicts: Dict) -> 'MetadataRespM':
+
+        return MetadataRespM(
+            list(map(DbPacket.from_dict, json_dicts["db_packets"]))
+        )
 
 
 @dataclass_json
