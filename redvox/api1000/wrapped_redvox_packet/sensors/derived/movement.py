@@ -15,6 +15,9 @@ if TYPE_CHECKING:
 
 
 class MovementChannel(Enum):
+    """
+    Enumeration of movement channels.
+    """
     GYROSCOPE_X: str = "GYROSCOPE_X"
     GYROSCOPE_Y: str = "GYROSCOPE_Y"
     GYROSCOPE_Z: str = "GYROSCOPE_Z"
