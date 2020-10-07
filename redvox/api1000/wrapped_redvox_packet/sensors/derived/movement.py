@@ -4,6 +4,7 @@ Contains classes and methods for examining movement events.
 
 from dataclasses import dataclass
 import datetime
+from enum import Enum
 from typing import Dict, List, TYPE_CHECKING
 
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc
@@ -13,12 +14,21 @@ if TYPE_CHECKING:
     from redvox.api1000.common.mapping import Mapping
 
 
+class MovementChannel(Enum):
+    GYROSCOPE_X: str = "GYROSCOPE_X"
+    GYROSCOPE_Y: str = "GYROSCOPE_Y"
+    GYROSCOPE_Z: str = "GYROSCOPE_Z"
+    ACCELEROMETER_X: str = "ACCELEROMETER_X"
+    ACCELEROMETER_Y: str = "ACCELEROMETER_Y"
+    ACCELEROMETER_Z: str = "ACCELEROMETER_Z"
+
+
 @dataclass
 class MovementEvent:
     """
     Represents the metadata associated with a derived movement event.
     """
-    description: str
+    movement_channel: MovementChannel
     movement_start: float
     movement_end: float
     movement_duration: float
@@ -56,7 +66,7 @@ class MovementEvent:
         numeric_payload: 'Mapping[float]' = event.get_numeric_payload()
         numeric_payload_dict: Dict[str, float] = numeric_payload.get_metadata()
         return MovementEvent(
-            event.get_description(),
+            MovementChannel[event.get_description()],
             numeric_payload_dict["movement_start"],
             numeric_payload_dict["movement_end"],
             numeric_payload_dict["movement_duration"],
@@ -88,3 +98,6 @@ class MovementEventStream:
 
         movement_events.sort(key=lambda event: event.movement_start_dt())
         return MovementEventStream(event_stream.get_name(), movement_events)
+
+    def events_by_channel(self, movement_channel: MovementChannel) -> List[MovementEvent]:
+        return list(filter(lambda event: event.movement_channel == movement_channel, self.movement_events))
