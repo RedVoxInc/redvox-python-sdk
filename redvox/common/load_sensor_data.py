@@ -10,7 +10,8 @@ from typing import List, Dict, Optional
 from redvox.api1000 import io as apim_io
 from redvox.api900 import reader as api900_io
 from redvox.common import file_statistics as fs, date_time_utils as dtu, timesync as ts
-from redvox.common.sensor_data import SensorType, SensorData, Station, StationTiming, StationMetadata, DataPacket
+from redvox.common.sensor_data import SensorType, SensorData, DataPacket, \
+    Station, StationTiming, StationLocation, StationMetadata
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
 from redvox.api1000.wrapped_redvox_packet import wrapped_packet as apim_wp
@@ -247,8 +248,8 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
             sample_interval_std = np.nan
         if wrapped_packet.location_sensor().check_for_preset_lat_lon():
             lat_lon = wrapped_packet.location_sensor().get_payload_lat_lon()
-            data_for_df = np.array([[timestamps[0], lat_lon[0], lat_lon[1], np.nan, np.nan, np.nan,
-                                     LocationProvider.USER]])
+            data_for_df = np.array([[timestamps[0], lat_lon[0], lat_lon[1], np.nan, np.nan, np.nan, np.nan,
+                                     LocationProvider.USER, np.nan, np.nan, np.nan, np.nan]])
         else:
             data_for_df = np.transpose([timestamps,
                                         wrapped_packet.location_sensor().payload_values_latitude(),
@@ -256,8 +257,11 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
                                         wrapped_packet.location_sensor().payload_values_altitude(),
                                         wrapped_packet.location_sensor().payload_values_speed(),
                                         wrapped_packet.location_sensor().payload_values_accuracy(),
-                                        np.full(len(timestamps), np.nan)])
-        columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "accuracy", "location_provider"]
+                                        np.full(len(timestamps), LocationProvider.UNKNOWN),
+                                        np.full(len(timestamps), np.nan), np.full(len(timestamps), np.nan),
+                                        np.full(len(timestamps), np.nan), np.full(len(timestamps), np.nan)])
+        columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "horizontal_accuracy",
+                   "location_provider", "bearing", "vertical_accuracy", "speed_accuracy", "bearing_accuracy"]
         data_dict[SensorType.LOCATION] = SensorData(wrapped_packet.location_sensor().sensor_name(),
                                                     pd.DataFrame(data_for_df, columns=columns),
                                                     1 / sample_interval, sample_interval, sample_interval_std, False)
@@ -298,8 +302,8 @@ def load_station_from_api900(api900_packet: api900_io.WrappedRedvoxPacket,
     # get the best timing values for the station
     if timing.station_best_latency is None or np.isnan(timing.station_best_latency):
         ts_analysis = ts.TimeSyncData(packet_data, metadata)
-        timing.station_best_latency = ts_analysis.best_latency
-        timing.station_best_offset = ts_analysis.best_offset
+        metadata.timing_data.station_best_latency = ts_analysis.best_latency
+        metadata.timing_data.station_best_offset = ts_analysis.best_offset
     return Station(metadata, data_dict, packet_list)
 
 
@@ -512,31 +516,13 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
                                         sensors.get_location().get_speed_samples().get_values(),
                                         sensors.get_location().get_bearing_accuracy_samples().get_values(),
                                         sensors.get_location().get_location_providers().get_values()])
-        elif sensors.get_location().get_last_best_location():
-            timestamps = [sensors.get_location().get_last_best_location().get_latitude_longitude_timestamp().get_mach()]
-            sample_interval = np.nan
-            sample_interval_std = np.nan
-            data_for_df = np.transpose([[timestamps],
-                                        [sensors.get_location().get_last_best_location().get_latitude()],
-                                        [sensors.get_location().get_last_best_location().get_longitude()],
-                                        [sensors.get_location().get_last_best_location().get_altitude()],
-                                        [sensors.get_location().get_last_best_location().get_speed()],
-                                        [sensors.get_location().get_last_best_location().get_bearing()],
-                                        [sensors.get_location().get_last_best_location().get_horizontal_accuracy()],
-                                        [sensors.get_location().get_last_best_location().get_vertical_accuracy()],
-                                        [sensors.get_location().get_last_best_location().get_speed_accuracy()],
-                                        [sensors.get_location().get_last_best_location().get_bearing_accuracy()],
-                                        [sensors.get_location().get_last_best_location().get_location_provider()]])
-        else:
-            # well, there's no location, so there's nothing left to do but
-            return data_dict
-        # if here, location was good, add it in
-        columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "bearing",
-                   "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy",
-                   "location_provider"]
-        data_dict[SensorType.LOCATION] = SensorData(sensors.get_location().get_sensor_description(),
-                                                    pd.DataFrame(data_for_df, columns=columns),
-                                                    1 / sample_interval, sample_interval, sample_interval_std, False)
+            columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "bearing",
+                       "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy",
+                       "location_provider"]
+            data_dict[SensorType.LOCATION] = SensorData(sensors.get_location().get_sensor_description(),
+                                                        pd.DataFrame(data_for_df, columns=columns),
+                                                        1 / sample_interval, sample_interval,
+                                                        sample_interval_std, False)
     return data_dict
 
 
@@ -562,6 +548,19 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
                                read_packet.get_timing_information().get_best_offset())
     else:
         raise ValueError("Station is missing Audio sensor!")
+    if read_packet.get_sensors().validate_location() and \
+            read_packet.get_sensors().get_location().get_last_best_location():
+        best_location = read_packet.get_sensors().get_location().get_last_best_location()
+        location = StationLocation(best_location.get_latitude_longitude_timestamp(),
+                                   best_location.get_altitude_timestamp(), best_location.get_speed_timestamp(),
+                                   best_location.get_bearing_timestamp(), best_location.get_location_provider().name,
+                                   best_location.get_score(), best_location.get_latitude(),
+                                   best_location.get_longitude(), best_location.get_altitude(),
+                                   best_location.get_speed(), best_location.get_bearing(),
+                                   best_location.get_horizontal_accuracy(), best_location.get_vertical_accuracy(),
+                                   best_location.get_speed_accuracy(), best_location.get_bearing_accuracy())
+    else:
+        location = None
     metadata = StationMetadata(read_packet.get_station_information().get_id(),
                                read_packet.get_station_information().get_make(),
                                read_packet.get_station_information().get_model(), False,
@@ -569,7 +568,8 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
                                read_packet.get_station_information().get_os_version(), "Redvox",
                                read_packet.get_station_information().get_app_version(),
                                read_packet.get_station_information().get_app_settings().get_scramble_audio_data(),
-                               timing, station_uuid=read_packet.get_station_information().get_uuid())
+                               timing, station_uuid=read_packet.get_station_information().get_uuid(),
+                               best_location=location)
     # add data from packets
     time_sync = read_packet.get_timing_information().get_synch_exchange_array()
     data_dict = load_apim_wrapped_packet(read_packet)
@@ -588,8 +588,8 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
     # get the best timing values for the station
     if timing.station_best_latency is None or np.isnan(timing.station_best_latency):
         ts_analysis = ts.TimeSyncData(packet_data, metadata)
-        timing.station_best_latency = ts_analysis.best_latency
-        timing.station_best_offset = ts_analysis.best_offset
+        metadata.timing_data.station_best_latency = ts_analysis.best_latency
+        metadata.timing_data.station_best_offset = ts_analysis.best_offset
     return Station(metadata, data_dict, packet_list)
 
 
@@ -641,6 +641,20 @@ def load_from_file_range_api_m(directory: str,
             time_sync = packet.get_timing_information().get_synch_exchange_array()
             data_dict = load_apim_wrapped_packet(packet)
             new_station.append_station_data(data_dict)
+            if packet.get_sensors().validate_location() and \
+                    packet.get_sensors().get_location().get_last_best_location():
+                best_location = packet.get_sensors().get_location().get_last_best_location()
+                location = StationLocation(best_location.get_latitude_longitude_timestamp(),
+                                           best_location.get_altitude_timestamp(), best_location.get_speed_timestamp(),
+                                           best_location.get_bearing_timestamp(),
+                                           best_location.get_location_provider().name, best_location.get_score(),
+                                           best_location.get_latitude(), best_location.get_longitude(),
+                                           best_location.get_altitude(), best_location.get_speed(),
+                                           best_location.get_bearing(), best_location.get_horizontal_accuracy(),
+                                           best_location.get_vertical_accuracy(), best_location.get_speed_accuracy(),
+                                           best_location.get_bearing_accuracy())
+            else:
+                location = None
             packet_data = DataPacket(packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
                                      packet.get_timing_information().get_app_start_mach_timestamp(),
                                      data_dict[SensorType.AUDIO].num_samples(),

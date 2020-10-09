@@ -34,7 +34,7 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(self.api900_station.station_metadata.timing_data.station_best_latency, 70278.0)
         self.assertEqual(self.api900_station.audio_sensor().sample_rate, 80)
         self.assertTrue(self.api900_station.audio_sensor().is_sample_rate_fixed)
-        self.assertEqual(self.api900_station.location_sensor().data_df.shape, (2, 7))
+        self.assertEqual(self.api900_station.location_sensor().data_df.shape, (2, 11))
 
     def test_apim_station(self):
         self.assertEqual(len(self.apim_station.packet_data), 1)
@@ -78,7 +78,7 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(station.audio_sensor().sample_rate, 80)
         self.assertTrue(station.audio_sensor().is_sample_rate_fixed)
         self.assertAlmostEqual(station.audio_sensor().data_duration_s(), 51.2, 1)
-        self.assertEqual(station.location_sensor().data_df.shape, (2, 7))
+        self.assertEqual(station.location_sensor().data_df.shape, (2, 11))
         self.assertAlmostEqual(station.location_sensor().data_duration_s(), 40.04, 2)
         # api m station
         station = self.all_data.get_station("0000000001")

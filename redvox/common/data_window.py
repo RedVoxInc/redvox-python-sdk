@@ -6,8 +6,9 @@ import numpy as np
 from typing import Optional, Set
 from dataclasses import dataclass
 from redvox.common import date_time_utils as dtu
-from redvox.common.sensor_data import SensorType
+from redvox.common.sensor_data import SensorType, StationLocation
 from redvox.common.load_sensor_data import ReadResult, read_all_in_dir
+from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 
 
 DEFAULT_GAP_TIME_S: float = 0.25
@@ -163,6 +164,49 @@ class DataWindow:
                 if next_packet_start - data_end < dtu.seconds_to_microseconds(self.gap_time_s):
                     station.packet_data[packet].sample_interval_to_next_packet = \
                         (next_packet_start - data_start) / data_num_samples
+            if station.station_metadata.best_location is None:
+                # best location does not exist, compute from data
+                locations = []
+                providers = []
+                accuracy = []
+                for packet in station.packet_data:
+                    if packet.best_location:
+                        locations.append(packet.best_location)
+                        providers.append(packet.best_location.best_provider)
+                        accuracy.append(packet.best_location.best_horizontal_accuracy)
+                if len(locations) > 0:
+                    if LocationProvider(LocationProvider.USER).name not in providers:
+                        min_index = np.nanargmin(accuracy)
+                        station.station_metadata.best_location = locations[min_index]
+                    else:
+                        station.station_metadata.best_location = locations[0]
+                else:
+                    if station.has_location_data():
+                        user_locations = station.location_sensor().data_df.loc[
+                            station.location_sensor().data_df["location_provider"] == LocationProvider.USER]
+                        if user_locations.size > 0:
+                            location = user_locations.iloc[0]
+                        else:
+                            station.location_sensor().data_df.loc[
+                                (station.location_sensor().data_df["altitude"] == 0) &
+                                (station.location_sensor().data_df["location_provider"] ==
+                                 LocationProvider.UNKNOWN), "location_provider"] = LocationProvider.NETWORK
+                            station.location_sensor().data_df.loc[
+                                (station.location_sensor().data_df["altitude"] != 0) &
+                                (station.location_sensor().data_df["location_provider"] ==
+                                 LocationProvider.UNKNOWN), "location_provider"] = LocationProvider.GPS
+                            min_index = np.nanargmin(station.location_sensor().get_channel("horizontal_accuracy"))
+                            location = station.location_sensor().data_df.iloc[min_index]
+                        station.station_metadata.best_location = \
+                            StationLocation(location["timestamps"], location["timestamps"], location["timestamps"],
+                                            location["timestamps"],
+                                            LocationProvider(location["location_provider"]).name,
+                                            np.nan, location["latitude"], location["longitude"],
+                                            location["altitude"], location["speed"], location["bearing"],
+                                            location["horizontal_accuracy"], location["vertical_accuracy"],
+                                            location["speed_accuracy"], location["bearing_accuracy"])
+                    else:
+                        raise ValueError(f"Station {station.station_metadata.station_id} does not have location data!")
 
     def create_window(self) -> 'DataWindow':
         """
@@ -206,25 +250,17 @@ class DataWindow:
                     if len(temp) < 1:
                         print(f"WARNING: Data window for {station.station_metadata.station_id} {sensor_type.name} "
                               f"sensor has truncated all data points")
-                        if sensor_type == SensorType.LOCATION:
-                            # take the locations before the start_timestamp as valid locations
-                            temp = np.where(df_timestamps < end_timestamp)[0]
-                            if len(temp) < 1:
-                                break
-                            else:
-                                print(f"Using all {sensor_type.name} data points before {end_timestamp} instead")
+                        if sensor_type == SensorType.AUDIO:
+                            ids_to_pop.append(station.station_metadata.station_id)
+                    else:
+                        sensor.data_df = sensor.data_df.iloc[temp].reset_index(drop=True)
+                        if sensor.is_sample_interval_invalid():
+                            print(f"WARNING: {sensor_type.name} has undefined sample interval and sample rate!")
                         else:
-                            if sensor_type == SensorType.AUDIO:
-                                ids_to_pop.append(station.station_metadata.station_id)
-                            break
-                    sensor.data_df = sensor.data_df.iloc[temp].reset_index(drop=True)
-                    if sensor.is_sample_interval_invalid():
-                        print(f"WARNING: {sensor_type.name} has undefined sample interval and sample rate!")
-                        break
-                    # GAP FILL
-                    sensor.data_df = gap_filler(sensor.data_df, sensor.sample_interval_s)
-                    # PAD DATA
-                    sensor.data_df = new_data_window.data_padder(sensor.data_df, sensor.sample_interval_s)
+                            # GAP FILL
+                            sensor.data_df = gap_filler(sensor.data_df, sensor.sample_interval_s)
+                            # PAD DATA
+                            sensor.data_df = new_data_window.data_padder(sensor.data_df, sensor.sample_interval_s)
                 # reassign the station's metadata to match up with updated sensor data
                 station.station_metadata.timing_data.station_first_data_timestamp = \
                     station.audio_sensor().first_data_timestamp()

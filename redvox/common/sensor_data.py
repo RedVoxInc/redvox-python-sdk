@@ -186,6 +186,44 @@ class SensorData:
 
 
 @dataclass
+class StationLocation:
+    """
+    Generic StationLocation class for API-independent analysis
+    Properties:
+        best_lat_lon_timestamp: float, timestamp of the best latitude and longitude, default np.nan
+        best_altitude_timestamp: float, timestamp of the best altitude, default np.nan
+        best_speed_timestamp: float, timestamp of the best speed, default np.nan
+        best_bearing_timestamp: float, timestamp of the best bearing, default np.nan
+        best_provider: str, method/device name that provided the best location, default "None"
+        best_score: float, the value of the best location's quality, default np.nan
+        best_latitude: float, the latitude in degrees of the best location, default np.nan
+        best_longitude: float, the longitude in degrees of the best location, default np.nan
+        best_altitude: float, the altitude in meters of the best location, default np.nan
+        best_speed: float, the speed in meters/second of the best location, default np.nan
+        best_bearing: float, the bearing in degrees of the best location, default np.nan
+        best_horizontal_accuracy: float, the horizontal accuracy in meters of the best location, default np.nan
+        best_vertical_accuracy: float, the vertical accuracy in meters of the best location, default np.nan
+        best_speed_accuracy: float, the speed accuracy in meters/second of the best location, default np.nan
+        best_bearing_accuracy: float, the bearing accuracy in degrees of the best location, default np.nan
+    """
+    best_lat_lon_timestamp: float = np.nan
+    best_altitude_timestamp: float = np.nan
+    best_speed_timestamp: float = np.nan
+    best_bearing_timestamp: float = np.nan
+    best_provider: str = "None"
+    best_score: float = np.nan
+    best_latitude: float = np.nan
+    best_longitude: float = np.nan
+    best_altitude: float = np.nan
+    best_speed: float = np.nan
+    best_bearing: float = np.nan
+    best_horizontal_accuracy: float = np.nan
+    best_vertical_accuracy: float = np.nan
+    best_speed_accuracy: float = np.nan
+    best_bearing_accuracy: float = np.nan
+
+
+@dataclass
 class DataPacket:
     """
     Generic DataPacket class for API-independent analysis
@@ -203,6 +241,7 @@ class DataPacket:
                                         packet's (in the station's data) start time, default np.nan
                                         does not have to match self.expected_sample_interval_s (when converted to same
                                         units), but ideally should be close to it
+        best_location: Optional StationLocation metadata, default None
     """
     server_timestamp: float
     packet_app_start_timestamp: float
@@ -214,6 +253,7 @@ class DataPacket:
     packet_best_latency: float = np.nan
     packet_best_offset: float = 0.0
     sample_interval_to_next_packet: float = np.nan
+    best_location: Optional[StationLocation] = None
 
     def expected_sample_interval_s(self) -> float:
         """
@@ -270,6 +310,7 @@ class StationMetadata:
         station_channel_name: optional str, name/code of channel station is recording, default None
         station_channel_encoding: optional str, name/code of channel encoding method, default None
         station_uuid: optional str, uuid of the station, default is the same value as station_id
+        best_location: optional StationLocation metadata, default None
     """
     station_id: str
     station_make: str
@@ -288,6 +329,7 @@ class StationMetadata:
     station_channel_name: Optional[str] = None
     station_channel_encoding: Optional[str] = None
     station_uuid: Optional[str] = None
+    best_location: Optional[StationLocation] = None
 
     def __post_init__(self):
         """

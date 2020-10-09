@@ -12,6 +12,7 @@ This repository contains code for reading and working with the RedVox API 900 an
 ### 3.0.0a14 (2020-10-02)
 
 * Added sample interval standard deviation to SensorData
+* Resolved discrepancies between metadata values and data being read
 
 ### 3.0.0a13 (2020-10-01)
 
