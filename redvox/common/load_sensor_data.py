@@ -11,7 +11,7 @@ from redvox.api1000 import io as apim_io
 from redvox.api900 import reader as api900_io
 from redvox.common import file_statistics as fs, date_time_utils as dtu, timesync as ts
 from redvox.common.sensor_data import SensorType, SensorData, DataPacket, \
-    Station, StationTiming, StationLocation, StationMetadata
+    Station, StationTiming, StationLocation, StationMetadata, LocationData
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
 from redvox.api1000.wrapped_redvox_packet import wrapped_packet as apim_wp
@@ -304,6 +304,8 @@ def load_station_from_api900(api900_packet: api900_io.WrappedRedvoxPacket,
         ts_analysis = ts.TimeSyncData(packet_data, metadata)
         metadata.timing_data.station_best_latency = ts_analysis.best_latency
         metadata.timing_data.station_best_offset = ts_analysis.best_offset
+        metadata.timing_data.station_mean_offset = ts_analysis.mean_offset
+        metadata.timing_data.station_std_offset = ts_analysis.offset_std
     return Station(metadata, data_dict, packet_list)
 
 
@@ -381,6 +383,8 @@ def load_file_range_from_api900(directory: str,
             ts_analysis = ts.TimeSyncAnalysis(new_station)
             new_station.station_metadata.timing_data.station_best_latency = ts_analysis.get_best_latency()
             new_station.station_metadata.timing_data.station_best_offset = ts_analysis.get_best_offset()
+            new_station.station_metadata.timing_data.station_mean_offset = ts_analysis.get_mean_offset()
+            new_station.station_metadata.timing_data.station_std_offset = ts_analysis.get_offset_stdev()
 
         # create the Station data object
         all_stations.append_station(redvox_id, new_station)
@@ -551,12 +555,13 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
     if read_packet.get_sensors().validate_location() and \
             read_packet.get_sensors().get_location().get_last_best_location():
         best_location = read_packet.get_sensors().get_location().get_last_best_location()
-        location = StationLocation(best_location.get_latitude_longitude_timestamp(),
-                                   best_location.get_altitude_timestamp(), best_location.get_speed_timestamp(),
-                                   best_location.get_bearing_timestamp(), best_location.get_location_provider().name,
-                                   best_location.get_score(), best_location.get_latitude(),
-                                   best_location.get_longitude(), best_location.get_altitude(),
-                                   best_location.get_speed(), best_location.get_bearing(),
+        location = StationLocation(best_location.get_latitude_longitude_timestamp().get_mach(),
+                                   best_location.get_altitude_timestamp().get_mach(),
+                                   best_location.get_speed_timestamp().get_mach(),
+                                   best_location.get_bearing_timestamp().get_mach(),
+                                   best_location.get_location_provider().name, best_location.get_score(),
+                                   best_location.get_latitude(), best_location.get_longitude(),
+                                   best_location.get_altitude(), best_location.get_speed(), best_location.get_bearing(),
                                    best_location.get_horizontal_accuracy(), best_location.get_vertical_accuracy(),
                                    best_location.get_speed_accuracy(), best_location.get_bearing_accuracy())
     else:
@@ -569,7 +574,7 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
                                read_packet.get_station_information().get_app_version(),
                                read_packet.get_station_information().get_app_settings().get_scramble_audio_data(),
                                timing, station_uuid=read_packet.get_station_information().get_uuid(),
-                               best_location=location)
+                               location_data=LocationData(location))
     # add data from packets
     time_sync = read_packet.get_timing_information().get_synch_exchange_array()
     data_dict = load_apim_wrapped_packet(read_packet)
@@ -590,6 +595,8 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
         ts_analysis = ts.TimeSyncData(packet_data, metadata)
         metadata.timing_data.station_best_latency = ts_analysis.best_latency
         metadata.timing_data.station_best_offset = ts_analysis.best_offset
+        metadata.timing_data.station_mean_offset = ts_analysis.mean_offset
+        metadata.timing_data.station_std_offset = ts_analysis.offset_std
     return Station(metadata, data_dict, packet_list)
 
 
@@ -644,9 +651,10 @@ def load_from_file_range_api_m(directory: str,
             if packet.get_sensors().validate_location() and \
                     packet.get_sensors().get_location().get_last_best_location():
                 best_location = packet.get_sensors().get_location().get_last_best_location()
-                location = StationLocation(best_location.get_latitude_longitude_timestamp(),
-                                           best_location.get_altitude_timestamp(), best_location.get_speed_timestamp(),
-                                           best_location.get_bearing_timestamp(),
+                location = StationLocation(best_location.get_latitude_longitude_timestamp().get_mach(),
+                                           best_location.get_altitude_timestamp().get_mach(),
+                                           best_location.get_speed_timestamp().get_mach(),
+                                           best_location.get_bearing_timestamp().get_mach(),
                                            best_location.get_location_provider().name, best_location.get_score(),
                                            best_location.get_latitude(), best_location.get_longitude(),
                                            best_location.get_altitude(), best_location.get_speed(),
@@ -665,7 +673,8 @@ def load_from_file_range_api_m(directory: str,
                                      np.nan if packet.get_timing_information().get_best_latency() is None else
                                      packet.get_timing_information().get_best_latency(),
                                      0.0 if packet.get_timing_information().get_best_offset() is None else
-                                     packet.get_timing_information().get_best_offset())
+                                     packet.get_timing_information().get_best_offset(),
+                                     best_location=location)
             packet_list.append(packet_data)
         new_station.packet_data = packet_list
 
@@ -674,6 +683,8 @@ def load_from_file_range_api_m(directory: str,
             ts_analysis = ts.TimeSyncAnalysis(new_station)
             new_station.station_metadata.timing_data.station_best_latency = ts_analysis.get_best_latency()
             new_station.station_metadata.timing_data.station_best_offset = ts_analysis.get_best_offset()
+            new_station.station_metadata.timing_data.station_mean_offset = ts_analysis.get_mean_offset()
+            new_station.station_metadata.timing_data.station_std_offset = ts_analysis.get_offset_stdev()
 
         # create the Station data object
         all_stations.append_station(f"{read_packets.redvox_id}:{read_packets.uuid}", new_station)

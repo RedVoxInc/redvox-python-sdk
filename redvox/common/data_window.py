@@ -3,7 +3,7 @@ This module creates specific time-bounded segments of data for users
 """
 import pandas as pd
 import numpy as np
-from typing import Optional, Set
+from typing import Optional, Set, List
 from dataclasses import dataclass
 from redvox.common import date_time_utils as dtu
 from redvox.common.sensor_data import SensorType, StationLocation
@@ -34,9 +34,9 @@ class DataWindow:
                         when filtering data.  Default DEFAULT_END_PADDING_S
         gap_time_s: float, the minimum amount of seconds between data points that would indicate a gap.
                     Default DEFAULT_GAP_TIME_S
-        apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default False
+        apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
         structured_layout: bool, if True, the input_directory contains specially named and organized
-                            directories of data.  Default False
+                            directories of data.  Default True
         stations: optional ReadResult, the results of reading the data from input_directory
     """
     input_directory: str
@@ -46,8 +46,8 @@ class DataWindow:
     start_padding_s: float = DEFAULT_START_PADDING_S
     end_padding_s: float = DEFAULT_END_PADDING_S
     gap_time_s: float = DEFAULT_GAP_TIME_S
-    apply_correction: bool = False
-    structured_layout: bool = False
+    apply_correction: bool = True
+    structured_layout: bool = True
     stations: Optional[ReadResult] = None
 
     def __post_init__(self):
@@ -164,49 +164,45 @@ class DataWindow:
                 if next_packet_start - data_end < dtu.seconds_to_microseconds(self.gap_time_s):
                     station.packet_data[packet].sample_interval_to_next_packet = \
                         (next_packet_start - data_start) / data_num_samples
-            if station.station_metadata.best_location is None:
-                # best location does not exist, compute from data
-                locations = []
-                providers = []
-                accuracy = []
-                for packet in station.packet_data:
-                    if packet.best_location:
-                        locations.append(packet.best_location)
-                        providers.append(packet.best_location.best_provider)
-                        accuracy.append(packet.best_location.best_horizontal_accuracy)
-                if len(locations) > 0:
-                    if LocationProvider(LocationProvider.USER).name not in providers:
-                        min_index = np.nanargmin(accuracy)
-                        station.station_metadata.best_location = locations[min_index]
-                    else:
-                        station.station_metadata.best_location = locations[0]
-                else:
-                    if station.has_location_data():
-                        user_locations = station.location_sensor().data_df.loc[
-                            station.location_sensor().data_df["location_provider"] == LocationProvider.USER]
-                        if user_locations.size > 0:
-                            location = user_locations.iloc[0]
-                        else:
-                            station.location_sensor().data_df.loc[
-                                (station.location_sensor().data_df["altitude"] == 0) &
-                                (station.location_sensor().data_df["location_provider"] ==
-                                 LocationProvider.UNKNOWN), "location_provider"] = LocationProvider.NETWORK
-                            station.location_sensor().data_df.loc[
-                                (station.location_sensor().data_df["altitude"] != 0) &
-                                (station.location_sensor().data_df["location_provider"] ==
-                                 LocationProvider.UNKNOWN), "location_provider"] = LocationProvider.GPS
-                            min_index = np.nanargmin(station.location_sensor().get_channel("horizontal_accuracy"))
-                            location = station.location_sensor().data_df.iloc[min_index]
-                        station.station_metadata.best_location = \
+            if self.start_datetime:
+                start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
+            else:
+                start_datetime = 0.0
+            if self.end_datetime:
+                end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
+            else:
+                end_datetime = np.inf
+            other_locations = station.station_metadata.location_data.other_locations.copy()
+            for packet in station.packet_data:
+                if packet.best_location is not None:
+                    other_locations = location_timestamp_processor(other_locations, packet.best_location,
+                                                                   start_datetime, end_datetime)
+            station.station_metadata.location_data.other_locations = other_locations
+            if not station.station_metadata.location_data.calc_mean_and_std_from_locations():
+                if station.has_location_data():
+                    # rename the UNKNOWN location_provider values based on altitude reading
+                    station.location_sensor().data_df.loc[
+                        (station.location_sensor().data_df["altitude"] == 0) &
+                        (station.location_sensor().data_df["location_provider"] == LocationProvider.UNKNOWN),
+                        "location_provider"] = LocationProvider.NETWORK
+                    station.location_sensor().data_df.loc[
+                        (station.location_sensor().data_df["altitude"] != 0) &
+                        (station.location_sensor().data_df["location_provider"] == LocationProvider.UNKNOWN),
+                        "location_provider"] = LocationProvider.GPS
+                    for indx in range(station.location_sensor().num_samples()):
+                        location = station.location_sensor().data_df.iloc[indx]
+                        new_location = \
                             StationLocation(location["timestamps"], location["timestamps"], location["timestamps"],
                                             location["timestamps"],
                                             LocationProvider(location["location_provider"]).name,
-                                            np.nan, location["latitude"], location["longitude"],
-                                            location["altitude"], location["speed"], location["bearing"],
-                                            location["horizontal_accuracy"], location["vertical_accuracy"],
-                                            location["speed_accuracy"], location["bearing_accuracy"])
-                    else:
-                        raise ValueError(f"Station {station.station_metadata.station_id} does not have location data!")
+                                            np.nan, location["latitude"], location["longitude"], location["altitude"],
+                                            location["speed"], location["bearing"], location["horizontal_accuracy"],
+                                            location["vertical_accuracy"], location["speed_accuracy"],
+                                            location["bearing_accuracy"])
+                        other_locations = location_timestamp_processor(other_locations, new_location,
+                                                                       start_datetime, end_datetime)
+                    station.station_metadata.location_data.other_locations = other_locations
+                    station.station_metadata.location_data.calc_mean_and_std_from_locations()
 
     def create_window(self) -> 'DataWindow':
         """
@@ -270,6 +266,33 @@ class DataWindow:
             return new_data_window
         else:
             return self
+
+
+def location_timestamp_processor(station_locations: List[StationLocation], new_location: StationLocation,
+                                 start_datetime: float, end_datetime: float) -> List[StationLocation]:
+    """
+    Checks if the new_location's timestamps are within or before the start_datetime and end_datetime window,
+        then adds the data to the station_locations list if it is
+    :param station_locations: list of StationLocations
+    :param new_location: the StationLocation to potentially add
+    :param start_datetime: the start timestamp of the window to consider
+    :param end_datetime: the end timestamp of the window to consider
+    :return: the updated list of StationLocations
+    """
+    # check if new location timestamp is before end time
+    if new_location.lat_lon_timestamp < end_datetime:
+        # check if new location timestamp is before start time
+        data_before_start = new_location.lat_lon_timestamp < start_datetime
+        # check if list of station locations has data from before start time
+        list_data_before_start = \
+            False if len(station_locations) < 1 else station_locations[0].lat_lon_timestamp < start_datetime
+        # if new location is in window and list data is before window start, clear the metadata
+        if not data_before_start and list_data_before_start:
+            station_locations.clear()
+        # if new location is in window or list data is before window start, add the new location
+        if not data_before_start or list_data_before_start:
+            station_locations.append(new_location)
+    return station_locations
 
 
 def gap_filler(data_df: pd.DataFrame, sample_interval_s: float,

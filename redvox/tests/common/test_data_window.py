@@ -12,7 +12,8 @@ from redvox.common import data_window as dw
 class DataWindowTest(unittest.TestCase):
     def setUp(self):
         input_dir = tests.TEST_DATA_DIR
-        self.datawindow = dw.DataWindow(input_directory=input_dir, station_ids={"1637650010", "0000000001"})
+        self.datawindow = dw.DataWindow(input_directory=input_dir, station_ids={"1637650010", "0000000001"},
+                                        structured_layout=False)
 
     def test_get_station(self):
         test_station = self.datawindow.stations.get_station("0000000001")

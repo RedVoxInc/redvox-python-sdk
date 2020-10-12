@@ -34,7 +34,6 @@ class SensorType(enum.Enum):
     INFRARED = 17               # this is proximity
 
 
-@dataclass
 class SensorData:
     """
     Generic SensorData class for API-independent analysis
@@ -47,12 +46,16 @@ class SensorData:
         sample_interval_std_s: float, standard deviation in seconds between samples, default np.nan
         is_sample_rate_fixed: bool, True if sample rate is constant, default False
     """
-    name: str
-    data_df: pd.DataFrame
-    sample_rate: float = np.nan
-    sample_interval_s: float = np.nan
-    sample_interval_std_s: float = np.nan
-    is_sample_rate_fixed: bool = False
+
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame, sample_rate: float = np.nan,
+                 sample_interval_s: float = np.nan, sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False):
+        self.name: str = sensor_name
+        self.data_df: pd.DataFrame = sensor_data
+        self.sample_rate: float = sample_rate
+        self.sample_interval_s: float = sample_interval_s
+        self.sample_interval_std_s: float = sample_interval_std_s
+        self.is_sample_rate_fixed: bool = is_sample_rate_fixed
 
     def copy(self) -> 'SensorData':
         """
@@ -190,37 +193,104 @@ class StationLocation:
     """
     Generic StationLocation class for API-independent analysis
     Properties:
-        best_lat_lon_timestamp: float, timestamp of the best latitude and longitude, default np.nan
-        best_altitude_timestamp: float, timestamp of the best altitude, default np.nan
-        best_speed_timestamp: float, timestamp of the best speed, default np.nan
-        best_bearing_timestamp: float, timestamp of the best bearing, default np.nan
-        best_provider: str, method/device name that provided the best location, default "None"
-        best_score: float, the value of the best location's quality, default np.nan
-        best_latitude: float, the latitude in degrees of the best location, default np.nan
-        best_longitude: float, the longitude in degrees of the best location, default np.nan
-        best_altitude: float, the altitude in meters of the best location, default np.nan
-        best_speed: float, the speed in meters/second of the best location, default np.nan
-        best_bearing: float, the bearing in degrees of the best location, default np.nan
-        best_horizontal_accuracy: float, the horizontal accuracy in meters of the best location, default np.nan
-        best_vertical_accuracy: float, the vertical accuracy in meters of the best location, default np.nan
-        best_speed_accuracy: float, the speed accuracy in meters/second of the best location, default np.nan
-        best_bearing_accuracy: float, the bearing accuracy in degrees of the best location, default np.nan
+        lat_lon_timestamp: float, timestamp of the latitude and longitude, default np.nan
+        altitude_timestamp: float, timestamp of the altitude, default np.nan
+        speed_timestamp: float, timestamp of the speed, default np.nan
+        bearing_timestamp: float, timestamp of the bearing, default np.nan
+        provider: str, method/device name that provided the location, default "None"
+        score: float, the value of the location's quality, default np.nan
+        latitude: float, the latitude in degrees of the location, default np.nan
+        longitude: float, the longitude in degrees of the location, default np.nan
+        altitude: float, the altitude in meters of the location, default np.nan
+        speed: float, the speed in meters/second of the location, default np.nan
+        bearing: float, the bearing in degrees of the location, default np.nan
+        horizontal_accuracy: float, the horizontal accuracy in meters of the location, default np.nan
+        vertical_accuracy: float, the vertical accuracy in meters of the location, default np.nan
+        speed_accuracy: float, the speed accuracy in meters/second of the location, default np.nan
+        bearing_accuracy: float, the bearing accuracy in degrees of the location, default np.nan
     """
-    best_lat_lon_timestamp: float = np.nan
-    best_altitude_timestamp: float = np.nan
-    best_speed_timestamp: float = np.nan
-    best_bearing_timestamp: float = np.nan
-    best_provider: str = "None"
-    best_score: float = np.nan
-    best_latitude: float = np.nan
-    best_longitude: float = np.nan
-    best_altitude: float = np.nan
-    best_speed: float = np.nan
-    best_bearing: float = np.nan
-    best_horizontal_accuracy: float = np.nan
-    best_vertical_accuracy: float = np.nan
-    best_speed_accuracy: float = np.nan
-    best_bearing_accuracy: float = np.nan
+    lat_lon_timestamp: float = np.nan
+    altitude_timestamp: float = np.nan
+    speed_timestamp: float = np.nan
+    bearing_timestamp: float = np.nan
+    provider: str = "None"
+    score: float = np.nan
+    latitude: float = np.nan
+    longitude: float = np.nan
+    altitude: float = np.nan
+    speed: float = np.nan
+    bearing: float = np.nan
+    horizontal_accuracy: float = np.nan
+    vertical_accuracy: float = np.nan
+    speed_accuracy: float = np.nan
+    bearing_accuracy: float = np.nan
+
+
+@dataclass
+class LocationData:
+    """
+    Location metadata statistics for the station
+    Properties:
+        best_location: Optional StationLocation object, the best rated location for the station, default None
+        other_locations: List of StationLocation objects, the other locations for the station, default empty list
+        mean_latitude: float, the mean latitude in degrees of all locations, default np.nan
+        std_latitude: float, the std dev of latitude in degrees of all locations, default 0.0
+        mean_longitude: float, the mean longitude in degrees of all locations, default np.nan
+        std_longitude: float, the std dev of longitude in degrees of all locations, default 0.0
+        mean_altitude: float, the mean altitude in meters of all locations, default np.nan
+        std_altitude: float, the std dev of altitude in meters of all locations, default 0.0
+        mean_speed: float, the mean speed in meters/second of all locations, default np.nan
+        std_speed: float, the std dev of speed in meters/second of all locations, default 0.0
+        mean_bearing: float, the mean bearing in degrees of all locations, default np.nan
+        std_bearing: float, the std dev of bearing in degrees of all locations, default 0.0
+        mean_horizontal_accuracy: float, the mean horizontal accuracy in meters of all locations, default np.nan
+        std_horizontal_accuracy: float, the std dev of horizontal accuracy in meters of all locations, default 0.0
+        mean_vertical_accuracy: float, the mean vertical accuracy in meters of all locations, default np.nan
+        std_vertical_accuracy: float, the std dev of vertical accuracy in meters of all locations, default 0.0
+        mean_speed_accuracy: float, the mean speed accuracy in meters/second of all locations, default np.nan
+        std_speed_accuracy: float, the std dev of speed accuracy in meters/second of all locations, default 0.0
+        mean_bearing_accuracy: float, the mean bearing accuracy in degrees of all locations, default np.nan
+        std_bearing_accuracy: float, the std dev of bearing accuracy in degrees of all locations, default 0.0
+        mean_provider: str, method/device name that provided the mean location, default "None"
+    """
+    best_location: Optional[StationLocation] = None
+    other_locations: List[StationLocation] = field(default_factory=list)
+    mean_latitude: float = np.nan
+    std_latitude: float = 0.0
+    mean_longitude: float = np.nan
+    std_longitude: float = 0.0
+    mean_altitude: float = np.nan
+    std_altitude: float = 0.0
+    mean_speed: float = np.nan
+    std_speed: float = 0.0
+    mean_bearing: float = np.nan
+    std_bearing: float = 0.0
+    mean_horizontal_accuracy: float = np.nan
+    std_horizontal_accuracy: float = 0.0
+    mean_vertical_accuracy: float = np.nan
+    std_vertical_accuracy: float = 0.0
+    mean_speed_accuracy: float = np.nan
+    std_speed_accuracy: float = 0.0
+    mean_bearing_accuracy: float = np.nan
+    std_bearing_accuracy: float = 0.0
+    mean_provider: str = "None"
+
+    def calc_mean_and_std_from_locations(self, debug: bool = False) -> bool:
+        """
+        compute the mean and std dev from the locations in the object
+        :param debug: if True, output warnings when they occur, default False
+        :return: True if success, False if failed
+        """
+        if self.best_location and len(self.other_locations) > 0:
+            all_locations = self.other_locations.copy().append(self.best_location)
+            self.mean_latitude = np.mean(lambda x: x.latitude, all_locations, axis=0)
+        elif len(self.other_locations) > 1:
+            self.mean_latitude = 420.69
+        else:
+            if debug:
+                print("WARNING: Not enough locations to process mean and std dev on!")
+            return False
+        return True
 
 
 @dataclass
@@ -277,6 +347,8 @@ class StationTiming:
                                     default np.nan
         station_best_latency: float, best latency of data, default np.nan
         station_best_offset: float, best offset of data, default 0.0
+        station_mean_offset: float, mean offset of data, default 0.0
+        station_std_offset: float, std dev of offset of data, default 0.0
     """
     station_start_timestamp: float
     audio_sample_rate_hz: float
@@ -285,6 +357,8 @@ class StationTiming:
     episode_end_timestamp_s: float = np.nan
     station_best_latency: float = np.nan
     station_best_offset: float = 0.0
+    station_mean_offset: float = 0.0
+    station_std_offset: float = 0.0
 
 
 @dataclass
@@ -310,7 +384,7 @@ class StationMetadata:
         station_channel_name: optional str, name/code of channel station is recording, default None
         station_channel_encoding: optional str, name/code of channel encoding method, default None
         station_uuid: optional str, uuid of the station, default is the same value as station_id
-        best_location: optional StationLocation metadata, default None
+        best_location: optional StationLocation metadata, default empty LocationData
     """
     station_id: str
     station_make: str
@@ -329,7 +403,7 @@ class StationMetadata:
     station_channel_name: Optional[str] = None
     station_channel_encoding: Optional[str] = None
     station_uuid: Optional[str] = None
-    best_location: Optional[StationLocation] = None
+    location_data: Optional[LocationData] = None
 
     def __post_init__(self):
         """
@@ -337,9 +411,10 @@ class StationMetadata:
         """
         if not self.station_uuid:
             self.station_uuid = self.station_id
+        if not self.location_data:
+            self.location_data = LocationData()
 
 
-@dataclass
 class Station:
     """
     generic station for api-independent stuff
@@ -348,9 +423,24 @@ class Station:
         station_data: dict, all the data associated with this station, default empty dict
         packet_data: list, all DataPacket metadata associated with this station, default empty list
     """
-    station_metadata: StationMetadata
-    station_data: Dict[SensorType, SensorData] = field(default_factory=dict)
-    packet_data: List[DataPacket] = field(default_factory=list)
+
+    def __init__(self, metadata: StationMetadata, data: Optional[Dict[SensorType, SensorData]] = None,
+                 packets: Optional[List[DataPacket]] = None):
+        """
+        initialize Station
+        :param metadata: the station's metadata
+        :param data: the station's sensors' data, default None (value is converted to empty dict)
+        :param packets: the packets that the data came from, default None (value is converted to empty list)
+        """
+        self.station_metadata: StationMetadata = metadata
+        if data:
+            self.station_data: Dict[SensorType, SensorData] = data
+        else:
+            self.station_data: Dict[SensorType, SensorData] = {}
+        if packets:
+            self.packet_data: List[DataPacket] = packets
+        else:
+            self.packet_data: List[DataPacket] = []
 
     def append_station_data(self, new_station_data: Dict[SensorType, SensorData]):
         """
