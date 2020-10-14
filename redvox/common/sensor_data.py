@@ -232,7 +232,7 @@ class LocationData:
     Location metadata statistics for the station
     Properties:
         best_location: Optional StationLocation object, the best rated location for the station, default None
-        other_locations: List of StationLocation objects, the other locations for the station, default empty list
+        all_locations: List of StationLocation objects, all locations for the station including best, default empty list
         mean_latitude: float, the mean latitude in degrees of all locations, default np.nan
         std_latitude: float, the std dev of latitude in degrees of all locations, default 0.0
         mean_longitude: float, the mean longitude in degrees of all locations, default np.nan
@@ -254,7 +254,7 @@ class LocationData:
         mean_provider: str, method/device name that provided the mean location, default "None"
     """
     best_location: Optional[StationLocation] = None
-    other_locations: List[StationLocation] = field(default_factory=list)
+    all_locations: List[StationLocation] = field(default_factory=list)
     mean_latitude: float = np.nan
     std_latitude: float = 0.0
     mean_longitude: float = np.nan
@@ -281,10 +281,10 @@ class LocationData:
         :param debug: if True, output warnings when they occur, default False
         :return: True if success, False if failed
         """
-        if self.best_location and len(self.other_locations) > 0:
-            all_locations = self.other_locations.copy().append(self.best_location)
+        if self.best_location and len(self.all_locations) > 0:
+            all_locations = self.all_locations.copy().append(self.best_location)
             self.mean_latitude = np.mean(lambda x: x.latitude, all_locations, axis=0)
-        elif len(self.other_locations) > 1:
+        elif len(self.all_locations) > 1:
             self.mean_latitude = 420.69
         else:
             if debug:

@@ -94,39 +94,6 @@ class DataWindow:
             if self.apply_correction:
                 station.update_timestamps()
 
-    def data_padder(self, data_df: pd.DataFrame, sample_interval_s: float) -> pd.DataFrame:
-        """
-        Pad the start and end of the dataframe with np.nan
-        :param data_df: dataframe with timestamps as column "timestamps"
-        :param sample_interval_s: constant sample interval in seconds
-        :return: dataframe padded with np.nans in front and back to meet full size of expected start and end
-        """
-        # extract the necessary information to pad the data
-        data_time_stamps = data_df.sort_values("timestamps")["timestamps"].to_numpy()
-        first_data_timestamp = data_time_stamps[0]
-        last_data_timestamp = data_time_stamps[-1]
-        expected_start = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
-        expected_end = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
-        result_df = data_df.copy()
-        # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
-        if expected_start < first_data_timestamp:
-            start_diff = first_data_timestamp - expected_start
-            num_missing_samples = int(dtu.microseconds_to_seconds(start_diff) / sample_interval_s) + 1
-            # add the gap data to the result dataframe
-            result_df = result_df.append(create_empty_df(expected_start -
-                                                         dtu.seconds_to_microseconds(sample_interval_s),
-                                                         sample_interval_s, data_df.columns,
-                                                         num_missing_samples), ignore_index=True)
-        if expected_end > last_data_timestamp:
-            last_diff = expected_end - last_data_timestamp
-            num_missing_samples = int(dtu.microseconds_to_seconds(last_diff) / sample_interval_s) + 1
-            # add the gap data to the result dataframe
-            result_df = result_df.append(create_empty_df(expected_end +
-                                                         dtu.seconds_to_microseconds(sample_interval_s),
-                                                         sample_interval_s, data_df.columns,
-                                                         num_missing_samples, True), ignore_index=True)
-        return result_df.sort_values("timestamps", ignore_index=True)
-
     def read_data(self):
         """
         read data using the properties of the class
@@ -142,13 +109,13 @@ class DataWindow:
             if not self.stations.check_for_id(ids):
                 # error handling
                 print(f"WARNING: {ids} doesn't have any data to read")
-            elif not self.stations.get_station(ids).has_audio_data():
-                # no audio data is about the same as no data
-                print(f"WARNING: {ids} doesn't have any audio data to read")
-                ids_to_pop.append(ids)
-        for ids in ids_to_pop:
-            self.stations.pop_station(ids)
         for station in self.stations.get_all_stations():
+            station_id = station.station_metadata.station_id
+            if not station.has_audio_data():
+                # if no audio data, its like the station doesn't exist
+                print(f"WARNING: {station_id} doesn't have any audio data to read")
+                ids_to_pop.append(station_id)
+                break  # stop processing and move on to next station
             # apply time correction
             if self.apply_correction:
                 station.update_timestamps()
@@ -164,115 +131,83 @@ class DataWindow:
                 if next_packet_start - data_end < dtu.seconds_to_microseconds(self.gap_time_s):
                     station.packet_data[packet].sample_interval_to_next_packet = \
                         (next_packet_start - data_start) / data_num_samples
-            if self.start_datetime:
-                start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
-            else:
-                start_datetime = 0.0
-            if self.end_datetime:
-                end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
-            else:
-                end_datetime = np.inf
-            other_locations = station.station_metadata.location_data.other_locations.copy()
-            for packet in station.packet_data:
-                if packet.best_location is not None:
-                    other_locations = location_timestamp_processor(other_locations, packet.best_location,
-                                                                   start_datetime, end_datetime)
-            station.station_metadata.location_data.other_locations = other_locations
-            if not station.station_metadata.location_data.calc_mean_and_std_from_locations():
-                if station.has_location_data():
-                    # rename the UNKNOWN location_provider values based on altitude reading
-                    station.location_sensor().data_df.loc[
-                        (station.location_sensor().data_df["altitude"] == 0) &
-                        (station.location_sensor().data_df["location_provider"] == LocationProvider.UNKNOWN),
-                        "location_provider"] = LocationProvider.NETWORK
-                    station.location_sensor().data_df.loc[
-                        (station.location_sensor().data_df["altitude"] != 0) &
-                        (station.location_sensor().data_df["location_provider"] == LocationProvider.UNKNOWN),
-                        "location_provider"] = LocationProvider.GPS
-                    for indx in range(station.location_sensor().num_samples()):
-                        location = station.location_sensor().data_df.iloc[indx]
-                        new_location = \
-                            StationLocation(location["timestamps"], location["timestamps"], location["timestamps"],
-                                            location["timestamps"],
-                                            LocationProvider(location["location_provider"]).name,
-                                            np.nan, location["latitude"], location["longitude"], location["altitude"],
-                                            location["speed"], location["bearing"], location["horizontal_accuracy"],
-                                            location["vertical_accuracy"], location["speed_accuracy"],
-                                            location["bearing_accuracy"])
-                        other_locations = location_timestamp_processor(other_locations, new_location,
+            # set the window start and end if they were specified, otherwise use the bounds of the data
+            start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime) \
+                if self.start_datetime else station.audio_sensor().first_data_timestamp()
+            end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime) \
+                if self.end_datetime else station.audio_sensor().last_data_timestamp()
+            # location reading
+            if not station.station_metadata.location_data.best_location:
+                # get locations from packet metadata
+                other_locations = station.station_metadata.location_data.all_locations.copy()
+                for packet in station.packet_data:
+                    if packet.best_location is not None:
+                        other_locations = location_timestamp_processor(other_locations, packet.best_location,
                                                                        start_datetime, end_datetime)
-                    station.station_metadata.location_data.other_locations = other_locations
-                    station.station_metadata.location_data.calc_mean_and_std_from_locations()
-
-    def create_window(self) -> 'DataWindow':
-        """
-        constrain the data to the window specified by the properties of the DataWindow object
-        :return: A data window with only the data in the window specified by the properties
-        """
-        if self._has_time_window():
-            new_data_window = self.copy()
-            ids_to_pop = []
-            # fill in gaps and truncate
-            for station_id, station in new_data_window.stations.station_id_uuid_to_stations.items():
-                # prepare a bunch of information to be used later
-                if new_data_window.start_datetime:
-                    start_timestamp = dtu.seconds_to_microseconds(
-                        dtu.datetime_to_epoch_seconds_utc(new_data_window.start_datetime))
+                station.station_metadata.location_data.all_locations = station_locations_get_good_locations(
+                    other_locations, start_datetime, end_datetime)
+                # not enough packet metadata locations, get data locations
+                if not station.station_metadata.location_data.calc_mean_and_std_from_locations():
+                    if station.has_location_data():
+                        # anything with 0 altitude is likely a network provided location
+                        station.location_sensor().data_df.loc[(station.location_sensor().data_df["altitude"] == 0),
+                                                              "location_provider"] = LocationProvider.NETWORK
+                        for indx in range(station.location_sensor().num_samples()):
+                            location = station.location_sensor().data_df.iloc[indx]
+                            new_location = \
+                                StationLocation(location["timestamps"], location["timestamps"],
+                                                location["timestamps"], location["timestamps"],
+                                                LocationProvider(location["location_provider"]).name,
+                                                np.nan, location["latitude"], location["longitude"],
+                                                location["altitude"], location["speed"], location["bearing"],
+                                                location["horizontal_accuracy"], location["vertical_accuracy"],
+                                                location["speed_accuracy"], location["bearing_accuracy"])
+                            other_locations = location_timestamp_processor(other_locations, new_location,
+                                                                           start_datetime, end_datetime)
+                        station.station_metadata.location_data.all_locations = station_locations_get_good_locations(
+                            other_locations, start_datetime, end_datetime)
+                        station.station_metadata.location_data.calc_mean_and_std_from_locations()
+            # truncate packets to include only the ones with the data for the window
+            station.packet_data = [p for p in station.packet_data
+                                   if p.data_end_timestamp > start_datetime and
+                                   p.data_start_timestamp < end_datetime]
+            station.station_metadata.timing_data.episode_start_timestamp_s = start_datetime
+            station.station_metadata.timing_data.episode_end_timestamp_s = end_datetime
+            for sensor_type, sensor in station.station_data.items():
+                # TRUNCATE!  get only the timestamps between the start and end timestamps
+                df_timestamps = sensor.data_timestamps()
+                if len(df_timestamps) < 1:
+                    print(f"WARNING: Data window for {station_id} {sensor_type.name} sensor has no data points!")
+                    break
+                temp = np.where((start_datetime <= df_timestamps) & (df_timestamps <= end_datetime))[0]
+                # oops, all the samples have been cut off
+                if len(temp) < 1:
+                    print(f"WARNING: Data window for {station_id} {sensor_type.name} "
+                          f"sensor has truncated all data points")
+                    if sensor_type == SensorType.AUDIO:
+                        ids_to_pop.append(station_id)
                 else:
-                    start_timestamp = station.audio_sensor().first_data_timestamp()
-                if new_data_window.end_datetime:
-                    end_timestamp = dtu.seconds_to_microseconds(
-                        dtu.datetime_to_epoch_seconds_utc(new_data_window.end_datetime))
-                else:
-                    end_timestamp = station.audio_sensor().last_data_timestamp()
-                # truncate packets to include only the ones with the data for the window
-                station.packet_data = [p for p in station.packet_data
-                                       if p.data_end_timestamp > start_timestamp and
-                                       p.data_start_timestamp < end_timestamp]
-                station.station_metadata.timing_data.episode_start_timestamp_s = start_timestamp
-                station.station_metadata.timing_data.episode_end_timestamp_s = end_timestamp
-                for sensor_type, sensor in station.station_data.items():
-                    # TRUNCATE!  get only the timestamps between the start and end timestamps
-                    df_timestamps = sensor.data_timestamps()
-                    if len(df_timestamps) < 1:
-                        print(f"WARNING: Data window for {station.station_metadata.station_id} {sensor_type.name} "
-                              f"sensor has no data points!")
-                        if sensor_type == SensorType.AUDIO:
-                            ids_to_pop.append(station.station_metadata.station_id)
-                        break
-                    temp = np.where(
-                        (start_timestamp < df_timestamps) & (df_timestamps < end_timestamp))[0]
-                    # oops, all the samples have been cut off
-                    if len(temp) < 1:
-                        print(f"WARNING: Data window for {station.station_metadata.station_id} {sensor_type.name} "
-                              f"sensor has truncated all data points")
-                        if sensor_type == SensorType.AUDIO:
-                            ids_to_pop.append(station.station_metadata.station_id)
+                    sensor.data_df = sensor.data_df.iloc[temp].reset_index(drop=True)
+                    if sensor.is_sample_interval_invalid():
+                        print(f"WARNING: {sensor_type.name} has undefined sample interval and sample rate!")
                     else:
-                        sensor.data_df = sensor.data_df.iloc[temp].reset_index(drop=True)
-                        if sensor.is_sample_interval_invalid():
-                            print(f"WARNING: {sensor_type.name} has undefined sample interval and sample rate!")
-                        else:
-                            # GAP FILL
-                            sensor.data_df = gap_filler(sensor.data_df, sensor.sample_interval_s)
-                            # PAD DATA
-                            sensor.data_df = new_data_window.data_padder(sensor.data_df, sensor.sample_interval_s)
-                # reassign the station's metadata to match up with updated sensor data
-                station.station_metadata.timing_data.station_first_data_timestamp = \
-                    station.audio_sensor().first_data_timestamp()
-            # remove any station without audio sensor
-            for ids in ids_to_pop:
-                new_data_window.stations.pop_station(ids)
-            return new_data_window
-        else:
-            return self
+                        # GAP FILL
+                        sensor.data_df = gap_filler(sensor.data_df, sensor.sample_interval_s)
+                        # PAD DATA
+                        sensor.data_df = data_padder(start_datetime, end_datetime,
+                                                     sensor.data_df, sensor.sample_interval_s)
+            # reassign the station's metadata to match up with updated sensor data
+            station.station_metadata.timing_data.station_first_data_timestamp = \
+                station.audio_sensor().first_data_timestamp()
+        for ids in ids_to_pop:
+            self.stations.pop_station(ids)
 
 
 def location_timestamp_processor(station_locations: List[StationLocation], new_location: StationLocation,
                                  start_datetime: float, end_datetime: float) -> List[StationLocation]:
     """
     Checks if the new_location's timestamps are within or before the start_datetime and end_datetime window,
-        then adds the data to the station_locations list if it is
+        or if the location is the first after the end_datetime, then adds the data to the station_locations if it is
     :param station_locations: list of StationLocations
     :param new_location: the StationLocation to potentially add
     :param start_datetime: the start timestamp of the window to consider
@@ -280,7 +215,7 @@ def location_timestamp_processor(station_locations: List[StationLocation], new_l
     :return: the updated list of StationLocations
     """
     # check if new location timestamp is before end time
-    if new_location.lat_lon_timestamp < end_datetime:
+    if new_location.lat_lon_timestamp <= end_datetime:
         # check if new location timestamp is before start time
         data_before_start = new_location.lat_lon_timestamp < start_datetime
         # check if list of station locations has data from before start time
@@ -292,7 +227,76 @@ def location_timestamp_processor(station_locations: List[StationLocation], new_l
         # if new location is in window or list data is before window start, add the new location
         if not data_before_start or list_data_before_start:
             station_locations.append(new_location)
+    else:  # new location happens after end time
+        # check if the last station location is after end_datetime and new_location is before the last station location
+        if station_locations[-1].lat_lon_timestamp > end_datetime and \
+                station_locations[-1].lat_lon_timestamp > new_location.lat_lon_timestamp:
+            station_locations[-1] = new_location  # replace the last with new location
+        else:
+            station_locations.append(new_location)  # add the new location
     return station_locations
+
+
+def station_locations_get_good_locations(station_locations: List[StationLocation],
+                                         start_datetime: float, end_datetime: float) -> List[StationLocation]:
+    """
+    given a list of station locations, return any that would appear within window or two closest locations.
+    :param station_locations: the list of locations to read
+    :param start_datetime: the start timestamp of the window to consider
+    :param end_datetime: the end timestamp of the window to consider
+    :return: all locations within the start and end window, or the two closest outside the window
+    """
+    temp = []
+    if len(station_locations) < 1:
+        return temp
+    start_location = station_locations[0]
+    end_location = station_locations[-1]
+    for location in station_locations:
+        if start_datetime <= location.lat_lon_timestamp <= end_datetime:
+            temp.append(location)
+        elif start_datetime < location.lat_lon_timestamp > start_location.lat_lon_timestamp:
+            start_location = location  # if the location is before start and after the start_location, update
+        elif end_location.lat_lon_timestamp > location.lat_lon_timestamp > end_datetime:
+            end_location = location  # if the location is after the end and before the end_location, update
+    if len(temp) > 0:
+        return temp
+    else:
+        return [start_location, end_location]
+
+
+def data_padder(expected_start: float, expected_end: float, data_df: pd.DataFrame,
+                sample_interval_s: float) -> pd.DataFrame:
+    """
+    Pad the start and end of the dataframe with np.nan
+    :param expected_start: timestamp indicating start time of the data to pad from
+    :param expected_end: timestamp indicating end time of the data to pad from
+    :param data_df: dataframe with timestamps as column "timestamps"
+    :param sample_interval_s: constant sample interval in seconds
+    :return: dataframe padded with np.nans in front and back to meet full size of expected start and end
+    """
+    # extract the necessary information to pad the data
+    data_time_stamps = data_df.sort_values("timestamps")["timestamps"].to_numpy()
+    first_data_timestamp = data_time_stamps[0]
+    last_data_timestamp = data_time_stamps[-1]
+    result_df = data_df.copy()
+    # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
+    if expected_start < first_data_timestamp:
+        start_diff = first_data_timestamp - expected_start
+        num_missing_samples = int(dtu.microseconds_to_seconds(start_diff) / sample_interval_s) + 1
+        # add the gap data to the result dataframe
+        result_df = result_df.append(create_empty_df(expected_start -
+                                                     dtu.seconds_to_microseconds(sample_interval_s),
+                                                     sample_interval_s, data_df.columns,
+                                                     num_missing_samples), ignore_index=True)
+    if expected_end > last_data_timestamp:
+        last_diff = expected_end - last_data_timestamp
+        num_missing_samples = int(dtu.microseconds_to_seconds(last_diff) / sample_interval_s) + 1
+        # add the gap data to the result dataframe
+        result_df = result_df.append(create_empty_df(expected_end +
+                                                     dtu.seconds_to_microseconds(sample_interval_s),
+                                                     sample_interval_s, data_df.columns,
+                                                     num_missing_samples, True), ignore_index=True)
+    return result_df.sort_values("timestamps", ignore_index=True)
 
 
 def gap_filler(data_df: pd.DataFrame, sample_interval_s: float,

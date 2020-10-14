@@ -23,8 +23,8 @@ class DataWindowTest(unittest.TestCase):
     def test_read_data_window(self):
         self.assertTrue(len(self.datawindow.stations.station_id_uuid_to_stations), 2)
         test_station = self.datawindow.stations.get_station("0000000001")
-        self.assertTrue(test_station.has_audio_data())
-        self.assertEqual(test_station.audio_sensor().num_samples(), 720000)
+        self.assertTrue(test_station.has_location_sensor())
+        self.assertEqual(test_station.location_sensor().num_samples(), 4)
         test_station = self.datawindow.stations.get_station("1637650010")
         self.assertTrue(test_station.has_audio_sensor())
         self.assertTrue(test_station.has_accelerometer_sensor())

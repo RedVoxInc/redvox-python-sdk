@@ -251,13 +251,19 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
             data_for_df = np.array([[timestamps[0], lat_lon[0], lat_lon[1], np.nan, np.nan, np.nan, np.nan,
                                      LocationProvider.USER, np.nan, np.nan, np.nan, np.nan]])
         else:
+            if wrapped_packet.location_sensor().sensor_name().lower() == "network":
+                provider = LocationProvider.NETWORK
+            elif wrapped_packet.location_sensor().sensor_name().lower() == "gps":
+                provider = LocationProvider.GPS
+            else:
+                provider = LocationProvider.UNKNOWN
             data_for_df = np.transpose([timestamps,
                                         wrapped_packet.location_sensor().payload_values_latitude(),
                                         wrapped_packet.location_sensor().payload_values_longitude(),
                                         wrapped_packet.location_sensor().payload_values_altitude(),
                                         wrapped_packet.location_sensor().payload_values_speed(),
                                         wrapped_packet.location_sensor().payload_values_accuracy(),
-                                        np.full(len(timestamps), LocationProvider.UNKNOWN),
+                                        np.full(len(timestamps), provider),
                                         np.full(len(timestamps), np.nan), np.full(len(timestamps), np.nan),
                                         np.full(len(timestamps), np.nan), np.full(len(timestamps), np.nan)])
         columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "horizontal_accuracy",
@@ -574,7 +580,7 @@ def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] 
                                read_packet.get_station_information().get_app_version(),
                                read_packet.get_station_information().get_app_settings().get_scramble_audio_data(),
                                timing, station_uuid=read_packet.get_station_information().get_uuid(),
-                               location_data=LocationData(location))
+                               location_data=LocationData(location, [location]))
     # add data from packets
     time_sync = read_packet.get_timing_information().get_synch_exchange_array()
     data_dict = load_apim_wrapped_packet(read_packet)
