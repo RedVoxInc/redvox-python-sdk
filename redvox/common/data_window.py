@@ -229,11 +229,18 @@ def location_timestamp_processor(station_locations: List[StationLocation], new_l
             station_locations.append(new_location)
     else:  # new location happens after end time
         # check if the last station location is after end_datetime and new_location is before the last station location
-        if station_locations[-1].lat_lon_timestamp > end_datetime and \
-                station_locations[-1].lat_lon_timestamp > new_location.lat_lon_timestamp:
-            station_locations[-1] = new_location  # replace the last with new location
-        else:
+        if len(station_locations) == 0:
             station_locations.append(new_location)  # add the new location
+        if len(station_locations) > 0:
+            after_index = None
+            for index in range(len(station_locations)):
+                if station_locations[index].lat_lon_timestamp > end_datetime and \
+                        station_locations[index].lat_lon_timestamp > new_location.lat_lon_timestamp:
+                    after_index = index
+            if after_index:
+                station_locations[after_index] = new_location  # replace the last with new location
+            else:
+                station_locations.append(new_location)  # add the new location
     return station_locations
 
 

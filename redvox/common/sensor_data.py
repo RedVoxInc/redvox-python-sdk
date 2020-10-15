@@ -225,6 +225,16 @@ class StationLocation:
     speed_accuracy: float = np.nan
     bearing_accuracy: float = np.nan
 
+    def update_timestamps(self, time_delta: float):
+        """
+        adds the time_delta to the location's timestamps; use negative values to go backwards in time
+        :param time_delta: time to add to location's timestamps
+        """
+        self.lat_lon_timestamp += time_delta
+        self.altitude_timestamp += time_delta
+        self.speed_timestamp += time_delta
+        self.bearing_timestamp += time_delta
+
 
 @dataclass
 class LocationData:
@@ -274,6 +284,22 @@ class LocationData:
     mean_bearing_accuracy: float = np.nan
     std_bearing_accuracy: float = 0.0
     mean_provider: str = "None"
+
+    def update_timestamps(self, time_delta: float):
+        """
+        adds the time_delta to all locations' timestamps; use negative values to go backwards in time
+        :param time_delta: time to add to all locations' timestamps
+        """
+        if self.best_location:
+            self.best_location.lat_lon_timestamp += time_delta
+            self.best_location.altitude_timestamp += time_delta
+            self.best_location.speed_timestamp += time_delta
+            self.best_location.bearing_timestamp += time_delta
+        for location in self.all_locations:
+            location.lat_lon_timestamp += time_delta
+            location.altitude_timestamp += time_delta
+            location.speed_timestamp += time_delta
+            location.bearing_timestamp += time_delta
 
     def calc_mean_and_std_from_locations(self, debug: bool = False) -> bool:
         """
@@ -1098,7 +1124,10 @@ class Station:
                 for packet in self.packet_data:
                     packet.data_start_timestamp += delta
                     packet.data_end_timestamp += delta
+                    if packet.best_location:
+                        packet.best_location.update_timestamps(delta)
                 self.station_metadata.timing_data.station_first_data_timestamp += delta
+                self.station_metadata.location_data.update_timestamps(delta)
             self.station_metadata.station_timing_is_corrected = True
 
     def revert_timestamps(self):
@@ -1115,7 +1144,10 @@ class Station:
                 for packet in self.packet_data:
                     packet.data_start_timestamp -= delta
                     packet.data_end_timestamp -= delta
+                    if packet.best_location:
+                        packet.best_location.update_timestamps(-delta)
                 self.station_metadata.timing_data.station_first_data_timestamp -= delta
+                self.station_metadata.location_data.update_timestamps(-delta)
                 self.station_metadata.station_timing_is_corrected = False
         else:
             print("WARNING: Cannot revert timestamps that are not corrected!")

@@ -9,6 +9,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a15 (2020-10-14)
+
+* LocationData added; stores location data of a Station for later use
+* DataWindow will compute the most relevant locations into LocationData
+
 ### 3.0.0a14 (2020-10-02)
 
 * Added sample interval standard deviation to SensorData
