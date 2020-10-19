@@ -2,9 +2,9 @@
 tests for data window objects
 """
 import unittest
+import numpy as np
 import pandas as pd
 import redvox.tests as tests
-import numpy as np
 import redvox.common.date_time_utils as dt
 from redvox.common import data_window as dw
 

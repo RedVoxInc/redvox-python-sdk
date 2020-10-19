@@ -10,7 +10,8 @@ import pandas as pd
 
 from typing import List, Optional
 from redvox.common import stats_helper as sh, tri_message_stats as tms, date_time_utils as dt
-from redvox.common import sensor_data as sd
+from redvox.common.station import Station
+from redvox.common.station_utils import DataPacket, StationMetadata
 
 
 class TimeSyncData:
@@ -39,8 +40,8 @@ class TimeSyncData:
         acquire_travel_time: float, calculated time it took packet to reach server, default np.nan
     """
 
-    def __init__(self, data_pack: Optional[sd.DataPacket] = None,
-                 station_metadata: Optional[sd.StationMetadata] = None):
+    def __init__(self, data_pack: Optional[DataPacket] = None,
+                 station_metadata: Optional[StationMetadata] = None):
         """
         Initialize properties
         :param data_pack: data packet metadata
@@ -74,8 +75,8 @@ class TimeSyncData:
                 # self.num_packets: int = 0
                 # self.bad_packets: List[int] = []
 
-    def get_timesync_data(self, data_pack: Optional[sd.DataPacket] = None,
-                          station_metadata: Optional[sd.StationMetadata] = None):
+    def get_timesync_data(self, data_pack: Optional[DataPacket] = None,
+                          station_metadata: Optional[StationMetadata] = None):
         """
         extracts the time sync data from the data_pack object
         :param data_pack: data packet metadata
@@ -163,7 +164,7 @@ class TimeSyncAnalysis:
         timesync_data: list of TimeSyncData, the TimeSyncData to analyze, default empty list
         station_start_timestamp: float, the timestamp of when the station became active, default np.nan
     """
-    def __init__(self, station: Optional[sd.Station] = None):
+    def __init__(self, station: Optional[Station] = None):
         """
         Initialize properties
         :param station: the station to perform analysis on
@@ -411,7 +412,7 @@ class TimeSyncAnalysis:
         return True
 
 
-def get_time_sync_data_from_station(station: sd.Station) -> List[TimeSyncData]:
+def get_time_sync_data_from_station(station: Station) -> List[TimeSyncData]:
     """
     Returns the TimeSyncData associated with a station
     :param station: the station to get data from

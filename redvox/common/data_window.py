@@ -3,10 +3,12 @@ This module creates specific time-bounded segments of data for users
 """
 import pandas as pd
 import numpy as np
-from typing import Optional, Set, List
+from typing import Optional, Set
 from dataclasses import dataclass
+
 from redvox.common import date_time_utils as dtu
-from redvox.common.sensor_data import SensorType, StationLocation
+
+from redvox.common.sensor_data import SensorType
 from redvox.common.load_sensor_data import ReadResult, read_all_in_dir
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 
@@ -119,77 +121,41 @@ class DataWindow:
             # apply time correction
             if self.apply_correction:
                 station.update_timestamps()
-            for packet in range(len(station.packet_data) - 1):
-                # find gaps in packets
-                data_start = station.packet_data[packet].data_start_timestamp
-                data_num_samples = station.packet_data[packet].packet_num_audio_samples
-                next_packet_start_index = \
-                    station.audio_sensor().data_df.query("timestamps == @data_start").first_valid_index() + \
-                    data_num_samples
-                data_end = station.audio_sensor().data_timestamps()[next_packet_start_index - 1]
-                next_packet_start = station.audio_sensor().data_timestamps()[next_packet_start_index]
-                if next_packet_start - data_end < dtu.seconds_to_microseconds(self.gap_time_s):
-                    station.packet_data[packet].sample_interval_to_next_packet = \
-                        (next_packet_start - data_start) / data_num_samples
+            station.packet_gap_detector(self.gap_time_s)
             # set the window start and end if they were specified, otherwise use the bounds of the data
             start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime) \
-                if self.start_datetime else station.audio_sensor().first_data_timestamp()
+                if self.start_datetime else float(station.audio_sensor().first_data_timestamp())
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime) \
-                if self.end_datetime else station.audio_sensor().last_data_timestamp()
-            # location reading
-            if not station.station_metadata.location_data.best_location:
-                # get locations from packet metadata
-                other_locations = station.station_metadata.location_data.all_locations.copy()
-                for packet in station.packet_data:
-                    if packet.best_location is not None:
-                        other_locations = location_timestamp_processor(other_locations, packet.best_location,
-                                                                       start_datetime, end_datetime)
-                station.station_metadata.location_data.all_locations = station_locations_get_good_locations(
-                    other_locations, start_datetime, end_datetime)
-                # not enough packet metadata locations, get data locations
-                if not station.station_metadata.location_data.calc_mean_and_std_from_locations():
-                    if station.has_location_data():
-                        # anything with 0 altitude is likely a network provided location
-                        station.location_sensor().data_df.loc[(station.location_sensor().data_df["altitude"] == 0),
-                                                              "location_provider"] = LocationProvider.NETWORK
-                        for indx in range(station.location_sensor().num_samples()):
-                            location = station.location_sensor().data_df.iloc[indx]
-                            new_location = \
-                                StationLocation(location["timestamps"], location["timestamps"],
-                                                location["timestamps"], location["timestamps"],
-                                                LocationProvider(location["location_provider"]).name,
-                                                np.nan, location["latitude"], location["longitude"],
-                                                location["altitude"], location["speed"], location["bearing"],
-                                                location["horizontal_accuracy"], location["vertical_accuracy"],
-                                                location["speed_accuracy"], location["bearing_accuracy"])
-                            other_locations = location_timestamp_processor(other_locations, new_location,
-                                                                           start_datetime, end_datetime)
-                        station.station_metadata.location_data.all_locations = station_locations_get_good_locations(
-                            other_locations, start_datetime, end_datetime)
-                        station.station_metadata.location_data.calc_mean_and_std_from_locations()
+                if self.end_datetime else float(station.audio_sensor().last_data_timestamp())
+            # location processing
+            if station.has_location_data():
+                # anything with 0 altitude is likely a network provided location
+                station.location_sensor().data_df.loc[(station.location_sensor().data_df["altitude"] == 0),
+                                                      "location_provider"] = LocationProvider.NETWORK
+            station.update_station_location_metadata(start_datetime, end_datetime)
+            # TRUNCATE!
             # truncate packets to include only the ones with the data for the window
             station.packet_data = [p for p in station.packet_data
                                    if p.data_end_timestamp > start_datetime and
                                    p.data_start_timestamp < end_datetime]
-            station.station_metadata.timing_data.episode_start_timestamp_s = start_datetime
-            station.station_metadata.timing_data.episode_end_timestamp_s = end_datetime
             for sensor_type, sensor in station.station_data.items():
-                # TRUNCATE!  get only the timestamps between the start and end timestamps
+                # get only the timestamps between the start and end timestamps
                 df_timestamps = sensor.data_timestamps()
                 if len(df_timestamps) < 1:
                     print(f"WARNING: Data window for {station_id} {sensor_type.name} sensor has no data points!")
                     break
-                temp = np.where((start_datetime <= df_timestamps) & (df_timestamps <= end_datetime))[0]
+                window_indices = np.where((start_datetime <= df_timestamps) & (df_timestamps <= end_datetime))[0]
                 # oops, all the samples have been cut off
-                if len(temp) < 1:
+                if len(window_indices) < 1:
                     print(f"WARNING: Data window for {station_id} {sensor_type.name} "
                           f"sensor has truncated all data points")
                     if sensor_type == SensorType.AUDIO:
                         ids_to_pop.append(station_id)
                 else:
-                    sensor.data_df = sensor.data_df.iloc[temp].reset_index(drop=True)
+                    sensor.data_df = sensor.data_df.iloc[window_indices].reset_index(drop=True)
                     if sensor.is_sample_interval_invalid():
-                        print(f"WARNING: {sensor_type.name} has undefined sample interval and sample rate!")
+                        print(f"WARNING: {station_id} {sensor_type.name} "
+                              f"sensor has undefined sample interval and sample rate!")
                     else:
                         # GAP FILL
                         sensor.data_df = gap_filler(sensor.data_df, sensor.sample_interval_s)
@@ -199,76 +165,11 @@ class DataWindow:
             # reassign the station's metadata to match up with updated sensor data
             station.station_metadata.timing_data.station_first_data_timestamp = \
                 station.audio_sensor().first_data_timestamp()
+            station.station_metadata.timing_data.episode_start_timestamp_s = start_datetime
+            station.station_metadata.timing_data.episode_end_timestamp_s = end_datetime
+        # remove any stations that don't have audio data
         for ids in ids_to_pop:
             self.stations.pop_station(ids)
-
-
-def location_timestamp_processor(station_locations: List[StationLocation], new_location: StationLocation,
-                                 start_datetime: float, end_datetime: float) -> List[StationLocation]:
-    """
-    Checks if the new_location's timestamps are within or before the start_datetime and end_datetime window,
-        or if the location is the first after the end_datetime, then adds the data to the station_locations if it is
-    :param station_locations: list of StationLocations
-    :param new_location: the StationLocation to potentially add
-    :param start_datetime: the start timestamp of the window to consider
-    :param end_datetime: the end timestamp of the window to consider
-    :return: the updated list of StationLocations
-    """
-    # check if new location timestamp is before end time
-    if new_location.lat_lon_timestamp <= end_datetime:
-        # check if new location timestamp is before start time
-        data_before_start = new_location.lat_lon_timestamp < start_datetime
-        # check if list of station locations has data from before start time
-        list_data_before_start = \
-            False if len(station_locations) < 1 else station_locations[0].lat_lon_timestamp < start_datetime
-        # if new location is in window and list data is before window start, clear the metadata
-        if not data_before_start and list_data_before_start:
-            station_locations.clear()
-        # if new location is in window or list data is before window start, add the new location
-        if not data_before_start or list_data_before_start:
-            station_locations.append(new_location)
-    else:  # new location happens after end time
-        # check if the last station location is after end_datetime and new_location is before the last station location
-        if len(station_locations) == 0:
-            station_locations.append(new_location)  # add the new location
-        if len(station_locations) > 0:
-            after_index = None
-            for index in range(len(station_locations)):
-                if station_locations[index].lat_lon_timestamp > end_datetime and \
-                        station_locations[index].lat_lon_timestamp > new_location.lat_lon_timestamp:
-                    after_index = index
-            if after_index:
-                station_locations[after_index] = new_location  # replace the last with new location
-            else:
-                station_locations.append(new_location)  # add the new location
-    return station_locations
-
-
-def station_locations_get_good_locations(station_locations: List[StationLocation],
-                                         start_datetime: float, end_datetime: float) -> List[StationLocation]:
-    """
-    given a list of station locations, return any that would appear within window or two closest locations.
-    :param station_locations: the list of locations to read
-    :param start_datetime: the start timestamp of the window to consider
-    :param end_datetime: the end timestamp of the window to consider
-    :return: all locations within the start and end window, or the two closest outside the window
-    """
-    temp = []
-    if len(station_locations) < 1:
-        return temp
-    start_location = station_locations[0]
-    end_location = station_locations[-1]
-    for location in station_locations:
-        if start_datetime <= location.lat_lon_timestamp <= end_datetime:
-            temp.append(location)
-        elif start_datetime < location.lat_lon_timestamp > start_location.lat_lon_timestamp:
-            start_location = location  # if the location is before start and after the start_location, update
-        elif end_location.lat_lon_timestamp > location.lat_lon_timestamp > end_datetime:
-            end_location = location  # if the location is after the end and before the end_location, update
-    if len(temp) > 0:
-        return temp
-    else:
-        return [start_location, end_location]
 
 
 def data_padder(expected_start: float, expected_end: float, data_df: pd.DataFrame,

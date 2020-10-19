@@ -5,17 +5,20 @@ import os
 import glob
 import numpy as np
 import pandas as pd
+
 from obspy import read
 from typing import List, Dict, Optional
+from dataclasses import dataclass
+
 from redvox.api1000 import io as apim_io
 from redvox.api900 import reader as api900_io
 from redvox.common import file_statistics as fs, date_time_utils as dtu, timesync as ts
-from redvox.common.sensor_data import SensorType, SensorData, DataPacket, \
-    Station, StationTiming, StationLocation, StationMetadata, LocationData
+from redvox.common.sensor_data import SensorType, SensorData
+from redvox.common.station import Station
+from redvox.common.station_utils import DataPacket, StationTiming, StationLocation, StationMetadata, LocationData
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
 from redvox.api1000.wrapped_redvox_packet import wrapped_packet as apim_wp
-from dataclasses import dataclass
 
 
 @dataclass
