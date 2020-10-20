@@ -25,3 +25,5 @@ DEG_TO_RAD = PI / 180.0  # converts degrees to radians
 RAD_TO_DEG = 180.0 / PI  # converts radians to degrees
 
 SECONDS_PER_DAY: int = 86_400
+
+NAN: float = float("nan")
