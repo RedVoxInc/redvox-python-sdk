@@ -1,0 +1,3414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>redvox.api1000.wrapped_redvox_packet.sensors.location API documentation</title>
+<meta name="description" content="This module provides tools for working with RedVox API M location data and metadata." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.api1000.wrapped_redvox_packet.sensors.location</code></h1>
+</header>
+<section id="section-intro">
+<p>This module provides tools for working with RedVox API M location data and metadata.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+This module provides tools for working with RedVox API M location data and metadata.
+&#34;&#34;&#34;
+
+import enum
+
+import redvox.api1000.common.typing
+import redvox.api1000.common.common as common
+
+from typing import List
+
+import redvox.api1000.common.generic
+
+from redvox.api1000.common.decorators import wrap_enum
+from redvox.api1000.common.generic import ProtoBase, ProtoRepeatedMessage
+from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
+
+
+# noinspection Mypy
+@wrap_enum(RedvoxPacketM.Sensors.Location.LocationProvider)
+class LocationProvider(enum.Enum):
+    &#34;&#34;&#34;
+    An enum that represents valid location providers
+    &#34;&#34;&#34;
+    UNKNOWN: int = 0
+    NONE: int = 1
+    USER: int = 2
+    GPS: int = 3
+    NETWORK: int = 4
+
+
+# noinspection Mypy
+@wrap_enum(RedvoxPacketM.Sensors.Location.BestLocation.LocationScoreMethod)
+class LocationScoreMethod(enum.Enum):
+    &#34;&#34;&#34;
+    An enum that represents location scoring methods
+    &#34;&#34;&#34;
+    UNKNOWN_METHOD: int = 0
+
+
+class BestTimestamp(
+    redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation.BestTimestamp]
+):
+    &#34;&#34;&#34;
+    This class encapsulates the best timestamps associated with the best location estimates.
+    &#34;&#34;&#34;
+    def __init__(self, proto: RedvoxPacketM.Sensors.Location.BestLocation.BestTimestamp):
+        super().__init__(proto)
+
+    def get_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: The unit of the timestamps.
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.unit)
+
+    def set_default_unit(self) -&gt; &#39;BestTimestamp&#39;:
+        &#34;&#34;&#34;
+        Sets the default timestamp unit.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        # noinspection PyTypeChecker
+        return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+
+    def set_unit(self, unit: common.Unit) -&gt; &#39;BestTimestamp&#39;:
+        &#34;&#34;&#34;
+        Sets the unit of the best timestamps.
+        :param unit: Unit to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.unit = unit.into_proto()
+        return self
+
+    def get_mach(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best machine timestamp
+        &#34;&#34;&#34;
+        return self._proto.mach
+
+    def set_mach(self, mach: float) -&gt; &#39;BestTimestamp&#39;:
+        &#34;&#34;&#34;
+        Sets the best machine timestamp.
+        :param mach: Timestamp to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(mach, [int, float])
+        self._proto.mach = mach
+        return self
+
+    def get_gps(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best GPS timestamp.
+        &#34;&#34;&#34;
+        return self._proto.gps
+
+    def set_gps(self, gps: float) -&gt; &#39;BestTimestamp&#39;:
+        &#34;&#34;&#34;
+        Sets the best GPS provided timestamp
+        :param gps: Timestamp to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(gps, [int, float])
+        self._proto.gps = gps
+        return self
+
+
+class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
+    &#34;&#34;&#34;
+    Encapsulates the best location estimates
+    &#34;&#34;&#34;
+    def __init__(self, proto: RedvoxPacketM.Sensors.Location.BestLocation):
+        super().__init__(proto)
+        self._latitude_longitude_timestamp: BestTimestamp = BestTimestamp(proto.latitude_longitude_timestamp)
+        self._altitude_timestamp: BestTimestamp = BestTimestamp(proto.altitude_timestamp)
+        self._speed_timestamp: BestTimestamp = BestTimestamp(proto.speed_timestamp)
+        self._bearing_timestamp: BestTimestamp = BestTimestamp(proto.bearing_timestamp)
+
+    def get_latitude_longitude_timestamp(self) -&gt; BestTimestamp:
+        &#34;&#34;&#34;
+        :return: Best timestamps associated with best latitude and longitude
+        &#34;&#34;&#34;
+        return self._latitude_longitude_timestamp
+
+    def get_altitude_timestamp(self) -&gt; BestTimestamp:
+        &#34;&#34;&#34;
+        :return: Best timestamps associated with best altitude
+        &#34;&#34;&#34;
+        return self._altitude_timestamp
+
+    def get_speed_timestamp(self) -&gt; BestTimestamp:
+        &#34;&#34;&#34;
+        :return: Best timestamps associated with best speed
+        &#34;&#34;&#34;
+        return self._speed_timestamp
+
+    def get_bearing_timestamp(self) -&gt; BestTimestamp:
+        &#34;&#34;&#34;
+        :return: Best timestamps associated with best bearing
+        &#34;&#34;&#34;
+        return self._bearing_timestamp
+
+    def get_latitude_longitude_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with latitude, longitude
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.latitude_longitude_unit)
+
+    def set_latitude_longitude_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with latitude and longitude
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.latitude_longitude_unit = unit.into_proto()
+        return self
+
+    def get_altitude_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with altitude
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.altitude_unit)
+
+    def set_altitude_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with altitude
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.altitude_unit = unit.into_proto()
+        return self
+
+    def get_speed_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with altitude
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.speed_unit)
+
+    def set_speed_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with speed
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.speed_unit = unit.into_proto()
+        return self
+
+    def get_bearing_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with bearing
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.bearing_unit)
+
+    def set_bearing_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with speed
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.bearing_unit = unit.into_proto()
+        return self
+
+    def get_vertical_accuracy_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with vertical accuracy
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.vertical_accuracy_unit)
+
+    def set_vertical_accuracy_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with vertical accuracy
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.vertical_accuracy_unit = unit.into_proto()
+        return self
+
+    def get_horizontal_accuracy_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with horizontal accuracy
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.horizontal_accuracy_unit)
+
+    def set_horizontal_accuracy_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with horizontal accuracy
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.horizontal_accuracy_unit = unit.into_proto()
+        return self
+
+    def get_speed_accuracy_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with speed accuracy
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.speed_accuracy_unit)
+
+    def set_speed_accuracy_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with speed accuracy
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.speed_accuracy_unit = unit.into_proto()
+        return self
+
+    def get_bearing_accuracy_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with bearing accuracy
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.bearing_accuracy_unit)
+
+    def set_bearing_accuracy_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with bearing accuracy
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.bearing_accuracy_unit = unit.into_proto()
+        return self
+
+    def get_latitude(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best latitude
+        &#34;&#34;&#34;
+        return self._proto.latitude
+
+    def set_latitude(self, latitude: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best latitude
+        :param latitude: Latitude to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(latitude, [int, float])
+        self._proto.latitude = latitude
+        return self
+
+    def get_longitude(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best longitude
+        &#34;&#34;&#34;
+        return self._proto.longitude
+
+    def set_longitude(self, longitude: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best longitude
+        :param longitude: Longitude to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(longitude, [int, float])
+        self._proto.longitude = longitude
+        return self
+
+    def get_altitude(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best altitude
+        &#34;&#34;&#34;
+        return self._proto.altitude
+
+    def set_altitude(self, altitude: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best altitude
+        :param altitude: Altitude to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(altitude, [int, float])
+        self._proto.altitude = altitude
+        return self
+
+    def get_speed(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best speed
+        &#34;&#34;&#34;
+        return self._proto.speed
+
+    def set_speed(self, speed: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best speed
+        :param speed: Speed to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(speed, [int, float])
+        self._proto.speed = speed
+        return self
+
+    def get_bearing(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best bearing
+        &#34;&#34;&#34;
+        return self._proto.bearing
+
+    def set_bearing(self, bearing: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best bearing
+        :param bearing: Bearing to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(bearing, [int, float])
+        self._proto.bearing = bearing
+        return self
+
+    def get_vertical_accuracy(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best vertical accuracy
+        &#34;&#34;&#34;
+        return self._proto.vertical_accuracy
+
+    def set_vertical_accuracy(self, vertical_accuracy: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best vertical accuracy.
+        :param vertical_accuracy: Accuracy to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(vertical_accuracy, [int, float])
+        self._proto.vertical_accuracy = vertical_accuracy
+        return self
+
+    def get_horizontal_accuracy(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best horizontal accuracy
+        &#34;&#34;&#34;
+        return self._proto.horizontal_accuracy
+
+    def set_horizontal_accuracy(self, horizontal_accuracy: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best horizontal accuracy
+        :param horizontal_accuracy: Accuracy to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(horizontal_accuracy, [int, float])
+        self._proto.horizontal_accuracy = horizontal_accuracy
+        return self
+
+    def get_speed_accuracy(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best speed accuracy
+        &#34;&#34;&#34;
+        return self._proto.speed_accuracy
+
+    def set_speed_accuracy(self, speed_accuracy: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best speed accuracy
+        :param speed_accuracy: Accuracy to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(speed_accuracy, [int, float])
+        self._proto.speed_accuracy = speed_accuracy
+        return self
+
+    def get_bearing_accuracy(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best bearing accuracy
+        &#34;&#34;&#34;
+        return self._proto.bearing_accuracy
+
+    def set_bearing_accuracy(self, bearing_accuracy: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best bearing accuracy
+        :param bearing_accuracy: Accuracy to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(bearing_accuracy, [int, float])
+        self._proto.bearing_accuracy = bearing_accuracy
+        return self
+
+    def get_score(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best location score
+        &#34;&#34;&#34;
+        return self._proto.score
+
+    def set_score(self, score: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best location score
+        :param score: Score to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(score, [int, float])
+        self._proto.score = score
+        return self
+
+    def get_method(self) -&gt; LocationScoreMethod:
+        &#34;&#34;&#34;
+        :return: The best location score method
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return LocationScoreMethod.from_proto(self._proto.method)
+
+    def set_method(self, method: LocationScoreMethod) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best location score method.
+        :param method: Method to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(method, [LocationScoreMethod])
+        # noinspection Mypy
+        self._proto.method = method.into_proto()
+        return self
+
+    def get_location_provider(self) -&gt; LocationProvider:
+        &#34;&#34;&#34;
+        :return: The location provide associated with the best location.
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return LocationProvider.from_proto(self._proto.location_provider)
+
+    def set_location_provider(self, location_provider: LocationProvider) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the location provider associated with the best location.
+        :param location_provider: Location provider to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(location_provider, [LocationProvider])
+        # noinspection Mypy
+        self._proto.location_provider = location_provider.into_proto()
+        return self
+
+
+class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Location]):
+    &#34;&#34;&#34;
+    Encapsulates location data and metadata
+    &#34;&#34;&#34;
+    def __init__(self, proto: RedvoxPacketM.Sensors.Location):
+        super().__init__(proto)
+        self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
+        self._timestamps_gps: common.TimingPayload = common.TimingPayload(proto.timestamps_gps)
+        self._latitude_samples: common.SamplePayload = common.SamplePayload(proto.latitude_samples)
+        self._longitude_samples: common.SamplePayload = common.SamplePayload(proto.longitude_samples)
+        self._altitude_samples: common.SamplePayload = common.SamplePayload(proto.altitude_samples)
+        self._speed_samples: common.SamplePayload = common.SamplePayload(proto.speed_samples)
+        self._bearing_samples: common.SamplePayload = common.SamplePayload(proto.bearing_samples)
+        self._horizontal_accuracy_samples: common.SamplePayload = common.SamplePayload(
+            proto.horizontal_accuracy_samples)
+        self._vertical_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.vertical_accuracy_samples)
+        self._speed_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.speed_accuracy_samples)
+        self._bearing_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.bearing_accuracy_samples)
+        self._last_best_location: BestLocation = BestLocation(proto.last_best_location)
+        self._overall_best_location: BestLocation = BestLocation(proto.overall_best_location)
+        # noinspection Mypy
+        self._location_providers: ProtoRepeatedMessage = ProtoRepeatedMessage(
+            proto,
+            proto.location_providers,
+            &#34;location_providers&#34;,
+            LocationProvider.from_proto,
+            LocationProvider.into_proto,
+        )
+
+    @staticmethod
+    def new() -&gt; &#39;Location&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty Location instance
+        &#34;&#34;&#34;
+        return Location(RedvoxPacketM.Sensors.Location())
+
+    def get_sensor_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The location sensor description
+        &#34;&#34;&#34;
+        return self._proto.sensor_description
+
+    def set_sensor_description(self, sensor_description: str) -&gt; &#39;Location&#39;:
+        &#34;&#34;&#34;
+        Sets the location sensor&#39;s description
+        :param sensor_description: Description to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(sensor_description, [str])
+        self._proto.sensor_description = sensor_description
+        return self
+
+    def get_timestamps(self) -&gt; common.TimingPayload:
+        &#34;&#34;&#34;
+        :return: The timing payload (machine timestamps) associated with this sensor&#39;s location samples
+        &#34;&#34;&#34;
+        return self._timestamps
+
+    def get_timestamps_gps(self) -&gt; common.TimingPayload:
+        &#34;&#34;&#34;
+        :return: The timing payload (gps timestamps) associated with this sensor&#39;s location samples
+        &#34;&#34;&#34;
+        return self._timestamps_gps
+
+    def get_latitude_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing latitude samples and statistics
+        &#34;&#34;&#34;
+        return self._latitude_samples
+
+    def get_longitude_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing longitude samples and statistics
+        &#34;&#34;&#34;
+        return self._longitude_samples
+
+    def get_altitude_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing altitude samples and statistics
+        &#34;&#34;&#34;
+        return self._altitude_samples
+
+    def get_speed_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing speed samples and statistics
+        &#34;&#34;&#34;
+        return self._speed_samples
+
+    def get_bearing_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing bearing samples and statistics
+        &#34;&#34;&#34;
+        return self._bearing_samples
+
+    def get_horizontal_accuracy_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing horizontal accuracy samples and statistics
+        &#34;&#34;&#34;
+        return self._horizontal_accuracy_samples
+
+    def get_vertical_accuracy_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing vertical accuracy samples and statistics
+        &#34;&#34;&#34;
+        return self._vertical_accuracy_samples
+
+    def get_speed_accuracy_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing speed accuracy samples and statistics
+        &#34;&#34;&#34;
+        return self._speed_accuracy_samples
+
+    def get_bearing_accuracy_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing bearing accuracy samples and statistics
+        &#34;&#34;&#34;
+        return self._bearing_accuracy_samples
+
+    def get_last_best_location(self) -&gt; BestLocation:
+        &#34;&#34;&#34;
+        :return: This returns the most recent BestLocation
+        &#34;&#34;&#34;
+        return self._last_best_location
+
+    def get_overall_best_location(self) -&gt; BestLocation:
+        &#34;&#34;&#34;
+        :return: This returns the overall best location since the station last moved
+        &#34;&#34;&#34;
+        return self._overall_best_location
+
+    def get_location_permissions_granted(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Have location permissions been granted?
+        &#34;&#34;&#34;
+        return self._proto.location_permissions_granted
+
+    def set_location_permissions_granted(self, location_permissions_granted: bool) -&gt; &#39;Location&#39;:
+        &#34;&#34;&#34;
+        Sets if location permissions have been granted.
+        :param location_permissions_granted: Permissions to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(location_permissions_granted, [bool])
+        self._proto.location_permissions_granted = location_permissions_granted
+        return self
+
+    def get_location_services_requested(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Have location services been requested by the user?
+        &#34;&#34;&#34;
+        return self._proto.location_services_requested
+
+    def set_location_services_requested(self, location_services_requested: bool) -&gt; &#39;Location&#39;:
+        &#34;&#34;&#34;
+        Sets if location services have been requested.
+        :param location_services_requested:
+        :return:
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(location_services_requested, [bool])
+        self._proto.location_services_requested = location_services_requested
+        return self
+
+    def get_location_services_enabled(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: If location services are enabled.
+        &#34;&#34;&#34;
+        return self._proto.location_services_enabled
+
+    def set_location_services_enabled(self, location_services_enabled: bool) -&gt; &#39;Location&#39;:
+        &#34;&#34;&#34;
+        Sets if location servers are enabled.
+        :param location_services_enabled: Set enabled or disabled
+        :return: Modified version of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(location_services_enabled, [bool])
+        self._proto.location_services_enabled = location_services_enabled
+        return self
+
+    def get_location_providers(self) -&gt; ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A list of location providers associated with each location sample
+        &#34;&#34;&#34;
+        return self._location_providers
+
+
+def validate_location(loc_sensor: Location) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the location
+    :param loc_sensor: Location to validate
+    :return: A list of validation errors
+    &#34;&#34;&#34;
+    errors_list = common.validate_timing_payload(loc_sensor.get_timestamps())
+    if loc_sensor.get_latitude_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
+        errors_list.append(&#34;Location sensor latitude units are not decimal degrees&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_latitude_samples(), &#34;Latitude&#34;))
+
+    if loc_sensor.get_longitude_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
+        errors_list.append(&#34;Location sensor longitude units are not decimal degrees&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_longitude_samples(), &#34;Longitude&#34;))
+
+    if loc_sensor.get_altitude_samples().get_unit() != common.Unit.METERS:
+        errors_list.append(&#34;Location sensor altitude units are not meters&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_altitude_samples(), &#34;Altitude&#34;))
+
+    # todo: any of the below can be turned off as needed
+    if loc_sensor.get_speed_samples().get_unit() != common.Unit.METERS_PER_SECOND:
+        errors_list.append(&#34;Location sensor speed units are not meters per second&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_samples(), &#34;Speed&#34;))
+
+    if loc_sensor.get_bearing_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
+        errors_list.append(&#34;Location sensor bearing units are not decimal degrees&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_bearing_samples(), &#34;Bearing&#34;))
+
+    if loc_sensor.get_horizontal_accuracy_samples().get_unit() != common.Unit.METERS:
+        errors_list.append(&#34;Location sensor horizontal accuracy units are not meters&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_horizontal_accuracy_samples(),
+                                                      &#34;Horizontal Accuracy&#34;))
+
+    if loc_sensor.get_vertical_accuracy_samples().get_unit() != common.Unit.METERS:
+        errors_list.append(&#34;Location sensor vertical accuracy units are not meters&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_vertical_accuracy_samples(),
+                                                      &#34;Vertical Accuracy&#34;))
+
+    if loc_sensor.get_speed_accuracy_samples().get_unit() != common.Unit.METERS_PER_SECOND:
+        errors_list.append(&#34;Location sensor speed accuracy units are not meters per second&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_accuracy_samples(),
+                                                      &#34;Speed Accuracy&#34;))
+
+    if loc_sensor.get_bearing_accuracy_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
+        errors_list.append(&#34;Location sensor bearing accuracy units are not decimal degrees&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_bearing_accuracy_samples(),
+                                                      &#34;Bearing Accuracy&#34;))
+
+    return errors_list</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.validate_location"><code class="name flex">
+<span>def <span class="ident">validate_location</span></span>(<span>loc_sensor: <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location">Location</a>) ‑> typing.List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Validates the location
+:param loc_sensor: Location to validate
+:return: A list of validation errors</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_location(loc_sensor: Location) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates the location
+    :param loc_sensor: Location to validate
+    :return: A list of validation errors
+    &#34;&#34;&#34;
+    errors_list = common.validate_timing_payload(loc_sensor.get_timestamps())
+    if loc_sensor.get_latitude_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
+        errors_list.append(&#34;Location sensor latitude units are not decimal degrees&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_latitude_samples(), &#34;Latitude&#34;))
+
+    if loc_sensor.get_longitude_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
+        errors_list.append(&#34;Location sensor longitude units are not decimal degrees&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_longitude_samples(), &#34;Longitude&#34;))
+
+    if loc_sensor.get_altitude_samples().get_unit() != common.Unit.METERS:
+        errors_list.append(&#34;Location sensor altitude units are not meters&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_altitude_samples(), &#34;Altitude&#34;))
+
+    # todo: any of the below can be turned off as needed
+    if loc_sensor.get_speed_samples().get_unit() != common.Unit.METERS_PER_SECOND:
+        errors_list.append(&#34;Location sensor speed units are not meters per second&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_samples(), &#34;Speed&#34;))
+
+    if loc_sensor.get_bearing_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
+        errors_list.append(&#34;Location sensor bearing units are not decimal degrees&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_bearing_samples(), &#34;Bearing&#34;))
+
+    if loc_sensor.get_horizontal_accuracy_samples().get_unit() != common.Unit.METERS:
+        errors_list.append(&#34;Location sensor horizontal accuracy units are not meters&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_horizontal_accuracy_samples(),
+                                                      &#34;Horizontal Accuracy&#34;))
+
+    if loc_sensor.get_vertical_accuracy_samples().get_unit() != common.Unit.METERS:
+        errors_list.append(&#34;Location sensor vertical accuracy units are not meters&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_vertical_accuracy_samples(),
+                                                      &#34;Vertical Accuracy&#34;))
+
+    if loc_sensor.get_speed_accuracy_samples().get_unit() != common.Unit.METERS_PER_SECOND:
+        errors_list.append(&#34;Location sensor speed accuracy units are not meters per second&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_accuracy_samples(),
+                                                      &#34;Speed Accuracy&#34;))
+
+    if loc_sensor.get_bearing_accuracy_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
+        errors_list.append(&#34;Location sensor bearing accuracy units are not decimal degrees&#34;)
+    errors_list.extend(common.validate_sample_payload(loc_sensor.get_bearing_accuracy_samples(),
+                                                      &#34;Bearing Accuracy&#34;))
+
+    return errors_list</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation"><code class="flex name class">
+<span>class <span class="ident">BestLocation</span></span>
+<span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.BestLocation)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Encapsulates the best location estimates</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
+    &#34;&#34;&#34;
+    Encapsulates the best location estimates
+    &#34;&#34;&#34;
+    def __init__(self, proto: RedvoxPacketM.Sensors.Location.BestLocation):
+        super().__init__(proto)
+        self._latitude_longitude_timestamp: BestTimestamp = BestTimestamp(proto.latitude_longitude_timestamp)
+        self._altitude_timestamp: BestTimestamp = BestTimestamp(proto.altitude_timestamp)
+        self._speed_timestamp: BestTimestamp = BestTimestamp(proto.speed_timestamp)
+        self._bearing_timestamp: BestTimestamp = BestTimestamp(proto.bearing_timestamp)
+
+    def get_latitude_longitude_timestamp(self) -&gt; BestTimestamp:
+        &#34;&#34;&#34;
+        :return: Best timestamps associated with best latitude and longitude
+        &#34;&#34;&#34;
+        return self._latitude_longitude_timestamp
+
+    def get_altitude_timestamp(self) -&gt; BestTimestamp:
+        &#34;&#34;&#34;
+        :return: Best timestamps associated with best altitude
+        &#34;&#34;&#34;
+        return self._altitude_timestamp
+
+    def get_speed_timestamp(self) -&gt; BestTimestamp:
+        &#34;&#34;&#34;
+        :return: Best timestamps associated with best speed
+        &#34;&#34;&#34;
+        return self._speed_timestamp
+
+    def get_bearing_timestamp(self) -&gt; BestTimestamp:
+        &#34;&#34;&#34;
+        :return: Best timestamps associated with best bearing
+        &#34;&#34;&#34;
+        return self._bearing_timestamp
+
+    def get_latitude_longitude_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with latitude, longitude
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.latitude_longitude_unit)
+
+    def set_latitude_longitude_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with latitude and longitude
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.latitude_longitude_unit = unit.into_proto()
+        return self
+
+    def get_altitude_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with altitude
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.altitude_unit)
+
+    def set_altitude_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with altitude
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.altitude_unit = unit.into_proto()
+        return self
+
+    def get_speed_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with altitude
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.speed_unit)
+
+    def set_speed_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with speed
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.speed_unit = unit.into_proto()
+        return self
+
+    def get_bearing_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with bearing
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.bearing_unit)
+
+    def set_bearing_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with speed
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.bearing_unit = unit.into_proto()
+        return self
+
+    def get_vertical_accuracy_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with vertical accuracy
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.vertical_accuracy_unit)
+
+    def set_vertical_accuracy_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with vertical accuracy
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.vertical_accuracy_unit = unit.into_proto()
+        return self
+
+    def get_horizontal_accuracy_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with horizontal accuracy
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.horizontal_accuracy_unit)
+
+    def set_horizontal_accuracy_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with horizontal accuracy
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.horizontal_accuracy_unit = unit.into_proto()
+        return self
+
+    def get_speed_accuracy_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with speed accuracy
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.speed_accuracy_unit)
+
+    def set_speed_accuracy_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with speed accuracy
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.speed_accuracy_unit = unit.into_proto()
+        return self
+
+    def get_bearing_accuracy_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: Unit associated with bearing accuracy
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.bearing_accuracy_unit)
+
+    def set_bearing_accuracy_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the unit associated with bearing accuracy
+        :param unit: Unit to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.bearing_accuracy_unit = unit.into_proto()
+        return self
+
+    def get_latitude(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best latitude
+        &#34;&#34;&#34;
+        return self._proto.latitude
+
+    def set_latitude(self, latitude: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best latitude
+        :param latitude: Latitude to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(latitude, [int, float])
+        self._proto.latitude = latitude
+        return self
+
+    def get_longitude(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best longitude
+        &#34;&#34;&#34;
+        return self._proto.longitude
+
+    def set_longitude(self, longitude: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best longitude
+        :param longitude: Longitude to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(longitude, [int, float])
+        self._proto.longitude = longitude
+        return self
+
+    def get_altitude(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best altitude
+        &#34;&#34;&#34;
+        return self._proto.altitude
+
+    def set_altitude(self, altitude: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best altitude
+        :param altitude: Altitude to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(altitude, [int, float])
+        self._proto.altitude = altitude
+        return self
+
+    def get_speed(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best speed
+        &#34;&#34;&#34;
+        return self._proto.speed
+
+    def set_speed(self, speed: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best speed
+        :param speed: Speed to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(speed, [int, float])
+        self._proto.speed = speed
+        return self
+
+    def get_bearing(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best bearing
+        &#34;&#34;&#34;
+        return self._proto.bearing
+
+    def set_bearing(self, bearing: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best bearing
+        :param bearing: Bearing to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(bearing, [int, float])
+        self._proto.bearing = bearing
+        return self
+
+    def get_vertical_accuracy(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best vertical accuracy
+        &#34;&#34;&#34;
+        return self._proto.vertical_accuracy
+
+    def set_vertical_accuracy(self, vertical_accuracy: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best vertical accuracy.
+        :param vertical_accuracy: Accuracy to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(vertical_accuracy, [int, float])
+        self._proto.vertical_accuracy = vertical_accuracy
+        return self
+
+    def get_horizontal_accuracy(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best horizontal accuracy
+        &#34;&#34;&#34;
+        return self._proto.horizontal_accuracy
+
+    def set_horizontal_accuracy(self, horizontal_accuracy: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best horizontal accuracy
+        :param horizontal_accuracy: Accuracy to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(horizontal_accuracy, [int, float])
+        self._proto.horizontal_accuracy = horizontal_accuracy
+        return self
+
+    def get_speed_accuracy(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best speed accuracy
+        &#34;&#34;&#34;
+        return self._proto.speed_accuracy
+
+    def set_speed_accuracy(self, speed_accuracy: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best speed accuracy
+        :param speed_accuracy: Accuracy to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(speed_accuracy, [int, float])
+        self._proto.speed_accuracy = speed_accuracy
+        return self
+
+    def get_bearing_accuracy(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best bearing accuracy
+        &#34;&#34;&#34;
+        return self._proto.bearing_accuracy
+
+    def set_bearing_accuracy(self, bearing_accuracy: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best bearing accuracy
+        :param bearing_accuracy: Accuracy to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(bearing_accuracy, [int, float])
+        self._proto.bearing_accuracy = bearing_accuracy
+        return self
+
+    def get_score(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best location score
+        &#34;&#34;&#34;
+        return self._proto.score
+
+    def set_score(self, score: float) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best location score
+        :param score: Score to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(score, [int, float])
+        self._proto.score = score
+        return self
+
+    def get_method(self) -&gt; LocationScoreMethod:
+        &#34;&#34;&#34;
+        :return: The best location score method
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return LocationScoreMethod.from_proto(self._proto.method)
+
+    def set_method(self, method: LocationScoreMethod) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the best location score method.
+        :param method: Method to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(method, [LocationScoreMethod])
+        # noinspection Mypy
+        self._proto.method = method.into_proto()
+        return self
+
+    def get_location_provider(self) -&gt; LocationProvider:
+        &#34;&#34;&#34;
+        :return: The location provide associated with the best location.
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return LocationProvider.from_proto(self._proto.location_provider)
+
+    def set_location_provider(self, location_provider: LocationProvider) -&gt; &#39;BestLocation&#39;:
+        &#34;&#34;&#34;
+        Sets the location provider associated with the best location.
+        :param location_provider: Location provider to set.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(location_provider, [LocationProvider])
+        # noinspection Mypy
+        self._proto.location_provider = location_provider.into_proto()
+        return self</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="redvox.api1000.common.generic.ProtoBase" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase">ProtoBase</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_altitude"><code class="name flex">
+<span>def <span class="ident">get_altitude</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best altitude</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_altitude(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The best altitude
+    &#34;&#34;&#34;
+    return self._proto.altitude</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_altitude_timestamp"><code class="name flex">
+<span>def <span class="ident">get_altitude_timestamp</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp">BestTimestamp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Best timestamps associated with best altitude</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_altitude_timestamp(self) -&gt; BestTimestamp:
+    &#34;&#34;&#34;
+    :return: Best timestamps associated with best altitude
+    &#34;&#34;&#34;
+    return self._altitude_timestamp</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_altitude_unit"><code class="name flex">
+<span>def <span class="ident">get_altitude_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Unit associated with altitude</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_altitude_unit(self) -&gt; common.Unit:
+    &#34;&#34;&#34;
+    :return: Unit associated with altitude
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    return common.Unit.from_proto(self._proto.altitude_unit)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing"><code class="name flex">
+<span>def <span class="ident">get_bearing</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best bearing</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_bearing(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The best bearing
+    &#34;&#34;&#34;
+    return self._proto.bearing</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing_accuracy"><code class="name flex">
+<span>def <span class="ident">get_bearing_accuracy</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best bearing accuracy</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_bearing_accuracy(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The best bearing accuracy
+    &#34;&#34;&#34;
+    return self._proto.bearing_accuracy</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing_accuracy_unit"><code class="name flex">
+<span>def <span class="ident">get_bearing_accuracy_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Unit associated with bearing accuracy</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_bearing_accuracy_unit(self) -&gt; common.Unit:
+    &#34;&#34;&#34;
+    :return: Unit associated with bearing accuracy
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    return common.Unit.from_proto(self._proto.bearing_accuracy_unit)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing_timestamp"><code class="name flex">
+<span>def <span class="ident">get_bearing_timestamp</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp">BestTimestamp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Best timestamps associated with best bearing</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_bearing_timestamp(self) -&gt; BestTimestamp:
+    &#34;&#34;&#34;
+    :return: Best timestamps associated with best bearing
+    &#34;&#34;&#34;
+    return self._bearing_timestamp</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing_unit"><code class="name flex">
+<span>def <span class="ident">get_bearing_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Unit associated with bearing</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_bearing_unit(self) -&gt; common.Unit:
+    &#34;&#34;&#34;
+    :return: Unit associated with bearing
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    return common.Unit.from_proto(self._proto.bearing_unit)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_horizontal_accuracy"><code class="name flex">
+<span>def <span class="ident">get_horizontal_accuracy</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best horizontal accuracy</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_horizontal_accuracy(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The best horizontal accuracy
+    &#34;&#34;&#34;
+    return self._proto.horizontal_accuracy</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_horizontal_accuracy_unit"><code class="name flex">
+<span>def <span class="ident">get_horizontal_accuracy_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Unit associated with horizontal accuracy</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_horizontal_accuracy_unit(self) -&gt; common.Unit:
+    &#34;&#34;&#34;
+    :return: Unit associated with horizontal accuracy
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    return common.Unit.from_proto(self._proto.horizontal_accuracy_unit)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_latitude"><code class="name flex">
+<span>def <span class="ident">get_latitude</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best latitude</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_latitude(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The best latitude
+    &#34;&#34;&#34;
+    return self._proto.latitude</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_latitude_longitude_timestamp"><code class="name flex">
+<span>def <span class="ident">get_latitude_longitude_timestamp</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp">BestTimestamp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Best timestamps associated with best latitude and longitude</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_latitude_longitude_timestamp(self) -&gt; BestTimestamp:
+    &#34;&#34;&#34;
+    :return: Best timestamps associated with best latitude and longitude
+    &#34;&#34;&#34;
+    return self._latitude_longitude_timestamp</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_latitude_longitude_unit"><code class="name flex">
+<span>def <span class="ident">get_latitude_longitude_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Unit associated with latitude, longitude</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_latitude_longitude_unit(self) -&gt; common.Unit:
+    &#34;&#34;&#34;
+    :return: Unit associated with latitude, longitude
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    return common.Unit.from_proto(self._proto.latitude_longitude_unit)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_location_provider"><code class="name flex">
+<span>def <span class="ident">get_location_provider</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider">LocationProvider</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The location provide associated with the best location.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_location_provider(self) -&gt; LocationProvider:
+    &#34;&#34;&#34;
+    :return: The location provide associated with the best location.
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    return LocationProvider.from_proto(self._proto.location_provider)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_longitude"><code class="name flex">
+<span>def <span class="ident">get_longitude</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best longitude</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_longitude(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The best longitude
+    &#34;&#34;&#34;
+    return self._proto.longitude</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_method"><code class="name flex">
+<span>def <span class="ident">get_method</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod">LocationScoreMethod</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best location score method</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_method(self) -&gt; LocationScoreMethod:
+    &#34;&#34;&#34;
+    :return: The best location score method
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    return LocationScoreMethod.from_proto(self._proto.method)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_score"><code class="name flex">
+<span>def <span class="ident">get_score</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best location score</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_score(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The best location score
+    &#34;&#34;&#34;
+    return self._proto.score</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed"><code class="name flex">
+<span>def <span class="ident">get_speed</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best speed</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_speed(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The best speed
+    &#34;&#34;&#34;
+    return self._proto.speed</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed_accuracy"><code class="name flex">
+<span>def <span class="ident">get_speed_accuracy</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best speed accuracy</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_speed_accuracy(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The best speed accuracy
+    &#34;&#34;&#34;
+    return self._proto.speed_accuracy</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed_accuracy_unit"><code class="name flex">
+<span>def <span class="ident">get_speed_accuracy_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Unit associated with speed accuracy</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_speed_accuracy_unit(self) -&gt; common.Unit:
+    &#34;&#34;&#34;
+    :return: Unit associated with speed accuracy
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    return common.Unit.from_proto(self._proto.speed_accuracy_unit)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed_timestamp"><code class="name flex">
+<span>def <span class="ident">get_speed_timestamp</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp">BestTimestamp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Best timestamps associated with best speed</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_speed_timestamp(self) -&gt; BestTimestamp:
+    &#34;&#34;&#34;
+    :return: Best timestamps associated with best speed
+    &#34;&#34;&#34;
+    return self._speed_timestamp</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed_unit"><code class="name flex">
+<span>def <span class="ident">get_speed_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Unit associated with altitude</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_speed_unit(self) -&gt; common.Unit:
+    &#34;&#34;&#34;
+    :return: Unit associated with altitude
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    return common.Unit.from_proto(self._proto.speed_unit)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_vertical_accuracy"><code class="name flex">
+<span>def <span class="ident">get_vertical_accuracy</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best vertical accuracy</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_vertical_accuracy(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The best vertical accuracy
+    &#34;&#34;&#34;
+    return self._proto.vertical_accuracy</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_vertical_accuracy_unit"><code class="name flex">
+<span>def <span class="ident">get_vertical_accuracy_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Unit associated with vertical accuracy</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_vertical_accuracy_unit(self) -&gt; common.Unit:
+    &#34;&#34;&#34;
+    :return: Unit associated with vertical accuracy
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    return common.Unit.from_proto(self._proto.vertical_accuracy_unit)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_altitude"><code class="name flex">
+<span>def <span class="ident">set_altitude</span></span>(<span>self, altitude: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best altitude
+:param altitude: Altitude to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_altitude(self, altitude: float) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the best altitude
+    :param altitude: Altitude to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(altitude, [int, float])
+    self._proto.altitude = altitude
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_altitude_unit"><code class="name flex">
+<span>def <span class="ident">set_altitude_unit</span></span>(<span>self, unit: <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the unit associated with altitude
+:param unit: Unit to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_altitude_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the unit associated with altitude
+    :param unit: Unit to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    # noinspection Mypy
+    self._proto.altitude_unit = unit.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_bearing"><code class="name flex">
+<span>def <span class="ident">set_bearing</span></span>(<span>self, bearing: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best bearing
+:param bearing: Bearing to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_bearing(self, bearing: float) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the best bearing
+    :param bearing: Bearing to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(bearing, [int, float])
+    self._proto.bearing = bearing
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_bearing_accuracy"><code class="name flex">
+<span>def <span class="ident">set_bearing_accuracy</span></span>(<span>self, bearing_accuracy: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best bearing accuracy
+:param bearing_accuracy: Accuracy to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_bearing_accuracy(self, bearing_accuracy: float) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the best bearing accuracy
+    :param bearing_accuracy: Accuracy to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(bearing_accuracy, [int, float])
+    self._proto.bearing_accuracy = bearing_accuracy
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_bearing_accuracy_unit"><code class="name flex">
+<span>def <span class="ident">set_bearing_accuracy_unit</span></span>(<span>self, unit: <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the unit associated with bearing accuracy
+:param unit: Unit to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_bearing_accuracy_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the unit associated with bearing accuracy
+    :param unit: Unit to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    # noinspection Mypy
+    self._proto.bearing_accuracy_unit = unit.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_bearing_unit"><code class="name flex">
+<span>def <span class="ident">set_bearing_unit</span></span>(<span>self, unit: <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the unit associated with speed
+:param unit: Unit to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_bearing_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the unit associated with speed
+    :param unit: Unit to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    # noinspection Mypy
+    self._proto.bearing_unit = unit.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_horizontal_accuracy"><code class="name flex">
+<span>def <span class="ident">set_horizontal_accuracy</span></span>(<span>self, horizontal_accuracy: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best horizontal accuracy
+:param horizontal_accuracy: Accuracy to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_horizontal_accuracy(self, horizontal_accuracy: float) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the best horizontal accuracy
+    :param horizontal_accuracy: Accuracy to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(horizontal_accuracy, [int, float])
+    self._proto.horizontal_accuracy = horizontal_accuracy
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_horizontal_accuracy_unit"><code class="name flex">
+<span>def <span class="ident">set_horizontal_accuracy_unit</span></span>(<span>self, unit: <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the unit associated with horizontal accuracy
+:param unit: Unit to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_horizontal_accuracy_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the unit associated with horizontal accuracy
+    :param unit: Unit to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    # noinspection Mypy
+    self._proto.horizontal_accuracy_unit = unit.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_latitude"><code class="name flex">
+<span>def <span class="ident">set_latitude</span></span>(<span>self, latitude: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best latitude
+:param latitude: Latitude to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_latitude(self, latitude: float) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the best latitude
+    :param latitude: Latitude to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(latitude, [int, float])
+    self._proto.latitude = latitude
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_latitude_longitude_unit"><code class="name flex">
+<span>def <span class="ident">set_latitude_longitude_unit</span></span>(<span>self, unit: <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the unit associated with latitude and longitude
+:param unit: Unit to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_latitude_longitude_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the unit associated with latitude and longitude
+    :param unit: Unit to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    # noinspection Mypy
+    self._proto.latitude_longitude_unit = unit.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_location_provider"><code class="name flex">
+<span>def <span class="ident">set_location_provider</span></span>(<span>self, location_provider: <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider">LocationProvider</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the location provider associated with the best location.
+:param location_provider: Location provider to set.
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_location_provider(self, location_provider: LocationProvider) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the location provider associated with the best location.
+    :param location_provider: Location provider to set.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(location_provider, [LocationProvider])
+    # noinspection Mypy
+    self._proto.location_provider = location_provider.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_longitude"><code class="name flex">
+<span>def <span class="ident">set_longitude</span></span>(<span>self, longitude: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best longitude
+:param longitude: Longitude to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_longitude(self, longitude: float) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the best longitude
+    :param longitude: Longitude to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(longitude, [int, float])
+    self._proto.longitude = longitude
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_method"><code class="name flex">
+<span>def <span class="ident">set_method</span></span>(<span>self, method: <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod">LocationScoreMethod</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best location score method.
+:param method: Method to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_method(self, method: LocationScoreMethod) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the best location score method.
+    :param method: Method to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(method, [LocationScoreMethod])
+    # noinspection Mypy
+    self._proto.method = method.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_score"><code class="name flex">
+<span>def <span class="ident">set_score</span></span>(<span>self, score: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best location score
+:param score: Score to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_score(self, score: float) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the best location score
+    :param score: Score to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(score, [int, float])
+    self._proto.score = score
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_speed"><code class="name flex">
+<span>def <span class="ident">set_speed</span></span>(<span>self, speed: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best speed
+:param speed: Speed to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_speed(self, speed: float) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the best speed
+    :param speed: Speed to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(speed, [int, float])
+    self._proto.speed = speed
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_speed_accuracy"><code class="name flex">
+<span>def <span class="ident">set_speed_accuracy</span></span>(<span>self, speed_accuracy: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best speed accuracy
+:param speed_accuracy: Accuracy to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_speed_accuracy(self, speed_accuracy: float) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the best speed accuracy
+    :param speed_accuracy: Accuracy to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(speed_accuracy, [int, float])
+    self._proto.speed_accuracy = speed_accuracy
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_speed_accuracy_unit"><code class="name flex">
+<span>def <span class="ident">set_speed_accuracy_unit</span></span>(<span>self, unit: <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the unit associated with speed accuracy
+:param unit: Unit to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_speed_accuracy_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the unit associated with speed accuracy
+    :param unit: Unit to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    # noinspection Mypy
+    self._proto.speed_accuracy_unit = unit.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_speed_unit"><code class="name flex">
+<span>def <span class="ident">set_speed_unit</span></span>(<span>self, unit: <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the unit associated with speed
+:param unit: Unit to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_speed_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the unit associated with speed
+    :param unit: Unit to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    # noinspection Mypy
+    self._proto.speed_unit = unit.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_vertical_accuracy"><code class="name flex">
+<span>def <span class="ident">set_vertical_accuracy</span></span>(<span>self, vertical_accuracy: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best vertical accuracy.
+:param vertical_accuracy: Accuracy to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_vertical_accuracy(self, vertical_accuracy: float) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the best vertical accuracy.
+    :param vertical_accuracy: Accuracy to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(vertical_accuracy, [int, float])
+    self._proto.vertical_accuracy = vertical_accuracy
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_vertical_accuracy_unit"><code class="name flex">
+<span>def <span class="ident">set_vertical_accuracy_unit</span></span>(<span>self, unit: <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the unit associated with vertical accuracy
+:param unit: Unit to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_vertical_accuracy_unit(self, unit: common.Unit) -&gt; &#39;BestLocation&#39;:
+    &#34;&#34;&#34;
+    Sets the unit associated with vertical accuracy
+    :param unit: Unit to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    # noinspection Mypy
+    self._proto.vertical_accuracy_unit = unit.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="redvox.api1000.common.generic.ProtoBase" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase">ProtoBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_bytes" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_bytes">as_bytes</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_compressed_bytes" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_compressed_bytes">as_compressed_bytes</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_dict" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_dict">as_dict</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_json" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_json">as_json</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.get_metadata" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.get_metadata">get_metadata</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.get_proto" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.get_proto">get_proto</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp"><code class="flex name class">
+<span>class <span class="ident">BestTimestamp</span></span>
+<span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.BestTimestamp)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class encapsulates the best timestamps associated with the best location estimates.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BestTimestamp(
+    redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation.BestTimestamp]
+):
+    &#34;&#34;&#34;
+    This class encapsulates the best timestamps associated with the best location estimates.
+    &#34;&#34;&#34;
+    def __init__(self, proto: RedvoxPacketM.Sensors.Location.BestLocation.BestTimestamp):
+        super().__init__(proto)
+
+    def get_unit(self) -&gt; common.Unit:
+        &#34;&#34;&#34;
+        :return: The unit of the timestamps.
+        &#34;&#34;&#34;
+        # noinspection Mypy
+        return common.Unit.from_proto(self._proto.unit)
+
+    def set_default_unit(self) -&gt; &#39;BestTimestamp&#39;:
+        &#34;&#34;&#34;
+        Sets the default timestamp unit.
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        # noinspection PyTypeChecker
+        return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
+
+    def set_unit(self, unit: common.Unit) -&gt; &#39;BestTimestamp&#39;:
+        &#34;&#34;&#34;
+        Sets the unit of the best timestamps.
+        :param unit: Unit to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(unit, [common.Unit])
+        # noinspection Mypy
+        self._proto.unit = unit.into_proto()
+        return self
+
+    def get_mach(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best machine timestamp
+        &#34;&#34;&#34;
+        return self._proto.mach
+
+    def set_mach(self, mach: float) -&gt; &#39;BestTimestamp&#39;:
+        &#34;&#34;&#34;
+        Sets the best machine timestamp.
+        :param mach: Timestamp to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(mach, [int, float])
+        self._proto.mach = mach
+        return self
+
+    def get_gps(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: The best GPS timestamp.
+        &#34;&#34;&#34;
+        return self._proto.gps
+
+    def set_gps(self, gps: float) -&gt; &#39;BestTimestamp&#39;:
+        &#34;&#34;&#34;
+        Sets the best GPS provided timestamp
+        :param gps: Timestamp to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(gps, [int, float])
+        self._proto.gps = gps
+        return self</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="redvox.api1000.common.generic.ProtoBase" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase">ProtoBase</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.get_gps"><code class="name flex">
+<span>def <span class="ident">get_gps</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best GPS timestamp.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_gps(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The best GPS timestamp.
+    &#34;&#34;&#34;
+    return self._proto.gps</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.get_mach"><code class="name flex">
+<span>def <span class="ident">get_mach</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The best machine timestamp</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_mach(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: The best machine timestamp
+    &#34;&#34;&#34;
+    return self._proto.mach</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.get_unit"><code class="name flex">
+<span>def <span class="ident">get_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The unit of the timestamps.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_unit(self) -&gt; common.Unit:
+    &#34;&#34;&#34;
+    :return: The unit of the timestamps.
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    return common.Unit.from_proto(self._proto.unit)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.set_default_unit"><code class="name flex">
+<span>def <span class="ident">set_default_unit</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp">BestTimestamp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the default timestamp unit.
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_default_unit(self) -&gt; &#39;BestTimestamp&#39;:
+    &#34;&#34;&#34;
+    Sets the default timestamp unit.
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    # noinspection PyTypeChecker
+    return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.set_gps"><code class="name flex">
+<span>def <span class="ident">set_gps</span></span>(<span>self, gps: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp">BestTimestamp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best GPS provided timestamp
+:param gps: Timestamp to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_gps(self, gps: float) -&gt; &#39;BestTimestamp&#39;:
+    &#34;&#34;&#34;
+    Sets the best GPS provided timestamp
+    :param gps: Timestamp to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(gps, [int, float])
+    self._proto.gps = gps
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.set_mach"><code class="name flex">
+<span>def <span class="ident">set_mach</span></span>(<span>self, mach: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp">BestTimestamp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the best machine timestamp.
+:param mach: Timestamp to set.
+:return: A modified instance of self.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_mach(self, mach: float) -&gt; &#39;BestTimestamp&#39;:
+    &#34;&#34;&#34;
+    Sets the best machine timestamp.
+    :param mach: Timestamp to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(mach, [int, float])
+    self._proto.mach = mach
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.set_unit"><code class="name flex">
+<span>def <span class="ident">set_unit</span></span>(<span>self, unit: <a title="redvox.api1000.common.common.Unit" href="../../common/common.html#redvox.api1000.common.common.Unit">Unit</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp">BestTimestamp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the unit of the best timestamps.
+:param unit: Unit to set.
+:return: A modified instance of self.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_unit(self, unit: common.Unit) -&gt; &#39;BestTimestamp&#39;:
+    &#34;&#34;&#34;
+    Sets the unit of the best timestamps.
+    :param unit: Unit to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(unit, [common.Unit])
+    # noinspection Mypy
+    self._proto.unit = unit.into_proto()
+    return self</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="redvox.api1000.common.generic.ProtoBase" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase">ProtoBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_bytes" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_bytes">as_bytes</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_compressed_bytes" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_compressed_bytes">as_compressed_bytes</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_dict" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_dict">as_dict</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_json" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_json">as_json</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.get_metadata" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.get_metadata">get_metadata</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.get_proto" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.get_proto">get_proto</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location"><code class="flex name class">
+<span>class <span class="ident">Location</span></span>
+<span>(</span><span>proto: src.redvox_api_m.redvox_api_m_pb2.Location)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Encapsulates location data and metadata</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Location]):
+    &#34;&#34;&#34;
+    Encapsulates location data and metadata
+    &#34;&#34;&#34;
+    def __init__(self, proto: RedvoxPacketM.Sensors.Location):
+        super().__init__(proto)
+        self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
+        self._timestamps_gps: common.TimingPayload = common.TimingPayload(proto.timestamps_gps)
+        self._latitude_samples: common.SamplePayload = common.SamplePayload(proto.latitude_samples)
+        self._longitude_samples: common.SamplePayload = common.SamplePayload(proto.longitude_samples)
+        self._altitude_samples: common.SamplePayload = common.SamplePayload(proto.altitude_samples)
+        self._speed_samples: common.SamplePayload = common.SamplePayload(proto.speed_samples)
+        self._bearing_samples: common.SamplePayload = common.SamplePayload(proto.bearing_samples)
+        self._horizontal_accuracy_samples: common.SamplePayload = common.SamplePayload(
+            proto.horizontal_accuracy_samples)
+        self._vertical_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.vertical_accuracy_samples)
+        self._speed_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.speed_accuracy_samples)
+        self._bearing_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.bearing_accuracy_samples)
+        self._last_best_location: BestLocation = BestLocation(proto.last_best_location)
+        self._overall_best_location: BestLocation = BestLocation(proto.overall_best_location)
+        # noinspection Mypy
+        self._location_providers: ProtoRepeatedMessage = ProtoRepeatedMessage(
+            proto,
+            proto.location_providers,
+            &#34;location_providers&#34;,
+            LocationProvider.from_proto,
+            LocationProvider.into_proto,
+        )
+
+    @staticmethod
+    def new() -&gt; &#39;Location&#39;:
+        &#34;&#34;&#34;
+        :return: A new, empty Location instance
+        &#34;&#34;&#34;
+        return Location(RedvoxPacketM.Sensors.Location())
+
+    def get_sensor_description(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: The location sensor description
+        &#34;&#34;&#34;
+        return self._proto.sensor_description
+
+    def set_sensor_description(self, sensor_description: str) -&gt; &#39;Location&#39;:
+        &#34;&#34;&#34;
+        Sets the location sensor&#39;s description
+        :param sensor_description: Description to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(sensor_description, [str])
+        self._proto.sensor_description = sensor_description
+        return self
+
+    def get_timestamps(self) -&gt; common.TimingPayload:
+        &#34;&#34;&#34;
+        :return: The timing payload (machine timestamps) associated with this sensor&#39;s location samples
+        &#34;&#34;&#34;
+        return self._timestamps
+
+    def get_timestamps_gps(self) -&gt; common.TimingPayload:
+        &#34;&#34;&#34;
+        :return: The timing payload (gps timestamps) associated with this sensor&#39;s location samples
+        &#34;&#34;&#34;
+        return self._timestamps_gps
+
+    def get_latitude_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing latitude samples and statistics
+        &#34;&#34;&#34;
+        return self._latitude_samples
+
+    def get_longitude_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing longitude samples and statistics
+        &#34;&#34;&#34;
+        return self._longitude_samples
+
+    def get_altitude_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing altitude samples and statistics
+        &#34;&#34;&#34;
+        return self._altitude_samples
+
+    def get_speed_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing speed samples and statistics
+        &#34;&#34;&#34;
+        return self._speed_samples
+
+    def get_bearing_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing bearing samples and statistics
+        &#34;&#34;&#34;
+        return self._bearing_samples
+
+    def get_horizontal_accuracy_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing horizontal accuracy samples and statistics
+        &#34;&#34;&#34;
+        return self._horizontal_accuracy_samples
+
+    def get_vertical_accuracy_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing vertical accuracy samples and statistics
+        &#34;&#34;&#34;
+        return self._vertical_accuracy_samples
+
+    def get_speed_accuracy_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing speed accuracy samples and statistics
+        &#34;&#34;&#34;
+        return self._speed_accuracy_samples
+
+    def get_bearing_accuracy_samples(self) -&gt; common.SamplePayload:
+        &#34;&#34;&#34;
+        :return: The SamplePayload containing bearing accuracy samples and statistics
+        &#34;&#34;&#34;
+        return self._bearing_accuracy_samples
+
+    def get_last_best_location(self) -&gt; BestLocation:
+        &#34;&#34;&#34;
+        :return: This returns the most recent BestLocation
+        &#34;&#34;&#34;
+        return self._last_best_location
+
+    def get_overall_best_location(self) -&gt; BestLocation:
+        &#34;&#34;&#34;
+        :return: This returns the overall best location since the station last moved
+        &#34;&#34;&#34;
+        return self._overall_best_location
+
+    def get_location_permissions_granted(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Have location permissions been granted?
+        &#34;&#34;&#34;
+        return self._proto.location_permissions_granted
+
+    def set_location_permissions_granted(self, location_permissions_granted: bool) -&gt; &#39;Location&#39;:
+        &#34;&#34;&#34;
+        Sets if location permissions have been granted.
+        :param location_permissions_granted: Permissions to set
+        :return: A modified instance of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(location_permissions_granted, [bool])
+        self._proto.location_permissions_granted = location_permissions_granted
+        return self
+
+    def get_location_services_requested(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: Have location services been requested by the user?
+        &#34;&#34;&#34;
+        return self._proto.location_services_requested
+
+    def set_location_services_requested(self, location_services_requested: bool) -&gt; &#39;Location&#39;:
+        &#34;&#34;&#34;
+        Sets if location services have been requested.
+        :param location_services_requested:
+        :return:
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(location_services_requested, [bool])
+        self._proto.location_services_requested = location_services_requested
+        return self
+
+    def get_location_services_enabled(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: If location services are enabled.
+        &#34;&#34;&#34;
+        return self._proto.location_services_enabled
+
+    def set_location_services_enabled(self, location_services_enabled: bool) -&gt; &#39;Location&#39;:
+        &#34;&#34;&#34;
+        Sets if location servers are enabled.
+        :param location_services_enabled: Set enabled or disabled
+        :return: Modified version of self
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(location_services_enabled, [bool])
+        self._proto.location_services_enabled = location_services_enabled
+        return self
+
+    def get_location_providers(self) -&gt; ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A list of location providers associated with each location sample
+        &#34;&#34;&#34;
+        return self._location_providers</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="redvox.api1000.common.generic.ProtoBase" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase">ProtoBase</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.new"><code class="name flex">
+<span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location">Location</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: A new, empty Location instance</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def new() -&gt; &#39;Location&#39;:
+    &#34;&#34;&#34;
+    :return: A new, empty Location instance
+    &#34;&#34;&#34;
+    return Location(RedvoxPacketM.Sensors.Location())</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_altitude_samples"><code class="name flex">
+<span>def <span class="ident">get_altitude_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The SamplePayload containing altitude samples and statistics</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_altitude_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: The SamplePayload containing altitude samples and statistics
+    &#34;&#34;&#34;
+    return self._altitude_samples</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_bearing_accuracy_samples"><code class="name flex">
+<span>def <span class="ident">get_bearing_accuracy_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The SamplePayload containing bearing accuracy samples and statistics</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_bearing_accuracy_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: The SamplePayload containing bearing accuracy samples and statistics
+    &#34;&#34;&#34;
+    return self._bearing_accuracy_samples</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_bearing_samples"><code class="name flex">
+<span>def <span class="ident">get_bearing_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The SamplePayload containing bearing samples and statistics</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_bearing_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: The SamplePayload containing bearing samples and statistics
+    &#34;&#34;&#34;
+    return self._bearing_samples</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_horizontal_accuracy_samples"><code class="name flex">
+<span>def <span class="ident">get_horizontal_accuracy_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The SamplePayload containing horizontal accuracy samples and statistics</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_horizontal_accuracy_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: The SamplePayload containing horizontal accuracy samples and statistics
+    &#34;&#34;&#34;
+    return self._horizontal_accuracy_samples</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_last_best_location"><code class="name flex">
+<span>def <span class="ident">get_last_best_location</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: This returns the most recent BestLocation</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_last_best_location(self) -&gt; BestLocation:
+    &#34;&#34;&#34;
+    :return: This returns the most recent BestLocation
+    &#34;&#34;&#34;
+    return self._last_best_location</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_latitude_samples"><code class="name flex">
+<span>def <span class="ident">get_latitude_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The SamplePayload containing latitude samples and statistics</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_latitude_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: The SamplePayload containing latitude samples and statistics
+    &#34;&#34;&#34;
+    return self._latitude_samples</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_location_permissions_granted"><code class="name flex">
+<span>def <span class="ident">get_location_permissions_granted</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Have location permissions been granted?</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_location_permissions_granted(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Have location permissions been granted?
+    &#34;&#34;&#34;
+    return self._proto.location_permissions_granted</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_location_providers"><code class="name flex">
+<span>def <span class="ident">get_location_providers</span></span>(<span>self) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="../../common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: A list of location providers associated with each location sample</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_location_providers(self) -&gt; ProtoRepeatedMessage:
+    &#34;&#34;&#34;
+    :return: A list of location providers associated with each location sample
+    &#34;&#34;&#34;
+    return self._location_providers</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_location_services_enabled"><code class="name flex">
+<span>def <span class="ident">get_location_services_enabled</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: If location services are enabled.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_location_services_enabled(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: If location services are enabled.
+    &#34;&#34;&#34;
+    return self._proto.location_services_enabled</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_location_services_requested"><code class="name flex">
+<span>def <span class="ident">get_location_services_requested</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Have location services been requested by the user?</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_location_services_requested(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: Have location services been requested by the user?
+    &#34;&#34;&#34;
+    return self._proto.location_services_requested</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_longitude_samples"><code class="name flex">
+<span>def <span class="ident">get_longitude_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The SamplePayload containing longitude samples and statistics</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_longitude_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: The SamplePayload containing longitude samples and statistics
+    &#34;&#34;&#34;
+    return self._longitude_samples</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_overall_best_location"><code class="name flex">
+<span>def <span class="ident">get_overall_best_location</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: This returns the overall best location since the station last moved</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_overall_best_location(self) -&gt; BestLocation:
+    &#34;&#34;&#34;
+    :return: This returns the overall best location since the station last moved
+    &#34;&#34;&#34;
+    return self._overall_best_location</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_sensor_description"><code class="name flex">
+<span>def <span class="ident">get_sensor_description</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The location sensor description</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_sensor_description(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: The location sensor description
+    &#34;&#34;&#34;
+    return self._proto.sensor_description</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_speed_accuracy_samples"><code class="name flex">
+<span>def <span class="ident">get_speed_accuracy_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The SamplePayload containing speed accuracy samples and statistics</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_speed_accuracy_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: The SamplePayload containing speed accuracy samples and statistics
+    &#34;&#34;&#34;
+    return self._speed_accuracy_samples</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_speed_samples"><code class="name flex">
+<span>def <span class="ident">get_speed_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The SamplePayload containing speed samples and statistics</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_speed_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: The SamplePayload containing speed samples and statistics
+    &#34;&#34;&#34;
+    return self._speed_samples</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_timestamps"><code class="name flex">
+<span>def <span class="ident">get_timestamps</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="../../common/common.html#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The timing payload (machine timestamps) associated with this sensor's location samples</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_timestamps(self) -&gt; common.TimingPayload:
+    &#34;&#34;&#34;
+    :return: The timing payload (machine timestamps) associated with this sensor&#39;s location samples
+    &#34;&#34;&#34;
+    return self._timestamps</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_timestamps_gps"><code class="name flex">
+<span>def <span class="ident">get_timestamps_gps</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.TimingPayload" href="../../common/common.html#redvox.api1000.common.common.TimingPayload">TimingPayload</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The timing payload (gps timestamps) associated with this sensor's location samples</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_timestamps_gps(self) -&gt; common.TimingPayload:
+    &#34;&#34;&#34;
+    :return: The timing payload (gps timestamps) associated with this sensor&#39;s location samples
+    &#34;&#34;&#34;
+    return self._timestamps_gps</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_vertical_accuracy_samples"><code class="name flex">
+<span>def <span class="ident">get_vertical_accuracy_samples</span></span>(<span>self) ‑> <a title="redvox.api1000.common.common.SamplePayload" href="../../common/common.html#redvox.api1000.common.common.SamplePayload">SamplePayload</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: The SamplePayload containing vertical accuracy samples and statistics</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_vertical_accuracy_samples(self) -&gt; common.SamplePayload:
+    &#34;&#34;&#34;
+    :return: The SamplePayload containing vertical accuracy samples and statistics
+    &#34;&#34;&#34;
+    return self._vertical_accuracy_samples</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.set_location_permissions_granted"><code class="name flex">
+<span>def <span class="ident">set_location_permissions_granted</span></span>(<span>self, location_permissions_granted: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location">Location</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets if location permissions have been granted.
+:param location_permissions_granted: Permissions to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_location_permissions_granted(self, location_permissions_granted: bool) -&gt; &#39;Location&#39;:
+    &#34;&#34;&#34;
+    Sets if location permissions have been granted.
+    :param location_permissions_granted: Permissions to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(location_permissions_granted, [bool])
+    self._proto.location_permissions_granted = location_permissions_granted
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.set_location_services_enabled"><code class="name flex">
+<span>def <span class="ident">set_location_services_enabled</span></span>(<span>self, location_services_enabled: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location">Location</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets if location servers are enabled.
+:param location_services_enabled: Set enabled or disabled
+:return: Modified version of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_location_services_enabled(self, location_services_enabled: bool) -&gt; &#39;Location&#39;:
+    &#34;&#34;&#34;
+    Sets if location servers are enabled.
+    :param location_services_enabled: Set enabled or disabled
+    :return: Modified version of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(location_services_enabled, [bool])
+    self._proto.location_services_enabled = location_services_enabled
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.set_location_services_requested"><code class="name flex">
+<span>def <span class="ident">set_location_services_requested</span></span>(<span>self, location_services_requested: bool) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location">Location</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets if location services have been requested.
+:param location_services_requested:
+:return:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_location_services_requested(self, location_services_requested: bool) -&gt; &#39;Location&#39;:
+    &#34;&#34;&#34;
+    Sets if location services have been requested.
+    :param location_services_requested:
+    :return:
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(location_services_requested, [bool])
+    self._proto.location_services_requested = location_services_requested
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.set_sensor_description"><code class="name flex">
+<span>def <span class="ident">set_sensor_description</span></span>(<span>self, sensor_description: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location">Location</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the location sensor's description
+:param sensor_description: Description to set
+:return: A modified instance of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_sensor_description(self, sensor_description: str) -&gt; &#39;Location&#39;:
+    &#34;&#34;&#34;
+    Sets the location sensor&#39;s description
+    :param sensor_description: Description to set
+    :return: A modified instance of self
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(sensor_description, [str])
+    self._proto.sensor_description = sensor_description
+    return self</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="redvox.api1000.common.generic.ProtoBase" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase">ProtoBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_bytes" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_bytes">as_bytes</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_compressed_bytes" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_compressed_bytes">as_compressed_bytes</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_dict" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_dict">as_dict</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_json" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_json">as_json</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.get_metadata" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.get_metadata">get_metadata</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.get_proto" href="../../common/generic.html#redvox.api1000.common.generic.ProtoBase.get_proto">get_proto</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider"><code class="flex name class">
+<span>class <span class="ident">LocationProvider</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enum that represents valid location providers</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LocationProvider(enum.Enum):
+    &#34;&#34;&#34;
+    An enum that represents valid location providers
+    &#34;&#34;&#34;
+    UNKNOWN: int = 0
+    NONE: int = 1
+    USER: int = 2
+    GPS: int = 3
+    NETWORK: int = 4</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.GPS"><code class="name">var <span class="ident">GPS</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.NETWORK"><code class="name">var <span class="ident">NETWORK</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.NONE"><code class="name">var <span class="ident">NONE</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.USER"><code class="name">var <span class="ident">USER</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.from_proto"><code class="name flex">
+<span>def <span class="ident">from_proto</span></span>(<span>proto)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">enum.from_proto = staticmethod(lambda proto: enum(proto))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.into_proto"><code class="name flex">
+<span>def <span class="ident">into_proto</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">setattr(enum, &#34;into_proto&#34;, lambda self: proto_type.Value(self.name))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod"><code class="flex name class">
+<span>class <span class="ident">LocationScoreMethod</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enum that represents location scoring methods</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LocationScoreMethod(enum.Enum):
+    &#34;&#34;&#34;
+    An enum that represents location scoring methods
+    &#34;&#34;&#34;
+    UNKNOWN_METHOD: int = 0</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod.UNKNOWN_METHOD"><code class="name">var <span class="ident">UNKNOWN_METHOD</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod.from_proto"><code class="name flex">
+<span>def <span class="ident">from_proto</span></span>(<span>proto)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">enum.from_proto = staticmethod(lambda proto: enum(proto))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod.into_proto"><code class="name flex">
+<span>def <span class="ident">into_proto</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">setattr(enum, &#34;into_proto&#34;, lambda self: proto_type.Value(self.name))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM"><code class="flex name class">
+<span>class <span class="ident">RedvoxPacketM</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.BYTE"><code class="name">var <span class="ident">BYTE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.CENTIMETERS"><code class="name">var <span class="ident">CENTIMETERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DECIBEL"><code class="name">var <span class="ident">DECIBEL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DECIMAL_DEGREES"><code class="name">var <span class="ident">DECIMAL_DEGREES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DEGREES_CELSIUS"><code class="name">var <span class="ident">DEGREES_CELSIUS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DoubleSamplePayload"><code class="name">var <span class="ident">DoubleSamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.EventStream"><code class="name">var <span class="ident">EventStream</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.KILOPASCAL"><code class="name">var <span class="ident">KILOPASCAL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS"><code class="name">var <span class="ident">LSB_PLUS_MINUS_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.LUX"><code class="name">var <span class="ident">LUX</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.METERS"><code class="name">var <span class="ident">METERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.METERS_PER_SECOND"><code class="name">var <span class="ident">METERS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.METERS_PER_SECOND_SQUARED"><code class="name">var <span class="ident">METERS_PER_SECOND_SQUARED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.MICROAMPERES"><code class="name">var <span class="ident">MICROAMPERES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH"><code class="name">var <span class="ident">MICROSECONDS_SINCE_UNIX_EPOCH</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.MICROTESLA"><code class="name">var <span class="ident">MICROTESLA</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.MetadataEntry"><code class="name">var <span class="ident">MetadataEntry</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.NORMALIZED_COUNTS"><code class="name">var <span class="ident">NORMALIZED_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.PCM"><code class="name">var <span class="ident">PCM</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.PERCENTAGE"><code class="name">var <span class="ident">PERCENTAGE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.RADIANS"><code class="name">var <span class="ident">RADIANS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.RADIANS_PER_SECOND"><code class="name">var <span class="ident">RADIANS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.SamplePayload"><code class="name">var <span class="ident">SamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.Sensors"><code class="name">var <span class="ident">Sensors</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.StationInformation"><code class="name">var <span class="ident">StationInformation</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.SummaryStatistics"><code class="name">var <span class="ident">SummaryStatistics</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.TimingInformation"><code class="name">var <span class="ident">TimingInformation</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.TimingPayload"><code class="name">var <span class="ident">TimingPayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.UNITLESS"><code class="name">var <span class="ident">UNITLESS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.Unit"><code class="name">var <span class="ident">Unit</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.api"><code class="name">var <span class="ident">api</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.api</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.event_streams"><code class="name">var <span class="ident">event_streams</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.event_streams</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.metadata</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.sensors"><code class="name">var <span class="ident">sensors</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sensors</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.station_information"><code class="name">var <span class="ident">station_information</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.station_information</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.sub_api"><code class="name">var <span class="ident">sub_api</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sub_api</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.timing_information"><code class="name">var <span class="ident">timing_information</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.timing_information</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors" href="index.html">redvox.api1000.wrapped_redvox_packet.sensors</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.validate_location" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.validate_location">validate_location</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation">BestLocation</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_altitude" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_altitude">get_altitude</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_altitude_timestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_altitude_timestamp">get_altitude_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_altitude_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_altitude_unit">get_altitude_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing">get_bearing</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing_accuracy" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing_accuracy">get_bearing_accuracy</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing_accuracy_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing_accuracy_unit">get_bearing_accuracy_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing_timestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing_timestamp">get_bearing_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_bearing_unit">get_bearing_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_horizontal_accuracy" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_horizontal_accuracy">get_horizontal_accuracy</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_horizontal_accuracy_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_horizontal_accuracy_unit">get_horizontal_accuracy_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_latitude" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_latitude">get_latitude</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_latitude_longitude_timestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_latitude_longitude_timestamp">get_latitude_longitude_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_latitude_longitude_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_latitude_longitude_unit">get_latitude_longitude_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_location_provider" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_location_provider">get_location_provider</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_longitude" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_longitude">get_longitude</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_method" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_method">get_method</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_score" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_score">get_score</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed">get_speed</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed_accuracy" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed_accuracy">get_speed_accuracy</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed_accuracy_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed_accuracy_unit">get_speed_accuracy_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed_timestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed_timestamp">get_speed_timestamp</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_speed_unit">get_speed_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_vertical_accuracy" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_vertical_accuracy">get_vertical_accuracy</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_vertical_accuracy_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.get_vertical_accuracy_unit">get_vertical_accuracy_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_altitude" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_altitude">set_altitude</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_altitude_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_altitude_unit">set_altitude_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_bearing" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_bearing">set_bearing</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_bearing_accuracy" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_bearing_accuracy">set_bearing_accuracy</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_bearing_accuracy_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_bearing_accuracy_unit">set_bearing_accuracy_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_bearing_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_bearing_unit">set_bearing_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_horizontal_accuracy" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_horizontal_accuracy">set_horizontal_accuracy</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_horizontal_accuracy_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_horizontal_accuracy_unit">set_horizontal_accuracy_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_latitude" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_latitude">set_latitude</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_latitude_longitude_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_latitude_longitude_unit">set_latitude_longitude_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_location_provider" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_location_provider">set_location_provider</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_longitude" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_longitude">set_longitude</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_method" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_method">set_method</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_score" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_score">set_score</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_speed" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_speed">set_speed</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_speed_accuracy" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_speed_accuracy">set_speed_accuracy</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_speed_accuracy_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_speed_accuracy_unit">set_speed_accuracy_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_speed_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_speed_unit">set_speed_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_vertical_accuracy" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_vertical_accuracy">set_vertical_accuracy</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_vertical_accuracy_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation.set_vertical_accuracy_unit">set_vertical_accuracy_unit</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp">BestTimestamp</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.get_gps" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.get_gps">get_gps</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.get_mach" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.get_mach">get_mach</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.get_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.get_unit">get_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.set_default_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.set_default_unit">set_default_unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.set_gps" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.set_gps">set_gps</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.set_mach" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.set_mach">set_mach</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.set_unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp.set_unit">set_unit</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location">Location</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_altitude_samples" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_altitude_samples">get_altitude_samples</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_bearing_accuracy_samples" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_bearing_accuracy_samples">get_bearing_accuracy_samples</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_bearing_samples" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_bearing_samples">get_bearing_samples</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_horizontal_accuracy_samples" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_horizontal_accuracy_samples">get_horizontal_accuracy_samples</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_last_best_location" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_last_best_location">get_last_best_location</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_latitude_samples" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_latitude_samples">get_latitude_samples</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_location_permissions_granted" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_location_permissions_granted">get_location_permissions_granted</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_location_providers" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_location_providers">get_location_providers</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_location_services_enabled" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_location_services_enabled">get_location_services_enabled</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_location_services_requested" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_location_services_requested">get_location_services_requested</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_longitude_samples" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_longitude_samples">get_longitude_samples</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_overall_best_location" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_overall_best_location">get_overall_best_location</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_sensor_description" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_sensor_description">get_sensor_description</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_speed_accuracy_samples" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_speed_accuracy_samples">get_speed_accuracy_samples</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_speed_samples" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_speed_samples">get_speed_samples</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_timestamps" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_timestamps">get_timestamps</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_timestamps_gps" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_timestamps_gps">get_timestamps_gps</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_vertical_accuracy_samples" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.get_vertical_accuracy_samples">get_vertical_accuracy_samples</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.new" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.new">new</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.set_location_permissions_granted" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.set_location_permissions_granted">set_location_permissions_granted</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.set_location_services_enabled" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.set_location_services_enabled">set_location_services_enabled</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.set_location_services_requested" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.set_location_services_requested">set_location_services_requested</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location.set_sensor_description" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.Location.set_sensor_description">set_sensor_description</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider">LocationProvider</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.GPS" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.GPS">GPS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.NETWORK" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.NETWORK">NETWORK</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.NONE" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.NONE">NONE</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.UNKNOWN" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.UNKNOWN">UNKNOWN</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.USER" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.USER">USER</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.from_proto" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.from_proto">from_proto</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.into_proto" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationProvider.into_proto">into_proto</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod">LocationScoreMethod</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod.UNKNOWN_METHOD" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod.UNKNOWN_METHOD">UNKNOWN_METHOD</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod.from_proto" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod.from_proto">from_proto</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod.into_proto" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.LocationScoreMethod.into_proto">into_proto</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM">RedvoxPacketM</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.BYTE" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.BYTE">BYTE</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.CENTIMETERS" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.CENTIMETERS">CENTIMETERS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DECIBEL" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DECIBEL">DECIBEL</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DECIMAL_DEGREES" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DECIMAL_DEGREES">DECIMAL_DEGREES</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DEGREES_CELSIUS" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DEGREES_CELSIUS">DEGREES_CELSIUS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DESCRIPTOR" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DoubleSamplePayload" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.DoubleSamplePayload">DoubleSamplePayload</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.EventStream" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.EventStream">EventStream</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.KILOPASCAL" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.KILOPASCAL">KILOPASCAL</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS">LSB_PLUS_MINUS_COUNTS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.LUX" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.LUX">LUX</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.METERS" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.METERS">METERS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.METERS_PER_SECOND" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.METERS_PER_SECOND">METERS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.METERS_PER_SECOND_SQUARED" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.METERS_PER_SECOND_SQUARED">METERS_PER_SECOND_SQUARED</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.MICROAMPERES" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.MICROAMPERES">MICROAMPERES</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH">MICROSECONDS_SINCE_UNIX_EPOCH</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.MICROTESLA" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.MICROTESLA">MICROTESLA</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.MetadataEntry" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.MetadataEntry">MetadataEntry</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.NORMALIZED_COUNTS" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.NORMALIZED_COUNTS">NORMALIZED_COUNTS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.PCM" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.PCM">PCM</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.PERCENTAGE" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.PERCENTAGE">PERCENTAGE</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.RADIANS" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.RADIANS">RADIANS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.RADIANS_PER_SECOND" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.RADIANS_PER_SECOND">RADIANS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.SamplePayload" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.SamplePayload">SamplePayload</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.Sensors" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.Sensors">Sensors</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.StationInformation">StationInformation</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.SummaryStatistics" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.SummaryStatistics">SummaryStatistics</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.TimingInformation">TimingInformation</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.TimingPayload" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.TimingPayload">TimingPayload</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.UNITLESS" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.UNITLESS">UNITLESS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.UNKNOWN" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.UNKNOWN">UNKNOWN</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.Unit" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.Unit">Unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.api" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.api">api</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.event_streams" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.event_streams">event_streams</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.metadata" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.metadata">metadata</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.sensors" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.sensors">sensors</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.station_information" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.station_information">station_information</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.sub_api" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.sub_api">sub_api</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.timing_information" href="#redvox.api1000.wrapped_redvox_packet.sensors.location.RedvoxPacketM.timing_information">timing_information</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
