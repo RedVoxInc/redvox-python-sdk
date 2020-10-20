@@ -24,6 +24,10 @@ class SensorDataTest(unittest.TestCase):
                                                              columns=["timestamps", "barometer", "test_data"]),
                                         1 / sample_interval, sample_interval, sample_interval_std, False)
 
+    def test_sample_rate(self):
+        self.assertAlmostEqual(self.even_sensor.sample_rate, 50000.0, 1)
+        self.assertAlmostEqual(self.uneven_sensor.sample_rate, 75471.7, 1)
+
     def test_sample_interval_s(self):
         self.assertEqual(self.even_sensor.sample_interval_s, .00002)
         self.assertAlmostEqual(self.uneven_sensor.sample_interval_s, .000013, 6)
