@@ -1,99 +1,104 @@
 """
 tests for sensor data and sensor metadata objects
 """
-import os
 import unittest
 import pandas as pd
-import redvox.tests as tests
 import numpy as np
-from redvox.common import sensor_data as sd, load_sensor_data as load_sd
+
+from redvox.common import date_time_utils as dtu
+from redvox.common.sensor_data import SensorData
 
 
 class SensorDataTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.api900_station = load_sd.load_station_from_api900_file(os.path.join(tests.TEST_DATA_DIR,
-                                                                                 "1637650010_1531343782220.rdvxz"))
-        self.apim_station = load_sd.load_station_from_apim(os.path.join(tests.TEST_DATA_DIR,
-                                                                        "0000000001_1597189452945991.rdvxm"))
-        self.mseed_data = load_sd.load_from_mseed(os.path.join(tests.TEST_DATA_DIR, "out.mseed"))
-        self.all_data = load_sd.read_all_in_dir(tests.TEST_DATA_DIR,
-                                                redvox_ids=["1637650010", "0000000001", "UHMB3_00"])
+    def setUp(self):
+        timestamps = [120, 60, 80, 100, 40, 140, 20, 160, 180]
+        sensor_data = [-20, 15, 50, -5, 20, -15, 10, 74, 111]
+        test_data = [75, 12, 86, 22, 200, 52, 99, 188, 121]
+        self.even_sensor = SensorData("test", pd.DataFrame(np.transpose([timestamps, sensor_data, test_data]),
+                                                           columns=["timestamps", "microphone", "test_data"]),
+                                      1 / dtu.microseconds_to_seconds(20), dtu.microseconds_to_seconds(20), 0, True)
+        timestamps = [14, 25, 31, 65, 74, 83, 97, 111, 120]
+        sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+        sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
+        self.uneven_sensor = SensorData("test", pd.DataFrame(np.transpose([timestamps, sensor_data, test_data]),
+                                                             columns=["timestamps", "barometer", "test_data"]),
+                                        1 / sample_interval, sample_interval, sample_interval_std, False)
 
-    def test_pop_station(self):
-        self.all_data.pop_station("1107483069")
-        self.assertEqual(len(self.all_data.get_station_summaries()), 2)
-        self.all_data.pop_station("0000000001")
-        self.assertEqual(len(self.all_data.get_station_summaries()), 1)
-        self.all_data.pop_station("UHMB3_00:UHMB3_00")
-        self.assertEqual(len(self.all_data.get_station_summaries()), 0)
+    def test_sample_interval_s(self):
+        self.assertEqual(self.even_sensor.sample_interval_s, .00002)
+        self.assertAlmostEqual(self.uneven_sensor.sample_interval_s, .000013, 6)
 
-    def test_api900_station(self):
-        self.assertEqual(len(self.api900_station.packet_data), 1)
-        self.assertEqual(len(self.api900_station.station_data), 5)
-        self.assertTrue(np.isnan(self.api900_station.packet_data[0].packet_best_latency))
-        self.assertEqual(self.api900_station.station_metadata.timing_data.station_best_latency, 70278.0)
-        self.assertEqual(self.api900_station.audio_sensor().sample_rate, 80)
-        self.assertTrue(self.api900_station.audio_sensor().is_sample_rate_fixed)
-        self.assertEqual(self.api900_station.location_sensor().data_df.shape, (2, 11))
+    def test_sample_interval_std_s(self):
+        self.assertEqual(self.even_sensor.sample_interval_std_s, 0)
+        self.assertAlmostEqual(self.uneven_sensor.sample_interval_std_s, .000008, 6)
 
-    def test_apim_station(self):
-        self.assertEqual(len(self.apim_station.packet_data), 1)
-        self.assertEqual(self.apim_station.packet_data[0].packet_best_latency, 1296.0)
-        self.assertEqual(len(self.apim_station.station_data), 2)
-        self.assertEqual(self.apim_station.audio_sensor().sample_rate, 48000.0)
-        self.assertTrue(self.apim_station.audio_sensor().is_sample_rate_fixed)
-        self.assertEqual(self.apim_station.location_sensor().data_df.shape, (1, 11))
+    def test_is_sample_rate_fixed(self):
+        self.assertTrue(self.even_sensor.is_sample_rate_fixed)
+        self.assertFalse(self.uneven_sensor.is_sample_rate_fixed)
 
-    def test_create_read_update_delete_audio_sensor(self):
-        self.assertTrue(self.api900_station.has_audio_sensor())
-        audio_sensor = sd.SensorData("test_audio", pd.DataFrame(np.transpose([[10, 20, 30, 40], [1, 2, 3, 4]]),
-                                                                columns=["timestamps", "microphone"]), 1, True)
-        self.api900_station.set_audio_sensor(audio_sensor)
-        self.assertTrue(self.api900_station.has_audio_sensor())
-        self.assertEqual(self.api900_station.audio_sensor().sample_rate, 1)
-        self.assertEqual(self.api900_station.audio_sensor().num_samples(), 4)
-        self.assertIsInstance(self.api900_station.audio_sensor().get_channel("microphone"), np.ndarray)
-        self.assertRaises(ValueError, self.api900_station.audio_sensor().get_channel, "nonexistant")
-        self.assertEqual(self.api900_station.audio_sensor().first_data_timestamp(), 10)
-        self.assertEqual(self.api900_station.audio_sensor().last_data_timestamp(), 40)
-        self.api900_station.set_audio_sensor(None)
-        self.assertFalse(self.api900_station.has_audio_sensor())
+    def test_append_data(self):
+        self.even_sensor.append_data(pd.DataFrame([[0, np.nan, np.nan]],
+                                                  columns=["timestamps", "microphone", "test_data"]))
+        self.assertEqual(len(self.even_sensor.get_channel("test_data")), 10)
+        self.assertEqual(len(self.even_sensor.get_valid_channel_values("test_data")), 9)
+        self.even_sensor.append_data(pd.DataFrame([[200, 10, 69]],
+                                                  columns=["timestamps", "microphone", "test_data"]))
+        self.assertEqual(len(self.even_sensor.get_channel("test_data")), 11)
+        self.assertEqual(len(self.even_sensor.get_valid_channel_values("test_data")), 10)
+        self.uneven_sensor.append_data(pd.DataFrame([[151, 10, 69]],
+                                                    columns=["timestamps", "microphone", "test_data"]))
+        self.assertEqual(len(self.uneven_sensor.get_channel("test_data")), 10)
+        self.assertEqual(len(self.uneven_sensor.get_valid_channel_values("test_data")), 10)
+        self.assertAlmostEqual(self.uneven_sensor.sample_interval_s, .000015, 6)
+        self.assertAlmostEqual(self.uneven_sensor.sample_interval_std_s, .00001, 6)
 
-    def test_mseed_read(self):
-        self.assertTrue(self.mseed_data.check_for_id("UHMB3_00"))
-        mb3_station = self.mseed_data.get_station("UHMB3_00")
-        self.assertEqual(mb3_station.audio_sensor().num_samples(), 6001)
-        self.assertEqual(mb3_station.station_metadata.station_network_name, "UH")
-        self.assertEqual(mb3_station.station_metadata.station_name, "MB3")
-        self.assertEqual(mb3_station.station_metadata.station_channel_name, "BDF")
+    def test_is_sample_interval_invalid(self):
+        self.assertFalse(self.even_sensor.is_sample_interval_invalid())
 
-    def test_read_any_dir(self):
-        self.assertEqual(len(self.all_data.station_id_uuid_to_stations), 3)
-        self.assertEqual(len(self.all_data.get_station_summaries()), 3)
-        # api900 station
-        station = self.all_data.get_station("1637650010")
-        self.assertEqual(len(station.packet_data), 1)
-        self.assertTrue(np.isnan(station.packet_data[0].packet_best_latency))
-        self.assertEqual(len(station.station_data), 5)
-        self.assertEqual(station.audio_sensor().sample_rate, 80)
-        self.assertTrue(station.audio_sensor().is_sample_rate_fixed)
-        self.assertAlmostEqual(station.audio_sensor().data_duration_s(), 51.2, 1)
-        self.assertEqual(station.location_sensor().data_df.shape, (2, 11))
-        self.assertAlmostEqual(station.location_sensor().data_duration_s(), 40.04, 2)
-        # api m station
-        station = self.all_data.get_station("0000000001")
-        self.assertEqual(len(station.packet_data), 3)
-        self.assertEqual(station.packet_data[0].packet_best_latency, 1296.0)
-        self.assertEqual(len(station.station_data), 2)
-        self.assertEqual(station.audio_sensor().sample_rate, 48000.0)
-        self.assertTrue(station.audio_sensor().is_sample_rate_fixed)
-        self.assertAlmostEqual(station.audio_sensor().data_duration_s(), 15.0, 2)
-        self.assertEqual(station.location_sensor().data_df.shape, (3, 11))
-        self.assertAlmostEqual(station.location_sensor().data_duration_s(), 10.0, 3)
-        # mseed station
-        station = self.all_data.get_station("UHMB3_00")
-        self.assertEqual(len(station.station_data), 1)
-        self.assertEqual(station.audio_sensor().num_samples(), 6001)
-        self.assertEqual(station.station_metadata.station_network_name, "UH")
-        self.assertEqual(station.station_metadata.station_name, "MB3")
-        self.assertEqual(station.station_metadata.station_channel_name, "BDF")
+    def test_samples(self):
+        self.assertEqual(len(self.even_sensor.samples()), 2)
+        self.assertEqual(len(self.even_sensor.samples()[0]), 9)
+
+    def test_num_samples(self):
+        self.assertEqual(self.even_sensor.num_samples(), 9)
+
+    def test_get_channel(self):
+        self.assertEqual(len(self.even_sensor.get_channel("test_data")), 9)
+        self.assertRaises(ValueError, self.even_sensor.get_channel, "not_exist")
+        self.even_sensor.append_data(pd.DataFrame([[0, np.nan, np.nan]],
+                                                  columns=["timestamps", "microphone", "test_data"]))
+        self.assertEqual(len(self.even_sensor.get_channel("test_data")), 10)
+        self.assertEqual(len(self.even_sensor.get_valid_channel_values("test_data")), 9)
+
+    def test_data_timestamps(self):
+        self.assertEqual(len(self.even_sensor.data_timestamps()), 9)
+
+    def test_first_data_timestamp(self):
+        self.assertEqual(self.even_sensor.first_data_timestamp(), 20)
+
+    def test_last_data_timestamp(self):
+        self.assertEqual(self.even_sensor.last_data_timestamp(), 180)
+
+    def test_data_duration_s(self):
+        self.assertEqual(self.even_sensor.data_duration_s(), .00016)
+
+    def test_data_fields(self):
+        self.assertEqual(len(self.even_sensor.data_fields()), 3)
+        self.assertEqual(self.even_sensor.data_fields()[0], "timestamps")
+        self.assertEqual(self.even_sensor.data_fields()[1], "microphone")
+
+    def test_update_data_timestamps(self):
+        self.even_sensor.update_data_timestamps(100)
+        self.assertEqual(self.even_sensor.first_data_timestamp(), 120)
+        self.assertEqual(self.even_sensor.last_data_timestamp(), 280)
+        self.even_sensor.update_data_timestamps(-100)
+        self.assertEqual(self.even_sensor.first_data_timestamp(), 20)
+        self.assertEqual(self.even_sensor.last_data_timestamp(), 180)
+
+    # technically this is done any time timestamps are added during initialization or appending functions
+    # so unless users are altering the dataframe directly, sort_by_data_timestamps() should always happen
+    def test_sort_by_data_timestamps(self):
+        self.even_sensor.sort_by_data_timestamps()
+        self.assertEqual(self.even_sensor.data_timestamps()[1], 40)
+        self.even_sensor.sort_by_data_timestamps(False)
+        self.assertEqual(self.even_sensor.data_timestamps()[1], 160)

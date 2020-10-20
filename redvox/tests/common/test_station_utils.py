@@ -3,7 +3,7 @@ import unittest
 from redvox.common.station_utils import StationLocation, LocationData
 
 
-class StationLocationProcessorTest(unittest.TestCase):
+class LocationDataTest(unittest.TestCase):
     def setUp(self):
         self.first_loc = StationLocation(lat_lon_timestamp=1000)
         self.second_loc = StationLocation(lat_lon_timestamp=500)
