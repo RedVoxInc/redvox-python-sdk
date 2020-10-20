@@ -132,6 +132,9 @@ class MovementEventStream:
 
 @dataclass
 class _Stats:
+    """
+    An encapsulation of summary stats used when updating stats for merged Events.
+    """
     mag_min: float = NAN
     mag_max: float = NAN
     mag_range: float = NAN
@@ -140,6 +143,11 @@ class _Stats:
 
     @staticmethod
     def from_samples(samples: np.ndarray) -> '_Stats':
+        """
+        Converts a set of samples into _Stats.
+        :param samples: Samples to calculate stats over.
+        :return: An instance of _Stats.
+        """
         # noinspection PyArgumentList
         mag_min: float = samples.min()
         # noinspection PyArgumentList
@@ -157,6 +165,9 @@ class _Stats:
 # noinspection DuplicatedCode
 @dataclass
 class MovementData:
+    """
+    Encapsulates movement data from multiple packets from a single station.
+    """
     movement_event_stream: MovementEventStream
     accelerometer_timestamps: Optional[np.ndarray]
     accelerometer_x: Optional[np.ndarray]
@@ -169,6 +180,11 @@ class MovementData:
 
     @staticmethod
     def from_packets(packets: List['WrappedRedvoxPacketM']) -> 'MovementData':
+        """
+        Extracts and concatenates movement data.
+        :param packets: The packets to extract movement data from.
+        :return: An instance of MovementData.
+        """
         movement_event_stream: MovementEventStream = MovementEventStream("Movement", [])
         accelerometer_timestamps: np.ndarray = np.array([])
         accelerometer_x: np.ndarray = np.array([])
@@ -216,6 +232,11 @@ class MovementData:
         )
 
     def data_for_channel(self, channel: MovementChannel) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Returns the timestamps and samples for a given channel.
+        :param channel: Channel to return data for.
+        :return: A tuple containing the timestamps and samples for the provided channel.
+        """
         if channel == MovementChannel.ACCELEROMETER_X:
             return self.accelerometer_timestamps, self.accelerometer_x
 
@@ -234,6 +255,13 @@ class MovementData:
         return self.gyroscope_timestamps, self.gyroscope_z
 
     def __update_stats(self, movement_channel: MovementChannel, start_ts: float, end_ts: float) -> _Stats:
+        """
+        Compute summary statistics for a particular channel within a particular window.
+        :param movement_channel: The channel to compute statistics from.
+        :param start_ts: The start time as microseconds since the epoch.
+        :param end_ts: The end time as microseconds since the epoch.
+        :return: An instance of _Stats.
+        """
         timestamps: np.ndarray
         samples: np.ndarray
         (timestamps, samples) = self.data_for_channel(movement_channel)
@@ -242,6 +270,8 @@ class MovementData:
         start_idx: Optional[int] = None
         end_idx: Optional[int] = None
 
+        # The goal here is to find the first index that matches the start time and the first index that matches the end
+        # time in a single O(N) pass. TODO: this could be improved with binary search.
         i: int = 0
         for i, ts in enumerate(timestamps):
             if ts >= start_ts:
@@ -260,6 +290,10 @@ class MovementData:
         return _Stats.from_samples(samples[start_idx:end_idx])
 
     def __merge_movement_events(self, max_merge_gap: datetime.timedelta):
+        """
+        Merges movement events that are "close together".
+        :param max_merge_gap: Any consecutive events that are smaller than this timedelta will be merged.
+        """
         res: MovementEventStream = MovementEventStream(self.movement_event_stream.name, [])
 
         # Group events by channel
@@ -309,6 +343,12 @@ class MovementData:
     def post_process(self,
                      max_merge_gap: Optional[datetime.timedelta] = None,
                      min_detection: Optional[datetime.timedelta] = None):
+        """
+        Performs post-processing on the MovementEventStream to optionally merge close together events and filter out
+        short-duration events.
+        :param max_merge_gap: When provided, any consecutive packets that have gaps less than this value will be merged.
+        :param min_detection: When provided, events with a duration less than this value will be filtered out.
+        """
 
         if max_merge_gap is not None:
             self.__merge_movement_events(max_merge_gap)

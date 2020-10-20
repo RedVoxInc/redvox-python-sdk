@@ -3,9 +3,13 @@
 This repository contains code for reading and working with the RedVox API 900 and API 1000 (M) data formats.
 
 * [Examples](https://redvoxinc.github.io/redvox-sdk/examples/api_m/)
-* [API Documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0a14/api_docs/redvox/api1000/index.html)
+* [API Documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0a15/api_docs/redvox/api1000/index.html)
 
 ## Changelog
+
+### 3.0.0a15 (2020-10-20)
+
+* Add ability to post process derived movement events
 
 ### 3.0.0a14 (2020-10-06)
 
