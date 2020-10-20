@@ -183,7 +183,7 @@ __Z_CHANNELS: Set[MovementChannel] = {
 }
 
 
-def __samples_for_channel(ch: Xyz, channel: MovementChannel) -> np.ndarray:
+def __samples_for_channel(ch: 'Xyz', channel: MovementChannel) -> np.ndarray:
     if channel in __X_CHANNELS:
         return ch.get_x_samples().get_values()
 
