@@ -7,10 +7,11 @@ from dataclasses import dataclass
 import datetime
 from enum import Enum
 from functools import total_ordering
-from typing import Dict, List, Optional, TYPE_CHECKING, Set
+from typing import Dict, List, Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
 
+from redvox.common.constants import NAN
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc
 
 if TYPE_CHECKING:
@@ -18,6 +19,7 @@ if TYPE_CHECKING:
     from redvox.api1000.wrapped_redvox_packet.event_streams import Event, EventStream
     from redvox.api1000.wrapped_redvox_packet.sensors.sensors import Sensors
     from redvox.api1000.wrapped_redvox_packet.sensors.xyz import Xyz
+    from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
 
 class MovementChannel(Enum):
@@ -32,6 +34,7 @@ class MovementChannel(Enum):
     ACCELEROMETER_Z: str = "ACCELEROMETER_Z"
 
 
+# noinspection DuplicatedCode
 @total_ordering
 @dataclass
 class MovementEvent:
@@ -101,6 +104,7 @@ class MovementEvent:
         return self.movement_start < other.movement_start
 
 
+# noinspection DuplicatedCode
 @dataclass
 class MovementEventStream:
     """
@@ -127,134 +131,189 @@ class MovementEventStream:
 
 
 @dataclass
-class __SensorData:
-    timestamps: np.ndarray
-    samples: np.ndarray
+class _Stats:
+    mag_min: float = NAN
+    mag_max: float = NAN
+    mag_range: float = NAN
+    mag_mean: float = NAN
+    mag_std: float = NAN
 
-    def filter_samples(self, start_ts: float, end_ts: float) -> np.ndarray:
+    @staticmethod
+    def from_samples(samples: np.ndarray) -> '_Stats':
+        # noinspection PyArgumentList
+        mag_min: float = samples.min()
+        # noinspection PyArgumentList
+        mag_max: float = samples.max()
+
+        return _Stats(
+            mag_min,
+            mag_max,
+            mag_max - mag_min,
+            samples.mean(),
+            samples.std()
+        )
+
+
+# noinspection DuplicatedCode
+@dataclass
+class MovementData:
+    movement_event_stream: MovementEventStream
+    accelerometer_timestamps: Optional[np.ndarray]
+    accelerometer_x: Optional[np.ndarray]
+    accelerometer_y: Optional[np.ndarray]
+    accelerometer_z: Optional[np.ndarray]
+    gyroscope_timestamps: Optional[np.ndarray]
+    gyroscope_x: Optional[np.ndarray]
+    gyroscope_y: Optional[np.ndarray]
+    gyroscope_z: Optional[np.ndarray]
+
+    @staticmethod
+    def from_packets(packets: List['WrappedRedvoxPacketM']) -> 'MovementData':
+        movement_event_stream: MovementEventStream = MovementEventStream("Movement", [])
+        accelerometer_timestamps: np.ndarray = np.array([])
+        accelerometer_x: np.ndarray = np.array([])
+        accelerometer_y: np.ndarray = np.array([])
+        accelerometer_z: np.ndarray = np.array([])
+        gyroscope_timestamps: np.ndarray = np.array([])
+        gyroscope_x: np.ndarray = np.array([])
+        gyroscope_y: np.ndarray = np.array([])
+        gyroscope_z: np.ndarray = np.array([])
+
+        for packet in packets:
+            if packet.get_event_streams().get_count() == 1:
+                event_stream: 'EventStream' = packet.get_event_streams().get_values()[0]
+                movement_event_stream.movement_events.extend(list(map(MovementEvent.from_event,
+                                                                      event_stream.get_events().get_values())))
+
+            sensors: 'Sensors' = packet.get_sensors()
+            accel: Optional['Xyz'] = sensors.get_accelerometer()
+            gyro: Optional['Xyz'] = sensors.get_gyroscope()
+
+            if accel is not None:
+                accelerometer_timestamps = np.concatenate((accelerometer_timestamps,
+                                                           accel.get_timestamps().get_timestamps()))
+                accelerometer_x = np.concatenate((accelerometer_x, accel.get_x_samples().get_values()))
+                accelerometer_y = np.concatenate((accelerometer_y, accel.get_y_samples().get_values()))
+                accelerometer_z = np.concatenate((accelerometer_z, accel.get_z_samples().get_values()))
+
+            if gyro is not None:
+                gyroscope_timestamps = np.concatenate((gyroscope_timestamps,
+                                                       gyro.get_timestamps().get_timestamps()))
+                gyroscope_x = np.concatenate((gyroscope_x, gyro.get_x_samples().get_values()))
+                gyroscope_y = np.concatenate((gyroscope_y, gyro.get_y_samples().get_values()))
+                gyroscope_z = np.concatenate((gyroscope_z, gyro.get_z_samples().get_values()))
+
+        return MovementData(
+            movement_event_stream,
+            accelerometer_timestamps,
+            accelerometer_x,
+            accelerometer_y,
+            accelerometer_z,
+            gyroscope_timestamps,
+            gyroscope_x,
+            gyroscope_y,
+            gyroscope_z
+        )
+
+    def data_for_channel(self, channel: MovementChannel) -> Tuple[np.ndarray, np.ndarray]:
+        if channel == MovementChannel.ACCELEROMETER_X:
+            return self.accelerometer_timestamps, self.accelerometer_x
+
+        if channel == MovementChannel.ACCELEROMETER_Y:
+            return self.accelerometer_timestamps, self.accelerometer_y
+
+        if channel == MovementChannel.ACCELEROMETER_Z:
+            return self.accelerometer_timestamps, self.accelerometer_z
+
+        if channel == MovementChannel.GYROSCOPE_X:
+            return self.gyroscope_timestamps, self.gyroscope_x
+
+        if channel == MovementChannel.GYROSCOPE_Y:
+            return self.gyroscope_timestamps, self.gyroscope_y
+
+        return self.gyroscope_timestamps, self.gyroscope_z
+
+    def __update_stats(self, movement_channel: MovementChannel, start_ts: float, end_ts: float) -> _Stats:
+        timestamps: np.ndarray
+        samples: np.ndarray
+        (timestamps, samples) = self.data_for_channel(movement_channel)
+        samples = samples * samples
+
         start_idx: Optional[int] = None
         end_idx: Optional[int] = None
 
         i: int = 0
-        for i, ts in enumerate(self.timestamps):
+        for i, ts in enumerate(timestamps):
             if ts >= start_ts:
                 start_idx = i
                 break
 
-        for j in range(i, len(self.timestamps)):
-            ts = self.timestamps[j]
+        for j in range(i, len(timestamps)):
+            ts = timestamps[j]
             if ts >= end_ts:
                 end_idx = j + 1
                 break
 
-        return self.samples[start_idx:end_idx]
+        if start_idx is None or end_idx is None:
+            return _Stats()
 
+        return _Stats.from_samples(samples[start_idx:end_idx])
 
-# noinspection PyTypeChecker
-__GYRO_CHANNELS: Set[MovementChannel] = {
-    MovementChannel.GYROSCOPE_X,
-    MovementChannel.GYROSCOPE_Y,
-    MovementChannel.GYROSCOPE_Z,
-}
+    def __merge_movement_events(self, max_merge_gap: datetime.timedelta):
+        res: MovementEventStream = MovementEventStream(self.movement_event_stream.name, [])
 
-# noinspection PyTypeChecker
-__ACCEL_CHANNELS: Set[MovementChannel] = {
-    MovementChannel.ACCELEROMETER_X,
-    MovementChannel.ACCELEROMETER_Y,
-    MovementChannel.ACCELEROMETER_Z,
-}
+        # Group events by channel
+        channel_to_events: Dict[MovementChannel, List[MovementEvent]] = defaultdict(list)
+        for event in self.movement_event_stream.movement_events:
+            channel_to_events[event.movement_channel].append(event)
 
-# noinspection PyTypeChecker
-__X_CHANNELS: Set[MovementChannel] = {
-    MovementChannel.GYROSCOPE_X,
-    MovementChannel.ACCELEROMETER_X
-}
+        # For each channel, group packets that are "close together"
+        for channel, events in channel_to_events.items():
+            groups: List[List[MovementEvent]] = []
+            group: List[MovementEvent] = [events[0]]
 
-# noinspection PyTypeChecker
-__Y_CHANNELS: Set[MovementChannel] = {
-    MovementChannel.GYROSCOPE_Y,
-    MovementChannel.ACCELEROMETER_Y
-}
+            for i in range(1, len(events)):
+                prev: MovementEvent = events[i - 1]
+                cur: MovementEvent = events[i]
 
-# noinspection PyTypeChecker
-__Z_CHANNELS: Set[MovementChannel] = {
-    MovementChannel.GYROSCOPE_Z,
-    MovementChannel.ACCELEROMETER_Z
-}
+                if prev.time_diff(cur) < max_merge_gap:
+                    group.append(cur)
+                else:
+                    groups.append(group)
+                    group = [cur]
 
-
-def __samples_for_channel(ch: 'Xyz', channel: MovementChannel) -> np.ndarray:
-    if channel in __X_CHANNELS:
-        return ch.get_x_samples().get_values()
-
-    if channel in __Y_CHANNELS:
-        return ch.get_y_samples().get_values()
-
-    return ch.get_z_samples().get_values()
-
-
-def __data_for_channel(sensors: 'Sensors',
-                       channel: MovementChannel,
-                       start_ts: float,
-                       end_ts: float) -> Optional[np.ndarray]:
-    sensor: Optional[Xyz] = sensors.get_gyroscope() if channel in __GYRO_CHANNELS else sensors.get_accelerometer()
-
-    if sensor is None:
-        return None
-
-    ts: np.ndarray = sensor.get_timestamps().get_timestamps()
-    samples: np.ndarray = __samples_for_channel(sensor, channel)
-    sensor_data: __SensorData = __SensorData(ts, samples)
-    return sensor_data.filter_samples(start_ts, end_ts)
-
-
-def post_process(movement_event_stream: MovementEventStream,
-                 sensors: 'Sensors',
-                 max_merge_gap: datetime.timedelta = datetime.timedelta(seconds=0.5),
-                 min_detection: datetime.timedelta = datetime.timedelta(seconds=0.1), ) -> MovementEventStream:
-    res: MovementEventStream = MovementEventStream(movement_event_stream.name, [])
-
-    # Group events by channel
-    channel_to_events: Dict[MovementChannel, List[MovementEvent]] = defaultdict(list)
-    for event in movement_event_stream.movement_events:
-        channel_to_events[event.movement_channel].append(event)
-
-    # For each channel, group packets that are "close together"
-    for channel, events in channel_to_events.items():
-        groups: List[List[MovementEvent]] = []
-        group: List[MovementEvent] = [events[0]]
-
-        for i in range(1, len(events)):
-            prev: MovementEvent = events[i - 1]
-            cur: MovementEvent = events[i]
-
-            if prev.time_diff(cur) < max_merge_gap:
-                group.append(cur)
-            else:
+            if len(group) > 0:
                 groups.append(group)
-                group = [cur]
 
-        if len(group) > 0:
-            groups.append(group)
+            # For each group, compute a new event using the raw data to update statistics
+            for group in groups:
+                start_ts: float = group[0].movement_start
+                end_ts: float = group[-1].movement_end
+                stats: _Stats = self.__update_stats(channel, start_ts, end_ts)
+                movement_event: MovementEvent = MovementEvent(
+                    channel,
+                    start_ts,
+                    end_ts,
+                    end_ts - start_ts,
+                    stats.mag_min,
+                    stats.mag_max,
+                    stats.mag_range,
+                    stats.mag_mean,
+                    stats.mag_std
+                )
+                res.movement_events.append(movement_event)
 
-        # For each group, compute a new event using the raw data to update statistics
-        for group in groups:
-            start_ts: float = group[0].movement_start
-            end_ts: float = group[-1].movement_end
+        # Replace the current MovementEventStream with the updated one
+        self.movement_event_stream = res
 
-            data: np.ndarray = __data_for_channel(sensors, channel, start_ts, end_ts)
-            data_sq: np.ndarray = data * data
-            res.movement_events.append(MovementEvent(
-                channel,
-                start_ts,
-                end_ts,
-                end_ts - start_ts,
-                data_sq.min(),
-                data_sq.max(),
-                data_sq.max() - data_sq.min(),
-                data_sq.mean(),
-                data_sq.std()
-            ))
+    def post_process(self,
+                     max_merge_gap: Optional[datetime.timedelta] = None,
+                     min_detection: Optional[datetime.timedelta] = None):
 
-    res.movement_events = list(filter(lambda ev: ev.movement_duration_td() >= min_detection, res.movement_events))
-    return res
+        if max_merge_gap is not None:
+            self.__merge_movement_events(max_merge_gap)
+
+        if min_detection is not None:
+            self.movement_event_stream.movement_events = \
+                list(filter(lambda event: event.movement_duration_td() >= min_detection,
+                            self.movement_event_stream.movement_events))
