@@ -193,7 +193,7 @@ def __samples_for_channel(ch: 'Xyz', channel: MovementChannel) -> np.ndarray:
     return ch.get_z_samples().get_values()
 
 
-def __data_for_channel(sensors: Sensors,
+def __data_for_channel(sensors: 'Sensors',
                        channel: MovementChannel,
                        start_ts: float,
                        end_ts: float) -> Optional[np.ndarray]:
@@ -209,7 +209,7 @@ def __data_for_channel(sensors: Sensors,
 
 
 def post_process(movement_event_stream: MovementEventStream,
-                 sensors: Sensors,
+                 sensors: 'Sensors',
                  max_merge_gap: datetime.timedelta = datetime.timedelta(seconds=0.5),
                  min_detection: datetime.timedelta = datetime.timedelta(seconds=0.1), ) -> MovementEventStream:
     res: MovementEventStream = MovementEventStream(movement_event_stream.name, [])
