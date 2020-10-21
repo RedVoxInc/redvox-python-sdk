@@ -1,5 +1,5 @@
 """
-This module loads or reads sensor data from various sources
+This module loads or reads station data from various sources
 """
 import os
 import glob
@@ -24,20 +24,34 @@ from redvox.api1000.wrapped_redvox_packet import wrapped_packet as apim_wp
 @dataclass
 class StationSummary:
     """
-    Contains a summary of each stations data read result.
+    Contains a summary of each stations' data reader results.
+    properties:
+        station_id: str, station id
+        station_uuid: str, station uuid
+        os: str, station os
+        os_version: str, station os version
+        app_version: str, station app version
+        audio_sampling_rate_hz: float, sample rate in hz
+        total_duration_s: float, duration of data in seconds
+        start_dt: dtu.datetime object, start datetime of data read
+        end_dt: dtu.datetime object, end datetime of data read
     """
     station_id: str
     station_uuid: str
     os: str
     os_version: str
     app_version: str
-    audio_sampling_rate: float
-    total_duration: float
+    audio_sampling_rate_hz: float
+    total_duration_s: float
     start_dt: dtu.datetime
     end_dt: dtu.datetime
 
     @staticmethod
     def from_station(station: Station) -> 'StationSummary':
+        """
+        :param station: the station to make a summary for
+        :return: the station summary of a single station
+        """
         total_duration: float = station.audio_sensor().data_duration_s()
         start_dt: dtu.datetime = dtu.datetime_from_epoch_microseconds_utc(station.audio_sensor().first_data_timestamp())
         end_dt: dtu.datetime = dtu.datetime_from_epoch_microseconds_utc(station.audio_sensor().last_data_timestamp())

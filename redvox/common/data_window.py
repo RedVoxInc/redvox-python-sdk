@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from redvox.common import date_time_utils as dtu
 
 from redvox.common.sensor_data import SensorType
-from redvox.common.load_sensor_data import ReadResult, read_all_in_dir
+from redvox.common.station_reader_utils import ReadResult, read_all_in_dir
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 
 

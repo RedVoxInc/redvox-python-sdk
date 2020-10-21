@@ -4,7 +4,7 @@ tests for timesync
 import unittest
 import numpy as np
 import redvox.tests as tests
-from redvox.common import load_sensor_data as load_sd, timesync as ts
+from redvox.common import station_reader_utils as load_sd, timesync as ts
 
 
 class TimesyncTest(unittest.TestCase):

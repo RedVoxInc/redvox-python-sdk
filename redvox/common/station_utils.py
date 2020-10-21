@@ -81,7 +81,8 @@ def station_location_from_data(data_location: pd.Series) -> StationLocation:
 def _location_sorter(best_location: StationLocation, other_location: StationLocation, new_location: StationLocation,
                      ascending: bool = True) -> Tuple[StationLocation, StationLocation]:
     """
-    Sorts up to three locations for quality purposes
+    Sorts up to three locations for quality purposes.
+    the ascending parameter is used specifically for timestamps that come before a target time.
     :param best_location: current best location
     :param other_location: current other best location
     :param new_location: new location to compare against
@@ -156,11 +157,6 @@ class LocationData:
         adds the time_delta to all locations' timestamps; use negative values to go backwards in time
         :param time_delta: time to add to all locations' timestamps
         """
-        if self.best_location:
-            self.best_location.lat_lon_timestamp += time_delta
-            self.best_location.altitude_timestamp += time_delta
-            self.best_location.speed_timestamp += time_delta
-            self.best_location.bearing_timestamp += time_delta
         for location in self.all_locations:
             location.lat_lon_timestamp += time_delta
             location.altitude_timestamp += time_delta
@@ -169,7 +165,7 @@ class LocationData:
 
     def get_sorted_all_locations(self) -> List[StationLocation]:
         """
-        :return: sorted list of self.all_locations
+        :return: sorted list of self.all_locations by lat_lon_timestamp
         """
         sorted_indices = np.argsort([x.lat_lon_timestamp for x in self.all_locations])
         return [self.all_locations[i] for i in sorted_indices]
@@ -284,7 +280,7 @@ class StationTiming:
     """
     Generic StationTiming class for API-independent analysis
     Properties:
-        start_timestamp: float, timestamp when station started recording
+        station_start_timestamp: float, timestamp when station started recording
         audio_sample_rate_hz: float, sample rate in hz of audio sensor
         station_first_data_timestamp: float, first timestamp chronologically of the data
         episode_start_timestamp_s: float, timestamp of start of segment of interest in seconds since epoch UTC,
@@ -354,6 +350,7 @@ class StationMetadata:
     def __post_init__(self):
         """
         if the station_uuid is None, set it to be station_id
+        if the location data is None, set it to empty LocationData
         """
         if not self.station_uuid:
             self.station_uuid = self.station_id
