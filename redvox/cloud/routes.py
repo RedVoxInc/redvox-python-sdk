@@ -12,6 +12,7 @@ class RoutesV1:
     VALIDATE_TOKEN: str = "/api/v1/auth/token"
     REFRESH_TOKEN: str = "/api/v1/auth/refresh"
     METADATA_REQ: str = "/api/v1/metadata"
+    METADATA_REQ_M: str = "/api/v1/metadata/m"
     TIMING_METADATA_REQ: str = "/api/v1/metadata/timing"
     DATA_RANGE_REQ: str = "/api/v1/data/range"
     DATA_REPORT_REQ: str = "/api/v1/data/report"
