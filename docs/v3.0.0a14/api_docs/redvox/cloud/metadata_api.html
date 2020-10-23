@@ -1,0 +1,3719 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>redvox.cloud.metadata_api API documentation</title>
+<meta name="description" content="This module contains classes and enums for working with generic RedVox packet metadata through the cloud API." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.cloud.metadata_api</code></h1>
+</header>
+<section id="section-intro">
+<p>This module contains classes and enums for working with generic RedVox packet metadata through the cloud API.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+This module contains classes and enums for working with generic RedVox packet metadata through the cloud API.
+&#34;&#34;&#34;
+from dataclasses import dataclass
+import json
+from typing import Any, Callable, Dict, List, Optional, TypeVar
+
+from dataclasses_json import dataclass_json
+import requests
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+
+from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
+from redvox.cloud.api import ApiConfig, post_req
+from redvox.cloud.routes import RoutesV1
+
+
+@dataclass_json
+@dataclass
+class AudioMetadata:
+    &#34;&#34;&#34;
+    Metadata associated with audio sensors.
+    &#34;&#34;&#34;
+    sensor_name: Optional[str] = None
+    sample_rate: Optional[float] = None
+    first_sample_ts: Optional[int] = None
+    payload_cnt: Optional[int] = None
+    payload_mean: Optional[float] = None
+    payload_std: Optional[float] = None
+    payload_median: Optional[float] = None
+
+
+@dataclass_json
+@dataclass
+class SingleMetadata:
+    &#34;&#34;&#34;
+    Metadata associated with sensors that only contain a single dimensional channel of data
+        (barometer, light, proximity).
+    &#34;&#34;&#34;
+    sensor_name: Optional[str] = None
+    timestamps_microseconds_utc_count: Optional[int] = None
+    payload_count: Optional[int] = None
+    sample_interval_mean: Optional[float] = None
+    sample_interval_std: Optional[float] = None
+    sample_interval_median: Optional[float] = None
+    value_mean: Optional[float] = None
+    value_std: Optional[float] = None
+    value_median: Optional[float] = None
+    metadata: Optional[List[str]] = None
+
+
+@dataclass_json
+@dataclass
+class XyzMetadata:
+    &#34;&#34;&#34;
+    Metadata for sensors that have 3-dimensions of data (accelerometer, gyroscope, magenetometer)
+    &#34;&#34;&#34;
+    sensor_name: Optional[str] = None
+    timestamps_microseconds_utc_count: Optional[int] = None
+    payload_count: Optional[int] = None
+    sample_interval_mean: Optional[float] = None
+    sample_interval_std: Optional[float] = None
+    sample_interval_median: Optional[float] = None
+    x_mean: Optional[float] = None
+    x_std: Optional[float] = None
+    x_median: Optional[float] = None
+    y_mean: Optional[float] = None
+    y_std: Optional[float] = None
+    y_median: Optional[float] = None
+    z_mean: Optional[float] = None
+    z_std: Optional[float] = None
+    z_median: Optional[float] = None
+    metadata: Optional[List[str]] = None
+
+
+@dataclass_json
+@dataclass
+class LocationMetadata:
+    &#34;&#34;&#34;
+    Metadata associated with the location sensor.
+    &#34;&#34;&#34;
+    sensor_name: Optional[str] = None
+    timestamps_microseconds_utc_count: Optional[int] = None
+    payload_count: Optional[int] = None
+    sample_interval_mean: Optional[float] = None
+    sample_interval_std: Optional[float] = None
+    sample_interval_median: Optional[float] = None
+    latitude_mean: Optional[float] = None
+    latitude_std: Optional[float] = None
+    latitude_median: Optional[float] = None
+    longitude_mean: Optional[float] = None
+    longitude_std: Optional[float] = None
+    longitude_median: Optional[float] = None
+    altitude_mean: Optional[float] = None
+    altitude_std: Optional[float] = None
+    altitude_median: Optional[float] = None
+    speed_mean: Optional[float] = None
+    speed_std: Optional[float] = None
+    speed_median: Optional[float] = None
+    accuracy_mean: Optional[float] = None
+    accuracy_std: Optional[float] = None
+    accuracy_median: Optional[float] = None
+    metadata: Optional[List[str]] = None
+
+
+@dataclass_json
+@dataclass
+class PacketMetadataResult:
+    &#34;&#34;&#34;
+    Metadata associated with RedVox API 900 packets.
+    &#34;&#34;&#34;
+    api: Optional[int] = None
+    station_id: Optional[str] = None
+    station_uuid: Optional[str] = None
+    auth_email: Optional[str] = None
+    is_backfilled: Optional[bool] = None
+    is_private: Optional[bool] = None
+    is_scrambled: Optional[bool] = None
+    station_make: Optional[str] = None
+    station_model: Optional[str] = None
+    station_os: Optional[str] = None
+    station_os_version: Optional[str] = None
+    station_app_version: Optional[str] = None
+    battery_level: Optional[float] = None
+    station_temperature: Optional[float] = None
+    acquisition_url: Optional[str] = None
+    synch_url: Optional[str] = None
+    auth_url: Optional[str] = None
+    os_ts: Optional[int] = None
+    mach_ts: Optional[int] = None
+    server_ts: Optional[int] = None
+    data_key: Optional[str] = None
+    mach_time_zero: Optional[float] = None
+    best_latency: Optional[float] = None
+    best_offset: Optional[float] = None
+    audio_sensor: Optional[AudioMetadata] = None
+    barometer_sensor: Optional[SingleMetadata] = None
+    location_sensor: Optional[LocationMetadata] = None
+    time_synchronization_sensor: Optional[SingleMetadata] = None
+    accelerometer_sensor: Optional[XyzMetadata] = None
+    magnetometer_sensor: Optional[XyzMetadata] = None
+    gyroscope_sensor: Optional[XyzMetadata] = None
+    light_sensor: Optional[SingleMetadata] = None
+    proximity_sensor: Optional[SingleMetadata] = None
+
+
+@dataclass_json
+@dataclass
+class AvailableMetadata:
+    &#34;&#34;&#34;
+    Contains definitions for all available metadata that an be requested from the cloud api.
+    &#34;&#34;&#34;
+    Api: str = &#34;Api&#34;
+    StationId: str = &#34;StationId&#34;
+    StationUuid: str = &#34;StationUuid&#34;
+    AuthEmail: str = &#34;AuthEmail&#34;
+    IsBackfilled: str = &#34;IsBackfilled&#34;
+    IsPrivate: str = &#34;IsPrivate&#34;
+    IsScrambled: str = &#34;IsScrambled&#34;
+    StationMake: str = &#34;StationMake&#34;
+    StationModel: str = &#34;StationModel&#34;
+    StationOs: str = &#34;StationOs&#34;
+    StationOsVersion: str = &#34;StationOsVersion&#34;
+    StationAppVersion: str = &#34;StationAppVersion&#34;
+    BatteryLevel: str = &#34;BatteryLevel&#34;
+    StationTemperature: str = &#34;StationTemperature&#34;
+    AcquisitionUrl: str = &#34;AcquisitionUrl&#34;
+    SynchUrl: str = &#34;SynchUrl&#34;
+    AuthUrl: str = &#34;AuthUrl&#34;
+    OsTs: str = &#34;OsTs&#34;
+    MachTs: str = &#34;MachTs&#34;
+    ServerTs: str = &#34;ServerTs&#34;
+    DataKey: str = &#34;DataKey&#34;
+    MachTimeZero: str = &#34;MachTimeZero&#34;
+    BestLatency: str = &#34;BestLatency&#34;
+    BestOffset: str = &#34;BestOffset&#34;
+    AudioSensor: str = &#34;AudioSensor&#34;
+    BarometerSensor: str = &#34;BarometerSensor&#34;
+    AccelerometerSensor: str = &#34;AccelerometerSensor&#34;
+    GyroscopeSensor: str = &#34;GyroscopeSensor&#34;
+    TimeSynchronizationSensor: str = &#34;TimeSynchronizationSensor&#34;
+    MagnetometerSensor: str = &#34;MagnetometerSensor&#34;
+    LightSensor: str = &#34;LightSensor&#34;
+    ProximitySensor: str = &#34;ProximitySensor&#34;
+    LocationSensor: str = &#34;LocationSensor&#34;
+
+    @staticmethod
+    def all_available_metadata() -&gt; List[str]:
+        &#34;&#34;&#34;
+        Returns a list of all available metadata definitions.
+        :return: A list of all available metadata definitions.
+        &#34;&#34;&#34;
+        return [
+            AvailableMetadata.Api,
+            AvailableMetadata.StationId,
+            AvailableMetadata.StationUuid,
+            AvailableMetadata.AuthEmail,
+            AvailableMetadata.IsBackfilled,
+            AvailableMetadata.IsPrivate,
+            AvailableMetadata.IsScrambled,
+            AvailableMetadata.StationMake,
+            AvailableMetadata.StationModel,
+            AvailableMetadata.StationOs,
+            AvailableMetadata.StationOsVersion,
+            AvailableMetadata.StationAppVersion,
+            AvailableMetadata.BatteryLevel,
+            AvailableMetadata.StationTemperature,
+            AvailableMetadata.AcquisitionUrl,
+            AvailableMetadata.SynchUrl,
+            AvailableMetadata.AuthUrl,
+            AvailableMetadata.OsTs,
+            AvailableMetadata.MachTs,
+            AvailableMetadata.ServerTs,
+            AvailableMetadata.DataKey,
+            AvailableMetadata.MachTimeZero,
+            AvailableMetadata.BestLatency,
+            AvailableMetadata.BestOffset,
+            AvailableMetadata.AudioSensor,
+            AvailableMetadata.BarometerSensor,
+            AvailableMetadata.AccelerometerSensor,
+            AvailableMetadata.GyroscopeSensor,
+            AvailableMetadata.TimeSynchronizationSensor,
+            AvailableMetadata.MagnetometerSensor,
+            AvailableMetadata.LightSensor,
+            AvailableMetadata.ProximitySensor,
+            AvailableMetadata.LocationSensor,
+        ]
+
+
+@dataclass_json
+@dataclass
+class MetadataReq:
+    &#34;&#34;&#34;
+    The definition of a metadata request. Fields should include the definitions defined by AvailableMetadata.
+    &#34;&#34;&#34;
+    auth_token: str
+    start_ts_s: int
+    end_ts_s: int
+    station_ids: List[str]
+    fields: List[str]
+    secret_token: Optional[str] = None
+
+
+@dataclass_json
+@dataclass
+class MetadataResp:
+    &#34;&#34;&#34;
+    Response of a metadata request.
+    &#34;&#34;&#34;
+    metadata: List[PacketMetadataResult]
+
+
+T = TypeVar(&#39;T&#39;)
+
+
+def _get(key: str, json_dict: Dict, default: Optional[T] = None) -&gt; Optional[T]:
+    if key in json_dict:
+        return json_dict[key]
+
+    return default
+
+
+@dataclass
+class AdditionalMetadata:
+    data_key: Optional[str]
+
+    @staticmethod
+    def from_dict(json_dict: Optional[Dict]) -&gt; Optional[&#39;AdditionalMetadata&#39;]:
+        if json_dict is None:
+            return None
+
+        return AdditionalMetadata(_get(&#34;data_key&#34;, json_dict))
+
+
+@dataclass
+class DbPacket:
+    _id: Optional[str]
+    metadata: Optional[WrappedRedvoxPacketM]
+    additional_metadata: Optional[AdditionalMetadata]
+
+    @staticmethod
+    def from_dict(json_dict: Dict) -&gt; &#39;DbPacket&#39;:
+        return DbPacket(
+            _get(&#34;_id&#34;, json_dict),
+            WrappedRedvoxPacketM.from_json(json.dumps(json_dict[&#34;metadata&#34;])),
+            AdditionalMetadata.from_dict(_get(&#34;additional_metadata&#34;, json_dict))
+        )
+
+
+@dataclass
+class MetadataRespM:
+    db_packets: List[DbPacket]
+
+    @staticmethod
+    def from_json(json_dicts: Dict) -&gt; &#39;MetadataRespM&#39;:
+
+        return MetadataRespM(
+            list(map(DbPacket.from_dict, json_dicts[&#34;db_packets&#34;]))
+        )
+
+
+@dataclass_json
+@dataclass
+class TimingMetaRequest:
+    &#34;&#34;&#34;
+    Request for timing metadata.
+    &#34;&#34;&#34;
+    auth_token: str
+    start_ts_s: int
+    end_ts_s: int
+    station_ids: List[str]
+    secret_token: Optional[str] = None
+
+
+@dataclass_json
+@dataclass
+class TimingMeta:
+    &#34;&#34;&#34;
+    Timing metadata extracted from an individual packet.
+    &#34;&#34;&#34;
+    station_id: str
+    start_ts_os: float
+    start_ts_mach: float
+    server_ts: float
+    mach_time_zero: float
+    best_latency: float
+    best_offset: float
+
+
+@dataclass_json
+@dataclass
+class TimingMetaResponse:
+    &#34;&#34;&#34;
+    Response of obtaining timing metadta.
+    &#34;&#34;&#34;
+    items: List[TimingMeta]
+
+
+def request_timing_metadata(api_config: ApiConfig,
+                            timing_req: TimingMetaRequest,
+                            session: Optional[requests.Session] = None,
+                            timeout: Optional[float] = None) -&gt; TimingMetaResponse:
+    &#34;&#34;&#34;
+    Retrieve timing metadata.
+    :param api_config: An instance of the API configuration.
+    :param timing_req: An instance of a timing request.
+    :param session: An (optional) session for re-using an HTTP client.
+    :return: An instance of a timing response.
+    &#34;&#34;&#34;
+
+    def handle_resp(resp) -&gt; TimingMetaResponse:
+        json: List[Dict] = resp.json()
+        # noinspection Mypy
+        items: List[TimingMeta] = list(map(TimingMeta.from_dict, json))
+        return TimingMetaResponse(items)
+
+    res: Optional[TimingMetaResponse] = post_req(api_config,
+                                                 RoutesV1.TIMING_METADATA_REQ,
+                                                 timing_req,
+                                                 handle_resp,
+                                                 session,
+                                                 timeout)
+
+    return res if res else TimingMetaResponse([])
+
+
+def request_metadata(api_config: ApiConfig,
+                     packet_metadata_req: MetadataReq,
+                     session: Optional[requests.Session] = None,
+                     timeout: Optional[float] = None) -&gt; Optional[MetadataResp]:
+    &#34;&#34;&#34;
+    Requests generic metadata from the cloud API.
+    :param api_config: An instance of the API config.
+    :param packet_metadata_req: An instance of a metadata request.
+    :param session: An (optional) session for re-using an HTTP client.
+    :return: A metadata response on successful call or None if there is an error.
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], MetadataResp] = lambda resp: MetadataResp.from_dict(resp.json())
+    return post_req(api_config,
+                    RoutesV1.METADATA_REQ,
+                    packet_metadata_req,
+                    handle_resp,
+                    session,
+                    timeout)
+
+
+def request_metadata_m(api_config: ApiConfig,
+                       packet_metadata_req: MetadataReq,
+                       session: Optional[requests.Session] = None,
+                       timeout: Optional[float] = None) -&gt; Optional[MetadataRespM]:
+    &#34;&#34;&#34;
+    Requests generic metadata from the cloud API.
+    :param api_config: An instance of the API config.
+    :param packet_metadata_req: An instance of a metadata request.
+    :param session: An (optional) session for re-using an HTTP client.
+    :return: A metadata response on successful call or None if there is an error.
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], MetadataRespM] = lambda resp: MetadataRespM.from_json(resp.json())
+    return post_req(api_config,
+                    RoutesV1.METADATA_REQ_M,
+                    packet_metadata_req,
+                    handle_resp,
+                    session,
+                    timeout)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.cloud.metadata_api.request_metadata"><code class="name flex">
+<span>def <span class="ident">request_metadata</span></span>(<span>api_config: <a title="redvox.cloud.api.ApiConfig" href="api.html#redvox.cloud.api.ApiConfig">ApiConfig</a>, packet_metadata_req: <a title="redvox.cloud.metadata_api.MetadataReq" href="#redvox.cloud.metadata_api.MetadataReq">MetadataReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> typing.Union[<a title="redvox.cloud.metadata_api.MetadataResp" href="#redvox.cloud.metadata_api.MetadataResp">MetadataResp</a>, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Requests generic metadata from the cloud API.
+:param api_config: An instance of the API config.
+:param packet_metadata_req: An instance of a metadata request.
+:param session: An (optional) session for re-using an HTTP client.
+:return: A metadata response on successful call or None if there is an error.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def request_metadata(api_config: ApiConfig,
+                     packet_metadata_req: MetadataReq,
+                     session: Optional[requests.Session] = None,
+                     timeout: Optional[float] = None) -&gt; Optional[MetadataResp]:
+    &#34;&#34;&#34;
+    Requests generic metadata from the cloud API.
+    :param api_config: An instance of the API config.
+    :param packet_metadata_req: An instance of a metadata request.
+    :param session: An (optional) session for re-using an HTTP client.
+    :return: A metadata response on successful call or None if there is an error.
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], MetadataResp] = lambda resp: MetadataResp.from_dict(resp.json())
+    return post_req(api_config,
+                    RoutesV1.METADATA_REQ,
+                    packet_metadata_req,
+                    handle_resp,
+                    session,
+                    timeout)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.request_metadata_m"><code class="name flex">
+<span>def <span class="ident">request_metadata_m</span></span>(<span>api_config: <a title="redvox.cloud.api.ApiConfig" href="api.html#redvox.cloud.api.ApiConfig">ApiConfig</a>, packet_metadata_req: <a title="redvox.cloud.metadata_api.MetadataReq" href="#redvox.cloud.metadata_api.MetadataReq">MetadataReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> typing.Union[<a title="redvox.cloud.metadata_api.MetadataRespM" href="#redvox.cloud.metadata_api.MetadataRespM">MetadataRespM</a>, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Requests generic metadata from the cloud API.
+:param api_config: An instance of the API config.
+:param packet_metadata_req: An instance of a metadata request.
+:param session: An (optional) session for re-using an HTTP client.
+:return: A metadata response on successful call or None if there is an error.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def request_metadata_m(api_config: ApiConfig,
+                       packet_metadata_req: MetadataReq,
+                       session: Optional[requests.Session] = None,
+                       timeout: Optional[float] = None) -&gt; Optional[MetadataRespM]:
+    &#34;&#34;&#34;
+    Requests generic metadata from the cloud API.
+    :param api_config: An instance of the API config.
+    :param packet_metadata_req: An instance of a metadata request.
+    :param session: An (optional) session for re-using an HTTP client.
+    :return: A metadata response on successful call or None if there is an error.
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], MetadataRespM] = lambda resp: MetadataRespM.from_json(resp.json())
+    return post_req(api_config,
+                    RoutesV1.METADATA_REQ_M,
+                    packet_metadata_req,
+                    handle_resp,
+                    session,
+                    timeout)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.request_timing_metadata"><code class="name flex">
+<span>def <span class="ident">request_timing_metadata</span></span>(<span>api_config: <a title="redvox.cloud.api.ApiConfig" href="api.html#redvox.cloud.api.ApiConfig">ApiConfig</a>, timing_req: <a title="redvox.cloud.metadata_api.TimingMetaRequest" href="#redvox.cloud.metadata_api.TimingMetaRequest">TimingMetaRequest</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> <a title="redvox.cloud.metadata_api.TimingMetaResponse" href="#redvox.cloud.metadata_api.TimingMetaResponse">TimingMetaResponse</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieve timing metadata.
+:param api_config: An instance of the API configuration.
+:param timing_req: An instance of a timing request.
+:param session: An (optional) session for re-using an HTTP client.
+:return: An instance of a timing response.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def request_timing_metadata(api_config: ApiConfig,
+                            timing_req: TimingMetaRequest,
+                            session: Optional[requests.Session] = None,
+                            timeout: Optional[float] = None) -&gt; TimingMetaResponse:
+    &#34;&#34;&#34;
+    Retrieve timing metadata.
+    :param api_config: An instance of the API configuration.
+    :param timing_req: An instance of a timing request.
+    :param session: An (optional) session for re-using an HTTP client.
+    :return: An instance of a timing response.
+    &#34;&#34;&#34;
+
+    def handle_resp(resp) -&gt; TimingMetaResponse:
+        json: List[Dict] = resp.json()
+        # noinspection Mypy
+        items: List[TimingMeta] = list(map(TimingMeta.from_dict, json))
+        return TimingMetaResponse(items)
+
+    res: Optional[TimingMetaResponse] = post_req(api_config,
+                                                 RoutesV1.TIMING_METADATA_REQ,
+                                                 timing_req,
+                                                 handle_resp,
+                                                 session,
+                                                 timeout)
+
+    return res if res else TimingMetaResponse([])</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.cloud.metadata_api.AdditionalMetadata"><code class="flex name class">
+<span>class <span class="ident">AdditionalMetadata</span></span>
+<span>(</span><span>data_key: typing.Union[str, NoneType])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>AdditionalMetadata(data_key: typing.Union[str, NoneType])</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AdditionalMetadata:
+    data_key: Optional[str]
+
+    @staticmethod
+    def from_dict(json_dict: Optional[Dict]) -&gt; Optional[&#39;AdditionalMetadata&#39;]:
+        if json_dict is None:
+            return None
+
+        return AdditionalMetadata(_get(&#34;data_key&#34;, json_dict))</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.AdditionalMetadata.data_key"><code class="name">var <span class="ident">data_key</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.AdditionalMetadata.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>json_dict: typing.Union[typing.Dict, NoneType]) ‑> typing.Union[<a title="redvox.cloud.metadata_api.AdditionalMetadata" href="#redvox.cloud.metadata_api.AdditionalMetadata">AdditionalMetadata</a>, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_dict(json_dict: Optional[Dict]) -&gt; Optional[&#39;AdditionalMetadata&#39;]:
+    if json_dict is None:
+        return None
+
+    return AdditionalMetadata(_get(&#34;data_key&#34;, json_dict))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.AudioMetadata"><code class="flex name class">
+<span>class <span class="ident">AudioMetadata</span></span>
+<span>(</span><span>sensor_name: typing.Union[str, NoneType] = None, sample_rate: typing.Union[float, NoneType] = None, first_sample_ts: typing.Union[int, NoneType] = None, payload_cnt: typing.Union[int, NoneType] = None, payload_mean: typing.Union[float, NoneType] = None, payload_std: typing.Union[float, NoneType] = None, payload_median: typing.Union[float, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Metadata associated with audio sensors.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AudioMetadata:
+    &#34;&#34;&#34;
+    Metadata associated with audio sensors.
+    &#34;&#34;&#34;
+    sensor_name: Optional[str] = None
+    sample_rate: Optional[float] = None
+    first_sample_ts: Optional[int] = None
+    payload_cnt: Optional[int] = None
+    payload_mean: Optional[float] = None
+    payload_std: Optional[float] = None
+    payload_median: Optional[float] = None</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.first_sample_ts"><code class="name">var <span class="ident">first_sample_ts</span> : typing.Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.payload_cnt"><code class="name">var <span class="ident">payload_cnt</span> : typing.Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.payload_mean"><code class="name">var <span class="ident">payload_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.payload_median"><code class="name">var <span class="ident">payload_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.payload_std"><code class="name">var <span class="ident">payload_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.sample_rate"><code class="name">var <span class="ident">sample_rate</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.sensor_name"><code class="name">var <span class="ident">sensor_name</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata"><code class="flex name class">
+<span>class <span class="ident">AvailableMetadata</span></span>
+<span>(</span><span>Api: str = 'Api', StationId: str = 'StationId', StationUuid: str = 'StationUuid', AuthEmail: str = 'AuthEmail', IsBackfilled: str = 'IsBackfilled', IsPrivate: str = 'IsPrivate', IsScrambled: str = 'IsScrambled', StationMake: str = 'StationMake', StationModel: str = 'StationModel', StationOs: str = 'StationOs', StationOsVersion: str = 'StationOsVersion', StationAppVersion: str = 'StationAppVersion', BatteryLevel: str = 'BatteryLevel', StationTemperature: str = 'StationTemperature', AcquisitionUrl: str = 'AcquisitionUrl', SynchUrl: str = 'SynchUrl', AuthUrl: str = 'AuthUrl', OsTs: str = 'OsTs', MachTs: str = 'MachTs', ServerTs: str = 'ServerTs', DataKey: str = 'DataKey', MachTimeZero: str = 'MachTimeZero', BestLatency: str = 'BestLatency', BestOffset: str = 'BestOffset', AudioSensor: str = 'AudioSensor', BarometerSensor: str = 'BarometerSensor', AccelerometerSensor: str = 'AccelerometerSensor', GyroscopeSensor: str = 'GyroscopeSensor', TimeSynchronizationSensor: str = 'TimeSynchronizationSensor', MagnetometerSensor: str = 'MagnetometerSensor', LightSensor: str = 'LightSensor', ProximitySensor: str = 'ProximitySensor', LocationSensor: str = 'LocationSensor')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Contains definitions for all available metadata that an be requested from the cloud api.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AvailableMetadata:
+    &#34;&#34;&#34;
+    Contains definitions for all available metadata that an be requested from the cloud api.
+    &#34;&#34;&#34;
+    Api: str = &#34;Api&#34;
+    StationId: str = &#34;StationId&#34;
+    StationUuid: str = &#34;StationUuid&#34;
+    AuthEmail: str = &#34;AuthEmail&#34;
+    IsBackfilled: str = &#34;IsBackfilled&#34;
+    IsPrivate: str = &#34;IsPrivate&#34;
+    IsScrambled: str = &#34;IsScrambled&#34;
+    StationMake: str = &#34;StationMake&#34;
+    StationModel: str = &#34;StationModel&#34;
+    StationOs: str = &#34;StationOs&#34;
+    StationOsVersion: str = &#34;StationOsVersion&#34;
+    StationAppVersion: str = &#34;StationAppVersion&#34;
+    BatteryLevel: str = &#34;BatteryLevel&#34;
+    StationTemperature: str = &#34;StationTemperature&#34;
+    AcquisitionUrl: str = &#34;AcquisitionUrl&#34;
+    SynchUrl: str = &#34;SynchUrl&#34;
+    AuthUrl: str = &#34;AuthUrl&#34;
+    OsTs: str = &#34;OsTs&#34;
+    MachTs: str = &#34;MachTs&#34;
+    ServerTs: str = &#34;ServerTs&#34;
+    DataKey: str = &#34;DataKey&#34;
+    MachTimeZero: str = &#34;MachTimeZero&#34;
+    BestLatency: str = &#34;BestLatency&#34;
+    BestOffset: str = &#34;BestOffset&#34;
+    AudioSensor: str = &#34;AudioSensor&#34;
+    BarometerSensor: str = &#34;BarometerSensor&#34;
+    AccelerometerSensor: str = &#34;AccelerometerSensor&#34;
+    GyroscopeSensor: str = &#34;GyroscopeSensor&#34;
+    TimeSynchronizationSensor: str = &#34;TimeSynchronizationSensor&#34;
+    MagnetometerSensor: str = &#34;MagnetometerSensor&#34;
+    LightSensor: str = &#34;LightSensor&#34;
+    ProximitySensor: str = &#34;ProximitySensor&#34;
+    LocationSensor: str = &#34;LocationSensor&#34;
+
+    @staticmethod
+    def all_available_metadata() -&gt; List[str]:
+        &#34;&#34;&#34;
+        Returns a list of all available metadata definitions.
+        :return: A list of all available metadata definitions.
+        &#34;&#34;&#34;
+        return [
+            AvailableMetadata.Api,
+            AvailableMetadata.StationId,
+            AvailableMetadata.StationUuid,
+            AvailableMetadata.AuthEmail,
+            AvailableMetadata.IsBackfilled,
+            AvailableMetadata.IsPrivate,
+            AvailableMetadata.IsScrambled,
+            AvailableMetadata.StationMake,
+            AvailableMetadata.StationModel,
+            AvailableMetadata.StationOs,
+            AvailableMetadata.StationOsVersion,
+            AvailableMetadata.StationAppVersion,
+            AvailableMetadata.BatteryLevel,
+            AvailableMetadata.StationTemperature,
+            AvailableMetadata.AcquisitionUrl,
+            AvailableMetadata.SynchUrl,
+            AvailableMetadata.AuthUrl,
+            AvailableMetadata.OsTs,
+            AvailableMetadata.MachTs,
+            AvailableMetadata.ServerTs,
+            AvailableMetadata.DataKey,
+            AvailableMetadata.MachTimeZero,
+            AvailableMetadata.BestLatency,
+            AvailableMetadata.BestOffset,
+            AvailableMetadata.AudioSensor,
+            AvailableMetadata.BarometerSensor,
+            AvailableMetadata.AccelerometerSensor,
+            AvailableMetadata.GyroscopeSensor,
+            AvailableMetadata.TimeSynchronizationSensor,
+            AvailableMetadata.MagnetometerSensor,
+            AvailableMetadata.LightSensor,
+            AvailableMetadata.ProximitySensor,
+            AvailableMetadata.LocationSensor,
+        ]</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.AccelerometerSensor"><code class="name">var <span class="ident">AccelerometerSensor</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.AcquisitionUrl"><code class="name">var <span class="ident">AcquisitionUrl</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.Api"><code class="name">var <span class="ident">Api</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.AudioSensor"><code class="name">var <span class="ident">AudioSensor</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.AuthEmail"><code class="name">var <span class="ident">AuthEmail</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.AuthUrl"><code class="name">var <span class="ident">AuthUrl</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.BarometerSensor"><code class="name">var <span class="ident">BarometerSensor</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.BatteryLevel"><code class="name">var <span class="ident">BatteryLevel</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.BestLatency"><code class="name">var <span class="ident">BestLatency</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.BestOffset"><code class="name">var <span class="ident">BestOffset</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.DataKey"><code class="name">var <span class="ident">DataKey</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.GyroscopeSensor"><code class="name">var <span class="ident">GyroscopeSensor</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.IsBackfilled"><code class="name">var <span class="ident">IsBackfilled</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.IsPrivate"><code class="name">var <span class="ident">IsPrivate</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.IsScrambled"><code class="name">var <span class="ident">IsScrambled</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.LightSensor"><code class="name">var <span class="ident">LightSensor</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.LocationSensor"><code class="name">var <span class="ident">LocationSensor</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.MachTimeZero"><code class="name">var <span class="ident">MachTimeZero</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.MachTs"><code class="name">var <span class="ident">MachTs</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.MagnetometerSensor"><code class="name">var <span class="ident">MagnetometerSensor</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.OsTs"><code class="name">var <span class="ident">OsTs</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.ProximitySensor"><code class="name">var <span class="ident">ProximitySensor</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.ServerTs"><code class="name">var <span class="ident">ServerTs</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.StationAppVersion"><code class="name">var <span class="ident">StationAppVersion</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.StationId"><code class="name">var <span class="ident">StationId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.StationMake"><code class="name">var <span class="ident">StationMake</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.StationModel"><code class="name">var <span class="ident">StationModel</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.StationOs"><code class="name">var <span class="ident">StationOs</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.StationOsVersion"><code class="name">var <span class="ident">StationOsVersion</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.StationTemperature"><code class="name">var <span class="ident">StationTemperature</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.StationUuid"><code class="name">var <span class="ident">StationUuid</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.SynchUrl"><code class="name">var <span class="ident">SynchUrl</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.TimeSynchronizationSensor"><code class="name">var <span class="ident">TimeSynchronizationSensor</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.all_available_metadata"><code class="name flex">
+<span>def <span class="ident">all_available_metadata</span></span>(<span>) ‑> typing.List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a list of all available metadata definitions.
+:return: A list of all available metadata definitions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def all_available_metadata() -&gt; List[str]:
+    &#34;&#34;&#34;
+    Returns a list of all available metadata definitions.
+    :return: A list of all available metadata definitions.
+    &#34;&#34;&#34;
+    return [
+        AvailableMetadata.Api,
+        AvailableMetadata.StationId,
+        AvailableMetadata.StationUuid,
+        AvailableMetadata.AuthEmail,
+        AvailableMetadata.IsBackfilled,
+        AvailableMetadata.IsPrivate,
+        AvailableMetadata.IsScrambled,
+        AvailableMetadata.StationMake,
+        AvailableMetadata.StationModel,
+        AvailableMetadata.StationOs,
+        AvailableMetadata.StationOsVersion,
+        AvailableMetadata.StationAppVersion,
+        AvailableMetadata.BatteryLevel,
+        AvailableMetadata.StationTemperature,
+        AvailableMetadata.AcquisitionUrl,
+        AvailableMetadata.SynchUrl,
+        AvailableMetadata.AuthUrl,
+        AvailableMetadata.OsTs,
+        AvailableMetadata.MachTs,
+        AvailableMetadata.ServerTs,
+        AvailableMetadata.DataKey,
+        AvailableMetadata.MachTimeZero,
+        AvailableMetadata.BestLatency,
+        AvailableMetadata.BestOffset,
+        AvailableMetadata.AudioSensor,
+        AvailableMetadata.BarometerSensor,
+        AvailableMetadata.AccelerometerSensor,
+        AvailableMetadata.GyroscopeSensor,
+        AvailableMetadata.TimeSynchronizationSensor,
+        AvailableMetadata.MagnetometerSensor,
+        AvailableMetadata.LightSensor,
+        AvailableMetadata.ProximitySensor,
+        AvailableMetadata.LocationSensor,
+    ]</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.AvailableMetadata.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.DbPacket"><code class="flex name class">
+<span>class <span class="ident">DbPacket</span></span>
+<span>(</span><span>_id: typing.Union[str, NoneType], metadata: typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType], additional_metadata: typing.Union[<a title="redvox.cloud.metadata_api.AdditionalMetadata" href="#redvox.cloud.metadata_api.AdditionalMetadata">AdditionalMetadata</a>, NoneType])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>DbPacket(_id: typing.Union[str, NoneType], metadata: typing.Union[redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM, NoneType], additional_metadata: typing.Union[redvox.cloud.metadata_api.AdditionalMetadata, NoneType])</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DbPacket:
+    _id: Optional[str]
+    metadata: Optional[WrappedRedvoxPacketM]
+    additional_metadata: Optional[AdditionalMetadata]
+
+    @staticmethod
+    def from_dict(json_dict: Dict) -&gt; &#39;DbPacket&#39;:
+        return DbPacket(
+            _get(&#34;_id&#34;, json_dict),
+            WrappedRedvoxPacketM.from_json(json.dumps(json_dict[&#34;metadata&#34;])),
+            AdditionalMetadata.from_dict(_get(&#34;additional_metadata&#34;, json_dict))
+        )</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.DbPacket.additional_metadata"><code class="name">var <span class="ident">additional_metadata</span> : typing.Union[<a title="redvox.cloud.metadata_api.AdditionalMetadata" href="#redvox.cloud.metadata_api.AdditionalMetadata">AdditionalMetadata</a>, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.DbPacket.metadata"><code class="name">var <span class="ident">metadata</span> : typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.DbPacket.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>json_dict: typing.Dict) ‑> <a title="redvox.cloud.metadata_api.DbPacket" href="#redvox.cloud.metadata_api.DbPacket">DbPacket</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_dict(json_dict: Dict) -&gt; &#39;DbPacket&#39;:
+    return DbPacket(
+        _get(&#34;_id&#34;, json_dict),
+        WrappedRedvoxPacketM.from_json(json.dumps(json_dict[&#34;metadata&#34;])),
+        AdditionalMetadata.from_dict(_get(&#34;additional_metadata&#34;, json_dict))
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata"><code class="flex name class">
+<span>class <span class="ident">LocationMetadata</span></span>
+<span>(</span><span>sensor_name: typing.Union[str, NoneType] = None, timestamps_microseconds_utc_count: typing.Union[int, NoneType] = None, payload_count: typing.Union[int, NoneType] = None, sample_interval_mean: typing.Union[float, NoneType] = None, sample_interval_std: typing.Union[float, NoneType] = None, sample_interval_median: typing.Union[float, NoneType] = None, latitude_mean: typing.Union[float, NoneType] = None, latitude_std: typing.Union[float, NoneType] = None, latitude_median: typing.Union[float, NoneType] = None, longitude_mean: typing.Union[float, NoneType] = None, longitude_std: typing.Union[float, NoneType] = None, longitude_median: typing.Union[float, NoneType] = None, altitude_mean: typing.Union[float, NoneType] = None, altitude_std: typing.Union[float, NoneType] = None, altitude_median: typing.Union[float, NoneType] = None, speed_mean: typing.Union[float, NoneType] = None, speed_std: typing.Union[float, NoneType] = None, speed_median: typing.Union[float, NoneType] = None, accuracy_mean: typing.Union[float, NoneType] = None, accuracy_std: typing.Union[float, NoneType] = None, accuracy_median: typing.Union[float, NoneType] = None, metadata: typing.Union[typing.List[str], NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Metadata associated with the location sensor.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LocationMetadata:
+    &#34;&#34;&#34;
+    Metadata associated with the location sensor.
+    &#34;&#34;&#34;
+    sensor_name: Optional[str] = None
+    timestamps_microseconds_utc_count: Optional[int] = None
+    payload_count: Optional[int] = None
+    sample_interval_mean: Optional[float] = None
+    sample_interval_std: Optional[float] = None
+    sample_interval_median: Optional[float] = None
+    latitude_mean: Optional[float] = None
+    latitude_std: Optional[float] = None
+    latitude_median: Optional[float] = None
+    longitude_mean: Optional[float] = None
+    longitude_std: Optional[float] = None
+    longitude_median: Optional[float] = None
+    altitude_mean: Optional[float] = None
+    altitude_std: Optional[float] = None
+    altitude_median: Optional[float] = None
+    speed_mean: Optional[float] = None
+    speed_std: Optional[float] = None
+    speed_median: Optional[float] = None
+    accuracy_mean: Optional[float] = None
+    accuracy_std: Optional[float] = None
+    accuracy_median: Optional[float] = None
+    metadata: Optional[List[str]] = None</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.accuracy_mean"><code class="name">var <span class="ident">accuracy_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.accuracy_median"><code class="name">var <span class="ident">accuracy_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.accuracy_std"><code class="name">var <span class="ident">accuracy_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.altitude_mean"><code class="name">var <span class="ident">altitude_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.altitude_median"><code class="name">var <span class="ident">altitude_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.altitude_std"><code class="name">var <span class="ident">altitude_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.latitude_mean"><code class="name">var <span class="ident">latitude_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.latitude_median"><code class="name">var <span class="ident">latitude_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.latitude_std"><code class="name">var <span class="ident">latitude_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.longitude_mean"><code class="name">var <span class="ident">longitude_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.longitude_median"><code class="name">var <span class="ident">longitude_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.longitude_std"><code class="name">var <span class="ident">longitude_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.metadata"><code class="name">var <span class="ident">metadata</span> : typing.Union[typing.List[str], NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.payload_count"><code class="name">var <span class="ident">payload_count</span> : typing.Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.sample_interval_mean"><code class="name">var <span class="ident">sample_interval_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.sample_interval_median"><code class="name">var <span class="ident">sample_interval_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.sample_interval_std"><code class="name">var <span class="ident">sample_interval_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.sensor_name"><code class="name">var <span class="ident">sensor_name</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.speed_mean"><code class="name">var <span class="ident">speed_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.speed_median"><code class="name">var <span class="ident">speed_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.speed_std"><code class="name">var <span class="ident">speed_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.timestamps_microseconds_utc_count"><code class="name">var <span class="ident">timestamps_microseconds_utc_count</span> : typing.Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataReq"><code class="flex name class">
+<span>class <span class="ident">MetadataReq</span></span>
+<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, station_ids: typing.List[str], fields: typing.List[str], secret_token: typing.Union[str, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The definition of a metadata request. Fields should include the definitions defined by AvailableMetadata.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MetadataReq:
+    &#34;&#34;&#34;
+    The definition of a metadata request. Fields should include the definitions defined by AvailableMetadata.
+    &#34;&#34;&#34;
+    auth_token: str
+    start_ts_s: int
+    end_ts_s: int
+    station_ids: List[str]
+    fields: List[str]
+    secret_token: Optional[str] = None</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.MetadataReq.auth_token"><code class="name">var <span class="ident">auth_token</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataReq.end_ts_s"><code class="name">var <span class="ident">end_ts_s</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataReq.fields"><code class="name">var <span class="ident">fields</span> : typing.List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataReq.start_ts_s"><code class="name">var <span class="ident">start_ts_s</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataReq.station_ids"><code class="name">var <span class="ident">station_ids</span> : typing.List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.MetadataReq.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataReq.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataReq.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.MetadataReq.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataReq.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataResp"><code class="flex name class">
+<span>class <span class="ident">MetadataResp</span></span>
+<span>(</span><span>metadata: typing.List[<a title="redvox.cloud.metadata_api.PacketMetadataResult" href="#redvox.cloud.metadata_api.PacketMetadataResult">PacketMetadataResult</a>])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Response of a metadata request.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MetadataResp:
+    &#34;&#34;&#34;
+    Response of a metadata request.
+    &#34;&#34;&#34;
+    metadata: List[PacketMetadataResult]</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.MetadataResp.metadata"><code class="name">var <span class="ident">metadata</span> : typing.List[<a title="redvox.cloud.metadata_api.PacketMetadataResult" href="#redvox.cloud.metadata_api.PacketMetadataResult">PacketMetadataResult</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.MetadataResp.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataResp.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataResp.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.MetadataResp.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataResp.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.MetadataRespM"><code class="flex name class">
+<span>class <span class="ident">MetadataRespM</span></span>
+<span>(</span><span>db_packets: typing.List[<a title="redvox.cloud.metadata_api.DbPacket" href="#redvox.cloud.metadata_api.DbPacket">DbPacket</a>])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>MetadataRespM(db_packets: typing.List[redvox.cloud.metadata_api.DbPacket])</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MetadataRespM:
+    db_packets: List[DbPacket]
+
+    @staticmethod
+    def from_json(json_dicts: Dict) -&gt; &#39;MetadataRespM&#39;:
+
+        return MetadataRespM(
+            list(map(DbPacket.from_dict, json_dicts[&#34;db_packets&#34;]))
+        )</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.MetadataRespM.db_packets"><code class="name">var <span class="ident">db_packets</span> : typing.List[<a title="redvox.cloud.metadata_api.DbPacket" href="#redvox.cloud.metadata_api.DbPacket">DbPacket</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.MetadataRespM.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>json_dicts: typing.Dict) ‑> <a title="redvox.cloud.metadata_api.MetadataRespM" href="#redvox.cloud.metadata_api.MetadataRespM">MetadataRespM</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_json(json_dicts: Dict) -&gt; &#39;MetadataRespM&#39;:
+
+    return MetadataRespM(
+        list(map(DbPacket.from_dict, json_dicts[&#34;db_packets&#34;]))
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult"><code class="flex name class">
+<span>class <span class="ident">PacketMetadataResult</span></span>
+<span>(</span><span>api: typing.Union[int, NoneType] = None, station_id: typing.Union[str, NoneType] = None, station_uuid: typing.Union[str, NoneType] = None, auth_email: typing.Union[str, NoneType] = None, is_backfilled: typing.Union[bool, NoneType] = None, is_private: typing.Union[bool, NoneType] = None, is_scrambled: typing.Union[bool, NoneType] = None, station_make: typing.Union[str, NoneType] = None, station_model: typing.Union[str, NoneType] = None, station_os: typing.Union[str, NoneType] = None, station_os_version: typing.Union[str, NoneType] = None, station_app_version: typing.Union[str, NoneType] = None, battery_level: typing.Union[float, NoneType] = None, station_temperature: typing.Union[float, NoneType] = None, acquisition_url: typing.Union[str, NoneType] = None, synch_url: typing.Union[str, NoneType] = None, auth_url: typing.Union[str, NoneType] = None, os_ts: typing.Union[int, NoneType] = None, mach_ts: typing.Union[int, NoneType] = None, server_ts: typing.Union[int, NoneType] = None, data_key: typing.Union[str, NoneType] = None, mach_time_zero: typing.Union[float, NoneType] = None, best_latency: typing.Union[float, NoneType] = None, best_offset: typing.Union[float, NoneType] = None, audio_sensor: typing.Union[<a title="redvox.cloud.metadata_api.AudioMetadata" href="#redvox.cloud.metadata_api.AudioMetadata">AudioMetadata</a>, NoneType] = None, barometer_sensor: typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType] = None, location_sensor: typing.Union[<a title="redvox.cloud.metadata_api.LocationMetadata" href="#redvox.cloud.metadata_api.LocationMetadata">LocationMetadata</a>, NoneType] = None, time_synchronization_sensor: typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType] = None, accelerometer_sensor: typing.Union[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>, NoneType] = None, magnetometer_sensor: typing.Union[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>, NoneType] = None, gyroscope_sensor: typing.Union[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>, NoneType] = None, light_sensor: typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType] = None, proximity_sensor: typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Metadata associated with RedVox API 900 packets.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PacketMetadataResult:
+    &#34;&#34;&#34;
+    Metadata associated with RedVox API 900 packets.
+    &#34;&#34;&#34;
+    api: Optional[int] = None
+    station_id: Optional[str] = None
+    station_uuid: Optional[str] = None
+    auth_email: Optional[str] = None
+    is_backfilled: Optional[bool] = None
+    is_private: Optional[bool] = None
+    is_scrambled: Optional[bool] = None
+    station_make: Optional[str] = None
+    station_model: Optional[str] = None
+    station_os: Optional[str] = None
+    station_os_version: Optional[str] = None
+    station_app_version: Optional[str] = None
+    battery_level: Optional[float] = None
+    station_temperature: Optional[float] = None
+    acquisition_url: Optional[str] = None
+    synch_url: Optional[str] = None
+    auth_url: Optional[str] = None
+    os_ts: Optional[int] = None
+    mach_ts: Optional[int] = None
+    server_ts: Optional[int] = None
+    data_key: Optional[str] = None
+    mach_time_zero: Optional[float] = None
+    best_latency: Optional[float] = None
+    best_offset: Optional[float] = None
+    audio_sensor: Optional[AudioMetadata] = None
+    barometer_sensor: Optional[SingleMetadata] = None
+    location_sensor: Optional[LocationMetadata] = None
+    time_synchronization_sensor: Optional[SingleMetadata] = None
+    accelerometer_sensor: Optional[XyzMetadata] = None
+    magnetometer_sensor: Optional[XyzMetadata] = None
+    gyroscope_sensor: Optional[XyzMetadata] = None
+    light_sensor: Optional[SingleMetadata] = None
+    proximity_sensor: Optional[SingleMetadata] = None</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.accelerometer_sensor"><code class="name">var <span class="ident">accelerometer_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.acquisition_url"><code class="name">var <span class="ident">acquisition_url</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.api"><code class="name">var <span class="ident">api</span> : typing.Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.audio_sensor"><code class="name">var <span class="ident">audio_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.AudioMetadata" href="#redvox.cloud.metadata_api.AudioMetadata">AudioMetadata</a>, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.auth_email"><code class="name">var <span class="ident">auth_email</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.auth_url"><code class="name">var <span class="ident">auth_url</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.barometer_sensor"><code class="name">var <span class="ident">barometer_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.battery_level"><code class="name">var <span class="ident">battery_level</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.best_latency"><code class="name">var <span class="ident">best_latency</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.best_offset"><code class="name">var <span class="ident">best_offset</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.data_key"><code class="name">var <span class="ident">data_key</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.gyroscope_sensor"><code class="name">var <span class="ident">gyroscope_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.is_backfilled"><code class="name">var <span class="ident">is_backfilled</span> : typing.Union[bool, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.is_private"><code class="name">var <span class="ident">is_private</span> : typing.Union[bool, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.is_scrambled"><code class="name">var <span class="ident">is_scrambled</span> : typing.Union[bool, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.light_sensor"><code class="name">var <span class="ident">light_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.location_sensor"><code class="name">var <span class="ident">location_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.LocationMetadata" href="#redvox.cloud.metadata_api.LocationMetadata">LocationMetadata</a>, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.mach_time_zero"><code class="name">var <span class="ident">mach_time_zero</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.mach_ts"><code class="name">var <span class="ident">mach_ts</span> : typing.Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.magnetometer_sensor"><code class="name">var <span class="ident">magnetometer_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.os_ts"><code class="name">var <span class="ident">os_ts</span> : typing.Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.proximity_sensor"><code class="name">var <span class="ident">proximity_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.server_ts"><code class="name">var <span class="ident">server_ts</span> : typing.Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_app_version"><code class="name">var <span class="ident">station_app_version</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_id"><code class="name">var <span class="ident">station_id</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_make"><code class="name">var <span class="ident">station_make</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_model"><code class="name">var <span class="ident">station_model</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_os"><code class="name">var <span class="ident">station_os</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_os_version"><code class="name">var <span class="ident">station_os_version</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_temperature"><code class="name">var <span class="ident">station_temperature</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_uuid"><code class="name">var <span class="ident">station_uuid</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.synch_url"><code class="name">var <span class="ident">synch_url</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.time_synchronization_sensor"><code class="name">var <span class="ident">time_synchronization_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM"><code class="flex name class">
+<span>class <span class="ident">RedvoxPacketM</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.BYTE"><code class="name">var <span class="ident">BYTE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.CENTIMETERS"><code class="name">var <span class="ident">CENTIMETERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.DECIBEL"><code class="name">var <span class="ident">DECIBEL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.DECIMAL_DEGREES"><code class="name">var <span class="ident">DECIMAL_DEGREES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.DEGREES_CELSIUS"><code class="name">var <span class="ident">DEGREES_CELSIUS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.DoubleSamplePayload"><code class="name">var <span class="ident">DoubleSamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.EventStream"><code class="name">var <span class="ident">EventStream</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.KILOPASCAL"><code class="name">var <span class="ident">KILOPASCAL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS"><code class="name">var <span class="ident">LSB_PLUS_MINUS_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.LUX"><code class="name">var <span class="ident">LUX</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.METERS"><code class="name">var <span class="ident">METERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.METERS_PER_SECOND"><code class="name">var <span class="ident">METERS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.METERS_PER_SECOND_SQUARED"><code class="name">var <span class="ident">METERS_PER_SECOND_SQUARED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.MICROAMPERES"><code class="name">var <span class="ident">MICROAMPERES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH"><code class="name">var <span class="ident">MICROSECONDS_SINCE_UNIX_EPOCH</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.MICROTESLA"><code class="name">var <span class="ident">MICROTESLA</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.MetadataEntry"><code class="name">var <span class="ident">MetadataEntry</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.NORMALIZED_COUNTS"><code class="name">var <span class="ident">NORMALIZED_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.PCM"><code class="name">var <span class="ident">PCM</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.PERCENTAGE"><code class="name">var <span class="ident">PERCENTAGE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.RADIANS"><code class="name">var <span class="ident">RADIANS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.RADIANS_PER_SECOND"><code class="name">var <span class="ident">RADIANS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.SamplePayload"><code class="name">var <span class="ident">SamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.Sensors"><code class="name">var <span class="ident">Sensors</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.StationInformation"><code class="name">var <span class="ident">StationInformation</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.SummaryStatistics"><code class="name">var <span class="ident">SummaryStatistics</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.TimingInformation"><code class="name">var <span class="ident">TimingInformation</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.TimingPayload"><code class="name">var <span class="ident">TimingPayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.UNITLESS"><code class="name">var <span class="ident">UNITLESS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.Unit"><code class="name">var <span class="ident">Unit</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.api"><code class="name">var <span class="ident">api</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.api</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.event_streams"><code class="name">var <span class="ident">event_streams</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.event_streams</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.metadata</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.sensors"><code class="name">var <span class="ident">sensors</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sensors</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.station_information"><code class="name">var <span class="ident">station_information</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.station_information</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.sub_api"><code class="name">var <span class="ident">sub_api</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sub_api</p></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.RedvoxPacketM.timing_information"><code class="name">var <span class="ident">timing_information</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.timing_information</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata"><code class="flex name class">
+<span>class <span class="ident">SingleMetadata</span></span>
+<span>(</span><span>sensor_name: typing.Union[str, NoneType] = None, timestamps_microseconds_utc_count: typing.Union[int, NoneType] = None, payload_count: typing.Union[int, NoneType] = None, sample_interval_mean: typing.Union[float, NoneType] = None, sample_interval_std: typing.Union[float, NoneType] = None, sample_interval_median: typing.Union[float, NoneType] = None, value_mean: typing.Union[float, NoneType] = None, value_std: typing.Union[float, NoneType] = None, value_median: typing.Union[float, NoneType] = None, metadata: typing.Union[typing.List[str], NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Metadata associated with sensors that only contain a single dimensional channel of data
+(barometer, light, proximity).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SingleMetadata:
+    &#34;&#34;&#34;
+    Metadata associated with sensors that only contain a single dimensional channel of data
+        (barometer, light, proximity).
+    &#34;&#34;&#34;
+    sensor_name: Optional[str] = None
+    timestamps_microseconds_utc_count: Optional[int] = None
+    payload_count: Optional[int] = None
+    sample_interval_mean: Optional[float] = None
+    sample_interval_std: Optional[float] = None
+    sample_interval_median: Optional[float] = None
+    value_mean: Optional[float] = None
+    value_std: Optional[float] = None
+    value_median: Optional[float] = None
+    metadata: Optional[List[str]] = None</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.metadata"><code class="name">var <span class="ident">metadata</span> : typing.Union[typing.List[str], NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.payload_count"><code class="name">var <span class="ident">payload_count</span> : typing.Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.sample_interval_mean"><code class="name">var <span class="ident">sample_interval_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.sample_interval_median"><code class="name">var <span class="ident">sample_interval_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.sample_interval_std"><code class="name">var <span class="ident">sample_interval_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.sensor_name"><code class="name">var <span class="ident">sensor_name</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.timestamps_microseconds_utc_count"><code class="name">var <span class="ident">timestamps_microseconds_utc_count</span> : typing.Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.value_mean"><code class="name">var <span class="ident">value_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.value_median"><code class="name">var <span class="ident">value_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.value_std"><code class="name">var <span class="ident">value_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMeta"><code class="flex name class">
+<span>class <span class="ident">TimingMeta</span></span>
+<span>(</span><span>station_id: str, start_ts_os: float, start_ts_mach: float, server_ts: float, mach_time_zero: float, best_latency: float, best_offset: float)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Timing metadata extracted from an individual packet.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TimingMeta:
+    &#34;&#34;&#34;
+    Timing metadata extracted from an individual packet.
+    &#34;&#34;&#34;
+    station_id: str
+    start_ts_os: float
+    start_ts_mach: float
+    server_ts: float
+    mach_time_zero: float
+    best_latency: float
+    best_offset: float</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.TimingMeta.best_latency"><code class="name">var <span class="ident">best_latency</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMeta.best_offset"><code class="name">var <span class="ident">best_offset</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMeta.mach_time_zero"><code class="name">var <span class="ident">mach_time_zero</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMeta.server_ts"><code class="name">var <span class="ident">server_ts</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMeta.start_ts_mach"><code class="name">var <span class="ident">start_ts_mach</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMeta.start_ts_os"><code class="name">var <span class="ident">start_ts_os</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMeta.station_id"><code class="name">var <span class="ident">station_id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.TimingMeta.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMeta.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMeta.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.TimingMeta.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMeta.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMetaRequest"><code class="flex name class">
+<span>class <span class="ident">TimingMetaRequest</span></span>
+<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, station_ids: typing.List[str], secret_token: typing.Union[str, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Request for timing metadata.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TimingMetaRequest:
+    &#34;&#34;&#34;
+    Request for timing metadata.
+    &#34;&#34;&#34;
+    auth_token: str
+    start_ts_s: int
+    end_ts_s: int
+    station_ids: List[str]
+    secret_token: Optional[str] = None</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.TimingMetaRequest.auth_token"><code class="name">var <span class="ident">auth_token</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMetaRequest.end_ts_s"><code class="name">var <span class="ident">end_ts_s</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMetaRequest.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMetaRequest.start_ts_s"><code class="name">var <span class="ident">start_ts_s</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMetaRequest.station_ids"><code class="name">var <span class="ident">station_ids</span> : typing.List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.TimingMetaRequest.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMetaRequest.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMetaRequest.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.TimingMetaRequest.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMetaRequest.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMetaResponse"><code class="flex name class">
+<span>class <span class="ident">TimingMetaResponse</span></span>
+<span>(</span><span>items: typing.List[<a title="redvox.cloud.metadata_api.TimingMeta" href="#redvox.cloud.metadata_api.TimingMeta">TimingMeta</a>])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Response of obtaining timing metadta.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TimingMetaResponse:
+    &#34;&#34;&#34;
+    Response of obtaining timing metadta.
+    &#34;&#34;&#34;
+    items: List[TimingMeta]</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.TimingMetaResponse.items"><code class="name">var <span class="ident">items</span> : typing.List[<a title="redvox.cloud.metadata_api.TimingMeta" href="#redvox.cloud.metadata_api.TimingMeta">TimingMeta</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.TimingMetaResponse.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMetaResponse.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMetaResponse.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.TimingMetaResponse.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.TimingMetaResponse.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata"><code class="flex name class">
+<span>class <span class="ident">XyzMetadata</span></span>
+<span>(</span><span>sensor_name: typing.Union[str, NoneType] = None, timestamps_microseconds_utc_count: typing.Union[int, NoneType] = None, payload_count: typing.Union[int, NoneType] = None, sample_interval_mean: typing.Union[float, NoneType] = None, sample_interval_std: typing.Union[float, NoneType] = None, sample_interval_median: typing.Union[float, NoneType] = None, x_mean: typing.Union[float, NoneType] = None, x_std: typing.Union[float, NoneType] = None, x_median: typing.Union[float, NoneType] = None, y_mean: typing.Union[float, NoneType] = None, y_std: typing.Union[float, NoneType] = None, y_median: typing.Union[float, NoneType] = None, z_mean: typing.Union[float, NoneType] = None, z_std: typing.Union[float, NoneType] = None, z_median: typing.Union[float, NoneType] = None, metadata: typing.Union[typing.List[str], NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Metadata for sensors that have 3-dimensions of data (accelerometer, gyroscope, magenetometer)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class XyzMetadata:
+    &#34;&#34;&#34;
+    Metadata for sensors that have 3-dimensions of data (accelerometer, gyroscope, magenetometer)
+    &#34;&#34;&#34;
+    sensor_name: Optional[str] = None
+    timestamps_microseconds_utc_count: Optional[int] = None
+    payload_count: Optional[int] = None
+    sample_interval_mean: Optional[float] = None
+    sample_interval_std: Optional[float] = None
+    sample_interval_median: Optional[float] = None
+    x_mean: Optional[float] = None
+    x_std: Optional[float] = None
+    x_median: Optional[float] = None
+    y_mean: Optional[float] = None
+    y_std: Optional[float] = None
+    y_median: Optional[float] = None
+    z_mean: Optional[float] = None
+    z_std: Optional[float] = None
+    z_median: Optional[float] = None
+    metadata: Optional[List[str]] = None</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.metadata"><code class="name">var <span class="ident">metadata</span> : typing.Union[typing.List[str], NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.payload_count"><code class="name">var <span class="ident">payload_count</span> : typing.Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.sample_interval_mean"><code class="name">var <span class="ident">sample_interval_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.sample_interval_median"><code class="name">var <span class="ident">sample_interval_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.sample_interval_std"><code class="name">var <span class="ident">sample_interval_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.sensor_name"><code class="name">var <span class="ident">sensor_name</span> : typing.Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.timestamps_microseconds_utc_count"><code class="name">var <span class="ident">timestamps_microseconds_utc_count</span> : typing.Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.x_mean"><code class="name">var <span class="ident">x_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.x_median"><code class="name">var <span class="ident">x_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.x_std"><code class="name">var <span class="ident">x_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.y_mean"><code class="name">var <span class="ident">y_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.y_median"><code class="name">var <span class="ident">y_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.y_std"><code class="name">var <span class="ident">y_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.z_mean"><code class="name">var <span class="ident">z_mean</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.z_median"><code class="name">var <span class="ident">z_median</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.z_std"><code class="name">var <span class="ident">z_std</span> : typing.Union[float, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.cloud" href="index.html">redvox.cloud</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.cloud.metadata_api.request_metadata" href="#redvox.cloud.metadata_api.request_metadata">request_metadata</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.request_metadata_m" href="#redvox.cloud.metadata_api.request_metadata_m">request_metadata_m</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.request_timing_metadata" href="#redvox.cloud.metadata_api.request_timing_metadata">request_timing_metadata</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.AdditionalMetadata" href="#redvox.cloud.metadata_api.AdditionalMetadata">AdditionalMetadata</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.cloud.metadata_api.AdditionalMetadata.data_key" href="#redvox.cloud.metadata_api.AdditionalMetadata.data_key">data_key</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AdditionalMetadata.from_dict" href="#redvox.cloud.metadata_api.AdditionalMetadata.from_dict">from_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.AudioMetadata" href="#redvox.cloud.metadata_api.AudioMetadata">AudioMetadata</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.cloud.metadata_api.AudioMetadata.first_sample_ts" href="#redvox.cloud.metadata_api.AudioMetadata.first_sample_ts">first_sample_ts</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AudioMetadata.from_dict" href="#redvox.cloud.metadata_api.AudioMetadata.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AudioMetadata.from_json" href="#redvox.cloud.metadata_api.AudioMetadata.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AudioMetadata.payload_cnt" href="#redvox.cloud.metadata_api.AudioMetadata.payload_cnt">payload_cnt</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AudioMetadata.payload_mean" href="#redvox.cloud.metadata_api.AudioMetadata.payload_mean">payload_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AudioMetadata.payload_median" href="#redvox.cloud.metadata_api.AudioMetadata.payload_median">payload_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AudioMetadata.payload_std" href="#redvox.cloud.metadata_api.AudioMetadata.payload_std">payload_std</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AudioMetadata.sample_rate" href="#redvox.cloud.metadata_api.AudioMetadata.sample_rate">sample_rate</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AudioMetadata.schema" href="#redvox.cloud.metadata_api.AudioMetadata.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AudioMetadata.sensor_name" href="#redvox.cloud.metadata_api.AudioMetadata.sensor_name">sensor_name</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AudioMetadata.to_dict" href="#redvox.cloud.metadata_api.AudioMetadata.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AudioMetadata.to_json" href="#redvox.cloud.metadata_api.AudioMetadata.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.AvailableMetadata" href="#redvox.cloud.metadata_api.AvailableMetadata">AvailableMetadata</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.AccelerometerSensor" href="#redvox.cloud.metadata_api.AvailableMetadata.AccelerometerSensor">AccelerometerSensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.AcquisitionUrl" href="#redvox.cloud.metadata_api.AvailableMetadata.AcquisitionUrl">AcquisitionUrl</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.Api" href="#redvox.cloud.metadata_api.AvailableMetadata.Api">Api</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.AudioSensor" href="#redvox.cloud.metadata_api.AvailableMetadata.AudioSensor">AudioSensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.AuthEmail" href="#redvox.cloud.metadata_api.AvailableMetadata.AuthEmail">AuthEmail</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.AuthUrl" href="#redvox.cloud.metadata_api.AvailableMetadata.AuthUrl">AuthUrl</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.BarometerSensor" href="#redvox.cloud.metadata_api.AvailableMetadata.BarometerSensor">BarometerSensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.BatteryLevel" href="#redvox.cloud.metadata_api.AvailableMetadata.BatteryLevel">BatteryLevel</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.BestLatency" href="#redvox.cloud.metadata_api.AvailableMetadata.BestLatency">BestLatency</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.BestOffset" href="#redvox.cloud.metadata_api.AvailableMetadata.BestOffset">BestOffset</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.DataKey" href="#redvox.cloud.metadata_api.AvailableMetadata.DataKey">DataKey</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.GyroscopeSensor" href="#redvox.cloud.metadata_api.AvailableMetadata.GyroscopeSensor">GyroscopeSensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.IsBackfilled" href="#redvox.cloud.metadata_api.AvailableMetadata.IsBackfilled">IsBackfilled</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.IsPrivate" href="#redvox.cloud.metadata_api.AvailableMetadata.IsPrivate">IsPrivate</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.IsScrambled" href="#redvox.cloud.metadata_api.AvailableMetadata.IsScrambled">IsScrambled</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.LightSensor" href="#redvox.cloud.metadata_api.AvailableMetadata.LightSensor">LightSensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.LocationSensor" href="#redvox.cloud.metadata_api.AvailableMetadata.LocationSensor">LocationSensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.MachTimeZero" href="#redvox.cloud.metadata_api.AvailableMetadata.MachTimeZero">MachTimeZero</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.MachTs" href="#redvox.cloud.metadata_api.AvailableMetadata.MachTs">MachTs</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.MagnetometerSensor" href="#redvox.cloud.metadata_api.AvailableMetadata.MagnetometerSensor">MagnetometerSensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.OsTs" href="#redvox.cloud.metadata_api.AvailableMetadata.OsTs">OsTs</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.ProximitySensor" href="#redvox.cloud.metadata_api.AvailableMetadata.ProximitySensor">ProximitySensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.ServerTs" href="#redvox.cloud.metadata_api.AvailableMetadata.ServerTs">ServerTs</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.StationAppVersion" href="#redvox.cloud.metadata_api.AvailableMetadata.StationAppVersion">StationAppVersion</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.StationId" href="#redvox.cloud.metadata_api.AvailableMetadata.StationId">StationId</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.StationMake" href="#redvox.cloud.metadata_api.AvailableMetadata.StationMake">StationMake</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.StationModel" href="#redvox.cloud.metadata_api.AvailableMetadata.StationModel">StationModel</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.StationOs" href="#redvox.cloud.metadata_api.AvailableMetadata.StationOs">StationOs</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.StationOsVersion" href="#redvox.cloud.metadata_api.AvailableMetadata.StationOsVersion">StationOsVersion</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.StationTemperature" href="#redvox.cloud.metadata_api.AvailableMetadata.StationTemperature">StationTemperature</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.StationUuid" href="#redvox.cloud.metadata_api.AvailableMetadata.StationUuid">StationUuid</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.SynchUrl" href="#redvox.cloud.metadata_api.AvailableMetadata.SynchUrl">SynchUrl</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.TimeSynchronizationSensor" href="#redvox.cloud.metadata_api.AvailableMetadata.TimeSynchronizationSensor">TimeSynchronizationSensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.all_available_metadata" href="#redvox.cloud.metadata_api.AvailableMetadata.all_available_metadata">all_available_metadata</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.from_dict" href="#redvox.cloud.metadata_api.AvailableMetadata.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.from_json" href="#redvox.cloud.metadata_api.AvailableMetadata.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.schema" href="#redvox.cloud.metadata_api.AvailableMetadata.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.to_dict" href="#redvox.cloud.metadata_api.AvailableMetadata.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.AvailableMetadata.to_json" href="#redvox.cloud.metadata_api.AvailableMetadata.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.DbPacket" href="#redvox.cloud.metadata_api.DbPacket">DbPacket</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.cloud.metadata_api.DbPacket.additional_metadata" href="#redvox.cloud.metadata_api.DbPacket.additional_metadata">additional_metadata</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.DbPacket.from_dict" href="#redvox.cloud.metadata_api.DbPacket.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.DbPacket.metadata" href="#redvox.cloud.metadata_api.DbPacket.metadata">metadata</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.LocationMetadata" href="#redvox.cloud.metadata_api.LocationMetadata">LocationMetadata</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.accuracy_mean" href="#redvox.cloud.metadata_api.LocationMetadata.accuracy_mean">accuracy_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.accuracy_median" href="#redvox.cloud.metadata_api.LocationMetadata.accuracy_median">accuracy_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.accuracy_std" href="#redvox.cloud.metadata_api.LocationMetadata.accuracy_std">accuracy_std</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.altitude_mean" href="#redvox.cloud.metadata_api.LocationMetadata.altitude_mean">altitude_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.altitude_median" href="#redvox.cloud.metadata_api.LocationMetadata.altitude_median">altitude_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.altitude_std" href="#redvox.cloud.metadata_api.LocationMetadata.altitude_std">altitude_std</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.from_dict" href="#redvox.cloud.metadata_api.LocationMetadata.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.from_json" href="#redvox.cloud.metadata_api.LocationMetadata.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.latitude_mean" href="#redvox.cloud.metadata_api.LocationMetadata.latitude_mean">latitude_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.latitude_median" href="#redvox.cloud.metadata_api.LocationMetadata.latitude_median">latitude_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.latitude_std" href="#redvox.cloud.metadata_api.LocationMetadata.latitude_std">latitude_std</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.longitude_mean" href="#redvox.cloud.metadata_api.LocationMetadata.longitude_mean">longitude_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.longitude_median" href="#redvox.cloud.metadata_api.LocationMetadata.longitude_median">longitude_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.longitude_std" href="#redvox.cloud.metadata_api.LocationMetadata.longitude_std">longitude_std</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.metadata" href="#redvox.cloud.metadata_api.LocationMetadata.metadata">metadata</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.payload_count" href="#redvox.cloud.metadata_api.LocationMetadata.payload_count">payload_count</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.sample_interval_mean" href="#redvox.cloud.metadata_api.LocationMetadata.sample_interval_mean">sample_interval_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.sample_interval_median" href="#redvox.cloud.metadata_api.LocationMetadata.sample_interval_median">sample_interval_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.sample_interval_std" href="#redvox.cloud.metadata_api.LocationMetadata.sample_interval_std">sample_interval_std</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.schema" href="#redvox.cloud.metadata_api.LocationMetadata.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.sensor_name" href="#redvox.cloud.metadata_api.LocationMetadata.sensor_name">sensor_name</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.speed_mean" href="#redvox.cloud.metadata_api.LocationMetadata.speed_mean">speed_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.speed_median" href="#redvox.cloud.metadata_api.LocationMetadata.speed_median">speed_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.speed_std" href="#redvox.cloud.metadata_api.LocationMetadata.speed_std">speed_std</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.timestamps_microseconds_utc_count" href="#redvox.cloud.metadata_api.LocationMetadata.timestamps_microseconds_utc_count">timestamps_microseconds_utc_count</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.to_dict" href="#redvox.cloud.metadata_api.LocationMetadata.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.LocationMetadata.to_json" href="#redvox.cloud.metadata_api.LocationMetadata.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.MetadataReq" href="#redvox.cloud.metadata_api.MetadataReq">MetadataReq</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.cloud.metadata_api.MetadataReq.auth_token" href="#redvox.cloud.metadata_api.MetadataReq.auth_token">auth_token</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataReq.end_ts_s" href="#redvox.cloud.metadata_api.MetadataReq.end_ts_s">end_ts_s</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataReq.fields" href="#redvox.cloud.metadata_api.MetadataReq.fields">fields</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataReq.from_dict" href="#redvox.cloud.metadata_api.MetadataReq.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataReq.from_json" href="#redvox.cloud.metadata_api.MetadataReq.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataReq.schema" href="#redvox.cloud.metadata_api.MetadataReq.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataReq.secret_token" href="#redvox.cloud.metadata_api.MetadataReq.secret_token">secret_token</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataReq.start_ts_s" href="#redvox.cloud.metadata_api.MetadataReq.start_ts_s">start_ts_s</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataReq.station_ids" href="#redvox.cloud.metadata_api.MetadataReq.station_ids">station_ids</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataReq.to_dict" href="#redvox.cloud.metadata_api.MetadataReq.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataReq.to_json" href="#redvox.cloud.metadata_api.MetadataReq.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.MetadataResp" href="#redvox.cloud.metadata_api.MetadataResp">MetadataResp</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.cloud.metadata_api.MetadataResp.from_dict" href="#redvox.cloud.metadata_api.MetadataResp.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataResp.from_json" href="#redvox.cloud.metadata_api.MetadataResp.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataResp.metadata" href="#redvox.cloud.metadata_api.MetadataResp.metadata">metadata</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataResp.schema" href="#redvox.cloud.metadata_api.MetadataResp.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataResp.to_dict" href="#redvox.cloud.metadata_api.MetadataResp.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataResp.to_json" href="#redvox.cloud.metadata_api.MetadataResp.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.MetadataRespM" href="#redvox.cloud.metadata_api.MetadataRespM">MetadataRespM</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.cloud.metadata_api.MetadataRespM.db_packets" href="#redvox.cloud.metadata_api.MetadataRespM.db_packets">db_packets</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.MetadataRespM.from_json" href="#redvox.cloud.metadata_api.MetadataRespM.from_json">from_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.PacketMetadataResult" href="#redvox.cloud.metadata_api.PacketMetadataResult">PacketMetadataResult</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.accelerometer_sensor" href="#redvox.cloud.metadata_api.PacketMetadataResult.accelerometer_sensor">accelerometer_sensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.acquisition_url" href="#redvox.cloud.metadata_api.PacketMetadataResult.acquisition_url">acquisition_url</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.api" href="#redvox.cloud.metadata_api.PacketMetadataResult.api">api</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.audio_sensor" href="#redvox.cloud.metadata_api.PacketMetadataResult.audio_sensor">audio_sensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.auth_email" href="#redvox.cloud.metadata_api.PacketMetadataResult.auth_email">auth_email</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.auth_url" href="#redvox.cloud.metadata_api.PacketMetadataResult.auth_url">auth_url</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.barometer_sensor" href="#redvox.cloud.metadata_api.PacketMetadataResult.barometer_sensor">barometer_sensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.battery_level" href="#redvox.cloud.metadata_api.PacketMetadataResult.battery_level">battery_level</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.best_latency" href="#redvox.cloud.metadata_api.PacketMetadataResult.best_latency">best_latency</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.best_offset" href="#redvox.cloud.metadata_api.PacketMetadataResult.best_offset">best_offset</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.data_key" href="#redvox.cloud.metadata_api.PacketMetadataResult.data_key">data_key</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.from_dict" href="#redvox.cloud.metadata_api.PacketMetadataResult.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.from_json" href="#redvox.cloud.metadata_api.PacketMetadataResult.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.gyroscope_sensor" href="#redvox.cloud.metadata_api.PacketMetadataResult.gyroscope_sensor">gyroscope_sensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.is_backfilled" href="#redvox.cloud.metadata_api.PacketMetadataResult.is_backfilled">is_backfilled</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.is_private" href="#redvox.cloud.metadata_api.PacketMetadataResult.is_private">is_private</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.is_scrambled" href="#redvox.cloud.metadata_api.PacketMetadataResult.is_scrambled">is_scrambled</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.light_sensor" href="#redvox.cloud.metadata_api.PacketMetadataResult.light_sensor">light_sensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.location_sensor" href="#redvox.cloud.metadata_api.PacketMetadataResult.location_sensor">location_sensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.mach_time_zero" href="#redvox.cloud.metadata_api.PacketMetadataResult.mach_time_zero">mach_time_zero</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.mach_ts" href="#redvox.cloud.metadata_api.PacketMetadataResult.mach_ts">mach_ts</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.magnetometer_sensor" href="#redvox.cloud.metadata_api.PacketMetadataResult.magnetometer_sensor">magnetometer_sensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.os_ts" href="#redvox.cloud.metadata_api.PacketMetadataResult.os_ts">os_ts</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.proximity_sensor" href="#redvox.cloud.metadata_api.PacketMetadataResult.proximity_sensor">proximity_sensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.schema" href="#redvox.cloud.metadata_api.PacketMetadataResult.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.server_ts" href="#redvox.cloud.metadata_api.PacketMetadataResult.server_ts">server_ts</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.station_app_version" href="#redvox.cloud.metadata_api.PacketMetadataResult.station_app_version">station_app_version</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.station_id" href="#redvox.cloud.metadata_api.PacketMetadataResult.station_id">station_id</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.station_make" href="#redvox.cloud.metadata_api.PacketMetadataResult.station_make">station_make</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.station_model" href="#redvox.cloud.metadata_api.PacketMetadataResult.station_model">station_model</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.station_os" href="#redvox.cloud.metadata_api.PacketMetadataResult.station_os">station_os</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.station_os_version" href="#redvox.cloud.metadata_api.PacketMetadataResult.station_os_version">station_os_version</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.station_temperature" href="#redvox.cloud.metadata_api.PacketMetadataResult.station_temperature">station_temperature</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.station_uuid" href="#redvox.cloud.metadata_api.PacketMetadataResult.station_uuid">station_uuid</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.synch_url" href="#redvox.cloud.metadata_api.PacketMetadataResult.synch_url">synch_url</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.time_synchronization_sensor" href="#redvox.cloud.metadata_api.PacketMetadataResult.time_synchronization_sensor">time_synchronization_sensor</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.to_dict" href="#redvox.cloud.metadata_api.PacketMetadataResult.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.PacketMetadataResult.to_json" href="#redvox.cloud.metadata_api.PacketMetadataResult.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.RedvoxPacketM" href="#redvox.cloud.metadata_api.RedvoxPacketM">RedvoxPacketM</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.BYTE" href="#redvox.cloud.metadata_api.RedvoxPacketM.BYTE">BYTE</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.CENTIMETERS" href="#redvox.cloud.metadata_api.RedvoxPacketM.CENTIMETERS">CENTIMETERS</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.DECIBEL" href="#redvox.cloud.metadata_api.RedvoxPacketM.DECIBEL">DECIBEL</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.DECIMAL_DEGREES" href="#redvox.cloud.metadata_api.RedvoxPacketM.DECIMAL_DEGREES">DECIMAL_DEGREES</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.DEGREES_CELSIUS" href="#redvox.cloud.metadata_api.RedvoxPacketM.DEGREES_CELSIUS">DEGREES_CELSIUS</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.DESCRIPTOR" href="#redvox.cloud.metadata_api.RedvoxPacketM.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.DoubleSamplePayload" href="#redvox.cloud.metadata_api.RedvoxPacketM.DoubleSamplePayload">DoubleSamplePayload</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.EventStream" href="#redvox.cloud.metadata_api.RedvoxPacketM.EventStream">EventStream</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.KILOPASCAL" href="#redvox.cloud.metadata_api.RedvoxPacketM.KILOPASCAL">KILOPASCAL</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS" href="#redvox.cloud.metadata_api.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS">LSB_PLUS_MINUS_COUNTS</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.LUX" href="#redvox.cloud.metadata_api.RedvoxPacketM.LUX">LUX</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.METERS" href="#redvox.cloud.metadata_api.RedvoxPacketM.METERS">METERS</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.METERS_PER_SECOND" href="#redvox.cloud.metadata_api.RedvoxPacketM.METERS_PER_SECOND">METERS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.METERS_PER_SECOND_SQUARED" href="#redvox.cloud.metadata_api.RedvoxPacketM.METERS_PER_SECOND_SQUARED">METERS_PER_SECOND_SQUARED</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.MICROAMPERES" href="#redvox.cloud.metadata_api.RedvoxPacketM.MICROAMPERES">MICROAMPERES</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH" href="#redvox.cloud.metadata_api.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH">MICROSECONDS_SINCE_UNIX_EPOCH</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.MICROTESLA" href="#redvox.cloud.metadata_api.RedvoxPacketM.MICROTESLA">MICROTESLA</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.MetadataEntry" href="#redvox.cloud.metadata_api.RedvoxPacketM.MetadataEntry">MetadataEntry</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.NORMALIZED_COUNTS" href="#redvox.cloud.metadata_api.RedvoxPacketM.NORMALIZED_COUNTS">NORMALIZED_COUNTS</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.PCM" href="#redvox.cloud.metadata_api.RedvoxPacketM.PCM">PCM</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.PERCENTAGE" href="#redvox.cloud.metadata_api.RedvoxPacketM.PERCENTAGE">PERCENTAGE</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.RADIANS" href="#redvox.cloud.metadata_api.RedvoxPacketM.RADIANS">RADIANS</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.RADIANS_PER_SECOND" href="#redvox.cloud.metadata_api.RedvoxPacketM.RADIANS_PER_SECOND">RADIANS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.SamplePayload" href="#redvox.cloud.metadata_api.RedvoxPacketM.SamplePayload">SamplePayload</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.Sensors" href="#redvox.cloud.metadata_api.RedvoxPacketM.Sensors">Sensors</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.StationInformation" href="#redvox.cloud.metadata_api.RedvoxPacketM.StationInformation">StationInformation</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.SummaryStatistics" href="#redvox.cloud.metadata_api.RedvoxPacketM.SummaryStatistics">SummaryStatistics</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.TimingInformation" href="#redvox.cloud.metadata_api.RedvoxPacketM.TimingInformation">TimingInformation</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.TimingPayload" href="#redvox.cloud.metadata_api.RedvoxPacketM.TimingPayload">TimingPayload</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.UNITLESS" href="#redvox.cloud.metadata_api.RedvoxPacketM.UNITLESS">UNITLESS</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.UNKNOWN" href="#redvox.cloud.metadata_api.RedvoxPacketM.UNKNOWN">UNKNOWN</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.Unit" href="#redvox.cloud.metadata_api.RedvoxPacketM.Unit">Unit</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.api" href="#redvox.cloud.metadata_api.RedvoxPacketM.api">api</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.event_streams" href="#redvox.cloud.metadata_api.RedvoxPacketM.event_streams">event_streams</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.metadata" href="#redvox.cloud.metadata_api.RedvoxPacketM.metadata">metadata</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.sensors" href="#redvox.cloud.metadata_api.RedvoxPacketM.sensors">sensors</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.station_information" href="#redvox.cloud.metadata_api.RedvoxPacketM.station_information">station_information</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.sub_api" href="#redvox.cloud.metadata_api.RedvoxPacketM.sub_api">sub_api</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.RedvoxPacketM.timing_information" href="#redvox.cloud.metadata_api.RedvoxPacketM.timing_information">timing_information</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.from_dict" href="#redvox.cloud.metadata_api.SingleMetadata.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.from_json" href="#redvox.cloud.metadata_api.SingleMetadata.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.metadata" href="#redvox.cloud.metadata_api.SingleMetadata.metadata">metadata</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.payload_count" href="#redvox.cloud.metadata_api.SingleMetadata.payload_count">payload_count</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.sample_interval_mean" href="#redvox.cloud.metadata_api.SingleMetadata.sample_interval_mean">sample_interval_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.sample_interval_median" href="#redvox.cloud.metadata_api.SingleMetadata.sample_interval_median">sample_interval_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.sample_interval_std" href="#redvox.cloud.metadata_api.SingleMetadata.sample_interval_std">sample_interval_std</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.schema" href="#redvox.cloud.metadata_api.SingleMetadata.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.sensor_name" href="#redvox.cloud.metadata_api.SingleMetadata.sensor_name">sensor_name</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.timestamps_microseconds_utc_count" href="#redvox.cloud.metadata_api.SingleMetadata.timestamps_microseconds_utc_count">timestamps_microseconds_utc_count</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.to_dict" href="#redvox.cloud.metadata_api.SingleMetadata.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.to_json" href="#redvox.cloud.metadata_api.SingleMetadata.to_json">to_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.value_mean" href="#redvox.cloud.metadata_api.SingleMetadata.value_mean">value_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.value_median" href="#redvox.cloud.metadata_api.SingleMetadata.value_median">value_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.SingleMetadata.value_std" href="#redvox.cloud.metadata_api.SingleMetadata.value_std">value_std</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.TimingMeta" href="#redvox.cloud.metadata_api.TimingMeta">TimingMeta</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.cloud.metadata_api.TimingMeta.best_latency" href="#redvox.cloud.metadata_api.TimingMeta.best_latency">best_latency</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMeta.best_offset" href="#redvox.cloud.metadata_api.TimingMeta.best_offset">best_offset</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMeta.from_dict" href="#redvox.cloud.metadata_api.TimingMeta.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMeta.from_json" href="#redvox.cloud.metadata_api.TimingMeta.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMeta.mach_time_zero" href="#redvox.cloud.metadata_api.TimingMeta.mach_time_zero">mach_time_zero</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMeta.schema" href="#redvox.cloud.metadata_api.TimingMeta.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMeta.server_ts" href="#redvox.cloud.metadata_api.TimingMeta.server_ts">server_ts</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMeta.start_ts_mach" href="#redvox.cloud.metadata_api.TimingMeta.start_ts_mach">start_ts_mach</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMeta.start_ts_os" href="#redvox.cloud.metadata_api.TimingMeta.start_ts_os">start_ts_os</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMeta.station_id" href="#redvox.cloud.metadata_api.TimingMeta.station_id">station_id</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMeta.to_dict" href="#redvox.cloud.metadata_api.TimingMeta.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMeta.to_json" href="#redvox.cloud.metadata_api.TimingMeta.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.TimingMetaRequest" href="#redvox.cloud.metadata_api.TimingMetaRequest">TimingMetaRequest</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaRequest.auth_token" href="#redvox.cloud.metadata_api.TimingMetaRequest.auth_token">auth_token</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaRequest.end_ts_s" href="#redvox.cloud.metadata_api.TimingMetaRequest.end_ts_s">end_ts_s</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaRequest.from_dict" href="#redvox.cloud.metadata_api.TimingMetaRequest.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaRequest.from_json" href="#redvox.cloud.metadata_api.TimingMetaRequest.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaRequest.schema" href="#redvox.cloud.metadata_api.TimingMetaRequest.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaRequest.secret_token" href="#redvox.cloud.metadata_api.TimingMetaRequest.secret_token">secret_token</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaRequest.start_ts_s" href="#redvox.cloud.metadata_api.TimingMetaRequest.start_ts_s">start_ts_s</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaRequest.station_ids" href="#redvox.cloud.metadata_api.TimingMetaRequest.station_ids">station_ids</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaRequest.to_dict" href="#redvox.cloud.metadata_api.TimingMetaRequest.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaRequest.to_json" href="#redvox.cloud.metadata_api.TimingMetaRequest.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.TimingMetaResponse" href="#redvox.cloud.metadata_api.TimingMetaResponse">TimingMetaResponse</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaResponse.from_dict" href="#redvox.cloud.metadata_api.TimingMetaResponse.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaResponse.from_json" href="#redvox.cloud.metadata_api.TimingMetaResponse.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaResponse.items" href="#redvox.cloud.metadata_api.TimingMetaResponse.items">items</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaResponse.schema" href="#redvox.cloud.metadata_api.TimingMetaResponse.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaResponse.to_dict" href="#redvox.cloud.metadata_api.TimingMetaResponse.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.TimingMetaResponse.to_json" href="#redvox.cloud.metadata_api.TimingMetaResponse.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.from_dict" href="#redvox.cloud.metadata_api.XyzMetadata.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.from_json" href="#redvox.cloud.metadata_api.XyzMetadata.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.metadata" href="#redvox.cloud.metadata_api.XyzMetadata.metadata">metadata</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.payload_count" href="#redvox.cloud.metadata_api.XyzMetadata.payload_count">payload_count</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.sample_interval_mean" href="#redvox.cloud.metadata_api.XyzMetadata.sample_interval_mean">sample_interval_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.sample_interval_median" href="#redvox.cloud.metadata_api.XyzMetadata.sample_interval_median">sample_interval_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.sample_interval_std" href="#redvox.cloud.metadata_api.XyzMetadata.sample_interval_std">sample_interval_std</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.schema" href="#redvox.cloud.metadata_api.XyzMetadata.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.sensor_name" href="#redvox.cloud.metadata_api.XyzMetadata.sensor_name">sensor_name</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.timestamps_microseconds_utc_count" href="#redvox.cloud.metadata_api.XyzMetadata.timestamps_microseconds_utc_count">timestamps_microseconds_utc_count</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.to_dict" href="#redvox.cloud.metadata_api.XyzMetadata.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.to_json" href="#redvox.cloud.metadata_api.XyzMetadata.to_json">to_json</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.x_mean" href="#redvox.cloud.metadata_api.XyzMetadata.x_mean">x_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.x_median" href="#redvox.cloud.metadata_api.XyzMetadata.x_median">x_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.x_std" href="#redvox.cloud.metadata_api.XyzMetadata.x_std">x_std</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.y_mean" href="#redvox.cloud.metadata_api.XyzMetadata.y_mean">y_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.y_median" href="#redvox.cloud.metadata_api.XyzMetadata.y_median">y_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.y_std" href="#redvox.cloud.metadata_api.XyzMetadata.y_std">y_std</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.z_mean" href="#redvox.cloud.metadata_api.XyzMetadata.z_mean">z_mean</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.z_median" href="#redvox.cloud.metadata_api.XyzMetadata.z_median">z_median</a></code></li>
+<li><code><a title="redvox.cloud.metadata_api.XyzMetadata.z_std" href="#redvox.cloud.metadata_api.XyzMetadata.z_std">z_std</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>

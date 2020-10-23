@@ -233,6 +233,54 @@ class CloudClient:
 
         return metadata_resp
 
+    def request_metadata_m(self,
+                           start_ts_s: int,
+                           end_ts_s: int,
+                           station_ids: List[str],
+                           metadata_to_include: List[str],
+                           chunk_by_seconds: int = constants.SECONDS_PER_DAY) -> Optional[metadata_api.MetadataRespM]:
+        """
+        Requests RedVox packet metadata.
+        :param start_ts_s: Start epoch of request window.
+        :param end_ts_s: End epoch of request window.
+        :param station_ids: A list of station ids.
+        :param metadata_to_include: A list of metadata fields to include (see: redvox.cloud.metadata.AvailableMetadata)
+        :param chunk_by_seconds: Split up longer requests into chunks of chunk_by_seconds size (default 86400s/1d)
+        :return: A metadata result containing the requested metadata or None on error.
+        """
+        if end_ts_s <= start_ts_s:
+            raise cloud_errors.CloudApiError("start_ts_s must be < end_ts_s")
+
+        if len(station_ids) == 0:
+            raise cloud_errors.CloudApiError("At least one station_id must be included")
+
+        if len(metadata_to_include) == 0:
+            raise cloud_errors.CloudApiError("At least one metadata field must be included")
+
+        if chunk_by_seconds <= 0:
+            raise cloud_errors.CloudApiError("chunk_by_seconds must be > 0")
+
+        time_chunks: List[Tuple[int, int]] = chunk_time_range(start_ts_s, end_ts_s, chunk_by_seconds)
+        metadata_resp: metadata_api.MetadataRespM = metadata_api.MetadataRespM([])
+
+        for start_ts, end_ts in time_chunks:
+            metadata_req: metadata_api.MetadataReq = metadata_api.MetadataReq(self.auth_token,
+                                                                              start_ts,
+                                                                              end_ts,
+                                                                              station_ids,
+                                                                              metadata_to_include,
+                                                                              self.secret_token)
+
+            chunked_resp: Optional[metadata_api.MetadataRespM] = metadata_api.request_metadata_m(self.api_conf,
+                                                                                                 metadata_req,
+                                                                                                 session=self.__session,
+                                                                                                 timeout=self.timeout)
+
+            if chunked_resp:
+                metadata_resp.db_packets.extend(chunked_resp.db_packets)
+
+        return metadata_resp
+
     def request_timing_metadata(self,
                                 start_ts_s: int,
                                 end_ts_s: int,

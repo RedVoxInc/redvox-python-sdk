@@ -1,12 +1,15 @@
 """
 This module contains classes and enums for working with generic RedVox packet metadata through the cloud API.
 """
-import requests
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+import json
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 from dataclasses_json import dataclass_json
+import requests
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
+from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.cloud.api import ApiConfig, post_req
 from redvox.cloud.routes import RoutesV1
 
@@ -246,6 +249,55 @@ class MetadataResp:
     metadata: List[PacketMetadataResult]
 
 
+T = TypeVar('T')
+
+
+def _get(key: str, json_dict: Dict, default: Optional[T] = None) -> Optional[T]:
+    if key in json_dict:
+        return json_dict[key]
+
+    return default
+
+
+@dataclass
+class AdditionalMetadata:
+    data_key: Optional[str]
+
+    @staticmethod
+    def from_dict(json_dict: Optional[Dict]) -> Optional['AdditionalMetadata']:
+        if json_dict is None:
+            return None
+
+        return AdditionalMetadata(_get("data_key", json_dict))
+
+
+@dataclass
+class DbPacket:
+    _id: Optional[str]
+    metadata: Optional[WrappedRedvoxPacketM]
+    additional_metadata: Optional[AdditionalMetadata]
+
+    @staticmethod
+    def from_dict(json_dict: Dict) -> 'DbPacket':
+        return DbPacket(
+            _get("_id", json_dict),
+            WrappedRedvoxPacketM.from_json(json.dumps(json_dict["metadata"])),
+            AdditionalMetadata.from_dict(_get("additional_metadata", json_dict))
+        )
+
+
+@dataclass
+class MetadataRespM:
+    db_packets: List[DbPacket]
+
+    @staticmethod
+    def from_json(json_dicts: Dict) -> 'MetadataRespM':
+
+        return MetadataRespM(
+            list(map(DbPacket.from_dict, json_dicts["db_packets"]))
+        )
+
+
 @dataclass_json
 @dataclass
 class TimingMetaRequest:
@@ -326,6 +378,27 @@ def request_metadata(api_config: ApiConfig,
     handle_resp: Callable[[requests.Response], MetadataResp] = lambda resp: MetadataResp.from_dict(resp.json())
     return post_req(api_config,
                     RoutesV1.METADATA_REQ,
+                    packet_metadata_req,
+                    handle_resp,
+                    session,
+                    timeout)
+
+
+def request_metadata_m(api_config: ApiConfig,
+                       packet_metadata_req: MetadataReq,
+                       session: Optional[requests.Session] = None,
+                       timeout: Optional[float] = None) -> Optional[MetadataRespM]:
+    """
+    Requests generic metadata from the cloud API.
+    :param api_config: An instance of the API config.
+    :param packet_metadata_req: An instance of a metadata request.
+    :param session: An (optional) session for re-using an HTTP client.
+    :return: A metadata response on successful call or None if there is an error.
+    """
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], MetadataRespM] = lambda resp: MetadataRespM.from_json(resp.json())
+    return post_req(api_config,
+                    RoutesV1.METADATA_REQ_M,
                     packet_metadata_req,
                     handle_resp,
                     session,
