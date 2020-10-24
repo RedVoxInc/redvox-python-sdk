@@ -44,7 +44,8 @@ class DataWindow:
     def __init__(self, input_dir: str, station_ids: Optional[Set[str]] = None,
                  start_datetime: Optional[dtu.datetime] = None, end_datetime: Optional[dtu.datetime] = None,
                  start_padding_s: float = DEFAULT_START_PADDING_S, end_padding_s: float = DEFAULT_END_PADDING_S,
-                 gap_time_s: float = DEFAULT_GAP_TIME_S, apply_correction: bool = True, structured_layout: bool = True):
+                 gap_time_s: float = DEFAULT_GAP_TIME_S, apply_correction: bool = True,
+                 structured_layout: bool = True, debug: bool = False):
         """
         initialize the data window with params
         :param input_dir: string, directory that contains the files to read data from
@@ -64,6 +65,7 @@ class DataWindow:
                                     Default True
         :param structured_layout: bool, if True, the input_directory contains specially named and organized
                                     directories of data.  Default True
+        :param debug: bool, if True, outputs warnings and additional information, default False
         """
         self.input_directory: str = input_dir
         self.station_ids: Optional[Set[str]] = station_ids
@@ -74,6 +76,7 @@ class DataWindow:
         self.gap_time_s: float = gap_time_s
         self.apply_correction: bool = apply_correction
         self.structured_layout: bool = structured_layout
+        self.debug: bool = debug
         start_time = self._pad_start_datetime_s()
         if np.isnan(start_time):
             start_time = None
@@ -122,24 +125,21 @@ class DataWindow:
             for station in self.stations.station_id_uuid_to_stations.values():
                 station.update_timestamps()
 
-    def check_valid_ids(self, debug: bool = False):
+    def check_valid_ids(self):
         """
         searches the data window station_ids for any ids not in the data collected
-        :param debug: bool, if True, outputs additional information, default False
         """
         for ids in self.station_ids:
-            if not self.stations.check_for_id(ids) and debug:
+            if not self.stations.check_for_id(ids) and self.debug:
                 print(f"WARNING: Requested {ids} but there is no data to read for that station")
 
-    def create_window_in_sensors(self, station: Station, start_date_timestamp: float, end_date_timestamp: float,
-                                 debug: bool = False):
+    def create_window_in_sensors(self, station: Station, start_date_timestamp: float, end_date_timestamp: float):
         """
         truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
         returns nothing, updates the station in place
         :param station: station object to truncate sensors of
         :param start_date_timestamp: float, timestamp in microseconds since epoch UTC of start of window
         :param end_date_timestamp: float, timestamp in microseconds since epoch UTC of end of window
-        :param debug: bool, if True, output additional information, default False
         """
         station_id = station.station_metadata.station_id
         for sensor_type, sensor in station.station_data.items():
@@ -149,22 +149,23 @@ class DataWindow:
                 window_indices = np.where((start_date_timestamp <= df_timestamps) &
                                           (df_timestamps <= end_date_timestamp))[0]
                 # check if all the samples have been cut off
-                if len(window_indices) < 1 and debug:
+                if len(window_indices) < 1 and self.debug:
                     print(f"WARNING: Data window for {station_id} {sensor_type.name} "
                           f"sensor has truncated all data points")
                 else:
                     sensor.data_df = sensor.data_df.iloc[window_indices].reset_index(drop=True)
                     if sensor.is_sample_interval_invalid():
-                        if debug:
+                        if self.debug:
                             print(f"WARNING: Cannot fill gaps or pad {station_id} {sensor_type.name} "
                                   f"sensor; it has undefined sample interval and sample rate!")
                     else:  # GAP FILL and PAD DATA
-                        fill_missing_data_points_in_sensors(sensor.data_df,
-                                                            dtu.seconds_to_microseconds(sensor.sample_interval_s),
-                                                            start_date_timestamp, end_date_timestamp,
-                                                            DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
-                                                            dtu.seconds_to_microseconds(self.gap_time_s))
-            elif debug:
+                        sensor.data_df = \
+                            fill_missing_data_points_in_sensors(sensor.data_df,
+                                                                dtu.seconds_to_microseconds(sensor.sample_interval_s),
+                                                                start_date_timestamp, end_date_timestamp,
+                                                                DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
+                                                                dtu.seconds_to_microseconds(self.gap_time_s))
+            elif self.debug:
                 print(f"WARNING: Data window for {station_id} {sensor_type.name} sensor has no data points!")
 
     def truncate_metadata(self, station: Station, start_date_timestamp: float, end_date_timestamp: float):
@@ -198,7 +199,7 @@ class DataWindow:
         """
         ids_to_pop = []
         for station in self.stations.get_all_stations():
-            ids_to_pop = check_audio_data(station, ids_to_pop)
+            ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
             # apply time correction
             if self.apply_correction:
                 station.update_timestamps()
@@ -214,7 +215,7 @@ class DataWindow:
             # TRUNCATE!
             self.create_window_in_sensors(station, start_datetime, end_datetime)
             self.truncate_metadata(station, start_datetime, end_datetime)
-            ids_to_pop = check_audio_data(station, ids_to_pop)
+            ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
         # remove any stations that don't have audio data
         for ids in ids_to_pop:
             self.stations.pop_station(ids)
@@ -355,7 +356,9 @@ def create_dataless_timestamps_df(start_timestamp: float, sample_interval_micros
     empty_df = pd.DataFrame([], columns=columns)
     for column_index in columns:
         if column_index == "timestamps":
-            empty_df["timestamps"] = new_timestamps
+            empty_df[column_index] = new_timestamps
+        elif column_index == "location_provider":
+            empty_df[column_index] = LocationProvider.UNKNOWN
         else:
             empty_df[column_index] = np.nan
     return empty_df
