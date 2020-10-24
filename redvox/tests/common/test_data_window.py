@@ -12,7 +12,7 @@ from redvox.common import data_window as dw
 class DataWindowTest(unittest.TestCase):
     def setUp(self):
         input_dir = tests.TEST_DATA_DIR
-        self.datawindow = dw.DataWindow(input_directory=input_dir, station_ids={"1637650010", "0000000001"},
+        self.datawindow = dw.DataWindow(input_dir=input_dir, station_ids={"1637650010", "0000000001"},
                                         structured_layout=False)
 
     def test_get_station(self):
@@ -39,5 +39,16 @@ class GapFillerTest(unittest.TestCase):
         self.dataframe = pd.DataFrame(np.transpose([timestamps, [1, 3, 10]]), columns=["timestamps", "temp"])
 
     def test_gap_filler(self):
-        filled_dataframe = dw.gap_filler(self.dataframe, 10)
+        filled_dataframe = dw.fill_gaps(self.dataframe, 10)
         self.assertEqual(filled_dataframe.shape, (10, 2))
+
+
+class CreateDatalessTimestampsDFTest(unittest.TestCase):
+    def test_create_dataless_timestamps_df(self):
+        base_df = pd.DataFrame([], columns=["timestamps", "data"])
+        new_df = dw.create_dataless_timestamps_df(2000, 1000, base_df.columns, 7, False)
+        self.assertEqual(new_df.loc[0, "timestamps"], 3000)
+        self.assertEqual(new_df.loc[6, "timestamps"], 9000)
+        new_df = dw.create_dataless_timestamps_df(8000, 1000, base_df.columns, 7, True)
+        self.assertEqual(new_df.loc[0, "timestamps"], 7000)
+        self.assertEqual(new_df.loc[6, "timestamps"], 1000)

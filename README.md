@@ -7,6 +7,13 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a16 (2020-10-XX)
+
+* LocationData added; stores location data of a Station for later use
+* DataWindow will compute the most relevant locations into LocationData
+* Added sample interval standard deviation to SensorData
+* Resolved discrepancies between metadata values and data being read
+
 ### 3.0.0a15 (2020-10-20)
 
 * Add ability to post process derived movement events
@@ -15,16 +22,6 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 * Add ability to query API M metadata from the Cloud HTTP API
 * Add methods and classes for working with derived movement results
-
-### 3.0.0a15 (2020-10-14)
-
-* LocationData added; stores location data of a Station for later use
-* DataWindow will compute the most relevant locations into LocationData
-
-### 3.0.0a14 (2020-10-02)
-
-* Added sample interval standard deviation to SensorData
-* Resolved discrepancies between metadata values and data being read
 
 ### 3.0.0a13 (2020-10-01)
 

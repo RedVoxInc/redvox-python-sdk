@@ -14,8 +14,8 @@ class StationTest(unittest.TestCase):
     def setUp(self):
         self.api900_station = load_sd.load_station_from_api900_file(os.path.join(tests.TEST_DATA_DIR,
                                                                                  "1637650010_1531343782220.rdvxz"))
-        self.apim_station = load_sd.load_station_from_apim(os.path.join(tests.TEST_DATA_DIR,
-                                                                        "0000000001_1597189452945991.rdvxm"))
+        self.apim_station = load_sd.load_station_from_apim_file(os.path.join(tests.TEST_DATA_DIR,
+                                                                             "0000000001_1597189452945991.rdvxm"))
         self.mseed_data = load_sd.load_from_mseed(os.path.join(tests.TEST_DATA_DIR, "out.mseed"))
 
     def test_api900_station(self):
