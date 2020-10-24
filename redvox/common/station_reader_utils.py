@@ -758,17 +758,18 @@ def load_from_mseed(file_path: str, station_ids: Optional[List[str]] = None) -> 
 def read_all_in_dir(directory: str,
                     start_timestamp_utc_s: Optional[int] = None,
                     end_timestamp_utc_s: Optional[int] = None,
-                    redvox_ids: Optional[List[str]] = None,
+                    station_ids: Optional[List[str]] = None,
                     structured_layout: bool = False) -> ReadResult:
     """
     load all data files in the directory
-    :param directory: location of all the files; if structured_layout is True, the directory contains a root api1000,
-                        api900, or mseed directory, if structured_layout is False, the directory contains unsorted files
-    :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
-    :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
-    :param redvox_ids: An optional list of redvox_ids to filter against, default empty list
-    :param structured_layout: An optional value to define if this is loading structured data, default False.
-    :return: a list of Station objects that contain the data
+    :param directory: string, location of all the files;
+                        if structured_layout is True, the directory contains a root api1000, api900, or mseed directory,
+                        if structured_layout is False, the directory contains unsorted files
+    :param start_timestamp_utc_s: optional int, The start timestamp as seconds since the epoch UTC.
+    :param end_timestamp_utc_s: optional int, The end timestamp as seconds since the epoch UTC.
+    :param station_ids: optional list of string station ids to filter against, default empty list
+    :param structured_layout: optional bool to define if this is loading structured data, default False.
+    :return: a ReadResult object containing the data requested
     """
     # create the object to store the data
     stations: ReadResult = ReadResult({})
@@ -798,12 +799,12 @@ def read_all_in_dir(directory: str,
 
     # get api900 data
     stations.append(load_file_range_from_api900(api900_dir, start_timestamp_utc_s, end_timestamp_utc_s,
-                                                redvox_ids, structured_layout, False))
+                                                station_ids, structured_layout, False))
     # get api1000 data
     stations.append(load_from_file_range_api_m(apim_dir, start_timestamp_utc_s, end_timestamp_utc_s,
-                                               redvox_ids, structured_layout))
+                                               station_ids, structured_layout))
     # get mseed data
     all_paths = glob.glob(os.path.join(mseed_dir, "*.mseed"))
     for path in all_paths:
-        stations.append(load_from_mseed(path, redvox_ids))
+        stations.append(load_from_mseed(path, station_ids))
     return stations

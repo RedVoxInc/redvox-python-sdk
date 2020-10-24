@@ -719,7 +719,7 @@ class Station:
             data_start = self.packet_data[packet].data_start_timestamp
             data_num_samples = self.packet_data[packet].packet_num_audio_samples
             next_packet_start_index = \
-                self.audio_sensor().data_df.query("timestamps == @data_start").first_valid_index() + data_num_samples
+                self.audio_sensor().data_df.query("timestamps >= @data_start").first_valid_index() + data_num_samples
             data_end = self.audio_sensor().data_timestamps()[next_packet_start_index - 1]
             next_packet_start = self.audio_sensor().data_timestamps()[next_packet_start_index]
             if next_packet_start - data_end < dtu.seconds_to_microseconds(gap_time_s):
