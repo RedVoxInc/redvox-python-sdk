@@ -38,9 +38,9 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(self.dw_with_start_end.stations.station_id_uuid_to_stations), 1)
         test_station = self.dw_with_start_end.stations.get_station("0000000001")
         self.assertTrue(test_station.has_audio_sensor())
-        self.assertEqual(test_station.audio_sensor().num_samples(), 479984)
+        self.assertEqual(test_station.audio_sensor().num_samples(), 479986)
         self.assertTrue(test_station.has_location_sensor())
-        self.assertEqual(test_station.location_sensor().num_samples(), 2)
+        self.assertEqual(test_station.location_sensor().num_samples(), 5)
 
     def test_dw_invalid(self):
         self.assertEqual(len(self.dw_invalid.stations.station_id_uuid_to_stations), 0)
