@@ -74,6 +74,10 @@ class StationSummary:
 class ReadResult:
     """
     Stores station information after being read from files
+    Properties:
+        station_id_uuid_to_stations: dict of string to Station object, where the string is id:uuid format
+        __station_id_to_id_uuid: dict of string to string, maps id to uuid
+        __station_summaries: dict of string to StationSummary object, maps id to StationSummary
     """
     def __init__(self,
                  station_id_uuid_to_stations: Dict[str, Station]):
@@ -82,18 +86,18 @@ class ReadResult:
         """
         self.station_id_uuid_to_stations: Dict[str, Station] = station_id_uuid_to_stations
         self.__station_id_to_id_uuid: Dict[str, str] = {}
-        self.__station_summaries: List[StationSummary] = []
+        self.__station_summaries: Dict[str, StationSummary] = {}
 
-        self.update_metadata()
+        self._update_metadata()
 
-    def update_metadata(self):
+    def _update_metadata(self):
         """
         updates ids:uuids pairs and summary information
         """
         for id_uuid, station in self.station_id_uuid_to_stations.items():
             s: List[str] = id_uuid.split(":")
             self.__station_id_to_id_uuid[s[0]] = s[1]
-            self.__station_summaries.append(StationSummary.from_station(station))
+            self.__station_summaries[s[0]] = StationSummary.from_station(station)
 
     def __get_station_id_by_uuid(self, uuid: str) -> str:
         """
@@ -115,27 +119,24 @@ class ReadResult:
         if ":" in station_id:
             s: List[str] = station_id.split(":")
             station_id = s[0]
-        elif station_id in self.__station_id_to_id_uuid.values():  # check if uuid was given
+        elif station_id in self.__station_id_to_id_uuid.values():
             station_id = self.__get_station_id_by_uuid(station_id)
-        if self.check_for_id(station_id):
+        if self.check_for_id(station_id):  # the station_id has been converted into id from id:uuid or uuid
             self.station_id_uuid_to_stations.pop(f"{station_id}:{self.__station_id_to_id_uuid[station_id]}")
             self.__station_id_to_id_uuid.pop(station_id)
-            summaries = self.__station_summaries.copy()  # put summaries into temp variable
-            self.__station_summaries.clear()             # clear summaries and rebuild
-            for summary in summaries:
-                if summary.station_id != station_id:
-                    self.__station_summaries.append(summary)
+            self.__station_summaries.pop(station_id)
         else:
             print(f"ReadResult cannot remove station {station_id} because it does not exist")
         return self
 
     def check_for_id(self, check_id: str) -> bool:
         """
-        Look at keys and shortened keys in for the check_id; must be id or uuid combination
+        Look at keys and shortened keys in for the check_id; must be one of id, id:uuid, or uuid
         :param check_id: id to look for
         :return: True if check_id is in the ReadResult
         """
-        return check_id in self.__station_id_to_id_uuid.keys() or check_id in self.__station_id_to_id_uuid.values()
+        return check_id in self.__station_id_to_id_uuid.keys() or \
+            check_id in self.__station_id_to_id_uuid.values() or check_id in self.station_id_uuid_to_stations.keys()
 
     def get_station(self, station_id: str) -> Optional[Station]:
         """
@@ -161,7 +162,7 @@ class ReadResult:
         """
         :return: A list of StationSummaries contained in this ReadResult
         """
-        return self.__station_summaries
+        return list(self.__station_summaries.values())
 
     def append_station(self, new_station_id: str, new_station: Station):
         """
@@ -175,12 +176,13 @@ class ReadResult:
             self.station_id_uuid_to_stations[new_station_id] = new_station
             self.__station_id_to_id_uuid[new_station.station_metadata.station_id] = \
                 new_station.station_metadata.station_uuid
-            self.__station_summaries.append(StationSummary.from_station(new_station))
+            self.__station_summaries[new_station.station_metadata.station_id] = \
+                (StationSummary.from_station(new_station))
 
     def append(self, new_stations: 'ReadResult'):
         """
-        adds stations to the ReadResult
-        :param new_stations: stations to add
+        adds stations from another ReadResult to the calling ReadResult
+        :param new_stations: ReadResult object with stations to add
         """
         for new_station_id, new_station in new_stations.station_id_uuid_to_stations.items():
             self.append_station(new_station_id, new_station)
@@ -189,12 +191,12 @@ class ReadResult:
 def calc_evenly_sampled_timestamps(start: float, samples: int, rate_hz: float) -> np.array:
     """
     given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
-    :param start: float, start timestamp
+    :param start: float, start timestamp in microseconds
     :param samples: int, number of samples
     :param rate_hz: float, sample rate in hz
     :return: np.array with evenly spaced timestamps starting at start
     """
-    return np.array(start + dtu.seconds_to_microseconds(np.arange(0, samples) / rate_hz))
+    return start + dtu.seconds_to_microseconds(np.arange(0, samples) / rate_hz)
 
 
 def read_api900_non_mic_sensor(sensor: api900_io.RedvoxSensor, column_id: str) -> SensorData:
@@ -418,9 +420,10 @@ def load_file_range_from_api900(directory: str,
 def read_apim_xyz_sensor(sensor: xyz.Xyz, column_id: str) -> SensorData:
     """
     read a sensor that has xyz data channels from an api M data packet
+    raises Attribute Error if sensor does not contain xyz channels
     :param sensor: the xyz api M sensor to read
     :param column_id: string, used to name the columns
-    :return: generic SensorData object
+    :return: generic SensorData representation of the xyz channel sensor
     """
     timestamps = sensor.get_timestamps().get_timestamps()
     if len(timestamps) > 1:
@@ -429,21 +432,25 @@ def read_apim_xyz_sensor(sensor: xyz.Xyz, column_id: str) -> SensorData:
     else:
         sample_interval = np.nan
         sample_interval_std = np.nan
-    data_for_df = np.transpose([timestamps,
-                                sensor.get_x_samples().get_values(),
-                                sensor.get_y_samples().get_values(),
-                                sensor.get_z_samples().get_values()])
-    columns = ["timestamps", f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
-    return SensorData(sensor.get_sensor_description(), pd.DataFrame(data_for_df, columns=columns),
-                      1 / sample_interval, sample_interval, sample_interval_std, False)
+    try:
+        data_for_df = np.transpose([timestamps,
+                                    sensor.get_x_samples().get_values(),
+                                    sensor.get_y_samples().get_values(),
+                                    sensor.get_z_samples().get_values()])
+        columns = ["timestamps", f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
+        return SensorData(sensor.get_sensor_description(), pd.DataFrame(data_for_df, columns=columns),
+                          1 / sample_interval, sample_interval, sample_interval_std, False)
+    except AttributeError:
+        raise
 
 
 def read_apim_single_sensor(sensor: single.Single, column_id: str) -> SensorData:
     """
     read a sensor that has a single data channel from an api M data packet
+    raises Attribute Error if sensor does not contain exactly one
     :param sensor: the single channel api M sensor to read
     :param column_id: string, used to name the columns
-    :return: generic SensorData object
+    :return: generic SensorData representation of the single channel sensor
     """
     timestamps = sensor.get_timestamps().get_timestamps()
     if len(timestamps) > 1:
@@ -452,10 +459,13 @@ def read_apim_single_sensor(sensor: single.Single, column_id: str) -> SensorData
     else:
         sample_interval = np.nan
         sample_interval_std = np.nan
-    data_for_df = np.transpose([timestamps, sensor.get_samples().get_values()])
-    columns = ["timestamps", column_id]
-    return SensorData(sensor.get_sensor_description(), pd.DataFrame(data_for_df, columns=columns),
-                      1 / sample_interval, sample_interval, sample_interval_std, False)
+    try:
+        data_for_df = np.transpose([timestamps, sensor.get_samples().get_values()])
+        columns = ["timestamps", column_id]
+        return SensorData(sensor.get_sensor_description(), pd.DataFrame(data_for_df, columns=columns),
+                          1 / sample_interval, sample_interval, sample_interval_std, False)
+    except AttributeError:
+        raise
 
 
 def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Dict[SensorType, SensorData]:
@@ -553,8 +563,8 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
     return data_dict
 
 
-def load_station_from_apim(directory: str, start_timestamp_utc_s: Optional[int] = None,
-                           end_timestamp_utc_s: Optional[int] = None) -> Station:
+def load_station_from_apim_file(directory: str, start_timestamp_utc_s: Optional[int] = None,
+                                end_timestamp_utc_s: Optional[int] = None) -> Station:
     """
     reads in station data from a single api M file
     :param directory: string of the file to read from

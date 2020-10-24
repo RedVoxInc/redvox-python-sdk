@@ -31,6 +31,7 @@ class Station:
             self.station_data: Dict[SensorType, SensorData] = data
         else:
             self.station_data: Dict[SensorType, SensorData] = {}
+        # todo add event streams as dict[str, list[event]] i.e movement: [accelerometer, gyroscope, etc]
         if packets:
             self.packet_data: List[DataPacket] = packets
         else:
