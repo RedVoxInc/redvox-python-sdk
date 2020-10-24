@@ -74,12 +74,16 @@ class DataWindow:
         self.gap_time_s: float = gap_time_s
         self.apply_correction: bool = apply_correction
         self.structured_layout: bool = structured_layout
-        start_time = int(self._pad_start_datetime_s())
+        start_time = self._pad_start_datetime_s()
         if np.isnan(start_time):
             start_time = None
-        end_time = int(self._pad_end_datetime_s())
+        else:
+            start_time = int(start_time)
+        end_time = self._pad_end_datetime_s()
         if np.isnan(end_time):
             end_time = None
+        else:
+            end_time = int(end_time)
         self.stations: ReadResult = read_all_in_dir(self.input_directory, start_time, end_time,
                                                     self.station_ids, self.structured_layout)
         self.check_valid_ids()
@@ -238,14 +242,14 @@ def fill_missing_data_points_in_sensors(data_df: pd.DataFrame, sample_interval_m
     """
     fills in the gaps and pads the data in the dataframe using calculated timestamps and np.nan for the data
     :param data_df: dataframe to update
-    :param sample_interval_micros: float, time between calculated timestamps in seconds
+    :param sample_interval_micros: float, time between calculated timestamps in microseconds
     :param start_date_timestamp: float, timestamp in microseconds since epoch UTC to pad data from
     :param end_date_timestamp: float, timestamp in microseconds since epoch UTC to pad data until
     :param points_to_brute_force: int, maximum number of timestamps to calculate when filling gaps
-    :param gap_time_micros: float, minimum amount of seconds between data points that would indicate a gap
+    :param gap_time_micros: float, minimum amount of microseconds between data points that would indicate a gap
     :return: updated dataframe
     """
-    data_df = fill_gaps(data_df, sample_interval_micros, points_to_brute_force, gap_time_micros)
+    data_df = fill_gaps(data_df, sample_interval_micros, gap_time_micros, points_to_brute_force)
     data_df = pad_data(start_date_timestamp, end_date_timestamp, data_df, sample_interval_micros)
     return data_df
 
@@ -257,7 +261,7 @@ def pad_data(expected_start: float, expected_end: float, data_df: pd.DataFrame,
     :param expected_start: timestamp indicating start time of the data to pad from
     :param expected_end: timestamp indicating end time of the data to pad from
     :param data_df: dataframe with timestamps as column "timestamps"
-    :param sample_interval_micros: constant sample interval in seconds
+    :param sample_interval_micros: constant sample interval in microseconds
     :return: dataframe padded with np.nans in front and back to meet full size of expected start and end
     """
     # extract the necessary information to pad the data
@@ -268,14 +272,14 @@ def pad_data(expected_start: float, expected_end: float, data_df: pd.DataFrame,
     # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
     if expected_start < first_data_timestamp:
         start_diff = first_data_timestamp - expected_start
-        num_missing_samples = int(start_diff / sample_interval_micros) + 1
+        num_missing_samples = np.ceil(start_diff / sample_interval_micros)
         # add the gap data to the result dataframe
         result_df = result_df.append(create_dataless_timestamps_df(expected_start - sample_interval_micros,
                                                                    sample_interval_micros, data_df.columns,
                                                                    num_missing_samples), ignore_index=True)
     if expected_end > last_data_timestamp:
         last_diff = expected_end - last_data_timestamp
-        num_missing_samples = int(last_diff / sample_interval_micros) + 1
+        num_missing_samples = np.ceil(last_diff / sample_interval_micros)
         # add the gap data to the result dataframe
         result_df = result_df.append(create_dataless_timestamps_df(expected_end + sample_interval_micros,
                                                                    sample_interval_micros, data_df.columns,
@@ -283,15 +287,14 @@ def pad_data(expected_start: float, expected_end: float, data_df: pd.DataFrame,
     return result_df.sort_values("timestamps", ignore_index=True)
 
 
-def fill_gaps(data_df: pd.DataFrame, sample_interval_micros: float,
-              num_points_to_brute_force: int = DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
-              gap_time_s: float = DEFAULT_GAP_TIME_S) -> pd.DataFrame:
+def fill_gaps(data_df: pd.DataFrame, sample_interval_micros: float, gap_time_micros: float,
+              num_points_to_brute_force: int = DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS) -> pd.DataFrame:
     """
     fills gaps in the dataframe with np.nan by interpolating timestamps based on the mean expected sample interval
     :param data_df: dataframe with timestamps as column "timestamps"
     :param sample_interval_micros: float, sample interval in microseconds
+    :param gap_time_micros: float, minimum amount of microseconds between data points that would indicate a gap
     :param num_points_to_brute_force: int, maximum number of points to calculate when filling a gap
-    :param gap_time_s: float, minimum amount of seconds between data points that would indicate a gap
     :return: dataframe without gaps
     """
     # extract the necessary information to compute gap size and gap timestamps
@@ -301,10 +304,10 @@ def fill_gaps(data_df: pd.DataFrame, sample_interval_micros: float,
     data_duration_micros = last_data_timestamp - first_data_timestamp
     num_points = len(data_time_stamps)
     # add one to calculation to include the last timestamp
-    expected_num_points = int(data_duration_micros / sample_interval_micros) + 1
+    expected_num_points = np.ceil(data_duration_micros / sample_interval_micros) + 1
     # gap duration cannot be less than sample interval
-    if gap_time_s < sample_interval_micros:
-        gap_time_s = sample_interval_micros
+    if gap_time_micros < sample_interval_micros:
+        gap_time_micros = sample_interval_micros
     result_df = data_df.copy()
     # if there are less points than our expected amount, we have gaps to fill
     if num_points < expected_num_points:
@@ -315,20 +318,21 @@ def fill_gaps(data_df: pd.DataFrame, sample_interval_micros: float,
                 # compare that timestamp to the next
                 time_diff = data_time_stamps[index + 1] - data_time_stamps[index]
                 # calc samples to add, subtracting 1 to prevent copying last timestamp
-                num_new_samples = int(time_diff / sample_interval_micros) - 1
-                if time_diff > gap_time_s and num_new_samples > 0:
+                num_new_samples = np.ceil(time_diff / sample_interval_micros) - 1
+                if time_diff > gap_time_micros and num_new_samples > 0:
                     # add the gap data to the result dataframe
-                    result_df = result_df.append(create_dataless_timestamps_df(data_time_stamps[index],
-                                                                               sample_interval_micros, data_df.columns,
-                                                                               num_new_samples), ignore_index=True)
+                    result_df = result_df.append(
+                        create_dataless_timestamps_df(data_time_stamps[index], sample_interval_micros,
+                                                      data_df.columns, num_new_samples), ignore_index=True)
         else:
             # too many points to check, divide and conquer using recursion!
             half_samples = int(num_points / 2)
             first_data_df = data_df.iloc[:half_samples].copy().reset_index(drop=True)
             second_data_df = data_df.iloc[half_samples:].copy().reset_index(drop=True)
             # give half the samples to each recursive call
-            first_data_df = fill_gaps(first_data_df, sample_interval_micros, num_points_to_brute_force, gap_time_s)
-            second_data_df = fill_gaps(second_data_df, sample_interval_micros, num_points_to_brute_force, gap_time_s)
+            first_data_df = fill_gaps(first_data_df, sample_interval_micros, gap_time_micros, num_points_to_brute_force)
+            second_data_df = fill_gaps(second_data_df, sample_interval_micros, gap_time_micros,
+                                       num_points_to_brute_force)
             result_df = first_data_df.append(second_data_df, ignore_index=True)
     return result_df.sort_values("timestamps", ignore_index=True)
 
