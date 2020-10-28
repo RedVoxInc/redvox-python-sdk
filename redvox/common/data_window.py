@@ -141,8 +141,11 @@ class DataWindow:
         :param start_date_timestamp: float, timestamp in microseconds since epoch UTC of start of window
         :param end_date_timestamp: float, timestamp in microseconds since epoch UTC of end of window
         """
+        gap_time_micros = dtu.seconds_to_microseconds(self.gap_time_s)
         station_id = station.station_metadata.station_id
         for sensor_type, sensor in station.station_data.items():
+            # calculate the sensor's sample interval, std sample interval and sample rate of all data
+            sensor.organize_and_update_stats()
             # get only the timestamps between the start and end timestamps
             df_timestamps = sensor.data_timestamps()
             if len(df_timestamps) > 0:
@@ -164,7 +167,7 @@ class DataWindow:
                                                                 dtu.seconds_to_microseconds(sensor.sample_interval_s),
                                                                 start_date_timestamp, end_date_timestamp,
                                                                 DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
-                                                                dtu.seconds_to_microseconds(self.gap_time_s))
+                                                                gap_time_micros)
             elif self.debug:
                 print(f"WARNING: Data window for {station_id} {sensor_type.name} sensor has no data points!")
 
@@ -191,7 +194,6 @@ class DataWindow:
         station.station_metadata.timing_data.station_first_data_timestamp = \
             station.audio_sensor().first_data_timestamp()
 
-    # todo break up further
     def create_data_window(self):
         """
         updates the data window to contain only the data within the window parameters
@@ -313,14 +315,13 @@ def fill_gaps(data_df: pd.DataFrame, sample_interval_micros: float, gap_time_mic
     # if there are less points than our expected amount, we have gaps to fill
     if num_points < expected_num_points:
         # if the data we're looking at is short enough, we can start comparing points
-        if num_points < num_points_to_brute_force:
-            # look at every timestamp except the last one
-            for index in range(0, num_points - 1):
-                # compare that timestamp to the next
-                time_diff = data_time_stamps[index + 1] - data_time_stamps[index]
+        if num_points < num_points_to_brute_force or expected_num_points - num_points < num_points_to_brute_force:
+            # look at every timestamp difference
+            timestamp_diffs = np.diff(data_time_stamps)
+            for index in np.where(timestamp_diffs > gap_time_micros)[0]:
                 # calc samples to add, subtracting 1 to prevent copying last timestamp
-                num_new_samples = np.ceil(time_diff / sample_interval_micros) - 1
-                if time_diff > gap_time_micros and num_new_samples > 0:
+                num_new_samples = np.ceil(timestamp_diffs[index] / sample_interval_micros) - 1
+                if timestamp_diffs[index] > gap_time_micros and num_new_samples > 0:
                     # add the gap data to the result dataframe
                     result_df = result_df.append(
                         create_dataless_timestamps_df(data_time_stamps[index], sample_interval_micros,
@@ -348,7 +349,7 @@ def create_dataless_timestamps_df(start_timestamp: float, sample_interval_micros
     :param columns: dataframe index, the non-timestamp columns of the dataframe
     :param num_samples_to_add: int, the number of timestamps to create
     :param add_to_start: bool, if True, subtracts sample_interval_s from start_timestamp, default False
-    :return:
+    :return: dataframe with timestamps and no data
     """
     if add_to_start:
         sample_interval_micros = -sample_interval_micros

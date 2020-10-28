@@ -59,7 +59,7 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(len(self.even_sensor.get_channel("test_data")), 11)
         self.assertEqual(len(self.even_sensor.get_valid_channel_values("test_data")), 10)
         self.uneven_sensor.append_data(pd.DataFrame([[151, 10, 69]],
-                                                    columns=["timestamps", "microphone", "test_data"]))
+                                                    columns=["timestamps", "microphone", "test_data"]), True)
         self.assertEqual(len(self.uneven_sensor.get_channel("test_data")), 10)
         self.assertEqual(len(self.uneven_sensor.get_valid_channel_values("test_data")), 10)
         self.assertAlmostEqual(self.uneven_sensor.sample_interval_s, .000015, 6)

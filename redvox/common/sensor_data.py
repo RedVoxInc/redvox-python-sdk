@@ -64,31 +64,33 @@ class SensorData:
         """
         return np.isnan(self.sample_interval_s) or self.sample_interval_s == 0.0
 
-    def append_data(self, new_data: pd.DataFrame) -> 'SensorData':
+    def organize_and_update_stats(self):
         """
-        append the new data to the dataframe, updating the sample interval and sample rate if its not fixed
-            only considers non-nan values for the interval and sample rate
-        the new_data has timestamps completely before or after the existing timestamps
-        :return: the updated SensorData object
+        sorts the data by timestamps, then if the sample rate is not fixed, recalculates the sample rate, interval,
+            and interval std dev.  Updates the SensorData object with the new values
         """
-        timestamps = np.array(self.data_timestamps())
-        new_timestamps = new_data["timestamps"].to_numpy()
-        self.data_df = pd.concat([self.data_df, new_data], ignore_index=True)
         self.sort_by_data_timestamps()
         if not self.is_sample_rate_fixed:
-            if len(new_timestamps) > 1:
-                if self.is_sample_interval_invalid():
-                    self.sample_interval_s = dtu.microseconds_to_seconds(float(np.mean(np.diff(new_timestamps))))
-                    self.sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(np.diff(new_timestamps))))
-                else:
-                    self.sample_interval_s = dtu.microseconds_to_seconds(float(np.mean(
-                        np.concatenate([np.diff(timestamps), np.diff(new_timestamps)]))))
-                    self.sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(
-                        np.concatenate([np.diff(timestamps), np.diff(new_timestamps)]))))
-            else:
-                self.sample_interval_s = dtu.microseconds_to_seconds(float(np.mean(np.diff(self.data_timestamps()))))
-                self.sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(np.diff(self.data_timestamps()))))
-        self.sample_rate = np.nan if self.is_sample_interval_invalid() else 1 / self.sample_interval_s
+            timestamp_diffs = np.diff(self.data_timestamps())
+            # clean_diffs = timestamp_diffs[np.where(timestamp_diffs < gap_time_micros)[0]]
+            # if len(clean_diffs) > 0:
+            #     timestamp_diffs = clean_diffs
+            self.sample_interval_s = dtu.microseconds_to_seconds(float(np.mean(timestamp_diffs)))
+            self.sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(timestamp_diffs)))
+            self.sample_rate = np.nan if self.is_sample_interval_invalid() else 1 / self.sample_interval_s
+
+    def append_data(self, new_data: pd.DataFrame, recalculate_stats: bool = False) -> 'SensorData':
+        """
+        append the new data to the dataframe, update the sensor's stats on demand if it doesn't have a fixed
+            sample rate, then return the updated SensorData object
+        :param new_data: Dataframe containing data to add to the sensor's dataframe
+        :param recalculate_stats: bool, if True, sort the timestamps, recalculate the sample rate, interval, and
+                                    interval std dev, default False
+        :return: the updated SensorData object
+        """
+        self.data_df = pd.concat([self.data_df, new_data], ignore_index=True)
+        if recalculate_stats and not self.is_sample_rate_fixed:
+            self.organize_and_update_stats()
         return self
 
     def samples(self) -> np.ndarray:
@@ -122,7 +124,7 @@ class SensorData:
         get the timestamps from the dataframe
         :return: the timestamps as a numpy array
         """
-        return self.data_df["timestamps"].to_numpy(dtype=float)
+        return self.data_df["timestamps"].to_numpy(dtype=np.float)
 
     def first_data_timestamp(self) -> float:
         """
