@@ -7,7 +7,6 @@ import unittest
 import numpy as np
 
 import redvox.tests as tests
-from redvox.api1000 import io as apim_io
 from redvox.api900 import reader as api900_io
 from redvox.common import date_time_utils as dtu
 from redvox.common import station_reader_utils as sr_utils
@@ -219,7 +218,7 @@ class APIMReaderTest(unittest.TestCase):
 class AnyReaderTest(unittest.TestCase):
     def setUp(self):
         self.all_data = sr_utils.read_all_in_dir(tests.TEST_DATA_DIR,
-                                                 redvox_ids=["1637650010", "0000000001", "UHMB3_00"])
+                                                 station_ids=["1637650010", "0000000001", "UHMB3_00"])
 
     def test_read_any_dir(self):
         self.assertEqual(len(self.all_data.station_id_uuid_to_stations), 3)

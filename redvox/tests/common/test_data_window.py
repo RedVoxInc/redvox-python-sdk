@@ -32,7 +32,7 @@ class DataWindowTest(unittest.TestCase):
         self.assertTrue(test_station.has_audio_sensor())
         self.assertEqual(test_station.audio_sensor().num_samples(), 720000)
         self.assertTrue(test_station.has_location_sensor())
-        self.assertEqual(test_station.location_sensor().num_samples(), 3)
+        self.assertEqual(test_station.location_sensor().num_samples(), 4)
 
     def test_dw_with_start_end(self):
         self.assertEqual(len(self.dw_with_start_end.stations.station_id_uuid_to_stations), 1)
