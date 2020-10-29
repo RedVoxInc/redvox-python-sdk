@@ -110,6 +110,22 @@ class ReadResult:
                 return station_id
         return ""
 
+    def __get_station_id(self, string_id: str) -> str:
+        """
+        given an id, uuid, or id:uuid, return id
+        :param string_id: string, the id to examine
+        :return: the station id corresponding to the input or an empty string if it doesn't exist
+        """
+        if self.check_for_id(string_id):
+            if string_id in self.station_id_uuid_to_stations.keys():
+                s: List[str] = string_id.split(":")
+                return s[0]
+            elif string_id in self.__station_id_to_id_uuid.values():
+                return self.__get_station_id_by_uuid(string_id)
+            elif string_id in self.__station_id_to_id_uuid.keys():
+                return string_id
+        return ""
+
     def pop_station(self, station_id: str) -> 'ReadResult':
         """
         removes a station from the ReadResult; station_id can be one of id, uuid or id:uuid
@@ -153,10 +169,22 @@ class ReadResult:
 
     def get_all_stations(self) -> List[Station]:
         """
-        Return a list of all stations in the ReadResult
-        :return: a list of all stations
+        :return: a list of all stations in the ReadResult
         """
         return list(self.station_id_uuid_to_stations.values())
+
+    def get_station_summary(self, station_id: str) -> Optional[StationSummary]:
+        """
+        Find the station summary identified by the station_id given; it can be id or id:uuid
+        :return: A StationSummary in this ReadResult if it exists, None otherwise
+        """
+        if ":" in station_id:
+            s: List[str] = station_id.split(":")
+            return self.__station_summaries[s[0]]
+        elif self.check_for_id(station_id):
+            return self.__station_summaries[self.__get_station_id(station_id)]
+        print(f"WARNING: ReadResult attempted to read station id: {station_id}, but could not find id in results")
+        return None
 
     def get_station_summaries(self) -> List[StationSummary]:
         """

@@ -49,6 +49,15 @@ class SensorData:
     def __init__(self, sensor_name: str, sensor_data: pd.DataFrame, sample_rate: float = np.nan,
                  sample_interval_s: float = np.nan, sample_interval_std_s: float = np.nan,
                  is_sample_rate_fixed: bool = False):
+        """
+        initialize the sensor data with params
+        :param sensor_name: str, name of the sensor
+        :param sensor_data: dataframe with the timestamps and sensor data
+        :param sample_rate: float, sample rate in hz of the data
+        :param sample_interval_s: float, sample interval in seconds of the data
+        :param sample_interval_std_s: float, std dev of sample interval in seconds of the data
+        :param is_sample_rate_fixed: bool, if True, sample rate is constant for all data, default False
+        """
         self.name: str = sensor_name
         self.data_df: pd.DataFrame = sensor_data
         self.sample_rate: float = sample_rate
@@ -72,9 +81,6 @@ class SensorData:
         self.sort_by_data_timestamps()
         if not self.is_sample_rate_fixed:
             timestamp_diffs = np.diff(self.data_timestamps())
-            # clean_diffs = timestamp_diffs[np.where(timestamp_diffs < gap_time_micros)[0]]
-            # if len(clean_diffs) > 0:
-            #     timestamp_diffs = clean_diffs
             self.sample_interval_s = dtu.microseconds_to_seconds(float(np.mean(timestamp_diffs)))
             self.sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(timestamp_diffs)))
             self.sample_rate = np.nan if self.is_sample_interval_invalid() else 1 / self.sample_interval_s
@@ -88,7 +94,7 @@ class SensorData:
                                     interval std dev, default False
         :return: the updated SensorData object
         """
-        self.data_df = pd.concat([self.data_df, new_data], ignore_index=True)
+        self.data_df = self.data_df.append(new_data, ignore_index=True)
         if recalculate_stats and not self.is_sample_rate_fixed:
             self.organize_and_update_stats()
         return self

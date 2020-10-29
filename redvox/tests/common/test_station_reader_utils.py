@@ -82,6 +82,16 @@ class ReadResultTest(unittest.TestCase):
         self.assertEqual(len(summaries), 2)
         self.assertEqual(summaries[0].station_id, "1637650010")
 
+    def test_get_station_summary(self):
+        summary = self.read_result.get_station_summary("1637650010")
+        self.assertEqual(summary.station_id, "1637650010")
+        summary = self.read_result.get_station_summary("1637650010:1107483069")
+        self.assertEqual(summary.station_id, "1637650010")
+        self.assertEqual(summary.station_uuid, "1107483069")
+        summary = self.read_result.get_station_summary("1107483069")
+        self.assertEqual(summary.station_id, "1637650010")
+        self.assertEqual(summary.station_uuid, "1107483069")
+
     def test_append(self):
         # indirectly tests append_station
         mseed_data = sr_utils.load_from_mseed(os.path.join(tests.TEST_DATA_DIR, "out.mseed"))
