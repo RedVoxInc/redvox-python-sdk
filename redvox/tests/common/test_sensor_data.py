@@ -2,6 +2,7 @@
 tests for sensor data and sensor metadata objects
 """
 import unittest
+
 import pandas as pd
 import numpy as np
 

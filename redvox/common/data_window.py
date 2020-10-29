@@ -40,6 +40,7 @@ class DataWindow:
         structured_layout: bool, if True, the input_directory contains specially named and organized
                             directories of data.  Default True
         stations: optional ReadResult, the results of reading the data from input_directory
+        debug: bool, if True, outputs additional information during initialization. Default False
     """
     def __init__(self, input_dir: str, station_ids: Optional[Set[str]] = None,
                  start_datetime: Optional[dtu.datetime] = None, end_datetime: Optional[dtu.datetime] = None,
