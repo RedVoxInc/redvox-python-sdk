@@ -11,6 +11,7 @@ from redvox.common.station import Station
 from redvox.common.station_reader_utils import ReadResult
 from redvox.common.station_reader_utils import read_all_in_dir
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
+from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 
 
 DEFAULT_GAP_TIME_S: float = 0.25        # default length of a gap in seconds
@@ -362,6 +363,8 @@ def create_dataless_timestamps_df(start_timestamp: float, sample_interval_micros
             empty_df[column_index] = new_timestamps
         elif column_index == "location_provider":
             empty_df[column_index] = LocationProvider.UNKNOWN
+        elif column_index == "image_codec":
+            empty_df[column_index] = ImageCodec.UNKNOWN
         else:
             empty_df[column_index] = np.nan
     return empty_df

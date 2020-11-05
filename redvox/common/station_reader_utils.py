@@ -592,13 +592,13 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
                 best_loc = sensors.get_location().get_last_best_location()
             else:
                 best_loc = sensors.get_location().get_overall_best_location()
-            data_for_df = [[best_loc.get_latitude_longitude_timestamp(),
+            data_for_df = [[best_loc.get_latitude_longitude_timestamp().get_mach(),
                             best_loc.get_latitude(),
                             best_loc.get_longitude(),
                             best_loc.get_altitude(),
                             best_loc.get_speed(),
                             best_loc.get_bearing(),
-                            best_loc.get_horizontal_accuracy_unit(),
+                            best_loc.get_horizontal_accuracy(),
                             best_loc.get_vertical_accuracy(),
                             best_loc.get_speed_accuracy(),
                             best_loc.get_bearing_accuracy(),
@@ -611,7 +611,6 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
             else:
                 sample_interval = np.nan
                 sample_interval_std = np.nan
-            test = sensors.get_location().get_latitude_samples().get_values()
             data_for_df = np.transpose([timestamps,
                                         sensors.get_location().get_latitude_samples().get_values(),
                                         sensors.get_location().get_longitude_samples().get_values(),
@@ -622,7 +621,7 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
                                         sensors.get_location().get_vertical_accuracy_samples().get_values(),
                                         sensors.get_location().get_speed_samples().get_values(),
                                         sensors.get_location().get_bearing_accuracy_samples().get_values(),
-                                        np.array(sensors.get_location().get_location_providers().get_values())])
+                                        sensors.get_location().get_location_providers().get_values()])
         columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "bearing",
                    "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy",
                    "location_provider"]
