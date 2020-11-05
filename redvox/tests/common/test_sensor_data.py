@@ -50,6 +50,13 @@ class SensorDataTest(unittest.TestCase):
         self.assertTrue(self.even_sensor.is_sample_rate_fixed)
         self.assertFalse(self.uneven_sensor.is_sample_rate_fixed)
 
+    def test_empty_dataframe(self):
+        self.assertRaises(AttributeError, SensorData, "", pd.DataFrame(), np.nan, np.nan, np.nan, True)
+
+    def test_invalid_dataframe(self):
+        self.assertRaises(AttributeError, SensorData, "", pd.DataFrame(columns=["no_timestamps"]),
+                          np.nan, np.nan, np.nan, True)
+
     def test_append_data(self):
         self.even_sensor.append_data(pd.DataFrame([[0, np.nan, np.nan]],
                                                   columns=["timestamps", "microphone", "test_data"]))
@@ -68,6 +75,10 @@ class SensorDataTest(unittest.TestCase):
 
     def test_is_sample_interval_invalid(self):
         self.assertFalse(self.even_sensor.is_sample_interval_invalid())
+        self.even_sensor.append_data(pd.DataFrame([[0, np.nan, np.nan]],
+                                                  columns=["timestamps", "microphone", "test_data"]))
+        self.assertEqual(len(self.even_sensor.get_channel("test_data")), 10)
+        self.assertEqual(len(self.even_sensor.get_valid_channel_values("test_data")), 9)
 
     def test_samples(self):
         self.assertEqual(len(self.even_sensor.samples()), 2)
@@ -83,6 +94,9 @@ class SensorDataTest(unittest.TestCase):
                                                   columns=["timestamps", "microphone", "test_data"]))
         self.assertEqual(len(self.even_sensor.get_channel("test_data")), 10)
         self.assertEqual(len(self.even_sensor.get_valid_channel_values("test_data")), 9)
+
+    def test_get_valid_channel_values(self):
+        self.assertRaises(ValueError, self.even_sensor.get_valid_channel_values, "not_exist")
 
     def test_data_timestamps(self):
         self.assertEqual(len(self.even_sensor.data_timestamps()), 9)
@@ -108,6 +122,22 @@ class SensorDataTest(unittest.TestCase):
         self.even_sensor.update_data_timestamps(-100)
         self.assertEqual(self.even_sensor.first_data_timestamp(), 20)
         self.assertEqual(self.even_sensor.last_data_timestamp(), 180)
+
+    def test_organize_and_update_stats(self):
+        self.even_sensor.organize_and_update_stats()
+        self.assertEqual(self.even_sensor.data_timestamps()[1], 40)
+        self.assertAlmostEqual(self.even_sensor.sample_rate, 50000.0, 1)
+        self.assertEqual(self.even_sensor.sample_interval_std_s, 0)
+        timestamps = [120, 111, 97, 83, 74, 65, 31, 25, 14]
+        test_data = [75, 12, 86, 22, 200, 52, 99, 188, 121]
+        sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+        sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
+        uneven_sensor = SensorData("test", pd.DataFrame(np.transpose([timestamps, test_data]),
+                                                        columns=["timestamps", "test_data"]),
+                                   1 / sample_interval, sample_interval, sample_interval_std, False)
+        uneven_sensor.organize_and_update_stats()
+        self.assertAlmostEqual(uneven_sensor.sample_interval_s, .000013, 6)
+        self.assertAlmostEqual(uneven_sensor.sample_interval_std_s, .000008, 6)
 
     # technically this is done any time timestamps are added during initialization or appending functions
     # so unless users are altering the dataframe directly, sort_by_data_timestamps() should always happen

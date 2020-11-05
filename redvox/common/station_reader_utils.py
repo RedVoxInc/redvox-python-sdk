@@ -17,6 +17,7 @@ from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.station import Station
 from redvox.common.station_utils import DataPacket, StationTiming, StationLocation, StationMetadata, LocationData
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
+from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType
 from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
 from redvox.api1000.wrapped_redvox_packet import wrapped_packet as apim_wp
 
@@ -64,7 +65,7 @@ class StationSummary:
             station_info.station_os if station_info.station_os is not None else "OS UNKNOWN",
             station_info.station_os_version if station_info.station_os_version is not None else "OS VERSION UNKNOWN",
             station_info.station_app_version if station_info.station_app_version is not None else "APP VERSION UNKNOWN",
-            audio.sample_rate if audio is not None else float("NaN"),
+            audio.sample_rate if audio is not None else np.nan,
             total_duration,
             start_dt,
             end_dt
@@ -84,6 +85,7 @@ class ReadResult:
         """
         :param station_id_uuid_to_stations: station_id:station_uuid -> station information
         """
+        # todo: add mach time zero as another key
         self.station_id_uuid_to_stations: Dict[str, Station] = station_id_uuid_to_stations
         self.__station_id_to_id_uuid: Dict[str, str] = {}
         self.__station_summaries: Dict[str, StationSummary] = {}
@@ -173,6 +175,12 @@ class ReadResult:
         """
         return list(self.station_id_uuid_to_stations.values())
 
+    def get_all_station_ids(self) -> List[str]:
+        """
+        :return: a list of all station ids in the ReadResult
+        """
+        return list(self.__station_id_to_id_uuid.keys())
+
     def get_station_summary(self, station_id: str) -> Optional[StationSummary]:
         """
         Find the station summary identified by the station_id given; it can be id or id:uuid
@@ -199,7 +207,7 @@ class ReadResult:
         :param new_station: Station object to add
         """
         if self.check_for_id(new_station_id):
-            self.station_id_uuid_to_stations[new_station_id].append_station_data(new_station.station_data)
+            self.station_id_uuid_to_stations[new_station_id].append_station(new_station)
         else:
             self.station_id_uuid_to_stations[new_station_id] = new_station
             self.__station_id_to_id_uuid[new_station.station_metadata.station_id] = \
@@ -298,6 +306,7 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
             data_for_df = np.array([[timestamps[0], lat_lon[0], lat_lon[1], np.nan, np.nan, np.nan, np.nan,
                                      LocationProvider.USER, np.nan, np.nan, np.nan, np.nan]])
         else:
+            # todo: how to pass enums into dataframe?
             if wrapped_packet.location_sensor().sensor_name().lower() == "network":
                 provider = LocationProvider.NETWORK
             elif wrapped_packet.location_sensor().sensor_name().lower() == "gps":
@@ -351,6 +360,9 @@ def load_station_from_api900(api900_packet: api900_io.WrappedRedvoxPacket,
                              api900_packet.time_synchronization_sensor().payload_values(),
                              np.nan if api900_packet.best_latency() is None else api900_packet.best_latency(),
                              0.0 if api900_packet.best_offset() is None else api900_packet.best_offset())
+
+    # todo: add network type, internal temperature, available RAM, cell service state, battery level,
+    #       available disk, network strength, battery current and power state
     packet_list: List[DataPacket] = [packet_data]
     # get the best timing values for the station
     if timing.station_best_latency is None or np.isnan(timing.station_best_latency):
@@ -415,10 +427,14 @@ def load_file_range_from_api900(directory: str,
         new_station = Station(metadata)
         packet_list: List[DataPacket] = []
         for packet in wrapped_packets:
+            battery_level = packet.battery_level_percent()
+            internal_temperature = packet.device_temperature_c()
             if packet.has_time_synchronization_sensor():
                 time_sync = packet.time_synchronization_sensor().payload_values()
+                network_type = NetworkType.UNKNOWN_NETWORK
             else:
                 time_sync = None
+                network_type = NetworkType.NO_NETWORK
             data_dict = read_api900_wrapped_packet(packet)
             new_station.append_station_data(data_dict)
             packet_data = DataPacket(packet.server_timestamp_epoch_microseconds_utc(),
@@ -429,6 +445,11 @@ def load_file_range_from_api900(directory: str,
                                      time_sync, np.nan if packet.best_latency() is None else packet.best_latency(),
                                      0.0 if packet.best_offset() is None else packet.best_offset())
             packet_list.append(packet_data)
+        # todo: add network type, internal temperature, available RAM, cell service state, battery level,
+        #       available disk, network strength, battery current and power state
+        # todo: convert location provider back into an enum
+        # todo: convert timesync into sensor data object.  should be packet start time as timestamp, time sync
+        #       timestamps as data
         new_station.packet_data = packet_list
 
         if timing.station_best_latency is None or np.isnan(timing.station_best_latency):
@@ -557,12 +578,32 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
         else:
             sample_interval = np.nan
             sample_interval_std = np.nan
-        data_for_df = np.transpose([timestamps, sensors.get_image().get_samples()])
+        codecs = np.full(len(timestamps), sensors.get_image().get_image_codec().value)
+        data_for_df = np.transpose([timestamps, sensors.get_image().get_samples(), codecs])
         data_dict[SensorType.IMAGE] = SensorData(sensors.get_image().get_sensor_description(),
-                                                 pd.DataFrame(data_for_df, columns=["image"]),
+                                                 pd.DataFrame(data_for_df,
+                                                              columns=["timestamps", "image", "image_codec"]),
                                                  1 / sample_interval, sample_interval, sample_interval_std, False)
-    if sensors.has_location():
-        if sensors.validate_location():
+    if sensors.has_location() and sensors.validate_location():
+        if sensors.get_location().is_only_best_values():
+            sample_interval = np.nan
+            sample_interval_std = np.nan
+            if sensors.get_location().get_last_best_location():
+                best_loc = sensors.get_location().get_last_best_location()
+            else:
+                best_loc = sensors.get_location().get_overall_best_location()
+            data_for_df = [[best_loc.get_latitude_longitude_timestamp(),
+                            best_loc.get_latitude(),
+                            best_loc.get_longitude(),
+                            best_loc.get_altitude(),
+                            best_loc.get_speed(),
+                            best_loc.get_bearing(),
+                            best_loc.get_horizontal_accuracy_unit(),
+                            best_loc.get_vertical_accuracy(),
+                            best_loc.get_speed_accuracy(),
+                            best_loc.get_bearing_accuracy(),
+                            best_loc.get_location_provider()]]
+        else:
             timestamps = sensors.get_location().get_timestamps().get_timestamps()
             if len(timestamps) > 1:
                 sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
@@ -570,6 +611,7 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
             else:
                 sample_interval = np.nan
                 sample_interval_std = np.nan
+            test = sensors.get_location().get_latitude_samples().get_values()
             data_for_df = np.transpose([timestamps,
                                         sensors.get_location().get_latitude_samples().get_values(),
                                         sensors.get_location().get_longitude_samples().get_values(),
@@ -580,14 +622,14 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
                                         sensors.get_location().get_vertical_accuracy_samples().get_values(),
                                         sensors.get_location().get_speed_samples().get_values(),
                                         sensors.get_location().get_bearing_accuracy_samples().get_values(),
-                                        sensors.get_location().get_location_providers().get_values()])
-            columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "bearing",
-                       "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy",
-                       "location_provider"]
-            data_dict[SensorType.LOCATION] = SensorData(sensors.get_location().get_sensor_description(),
-                                                        pd.DataFrame(data_for_df, columns=columns),
-                                                        1 / sample_interval, sample_interval,
-                                                        sample_interval_std, False)
+                                        np.array(sensors.get_location().get_location_providers().get_values())])
+        columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "bearing",
+                   "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy",
+                   "location_provider"]
+        data_dict[SensorType.LOCATION] = SensorData(sensors.get_location().get_sensor_description(),
+                                                    pd.DataFrame(data_for_df, columns=columns),
+                                                    1 / sample_interval, sample_interval,
+                                                    sample_interval_std, False)
     return data_dict
 
 
@@ -650,6 +692,8 @@ def load_station_from_apim_file(directory: str, start_timestamp_utc_s: Optional[
                              read_packet.get_timing_information().get_best_latency(),
                              0.0 if read_packet.get_timing_information().get_best_offset() is None else
                              read_packet.get_timing_information().get_best_offset())
+    # todo: add network type, internal temperature, available RAM, cell service state, battery level,
+    #       available disk, network strength, battery current and power state
     packet_list: List[DataPacket] = [packet_data]
     # get the best timing values for the station
     if timing.station_best_latency is None or np.isnan(timing.station_best_latency):
@@ -737,6 +781,8 @@ def load_from_file_range_api_m(directory: str,
                                      packet.get_timing_information().get_best_offset(),
                                      best_location=location)
             packet_list.append(packet_data)
+        # todo: add network type, internal temperature, available RAM, cell service state, battery level,
+        #       available disk, network strength, battery current and power state
         new_station.packet_data = packet_list
 
         if timing.station_best_latency is None or np.isnan(timing.station_best_latency):
@@ -777,7 +823,7 @@ def load_from_mseed(file_path: str, station_ids: Optional[List[str]] = None) -> 
         sensor_data = SensorData(record_info["channel"], pd.DataFrame(data_for_df, columns=["timestamps", "BDF"]),
                                  record_info["sampling_rate"], 1 / record_info["sampling_rate"], 0.0, True)
         data_packet = DataPacket(np.nan, start_time, start_time, end_time)
-        if station_ids is None or station_id in station_ids:
+        if station_ids is None or len(station_ids) == 0 or station_id in station_ids:
             stations.append_station(f"{station_id}:{station_id}", Station(metadata, {SensorType.AUDIO: sensor_data},
                                                                           [data_packet]))
     return stations

@@ -15,7 +15,7 @@ class SensorType(enum.Enum):
     """
     UNKNOWN_SENSOR = 0          # unknown sensor
     ACCELEROMETER = 1           # meters/second^2
-    TEMPERATURE = 2             # degrees Celsius
+    AMBIENT_TEMPERATURE = 2     # degrees Celsius
     AUDIO = 3                   # normalized counts
     COMPRESSED_AUDIO = 4        # bytes (codec specific)
     GRAVITY = 5                 # meters/second^2
@@ -31,6 +31,16 @@ class SensorType(enum.Enum):
     RELATIVE_HUMIDITY = 15      # percentage
     ROTATION_VECTOR = 16        # Unitless
     INFRARED = 17               # this is proximity
+    SYNCH = 18                  # time synchronization values
+    BATTERY = 19                # battery charge and current level
+    INTERNAL_TEMPERATURE = 20   # phone internal temperature
+    NETWORK = 21                # network source and strength
+    AVAILABLE_RAM = 22          # available RAM of the system
+    CELL_SERVICE = 23           # cell service status
+    AVAILABLE_DISK = 24         # amount of hard disk space left
+    POWER_STATE = 25            # phone power charging state
+    # todo: add network type, internal temperature, available RAM, cell service state, battery level,
+    #       available disk, network strength, battery current and power state
 
 
 class SensorData:
@@ -58,6 +68,8 @@ class SensorData:
         :param sample_interval_std_s: float, std dev of sample interval in seconds of the data
         :param is_sample_rate_fixed: bool, if True, sample rate is constant for all data, default False
         """
+        if "timestamps" not in sensor_data.columns:
+            raise AttributeError('SensorData requires the data frame to contain a column titled "timestamps"')
         self.name: str = sensor_name
         self.data_df: pd.DataFrame = sensor_data
         self.sample_rate: float = sample_rate
@@ -90,8 +102,8 @@ class SensorData:
         append the new data to the dataframe, update the sensor's stats on demand if it doesn't have a fixed
             sample rate, then return the updated SensorData object
         :param new_data: Dataframe containing data to add to the sensor's dataframe
-        :param recalculate_stats: bool, if True, sort the timestamps, recalculate the sample rate, interval, and
-                                    interval std dev, default False
+        :param recalculate_stats: bool, if True and the sensor does not have a fixed sample rate, sort the timestamps,
+                                    recalculate the sample rate, interval, and interval std dev, default False
         :return: the updated SensorData object
         """
         self.data_df = self.data_df.append(new_data, ignore_index=True)
@@ -148,7 +160,7 @@ class SensorData:
 
     def num_samples(self) -> int:
         """
-        get the number of samples in the dataframe
+        get the number of samples in the sensor's dataframe
         :return: the number of rows in the dataframe
         """
         return self.data_df.shape[0]
@@ -164,8 +176,8 @@ class SensorData:
 
     def data_fields(self) -> List[str]:
         """
-        get the data fields of the sensor
-        :return: a list of the names of the data fields of the sensor
+        get the names of the data fields of the sensor
+        :return: a list of the names of the columns of the dataframe
         """
         return self.data_df.columns.to_list()
 

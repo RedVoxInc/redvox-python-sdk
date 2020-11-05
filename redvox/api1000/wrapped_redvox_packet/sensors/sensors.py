@@ -574,11 +574,10 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
 
     def validate_location(self) -> bool:
         """
-        Checks if there are no errors with the location and it contains at least 1 data entry
+        Checks if there are no errors with the location
         :return: True if no errors
         """
-        return len(location.validate_location(self._location)) < 1 \
-            and self._location.get_latitude_samples().get_values_count() > 0
+        return len(location.validate_location(self._location)) < 1
 
     def has_magnetometer(self) -> bool:
         """
