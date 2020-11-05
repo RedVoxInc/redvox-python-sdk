@@ -110,23 +110,3 @@ class CreateDatalessTimestampsDFTest(unittest.TestCase):
         new_df = dw.create_dataless_timestamps_df(8000, 1000, base_df.columns, 7, True)
         self.assertEqual(new_df.loc[0, "timestamps"], 7000)
         self.assertEqual(new_df.loc[6, "timestamps"], 1000)
-
-
-class StressDataWindowTest(unittest.TestCase):
-    def test_stress(self):
-        start_year = 2020
-        start_month = 7
-        start_day = 11
-        start_hour = 19
-        start_minute = 50
-        start_second = 0
-        duration_seconds = 1200
-        input_dir = "/Users/tyler/Documents/pipeline_tests/"
-        start_datetime = dt.datetime_from(start_year, start_month, start_day, start_hour, start_minute, start_second)
-        end_datetime = start_datetime + dt.timedelta(seconds=duration_seconds)
-        start = dt.now()
-        stress_window = dw.DataWindow(input_dir=input_dir, start_datetime=start_datetime, end_datetime=end_datetime,
-                                      station_ids=None)
-        end = dt.now()
-        print(f"data read: {end - start}")
-        self.assertTrue(True)

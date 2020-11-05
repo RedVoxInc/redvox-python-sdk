@@ -7,7 +7,12 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
-### 3.0.0a16 (2020-10-XX)
+### 3.0.0a17 (2020-11-04)
+
+* Image sensors properly load into data windows
+* Updated LocationSensors to use best_locations in API M location sensors
+
+### 3.0.0a16 (2020-10-27)
 
 * LocationData added; stores location data of a Station for later use
 * DataWindow will compute the most relevant locations into LocationData

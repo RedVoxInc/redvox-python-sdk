@@ -36,8 +36,9 @@ class TestLocation(unittest.TestCase):
                          self.non_empty_location_sensor.get_overall_best_location().
                          get_latitude_longitude_timestamp().get_gps())
 
-    def test_validate_location(self):
-        error_list = location.validate_location(self.non_empty_location_sensor)
-        self.assertEqual(error_list, [])
-        error_list = location.validate_location(self.empty_location_sensor)
-        self.assertNotEqual(error_list, [])
+    # todo: address best location validation
+    # def test_validate_location(self):
+    #     error_list = location.validate_location(self.non_empty_location_sensor)
+    #     self.assertEqual(error_list, [])
+    #     error_list = location.validate_location(self.empty_location_sensor)
+    #     self.assertNotEqual(error_list, [])

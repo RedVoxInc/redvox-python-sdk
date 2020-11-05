@@ -176,87 +176,6 @@ class API900ReaderTest(unittest.TestCase):
         self.assertTrue(station.has_accelerometer_data())
         self.assertTrue(station.has_barometer_data())
 
-    def test_stress(self):
-        from redvox.common import timesync as ts
-        from redvox.common.station import Station
-        from redvox.common.station_utils import StationMetadata, StationTiming, DataPacket
-        from typing import List
-        start_year = 2020
-        start_month = 7
-        start_day = 11
-        start_hour = 19
-        start_minute = 50
-        start_second = 0
-        duration_seconds = 1200
-        start_datetime = dtu.datetime_from(start_year, start_month, start_day, start_hour, start_minute, start_second)
-        start_timestamp_utc_s = int(dtu.datetime_to_epoch_seconds_utc(start_datetime))
-        end_timestamp_utc_s = start_timestamp_utc_s + duration_seconds
-        # end_datetime = start_datetime + dtu.timedelta(seconds=duration_seconds)
-        # 46 seconds to read 20 minutes of data from 22 stations
-        all_data = api900_io.read_rdvxz_file_range("/Users/tyler/Documents/pipeline_tests/api900",
-                                                   start_timestamp_utc_s, end_timestamp_utc_s,
-                                                   ["1637610014", "1637610017", "1637620003"],
-                                                   True, False)
-        # 3 seconds per station
-        for redvox_id, wrapped_packets in all_data.items():
-            # set station metadata and timing based on first packet
-            timing = StationTiming(wrapped_packets[0].mach_time_zero(),
-                                   wrapped_packets[0].microphone_sensor().sample_rate_hz(),
-                                   wrapped_packets[0].microphone_sensor().
-                                   first_sample_timestamp_epoch_microseconds_utc(),
-                                   start_timestamp_utc_s, end_timestamp_utc_s,
-                                   np.nan if wrapped_packets[0].best_latency() is None else
-                                   wrapped_packets[0].best_latency(),
-                                   0.0 if wrapped_packets[0].best_offset() is None else
-                                   wrapped_packets[0].best_offset())
-            metadata = StationMetadata(wrapped_packets[0].redvox_id(), wrapped_packets[0].device_make(),
-                                       wrapped_packets[0].device_model(), False, wrapped_packets[0].device_os(),
-                                       wrapped_packets[0].device_os_version(), "Redvox",
-                                       wrapped_packets[0].app_version(), wrapped_packets[0].is_scrambled(), timing,
-                                       station_uuid=wrapped_packets[0].uuid())
-            # add data from packets
-            new_station = Station(metadata)
-            packet_list: List[DataPacket] = []
-            print("num packets: ", len(wrapped_packets))
-            for packet in wrapped_packets:
-                if packet.has_time_synchronization_sensor():
-                    time_sync = packet.time_synchronization_sensor().payload_values()
-                else:
-                    time_sync = None
-                data_dict = sr_utils.read_api900_wrapped_packet(packet)
-                new_station.append_station_data(data_dict)
-                start = dtu.now()
-                packet_data = DataPacket(packet.server_timestamp_epoch_microseconds_utc(),
-                                         packet.app_file_start_timestamp_machine(),
-                                         data_dict[SensorType.AUDIO].num_samples(),
-                                         data_dict[SensorType.AUDIO].data_duration_s(),
-                                         float(packet.start_timestamp_us_utc()), packet.end_timestamp_us_utc(),
-                                         time_sync, np.nan if packet.best_latency() is None else packet.best_latency(),
-                                         0.0 if packet.best_offset() is None else packet.best_offset())
-                end = dtu.now()
-                packet_list.append(packet_data)
-                print(f"{new_station.station_metadata.station_id} packet #{packet.start_timestamp_us_utc()} converted: "
-                      f"{end - start}")
-            new_station.packet_data = packet_list
-
-            if timing.station_best_latency is None or np.isnan(timing.station_best_latency):
-                # get the best timing values for the station
-                ts_analysis = ts.TimeSyncAnalysis(new_station)
-                new_station.station_metadata.timing_data.station_best_latency = ts_analysis.get_best_latency()
-                new_station.station_metadata.timing_data.station_best_offset = ts_analysis.get_best_offset()
-                new_station.station_metadata.timing_data.station_mean_offset = ts_analysis.get_mean_offset()
-                new_station.station_metadata.timing_data.station_std_offset = ts_analysis.get_offset_stdev()
-
-        # 80 seconds to process the data into a ReadResult
-        # result = sr_utils.load_file_range_from_api900("/Users/tyler/Documents/pipeline_tests/api900",
-        #                                               redvox_ids=[],
-        #                                               start_timestamp_utc_s=int(
-        #                                                   dtu.datetime_to_epoch_seconds_utc(start_datetime)),
-        #                                               end_timestamp_utc_s=int(
-        #                                                   dtu.datetime_to_epoch_seconds_utc(end_datetime)),
-        #                                               structured_layout=True, concat_continuous_segments=False)
-        self.assertTrue(True)
-
 
 class APIMReaderTest(unittest.TestCase):
     def setUp(self):
@@ -308,11 +227,6 @@ class AnyReaderTest(unittest.TestCase):
     def setUp(self):
         self.all_data = sr_utils.read_all_in_dir(tests.TEST_DATA_DIR,
                                                  station_ids=["1637650010", "0000000001", "UHMB3_00"])
-
-    def test_stuff(self):
-        test_data = sr_utils.read_all_in_dir("/Users/tyler/Downloads/api1000_2020110421/2020/11/04/21",
-                                             station_ids=["1637610030"])
-        self.assertEqual(1, 2)
 
     def test_read_any_dir(self):
         self.assertEqual(len(self.all_data.station_id_uuid_to_stations), 3)
