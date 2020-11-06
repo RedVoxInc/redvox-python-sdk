@@ -20,7 +20,7 @@ class StationTest(unittest.TestCase):
 
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station.packet_data), 1)
-        self.assertEqual(len(self.api900_station.station_data), 5)
+        self.assertEqual(len(self.api900_station.station_data), 8)
         self.assertTrue(np.isnan(self.api900_station.packet_data[0].packet_best_latency))
         self.assertEqual(self.api900_station.station_metadata.timing_data.station_best_latency, 70278.0)
         self.assertEqual(self.api900_station.audio_sensor().sample_rate, 80)

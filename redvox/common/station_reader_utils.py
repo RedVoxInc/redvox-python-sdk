@@ -15,7 +15,8 @@ from redvox.api900 import reader as api900_io
 from redvox.common import file_statistics as fs, date_time_utils as dtu, timesync as ts
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.station import Station
-from redvox.common.station_utils import DataPacket, StationTiming, StationLocation, StationMetadata, LocationData
+from redvox.common.station_utils import DataPacket, StationTiming, StationLocation, StationMetadata, LocationData, \
+    StationKey
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType
 from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
@@ -81,16 +82,39 @@ class ReadResult:
         __station_summaries: dict of string to StationSummary object, maps id to StationSummary
     """
     def __init__(self,
-                 station_id_uuid_to_stations: Dict[str, Station]):
+                 station_id_uuid_to_stations: Dict[str, Station],
+                 result_stations: List[Station] = None):
         """
         :param station_id_uuid_to_stations: station_id:station_uuid -> station information
         """
+        # station_keys: List[StationKey] = []
+        # self.station_keys_to_stations: Dict[StationKey, Station]
+        # for station in result_stations:
+        #     station_keys.append(station.station_key)
+        #     self.station_keys_to_stations[station.station_key] = station
         # todo: add mach time zero as another key
         self.station_id_uuid_to_stations: Dict[str, Station] = station_id_uuid_to_stations
         self.__station_id_to_id_uuid: Dict[str, str] = {}
         self.__station_summaries: Dict[str, StationSummary] = {}
 
         self._update_metadata()
+
+    # def search_stations(self, id_or_uuid: str, start_time_micros: float = np.inf) -> Station:
+    #     """
+    #     Searches the stations in the ReadResult for the first one that matches the exact id or uuid given,
+    #         with starting time on or before the time given
+    #     :param id_or_uuid: str, the id or uuid of the station to search for
+    #     :param start_time_micros: float, the start time of the station to search for, default np.inf
+    #     :return: Station object that has the id or uuid and was started on or before the time given
+    #     """
+    #
+    # def get_stations_by_id(self, id_or_uuid: str) -> List[Station]:
+    #     pass
+    #     return False
+    #
+    # def get_stations_by_start_time(self, start_time_micros: float) -> List[Station]:
+    #     pass
+    #     return False
 
     def _update_metadata(self):
         """
@@ -327,6 +351,28 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
         data_dict[SensorType.LOCATION] = SensorData(wrapped_packet.location_sensor().sensor_name(),
                                                     pd.DataFrame(data_for_df, columns=columns),
                                                     1 / sample_interval, sample_interval, sample_interval_std, False)
+    packet_duration_s = wrapped_packet.duration_s()
+    data_dict[SensorType.BATTERY] = SensorData("battery",
+                                               pd.DataFrame([[wrapped_packet.start_timestamp_us_utc(),
+                                                              wrapped_packet.battery_level_percent(), np.nan]],
+                                                            columns=["timestamps", "charge_remaining",
+                                                                     "current_strength"]),
+                                               1/packet_duration_s, packet_duration_s, 0, True)
+    data_dict[SensorType.INTERNAL_TEMPERATURE] = \
+        SensorData("internal temperature", pd.DataFrame([[wrapped_packet.start_timestamp_us_utc(),
+                                                          wrapped_packet.device_temperature_c()]],
+                                                        columns=["timestamps", "internal_temp_c"]),
+                   1/packet_duration_s, packet_duration_s, 0, True)
+    if wrapped_packet.has_time_synchronization_sensor():
+        network_type = NetworkType.UNKNOWN_NETWORK
+    else:
+        network_type = NetworkType.NO_NETWORK
+    data_dict[SensorType.NETWORK] = SensorData("network",
+                                               pd.DataFrame([[wrapped_packet.start_timestamp_us_utc(),
+                                                              network_type, np.nan]],
+                                                            columns=["timestamps", "network_type",
+                                                                     "network_strength"]),
+                                               1/packet_duration_s, packet_duration_s, 0, True)
     return data_dict
 
 
@@ -360,9 +406,6 @@ def load_station_from_api900(api900_packet: api900_io.WrappedRedvoxPacket,
                              api900_packet.time_synchronization_sensor().payload_values(),
                              np.nan if api900_packet.best_latency() is None else api900_packet.best_latency(),
                              0.0 if api900_packet.best_offset() is None else api900_packet.best_offset())
-
-    # todo: add network type, internal temperature, available RAM, cell service state, battery level,
-    #       available disk, network strength, battery current and power state
     packet_list: List[DataPacket] = [packet_data]
     # get the best timing values for the station
     if timing.station_best_latency is None or np.isnan(timing.station_best_latency):
@@ -427,14 +470,10 @@ def load_file_range_from_api900(directory: str,
         new_station = Station(metadata)
         packet_list: List[DataPacket] = []
         for packet in wrapped_packets:
-            battery_level = packet.battery_level_percent()
-            internal_temperature = packet.device_temperature_c()
             if packet.has_time_synchronization_sensor():
                 time_sync = packet.time_synchronization_sensor().payload_values()
-                network_type = NetworkType.UNKNOWN_NETWORK
             else:
                 time_sync = None
-                network_type = NetworkType.NO_NETWORK
             data_dict = read_api900_wrapped_packet(packet)
             new_station.append_station_data(data_dict)
             packet_data = DataPacket(packet.server_timestamp_epoch_microseconds_utc(),
@@ -445,9 +484,6 @@ def load_file_range_from_api900(directory: str,
                                      time_sync, np.nan if packet.best_latency() is None else packet.best_latency(),
                                      0.0 if packet.best_offset() is None else packet.best_offset())
             packet_list.append(packet_data)
-        # todo: add network type, internal temperature, available RAM, cell service state, battery level,
-        #       available disk, network strength, battery current and power state
-        # todo: convert location provider back into an enum
         # todo: convert timesync into sensor data object.  should be packet start time as timestamp, time sync
         #       timestamps as data
         new_station.packet_data = packet_list
@@ -629,6 +665,59 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
                                                     pd.DataFrame(data_for_df, columns=columns),
                                                     1 / sample_interval, sample_interval,
                                                     sample_interval_std, False)
+    station_metrics = wrapped_packet.get_station_information().get_station_metrics()
+    timestamps = station_metrics.get_timestamps().get_timestamps()
+    if len(timestamps) > 0:
+        if len(timestamps) > 1:
+            sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+            sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
+        else:
+            sample_interval = np.nan
+            sample_interval_std = np.nan
+        battery_charge = station_metrics.get_battery().get_values()
+        current_strength = station_metrics.get_battery_current().get_values()
+        internal_temp = station_metrics.get_temperature().get_values()
+        avail_ram = station_metrics.get_available_ram().get_values()
+        avail_disk = station_metrics.get_available_disk().get_values()
+        cell_service = station_metrics.get_cell_service_state().get_values()
+        network_type = station_metrics.get_network_type().get_values()
+        network_strength = station_metrics.get_network_strength().get_values()
+        power_state = station_metrics.get_power_state().get_values()
+        data_dict[SensorType.BATTERY] = SensorData("battery",
+                                                   pd.DataFrame(np.transpose([timestamps, battery_charge,
+                                                                              current_strength]),
+                                                                columns=["timestamps", "charge_remaining",
+                                                                         "current_strength"]),
+                                                   1 / sample_interval, sample_interval_std, 0, False)
+        data_dict[SensorType.INTERNAL_TEMPERATURE] = SensorData("internal temperature",
+                                                                pd.DataFrame(np.transpose([timestamps, internal_temp]),
+                                                                             columns=["timestamps", "internal_temp_c"]),
+                                                                1 / sample_interval, sample_interval_std, 0, False)
+        data_dict[SensorType.NETWORK] = SensorData("network",
+                                                   pd.DataFrame(np.transpose([timestamps, network_type,
+                                                                              network_strength]),
+                                                                columns=["timestamps", "network_type",
+                                                                         "network_strength"]),
+                                                   1 / sample_interval, sample_interval_std, 0, False)
+        data_dict[SensorType.POWER_STATE] = SensorData("power",
+                                                       pd.DataFrame(np.transpose([timestamps, power_state]),
+                                                                    columns=["timestamps", "power_state"]),
+                                                       1 / sample_interval, sample_interval_std, 0, False)
+        data_dict[SensorType.AVAILABLE_RAM] = SensorData("available RAM",
+                                                         pd.DataFrame(np.transpose([timestamps, avail_ram]),
+                                                                      columns=["timestamps", "avail_ram"]),
+                                                         1 / sample_interval, sample_interval_std, 0, False)
+        data_dict[SensorType.AVAILABLE_DISK] = SensorData("available disk",
+                                                          pd.DataFrame(np.transpose([timestamps, avail_disk]),
+                                                                       columns=["timestamps", "avail_disk"]),
+                                                          1 / sample_interval, sample_interval_std, 0, False)
+        data_dict[SensorType.CELL_SERVICE] = SensorData("cell service",
+                                                        pd.DataFrame(np.transpose([timestamps, cell_service]),
+                                                                     columns=["timestamps", "cell_service"]),
+                                                        1 / sample_interval, sample_interval_std, 0, False)
+        # time = wrapped_packet.get_timing_information()
+        # time_synch = time.get_synch_exchange_array()
+        # todo: figure out how to handle time sync
     return data_dict
 
 
@@ -691,8 +780,6 @@ def load_station_from_apim_file(directory: str, start_timestamp_utc_s: Optional[
                              read_packet.get_timing_information().get_best_latency(),
                              0.0 if read_packet.get_timing_information().get_best_offset() is None else
                              read_packet.get_timing_information().get_best_offset())
-    # todo: add network type, internal temperature, available RAM, cell service state, battery level,
-    #       available disk, network strength, battery current and power state
     packet_list: List[DataPacket] = [packet_data]
     # get the best timing values for the station
     if timing.station_best_latency is None or np.isnan(timing.station_best_latency):
@@ -780,8 +867,6 @@ def load_from_file_range_api_m(directory: str,
                                      packet.get_timing_information().get_best_offset(),
                                      best_location=location)
             packet_list.append(packet_data)
-        # todo: add network type, internal temperature, available RAM, cell service state, battery level,
-        #       available disk, network strength, battery current and power state
         new_station.packet_data = packet_list
 
         if timing.station_best_latency is None or np.isnan(timing.station_best_latency):

@@ -3,9 +3,11 @@ Defines generic sensor data and metadata for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 """
 import enum
+from typing import List
+
 import numpy as np
 import pandas as pd
-from typing import List
+
 import redvox.common.date_time_utils as dtu
 
 
@@ -31,7 +33,8 @@ class SensorType(enum.Enum):
     RELATIVE_HUMIDITY = 15      # percentage
     ROTATION_VECTOR = 16        # Unitless
     INFRARED = 17               # this is proximity
-    SYNCH = 18                  # time synchronization values
+    STATION_HEALTH = 18         # Basically everything below  todo: clean
+    SYNCH = 99                  # time synchronization values
     BATTERY = 19                # battery charge and current level
     INTERNAL_TEMPERATURE = 20   # phone internal temperature
     NETWORK = 21                # network source and strength
@@ -41,6 +44,7 @@ class SensorType(enum.Enum):
     POWER_STATE = 25            # phone power charging state
     # todo: add network type, internal temperature, available RAM, cell service state, battery level,
     #       available disk, network strength, battery current and power state
+    # todo: handle the enums when getting channels
 
 
 class SensorData:
@@ -88,14 +92,20 @@ class SensorData:
     def organize_and_update_stats(self):
         """
         sorts the data by timestamps, then if the sample rate is not fixed, recalculates the sample rate, interval,
-            and interval std dev.  Updates the SensorData object with the new values
+            and interval std dev.  If there is only one value, sets the sample rate, interval, and interval std dev
+            to np.nan.  Updates the SensorData object with the new values
         """
         self.sort_by_data_timestamps()
         if not self.is_sample_rate_fixed:
-            timestamp_diffs = np.diff(self.data_timestamps())
-            self.sample_interval_s = dtu.microseconds_to_seconds(float(np.mean(timestamp_diffs)))
-            self.sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(timestamp_diffs)))
-            self.sample_rate = np.nan if self.is_sample_interval_invalid() else 1 / self.sample_interval_s
+            if self.num_samples() > 1:
+                timestamp_diffs = np.diff(self.data_timestamps())
+                self.sample_interval_s = dtu.microseconds_to_seconds(float(np.mean(timestamp_diffs)))
+                self.sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(timestamp_diffs)))
+                self.sample_rate = np.nan if self.is_sample_interval_invalid() else 1 / self.sample_interval_s
+            else:
+                self.sample_interval_s = np.nan
+                self.sample_interval_std_s = np.nan
+                self.sample_rate = np.nan
 
     def append_data(self, new_data: pd.DataFrame, recalculate_stats: bool = False) -> 'SensorData':
         """
@@ -116,17 +126,17 @@ class SensorData:
         gets the samples of dataframe
         :return: the data values of the dataframe as a numpy ndarray
         """
-        return self.data_df.iloc[:, 1:].T.to_numpy(dtype=float)
+        return self.data_df.iloc[:, 1:].T.to_numpy()
 
     def get_channel(self, channel_name: str) -> np.array:
         """
-        gets the channel specified
+        gets the channel specified, raises an error and lists valid channels if channel_name is not in the dataframe
         :param channel_name: the name of the channel to get data for
-        :return: the data values of the channel as a numpy array
+        :return: the data values of the channel as a numpy array or a list of strings if the channel is enumerated
         """
         if channel_name not in self.data_df.columns:
             raise ValueError(f"WARNING: {channel_name} does not exist; try one of {self.data_fields()}")
-        return self.data_df[channel_name].to_numpy(dtype=float)
+        return self.data_df[channel_name].to_numpy()
 
     def get_valid_channel_values(self, channel_name: str) -> np.array:
         """

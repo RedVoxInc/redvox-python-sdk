@@ -7,6 +7,14 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a18 (2020-11-xx)
+
+* Added BATTERY, POWER_STATE, INTERNAL_TEMPERATURE, NETWORK, AVAILABLE_RAM, 
+CELL_SERVICE, AVAILABLE_DISK sensors to the reader
+* todo: STATION_HEALTH as sensor type to consolidate above into one sensor
+with the same sample rate and source (station_metrics)
+* todo: converting time sync data or analysis into station module
+
 ### 3.0.0a17 (2020-11-04)
 
 * Image sensors properly load into data windows
