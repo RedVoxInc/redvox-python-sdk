@@ -6,7 +6,8 @@ from typing import List, Dict, Optional
 
 import redvox.common.date_time_utils as dtu
 from redvox.common.sensor_data import SensorData, SensorType
-from redvox.common.station_utils import StationMetadata, DataPacket, StationLocation, station_location_from_data
+from redvox.common.station_utils import StationKey, StationMetadata, DataPacket, StationLocation, \
+    station_location_from_data
 
 
 class Station:
@@ -16,6 +17,7 @@ class Station:
         station_metadata: StationMetadata
         station_data: dict, all the data associated with this station, default empty dict
         packet_data: list, all DataPacket metadata associated with this station, default empty list
+        station_key: Tuple of str, str, float, a unique combination of three values defining the station
     """
 
     def __init__(self, metadata: StationMetadata, data: Optional[Dict[SensorType, SensorData]] = None,
@@ -36,6 +38,10 @@ class Station:
             self.packet_data: List[DataPacket] = packets
         else:
             self.packet_data: List[DataPacket] = []
+        # todo: add timesync as its own object to station
+        # todo: assert station key is valid
+        self.station_key = StationKey(self.station_metadata.station_id, self.station_metadata.station_uuid,
+                                      self.station_metadata.timing_data.station_start_timestamp)
 
     def append_station(self, new_station: 'Station'):
         """

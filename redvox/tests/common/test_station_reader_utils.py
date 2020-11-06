@@ -132,6 +132,8 @@ class API900ReaderTest(unittest.TestCase):
             .set_accelerometer_sensor(accelerometer_sensor).set_barometer_sensor(non_mic_sensor)\
             .set_time_synchronization_sensor(time_sync_sensor)
         self.api900_wrapped_packet.set_redvox_id("1234567890")
+        self.api900_wrapped_packet.set_battery_level_percent(95.0)
+        self.api900_wrapped_packet.set_device_temperature_c(27.5)
 
     def test_read_api900_non_mic_sensor(self):
         self.assertEqual(self.non_mic_sensor.name, "test")
@@ -140,7 +142,7 @@ class API900ReaderTest(unittest.TestCase):
 
     def test_read_api900_wrapped_packet(self):
         wrapped_packet_dict = sr_utils.read_api900_wrapped_packet(self.api900_wrapped_packet)
-        self.assertEqual(len(wrapped_packet_dict), 3)
+        self.assertEqual(len(wrapped_packet_dict), 6)
         self.assertTrue(SensorType.AUDIO in wrapped_packet_dict.keys())
         self.assertEqual(wrapped_packet_dict[SensorType.ACCELEROMETER].name, "test_accelerometer")
         self.assertEqual(wrapped_packet_dict[SensorType.ACCELEROMETER].num_samples(), 9)
@@ -149,7 +151,7 @@ class API900ReaderTest(unittest.TestCase):
         station = sr_utils.load_station_from_api900(self.api900_wrapped_packet)
         self.assertEqual(station.station_metadata.station_id, "1234567890")
         self.assertEqual(len(station.packet_data), 1)
-        self.assertEqual(len(station.station_data), 3)
+        self.assertEqual(len(station.station_data), 6)
         self.assertTrue(station.has_audio_data())
         self.assertTrue(station.has_barometer_data())
         self.assertTrue(station.has_accelerometer_data())
@@ -159,7 +161,7 @@ class API900ReaderTest(unittest.TestCase):
                                                                       "1637650010_1531343782220.rdvxz"))
         self.assertEqual(station.station_metadata.station_id, "1637650010")
         self.assertEqual(len(station.packet_data), 1)
-        self.assertEqual(len(station.station_data), 5)
+        self.assertEqual(len(station.station_data), 8)
         self.assertTrue(station.has_audio_data())
         self.assertTrue(station.has_accelerometer_data())
         self.assertTrue(station.has_barometer_data())
@@ -171,7 +173,7 @@ class API900ReaderTest(unittest.TestCase):
         self.assertFalse(result.check_for_id("do_not_exist"))
         station = result.get_station("1637650010")
         self.assertEqual(len(station.packet_data), 1)
-        self.assertEqual(len(station.station_data), 5)
+        self.assertEqual(len(station.station_data), 8)
         self.assertTrue(station.has_audio_data())
         self.assertTrue(station.has_accelerometer_data())
         self.assertTrue(station.has_barometer_data())
@@ -235,7 +237,7 @@ class AnyReaderTest(unittest.TestCase):
         station = self.all_data.get_station("1637650010")
         self.assertEqual(len(station.packet_data), 1)
         self.assertTrue(np.isnan(station.packet_data[0].packet_best_latency))
-        self.assertEqual(len(station.station_data), 5)
+        self.assertEqual(len(station.station_data), 8)
         self.assertEqual(station.audio_sensor().sample_rate, 80)
         self.assertTrue(station.audio_sensor().is_sample_rate_fixed)
         self.assertAlmostEqual(station.audio_sensor().data_duration_s(), 51.2, 1)
