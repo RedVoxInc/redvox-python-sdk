@@ -173,25 +173,27 @@ class DataPacketTest(unittest.TestCase):
     def setUp(self):
         station_loc = station_utils.StationLocation(1000, 1000, 1000, 1000, "USER", 1,
                                                     19.67, -155.55, 10.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0)
-        self.data_packet = station_utils.DataPacket(50000000., 500., 32768, 40.96, 1000., 40961000.,
-                                                    np.array([10000., 12001., 12002., 13000., 13001., 15002.]),
-                                                    500.0, 3000.0, best_location=station_loc)
+        self.data_packet = station_utils.DataPacket(50000000., 500., 1000., 40961000., 40.96, 32768,
+                                                    best_location=station_loc)
 
     def test_data_packet_init(self):
         self.assertEqual(self.data_packet.server_timestamp, 50000000.)
-        self.assertEqual(self.data_packet.packet_app_start_timestamp, 500.)
-        self.assertEqual(self.data_packet.packet_num_audio_samples, 32768)
-        self.assertEqual(self.data_packet.packet_duration_s, 40.96)
+        self.assertEqual(self.data_packet.app_start_timestamp, 500.)
+        self.assertEqual(self.data_packet.num_audio_samples, 32768)
+        self.assertEqual(self.data_packet.duration_s, 40.96)
         self.assertEqual(self.data_packet.data_start_timestamp, 1000.)
         self.assertEqual(self.data_packet.data_end_timestamp, 40961000.)
-        self.assertEqual(len(self.data_packet.timesync), 6)
-        self.assertEqual(self.data_packet.packet_best_latency, 500.0)
-        self.assertEqual(self.data_packet.packet_best_offset, 3000.0)
-        self.assertTrue(np.isnan(self.data_packet.sample_interval_to_next_packet))
+        self.assertTrue(np.isnan(self.data_packet.micros_to_next_packet))
         self.assertEqual(self.data_packet.best_location.lat_lon_timestamp, 1000)
 
     def test_expected_sample_interval_s(self):
         self.assertEqual(self.data_packet.expected_sample_interval_s(), 0.00125)
+
+
+class StationTimeSyncDataTest(unittest.TestCase):
+    def setUp(self):
+        self.value = True
+    # todo: test for none or empty timing objects
 
 
 class StationTimingTest(unittest.TestCase):

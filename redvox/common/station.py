@@ -7,7 +7,7 @@ from typing import List, Dict, Optional
 import redvox.common.date_time_utils as dtu
 from redvox.common.sensor_data import SensorData, SensorType
 from redvox.common.station_utils import StationKey, StationMetadata, DataPacket, StationLocation, \
-    station_location_from_data
+    StationTimeSyncData, station_location_from_data
 
 
 class Station:
@@ -21,12 +21,14 @@ class Station:
     """
 
     def __init__(self, metadata: StationMetadata, data: Optional[Dict[SensorType, SensorData]] = None,
-                 packets: Optional[List[DataPacket]] = None):
+                 packets: Optional[List[DataPacket]] = None,
+                 time_sync_data: Optional[StationTimeSyncData] = None):
         """
         initialize Station
         :param metadata: the station's metadata
         :param data: the station's sensors' data, default None (value is converted to empty dict)
         :param packets: the packets that the data came from, default None (value is converted to empty list)
+        :param time_sync_data: the time sync data for the station, default None
         """
         self.station_metadata: StationMetadata = metadata
         if data:
@@ -39,6 +41,10 @@ class Station:
         else:
             self.packet_data: List[DataPacket] = []
         # todo: add timesync as its own object to station
+        if time_sync_data:
+            self.time_sync_data: StationTimeSyncData = time_sync_data
+        else:
+            self.time_sync_data = StationTimeSyncData()
         # todo: assert station key is valid
         self.station_key = StationKey(self.station_metadata.station_id, self.station_metadata.station_uuid,
                                       self.station_metadata.timing_data.station_start_timestamp)
@@ -686,363 +692,40 @@ class Station:
             self._add_sensor(SensorType.COMPRESSED_AUDIO, compaudio_sensor)
         return self
 
-    # SYNCH = 18                  # time synchronization values
-    # def has_synch_sensor(self) -> bool:
-    #     """
-    #     check if synchronization "sensor" is in sensor_data_dict
-    #     :return: True if time sensor exists
-    #     """
-    #     return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
-    #
-    # def has_relative_humidity_data(self) -> bool:
-    #     """
-    #     check if the relative humidity sensor has any data
-    #     :return: True if relative humidity sensor has any data
-    #     """
-    #     return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() > 0
-    #
-    # def relative_humidity_sensor(self) -> Optional[SensorData]:
-    #     """
-    #     return the relative humidity sensor if it exists
-    #     :return: relative humidity sensor if it exists, None otherwise
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         return self.station_data[SensorType.RELATIVE_HUMIDITY]
-    #     return None
-    #
-    # def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -> 'Station':
-    #     """
-    #     sets the relative humidity sensor; can remove relative humidity sensor by passing None
-    #     :param relhum_sensor: the SensorData to set or None
-    #     :return: the edited DataPacket
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
-    #     if relhum_sensor is not None:
-    #         self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
-    #     return self
-    #
-    # def has_relative_humidity_sensor(self) -> bool:
-    #     """
-    #     check if relative humidity sensor is in sensor_data_dict
-    #     :return: True if linear relative humidity sensor exists
-    #     """
-    #     return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
-    #
-    # def has_relative_humidity_data(self) -> bool:
-    #     """
-    #     check if the relative humidity sensor has any data
-    #     :return: True if relative humidity sensor has any data
-    #     """
-    #     return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() > 0
-    #
-    # def relative_humidity_sensor(self) -> Optional[SensorData]:
-    #     """
-    #     return the relative humidity sensor if it exists
-    #     :return: relative humidity sensor if it exists, None otherwise
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         return self.station_data[SensorType.RELATIVE_HUMIDITY]
-    #     return None
-    #
-    # def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -> 'Station':
-    #     """
-    #     sets the relative humidity sensor; can remove relative humidity sensor by passing None
-    #     :param relhum_sensor: the SensorData to set or None
-    #     :return: the edited DataPacket
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
-    #     if relhum_sensor is not None:
-    #         self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
-    #     return self
-    #
-    # def has_relative_humidity_sensor(self) -> bool:
-    #     """
-    #     check if relative humidity sensor is in sensor_data_dict
-    #     :return: True if linear relative humidity sensor exists
-    #     """
-    #     return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
-    #
-    # def has_relative_humidity_data(self) -> bool:
-    #     """
-    #     check if the relative humidity sensor has any data
-    #     :return: True if relative humidity sensor has any data
-    #     """
-    #     return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() > 0
-    #
-    # def relative_humidity_sensor(self) -> Optional[SensorData]:
-    #     """
-    #     return the relative humidity sensor if it exists
-    #     :return: relative humidity sensor if it exists, None otherwise
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         return self.station_data[SensorType.RELATIVE_HUMIDITY]
-    #     return None
-    #
-    # def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -> 'Station':
-    #     """
-    #     sets the relative humidity sensor; can remove relative humidity sensor by passing None
-    #     :param relhum_sensor: the SensorData to set or None
-    #     :return: the edited DataPacket
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
-    #     if relhum_sensor is not None:
-    #         self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
-    #     return self
-    #
-    # def has_relative_humidity_sensor(self) -> bool:
-    #     """
-    #     check if relative humidity sensor is in sensor_data_dict
-    #     :return: True if linear relative humidity sensor exists
-    #     """
-    #     return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
-    #
-    # def has_relative_humidity_data(self) -> bool:
-    #     """
-    #     check if the relative humidity sensor has any data
-    #     :return: True if relative humidity sensor has any data
-    #     """
-    #     return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() > 0
-    #
-    # def relative_humidity_sensor(self) -> Optional[SensorData]:
-    #     """
-    #     return the relative humidity sensor if it exists
-    #     :return: relative humidity sensor if it exists, None otherwise
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         return self.station_data[SensorType.RELATIVE_HUMIDITY]
-    #     return None
-    #
-    # def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -> 'Station':
-    #     """
-    #     sets the relative humidity sensor; can remove relative humidity sensor by passing None
-    #     :param relhum_sensor: the SensorData to set or None
-    #     :return: the edited DataPacket
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
-    #     if relhum_sensor is not None:
-    #         self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
-    #     return self
-    #
-    # def has_relative_humidity_sensor(self) -> bool:
-    #     """
-    #     check if relative humidity sensor is in sensor_data_dict
-    #     :return: True if linear relative humidity sensor exists
-    #     """
-    #     return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
-    #
-    # def has_relative_humidity_data(self) -> bool:
-    #     """
-    #     check if the relative humidity sensor has any data
-    #     :return: True if relative humidity sensor has any data
-    #     """
-    #     return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() > 0
-    #
-    # def relative_humidity_sensor(self) -> Optional[SensorData]:
-    #     """
-    #     return the relative humidity sensor if it exists
-    #     :return: relative humidity sensor if it exists, None otherwise
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         return self.station_data[SensorType.RELATIVE_HUMIDITY]
-    #     return None
-    #
-    # def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -> 'Station':
-    #     """
-    #     sets the relative humidity sensor; can remove relative humidity sensor by passing None
-    #     :param relhum_sensor: the SensorData to set or None
-    #     :return: the edited DataPacket
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
-    #     if relhum_sensor is not None:
-    #         self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
-    #     return self
-    #
-    # def has_relative_humidity_sensor(self) -> bool:
-    #     """
-    #     check if relative humidity sensor is in sensor_data_dict
-    #     :return: True if linear relative humidity sensor exists
-    #     """
-    #     return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
-    #
-    # def has_relative_humidity_data(self) -> bool:
-    #     """
-    #     check if the relative humidity sensor has any data
-    #     :return: True if relative humidity sensor has any data
-    #     """
-    #     return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() > 0
-    #
-    # def relative_humidity_sensor(self) -> Optional[SensorData]:
-    #     """
-    #     return the relative humidity sensor if it exists
-    #     :return: relative humidity sensor if it exists, None otherwise
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         return self.station_data[SensorType.RELATIVE_HUMIDITY]
-    #     return None
-    #
-    # def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -> 'Station':
-    #     """
-    #     sets the relative humidity sensor; can remove relative humidity sensor by passing None
-    #     :param relhum_sensor: the SensorData to set or None
-    #     :return: the edited DataPacket
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
-    #     if relhum_sensor is not None:
-    #         self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
-    #     return self
-    #
-    # def has_relative_humidity_sensor(self) -> bool:
-    #     """
-    #     check if relative humidity sensor is in sensor_data_dict
-    #     :return: True if linear relative humidity sensor exists
-    #     """
-    #     return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
-    #
-    # def has_relative_humidity_data(self) -> bool:
-    #     """
-    #     check if the relative humidity sensor has any data
-    #     :return: True if relative humidity sensor has any data
-    #     """
-    #     return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() > 0
-    #
-    # def relative_humidity_sensor(self) -> Optional[SensorData]:
-    #     """
-    #     return the relative humidity sensor if it exists
-    #     :return: relative humidity sensor if it exists, None otherwise
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         return self.station_data[SensorType.RELATIVE_HUMIDITY]
-    #     return None
-    #
-    # def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -> 'Station':
-    #     """
-    #     sets the relative humidity sensor; can remove relative humidity sensor by passing None
-    #     :param relhum_sensor: the SensorData to set or None
-    #     :return: the edited DataPacket
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
-    #     if relhum_sensor is not None:
-    #         self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
-    #     return self
-    #
-    # def has_relative_humidity_sensor(self) -> bool:
-    #     """
-    #     check if relative humidity sensor is in sensor_data_dict
-    #     :return: True if linear relative humidity sensor exists
-    #     """
-    #     return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
-    #
-    # def has_relative_humidity_data(self) -> bool:
-    #     """
-    #     check if the relative humidity sensor has any data
-    #     :return: True if relative humidity sensor has any data
-    #     """
-    #     return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() > 0
-    #
-    # def relative_humidity_sensor(self) -> Optional[SensorData]:
-    #     """
-    #     return the relative humidity sensor if it exists
-    #     :return: relative humidity sensor if it exists, None otherwise
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         return self.station_data[SensorType.RELATIVE_HUMIDITY]
-    #     return None
-    #
-    # def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -> 'Station':
-    #     """
-    #     sets the relative humidity sensor; can remove relative humidity sensor by passing None
-    #     :param relhum_sensor: the SensorData to set or None
-    #     :return: the edited DataPacket
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
-    #     if relhum_sensor is not None:
-    #         self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
-    #     return self
-    #
-    # def has_relative_humidity_sensor(self) -> bool:
-    #     """
-    #     check if relative humidity sensor is in sensor_data_dict
-    #     :return: True if linear relative humidity sensor exists
-    #     """
-    #     return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
-    #
-    # def has_relative_humidity_data(self) -> bool:
-    #     """
-    #     check if the relative humidity sensor has any data
-    #     :return: True if relative humidity sensor has any data
-    #     """
-    #     return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() > 0
-    #
-    # def relative_humidity_sensor(self) -> Optional[SensorData]:
-    #     """
-    #     return the relative humidity sensor if it exists
-    #     :return: relative humidity sensor if it exists, None otherwise
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         return self.station_data[SensorType.RELATIVE_HUMIDITY]
-    #     return None
-    #
-    # def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -> 'Station':
-    #     """
-    #     sets the relative humidity sensor; can remove relative humidity sensor by passing None
-    #     :param relhum_sensor: the SensorData to set or None
-    #     :return: the edited DataPacket
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
-    #     if relhum_sensor is not None:
-    #         self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
-    #     return self
-    #
-    # def has_relative_humidity_sensor(self) -> bool:
-    #     """
-    #     check if relative humidity sensor is in sensor_data_dict
-    #     :return: True if linear relative humidity sensor exists
-    #     """
-    #     return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
-    #
-    # def has_relative_humidity_data(self) -> bool:
-    #     """
-    #     check if the relative humidity sensor has any data
-    #     :return: True if relative humidity sensor has any data
-    #     """
-    #     return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() > 0
-    #
-    # def relative_humidity_sensor(self) -> Optional[SensorData]:
-    #     """
-    #     return the relative humidity sensor if it exists
-    #     :return: relative humidity sensor if it exists, None otherwise
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         return self.station_data[SensorType.RELATIVE_HUMIDITY]
-    #     return None
-    #
-    # def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -> 'Station':
-    #     """
-    #     sets the relative humidity sensor; can remove relative humidity sensor by passing None
-    #     :param relhum_sensor: the SensorData to set or None
-    #     :return: the edited DataPacket
-    #     """
-    #     if self.has_relative_humidity_sensor():
-    #         self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
-    #     if relhum_sensor is not None:
-    #         self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
-    #     return self
-    # BATTERY = 19                # battery charge and current level
-    # INTERNAL_TEMPERATURE = 20   # phone internal temperature
-    # NETWORK = 21                # network source and strength
-    # AVAILABLE_RAM = 22          # available RAM of the system
-    # CELL_SERVICE = 23           # cell service status
-    # AVAILABLE_DISK = 24         # amount of hard disk space left
-    # POWER_STATE = 25            # phone power charging state
+    def has_health_sensor(self) -> bool:
+        """
+        check if station health is in sensor_data_dict
+        :return: True if station health sensor exists
+        """
+        return SensorType.STATION_HEALTH in self.station_data.keys()
+
+    def has_health_data(self) -> bool:
+        """
+        check if the station health sensor has any data
+        :return: True if station health sensor has any data
+        """
+        return self.has_health_sensor() and self.health_sensor().num_samples() > 0
+
+    def health_sensor(self) -> Optional[SensorData]:
+        """
+        return the station health sensor if it exists
+        :return: station health sensor if it exists, None otherwise
+        """
+        if self.has_health_sensor():
+            return self.station_data[SensorType.STATION_HEALTH]
+        return None
+
+    def set_health_sensor(self, health_sensor: Optional[SensorData]) -> 'Station':
+        """
+        sets the station health sensor; can remove station health sensor by passing None
+        :param health_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_health_sensor():
+            self._delete_sensor(SensorType.STATION_HEALTH)
+        if health_sensor is not None:
+            self._add_sensor(SensorType.STATION_HEALTH, health_sensor)
+        return self
 
     def get_non_audio_sensors(self) -> Dict[SensorType, SensorData]:
         """
@@ -1091,13 +774,13 @@ class Station:
         """
         for packet in range(len(self.packet_data) - 1):
             data_start = self.packet_data[packet].data_start_timestamp
-            data_num_samples = self.packet_data[packet].packet_num_audio_samples
+            data_num_samples = self.packet_data[packet].num_audio_samples
             next_packet_start_index = \
                 self.audio_sensor().data_df.query("timestamps >= @data_start").first_valid_index() + data_num_samples
             data_end = self.audio_sensor().data_timestamps()[next_packet_start_index - 1]
             next_packet_start = self.audio_sensor().data_timestamps()[next_packet_start_index]
             if next_packet_start - data_end < dtu.seconds_to_microseconds(gap_time_s):
-                self.packet_data[packet].sample_interval_to_next_packet = \
+                self.packet_data[packet].micros_to_next_packet = \
                     (next_packet_start - data_start) / data_num_samples
 
     def update_timestamps(self):

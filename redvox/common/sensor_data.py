@@ -33,18 +33,9 @@ class SensorType(enum.Enum):
     RELATIVE_HUMIDITY = 15      # percentage
     ROTATION_VECTOR = 16        # Unitless
     INFRARED = 17               # this is proximity
-    STATION_HEALTH = 18         # Basically everything below  todo: clean
-    SYNCH = 99                  # time synchronization values
-    BATTERY = 19                # battery charge and current level
-    INTERNAL_TEMPERATURE = 20   # phone internal temperature
-    NETWORK = 21                # network source and strength
-    AVAILABLE_RAM = 22          # available RAM of the system
-    CELL_SERVICE = 23           # cell service status
-    AVAILABLE_DISK = 24         # amount of hard disk space left
-    POWER_STATE = 25            # phone power charging state
-    # todo: add network type, internal temperature, available RAM, cell service state, battery level,
-    #       available disk, network strength, battery current and power state
-    # todo: handle the enums when getting channels
+    STATION_HEALTH = 18
+    # battery charge and current level, phone internal temperature, network source and strength,
+    # available RAM of the system, cell service status, amount of hard disk space left, power charging state
 
 
 class SensorData:
