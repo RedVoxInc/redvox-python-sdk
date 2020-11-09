@@ -359,6 +359,15 @@ class StationTimeSyncData:
             num_samples += len(data[0])
         return num_samples
 
+    def update_timestamps(self, delta: float):
+        """
+        adds the value of delta to each of the keys in the time sync data
+        :param delta: float, microseconds to add, use negative value to go backwards
+        """
+        for key in self.file_to_time_sync.keys():
+            new_key = key + delta
+            self.file_to_time_sync[new_key] = self.file_to_time_sync.pop(key)
+
 
 @dataclass
 class StationTiming:

@@ -803,6 +803,7 @@ class Station:
                         packet.best_location.update_timestamps(delta)
                 self.station_metadata.timing_data.station_first_data_timestamp += delta
                 self.station_metadata.location_data.update_timestamps(delta)
+                self.time_sync_data.update_timestamps(delta)
             self.station_metadata.station_timing_is_corrected = True
 
     def revert_timestamps(self):
@@ -823,6 +824,7 @@ class Station:
                         packet.best_location.update_timestamps(-delta)
                 self.station_metadata.timing_data.station_first_data_timestamp -= delta
                 self.station_metadata.location_data.update_timestamps(-delta)
+                self.time_sync_data.update_timestamps(-delta)
                 self.station_metadata.station_timing_is_corrected = False
         else:
             print("WARNING: Cannot revert timestamps that are not corrected!")
