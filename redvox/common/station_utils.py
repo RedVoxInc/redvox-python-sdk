@@ -364,9 +364,11 @@ class StationTimeSyncData:
         adds the value of delta to each of the keys in the time sync data
         :param delta: float, microseconds to add, use negative value to go backwards
         """
+        new_keys = {}
         for key in self.file_to_time_sync.keys():
-            new_key = key + delta
-            self.file_to_time_sync[new_key] = self.file_to_time_sync.pop(key)
+            new_keys[key] = key + delta
+        for key in new_keys.keys():
+            self.file_to_time_sync[new_keys[key]] = self.file_to_time_sync.pop(key)
 
 
 @dataclass
