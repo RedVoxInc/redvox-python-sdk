@@ -7,6 +7,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a19 (2020-11-10)
+
+* fixed bug with recalculating metadata of stations
+
 ### 3.0.0a18 (2020-11-09)
 
 * STATION_HEALTH as sensor type to consolidate battery health, power state, internal temperature, network health, available disk space and RAM, and cell service status into one sensor with the same sample rate and source (station_metrics)
