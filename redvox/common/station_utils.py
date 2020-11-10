@@ -254,6 +254,40 @@ class LocationData:
         return True
 
 
+class TimeSyncData:
+    """
+    Generic TimeSync object for packets
+    Properties:
+        timesync_data: dataframe of the timestamps of the sync exchanges, default empty dataframe
+                                Must be a multiple of 6 elements long.
+        best_latency: float, best latency of the time sync exchanges, default np.nan
+        best_offset: float, best offset of the time sync exchanges, default 0.0
+    """
+    def __init__(self, timesync_data: np.array = np.array([]),
+                 best_latency: float = np.nan, best_offset: float = 0.0):
+        """
+        initialize the TimeSyncData object
+        :param timesync_data: np.array of the timestamps of the sync exchanges, default empty np.array
+                                Must be a multiple of 6 elements long.
+                                May be 1 dimension, in which case will be converted into a 2-d np.ndarray
+        :param best_latency: float, best latency of the time sync exchanges, default np.nan
+        :param best_offset: float, best offset of the time sync exchanges, default 0.0
+        """
+        if len(timesync_data) > 0 and len(timesync_data.shape) != 2:
+            timesync_data = np.transpose(tms.transmit_receive_timestamps_microsec(timesync_data))
+        elif len(timesync_data) == 0:
+            timesync_data = []
+        self.timesync_data = pd.DataFrame(timesync_data, columns=["a1", "a2", "a3", "b1", "b2", "b3"])
+        self.best_latency = best_latency
+        self.best_offset = best_offset
+
+    def num_samples(self) -> int:
+        """
+        :return: the number of time sync exchanges, which are the rows in the dataframe
+        """
+        return self.timesync_data.shape[0]
+
+
 @dataclass
 class DataPacket:
     """
@@ -262,9 +296,10 @@ class DataPacket:
         server_received_timestamp: float, server timestamp of when data was received by the server
         app_start_timestamp: float, machine timestamp of when app started
         data_start_timestamp: float, machine timestamp of the start of the packet's data
-        num_audio_samples: int, number of audio samples in the data packet, default 0
-        duration_s: float, duration of data packet in seconds, default 0.0
         data_end_timestamp: float, machine timestamp of the end of the packet's data, default np.nan
+        duration_s: float, duration of data packet in seconds, default 0.0
+        num_audio_samples: int, number of audio samples in the data packet, default 0
+        timesync: TimeSyncData object, the timesync data associated with the packet, default empty TimeSyncData object
         micros_to_next_packet: float, the length of time in microseconds to reach the next
                                 packet's (in the station's data) start time, default np.nan
                                 Should be close to 0 or close to self.expected_sample_interval_s
@@ -277,6 +312,7 @@ class DataPacket:
     data_end_timestamp: float = np.nan
     duration_s: float = 0.0
     num_audio_samples: int = 0
+    timesync: TimeSyncData = TimeSyncData()
     micros_to_next_packet: float = np.nan
     best_location: Optional[StationLocation] = None
 
@@ -286,89 +322,6 @@ class DataPacket:
         :return: the packet's expected sample interval in seconds
         """
         return self.duration_s / self.num_audio_samples
-
-
-class StationTimeSyncData:
-    """
-    Generic TimeSync object for stations
-    Properties:
-        file_to_time_sync: start of file time to time sync dataframe for the file
-    """
-    def __init__(self, start_timestamp_micros: Optional[float] = None, timesync_data: Optional[np.array] = None,
-                 best_latency: float = np.nan, best_offset: float = 0.0):
-        """
-        initialize the StationTimeSyncData object.  Both start_timestamp_micros and timesync_data must exist
-        to add data on initialization
-        :param start_timestamp_micros: Optional float of start time of a file in microseconds since epoch UTC
-        :param timesync_data: Optional np.array of the timestamps of the sync exchanges.
-                                Must be a multiple of 6 elements long.
-        :param best_latency: float, best latency of the time sync exchanges, default np.nan
-        :param best_offset: float, best offset of the time sync exchanges, default 0.0
-        """
-        self.file_to_time_sync: Dict[float, Tuple[pd.DataFrame, float, float]] = {}
-        if not (start_timestamp_micros is None or timesync_data is None):
-            if len(timesync_data.shape) != 2:
-                timesync_data = np.transpose(tms.transmit_receive_timestamps_microsec(timesync_data))
-            self.file_to_time_sync[start_timestamp_micros] = \
-                (pd.DataFrame(timesync_data, columns=["a1", "a2", "a3", "b1", "b2", "b3"]), best_latency, best_offset)
-
-    def add_file(self, start_timestamp_micros: float, timesync_data: np.array,
-                 best_latency: float = np.nan, best_offset: float = 0.0):
-        """
-        adds a file to the StationTimeSyncData object
-        :param start_timestamp_micros: float of file to add start timestamp in microseconds since epoch UTC
-        :param timesync_data: np.array of the timestamps to add.  Must be multiple of 6 elements long
-        :param best_latency: float indicating best latency of the timesync_data, default np.nan
-        :param best_offset: float indicating best offset of the timesync_data, default 0.0
-        """
-        if start_timestamp_micros in self.file_to_time_sync.keys():
-            raise ValueError(f"Attempted to add duplicate start timestamp {start_timestamp_micros} to time"
-                             f"synch data")
-        self.file_to_time_sync[start_timestamp_micros] = \
-            (pd.DataFrame(tms.transmit_receive_timestamps_microsec(timesync_data),
-                          index=["a1", "a2", "a3", "b1", "b2", "b3"]).T,
-             best_latency, best_offset)
-
-    def get_file(self, start_timestamp_micros: float) -> Tuple[pd.DataFrame, float, float]:
-        """
-        gets the file that starts at start_timestamp_micros
-        :param start_timestamp_micros: float of file to get start timestamp in microseconds since epoch UTC
-        :return: the timestamp exchanges, best latency, and best offset of the data
-        """
-        if start_timestamp_micros not in self.file_to_time_sync.keys():
-            raise ValueError(f"Attempted to add duplicate start timestamp {start_timestamp_micros} to time"
-                             f"synch data.  Try one of: {self.list_keys()}")
-        else:
-            return self.file_to_time_sync[start_timestamp_micros]
-
-    def list_keys(self) -> List[float]:
-        """
-        :return: a list of all keys in the StationTimeSyncData object
-        """
-        return_list = []
-        for key in self.file_to_time_sync.keys():
-            return_list.append(key)
-        return return_list
-
-    def num_samples(self) -> int:
-        """
-        :return: the number of time sync exchanges
-        """
-        num_samples = 0
-        for data in self.file_to_time_sync.values():
-            num_samples += len(data[0])
-        return num_samples
-
-    def update_timestamps(self, delta: float):
-        """
-        adds the value of delta to each of the keys in the time sync data
-        :param delta: float, microseconds to add, use negative value to go backwards
-        """
-        new_keys = {}
-        for key in self.file_to_time_sync.keys():
-            new_keys[key] = key + delta
-        for key in new_keys.keys():
-            self.file_to_time_sync[new_keys[key]] = self.file_to_time_sync.pop(key)
 
 
 @dataclass
