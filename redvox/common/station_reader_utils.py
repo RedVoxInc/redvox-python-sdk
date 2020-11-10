@@ -360,7 +360,7 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
                                                                      wrapped_packet.battery_level_percent(),
                                                                      wrapped_packet.device_temperature_c(),
                                                                      network_type]],
-                                                                   columns=["timestamps", "charge_remaining",
+                                                                   columns=["timestamps", "battery_charge_remaining",
                                                                             "internal_temp_c", "network_type"]),
                                                       1/packet_duration_s, packet_duration_s, 0, False)
     return data_dict
@@ -677,7 +677,7 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
                                                   station_metrics.get_available_disk().get_values(),
                                                   station_metrics.get_cell_service_state().get_values()
                                                   ]),
-                                    columns=["timestamps", "charge_remaining", "current_strength",
+                                    columns=["timestamps", "battery_charge_remaining", "battery_current_strength",
                                              "internal_temp_c", "network_type", "network_strength",
                                              "power_state", "avail_ram", "avail_disk", "cell_service"]),
                        1 / sample_interval, sample_interval_std, 0, False)

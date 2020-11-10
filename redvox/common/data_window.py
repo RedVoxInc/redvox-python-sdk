@@ -199,10 +199,10 @@ class DataWindow:
         :param start_date_timestamp: float, timestamp in microseconds since epoch UTC of start of window
         :param end_date_timestamp: float, timestamp in microseconds since epoch UTC of end of window
         """
+        station.packet_gap_detector(self.gap_time_s)
         station.packet_data = [p for p in station.packet_data
                                if p.data_end_timestamp > start_date_timestamp and
                                p.data_start_timestamp < end_date_timestamp]
-        station.packet_gap_detector(self.gap_time_s)
         if station.has_location_data():
             # anything with 0 altitude is likely a network provided location
             station.location_sensor().data_df.loc[(station.location_sensor().data_df["altitude"] == 0),
