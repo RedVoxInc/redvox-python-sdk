@@ -7,7 +7,7 @@ from typing import List, Dict, Optional
 import redvox.common.date_time_utils as dtu
 from redvox.common.sensor_data import SensorData, SensorType
 from redvox.common.station_utils import StationKey, StationMetadata, DataPacket, StationLocation, \
-    StationTimeSyncData, station_location_from_data
+    station_location_from_data
 
 
 class Station:
@@ -21,14 +21,12 @@ class Station:
     """
 
     def __init__(self, metadata: StationMetadata, data: Optional[Dict[SensorType, SensorData]] = None,
-                 packets: Optional[List[DataPacket]] = None,
-                 time_sync_data: Optional[StationTimeSyncData] = None):
+                 packets: Optional[List[DataPacket]] = None):
         """
         initialize Station
         :param metadata: the station's metadata
         :param data: the station's sensors' data, default None (value is converted to empty dict)
         :param packets: the packets that the data came from, default None (value is converted to empty list)
-        :param time_sync_data: the time sync data for the station, default None
         """
         self.station_metadata: StationMetadata = metadata
         if data:
@@ -40,11 +38,6 @@ class Station:
             self.packet_data: List[DataPacket] = packets
         else:
             self.packet_data: List[DataPacket] = []
-        # todo: add timesync as its own object to station
-        if time_sync_data:
-            self.time_sync_data: StationTimeSyncData = time_sync_data
-        else:
-            self.time_sync_data = StationTimeSyncData()
         # todo: assert station key is valid
         self.station_key = StationKey(self.station_metadata.station_id, self.station_metadata.station_uuid,
                                       self.station_metadata.timing_data.station_start_timestamp)
@@ -803,7 +796,6 @@ class Station:
                         packet.best_location.update_timestamps(delta)
                 self.station_metadata.timing_data.station_first_data_timestamp += delta
                 self.station_metadata.location_data.update_timestamps(delta)
-                self.time_sync_data.update_timestamps(delta)
             self.station_metadata.station_timing_is_corrected = True
 
     def revert_timestamps(self):
@@ -824,7 +816,6 @@ class Station:
                         packet.best_location.update_timestamps(-delta)
                 self.station_metadata.timing_data.station_first_data_timestamp -= delta
                 self.station_metadata.location_data.update_timestamps(-delta)
-                self.time_sync_data.update_timestamps(-delta)
                 self.station_metadata.station_timing_is_corrected = False
         else:
             print("WARNING: Cannot revert timestamps that are not corrected!")

@@ -236,7 +236,7 @@ class AnyReaderTest(unittest.TestCase):
         # api900 station
         station = self.all_data.get_station("1637650010")
         self.assertEqual(len(station.packet_data), 1)
-        self.assertTrue(np.isnan(station.time_sync_data.get_file(1531343782220500)[1]))
+        self.assertTrue(np.isnan(station.packet_data[0].timesync.best_latency))
         self.assertEqual(len(station.station_data), 6)
         self.assertEqual(station.audio_sensor().sample_rate, 80)
         self.assertTrue(station.audio_sensor().is_sample_rate_fixed)
@@ -246,7 +246,7 @@ class AnyReaderTest(unittest.TestCase):
         # api m station
         station = self.all_data.get_station("0000000001")
         self.assertEqual(len(station.packet_data), 3)
-        self.assertEqual(station.time_sync_data.get_file(1597189452945991)[1], 1296.0)
+        self.assertEqual(station.packet_data[0].timesync.best_latency, 1296.0)
         self.assertEqual(len(station.station_data), 2)
         self.assertEqual(station.audio_sensor().sample_rate, 48000.0)
         self.assertTrue(station.audio_sensor().is_sample_rate_fixed)

@@ -8,7 +8,7 @@ ALL timestamps in microseconds unless otherwise stated
 import numpy as np
 import pandas as pd
 
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from redvox.common import stats_helper as sh, tri_message_stats as tms, date_time_utils as dt
 from redvox.common.station import Station
 from redvox.common.station_utils import DataPacket, StationMetadata
@@ -40,17 +40,15 @@ class TimeSyncData:
         acquire_travel_time: float, calculated time it took packet to reach server, default np.nan
     """
 
-    def __init__(self, time_sync_data: Tuple[pd.DataFrame, float, float] = None,
-                 data_pack: Optional[DataPacket] = None,
+    def __init__(self, data_pack: Optional[DataPacket] = None,
                  station_metadata: Optional[StationMetadata] = None):
         """
         Initialize properties
-        :param time_sync_data: time sync exchanges, best latency, best offset
         :param data_pack: data packet metadata
         :param station_metadata: station metadata
         """
-        if station_metadata is not None and data_pack is not None and time_sync_data is not None:
-            self.get_timesync_data(time_sync_data, data_pack, station_metadata)
+        if station_metadata is not None and data_pack is not None:
+            self.get_timesync_data(data_pack, station_metadata)
         else:
             self.best_latency: float = np.nan
             self.best_offset: float = 0
@@ -77,12 +75,10 @@ class TimeSyncData:
                 # self.num_packets: int = 0
                 # self.bad_packets: List[int] = []
 
-    def get_timesync_data(self, time_sync_data: Tuple[pd.DataFrame, float, float],
-                          data_pack: Optional[DataPacket] = None,
+    def get_timesync_data(self, data_pack: Optional[DataPacket] = None,
                           station_metadata: Optional[StationMetadata] = None):
         """
         extracts the time sync data from the data_pack object
-        :param time_sync_data: time sync exchanges, best latency, best offset
         :param data_pack: data packet metadata
         :param station_metadata: station metadata
         """
@@ -93,9 +89,9 @@ class TimeSyncData:
         self.server_acquisition_time = data_pack.server_timestamp
         self.packet_start_time = data_pack.data_start_timestamp
         self.packet_end_time = data_pack.data_end_timestamp
-        self.time_sync_exchanges_df = time_sync_data[0]
-        self.best_latency = time_sync_data[1]
-        self.best_offset = time_sync_data[2]
+        self.time_sync_exchanges_df = data_pack.timesync.timesync_data
+        self.best_latency = data_pack.timesync.best_latency
+        self.best_offset = data_pack.timesync.best_offset
         self._compute_tri_message_stats()
         # set the packet duration
         self.packet_duration = self.packet_end_time - self.packet_start_time
@@ -416,8 +412,7 @@ def get_time_sync_data_from_station(station: Station) -> List[TimeSyncData]:
     """
     timesync_list = []
     for packet in station.packet_data:
-        timesync_list.append(TimeSyncData(station.time_sync_data.file_to_time_sync[packet.data_start_timestamp],
-                                          packet, station.station_metadata))
+        timesync_list.append(TimeSyncData(packet, station.station_metadata))
     return timesync_list
 
 

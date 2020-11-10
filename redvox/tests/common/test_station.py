@@ -21,7 +21,7 @@ class StationTest(unittest.TestCase):
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station.packet_data), 1)
         self.assertEqual(len(self.api900_station.station_data), 6)
-        self.assertTrue(np.isnan(self.api900_station.time_sync_data.get_file(1531343782220500)[1]))
+        self.assertTrue(np.isnan(self.api900_station.packet_data[0].timesync.best_latency))
         self.assertEqual(self.api900_station.station_metadata.timing_data.station_best_latency, 70278.0)
         self.assertEqual(self.api900_station.audio_sensor().sample_rate, 80)
         self.assertTrue(self.api900_station.audio_sensor().is_sample_rate_fixed)
@@ -29,7 +29,7 @@ class StationTest(unittest.TestCase):
 
     def test_apim_station(self):
         self.assertEqual(len(self.apim_station.packet_data), 1)
-        self.assertEqual(self.apim_station.time_sync_data.get_file(1597189452945991)[1], 1296.0)
+        self.assertEqual(self.apim_station.packet_data[0].timesync.best_latency, 1296.0)
         self.assertEqual(len(self.apim_station.station_data), 2)
         self.assertEqual(self.apim_station.audio_sensor().sample_rate, 48000.0)
         self.assertTrue(self.apim_station.audio_sensor().is_sample_rate_fixed)
