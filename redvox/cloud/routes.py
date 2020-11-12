@@ -15,4 +15,5 @@ class RoutesV1:
     METADATA_REQ_M: str = "/api/v1/metadata/m"
     TIMING_METADATA_REQ: str = "/api/v1/metadata/timing"
     DATA_RANGE_REQ: str = "/api/v1/data/range"
+    DATA_RANGE_REQ_M: str = "/api/v1/data/range/m"
     DATA_REPORT_REQ: str = "/api/v1/data/report"
