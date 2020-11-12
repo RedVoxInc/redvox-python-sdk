@@ -339,12 +339,14 @@ class CloudClient:
     def request_data_range(self,
                            start_ts_s: int,
                            end_ts_s: int,
-                           station_ids: List[str]) -> data_api.DataRangeResp:
+                           station_ids: List[str],
+                           req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900) -> data_api.DataRangeResp:
         """
         Request signed URLs for RedVox packets.
         :param start_ts_s: The start epoch of the window.
         :param end_ts_s:  The end epoch of the window.
         :param station_ids: A list of station ids.
+        :param req_type: The type of data to request.
         :return: A response containing a list of signed URLs for the RedVox packets.
         """
         if end_ts_s <= start_ts_s:
@@ -359,7 +361,10 @@ class CloudClient:
                                                                       station_ids,
                                                                       self.secret_token)
 
-        return data_api.request_range_data(self.api_conf, data_range_req, session=self.__session, timeout=self.timeout)
+        return data_api.request_range_data(self.api_conf, data_range_req,
+                                           session=self.__session,
+                                           timeout=self.timeout,
+                                           req_type=req_type)
 
 
 @contextlib.contextmanager
