@@ -3,6 +3,7 @@ This module contains API definitions and functions for working with raw RedVox d
 """
 
 from dataclasses import dataclass
+from enum import Enum
 from typing import Callable, List, Optional, Tuple
 
 from dataclasses_json import dataclass_json
@@ -79,6 +80,15 @@ class DataRangeResp:
         """
         data_io.download_files_parallel(self.signed_urls, out_dir, retries)
 
+    def append(self, other: 'DataRangeResp') -> 'DataRangeResp':
+        """
+        Combines multiple responses.
+        :param other: The other response to combine results with.
+        :return: A modified instance of self.
+        """
+        self.signed_urls.extend(other.signed_urls)
+        return self
+
 
 def request_report_data(api_config: ApiConfig,
                         report_data_req: ReportDataReq,
@@ -101,24 +111,69 @@ def request_report_data(api_config: ApiConfig,
                     timeout)
 
 
+class DataRangeReqType(Enum):
+    """
+    Type of RedVox data to be requested.
+    """
+    API_900: str = "API_900"
+    API_1000: str = "API_1000"
+    API_900_1000: str = "API_900_1000"
+
+
 def request_range_data(api_config: ApiConfig,
                        data_range_req: DataRangeReq,
                        session: Optional[requests.Session] = None,
-                       timeout: Optional[float] = None) -> DataRangeResp:
+                       timeout: Optional[float] = None,
+                       req_type: DataRangeReqType = DataRangeReqType.API_900) -> DataRangeResp:
     """
     Requests signed URLs for a range of RedVox packets.
     :param api_config: An API config.
     :param data_range_req: The request.
     :param session: An (optional) session for re-using an HTTP client.
+    :param timeout: An (optional) timeout.
+    :param req_type: (Optional) defines which type of RedVox data should be requested
     :return: A DataRangeResp.
     """
     # noinspection Mypy
     handle_resp: Callable[[requests.Response], DataRangeResp] = lambda resp: DataRangeResp.from_dict(resp.json())
-    res: Optional[DataRangeResp] = post_req(api_config,
-                                            RoutesV1.DATA_RANGE_REQ,
-                                            data_range_req,
-                                            handle_resp,
-                                            session,
-                                            timeout)
 
-    return res if res else DataRangeResp([])
+    # API 900
+    if req_type == DataRangeReqType.API_900:
+        res: Optional[DataRangeResp] = post_req(api_config,
+                                                RoutesV1.DATA_RANGE_REQ,
+                                                data_range_req,
+                                                handle_resp,
+                                                session,
+                                                timeout)
+
+        return res if res else DataRangeResp([])
+    # API 1000
+    elif req_type == DataRangeReqType.API_1000:
+        res: Optional[DataRangeResp] = post_req(api_config,
+                                                RoutesV1.DATA_RANGE_REQ_M,
+                                                data_range_req,
+                                                handle_resp,
+                                                session,
+                                                timeout)
+
+        return res if res else DataRangeResp([])
+    # API 900 and 1000
+    else:
+        res_900: Optional[DataRangeResp] = post_req(api_config,
+                                                    RoutesV1.DATA_RANGE_REQ,
+                                                    data_range_req,
+                                                    handle_resp,
+                                                    session,
+                                                    timeout)
+
+        res_1000: Optional[DataRangeResp] = post_req(api_config,
+                                                     RoutesV1.DATA_RANGE_REQ_M,
+                                                     data_range_req,
+                                                     handle_resp,
+                                                     session,
+                                                     timeout)
+
+        res_900_final: DataRangeResp = DataRangeResp([]) if res_900 is None else res_900
+        res_1000_final: DataRangeResp = DataRangeResp([]) if res_1000 is None else res_1000
+
+        return res_900_final.append(res_1000_final)
