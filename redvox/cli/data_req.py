@@ -9,6 +9,7 @@ import redvox.cloud.api as cloud_api
 import redvox.cloud.client as cloud_client
 import redvox.cloud.data_api as data_api
 import redvox.cloud.data_io as data_io
+import redvox.cloud.data_client as data_client
 
 if TYPE_CHECKING:
     from redvox.cloud.data_api import DataRangeReqType
@@ -59,6 +60,6 @@ def make_data_req(out_dir: str,
         log.error("No signed urls returned")
         return False
 
-    data_io.download_files_parallel(data_resp.signed_urls, out_dir, retries)
+    data_client.download_files(data_resp.signed_urls, out_dir, retries)
 
     return True
