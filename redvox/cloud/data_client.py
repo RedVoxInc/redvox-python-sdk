@@ -55,8 +55,8 @@ def download_files(urls: List[str], out_dir: str, retries: int, num_processes: i
         remaining: float = ((100.0 / percentage) * time_range) - time_range
 
         total_bytes += res.resp_len
-        print(f"\r[{(i + 1):5} / {len(urls):5}] [{percentage:3.2f}%] "
-              f"[{total_bytes:6} bytes] [est time remaining {remaining:.1f}s] {res.data_key}",
+        print(f"\r[{(i + 1):5} / {len(urls):5}] [{percentage:04.1f}%] "
+              f"[{total_bytes:10} bytes] [est time remaining {remaining:06.1f}s] {res.data_key:>55}",
               end="")
         i += 1
 
