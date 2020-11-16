@@ -213,7 +213,7 @@ def data_req_args(args) -> None:
                                           args.password,
                                           args.req_start_s,
                                           args.req_end_s,
-                                          args.redvox_ids,
+                                          args.station_ids,
                                           api_type,
                                           args.retries,
                                           args.secret_token))
