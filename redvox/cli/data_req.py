@@ -8,7 +8,6 @@ from typing import List, TYPE_CHECKING
 import redvox.cloud.api as cloud_api
 import redvox.cloud.client as cloud_client
 import redvox.cloud.data_api as data_api
-import redvox.cloud.data_io as data_io
 import redvox.cloud.data_client as data_client
 
 if TYPE_CHECKING:

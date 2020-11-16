@@ -126,13 +126,13 @@ def download_file(url: str,
         directory = os.path.dirname(data_key)
         full_dir = f"{out_dir}/{directory}"
         if not os.path.exists(full_dir):
-            log.info("Directory %s does not exist, creating it", full_dir)
+            log.warning("Directory %s does not exist, creating it", full_dir)
             os.makedirs(full_dir)
 
         full_path = f"{out_dir}/{data_key}"
         with open(full_path, "wb") as fout:
             bytes_written = fout.write(buf)
-            log.info("Wrote %s %d", full_path, bytes_written)
+            log.debug("Wrote %s %d", full_path, bytes_written)
 
         return data_key, len(buf)
 
