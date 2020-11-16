@@ -140,6 +140,7 @@ def download_file(url: str,
 
 
 def download_files(urls: List[str], out_dir: str, retries: int) -> None:
+    print(urls)
     """
     Download files from S3.
     :param urls: The URL of the files to download.
@@ -151,6 +152,8 @@ def download_files(urls: List[str], out_dir: str, retries: int) -> None:
     for url in urls:
         data_key, resp_len = download_file(url, session, out_dir, retries)
         log.info("Recv %s with len=%d", data_key, resp_len)
+
+        # Display
 
     session.close()
 
