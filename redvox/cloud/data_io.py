@@ -140,7 +140,6 @@ def download_file(url: str,
 
 
 def download_files(urls: List[str], out_dir: str, retries: int) -> None:
-    print(urls)
     """
     Download files from S3.
     :param urls: The URL of the files to download.

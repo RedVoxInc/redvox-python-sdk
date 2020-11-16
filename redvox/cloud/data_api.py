@@ -11,6 +11,7 @@ import requests
 
 from redvox.cloud.api import ApiConfig, post_req
 import redvox.cloud.data_io as data_io
+import redvox.cloud.data_client as data_client
 from redvox.cloud.routes import RoutesV1
 
 
@@ -78,7 +79,7 @@ class DataRangeResp:
         :param out_dir: Output directory to store the downloaded files.
         :param retries: Number of times to retry downloading the file on failure.
         """
-        data_io.download_files_parallel(self.signed_urls, out_dir, retries)
+        data_client.download_files(self.signed_urls, out_dir, retries)
 
     def append(self, other: 'DataRangeResp') -> 'DataRangeResp':
         """
