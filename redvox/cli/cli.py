@@ -328,84 +328,84 @@ def main():
     gallery_parser.set_defaults(func=gallery_args)
 
     # rdvxz -> rdvxm
-    rdvxz_to_rdvxm_parser = sub_parser.add_parser("rdvxz_to_rdvxm",
+    rdvxz_to_rdvxm_parser = sub_parser.add_parser("rdvxz-to-rdvxm",
                                                   help="Convert rdvxz (API 900) to rdvxm (API 1000/M) files")
     rdvxz_to_rdvxm_parser.add_argument("rdvxz_paths",
                                        help="One or more rdvxz files to convert to json files",
                                        nargs="+")
-    rdvxz_to_rdvxm_parser.add_argument("--out_dir",
+    rdvxz_to_rdvxm_parser.add_argument("--out-dir",
                                        "-o",
                                        help="Optional output directory (will use same directory as source files by "
                                             "default)")
     rdvxz_to_rdvxm_parser.set_defaults(func=rdvxz_to_rdvxm)
 
     # rdvxm -> rdvxz
-    rdvxm_to_rdvxz_parser = sub_parser.add_parser("rdvxm_to_rdvxz",
+    rdvxm_to_rdvxz_parser = sub_parser.add_parser("rdvxm-to-rdvxz",
                                                   help="Convert rdvxm (API 1000/M) to rdvxx (API 900) files")
     rdvxm_to_rdvxz_parser.add_argument("rdvxm_paths",
                                        help="One or more rdvxm files to convert to json files",
                                        nargs="+")
-    rdvxm_to_rdvxz_parser.add_argument("--out_dir",
+    rdvxm_to_rdvxz_parser.add_argument("--out-dir",
                                        "-o",
                                        help="Optional output directory (will use same directory as source files by "
                                             "default)")
     rdvxm_to_rdvxz_parser.set_defaults(func=rdvxm_to_rdvxz)
 
     # rdvxz -> json
-    rdvxz_to_json_parser = sub_parser.add_parser("rdvxz_to_json",
+    rdvxz_to_json_parser = sub_parser.add_parser("rdvxz-to-json",
                                                  help="Convert rdvxz files to json files")
     rdvxz_to_json_parser.add_argument("rdvxz_paths",
                                       help="One or more rdvxz files to convert to json files",
                                       nargs="+")
-    rdvxz_to_json_parser.add_argument("--out_dir",
+    rdvxz_to_json_parser.add_argument("--out-dir",
                                       "-o",
                                       help="Optional output directory (will use same directory as source files by "
                                            "default)")
     rdvxz_to_json_parser.set_defaults(func=rdvxz_to_json_args)
 
-    rdvxm_to_json_parser = sub_parser.add_parser("rdvxm_to_json",
+    rdvxm_to_json_parser = sub_parser.add_parser("rdvxm-to-json",
                                                  help="Convert rdvxm files to json files")
     rdvxm_to_json_parser.add_argument("rdvxm_paths",
                                       help="One or more rdvxm files to convert to json files",
                                       nargs="+")
-    rdvxm_to_json_parser.add_argument("--out_dir",
+    rdvxm_to_json_parser.add_argument("--out-dir",
                                       "-o",
                                       help="Optional output directory (will use same directory as source files by "
                                            "default)")
     rdvxm_to_json_parser.set_defaults(func=rdvxm_to_json_args)
 
     # json -> rdvxz
-    json_to_rdvxz_parser = sub_parser.add_parser("json_to_rdvxz",
+    json_to_rdvxz_parser = sub_parser.add_parser("json-to-rdvxz",
                                                  help="Convert json files to rdvxz files")
     json_to_rdvxz_parser.add_argument("json_paths",
                                       help="One or more json files to convert to rdvxz files",
                                       nargs="+")
-    json_to_rdvxz_parser.add_argument("--out_dir",
+    json_to_rdvxz_parser.add_argument("--out-dir",
                                       "-o",
                                       help="Optional output directory (will use same directory as source files by "
                                            "default)")
     json_to_rdvxz_parser.set_defaults(func=json_to_rdvxz_args)
 
-    json_to_rdvxm_parser = sub_parser.add_parser("json_to_rdvxm",
+    json_to_rdvxm_parser = sub_parser.add_parser("json-to-rdvxm",
                                                  help="Convert json files to rdvxm files")
     json_to_rdvxm_parser.add_argument("json_paths",
                                       help="One or more json files to convert to rdvxm files",
                                       nargs="+")
-    json_to_rdvxm_parser.add_argument("--out_dir",
+    json_to_rdvxm_parser.add_argument("--out-dir",
                                       "-o",
                                       help="Optional output directory (will use same directory as source files by "
                                            "default)")
     json_to_rdvxm_parser.set_defaults(func=json_to_rdvxm_args)
 
     # print
-    rdvxz_print_parser = sub_parser.add_parser("printz",
+    rdvxz_print_parser = sub_parser.add_parser("print-z",
                                                help="Print contents of rdvxz files to stdout")
     rdvxz_print_parser.add_argument("rdvxz_paths",
                                     help="One or more rdvxz files to print",
                                     nargs="+")
     rdvxz_print_parser.set_defaults(func=rdvxz_print_stdout_args)
 
-    rdvxm_print_parser = sub_parser.add_parser("printm",
+    rdvxm_print_parser = sub_parser.add_parser("print-m",
                                                help="Print contents of rdvxm files to stdout")
     rdvxm_print_parser.add_argument("rdvxm_paths",
                                     help="One or more rdvxm files to print",
@@ -413,7 +413,7 @@ def main():
     rdvxm_print_parser.set_defaults(func=rdvxm_print_stdout_args)
 
     # validation
-    rdvxm_validation_parser = sub_parser.add_parser("validatem",
+    rdvxm_validation_parser = sub_parser.add_parser("validate-m",
                                                     help="Validate the structure of API M files")
     rdvxm_validation_parser.add_argument("rdvxm_paths",
                                          help="One or more rdvxm files to print",
@@ -421,9 +421,9 @@ def main():
     rdvxm_validation_parser.set_defaults(func=validate_rdvxm_args)
 
     # data_req
-    data_req_parser = sub_parser.add_parser("data_req",
+    data_req_parser = sub_parser.add_parser("data-req",
                                             help="Request bulk RedVox data from the RedVox servers")
-    data_req_parser.add_argument("--out_dir",
+    data_req_parser.add_argument("--out-dir",
                                  "-o",
                                  help="The output directory that RedVox files will be written to (default=.)",
                                  default=".")
@@ -447,7 +447,7 @@ def main():
                                  help="One of either http or https (default https)",
                                  choices=["https", "http"],
                                  default="https")
-    data_req_parser.add_argument("--secret_token",
+    data_req_parser.add_argument("--secret-token",
                                  help="A shared secret token provided by RedVox required for accessing the data "
                                       "request service")
     data_req_parser.add_argument("email",
@@ -460,15 +460,15 @@ def main():
     data_req_parser.add_argument("req_end_s",
                                  type=int,
                                  help="Data request end as number of seconds since the epoch UTC")
-    data_req_parser.add_argument("redvox_ids",
+    data_req_parser.add_argument("station_ids",
                                  nargs="+",
                                  help="A list of RedVox ids delimited by a space")
     data_req_parser.set_defaults(func=data_req_args)
 
     # data req report
-    data_req_report_parser = sub_parser.add_parser("data_req_report",
+    data_req_report_parser = sub_parser.add_parser("data-req-report",
                                                    help="Request bulk RedVox data from the RedVox servers")
-    data_req_report_parser.add_argument("--out_dir",
+    data_req_report_parser.add_argument("--out-dir",
                                         "-o",
                                         help="The output directory that RedVox files will be written to (default=.)",
                                         default=".")
@@ -492,7 +492,7 @@ def main():
                                         help="One of either http or https (default https)",
                                         choices=["https", "http"],
                                         default="https")
-    data_req_report_parser.add_argument("--secret_token",
+    data_req_report_parser.add_argument("--secret-token",
                                         help="A shared secret token provided by RedVox required for accessing the data "
                                              "request service")
     data_req_report_parser.add_argument("email",
