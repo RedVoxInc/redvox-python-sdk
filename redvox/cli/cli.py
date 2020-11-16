@@ -8,10 +8,10 @@ import os.path
 import sys
 from typing import Dict, List, Optional
 
-from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-
 from redvox.api1000.gui.image_viewer import start_gui
 from redvox.api1000.wrapped_redvox_packet.sensors.image import Image, ImageCodec
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.cloud.data_api import DataRangeReqType
 
 import redvox.cloud.api as cloud_api
 import redvox.cloud.client as cloud_client
@@ -203,6 +203,8 @@ def data_req_args(args) -> None:
     if not check_out_dir(args.out_dir):
         determine_exit(False)
 
+    api_type: DataRangeReqType = DataRangeReqType[args.api_type]
+
     determine_exit(data_req.make_data_req(args.out_dir,
                                           args.protocol,
                                           args.host,
@@ -212,6 +214,7 @@ def data_req_args(args) -> None:
                                           args.req_start_s,
                                           args.req_end_s,
                                           args.redvox_ids,
+                                          api_type,
                                           args.retries,
                                           args.secret_token))
 
@@ -363,6 +366,7 @@ def main():
                                            "default)")
     rdvxz_to_json_parser.set_defaults(func=rdvxz_to_json_args)
 
+    # rdvxm -> json
     rdvxm_to_json_parser = sub_parser.add_parser("rdvxm-to-json",
                                                  help="Convert rdvxm files to json files")
     rdvxm_to_json_parser.add_argument("rdvxm_paths",
@@ -386,6 +390,7 @@ def main():
                                            "default)")
     json_to_rdvxz_parser.set_defaults(func=json_to_rdvxz_args)
 
+    # json -> rdvxm
     json_to_rdvxm_parser = sub_parser.add_parser("json-to-rdvxm",
                                                  help="Convert json files to rdvxm files")
     json_to_rdvxm_parser.add_argument("json_paths",
@@ -397,7 +402,7 @@ def main():
                                            "default)")
     json_to_rdvxm_parser.set_defaults(func=json_to_rdvxm_args)
 
-    # print
+    # print rdvxz
     rdvxz_print_parser = sub_parser.add_parser("print-z",
                                                help="Print contents of rdvxz files to stdout")
     rdvxz_print_parser.add_argument("rdvxz_paths",
@@ -405,6 +410,7 @@ def main():
                                     nargs="+")
     rdvxz_print_parser.set_defaults(func=rdvxz_print_stdout_args)
 
+    # print rdvxm
     rdvxm_print_parser = sub_parser.add_parser("print-m",
                                                help="Print contents of rdvxm files to stdout")
     rdvxm_print_parser.add_argument("rdvxm_paths",
@@ -450,6 +456,10 @@ def main():
     data_req_parser.add_argument("--secret-token",
                                  help="A shared secret token provided by RedVox required for accessing the data "
                                       "request service")
+    data_req_parser.add_argument("--api-type",
+                                 help="Data API to be retrieved",
+                                 choices=["API_900", "API_1000", "API_900_1000"],
+                                 default="API_900_1000")
     data_req_parser.add_argument("email",
                                  help="redvox.io account email")
     data_req_parser.add_argument("password",
