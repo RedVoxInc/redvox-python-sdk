@@ -127,6 +127,19 @@ class RedvoxPacketM(google___protobuf___message___Message):
         WINDOWS = typing___cast(RedvoxPacketM.StationInformation.OsTypeValue, 5)
         type___OsType = OsType
 
+        MetricsRateValue = typing___NewType('MetricsRateValue', builtin___int)
+        type___MetricsRateValue = MetricsRateValue
+        MetricsRate: _MetricsRate
+        class _MetricsRate(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.StationInformation.MetricsRateValue]):
+            DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
+            UNKNOWN = typing___cast(RedvoxPacketM.StationInformation.MetricsRateValue, 0)
+            ONCE_PER_SECOND = typing___cast(RedvoxPacketM.StationInformation.MetricsRateValue, 1)
+            ONCE_PER_PACKET = typing___cast(RedvoxPacketM.StationInformation.MetricsRateValue, 2)
+        UNKNOWN = typing___cast(RedvoxPacketM.StationInformation.MetricsRateValue, 0)
+        ONCE_PER_SECOND = typing___cast(RedvoxPacketM.StationInformation.MetricsRateValue, 1)
+        ONCE_PER_PACKET = typing___cast(RedvoxPacketM.StationInformation.MetricsRateValue, 2)
+        type___MetricsRate = MetricsRate
+
         class MetadataEntry(google___protobuf___message___Message):
             DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
             key: typing___Text = ...
@@ -238,6 +251,21 @@ class RedvoxPacketM(google___protobuf___message___Message):
             CHARGED = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue, 3)
             type___PowerState = PowerState
 
+            ScreenStateValue = typing___NewType('ScreenStateValue', builtin___int)
+            type___ScreenStateValue = ScreenStateValue
+            ScreenState: _ScreenState
+            class _ScreenState(google___protobuf___internal___enum_type_wrapper____EnumTypeWrapper[RedvoxPacketM.StationInformation.StationMetrics.ScreenStateValue]):
+                DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
+                UNKNOWN_SCREEN_STATE = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.ScreenStateValue, 0)
+                ON = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.ScreenStateValue, 1)
+                OFF = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.ScreenStateValue, 2)
+                HEADLESS = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.ScreenStateValue, 3)
+            UNKNOWN_SCREEN_STATE = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.ScreenStateValue, 0)
+            ON = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.ScreenStateValue, 1)
+            OFF = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.ScreenStateValue, 2)
+            HEADLESS = typing___cast(RedvoxPacketM.StationInformation.StationMetrics.ScreenStateValue, 3)
+            type___ScreenState = ScreenState
+
             class MetadataEntry(google___protobuf___message___Message):
                 DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
                 key: typing___Text = ...
@@ -255,6 +283,7 @@ class RedvoxPacketM(google___protobuf___message___Message):
             cell_service_state: google___protobuf___internal___containers___RepeatedScalarFieldContainer[type___RedvoxPacketM.StationInformation.StationMetrics.CellServiceStateValue] = ...
             power_state: google___protobuf___internal___containers___RepeatedScalarFieldContainer[type___RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue] = ...
             wifi_wake_lock: google___protobuf___internal___containers___RepeatedScalarFieldContainer[type___RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLockValue] = ...
+            screen_state: google___protobuf___internal___containers___RepeatedScalarFieldContainer[type___RedvoxPacketM.StationInformation.StationMetrics.ScreenStateValue] = ...
 
             @property
             def timestamps(self) -> type___RedvoxPacketM.TimingPayload: ...
@@ -281,6 +310,9 @@ class RedvoxPacketM(google___protobuf___message___Message):
             def cpu_utilization(self) -> type___RedvoxPacketM.SamplePayload: ...
 
             @property
+            def screen_brightness(self) -> type___RedvoxPacketM.SamplePayload: ...
+
+            @property
             def metadata(self) -> typing___MutableMapping[typing___Text, typing___Text]: ...
 
             def __init__(self,
@@ -297,10 +329,12 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 cpu_utilization : typing___Optional[type___RedvoxPacketM.SamplePayload] = None,
                 power_state : typing___Optional[typing___Iterable[type___RedvoxPacketM.StationInformation.StationMetrics.PowerStateValue]] = None,
                 wifi_wake_lock : typing___Optional[typing___Iterable[type___RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLockValue]] = None,
+                screen_state : typing___Optional[typing___Iterable[type___RedvoxPacketM.StationInformation.StationMetrics.ScreenStateValue]] = None,
+                screen_brightness : typing___Optional[type___RedvoxPacketM.SamplePayload] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            def HasField(self, field_name: typing_extensions___Literal[u"available_disk",b"available_disk",u"available_ram",b"available_ram",u"battery",b"battery",u"battery_current",b"battery_current",u"cpu_utilization",b"cpu_utilization",u"network_strength",b"network_strength",u"temperature",b"temperature",u"timestamps",b"timestamps"]) -> builtin___bool: ...
-            def ClearField(self, field_name: typing_extensions___Literal[u"available_disk",b"available_disk",u"available_ram",b"available_ram",u"battery",b"battery",u"battery_current",b"battery_current",u"cell_service_state",b"cell_service_state",u"cpu_utilization",b"cpu_utilization",u"metadata",b"metadata",u"network_strength",b"network_strength",u"network_type",b"network_type",u"power_state",b"power_state",u"temperature",b"temperature",u"timestamps",b"timestamps",u"wifi_wake_lock",b"wifi_wake_lock"]) -> None: ...
+            def HasField(self, field_name: typing_extensions___Literal[u"available_disk",b"available_disk",u"available_ram",b"available_ram",u"battery",b"battery",u"battery_current",b"battery_current",u"cpu_utilization",b"cpu_utilization",u"network_strength",b"network_strength",u"screen_brightness",b"screen_brightness",u"temperature",b"temperature",u"timestamps",b"timestamps"]) -> builtin___bool: ...
+            def ClearField(self, field_name: typing_extensions___Literal[u"available_disk",b"available_disk",u"available_ram",b"available_ram",u"battery",b"battery",u"battery_current",b"battery_current",u"cell_service_state",b"cell_service_state",u"cpu_utilization",b"cpu_utilization",u"metadata",b"metadata",u"network_strength",b"network_strength",u"network_type",b"network_type",u"power_state",b"power_state",u"screen_brightness",b"screen_brightness",u"screen_state",b"screen_state",u"temperature",b"temperature",u"timestamps",b"timestamps",u"wifi_wake_lock",b"wifi_wake_lock"]) -> None: ...
         type___StationMetrics = StationMetrics
 
         class AppSettings(google___protobuf___message___Message):
@@ -361,38 +395,48 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 DESCRIPTOR: google___protobuf___descriptor___EnumDescriptor = ...
                 UNKNOWN_SENSOR = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 0)
                 ACCELEROMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 1)
-                AMBIENT_TEMPERATURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 2)
-                AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 3)
-                COMPRESSED_AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 4)
-                GRAVITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 5)
-                GYROSCOPE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 6)
-                IMAGE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 7)
-                LIGHT = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 8)
-                LINEAR_ACCELERATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 9)
-                LOCATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 10)
-                MAGNETOMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 11)
-                ORIENTATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 12)
-                PRESSURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 13)
-                PROXIMITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 14)
-                RELATIVE_HUMIDITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 15)
-                ROTATION_VECTOR = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 16)
+                ACCELEROMETER_FAST = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 2)
+                AMBIENT_TEMPERATURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 3)
+                AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 4)
+                COMPRESSED_AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 5)
+                GRAVITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 6)
+                GYROSCOPE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 7)
+                GYROSCOPE_FAST = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 8)
+                IMAGE_PER_SECOND = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 9)
+                IMAGE_PER_PACKET = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 10)
+                LIGHT = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 11)
+                LINEAR_ACCELERATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 12)
+                LOCATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 13)
+                MAGNETOMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 14)
+                MAGNETOMETER_FAST = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 15)
+                ORIENTATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 16)
+                PRESSURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 17)
+                PROXIMITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 18)
+                RELATIVE_HUMIDITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 19)
+                ROTATION_VECTOR = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 20)
+                VELOCITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 21)
             UNKNOWN_SENSOR = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 0)
             ACCELEROMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 1)
-            AMBIENT_TEMPERATURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 2)
-            AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 3)
-            COMPRESSED_AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 4)
-            GRAVITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 5)
-            GYROSCOPE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 6)
-            IMAGE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 7)
-            LIGHT = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 8)
-            LINEAR_ACCELERATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 9)
-            LOCATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 10)
-            MAGNETOMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 11)
-            ORIENTATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 12)
-            PRESSURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 13)
-            PROXIMITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 14)
-            RELATIVE_HUMIDITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 15)
-            ROTATION_VECTOR = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 16)
+            ACCELEROMETER_FAST = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 2)
+            AMBIENT_TEMPERATURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 3)
+            AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 4)
+            COMPRESSED_AUDIO = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 5)
+            GRAVITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 6)
+            GYROSCOPE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 7)
+            GYROSCOPE_FAST = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 8)
+            IMAGE_PER_SECOND = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 9)
+            IMAGE_PER_PACKET = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 10)
+            LIGHT = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 11)
+            LINEAR_ACCELERATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 12)
+            LOCATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 13)
+            MAGNETOMETER = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 14)
+            MAGNETOMETER_FAST = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 15)
+            ORIENTATION = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 16)
+            PRESSURE = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 17)
+            PROXIMITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 18)
+            RELATIVE_HUMIDITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 19)
+            ROTATION_VECTOR = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 20)
+            VELOCITY = typing___cast(RedvoxPacketM.StationInformation.AppSettings.InputSensorValue, 21)
             type___InputSensor = InputSensor
 
             class MetadataEntry(google___protobuf___message___Message):
@@ -435,6 +479,7 @@ class RedvoxPacketM(google___protobuf___message___Message):
             use_latitude: builtin___float = ...
             use_longitude: builtin___float = ...
             use_altitude: builtin___float = ...
+            metrics_rate: type___RedvoxPacketM.StationInformation.MetricsRateValue = ...
 
             @property
             def metadata(self) -> typing___MutableMapping[typing___Text, typing___Text]: ...
@@ -468,9 +513,10 @@ class RedvoxPacketM(google___protobuf___message___Message):
                 use_latitude : typing___Optional[builtin___float] = None,
                 use_longitude : typing___Optional[builtin___float] = None,
                 use_altitude : typing___Optional[builtin___float] = None,
+                metrics_rate : typing___Optional[type___RedvoxPacketM.StationInformation.MetricsRateValue] = None,
                 metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
                 ) -> None: ...
-            def ClearField(self, field_name: typing_extensions___Literal[u"additional_input_sensors",b"additional_input_sensors",u"audio_sampling_rate",b"audio_sampling_rate",u"audio_source_tuning",b"audio_source_tuning",u"auth_server_url",b"auth_server_url",u"auto_delete_data_files",b"auto_delete_data_files",u"automatically_record",b"automatically_record",u"data_server_url",b"data_server_url",u"fft_overlap",b"fft_overlap",u"launch_at_power_up",b"launch_at_power_up",u"metadata",b"metadata",u"provide_backfill",b"provide_backfill",u"publish_data_as_private",b"publish_data_as_private",u"push_to_server",b"push_to_server",u"remove_sensor_dc_offset",b"remove_sensor_dc_offset",u"samples_per_window",b"samples_per_window",u"scramble_audio_data",b"scramble_audio_data",u"station_description",b"station_description",u"station_id",b"station_id",u"storage_space_allowance",b"storage_space_allowance",u"time_sync_server_url",b"time_sync_server_url",u"use_altitude",b"use_altitude",u"use_custom_auth_server",b"use_custom_auth_server",u"use_custom_data_server",b"use_custom_data_server",u"use_custom_time_sync_server",b"use_custom_time_sync_server",u"use_latitude",b"use_latitude",u"use_location_services",b"use_location_services",u"use_longitude",b"use_longitude",u"use_sd_card_for_data_storage",b"use_sd_card_for_data_storage"]) -> None: ...
+            def ClearField(self, field_name: typing_extensions___Literal[u"additional_input_sensors",b"additional_input_sensors",u"audio_sampling_rate",b"audio_sampling_rate",u"audio_source_tuning",b"audio_source_tuning",u"auth_server_url",b"auth_server_url",u"auto_delete_data_files",b"auto_delete_data_files",u"automatically_record",b"automatically_record",u"data_server_url",b"data_server_url",u"fft_overlap",b"fft_overlap",u"launch_at_power_up",b"launch_at_power_up",u"metadata",b"metadata",u"metrics_rate",b"metrics_rate",u"provide_backfill",b"provide_backfill",u"publish_data_as_private",b"publish_data_as_private",u"push_to_server",b"push_to_server",u"remove_sensor_dc_offset",b"remove_sensor_dc_offset",u"samples_per_window",b"samples_per_window",u"scramble_audio_data",b"scramble_audio_data",u"station_description",b"station_description",u"station_id",b"station_id",u"storage_space_allowance",b"storage_space_allowance",u"time_sync_server_url",b"time_sync_server_url",u"use_altitude",b"use_altitude",u"use_custom_auth_server",b"use_custom_auth_server",u"use_custom_data_server",b"use_custom_data_server",u"use_custom_time_sync_server",b"use_custom_time_sync_server",u"use_latitude",b"use_latitude",u"use_location_services",b"use_location_services",u"use_longitude",b"use_longitude",u"use_sd_card_for_data_storage",b"use_sd_card_for_data_storage"]) -> None: ...
         type___AppSettings = AppSettings
 
         id: typing___Text = ...
@@ -1139,6 +1185,9 @@ class RedvoxPacketM(google___protobuf___message___Message):
         def rotation_vector(self) -> type___RedvoxPacketM.Sensors.Xyz: ...
 
         @property
+        def velocity(self) -> type___RedvoxPacketM.Sensors.Xyz: ...
+
+        @property
         def metadata(self) -> typing___MutableMapping[typing___Text, typing___Text]: ...
 
         def __init__(self,
@@ -1159,10 +1208,11 @@ class RedvoxPacketM(google___protobuf___message___Message):
             proximity : typing___Optional[type___RedvoxPacketM.Sensors.Single] = None,
             relative_humidity : typing___Optional[type___RedvoxPacketM.Sensors.Single] = None,
             rotation_vector : typing___Optional[type___RedvoxPacketM.Sensors.Xyz] = None,
+            velocity : typing___Optional[type___RedvoxPacketM.Sensors.Xyz] = None,
             metadata : typing___Optional[typing___Mapping[typing___Text, typing___Text]] = None,
             ) -> None: ...
-        def HasField(self, field_name: typing_extensions___Literal[u"accelerometer",b"accelerometer",u"ambient_temperature",b"ambient_temperature",u"audio",b"audio",u"compressed_audio",b"compressed_audio",u"gravity",b"gravity",u"gyroscope",b"gyroscope",u"image",b"image",u"light",b"light",u"linear_acceleration",b"linear_acceleration",u"location",b"location",u"magnetometer",b"magnetometer",u"orientation",b"orientation",u"pressure",b"pressure",u"proximity",b"proximity",u"relative_humidity",b"relative_humidity",u"rotation_vector",b"rotation_vector"]) -> builtin___bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"accelerometer",b"accelerometer",u"ambient_temperature",b"ambient_temperature",u"audio",b"audio",u"compressed_audio",b"compressed_audio",u"gravity",b"gravity",u"gyroscope",b"gyroscope",u"image",b"image",u"light",b"light",u"linear_acceleration",b"linear_acceleration",u"location",b"location",u"magnetometer",b"magnetometer",u"metadata",b"metadata",u"orientation",b"orientation",u"pressure",b"pressure",u"proximity",b"proximity",u"relative_humidity",b"relative_humidity",u"rotation_vector",b"rotation_vector"]) -> None: ...
+        def HasField(self, field_name: typing_extensions___Literal[u"accelerometer",b"accelerometer",u"ambient_temperature",b"ambient_temperature",u"audio",b"audio",u"compressed_audio",b"compressed_audio",u"gravity",b"gravity",u"gyroscope",b"gyroscope",u"image",b"image",u"light",b"light",u"linear_acceleration",b"linear_acceleration",u"location",b"location",u"magnetometer",b"magnetometer",u"orientation",b"orientation",u"pressure",b"pressure",u"proximity",b"proximity",u"relative_humidity",b"relative_humidity",u"rotation_vector",b"rotation_vector",u"velocity",b"velocity"]) -> builtin___bool: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"accelerometer",b"accelerometer",u"ambient_temperature",b"ambient_temperature",u"audio",b"audio",u"compressed_audio",b"compressed_audio",u"gravity",b"gravity",u"gyroscope",b"gyroscope",u"image",b"image",u"light",b"light",u"linear_acceleration",b"linear_acceleration",u"location",b"location",u"magnetometer",b"magnetometer",u"metadata",b"metadata",u"orientation",b"orientation",u"pressure",b"pressure",u"proximity",b"proximity",u"relative_humidity",b"relative_humidity",u"rotation_vector",b"rotation_vector",u"velocity",b"velocity"]) -> None: ...
     type___Sensors = Sensors
 
     class EventStream(google___protobuf___message___Message):
