@@ -14,51 +14,6 @@ import requests
 log = logging.getLogger(__name__)
 
 
-class ProcessPool:
-    """
-    Creates a process pool used for fetching files from S3.
-    """
-
-    def __init__(self,
-                 num_processes: int,
-                 func: Callable[[List[str], str, int], None],
-                 data: List[str],
-                 out_dir: str,
-                 retries: int):
-        """
-        Instantiates a new process pool.
-        :param num_processes: The number of processes to create.
-        :param func: The function to run which should take a list of strings representing data keys and a string
-                     representing the out_dir.
-        :param data: The list of data keys to process.
-        :param out_dir: The output directory to write the data files to.
-        :param retries: The number of times the HTTP client should retry getting a file.
-        """
-
-        self.num_processes: int = num_processes
-        self.func: Callable[[List[str], str, int], None] = func
-        self.data: List[List[str]] = list(map(list, np.array_split(np.array(data), num_processes)))
-        self.out_dir = out_dir
-        self.retries = retries
-
-    def run(self):
-        """
-        Runs this process pool. This will block until all processes finish fetching data.
-        """
-        processes: List[multiprocessing.Process] = []
-
-        for i in range(self.num_processes):
-            process: multiprocessing.Process = multiprocessing.Process(target=self.func, args=(self.data[i],
-                                                                                               self.out_dir,
-                                                                                               self.retries))
-            processes.append(process)
-            process.start()
-
-        # Wait for all processes to finish
-        for process in processes:
-            process.join()
-
-
 def find_between(start: str, end: str, contents: str) -> str:
     """
     Find the string contents between two other strings.
@@ -137,36 +92,3 @@ def download_file(url: str,
         return data_key, len(buf)
 
     return "", 0
-
-
-def download_files(urls: List[str], out_dir: str, retries: int) -> None:
-    """
-    Download files from S3.
-    :param urls: The URL of the files to download.
-    :param out_dir: The output directory to store the downloaded files.
-    :param retries: The number of retries for failed downloads.
-    """
-    session: requests.Session = requests.Session()
-
-    for url in urls:
-        data_key, resp_len = download_file(url, session, out_dir, retries)
-        log.info("Recv %s with len=%d", data_key, resp_len)
-
-        # Display
-
-    session.close()
-
-
-def download_files_parallel(urls: List[str], out_dir: str, retries: int) -> None:
-    """
-    Distributes the file downloading across a process pool.
-    :param urls: The signed URLs to download.
-    :param out_dir: The output directory.
-    :param retries: The number of times to retry downloading a file on failure.
-    """
-    process_pool: ProcessPool = ProcessPool(4,
-                                            download_files,
-                                            urls,
-                                            out_dir,
-                                            retries)
-    process_pool.run()
