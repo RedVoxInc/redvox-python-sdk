@@ -3,11 +3,9 @@ This module contains functions for downloading data from AWS S3 via signed URLs.
 """
 
 import logging
-import multiprocessing
 import os
-from typing import Callable, List, Tuple, Optional
+from typing import Tuple, Optional
 
-import numpy as np
 import requests
 
 # pylint: disable=C0103
