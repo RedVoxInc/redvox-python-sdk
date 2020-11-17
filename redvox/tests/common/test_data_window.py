@@ -44,16 +44,7 @@ class DataWindowTest(unittest.TestCase):
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(input_dir=self.input_dir, station_ids={"does_not_exist"}, structured_layout=False)
         self.assertEqual(len(dw_invalid.stations.station_id_uuid_to_stations), 0)
-
-    def test_station_params(self):
-        stress_test_dir = "/Users/tyler/Documents/stress_test_files"
-        dw_invalid = dw.DataWindow(input_dir=stress_test_dir, station_ids=None, structured_layout=False)
-        self.assertEqual(len(dw_invalid.stations.station_id_uuid_to_stations), 3)
-        dw_invalid = dw.DataWindow(input_dir=stress_test_dir, station_ids=set(), structured_layout=False)
-        self.assertEqual(len(dw_invalid.stations.station_id_uuid_to_stations), 3)
-        dw_invalid = dw.DataWindow(input_dir=stress_test_dir, structured_layout=False)
-        self.assertEqual(len(dw_invalid.stations.station_id_uuid_to_stations), 3)
-
+        
 
 class PadDataTest(unittest.TestCase):
     def setUp(self):
