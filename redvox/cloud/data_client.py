@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+import time
 from typing import List
 from multiprocessing import cpu_count, Manager, Process, Queue
-import time
+import queue
 
 import requests
 
@@ -18,13 +19,13 @@ def download_process(input_queue: Queue, result_queue: Queue, out_dir: str, retr
     session: requests.Session = requests.Session()
     try:
         while True:
-            url: str = input_queue.get(True, None)
+            url: str = input_queue.get_nowait()
             data_key: str
             resp_len: int
             data_key, resp_len = download_file(url, session, out_dir, retries)
             result_queue.put(DownloadResult(data_key, resp_len), True, None)
     # Thrown when the queue is closed by the client
-    except (ValueError, OSError):
+    except queue.Empty:
         session.close()
 
 
