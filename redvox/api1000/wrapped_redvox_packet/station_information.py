@@ -17,6 +17,7 @@ _CELL_SERVICE_STATE_FIELD_NAME: str = "cell_service_state"
 _POWER_STATE_FIELD_NAME: str = "power_state"
 _ADDITIONAL_INPUT_SENSORS_FIELD_NAME: str = "additional_input_sensors"
 _WIFI_WAKE_LOCK_FIELD_NAME: str = "wifi_wake_lock"
+_SCREEN_STATE_FIELD_NAME: str = "screen_state"
 
 InputSensorProto = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor
 
@@ -75,21 +76,26 @@ class InputSensor(enum.Enum):
     """
     UNKNOWN_SENSOR: int = 0
     ACCELEROMETER = 1
-    AMBIENT_TEMPERATURE = 2
-    AUDIO = 3
-    COMPRESSED_AUDIO = 4
-    GRAVITY = 5
-    GYROSCOPE = 6
-    IMAGE = 7
-    LIGHT = 8
-    LINEAR_ACCELERATION = 9
-    LOCATION = 10
-    MAGNETOMETER = 11
-    ORIENTATION = 12
-    PRESSURE = 13
-    PROXIMITY = 14
-    RELATIVE_HUMIDITY = 15
-    ROTATION_VECTOR = 16
+    ACCELEROMETER_FAST = 2
+    AMBIENT_TEMPERATURE = 3
+    AUDIO = 4
+    COMPRESSED_AUDIO = 5
+    GRAVITY = 6
+    GYROSCOPE = 7
+    GYROSCOPE_FAST = 8
+    IMAGE_PER_SECOND = 9
+    IMAGE_PER_PACKET = 10
+    LIGHT = 11
+    LINEAR_ACCELERATION = 12
+    LOCATION = 13
+    MAGNETOMETER = 14
+    MAGNETOMETER_FAST = 15
+    ORIENTATION = 16
+    PRESSURE = 17
+    PROXIMITY = 18
+    RELATIVE_HUMIDITY = 19
+    ROTATION_VECTOR = 20
+    VELOCITY = 21
 
 
 # noinspection Mypy
@@ -104,8 +110,31 @@ class FftOverlap(enum.Enum):
     PERCENT_75: int = 3
 
 
+# noinspection Mypy
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.ScreenState)
+class ScreenState(enum.Enum):
+    """
+    Enumeration of possible screen states.
+    """
+    UNKNOWN_SCREEN_STATE: int = 0
+    ON: int = 1
+    OFF: int = 2
+    HEADLESS: int = 3
+
+
+# noinspection Mypy
+@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.ScreenState)
+class MetricsRate(enum.Enum):
+    """
+    Enumeration for valid metric collection rates
+    """
+    UNKNOWN: int = 0
+    ONCE_PER_SECOND: int = 1
+    ONCE_PER_PACKET: int = 2
+
+
 class AppSettings(
-        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings]):
     """
     Represents a copy of the App's settings.
     """
@@ -565,6 +594,25 @@ class AppSettings(
         self.get_proto().use_altitude = use_altitude
         return self
 
+    def get_metrics_rate(self) -> MetricsRate:
+        """
+        :return: Returns the metrics rate provided in the settings.
+        """
+        return MetricsRate(self.get_proto().metrics_rate)
+
+    def set_metrics_rate(self, metrics_rate: MetricsRate) -> 'AppSettings':
+        """
+        Sets the metrics rate.
+        :param metrics_rate: Rate to set.
+        :return: A modified instance of self
+        """
+        redvox.api1000.common.typing.check_type(metrics_rate, [MetricsRate])
+
+        self.get_proto().metrics_rate = \
+            redvox_api_m_pb2.RedvoxPacketM.StationInformation.MetricsRate.Value(
+                metrics_rate.name)
+        return self
+
 
 def validate_app_settings(app_settings: AppSettings) -> List[str]:
     """
@@ -631,10 +679,11 @@ class PowerState(enum.Enum):
 
 
 class StationMetrics(
-        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics]):
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics]):
     """
     A collection of timestamps metrics relating to station state.
     """
+
     # noinspection Mypy
     def __init__(self, station_metrics_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics):
         super().__init__(station_metrics_proto)
@@ -688,6 +737,16 @@ class StationMetrics(
                 _WIFI_WAKE_LOCK_FIELD_NAME,
                 WifiWakeLock.from_proto,
                 WifiWakeLock.into_proto)
+        self._screen_state: redvox.api1000.common.generic.ProtoRepeatedMessage = \
+            redvox.api1000.common.generic.ProtoRepeatedMessage(
+                station_metrics_proto,
+                station_metrics_proto.screen_state,
+                _SCREEN_STATE_FIELD_NAME,
+                ScreenState.from_proto,
+                ScreenState.into_proto)
+        # noinspection PyTypeChecker
+        self._screen_brightness: common.SamplePayload = common.SamplePayload(station_metrics_proto.screen_brightness) \
+            .set_unit(common.Unit.PERCENTAGE)
 
     @staticmethod
     def new() -> 'StationMetrics':
@@ -768,12 +827,25 @@ class StationMetrics(
         """
         return self._wifi_wake_loc
 
+    def get_screen_state(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
+        """
+        :return: A payload of screen states
+        """
+        return self._screen_state
+
+    def get_screen_brightness(self) -> common.SamplePayload:
+        """
+        :return: A payload of the screens brightness.
+        """
+        return self._screen_brightness
+
 
 class ServiceUrls(
-        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls]):
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls]):
     """
     A collection of URLs utilized while collecting, authenticating, and transmitting the data.
     """
+
     def __init__(self, service_urls_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.ServiceUrls):
         super().__init__(service_urls_proto)
 
@@ -859,10 +931,11 @@ class OsType(enum.Enum):
 
 
 class StationInformation(
-        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation]):
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.StationInformation]):
     """
     A collection of station related metadata, settings, and metrics.
     """
+
     def __init__(self, station_information_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation):
         super().__init__(station_information_proto)
         self._app_settings: AppSettings = AppSettings(station_information_proto.app_settings)
