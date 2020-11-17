@@ -44,7 +44,7 @@ class DataWindowTest(unittest.TestCase):
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(input_dir=self.input_dir, station_ids={"does_not_exist"}, structured_layout=False)
         self.assertEqual(len(dw_invalid.stations.station_id_uuid_to_stations), 0)
-        
+
 
 class PadDataTest(unittest.TestCase):
     def setUp(self):
