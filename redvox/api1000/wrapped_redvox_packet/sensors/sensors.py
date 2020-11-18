@@ -70,6 +70,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__ACCELEROMETER_FIELD_NAME)
 
     def get_accelerometer(self) -> Optional[xyz.Xyz]:
@@ -98,6 +99,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(accelerometer, [xyz.Xyz])
         self.get_proto().accelerometer.CopyFrom(accelerometer.get_proto())
+        self._accelerometer = xyz.Xyz(self.get_proto().accelerometer)
         return self
 
     def remove_accelerometer(self) -> 'Sensors':
@@ -105,6 +107,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this channel
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__ACCELEROMETER_FIELD_NAME)
         return self
 
@@ -121,6 +124,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__AMBIENT_TEMPERATURE_FIELD_NAME)
 
     def get_ambient_temperature(self) -> Optional[single.Single]:
@@ -149,6 +153,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(ambient_temperature, [single.Single])
         self.get_proto().ambient_temperature.CopyFrom(ambient_temperature.get_proto())
+        self._ambient_temperature = single.Single(self.get_proto().ambient_temperature)
         return self
 
     def remove_ambient_temperature(self) -> 'Sensors':
@@ -156,6 +161,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this channel
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__AMBIENT_TEMPERATURE_FIELD_NAME)
         return self
 
@@ -172,6 +178,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__AUDIO_FIELD_NAME)
 
     def get_audio(self) -> Optional[audio.Audio]:
@@ -199,6 +206,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(_audio, [audio.Audio])
         self.get_proto().audio.CopyFrom(_audio.get_proto())
+        self._audio = audio.Audio(self.get_proto().audio)
         return self
 
     def remove_audio(self) -> 'Sensors':
@@ -206,6 +214,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this channel
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__AUDIO_FIELD_NAME)
         return self
 
@@ -220,6 +229,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__COMPRESSED_AUDIO_FIELD_NAME)
 
     def get_compressed_audio(self) -> Optional[audio.CompressedAudio]:
@@ -243,9 +253,10 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :param compressed_audio: Channel to set
         :return: A modified instance of self
         """
-        redvox.api1000.common.typing.check_type(compressed_audio, [audio.Audio])
+        redvox.api1000.common.typing.check_type(compressed_audio, [audio.CompressedAudio])
         # noinspection Mypy
         self.get_proto().audio.CopyFrom(compressed_audio.get_proto())
+        self._compressed_audio = audio.CompressedAudio(self.get_proto().compressed_audio)
         return self
 
     def remove_compressed_audio(self) -> 'Sensors':
@@ -253,6 +264,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this channel
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__COMPRESSED_AUDIO_FIELD_NAME)
         return self
 
@@ -268,6 +280,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__GRAVITY_FIELD_NAME)
 
     def get_gravity(self) -> Optional[xyz.Xyz]:
@@ -296,6 +309,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(gravity, [xyz.Xyz])
         self.get_proto().gravity.CopyFrom(gravity.get_proto())
+        self._gravity = xyz.Xyz(self.get_proto().gravity)
         return self
 
     def remove_gravity(self) -> 'Sensors':
@@ -303,6 +317,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this channel
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__GRAVITY_FIELD_NAME)
         return self
 
@@ -319,6 +334,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__GYROSCOPE_FIELD_NAME)
 
     def get_gyroscope(self) -> Optional[xyz.Xyz]:
@@ -347,6 +363,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(gyroscope, [xyz.Xyz])
         self.get_proto().gyroscope.CopyFrom(gyroscope.get_proto())
+        self._gyroscope = xyz.Xyz(self.get_proto().gyroscope)
         return self
 
     def remove_gyroscope(self) -> 'Sensors':
@@ -354,6 +371,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this sensor
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__GYROSCOPE_FIELD_NAME)
         return self
 
@@ -370,6 +388,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__IMAGE_FIELD_NAME)
 
     def get_image(self) -> Optional[image.Image]:
@@ -397,6 +416,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(_image, [image.Image])
         self.get_proto().image.CopyFrom(_image.get_proto())
+        self._image = image.Image(self.get_proto().image)
         return self
 
     def remove_image(self) -> 'Sensors':
@@ -404,6 +424,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this sensor
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__IMAGE_FIELD_NAME)
         return self
 
@@ -418,6 +439,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__LIGHT_FIELD_NAME)
 
     def get_light(self) -> Optional[single.Single]:
@@ -446,6 +468,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(light, [single.Single])
         self.get_proto().light.CopyFrom(light.get_proto())
+        self._light = single.Single(self.get_proto().light)
         return self
 
     def remove_light(self) -> 'Sensors':
@@ -453,6 +476,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this sensor
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__LIGHT_FIELD_NAME)
         return self
 
@@ -469,6 +493,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__LINEAR_ACCELERATION_FIELD_NAME)
 
     def get_linear_acceleration(self) -> Optional[xyz.Xyz]:
@@ -497,6 +522,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(linear_acceleration, [xyz.Xyz])
         self.get_proto().linear_acceleration.CopyFrom(linear_acceleration.get_proto())
+        self._linear_acceleration = xyz.Xyz(self.get_proto().linear_acceleration)
         return self
 
     def remove_linear_acceleration(self) -> 'Sensors':
@@ -504,6 +530,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this sensor
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__LINEAR_ACCELERATION_FIELD_NAME)
         return self
 
@@ -520,6 +547,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__LOCATION_FIELD_NAME)
 
     def get_location(self) -> Optional[location.Location]:
@@ -564,6 +592,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(_location, [location.Location])
         self.get_proto().location.CopyFrom(_location.get_proto())
+        self._location = location.Location(self.get_proto().location)
         return self
 
     def remove_location(self) -> 'Sensors':
@@ -571,6 +600,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this sensor
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__LOCATION_FIELD_NAME)
         return self
 
@@ -585,6 +615,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__MAGNETOMETER_FIELD_NAME)
 
     def get_magnetometer(self) -> Optional[xyz.Xyz]:
@@ -613,6 +644,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(magnetometer, [xyz.Xyz])
         self.get_proto().magnetometer.CopyFrom(magnetometer.get_proto())
+        self._magnetometer = xyz.Xyz(self.get_proto().magnetometer)
         return self
 
     def remove_magnetometer(self) -> 'Sensors':
@@ -620,6 +652,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this sensor
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__MAGNETOMETER_FIELD_NAME)
         return self
 
@@ -636,6 +669,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__ORIENTATION_FIELD_NAME)
 
     def get_orientation(self) -> Optional[xyz.Xyz]:
@@ -664,6 +698,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(orientation, [xyz.Xyz])
         self.get_proto().orientation.CopyFrom(orientation.get_proto())
+        self._orientation = xyz.Xyz(self.get_proto().orientation)
         return self
 
     def remove_orientation(self) -> 'Sensors':
@@ -671,6 +706,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this sensor
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__ORIENTATION_FIELD_NAME)
         return self
 
@@ -687,6 +723,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__PRESSURE_FIELD_NAME)
 
     def get_pressure(self) -> Optional[single.Single]:
@@ -715,6 +752,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(pressure, [single.Single])
         self.get_proto().pressure.CopyFrom(pressure.get_proto())
+        self._pressure = single.Single(self.get_proto().pressure)
         return self
 
     def remove_pressure(self) -> 'Sensors':
@@ -722,6 +760,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this sensor
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__PRESSURE_FIELD_NAME)
         return self
 
@@ -738,6 +777,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__PROXIMITY_FIELD_NAME)
 
     def get_proximity(self) -> Optional[single.Single]:
@@ -766,6 +806,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(proximity, [single.Single])
         self.get_proto().proximity.CopyFrom(proximity.get_proto())
+        self._proximity = single.Single(self.get_proto().proximity)
         return self
 
     def remove_proximity(self) -> 'Sensors':
@@ -773,6 +814,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this sensor
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__PROXIMITY_FIELD_NAME)
         return self
 
@@ -789,6 +831,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__RELATIVE_HUMIDITY_FIELD_NAME)
 
     def get_relative_humidity(self) -> Optional[single.Single]:
@@ -817,6 +860,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(relative_humidity, [single.Single])
         self.get_proto().relative_humidity.CopyFrom(relative_humidity.get_proto())
+        self._relative_humidity = single.Single(self.get_proto().relative_humidity)
         return self
 
     def remove_relative_humidity(self) -> 'Sensors':
@@ -824,6 +868,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this sensor
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__RELATIVE_HUMIDITY_FIELD_NAME)
         return self
 
@@ -840,6 +885,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__ROTATION_VECTOR)
 
     def get_rotation_vector(self) -> Optional[xyz.Xyz]:
@@ -868,6 +914,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(rotation_vector, [xyz.Xyz])
         self.get_proto().rotation_vector.CopyFrom(rotation_vector.get_proto())
+        self._rotation_vector = xyz.Xyz(self.get_proto().rotation_vector)
         return self
 
     def remove_rotation_vector(self) -> 'Sensors':
@@ -875,6 +922,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this sensor
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__ROTATION_VECTOR)
         return self
 
@@ -891,6 +939,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         :return: If this packet contains this channel
         """
+        # noinspection PyTypeChecker
         return self.get_proto().HasField(Sensors.__VELOCITY)
 
     def get_velocity(self) -> Optional[xyz.Xyz]:
@@ -919,6 +968,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(velocity, [xyz.Xyz])
         self.get_proto().velocity.CopyFrom(velocity.get_proto())
+        self._velocity = xyz.Xyz(self.get_proto().velocity)
         return self
 
     def remove_velocity(self) -> 'Sensors':
@@ -926,6 +976,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Removes this sensor
         :return: A modified instance of self
         """
+        # noinspection PyTypeChecker
         self.get_proto().ClearField(Sensors.__VELOCITY)
         return self
 
