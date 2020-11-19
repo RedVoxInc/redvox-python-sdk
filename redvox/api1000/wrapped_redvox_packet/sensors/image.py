@@ -87,6 +87,12 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return self._timestamps
 
+    def set_timestamps(self, timestamps: common.TimingPayload) -> 'Image':
+        check_type(timestamps, [common.TimingPayload])
+        self.get_proto().timestamps.CopyFrom(timestamps.get_proto())
+        self._timestamps = common.TimingPayload(self.get_proto().timestamps)
+        return self
+
     def get_samples(self) -> List[bytes]:
         """
         :return: Returns each image as collection of bytes.
