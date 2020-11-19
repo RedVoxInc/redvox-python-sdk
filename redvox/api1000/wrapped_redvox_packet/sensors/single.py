@@ -50,11 +50,23 @@ class Single(
         """
         return self._timestamps
 
+    def set_timestamps(self, timestamps: common.TimingPayload) -> 'Single':
+        common.check_type(timestamps, [common.TimingPayload])
+        self.get_proto().timestamps.CopyFrom(timestamps.get_proto())
+        self._timestamps = common.TimingPayload(self.get_proto().timestamps)
+        return self
+
     def get_samples(self) -> common.SamplePayload:
         """
         :return: The sample payload
         """
         return self._samples
+
+    def set_samples(self, samples: common.SamplePayload) -> 'Single':
+        common.check_type(samples, [common.SamplePayload])
+        self.get_proto().samples.CopyFrom(samples.get_proto())
+        self._samples = common.SamplePayload(self.get_proto().samples)
+        return self
 
 
 def validate_single(single_sensor: Single, payload_unit: Optional[common.Unit] = None) -> List[str]:
