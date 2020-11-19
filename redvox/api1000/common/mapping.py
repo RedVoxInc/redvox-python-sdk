@@ -24,6 +24,9 @@ class Mapping(Generic[T]):
         self.__t: Type = t
         self._metadata_proto = metadata_proto
 
+    def get_proto(self):
+        return self._metadata_proto
+
     def get_metadata_count(self) -> int:
         """
         Returns the number of key-pair values stored in this metadata.
