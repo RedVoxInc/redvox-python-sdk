@@ -220,6 +220,12 @@ class AppSettings(
         """
         return self._additional_input_sensors
 
+    def set_additional_input_sensors(self, additional_input_sensors: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'AppSettings':
+        common.check_type(additional_input_sensors, [redvox.api1000.common.generic.ProtoRepeatedMessage])
+        self._additional_input_sensors.clear_values()
+        self._additional_input_sensors.append_values(additional_input_sensors.get_values())
+        return self
+
     def get_fft_overlap(self) -> FftOverlap:
         """
         :return: FFT overlap as specified in the settings
