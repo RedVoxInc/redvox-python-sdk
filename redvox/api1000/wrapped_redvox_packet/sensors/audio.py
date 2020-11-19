@@ -141,8 +141,8 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         :param audio_samples:
         :return:
         """
-        self._samples.set_unit(audio_samples.get_unit())
-        self._samples.set_values(audio_samples.get_values())
+        self.get_proto().samples.CopyFrom(audio_samples.get_proto())
+        self._samples = common.SamplePayload(self.get_proto().samples)
         return self
 
     def get_num_samples(self) -> int:

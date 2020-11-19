@@ -42,11 +42,21 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
         """
         return self.__string_payload
 
+    def set_string_payload(self, string_payload: Mapping[str]) -> 'Event':
+        check_type(string_payload, [Mapping])
+        self.__string_payload.set_metadata(string_payload.get_metadata())
+        return self
+
     def get_numeric_payload(self) -> Mapping[float]:
         """
         :return: The numeric event payload which maps string keys to numeric values.
         """
         return self.__numeric_payload
+
+    def set_numeric_payload(self, numeric_payload: Mapping[float]) -> 'Event':
+        check_type(numeric_payload, [Mapping])
+        self.__numeric_payload.set_metadata(numeric_payload.get_metadata())
+        return self
 
     def get_boolean_payload(self) -> Mapping[bool]:
         """
@@ -54,11 +64,21 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
         """
         return self.__boolean_payload
 
+    def set_boolean_payload(self, boolean_payload: Mapping[bool]) -> 'Event':
+        check_type(boolean_payload, [Mapping])
+        self.__boolean_payload.set_metadata(boolean_payload.get_metadata())
+        return self
+
     def get_byte_payload(self) -> Mapping[bytes]:
         """
         :return: The byte event payload which maps string keys to bytes values.
         """
         return self.__byte_payload
+
+    def set_byte_payload(self, byte_payload: Mapping[bytes]) -> 'Event':
+        check_type(byte_payload, [Mapping])
+        self.__byte_payload.set_metadata(byte_payload.get_metadata())
+        return self
 
 
 class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
@@ -98,8 +118,19 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
         """
         return self.__timestamps
 
+    def set_timestamps(self, timestamps: TimingPayload) -> 'EventStream':
+        check_type(timestamps, [TimingPayload])
+        self.get_proto().timestamps.CopyFrom(timestamps.get_proto())
+        self.__timestamps = TimingPayload(self.get_proto().timestamps)
+        return self
+
     def get_events(self) -> ProtoRepeatedMessage:
         """
         :return: List of Events.
         """
         return self.__events
+
+    def set_events(self, events: ProtoRepeatedMessage) -> 'EventStream':
+        self.__events.clear_values()
+        self.__events.append_values(events.get_values())
+        return self
