@@ -564,11 +564,23 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._timestamps
 
+    def set_timestamps(self, timestamps: common.TimingPayload) -> 'Location':
+        common.check_type(timestamps, [common.TimingPayload])
+        self.get_proto().timestamps.CopyFrom(timestamps.get_proto())
+        self._timestamps = common.TimingPayload(self.get_proto().timestamps)
+        return self
+
     def get_timestamps_gps(self) -> common.TimingPayload:
         """
         :return: The timing payload (gps timestamps) associated with this sensor's location samples
         """
         return self._timestamps_gps
+
+    def set_timestamps_gps(self, timestamps_gps: common.TimingPayload) -> 'Location':
+        common.check_type(timestamps_gps, [common.TimingPayload])
+        self.get_proto().timestamps_gps.CopyFrom(timestamps_gps.get_proto())
+        self._timestamps_gps = common.TimingPayload(self.get_proto().timestamps_gps)
+        return self
 
     def get_latitude_samples(self) -> common.SamplePayload:
         """
@@ -576,11 +588,23 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._latitude_samples
 
+    def set_latitude_samples(self, latitude_samples: common.SamplePayload) -> 'Location':
+        common.check_type(latitude_samples, [common.SamplePayload])
+        self.get_proto().latitude_samples.CopyFrom(latitude_samples.get_proto())
+        self._latitude_samples = common.SamplePayload(self.get_proto().latitude_samples)
+        return self
+
     def get_longitude_samples(self) -> common.SamplePayload:
         """
         :return: The SamplePayload containing longitude samples and statistics
         """
         return self._longitude_samples
+
+    def set_longitude_samples(self, longitude_samples: common.SamplePayload) -> 'Location':
+        common.check_type(longitude_samples, [common.SamplePayload])
+        self.get_proto().longitude_samples.CopyFrom(longitude_samples.get_proto())
+        self._longitude_samples = common.SamplePayload(self.get_proto().longitude_samples)
+        return self
 
     def get_altitude_samples(self) -> common.SamplePayload:
         """
@@ -588,11 +612,23 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._altitude_samples
 
+    def set_altitude_samples(self, altitude_samples: common.SamplePayload) -> 'Location':
+        common.check_type(altitude_samples, [common.SamplePayload])
+        self.get_proto().altitude_samples.CopyFrom(altitude_samples.get_proto())
+        self._altitude_samples = common.SamplePayload(self.get_proto().altitude_samples)
+        return self
+
     def get_speed_samples(self) -> common.SamplePayload:
         """
         :return: The SamplePayload containing speed samples and statistics
         """
         return self._speed_samples
+
+    def set_speed_samples(self, speed_samples: common.SamplePayload) -> 'Location':
+        common.check_type(speed_samples, [common.SamplePayload])
+        self.get_proto().speed_samples.CopyFrom(speed_samples.get_proto())
+        self._speed_samples = common.SamplePayload(self.get_proto().speed_samples)
+        return self
 
     def get_bearing_samples(self) -> common.SamplePayload:
         """
@@ -600,11 +636,23 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._bearing_samples
 
+    def set_bearing_samples(self, bearing_samples: common.SamplePayload) -> 'Location':
+        common.check_type(bearing_samples, [common.SamplePayload])
+        self.get_proto().bearing_samples.CopyFrom(bearing_samples.get_proto())
+        self._bearing_samples = common.SamplePayload(self.get_proto().bearing_samples)
+        return self
+
     def get_horizontal_accuracy_samples(self) -> common.SamplePayload:
         """
         :return: The SamplePayload containing horizontal accuracy samples and statistics
         """
         return self._horizontal_accuracy_samples
+
+    def set_horizontal_accuracy_samples(self, horizontal_accuracy_samples: common.SamplePayload) -> 'Location':
+        common.check_type(horizontal_accuracy_samples, [common.SamplePayload])
+        self.get_proto().horizontal_accuracy_samples.CopyFrom(horizontal_accuracy_samples.get_proto())
+        self._horizontal_accuracy_samples = common.SamplePayload(self.get_proto().horizontal_accuracy_samples)
+        return self
 
     def get_vertical_accuracy_samples(self) -> common.SamplePayload:
         """
@@ -612,11 +660,23 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._vertical_accuracy_samples
 
+    def set_vertical_accuracy_samples(self, vertical_accuracy_samples: common.SamplePayload) -> 'Location':
+        common.check_type(vertical_accuracy_samples, [common.SamplePayload])
+        self.get_proto().vertical_accuracy_samples.CopyFrom(vertical_accuracy_samples.get_proto())
+        self._vertical_accuracy_samples = common.SamplePayload(self.get_proto().vertical_accuracy_samples)
+        return self
+
     def get_speed_accuracy_samples(self) -> common.SamplePayload:
         """
         :return: The SamplePayload containing speed accuracy samples and statistics
         """
         return self._speed_accuracy_samples
+
+    def set_speed_accuracy_samples(self, speed_accuracy_samples: common.SamplePayload) -> 'Location':
+        common.check_type(speed_accuracy_samples, [common.SamplePayload])
+        self.get_proto().speed_accuracy_samples.CopyFrom(speed_accuracy_samples.get_proto())
+        self._speed_accuracy_samples = common.SamplePayload(self.get_proto().speed_accuracy_samples)
+        return self
 
     def get_bearing_accuracy_samples(self) -> common.SamplePayload:
         """
@@ -624,17 +684,35 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._bearing_accuracy_samples
 
+    def set_bearing_accuracy_samples(self, bearing_accuracy_samples: common.SamplePayload) -> 'Location':
+        common.check_type(bearing_accuracy_samples, [common.SamplePayload])
+        self.get_proto().bearing_accuracy_samples.CopyFrom(bearing_accuracy_samples.get_proto())
+        self._bearing_accuracy_samples = common.SamplePayload(self.get_proto().bearing_accuracy_samples)
+        return self
+
     def get_last_best_location(self) -> BestLocation:
         """
         :return: This returns the most recent BestLocation
         """
         return self._last_best_location
 
+    def set_last_best_location(self, last_best_location: BestLocation) -> 'Location':
+        common.check_type(last_best_location, [BestLocation])
+        self.get_proto().last_best_location.CopyFrom(last_best_location.get_proto())
+        self._last_best_location = BestLocation(self.get_proto().last_best_location)
+        return self
+
     def get_overall_best_location(self) -> BestLocation:
         """
         :return: This returns the overall best location since the station last moved
         """
         return self._overall_best_location
+
+    def set_overall_best_location(self, overall_best_location: BestLocation) -> 'Location':
+        common.check_type(overall_best_location, [BestLocation])
+        self.get_proto().overall_best_location.CopyFrom(overall_best_location.get_proto())
+        self._overall_best_location = BestLocation(self.get_proto().overall_best_location)
+        return self
 
     def get_location_permissions_granted(self) -> bool:
         """
@@ -689,6 +767,12 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         :return: A list of location providers associated with each location sample
         """
         return self._location_providers
+
+    def set_location_providers(self, location_providers: ProtoRepeatedMessage) -> 'Location':
+        common.check_type(location_providers, [ProtoRepeatedMessage])
+        self._location_providers.clear_values()
+        self._location_providers.append_values(location_providers.get_values())
+        return self
 
     def is_only_best_values(self) -> bool:
         """
