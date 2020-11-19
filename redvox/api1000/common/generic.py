@@ -19,6 +19,7 @@ class ProtoRepeatedMessage(Generic[P, T]):
     """
     Encapsulates protobuf repeated fields while transforming values between protobuf and wrapper types.
     """
+
     def __init__(self,
                  parent_proto,
                  repeated_field_proto,
@@ -90,6 +91,7 @@ class ProtoBase(Generic[P]):
     """
     This class represents common routines between all sub-messages in API M.
     """
+
     def __init__(self,
                  proto: P):
         self._proto: P = proto
@@ -138,6 +140,11 @@ class ProtoBase(Generic[P]):
         data: bytes = self.as_bytes()
         return compress(data)
 
+    def set_sub_message(self,
+                        sub_message: 'ProtoBase[P]',
+                        ):
+        pass
+
     def __str__(self):
         """
         Return the JSON representation of the backing protobuf,
@@ -146,3 +153,8 @@ class ProtoBase(Generic[P]):
         return self.as_json()
 
 
+# def set_timestamp_statistics(self, timestamp_statistics: SummaryStatistics) -> 'TimingPayload':
+#     check_type(timestamp_statistics, [SummaryStatistics])
+#     self.get_proto().timestamp_statistics.CopyFrom(timestamp_statistics.get_proto())
+#     self._timestamp_statistics = SummaryStatistics(self.get_proto().timestamp_statistics)
+#     return self
