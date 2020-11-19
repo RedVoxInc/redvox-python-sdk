@@ -123,11 +123,23 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._latitude_longitude_timestamp
 
+    def set_latitude_longitude_timestamp(self, latitude_longitude_timestamp: BestTimestamp) -> 'BestLocation':
+        common.check_type(latitude_longitude_timestamp, [BestTimestamp])
+        self.get_proto().latitude_longitude_timestamp.CopyFrom(latitude_longitude_timestamp.get_proto())
+        self._latitude_longitude_timestamp = BestTimestamp(self.get_proto().latitude_longitude_timestamp)
+        return self
+
     def get_altitude_timestamp(self) -> BestTimestamp:
         """
         :return: Best timestamps associated with best altitude
         """
         return self._altitude_timestamp
+
+    def set_altitude_timestamp(self, altitude_timestamp: BestTimestamp) -> 'BestLocation':
+        common.check_type(altitude_timestamp, [BestTimestamp])
+        self.get_proto().altitude_timestamp.CopyFrom(altitude_timestamp.get_proto())
+        self._altitude_timestamp = BestTimestamp(self.get_proto().altitude_timestamp)
+        return self
 
     def get_speed_timestamp(self) -> BestTimestamp:
         """
@@ -135,11 +147,23 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._speed_timestamp
 
+    def set_speed_timestamp(self, speed_timestamp: BestTimestamp) -> 'BestLocation':
+        common.check_type(speed_timestamp, [BestTimestamp])
+        self.get_proto().speed_timestamp.CopyFrom(speed_timestamp.get_proto())
+        self._speed_timestamp = BestTimestamp(self.get_proto().speed_timestamp)
+        return self
+
     def get_bearing_timestamp(self) -> BestTimestamp:
         """
         :return: Best timestamps associated with best bearing
         """
         return self._bearing_timestamp
+
+    def set_bearing_timestamp(self, bearing_timestamp: BestTimestamp) -> 'BestLocation':
+        common.check_type(bearing_timestamp, [BestTimestamp])
+        self.get_proto().bearing_timestamp.CopyFrom(bearing_timestamp.get_proto())
+        self._bearing_timestamp = BestTimestamp(self.get_proto().bearing_timestamp)
+        return self
 
     def get_latitude_longitude_unit(self) -> common.Unit:
         """
