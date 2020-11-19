@@ -313,6 +313,12 @@ class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload
         """
         return self._summary_statistics
 
+    def set_summary_statistics(self, summary_statistics: SummaryStatistics) -> 'SamplePayload':
+        check_type(summary_statistics, [SummaryStatistics])
+        self.get_proto().value_statistics.CopyFrom(summary_statistics.get_proto())
+        self._summary_statistics = SummaryStatistics(self.get_proto().value_statistics)
+        return self
+
 
 def validate_sample_payload(sample_payload: SamplePayload, payload_name: Optional[str] = None,
                             payload_unit: Optional[Unit] = None) -> List[str]:
@@ -485,6 +491,12 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         :return: Statistics for these timestamps.
         """
         return self._timestamp_statistics
+
+    def set_timestamp_statistics(self, timestamp_statistics: SummaryStatistics) -> 'TimingPayload':
+        check_type(timestamp_statistics, [SummaryStatistics])
+        self.get_proto().timestamp_statistics.CopyFrom(timestamp_statistics.get_proto())
+        self._timestamp_statistics = SummaryStatistics(self.get_proto().timestamp_statistics)
+        return self
 
     def get_mean_sample_rate(self) -> float:
         """
