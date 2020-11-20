@@ -1,5 +1,6 @@
 """
-This module provides a wrapper for API M event streams which are used to record events derived from sensor data on stations.
+This module provides a wrapper for API M event streams which are used to record events derived from sensor data on
+stations.
 """
 
 from redvox.api1000.common.common import TimingPayload
@@ -112,7 +113,7 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
             proto,
             proto.events,
             "events",
-            lambda event_proto: Event(event_proto),
+            Event,
             lambda event: event.get_proto()
         )
 

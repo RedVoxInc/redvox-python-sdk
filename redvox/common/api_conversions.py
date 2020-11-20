@@ -1,3 +1,7 @@
+"""
+Provides functionality for converting between API versions.
+"""
+
 # TODO: Document
 # TODO: Test
 # TODO: Implement (de)normalization now that dynamic range in known in API M (how does this fork API 900 to API M?)

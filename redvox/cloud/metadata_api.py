@@ -1,15 +1,15 @@
 """
 This module contains classes and enums for working with generic RedVox packet metadata through the cloud API.
 """
+
 from dataclasses import dataclass
 import json
-from typing import Any, Callable, Dict, List, Optional, TypeVar
+from typing import Callable, Dict, List, Optional, TypeVar
 
 from dataclasses_json import dataclass_json
 import requests
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
-from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.cloud.api import ApiConfig, post_req
 from redvox.cloud.routes import RoutesV1
 
@@ -265,6 +265,11 @@ class AdditionalMetadata:
 
     @staticmethod
     def from_dict(json_dict: Optional[Dict]) -> Optional['AdditionalMetadata']:
+        """
+        Converts JSON into additional metadata.
+        :param json_dict: JSON to convert.
+        :return: Optional additional metadata instance.
+        """
         if json_dict is None:
             return None
 
@@ -273,12 +278,20 @@ class AdditionalMetadata:
 
 @dataclass
 class DbPacket:
+    """
+    Representation of a packet loaded from the database.
+    """
     _id: Optional[str]
     metadata: Optional[WrappedRedvoxPacketM]
     additional_metadata: Optional[AdditionalMetadata]
 
     @staticmethod
     def from_dict(json_dict: Dict) -> 'DbPacket':
+        """
+        Converts JSON to a DbPacket object.
+        :param json_dict: JSON to convert.
+        :return: An instance of a DbPacket.
+        """
         return DbPacket(
             _get("_id", json_dict),
             WrappedRedvoxPacketM.from_json(json.dumps(json_dict["metadata"])),
@@ -288,11 +301,18 @@ class DbPacket:
 
 @dataclass
 class MetadataRespM:
+    """
+    A metadata response for API M.
+    """
     db_packets: List[DbPacket]
 
     @staticmethod
     def from_json(json_dicts: Dict) -> 'MetadataRespM':
-
+        """
+        Converts a JSON dictionary into a response.
+        :param json_dicts: Dictionary to use for conversion.
+        :return: The converted response.
+        """
         return MetadataRespM(
             list(map(DbPacket.from_dict, json_dicts["db_packets"]))
         )
@@ -344,13 +364,15 @@ def request_timing_metadata(api_config: ApiConfig,
     :param api_config: An instance of the API configuration.
     :param timing_req: An instance of a timing request.
     :param session: An (optional) session for re-using an HTTP client.
+    :param timeout: An (optional) timeout.
     :return: An instance of a timing response.
     """
 
     def handle_resp(resp) -> TimingMetaResponse:
-        json: List[Dict] = resp.json()
+        json_content: List[Dict] = resp.json()
         # noinspection Mypy
-        items: List[TimingMeta] = list(map(TimingMeta.from_dict, json))
+        # pylint: disable=E1101
+        items: List[TimingMeta] = list(map(TimingMeta.from_dict, json_content))
         return TimingMetaResponse(items)
 
     res: Optional[TimingMetaResponse] = post_req(api_config,
@@ -372,9 +394,11 @@ def request_metadata(api_config: ApiConfig,
     :param api_config: An instance of the API config.
     :param packet_metadata_req: An instance of a metadata request.
     :param session: An (optional) session for re-using an HTTP client.
+    :param timeout: An (optional) timeout.
     :return: A metadata response on successful call or None if there is an error.
     """
     # noinspection Mypy
+    # pylint: disable=E1101
     handle_resp: Callable[[requests.Response], MetadataResp] = lambda resp: MetadataResp.from_dict(resp.json())
     return post_req(api_config,
                     RoutesV1.METADATA_REQ,
@@ -393,6 +417,7 @@ def request_metadata_m(api_config: ApiConfig,
     :param api_config: An instance of the API config.
     :param packet_metadata_req: An instance of a metadata request.
     :param session: An (optional) session for re-using an HTTP client.
+    :param timeout: An (optional) timeout.
     :return: A metadata response on successful call or None if there is an error.
     """
     # noinspection Mypy
