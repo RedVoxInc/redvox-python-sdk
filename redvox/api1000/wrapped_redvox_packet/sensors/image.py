@@ -4,16 +4,15 @@ This module provides functionality for working with API M image sensors.
 
 import enum
 import os.path
-import redvox.api1000.common.generic
-import redvox.api1000.common.common as common
-import redvox.api1000.gui.image_viewer as image_viewer
-import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-
-from redvox.api1000.common.decorators import wrap_enum
-from redvox.api1000.common.typing import check_type
 from typing import List, Optional
 
+import redvox.api1000.common.common as common
+from redvox.api1000.common.decorators import wrap_enum
+import redvox.api1000.common.generic
+from redvox.api1000.common.typing import check_type
 from redvox.api1000.errors import ApiMImageChannelError
+import redvox.api1000.gui.image_viewer as image_viewer
+import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
 
 # noinspection Mypy

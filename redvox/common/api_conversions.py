@@ -8,18 +8,19 @@
 # TODO:   into API M data since FLAC requires integers
 
 from typing import List, Optional, Dict
-from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-from redvox.api1000.wrapped_redvox_packet.station_information import OsType, StationInformation, StationMetrics
-from redvox.api1000.wrapped_redvox_packet.timing_information import SynchExchange
-from redvox.api1000.wrapped_redvox_packet.sensors.sensors import Sensors
-import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-import redvox.api1000.common.common as common_m
-import redvox.common.date_time_utils as dt_utls
-from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
-import redvox.api900.reader as reader_900
-import redvox
 
 import numpy as np
+
+import redvox.api1000.common.common as common_m
+import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
+import redvox.common.date_time_utils as dt_utls
+import redvox.api900.reader as reader_900
+from redvox.api1000.wrapped_redvox_packet.sensors.sensors import Sensors
+from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
+from redvox.api1000.wrapped_redvox_packet.station_information import OsType, StationInformation, StationMetrics
+from redvox.api1000.wrapped_redvox_packet.timing_information import SynchExchange
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+import redvox
 
 _NORMALIZATION_CONSTANT: int = 0x7FFFFF
 NAN: float = float("nan")
@@ -75,6 +76,7 @@ def _packet_length_microseconds_900(packet: reader_900.WrappedRedvoxPacket) -> i
 
 
 # noinspection PyTypeChecker
+# pylint: ignore=C0103
 def _migrate_os_type_900_to_1000(os: str) -> OsType:
     os_lower: str = os.lower()
     if os_lower == "android":
@@ -86,6 +88,7 @@ def _migrate_os_type_900_to_1000(os: str) -> OsType:
     return OsType.UNKNOWN_OS
 
 
+# pylint: ignore=C0103
 def _migrate_os_type_1000_to_900(os: OsType) -> str:
     if os == OsType.ANDROID:
         return "Android"
@@ -97,6 +100,11 @@ def _migrate_os_type_1000_to_900(os: OsType) -> str:
 
 
 def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) -> WrappedRedvoxPacketM:
+    """
+    Converts a wrapped API 900 packet into a wrapped API M packet.
+    :param wrapped_packet_900: API 900 packet to convert.
+    :return: A wrapped API M packet.
+    """
     wrapped_packet_m: WrappedRedvoxPacketM = WrappedRedvoxPacketM.new()
 
     # Top-level metadata
@@ -301,6 +309,11 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
 
 
 def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_900.WrappedRedvoxPacket:
+    """
+    Converts an API M wrapped packet into an API 900 wrapped packet.
+    :param wrapped_packet_m: Packet to convert.
+    :return: An API 900 wrapped packet.
+    """
     # TODO detect and warn about all the fields that are being dropped due to conversion!
     wrapped_packet_900: reader_900.WrappedRedvoxPacket = reader_900.WrappedRedvoxPacket()
 
@@ -379,13 +392,13 @@ def convert_api_1000_to_900(wrapped_packet_m: WrappedRedvoxPacketM) -> reader_90
                                         location_m.get_speed_samples().get_values(),
                                         location_m.get_horizontal_accuracy_samples().get_values())
         wrapped_packet_900.set_location_sensor(location_900)
-        md = location_m.get_metadata().get_metadata()
-        md["useLocation"] = "T" if location_m.get_location_services_enabled() else "F"
-        md["desiredLocation"] = "T" if location_m.get_location_services_requested() else "F"
-        md["permissionLocation"] = "T" if location_m.get_location_permissions_granted() else "F"
-        md["enabledLocation"] = "T" if LocationProvider.GPS in location_m.get_location_providers().get_values() \
+        metadata = location_m.get_metadata().get_metadata()
+        metadata["useLocation"] = "T" if location_m.get_location_services_enabled() else "F"
+        metadata["desiredLocation"] = "T" if location_m.get_location_services_requested() else "F"
+        metadata["permissionLocation"] = "T" if location_m.get_location_permissions_granted() else "F"
+        metadata["enabledLocation"] = "T" if LocationProvider.GPS in location_m.get_location_providers().get_values() \
             else "FD"
-        location_900.set_metadata_as_dict(md)
+        location_900.set_metadata_as_dict(metadata)
 
     # Synch exchanges
     synch_exchanges_m = timing_info_m.get_synch_exchanges()

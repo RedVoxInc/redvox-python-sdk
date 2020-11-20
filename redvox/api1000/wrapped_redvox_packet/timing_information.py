@@ -65,6 +65,7 @@ class SynchExchange(
         """
         return self._proto.a1
 
+    # pylint: ignore=C0103
     def set_a1(self, a1: float) -> 'SynchExchange':
         """
         Sets the A1 value of this exchange
@@ -81,6 +82,7 @@ class SynchExchange(
         """
         return self._proto.a2
 
+    # pylint: ignore=C0103
     def set_a2(self, a2: float) -> 'SynchExchange':
         """
         Sets the A2 value of this exchange
@@ -97,6 +99,7 @@ class SynchExchange(
         """
         return self._proto.a3
 
+    # pylint: ignore=C0103
     def set_a3(self, a3: float) -> 'SynchExchange':
         """
         Sets the A3 value of this exchange
@@ -113,6 +116,7 @@ class SynchExchange(
         """
         return self._proto.b1
 
+    # pylint: ignore=C0103
     def set_b1(self, b1: float) -> 'SynchExchange':
         """
         Sets the B1 value of this exchange
@@ -129,6 +133,7 @@ class SynchExchange(
         """
         return self._proto.b2
 
+    # pylint: ignore=C0103
     def set_b2(self, b2: float) -> 'SynchExchange':
         """
         Sets the B2 value of this exchange
@@ -145,6 +150,7 @@ class SynchExchange(
         """
         return self._proto.b3
 
+    # pylint: ignore=C0103
     def set_b3(self, b3: float) -> 'SynchExchange':
         """
         Sets the B3 value of this exchange
