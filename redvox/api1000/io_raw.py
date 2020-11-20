@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Set
 
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
+import redvox.common.runtime_properties as runtime_properties
 from redvox.api1000.common.lz4 import decompress
 import redvox.api1000.proto.redvox_api_m_pb2 as pb
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType
@@ -133,10 +134,10 @@ class ReadFilter:
         :param dt: Datetime to test
         :return: True if the datetime is included, False otherwise
         """
-        if self.start_dt is not None and dt < self.start_dt:
+        if self.start_dt is not None and dt < (self.start_dt - runtime_properties.QUERY_TIME_START_BUF):
             return False
 
-        if self.end_dt is not None and dt > self.end_dt:
+        if self.end_dt is not None and dt > (self.end_dt + runtime_properties.QUERY_TIME_END_BUF):
             return False
 
         return True
