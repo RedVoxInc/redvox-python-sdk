@@ -249,6 +249,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         check_type(station_information, [_station_information.StationInformation])
         self.get_proto().station_information.CopyFrom(station_information.get_proto())
         self._station_information = _station_information.StationInformation(self.get_proto().station_information)
+        return self
 
     def get_timing_information(self) -> _timing_information.TimingInformation:
         """
@@ -260,6 +261,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         check_type(timing_information, [_timing_information.TimingInformation])
         self.get_proto().timing_information.CopyFrom(timing_information.get_proto())
         self._timing_information = _timing_information.TimingInformation(self.get_proto().timing_information)
+        return self
 
     def get_sensors(self) -> _sensors.Sensors:
         """
@@ -271,12 +273,19 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         check_type(sensors, [_sensors.Sensors])
         self.get_proto().sensors.CopyFrom(sensors.get_proto())
         self._sensors = _sensors.Sensors(self.get_proto().sensors)
+        return self
 
     def get_event_streams(self) -> ProtoRepeatedMessage:
         """
         :return: A collection of event streams.
         """
         return self._event_streams
+
+    def set_event_streams(self, event_streams: ProtoRepeatedMessage) -> 'WrappedRedvoxPacketM':
+        check_type(event_streams, [ProtoRepeatedMessage])
+        self._event_streams.clear_values()
+        self._event_streams.append_values(event_streams.get_values())
+        return self
 
     # todo: add packet_duration calculations that don't rely on sensors existing if possible
 
