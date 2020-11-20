@@ -3,16 +3,13 @@ This module provides tools for working with RedVox API M location data and metad
 """
 
 import enum
-
-import redvox.api1000.common.typing
-import redvox.api1000.common.common as common
-
 from typing import List
 
-import redvox.api1000.common.generic
-
+import redvox.api1000.common.common as common
 from redvox.api1000.common.decorators import wrap_enum
 from redvox.api1000.common.generic import ProtoBase, ProtoRepeatedMessage
+import redvox.api1000.common.generic
+import redvox.api1000.common.typing
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 
 
@@ -685,6 +682,11 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         return self._bearing_accuracy_samples
 
     def set_bearing_accuracy_samples(self, bearing_accuracy_samples: common.SamplePayload) -> 'Location':
+        """
+        Sets the samples for the bearing accuracy channel.
+        :param bearing_accuracy_samples: Samples to set.
+        :return: A modified instance of self.
+        """
         common.check_type(bearing_accuracy_samples, [common.SamplePayload])
         self.get_proto().bearing_accuracy_samples.CopyFrom(bearing_accuracy_samples.get_proto())
         self._bearing_accuracy_samples = common.SamplePayload(self.get_proto().bearing_accuracy_samples)
@@ -697,6 +699,11 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         return self._last_best_location
 
     def set_last_best_location(self, last_best_location: BestLocation) -> 'Location':
+        """
+        Sets the most recent best location.
+        :param last_best_location:  The most recent best location to set.
+        :return: A modified instance of self.
+        """
         common.check_type(last_best_location, [BestLocation])
         self.get_proto().last_best_location.CopyFrom(last_best_location.get_proto())
         self._last_best_location = BestLocation(self.get_proto().last_best_location)
@@ -709,6 +716,11 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         return self._overall_best_location
 
     def set_overall_best_location(self, overall_best_location: BestLocation) -> 'Location':
+        """
+        Sets the overall best location.
+        :param overall_best_location: BestLocation to set.
+        :return: A modified instance of self.
+        """
         common.check_type(overall_best_location, [BestLocation])
         self.get_proto().overall_best_location.CopyFrom(overall_best_location.get_proto())
         self._overall_best_location = BestLocation(self.get_proto().overall_best_location)
@@ -769,6 +781,11 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         return self._location_providers
 
     def set_location_providers(self, location_providers: ProtoRepeatedMessage) -> 'Location':
+        """
+        Sets the location provides.
+        :param location_providers: An instance of a ProtoRepeatedMessage containing the location providers.
+        :return: A modified instance of self.
+        """
         common.check_type(location_providers, [ProtoRepeatedMessage])
         self._location_providers.clear_values()
         self._location_providers.append_values(location_providers.get_values())

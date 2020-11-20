@@ -4,16 +4,16 @@ This module encapsulates audio sensor metadata and data.
 
 import enum
 from datetime import timedelta
+from typing import List
 
 import numpy as np
+
+import redvox.api1000.common.common as common
+from redvox.api1000.common.decorators import wrap_enum
+import redvox.api1000.common.generic
 import redvox.api1000.common.typing
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-import redvox.api1000.common.common as common
-import redvox.api1000.common.generic
 from redvox.api1000.wrapped_redvox_packet.station_information import AudioSamplingRate
-from redvox.api1000.common.decorators import wrap_enum
-
-from typing import List
 
 
 class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio]):
@@ -200,8 +200,6 @@ class CompressedAudio(
     """
     Encapsulates metadata and data for compressed audio streams.
     """
-    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio):
-        super().__init__(proto)
 
     @staticmethod
     def new() -> 'CompressedAudio':

@@ -12,13 +12,12 @@ import os.path
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Set
 
-from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
-import redvox.common.runtime_properties as runtime_properties
 from redvox.api1000.common.common import check_type
 from redvox.api1000.common.lz4 import decompress
 import redvox.api1000.proto.redvox_api_m_pb2 as pb
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
 
 
 # noinspection DuplicatedCode
@@ -30,6 +29,7 @@ class StationSummary:
     station_id: str
     station_uuid: str
     auth_id: str
+    # pylint: ignore=C0103
     os: OsType
     os_version: str
     app_version: str
@@ -41,6 +41,11 @@ class StationSummary:
 
     @staticmethod
     def from_packets(packets: List[WrappedRedvoxPacketM]) -> 'StationSummary':
+        """
+        Generates a station summary from the provided packets.
+        :param packets: Packets to generate summary from.
+        :return: An instance of a StationSummary.
+        """
         first_packet: WrappedRedvoxPacketM = packets[0]
         last_packet: WrappedRedvoxPacketM = packets[-1]
         total_duration: timedelta = reduce(lambda acc, packet: acc + packet.get_packet_duration(),
@@ -138,11 +143,21 @@ class ReadFilter:
         return self
 
     def with_start_dt_buf(self, start_dt_buf: timedelta) -> 'ReadFilter':
+        """
+        Modifies the time buffer prepended to the start time.
+        :param start_dt_buf: Amount of time to buffer before start time.
+        :return: A modified instance of self.
+        """
         check_type(start_dt_buf, [timedelta])
         self.start_dt_buf = start_dt_buf
         return self
 
     def with_end_dt_buf(self, end_dt_buf: timedelta) -> 'ReadFilter':
+        """
+        Modifies the time buffer appended to the end time.
+        :param end_dt_buf: Amount of time to buffer after end time.
+        :return: A modified instance of self.
+        """
         check_type(end_dt_buf, [timedelta])
         self.end_dt_buf = end_dt_buf
         return self

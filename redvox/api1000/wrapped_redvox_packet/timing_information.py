@@ -150,7 +150,7 @@ class SynchExchange(
         """
         return self._proto.b3
 
-    # pylint: ignore=C0103
+    # pylint: disable=C0103
     def set_b3(self, b3: float) -> 'SynchExchange':
         """
         Sets the B3 value of this exchange
@@ -355,7 +355,13 @@ class TimingInformation(
         """
         return self._synch_exchanges
 
-    def set_synch_exchanges(self, synch_exchanges: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'TimingInformation':
+    def set_synch_exchanges(self,
+                            synch_exchanges: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'TimingInformation':
+        """
+        Sets the synch exchanges.
+        :param synch_exchanges: An instance of a ProtoRepeatedMessage containing SyncExchanges.
+        :return: A modified instance of self.
+        """
         common.check_type(synch_exchanges, [redvox.api1000.common.generic.ProtoRepeatedMessage])
         self._synch_exchanges.clear_values()
         self._synch_exchanges.append_values(synch_exchanges.get_values())
