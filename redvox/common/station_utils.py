@@ -2,10 +2,11 @@
 Defines generic station metadata for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 """
+from dataclasses import dataclass, field
+from typing import List, Optional, Tuple
+
 import numpy as np
 import pandas as pd
-from typing import List, Optional, Tuple, Dict
-from dataclasses import dataclass, field
 
 from redvox.common import tri_message_stats as tms
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
@@ -222,6 +223,7 @@ class LocationData:
                 valid_locations.append(other_after_location)
         self.all_locations = valid_locations
 
+    # noinspection PyTypeChecker
     def calc_mean_and_std_from_locations(self, debug: bool = False) -> bool:
         """
         compute the mean and std dev from the locations in the object

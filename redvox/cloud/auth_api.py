@@ -88,9 +88,11 @@ def authenticate_user(api_config: ApiConfig,
     :param api_config: Api configuration.
     :param authentication_request: An instance of an authentication request.
     :param session: An (optional) session for re-using an HTTP client.
+    :param timeout: An (optional) timeout.
     :return: An instance of an authentication response.
     """
     # noinspection Mypy
+    # pylint: disable=E1101
     handle_resp: Callable[[requests.Response], AuthResp] = lambda resp: AuthResp.from_dict(resp.json())
     res: Optional[AuthResp] = post_req(api_config,
                                        RoutesV1.AUTH_USER,
@@ -111,9 +113,11 @@ def validate_token(api_config: ApiConfig,
     :param api_config: The Api config.
     :param validate_token_req: A validation token req.
     :param session: An (optional) session for re-using an HTTP client.
+    :param timeout: An (optional) timeout.
     :return: A ValidateTokenResp when the token is valid, None otherwise.
     """
     # noinspection Mypy
+    # pylint: disable=E1101
     handle_resp: Callable[[requests.Response], ValidateTokenResp] = lambda resp: ValidateTokenResp.from_dict(
         resp.json())
     return post_req(api_config,
@@ -133,9 +137,11 @@ def refresh_token(api_config: ApiConfig,
     :param api_config: The Api config.
     :param refresh_token_req: The request.
     :param session: An (optional) session for re-using an HTTP client.
+    :param timeout: An (optional) timeout.
     :return: An instance of a RefreshTokenResp.
     """
     # noinspection Mypy
+    # pylint: disable=E1101
     handle_resp: Callable[[requests.Response], RefreshTokenResp] = lambda resp: RefreshTokenResp.from_dict(resp.json())
     return post_req(api_config,
                     RoutesV1.REFRESH_TOKEN,

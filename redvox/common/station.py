@@ -410,7 +410,7 @@ class Station:
         check if ambient temperature sensor is in sensor_data_dict
         :return: True if ambient temperature sensor exists
         """
-        return SensorType.TEMPERATURE in self.station_data.keys()
+        return SensorType.AMBIENT_TEMPERATURE in self.station_data.keys()
 
     def has_ambient_temperature_data(self) -> bool:
         """
@@ -425,7 +425,7 @@ class Station:
         :return: image ambient temperature if it exists, None otherwise
         """
         if self.has_ambient_temperature_sensor():
-            return self.station_data[SensorType.TEMPERATURE]
+            return self.station_data[SensorType.AMBIENT_TEMPERATURE]
         return None
 
     def set_ambient_temperature_sensor(self, amtemp_sensor: Optional[SensorData]) -> 'Station':
@@ -435,9 +435,9 @@ class Station:
         :return: the edited DataPacket
         """
         if self.has_ambient_temperature_sensor():
-            self._delete_sensor(SensorType.TEMPERATURE)
+            self._delete_sensor(SensorType.AMBIENT_TEMPERATURE)
         if amtemp_sensor is not None:
-            self._add_sensor(SensorType.TEMPERATURE, amtemp_sensor)
+            self._add_sensor(SensorType.AMBIENT_TEMPERATURE, amtemp_sensor)
         return self
 
     def has_gravity_sensor(self) -> bool:

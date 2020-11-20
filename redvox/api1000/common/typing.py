@@ -6,7 +6,7 @@ from typing import Any, List, Optional, Callable, Union
 
 import numpy as np
 
-from redvox.api1000 import errors as errors
+from redvox.api1000 import errors
 
 
 def check_type(value: Any,

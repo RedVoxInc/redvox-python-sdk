@@ -26,5 +26,3 @@ def wrap_enum(proto_type: EnumTypeWrapper):
 
     return __wrap_enum
 
-
-

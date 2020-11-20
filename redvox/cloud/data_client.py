@@ -73,8 +73,8 @@ def download_files(urls: List[str], out_dir: str, retries: int, num_processes: i
     start_time = time.monotonic_ns()
     while i < len(urls):
         res: DownloadResult = result_queue.get(True, None)
-        ts = time.monotonic_ns()
-        time_range = (ts - start_time) / 1_000_000_000.0
+        timestamp = time.monotonic_ns()
+        time_range = (timestamp - start_time) / 1_000_000_000.0
         percentage: float = (float(i + 1) / float(len(urls))) * 100.0
         remaining: float = ((100.0 / percentage) * time_range) - time_range
 
