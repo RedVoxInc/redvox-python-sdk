@@ -33,6 +33,9 @@ class AuthResp:
     claims: Optional['ValidateTokenResp']
 
     def is_success(self) -> bool:
+        """
+        :return: Returns true if the auth response was a success, false otherwise.
+        """
         return self.status == 200 and self.auth_token is not None and len(self.auth_token) > 0
 
 

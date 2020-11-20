@@ -78,6 +78,9 @@ class ApiMConcatenationError(ApiMError):
 
 
 class ApiMImageChannelError(ApiMError):
+    """
+    An image sensor error.
+    """
     def __init__(self, message: str):
         super().__init__(f"ApiMImageChannelError: {message}")
 
