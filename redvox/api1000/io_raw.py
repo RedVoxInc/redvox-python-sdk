@@ -14,6 +14,7 @@ from typing import Dict, Iterator, List, Optional, Set
 
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
 import redvox.common.runtime_properties as runtime_properties
+from redvox.api1000.common.common import check_type
 from redvox.api1000.common.lz4 import decompress
 import redvox.api1000.proto.redvox_api_m_pb2 as pb
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType
@@ -75,6 +76,8 @@ class ReadFilter:
     end_dt: Optional[datetime] = None
     station_ids: Optional[Set[str]] = None
     extension: str = ".rdvxm"
+    start_dt_buf: timedelta = timedelta(minutes=2.0)
+    end_dt_buf: timedelta = timedelta(minutes=2.0)
 
     def with_start_dt(self, start_dt: datetime) -> 'ReadFilter':
         """
@@ -82,6 +85,7 @@ class ReadFilter:
         :param start_dt: Start datetime that files should come after.
         :return: A modified instance of this filter
         """
+        check_type(start_dt, [datetime])
         self.start_dt = start_dt
         return self
 
@@ -91,9 +95,11 @@ class ReadFilter:
         :param start_ts: Start timestamp (microseconds)
         :return: A modified instance of this filter
         """
+        check_type(start_ts, [int, float])
         return self.with_start_dt(dt_us(start_ts))
 
     def with_end_dt(self, end_dt: datetime) -> 'ReadFilter':
+        check_type(end_dt, [datetime])
         """
         Adds an end datetime filter.
         :param end_dt: Filter for which packets should come before.
@@ -108,6 +114,7 @@ class ReadFilter:
         :param end_ts: Timestamp microseconds.
         :return: A modified instance of this filter
         """
+        check_type(end_ts, [int, float])
         return self.with_end_dt(dt_us(end_ts))
 
     def with_station_ids(self, station_ids: Set[str]) -> 'ReadFilter':
@@ -116,6 +123,7 @@ class ReadFilter:
         :param station_ids: Station ids to filter against.
         :return: A modified instance of this filter
         """
+        check_type(station_ids, [Set])
         self.station_ids = station_ids
         return self
 
@@ -125,7 +133,18 @@ class ReadFilter:
         :param extension: Extension to filter against
         :return: A modified instance of this filter
         """
+        check_type(extension, [str])
         self.extension = extension
+        return self
+
+    def with_start_dt_buf(self, start_dt_buf: timedelta) -> 'ReadFilter':
+        check_type(start_dt_buf, [timedelta])
+        self.start_dt_buf = start_dt_buf
+        return self
+
+    def with_end_dt_buf(self, end_dt_buf: timedelta) -> 'ReadFilter':
+        check_type(end_dt_buf, [timedelta])
+        self.end_dt_buf = end_dt_buf
         return self
 
     def filter_dt(self, dt: datetime) -> bool:
@@ -134,10 +153,11 @@ class ReadFilter:
         :param dt: Datetime to test
         :return: True if the datetime is included, False otherwise
         """
-        if self.start_dt is not None and dt < (self.start_dt - runtime_properties.QUERY_TIME_START_BUF):
+        check_type(dt, [datetime])
+        if self.start_dt is not None and dt < (self.start_dt - self.start_dt_buf):
             return False
 
-        if self.end_dt is not None and dt > (self.end_dt + runtime_properties.QUERY_TIME_END_BUF):
+        if self.end_dt is not None and dt > (self.end_dt + self.end_dt_buf):
             return False
 
         return True
@@ -148,6 +168,7 @@ class ReadFilter:
         :param path: Path to test.
         :return: True if the path is accepted, False otherwise
         """
+        check_type(path, [str])
         _path: Path = Path(path)
         ext: str = "".join(_path.suffixes)
         station_ts: str = _path.stem
@@ -194,6 +215,7 @@ class ReadResult:
         :param packets: Packets to construct read result from.
         :return: ReadResult from provided packets
         """
+        check_type(packets, [List])
         station_id_uuid_to_packets: Dict[str, List[WrappedRedvoxPacketM]] = defaultdict(list)
 
         for packet in packets:
@@ -239,6 +261,7 @@ class ReadResult:
         :param station_id: station_id or station_id:uuid to get packets for.
         :return: A list of packets of an empty list of none provided.
         """
+        check_type(station_id, [str])
         if ":" in station_id:
             return self.__get_packets_for_station_id_uuid(station_id)
         else:
@@ -332,6 +355,7 @@ def read_bufs(bufs: List[bytes]) -> ReadResult:
     :param bufs: Buffers to read.
     :return: A ReadResult of the read data.
     """
+    check_type(bufs, [List])
     wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_bytes, bufs)))
     return ReadResult.from_packets(wrapped_packets)
 
@@ -344,6 +368,8 @@ def read_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Re
     :param read_filter: Filter to apply to files.
     :return: A ReadResult
     """
+    check_type(base_dir, [str])
+    check_type(read_filter, [ReadFilter])
     paths: List[str] = __parse_structured_layout(base_dir, read_filter)
     wrapped_packets: List[WrappedRedvoxPacketM] = __deserialize_paths(paths)
     return ReadResult.from_packets(wrapped_packets)
@@ -356,6 +382,8 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> 
     :param read_filter: Filter to filter files with.
     :return: A ReadResult.
     """
+    check_type(base_dir, [str])
+    check_type(read_filter, [ReadFilter])
     pattern: str = os.path.join(base_dir, f"*{read_filter.extension}")
     paths: List[str] = glob(os.path.join(base_dir, pattern))
     paths = list(filter(lambda path: read_filter.filter_path(path), paths))
@@ -370,6 +398,8 @@ def stream_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> 
     :param read_filter: Filter to filter files with.
     :return: An iterator that reads and loads one WrappedRedvoxPacketM at a time.
     """
+    check_type(base_dir, [str])
+    check_type(read_filter, [ReadFilter])
     paths: List[str] = __parse_structured_layout(base_dir, read_filter)
 
     for path in paths:
@@ -383,6 +413,8 @@ def stream_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -
     :param read_filter: Filter to filter files with.
     :return: An iterator that reads and loads one WrappedRedvoxPacketM at a time.
     """
+    check_type(base_dir, [str])
+    check_type(read_filter, [ReadFilter])
     pattern: str = os.path.join(base_dir, f"*{read_filter.extension}")
     paths: List[str] = glob(os.path.join(base_dir, pattern))
     paths = list(filter(lambda path: read_filter.filter_path(path), paths))
