@@ -8,6 +8,7 @@ from functools import total_ordering
 from typing import Optional, List
 from google.protobuf import json_format
 
+from redvox.api1000.common.common import check_type
 import redvox.api1000.common.lz4
 import redvox.api1000.common.typing
 import redvox.api1000.errors as errors
@@ -244,17 +245,32 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         return self._station_information
 
+    def set_station_information(self, station_information: _station_information.StationInformation) -> 'WrappedRedvoxPacketM':
+        check_type(station_information, [_station_information.StationInformation])
+        self.get_proto().station_information.CopyFrom(station_information.get_proto())
+        self._station_information = _station_information.StationInformation(self.get_proto().station_information)
+
     def get_timing_information(self) -> _timing_information.TimingInformation:
         """
         :return: An instance of TimingInformation
         """
         return self._timing_information
 
+    def set_timing_information(self, timing_information: _timing_information.TimingInformation) -> 'WrappedRedvoxPacketM':
+        check_type(timing_information, [_timing_information.TimingInformation])
+        self.get_proto().timing_information.CopyFrom(timing_information.get_proto())
+        self._timing_information = _timing_information.TimingInformation(self.get_proto().timing_information)
+
     def get_sensors(self) -> _sensors.Sensors:
         """
         :return: An instance of Sensors
         """
         return self._sensors
+
+    def set_sensors(self, sensors: _sensors.Sensors) -> 'WrappedRedvoxPacketM':
+        check_type(sensors, [_sensors.Sensors])
+        self.get_proto().sensors.CopyFrom(sensors.get_proto())
+        self._sensors = _sensors.Sensors(self.get_proto().sensors)
 
     def get_event_streams(self) -> ProtoRepeatedMessage:
         """
