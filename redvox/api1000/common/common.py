@@ -314,6 +314,11 @@ class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload
         return self._summary_statistics
 
     def set_summary_statistics(self, summary_statistics: SummaryStatistics) -> 'SamplePayload':
+        """
+        Sets the summary statistics sub-message field.
+        :param summary_statistics: SummaryStatistics to set.
+        :return: A modified version of self.
+        """
         check_type(summary_statistics, [SummaryStatistics])
         self.get_proto().value_statistics.CopyFrom(summary_statistics.get_proto())
         self._summary_statistics = SummaryStatistics(self.get_proto().value_statistics)
