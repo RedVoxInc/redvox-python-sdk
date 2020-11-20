@@ -220,7 +220,14 @@ class AppSettings(
         """
         return self._additional_input_sensors
 
-    def set_additional_input_sensors(self, additional_input_sensors: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'AppSettings':
+    def set_additional_input_sensors(self,
+                                     additional_input_sensors: redvox.api1000.common.generic.ProtoRepeatedMessage) \
+            -> 'AppSettings':
+        """
+        Sets the additional input sensors.
+        :param additional_input_sensors: Payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(additional_input_sensors, [redvox.api1000.common.generic.ProtoRepeatedMessage])
         self._additional_input_sensors.clear_values()
         self._additional_input_sensors.append_values(additional_input_sensors.get_values())
@@ -694,6 +701,7 @@ class StationMetrics(
     def __init__(self, station_metrics_proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics):
         super().__init__(station_metrics_proto)
         self._timestamps = common.TimingPayload(station_metrics_proto.timestamps).set_default_unit()
+        # pylint: disable=E1101
         self._network_type: redvox.api1000.common.generic.ProtoRepeatedMessage = \
             redvox.api1000.common.generic.ProtoRepeatedMessage(
                 station_metrics_proto,
@@ -701,6 +709,7 @@ class StationMetrics(
                 _NETWORK_TYPE_FIELD_NAME,
                 NetworkType.from_proto,
                 NetworkType.into_proto)
+        # pylint: disable=E1101
         self._cell_service_state: redvox.api1000.common.generic.ProtoRepeatedMessage = \
             redvox.api1000.common.generic.ProtoRepeatedMessage(
                 station_metrics_proto,
@@ -729,6 +738,7 @@ class StationMetrics(
         # noinspection PyTypeChecker
         self._cpu_utilization: common.SamplePayload = common.SamplePayload(station_metrics_proto.cpu_utilization) \
             .set_unit(common.Unit.PERCENTAGE)
+        # pylint: disable=E1101
         self._power_state: redvox.api1000.common.generic.ProtoRepeatedMessage = \
             redvox.api1000.common.generic.ProtoRepeatedMessage(
                 station_metrics_proto,
@@ -736,6 +746,7 @@ class StationMetrics(
                 _POWER_STATE_FIELD_NAME,
                 PowerState.from_proto,
                 PowerState.into_proto)
+        # pylint: disable=E1101
         self._wifi_wake_loc: redvox.api1000.common.generic.ProtoRepeatedMessage = \
             redvox.api1000.common.generic.ProtoRepeatedMessage(
                 station_metrics_proto,
@@ -743,6 +754,7 @@ class StationMetrics(
                 _WIFI_WAKE_LOCK_FIELD_NAME,
                 WifiWakeLock.from_proto,
                 WifiWakeLock.into_proto)
+        # pylint: disable=E1101
         self._screen_state: redvox.api1000.common.generic.ProtoRepeatedMessage = \
             redvox.api1000.common.generic.ProtoRepeatedMessage(
                 station_metrics_proto,
@@ -946,6 +958,11 @@ class StationMetrics(
         return self._power_state
 
     def set_power_state(self, power_state: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'StationMetrics':
+        """
+        Sets the power state payload.
+        :param power_state: Payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(power_state, [redvox.api1000.common.generic.ProtoRepeatedMessage])
         self._power_state.clear_values()
         self._power_state.append_values(power_state.get_values())

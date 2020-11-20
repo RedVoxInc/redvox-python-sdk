@@ -217,7 +217,7 @@ class TimingInformation(
                 proto,
                 proto.synch_exchanges,
                 _SYNCH_EXCHANGES_FIELD_NAME,
-                lambda exchange_proto: SynchExchange(exchange_proto),
+                SynchExchange,
                 lambda exchange: exchange.get_proto()
             )
 
