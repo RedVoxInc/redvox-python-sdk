@@ -76,7 +76,7 @@ def _packet_length_microseconds_900(packet: reader_900.WrappedRedvoxPacket) -> i
 
 
 # noinspection PyTypeChecker
-# pylint: ignore=C0103
+# pylint: disable=C0103
 def _migrate_os_type_900_to_1000(os: str) -> OsType:
     os_lower: str = os.lower()
     if os_lower == "android":
@@ -88,7 +88,7 @@ def _migrate_os_type_900_to_1000(os: str) -> OsType:
     return OsType.UNKNOWN_OS
 
 
-# pylint: ignore=C0103
+# pylint: disable=C0103
 def _migrate_os_type_1000_to_900(os: OsType) -> str:
     if os == OsType.ANDROID:
         return "Android"

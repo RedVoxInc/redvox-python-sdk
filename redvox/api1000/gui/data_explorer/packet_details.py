@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List, Any, Union
+from typing import Optional, List, Any
 
 from PySide2.QtCharts import QtCharts
 from PySide2.QtCore import Qt
@@ -98,6 +98,9 @@ class PlotWidget(QtCharts.QChartView):
 
 
 class PlotAndDetailsColumn(QWidget):
+    """
+    Contains the data plot and details table.
+    """
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.values_widget = ValuesWidget(self)
