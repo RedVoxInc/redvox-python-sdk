@@ -10,6 +10,7 @@ This repository contains code for reading and working with the RedVox API 900 an
 ### 3.0.0a21 (2020-11)
 
 * Add setters for all sub-messages
+* Extend start and end queries for reading data by slight amount
 
 ### 3.0.0a20 (2020-11-16)
 
