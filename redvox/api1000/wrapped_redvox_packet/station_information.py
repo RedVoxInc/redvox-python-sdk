@@ -767,11 +767,23 @@ class StationMetrics(
         """
         return self._timestamps
 
+    def set_timestamps(self, timestamps: common.TimingPayload) -> 'StationMetrics':
+        common.check_type(timestamps, [common.TimingPayload])
+        self.get_proto().timestamps.CopyFrom(timestamps.get_proto())
+        self._timestamps = common.TimingPayload(self.get_proto().timestamps)
+        return self
+
     def get_network_type(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
         """
         :return: A payload of network types.
         """
         return self._network_type
+
+    def set_network_type(self, network_type: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'StationMetrics':
+        common.check_type(network_type, [redvox.api1000.common.generic.ProtoRepeatedMessage])
+        self._network_type.clear_values()
+        self._network_type.append_values(network_type.get_values())
+        return self
 
     def get_cell_service_state(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
         """
@@ -779,11 +791,24 @@ class StationMetrics(
         """
         return self._cell_service_state
 
+
+    def set_cell_service_state(self, cell_service_state: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'StationMetrics':
+        common.check_type(cell_service_state, [redvox.api1000.common.generic.ProtoRepeatedMessage])
+        self._cell_service_state.clear_values()
+        self._cell_service_state.append_values(cell_service_state.get_values())
+        return self
+
     def get_network_strength(self) -> common.SamplePayload:
         """
         :return: A payload of network strengths
         """
         return self._network_strength
+
+    def set_network_strength(self, network_strength: common.SamplePayload) -> 'StationMetrics':
+        common.check_type(network_strength, [common.SamplePayload])
+        self.get_proto().network_strength.CopyFrom(network_strength.get_proto())
+        self._network_strength = common.SamplePayload(self.get_proto().network_strength)
+        return self
 
     def get_temperature(self) -> common.SamplePayload:
         """
@@ -791,11 +816,23 @@ class StationMetrics(
         """
         return self._temperature
 
+    def set_temperature(self, temperature: common.SamplePayload) -> 'StationMetrics':
+        common.check_type(temperature, [common.SamplePayload])
+        self.get_proto().temperature.CopyFrom(temperature.get_proto())
+        self._temperature = common.SamplePayload(self.get_proto().temperature)
+        return self
+
     def get_battery(self) -> common.SamplePayload:
         """
         :return: A payload of battery remaining
         """
         return self._battery
+
+    def set_battery(self, battery: common.SamplePayload) -> 'StationMetrics':
+        common.check_type(battery, [common.SamplePayload])
+        self.get_proto().battery.CopyFrom(battery.get_proto())
+        self._battery = common.SamplePayload(self.get_proto().battery)
+        return self
 
     def get_battery_current(self) -> common.SamplePayload:
         """
@@ -803,11 +840,23 @@ class StationMetrics(
         """
         return self._battery_current
 
+    def set_battery_current(self, battery_current: common.SamplePayload) -> 'StationMetrics':
+        common.check_type(battery_current, [common.SamplePayload])
+        self.get_proto().battery_current.CopyFrom(battery_current.get_proto())
+        self._battery_current = common.SamplePayload(self.get_proto().battery_current)
+        return self
+
     def get_available_ram(self) -> common.SamplePayload:
         """
         :return: A payload of available RAM
         """
         return self._available_ram
+
+    def set_available_ram(self, available_ram: common.SamplePayload) -> 'StationMetrics':
+        common.check_type(available_ram, [common.SamplePayload])
+        self.get_proto().available_ram.CopyFrom(available_ram.get_proto())
+        self._available_ram = common.SamplePayload(self.get_proto().available_ram)
+        return self
 
     def get_available_disk(self) -> common.SamplePayload:
         """
@@ -815,11 +864,23 @@ class StationMetrics(
         """
         return self._available_disk
 
+    def set_available_disk(self, available_disk: common.SamplePayload) -> 'StationMetrics':
+        common.check_type(available_disk, [common.SamplePayload])
+        self.get_proto().available_disk.CopyFrom(available_disk.get_proto())
+        self._available_disk = common.SamplePayload(self.get_proto().available_disk)
+        return self
+
     def get_cpu_utilization(self) -> common.SamplePayload:
         """
         :return: A payload CPU utilization
         """
         return self._cpu_utilization
+
+    def set_cpu_utilization(self, cpu_utilization: common.SamplePayload) -> 'StationMetrics':
+        common.check_type(cpu_utilization, [common.SamplePayload])
+        self.get_proto().cpu_utilization.CopyFrom(cpu_utilization.get_proto())
+        self._cpu_utilization = common.SamplePayload(self.get_proto().cpu_utilization)
+        return self
 
     def get_power_state(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
         """
@@ -827,11 +888,23 @@ class StationMetrics(
         """
         return self._power_state
 
+    def set_power_state(self, power_state: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'StationMetrics':
+        common.check_type(power_state, [redvox.api1000.common.generic.ProtoRepeatedMessage])
+        self._power_state.clear_values()
+        self._power_state.append_values(power_state.get_values())
+        return self
+
     def get_wifi_wake_loc(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
         """
         :return: A payload of Wifi wake lock states
         """
         return self._wifi_wake_loc
+
+    def set_wifi_wake_loc(self, wifi_wake_loc: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'StationMetrics':
+        common.check_type(wifi_wake_loc, [redvox.api1000.common.generic.ProtoRepeatedMessage])
+        self._wifi_wake_loc.clear_values()
+        self._wifi_wake_loc.append_values(wifi_wake_loc.get_values())
+        return self
 
     def get_screen_state(self) -> redvox.api1000.common.generic.ProtoRepeatedMessage:
         """
@@ -839,11 +912,23 @@ class StationMetrics(
         """
         return self._screen_state
 
+    def set_screen_state(self, screen_state: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'StationMetrics':
+        common.check_type(screen_state, [redvox.api1000.common.generic.ProtoRepeatedMessage])
+        self._screen_state.clear_values()
+        self._screen_state.append_values(screen_state.get_values())
+        return self
+
     def get_screen_brightness(self) -> common.SamplePayload:
         """
         :return: A payload of the screens brightness.
         """
         return self._screen_brightness
+
+    def set_screen_brightness(self, screen_brightness: common.SamplePayload) -> 'StationMetrics':
+        common.check_type(screen_brightness, [common.SamplePayload])
+        self.get_proto().screen_brightness.CopyFrom(screen_brightness.get_proto())
+        self._screen_brightness = common.SamplePayload(self.get_proto().screen_brightness)
+        return self
 
 
 class ServiceUrls(
