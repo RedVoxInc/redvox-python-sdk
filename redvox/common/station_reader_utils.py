@@ -1,14 +1,14 @@
 """
 This module loads or reads station data from various sources
 """
+from dataclasses import dataclass
 import os
 import glob
+from typing import List, Dict, Optional
+
 import numpy as np
 import pandas as pd
-
 from obspy import read
-from typing import List, Dict, Optional
-from dataclasses import dataclass
 
 from redvox.api1000 import io as apim_io
 from redvox.api900 import reader as api900_io
@@ -40,6 +40,7 @@ class StationSummary:
     """
     station_id: str
     station_uuid: str
+    # pylint: ignore=C0103
     os: str
     os_version: str
     app_version: str
@@ -592,7 +593,8 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
     if sensors.has_proximity() and sensors.validate_proximity():
         data_dict[SensorType.PROXIMITY] = read_apim_single_sensor(sensors.get_proximity(), "proximity")
     if sensors.has_ambient_temperature() and sensors.validate_ambient_temperature():
-        data_dict[SensorType.AMBIENT_TEMPERATURE] = read_apim_single_sensor(sensors.get_ambient_temperature(), "ambient_temp")
+        data_dict[SensorType.AMBIENT_TEMPERATURE] = read_apim_single_sensor(sensors.get_ambient_temperature(),
+                                                                            "ambient_temp")
     if sensors.has_relative_humidity() and sensors.validate_relative_humidity():
         data_dict[SensorType.RELATIVE_HUMIDITY] = read_apim_single_sensor(sensors.get_relative_humidity(),
                                                                           "rel_humidity")

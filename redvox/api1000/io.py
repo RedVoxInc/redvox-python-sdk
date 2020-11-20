@@ -1,13 +1,16 @@
 """
 This module contains functions for reading and writing bulk API M data.
 """
-import os
+
 import glob
-import redvox.api1000.common.lz4
+import os
+from typing import List, Optional, Set, Tuple, Callable, TypeVar
+
 import numpy as np
+
+import redvox.api1000.common.lz4
 import redvox.api1000.wrapped_redvox_packet.wrapped_packet as api_m_wp
 import redvox.common.date_time_utils as date_time_utils
-from typing import List, Optional, Set, Tuple, Callable, TypeVar
 
 
 REDVOX_API_M_FILE_EXT = "rdvxm"

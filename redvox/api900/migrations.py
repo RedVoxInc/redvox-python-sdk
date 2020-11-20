@@ -2,7 +2,7 @@
 This module provides functions and utilities for slowly migrating API 900 towards API 1000.
 """
 
-from typing import List, Optional, Union
+from typing import List, Union
 import os
 
 import numpy as np
