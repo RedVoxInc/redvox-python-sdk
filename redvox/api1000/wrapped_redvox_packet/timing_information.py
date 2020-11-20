@@ -349,6 +349,12 @@ class TimingInformation(
         """
         return self._synch_exchanges
 
+    def set_synch_exchanges(self, synch_exchanges: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'TimingInformation':
+        common.check_type(synch_exchanges, [redvox.api1000.common.generic.ProtoRepeatedMessage])
+        self._synch_exchanges.clear_values()
+        self._synch_exchanges.append_values(synch_exchanges.get_values())
+        return self
+
     def get_synch_exchange_array(self) -> List[float]:
         """
         Get the packet's synch exchanges as a single list of timestamps, with each synch exchange in
