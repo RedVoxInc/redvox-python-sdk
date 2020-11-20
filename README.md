@@ -7,9 +7,19 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a21 (2020-11)
+
+* Add setters for all sub-messages
+
+### 3.0.0a20 (2020-11-16)
+
+* Add support for downloading API M data from cloud servers
+* Optimize data download using a custom work-stealing process pool
+* Standardize CLI
+
 ### 3.0.0a19 (2020-11-10)
 
-* fixed bug with recalculating metadata of stations
+* Fixed bug with recalculating metadata of stations
 
 ### 3.0.0a18 (2020-11-09)
 
