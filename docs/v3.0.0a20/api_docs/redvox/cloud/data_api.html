@@ -1,0 +1,1250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>redvox.cloud.data_api API documentation</title>
+<meta name="description" content="This module contains API definitions and functions for working with raw RedVox data packets." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.cloud.data_api</code></h1>
+</header>
+<section id="section-intro">
+<p>This module contains API definitions and functions for working with raw RedVox data packets.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+This module contains API definitions and functions for working with raw RedVox data packets.
+&#34;&#34;&#34;
+
+from dataclasses import dataclass
+from enum import Enum
+from typing import Callable, List, Optional, Tuple
+
+from dataclasses_json import dataclass_json
+import requests
+
+from redvox.cloud.api import ApiConfig, post_req
+import redvox.cloud.data_io as data_io
+import redvox.cloud.data_client as data_client
+from redvox.cloud.routes import RoutesV1
+
+
+@dataclass_json
+@dataclass
+class ReportDataReq:
+    &#34;&#34;&#34;
+    A request for a signed URL to a RedVox report distribution.
+    &#34;&#34;&#34;
+    auth_token: str
+    report_id: str
+    secret_token: Optional[str] = None
+
+
+@dataclass_json
+@dataclass
+class ReportDataResp:
+    &#34;&#34;&#34;
+    Response for a report signed URL.
+    &#34;&#34;&#34;
+    signed_url: str
+
+    def download_buf(self, retries: int = 3) -&gt; Optional[bytes]:
+        &#34;&#34;&#34;
+        Downloads the zip compressed report data and returns it as a byte buffer.
+        :param retries: Number of times to retry the download of failure.
+        :return: Bytes of the compressed report data.
+        &#34;&#34;&#34;
+        return data_io.get_file(self.signed_url, retries)
+
+    def download_fs(self, out_dir: str, retries: int = 3) -&gt; Tuple[str, int]:
+        &#34;&#34;&#34;
+        Downloads the zip compressed report data to the file system.
+        :param out_dir: Output directory to download data to.
+        :param retries: Number of times to retry the download on failure.
+        :return: A tuple containing the file name and the number of bytes written.
+        &#34;&#34;&#34;
+        return data_io.download_file(self.signed_url, requests.Session(), out_dir, retries)
+
+
+@dataclass_json
+@dataclass
+class DataRangeReq:
+    &#34;&#34;&#34;
+    Definition of data range request.
+    &#34;&#34;&#34;
+    auth_token: str
+    start_ts_s: int
+    end_ts_s: int
+    redvox_ids: List[str]
+    secret_token: Optional[str] = None
+
+
+@dataclass_json
+@dataclass
+class DataRangeResp:
+    &#34;&#34;&#34;
+    Definition of a data range response.
+    &#34;&#34;&#34;
+    signed_urls: List[str]
+
+    def download_fs(self, out_dir: str, retries: int = 3) -&gt; None:
+        &#34;&#34;&#34;
+        Download the referenced packets to the provided output directory.
+        :param out_dir: Output directory to store the downloaded files.
+        :param retries: Number of times to retry downloading the file on failure.
+        &#34;&#34;&#34;
+        data_client.download_files(self.signed_urls, out_dir, retries)
+
+    def append(self, other: &#39;DataRangeResp&#39;) -&gt; &#39;DataRangeResp&#39;:
+        &#34;&#34;&#34;
+        Combines multiple responses.
+        :param other: The other response to combine results with.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        self.signed_urls.extend(other.signed_urls)
+        return self
+
+
+def request_report_data(api_config: ApiConfig,
+                        report_data_req: ReportDataReq,
+                        session: Optional[requests.Session] = None,
+                        timeout: Optional[float] = None) -&gt; Optional[ReportDataResp]:
+    &#34;&#34;&#34;
+    Makes an API call to generate a signed URL of a RedVox report.
+    :param api_config: An API config.
+    :param report_data_req: The request.
+    :param session: An (optional) session for re-using an HTTP client.
+    :return: The response.
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], ReportDataResp] = lambda resp: ReportDataResp.from_dict(resp.json())
+    return post_req(api_config,
+                    RoutesV1.DATA_REPORT_REQ,
+                    report_data_req,
+                    handle_resp,
+                    session,
+                    timeout)
+
+
+class DataRangeReqType(Enum):
+    &#34;&#34;&#34;
+    Type of RedVox data to be requested.
+    &#34;&#34;&#34;
+    API_900: str = &#34;API_900&#34;
+    API_1000: str = &#34;API_1000&#34;
+    API_900_1000: str = &#34;API_900_1000&#34;
+
+
+def request_range_data(api_config: ApiConfig,
+                       data_range_req: DataRangeReq,
+                       session: Optional[requests.Session] = None,
+                       timeout: Optional[float] = None,
+                       req_type: DataRangeReqType = DataRangeReqType.API_900) -&gt; DataRangeResp:
+    &#34;&#34;&#34;
+    Requests signed URLs for a range of RedVox packets.
+    :param api_config: An API config.
+    :param data_range_req: The request.
+    :param session: An (optional) session for re-using an HTTP client.
+    :param timeout: An (optional) timeout.
+    :param req_type: (Optional) defines which type of RedVox data should be requested
+    :return: A DataRangeResp.
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], DataRangeResp] = lambda resp: DataRangeResp.from_dict(resp.json())
+
+    # API 900
+    if req_type == DataRangeReqType.API_900:
+        res: Optional[DataRangeResp] = post_req(api_config,
+                                                RoutesV1.DATA_RANGE_REQ,
+                                                data_range_req,
+                                                handle_resp,
+                                                session,
+                                                timeout)
+
+        return res if res else DataRangeResp([])
+    # API 1000
+    elif req_type == DataRangeReqType.API_1000:
+        res: Optional[DataRangeResp] = post_req(api_config,
+                                                RoutesV1.DATA_RANGE_REQ_M,
+                                                data_range_req,
+                                                handle_resp,
+                                                session,
+                                                timeout)
+
+        return res if res else DataRangeResp([])
+    # API 900 and 1000
+    else:
+        res_900: Optional[DataRangeResp] = post_req(api_config,
+                                                    RoutesV1.DATA_RANGE_REQ,
+                                                    data_range_req,
+                                                    handle_resp,
+                                                    session,
+                                                    timeout)
+
+        res_1000: Optional[DataRangeResp] = post_req(api_config,
+                                                     RoutesV1.DATA_RANGE_REQ_M,
+                                                     data_range_req,
+                                                     handle_resp,
+                                                     session,
+                                                     timeout)
+
+        res_900_final: DataRangeResp = DataRangeResp([]) if res_900 is None else res_900
+        res_1000_final: DataRangeResp = DataRangeResp([]) if res_1000 is None else res_1000
+
+        return res_900_final.append(res_1000_final)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.cloud.data_api.request_range_data"><code class="name flex">
+<span>def <span class="ident">request_range_data</span></span>(<span>api_config: <a title="redvox.cloud.api.ApiConfig" href="api.html#redvox.cloud.api.ApiConfig">ApiConfig</a>, data_range_req: <a title="redvox.cloud.data_api.DataRangeReq" href="#redvox.cloud.data_api.DataRangeReq">DataRangeReq</a>, session: typing.Optional[requests.sessions.Session] = None, timeout: typing.Optional[float] = None, req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Requests signed URLs for a range of RedVox packets.
+:param api_config: An API config.
+:param data_range_req: The request.
+:param session: An (optional) session for re-using an HTTP client.
+:param timeout: An (optional) timeout.
+:param req_type: (Optional) defines which type of RedVox data should be requested
+:return: A DataRangeResp.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def request_range_data(api_config: ApiConfig,
+                       data_range_req: DataRangeReq,
+                       session: Optional[requests.Session] = None,
+                       timeout: Optional[float] = None,
+                       req_type: DataRangeReqType = DataRangeReqType.API_900) -&gt; DataRangeResp:
+    &#34;&#34;&#34;
+    Requests signed URLs for a range of RedVox packets.
+    :param api_config: An API config.
+    :param data_range_req: The request.
+    :param session: An (optional) session for re-using an HTTP client.
+    :param timeout: An (optional) timeout.
+    :param req_type: (Optional) defines which type of RedVox data should be requested
+    :return: A DataRangeResp.
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], DataRangeResp] = lambda resp: DataRangeResp.from_dict(resp.json())
+
+    # API 900
+    if req_type == DataRangeReqType.API_900:
+        res: Optional[DataRangeResp] = post_req(api_config,
+                                                RoutesV1.DATA_RANGE_REQ,
+                                                data_range_req,
+                                                handle_resp,
+                                                session,
+                                                timeout)
+
+        return res if res else DataRangeResp([])
+    # API 1000
+    elif req_type == DataRangeReqType.API_1000:
+        res: Optional[DataRangeResp] = post_req(api_config,
+                                                RoutesV1.DATA_RANGE_REQ_M,
+                                                data_range_req,
+                                                handle_resp,
+                                                session,
+                                                timeout)
+
+        return res if res else DataRangeResp([])
+    # API 900 and 1000
+    else:
+        res_900: Optional[DataRangeResp] = post_req(api_config,
+                                                    RoutesV1.DATA_RANGE_REQ,
+                                                    data_range_req,
+                                                    handle_resp,
+                                                    session,
+                                                    timeout)
+
+        res_1000: Optional[DataRangeResp] = post_req(api_config,
+                                                     RoutesV1.DATA_RANGE_REQ_M,
+                                                     data_range_req,
+                                                     handle_resp,
+                                                     session,
+                                                     timeout)
+
+        res_900_final: DataRangeResp = DataRangeResp([]) if res_900 is None else res_900
+        res_1000_final: DataRangeResp = DataRangeResp([]) if res_1000 is None else res_1000
+
+        return res_900_final.append(res_1000_final)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.request_report_data"><code class="name flex">
+<span>def <span class="ident">request_report_data</span></span>(<span>api_config: <a title="redvox.cloud.api.ApiConfig" href="api.html#redvox.cloud.api.ApiConfig">ApiConfig</a>, report_data_req: <a title="redvox.cloud.data_api.ReportDataReq" href="#redvox.cloud.data_api.ReportDataReq">ReportDataReq</a>, session: typing.Optional[requests.sessions.Session] = None, timeout: typing.Optional[float] = None) ‑> typing.Optional[<a title="redvox.cloud.data_api.ReportDataResp" href="#redvox.cloud.data_api.ReportDataResp">ReportDataResp</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Makes an API call to generate a signed URL of a RedVox report.
+:param api_config: An API config.
+:param report_data_req: The request.
+:param session: An (optional) session for re-using an HTTP client.
+:return: The response.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def request_report_data(api_config: ApiConfig,
+                        report_data_req: ReportDataReq,
+                        session: Optional[requests.Session] = None,
+                        timeout: Optional[float] = None) -&gt; Optional[ReportDataResp]:
+    &#34;&#34;&#34;
+    Makes an API call to generate a signed URL of a RedVox report.
+    :param api_config: An API config.
+    :param report_data_req: The request.
+    :param session: An (optional) session for re-using an HTTP client.
+    :return: The response.
+    &#34;&#34;&#34;
+    # noinspection Mypy
+    handle_resp: Callable[[requests.Response], ReportDataResp] = lambda resp: ReportDataResp.from_dict(resp.json())
+    return post_req(api_config,
+                    RoutesV1.DATA_REPORT_REQ,
+                    report_data_req,
+                    handle_resp,
+                    session,
+                    timeout)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.cloud.data_api.DataRangeReq"><code class="flex name class">
+<span>class <span class="ident">DataRangeReq</span></span>
+<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, redvox_ids: typing.List[str], secret_token: typing.Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Definition of data range request.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass_json
+@dataclass
+class DataRangeReq:
+    &#34;&#34;&#34;
+    Definition of data range request.
+    &#34;&#34;&#34;
+    auth_token: str
+    start_ts_s: int
+    end_ts_s: int
+    redvox_ids: List[str]
+    secret_token: Optional[str] = None</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.data_api.DataRangeReq.auth_token"><code class="name">var <span class="ident">auth_token</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeReq.end_ts_s"><code class="name">var <span class="ident">end_ts_s</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeReq.redvox_ids"><code class="name">var <span class="ident">redvox_ids</span> : typing.List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeReq.start_ts_s"><code class="name">var <span class="ident">start_ts_s</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.data_api.DataRangeReq.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeReq.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeReq.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.data_api.DataRangeReq.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeReq.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(encode_json=False),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeReqType"><code class="flex name class">
+<span>class <span class="ident">DataRangeReqType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Type of RedVox data to be requested.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataRangeReqType(Enum):
+    &#34;&#34;&#34;
+    Type of RedVox data to be requested.
+    &#34;&#34;&#34;
+    API_900: str = &#34;API_900&#34;
+    API_1000: str = &#34;API_1000&#34;
+    API_900_1000: str = &#34;API_900_1000&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.data_api.DataRangeReqType.API_1000"><code class="name">var <span class="ident">API_1000</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeReqType.API_900"><code class="name">var <span class="ident">API_900</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeReqType.API_900_1000"><code class="name">var <span class="ident">API_900_1000</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeResp"><code class="flex name class">
+<span>class <span class="ident">DataRangeResp</span></span>
+<span>(</span><span>signed_urls: typing.List[str])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Definition of a data range response.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass_json
+@dataclass
+class DataRangeResp:
+    &#34;&#34;&#34;
+    Definition of a data range response.
+    &#34;&#34;&#34;
+    signed_urls: List[str]
+
+    def download_fs(self, out_dir: str, retries: int = 3) -&gt; None:
+        &#34;&#34;&#34;
+        Download the referenced packets to the provided output directory.
+        :param out_dir: Output directory to store the downloaded files.
+        :param retries: Number of times to retry downloading the file on failure.
+        &#34;&#34;&#34;
+        data_client.download_files(self.signed_urls, out_dir, retries)
+
+    def append(self, other: &#39;DataRangeResp&#39;) -&gt; &#39;DataRangeResp&#39;:
+        &#34;&#34;&#34;
+        Combines multiple responses.
+        :param other: The other response to combine results with.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        self.signed_urls.extend(other.signed_urls)
+        return self</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.data_api.DataRangeResp.signed_urls"><code class="name">var <span class="ident">signed_urls</span> : typing.List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.data_api.DataRangeResp.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeResp.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeResp.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.data_api.DataRangeResp.append"><code class="name flex">
+<span>def <span class="ident">append</span></span>(<span>self, other: <a title="redvox.cloud.data_api.DataRangeResp" href="#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a>) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Combines multiple responses.
+:param other: The other response to combine results with.
+:return: A modified instance of self.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append(self, other: &#39;DataRangeResp&#39;) -&gt; &#39;DataRangeResp&#39;:
+    &#34;&#34;&#34;
+    Combines multiple responses.
+    :param other: The other response to combine results with.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
+    self.signed_urls.extend(other.signed_urls)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeResp.download_fs"><code class="name flex">
+<span>def <span class="ident">download_fs</span></span>(<span>self, out_dir: str, retries: int = 3) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Download the referenced packets to the provided output directory.
+:param out_dir: Output directory to store the downloaded files.
+:param retries: Number of times to retry downloading the file on failure.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def download_fs(self, out_dir: str, retries: int = 3) -&gt; None:
+    &#34;&#34;&#34;
+    Download the referenced packets to the provided output directory.
+    :param out_dir: Output directory to store the downloaded files.
+    :param retries: Number of times to retry downloading the file on failure.
+    &#34;&#34;&#34;
+    data_client.download_files(self.signed_urls, out_dir, retries)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeResp.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.DataRangeResp.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(encode_json=False),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.data_api.ReportDataReq"><code class="flex name class">
+<span>class <span class="ident">ReportDataReq</span></span>
+<span>(</span><span>auth_token: str, report_id: str, secret_token: typing.Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A request for a signed URL to a RedVox report distribution.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass_json
+@dataclass
+class ReportDataReq:
+    &#34;&#34;&#34;
+    A request for a signed URL to a RedVox report distribution.
+    &#34;&#34;&#34;
+    auth_token: str
+    report_id: str
+    secret_token: Optional[str] = None</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.data_api.ReportDataReq.auth_token"><code class="name">var <span class="ident">auth_token</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.data_api.ReportDataReq.report_id"><code class="name">var <span class="ident">report_id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.data_api.ReportDataReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.data_api.ReportDataReq.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.ReportDataReq.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.ReportDataReq.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.data_api.ReportDataReq.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.ReportDataReq.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(encode_json=False),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.cloud.data_api.ReportDataResp"><code class="flex name class">
+<span>class <span class="ident">ReportDataResp</span></span>
+<span>(</span><span>signed_url: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Response for a report signed URL.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass_json
+@dataclass
+class ReportDataResp:
+    &#34;&#34;&#34;
+    Response for a report signed URL.
+    &#34;&#34;&#34;
+    signed_url: str
+
+    def download_buf(self, retries: int = 3) -&gt; Optional[bytes]:
+        &#34;&#34;&#34;
+        Downloads the zip compressed report data and returns it as a byte buffer.
+        :param retries: Number of times to retry the download of failure.
+        :return: Bytes of the compressed report data.
+        &#34;&#34;&#34;
+        return data_io.get_file(self.signed_url, retries)
+
+    def download_fs(self, out_dir: str, retries: int = 3) -&gt; Tuple[str, int]:
+        &#34;&#34;&#34;
+        Downloads the zip compressed report data to the file system.
+        :param out_dir: Output directory to download data to.
+        :param retries: Number of times to retry the download on failure.
+        :return: A tuple containing the file name and the number of bytes written.
+        &#34;&#34;&#34;
+        return data_io.download_file(self.signed_url, requests.Session(), out_dir, retries)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.cloud.data_api.ReportDataResp.signed_url"><code class="name">var <span class="ident">signed_url</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.cloud.data_api.ReportDataResp.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.ReportDataResp.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.ReportDataResp.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.cloud.data_api.ReportDataResp.download_buf"><code class="name flex">
+<span>def <span class="ident">download_buf</span></span>(<span>self, retries: int = 3) ‑> typing.Optional[bytes]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Downloads the zip compressed report data and returns it as a byte buffer.
+:param retries: Number of times to retry the download of failure.
+:return: Bytes of the compressed report data.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def download_buf(self, retries: int = 3) -&gt; Optional[bytes]:
+    &#34;&#34;&#34;
+    Downloads the zip compressed report data and returns it as a byte buffer.
+    :param retries: Number of times to retry the download of failure.
+    :return: Bytes of the compressed report data.
+    &#34;&#34;&#34;
+    return data_io.get_file(self.signed_url, retries)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.ReportDataResp.download_fs"><code class="name flex">
+<span>def <span class="ident">download_fs</span></span>(<span>self, out_dir: str, retries: int = 3) ‑> typing.Tuple[str, int]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Downloads the zip compressed report data to the file system.
+:param out_dir: Output directory to download data to.
+:param retries: Number of times to retry the download on failure.
+:return: A tuple containing the file name and the number of bytes written.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def download_fs(self, out_dir: str, retries: int = 3) -&gt; Tuple[str, int]:
+    &#34;&#34;&#34;
+    Downloads the zip compressed report data to the file system.
+    :param out_dir: Output directory to download data to.
+    :param retries: Number of times to retry the download on failure.
+    :return: A tuple containing the file name and the number of bytes written.
+    &#34;&#34;&#34;
+    return data_io.download_file(self.signed_url, requests.Session(), out_dir, retries)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.ReportDataResp.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.data_api.ReportDataResp.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(encode_json=False),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.cloud" href="index.html">redvox.cloud</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.cloud.data_api.request_range_data" href="#redvox.cloud.data_api.request_range_data">request_range_data</a></code></li>
+<li><code><a title="redvox.cloud.data_api.request_report_data" href="#redvox.cloud.data_api.request_report_data">request_report_data</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.cloud.data_api.DataRangeReq" href="#redvox.cloud.data_api.DataRangeReq">DataRangeReq</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.cloud.data_api.DataRangeReq.auth_token" href="#redvox.cloud.data_api.DataRangeReq.auth_token">auth_token</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeReq.end_ts_s" href="#redvox.cloud.data_api.DataRangeReq.end_ts_s">end_ts_s</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeReq.from_dict" href="#redvox.cloud.data_api.DataRangeReq.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeReq.from_json" href="#redvox.cloud.data_api.DataRangeReq.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeReq.redvox_ids" href="#redvox.cloud.data_api.DataRangeReq.redvox_ids">redvox_ids</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeReq.schema" href="#redvox.cloud.data_api.DataRangeReq.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeReq.secret_token" href="#redvox.cloud.data_api.DataRangeReq.secret_token">secret_token</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeReq.start_ts_s" href="#redvox.cloud.data_api.DataRangeReq.start_ts_s">start_ts_s</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeReq.to_dict" href="#redvox.cloud.data_api.DataRangeReq.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeReq.to_json" href="#redvox.cloud.data_api.DataRangeReq.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.data_api.DataRangeReqType" href="#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.cloud.data_api.DataRangeReqType.API_1000" href="#redvox.cloud.data_api.DataRangeReqType.API_1000">API_1000</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeReqType.API_900" href="#redvox.cloud.data_api.DataRangeReqType.API_900">API_900</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeReqType.API_900_1000" href="#redvox.cloud.data_api.DataRangeReqType.API_900_1000">API_900_1000</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.data_api.DataRangeResp" href="#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.cloud.data_api.DataRangeResp.append" href="#redvox.cloud.data_api.DataRangeResp.append">append</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeResp.download_fs" href="#redvox.cloud.data_api.DataRangeResp.download_fs">download_fs</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeResp.from_dict" href="#redvox.cloud.data_api.DataRangeResp.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeResp.from_json" href="#redvox.cloud.data_api.DataRangeResp.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeResp.schema" href="#redvox.cloud.data_api.DataRangeResp.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeResp.signed_urls" href="#redvox.cloud.data_api.DataRangeResp.signed_urls">signed_urls</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeResp.to_dict" href="#redvox.cloud.data_api.DataRangeResp.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.data_api.DataRangeResp.to_json" href="#redvox.cloud.data_api.DataRangeResp.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.data_api.ReportDataReq" href="#redvox.cloud.data_api.ReportDataReq">ReportDataReq</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.cloud.data_api.ReportDataReq.auth_token" href="#redvox.cloud.data_api.ReportDataReq.auth_token">auth_token</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataReq.from_dict" href="#redvox.cloud.data_api.ReportDataReq.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataReq.from_json" href="#redvox.cloud.data_api.ReportDataReq.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataReq.report_id" href="#redvox.cloud.data_api.ReportDataReq.report_id">report_id</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataReq.schema" href="#redvox.cloud.data_api.ReportDataReq.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataReq.secret_token" href="#redvox.cloud.data_api.ReportDataReq.secret_token">secret_token</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataReq.to_dict" href="#redvox.cloud.data_api.ReportDataReq.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataReq.to_json" href="#redvox.cloud.data_api.ReportDataReq.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.cloud.data_api.ReportDataResp" href="#redvox.cloud.data_api.ReportDataResp">ReportDataResp</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.cloud.data_api.ReportDataResp.download_buf" href="#redvox.cloud.data_api.ReportDataResp.download_buf">download_buf</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataResp.download_fs" href="#redvox.cloud.data_api.ReportDataResp.download_fs">download_fs</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataResp.from_dict" href="#redvox.cloud.data_api.ReportDataResp.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataResp.from_json" href="#redvox.cloud.data_api.ReportDataResp.from_json">from_json</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataResp.schema" href="#redvox.cloud.data_api.ReportDataResp.schema">schema</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataResp.signed_url" href="#redvox.cloud.data_api.ReportDataResp.signed_url">signed_url</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataResp.to_dict" href="#redvox.cloud.data_api.ReportDataResp.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.cloud.data_api.ReportDataResp.to_json" href="#redvox.cloud.data_api.ReportDataResp.to_json">to_json</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
