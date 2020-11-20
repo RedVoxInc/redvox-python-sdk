@@ -51,6 +51,9 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         return ImageCodec.from_proto(self._proto.image_codec)
 
     def get_file_ext(self) -> str:
+        """
+        :return: The file extension for the given codec.
+        """
         return self.get_image_codec().name.lower()
 
     def set_image_codec(self, codec: ImageCodec) -> 'Image':
@@ -87,6 +90,11 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         return self._timestamps
 
     def set_timestamps(self, timestamps: common.TimingPayload) -> 'Image':
+        """
+        Sets the timestamps.
+        :param timestamps: Timestamps to set.
+        :return: A modified instance of self.
+        """
         check_type(timestamps, [common.TimingPayload])
         self.get_proto().timestamps.CopyFrom(timestamps.get_proto())
         self._timestamps = common.TimingPayload(self.get_proto().timestamps)
