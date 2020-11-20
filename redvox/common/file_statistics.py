@@ -28,8 +28,8 @@ def get_file_stats(sample_rate: Union[float, int]) -> Tuple[int, float]:
     """
     try:
         position: int = np.where(SAMPLE_RATE_HZ == sample_rate)[0][0]
-    except Exception:
-        raise ValueError(f'Sample rate {sample_rate} for mic data not recognized.')
+    except Exception as ex:
+        raise ValueError(f'Sample rate {sample_rate} for mic data not recognized.') from ex
 
     return DURATION_TOTAL_POINTS[position], DURATION_SECONDS[position]
 
@@ -43,8 +43,8 @@ def get_num_points_from_sample_rate(sample_rate: Union[float, int]) -> int:
     try:
         position: int = np.where(SAMPLE_RATE_HZ == sample_rate)[0][0]
         return DURATION_TOTAL_POINTS[position]
-    except Exception:
-        raise ValueError(f"Unknown sample rate {sample_rate} given to compute number of data points!")
+    except Exception as ex:
+        raise ValueError(f"Unknown sample rate {sample_rate} given to compute number of data points!") from ex
 
 
 def get_duration_seconds_from_sample_rate(sample_rate: Union[float, int]) -> float:
