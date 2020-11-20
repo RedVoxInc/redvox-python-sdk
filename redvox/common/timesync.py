@@ -4,11 +4,12 @@ Also includes functions for correcting time arrays.
 ALL timestamps in microseconds unless otherwise stated
 """
 
+from typing import List, Optional
+
 # noinspection Mypy
 import numpy as np
 import pandas as pd
 
-from typing import List, Optional
 from redvox.common import stats_helper as sh, tri_message_stats as tms, date_time_utils as dt
 from redvox.common.station import Station
 from redvox.common.station_utils import DataPacket, StationMetadata
