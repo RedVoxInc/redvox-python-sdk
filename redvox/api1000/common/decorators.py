@@ -21,7 +21,7 @@ def wrap_enum(proto_type: EnumTypeWrapper):
         """
         setattr(enum, "into_proto", lambda self: proto_type.Value(self.name))
         # noinspection Mypy, PyCallingNonCallable
-        enum.from_proto = staticmethod(lambda proto: enum(proto))
+        enum.from_proto = staticmethod(enum)
         return enum
 
     return __wrap_enum

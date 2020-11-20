@@ -7,8 +7,11 @@ import datetime
 from typing import Optional, TYPE_CHECKING
 
 import numpy as np
+# pylint: disable=E0611
 from PySide2.QtCore import Qt, QByteArray
+# pylint: disable=E0611
 from PySide2.QtGui import QPixmap
+# pylint: disable=E0611
 from PySide2.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem, \
     QHeaderView, QSizePolicy, QAbstractItemView
 
@@ -37,17 +40,17 @@ class ImageSelectionWidget(QTableWidget):
         timestamps: np.ndarray = image_sensor.get_timestamps().get_timestamps()
 
         self.setHorizontalHeaderLabels(["File Name", "Image Sampled At"])
-        for (i, ts) in enumerate(timestamps):
-            name: str = f"{round(ts)}.{extension}"
-            dt: datetime.datetime = datetime.datetime.utcfromtimestamp(ts / 1_000_000.0)
+        for (i, timestamp) in enumerate(timestamps):
+            name: str = f"{round(timestamp)}.{extension}"
+            date_time: datetime.datetime = datetime.datetime.utcfromtimestamp(timestamp / 1_000_000.0)
             self.setItem(i, 0, QTableWidgetItem(name))
-            self.setItem(i, 1, QTableWidgetItem(str(dt)))
+            self.setItem(i, 1, QTableWidgetItem(str(date_time)))
 
         def __update_image_at_row(row: int) -> None:
             buf: bytes = image_sensor.get_samples()[row]
             image_view_widget.set_image(buf)
 
-        self.currentCellChanged.connect(lambda r: __update_image_at_row(r))
+        self.currentCellChanged.connect(__update_image_at_row)
 
 
 class ImageViewWidget(QLabel):

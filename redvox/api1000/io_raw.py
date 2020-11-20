@@ -29,7 +29,7 @@ class StationSummary:
     station_id: str
     station_uuid: str
     auth_id: str
-    # pylint: ignore=C0103
+    # pylint: disable=C0103
     os: OsType
     os_version: str
     app_version: str
@@ -162,17 +162,17 @@ class ReadFilter:
         self.end_dt_buf = end_dt_buf
         return self
 
-    def filter_dt(self, dt: datetime) -> bool:
+    def filter_dt(self, date_time: datetime) -> bool:
         """
         Tests if a given datetime passes this filter.
-        :param dt: Datetime to test
+        :param date_time: Datetime to test
         :return: True if the datetime is included, False otherwise
         """
-        check_type(dt, [datetime])
-        if self.start_dt is not None and dt < (self.start_dt - self.start_dt_buf):
+        check_type(date_time, [datetime])
+        if self.start_dt is not None and date_time < (self.start_dt - self.start_dt_buf):
             return False
 
-        if self.end_dt is not None and dt > (self.end_dt + self.end_dt_buf):
+        if self.end_dt is not None and date_time > (self.end_dt + self.end_dt_buf):
             return False
 
         return True
@@ -189,10 +189,10 @@ class ReadFilter:
         station_ts: str = _path.stem
         split: List[str] = station_ts.split("_")
         station_id: str = split[0]
-        ts: float = float(split[1])
-        dt: datetime = dt_us(ts)
+        timestamp: float = float(split[1])
+        date_time: datetime = dt_us(timestamp)
 
-        if not self.filter_dt(dt):
+        if not self.filter_dt(date_time):
             return False
 
         if self.station_ids is not None and station_id not in self.station_ids:
@@ -219,8 +219,8 @@ class ReadResult:
         self.__station_summaries: List[StationSummary] = []
 
         for id_uuid, packets in self.station_id_uuid_to_packets.items():
-            s: List[str] = id_uuid.split(":")
-            self.__station_id_to_id_uuid[s[0]] = id_uuid
+            split_id_uuid: List[str] = id_uuid.split(":")
+            self.__station_id_to_id_uuid[split_id_uuid[0]] = id_uuid
             self.__station_summaries.append(StationSummary.from_packets(packets))
 
     @staticmethod
@@ -313,7 +313,7 @@ def __deserialize_paths(paths: List[str], parallel: bool = False) -> List[Wrappe
     if parallel:
         pool = Pool()
         deserialized = list(pool.map(__deserialize_path, paths))
-        return sorted(list(map(lambda de: WrappedRedvoxPacketM(de), deserialized)))
+        return sorted(list(map(WrappedRedvoxPacketM, deserialized)))
     else:
         return sorted(list(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
 
@@ -357,7 +357,7 @@ def __parse_structured_layout(base_dir: str,
                                                          hour,
                                                          f"*{read_filter.extension}"))
                     # Filer paths that match the predicate
-                    valid_paths: List[str] = list(filter(lambda path: read_filter.filter_path(path), paths))
+                    valid_paths: List[str] = list(filter(read_filter.filter_path, paths))
                     if len(valid_paths) > 0:
                         all_paths.extend(valid_paths)
 
@@ -401,7 +401,7 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> 
     check_type(read_filter, [ReadFilter])
     pattern: str = os.path.join(base_dir, f"*{read_filter.extension}")
     paths: List[str] = glob(os.path.join(base_dir, pattern))
-    paths = list(filter(lambda path: read_filter.filter_path(path), paths))
+    paths = list(filter(read_filter.filter_path, paths))
     wrapped_packets: List[WrappedRedvoxPacketM] = __deserialize_paths(paths)
     return ReadResult.from_packets(wrapped_packets)
 
@@ -432,7 +432,7 @@ def stream_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -
     check_type(read_filter, [ReadFilter])
     pattern: str = os.path.join(base_dir, f"*{read_filter.extension}")
     paths: List[str] = glob(os.path.join(base_dir, pattern))
-    paths = list(filter(lambda path: read_filter.filter_path(path), paths))
+    paths = list(filter(read_filter.filter_path, paths))
 
     for path in paths:
         yield WrappedRedvoxPacketM.from_compressed_path(path)
