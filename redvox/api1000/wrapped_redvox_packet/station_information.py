@@ -1206,17 +1206,35 @@ class StationInformation(
         """
         return self._app_settings
 
+    def set_app_settings(self, app_settings: AppSettings) -> 'StationInformation':
+        common.check_type(app_settings, [AppSettings])
+        self.get_proto().app_settings.CopyFrom(app_settings.get_proto())
+        self._app_settings = AppSettings(self.get_proto().app_settings)
+        return self
+
     def get_station_metrics(self) -> StationMetrics:
         """
         :return: Metrics associated with this station.
         """
         return self._station_metrics
 
+    def set_station_metrics(self, station_metrics: StationMetrics) -> 'StationInformation':
+        common.check_type(station_metrics, [StationMetrics])
+        self.get_proto().station_metrics.CopyFrom(station_metrics.get_proto())
+        self._station_metrics = StationMetrics(self.get_proto().station_metrics)
+        return self
+
     def get_service_urls(self) -> ServiceUrls:
         """
         :return: URLs used to service this station.
         """
         return self._service_urls
+
+    def set_service_urls(self, service_urls: ServiceUrls) -> 'StationInformation':
+        common.check_type(service_urls, [ServiceUrls])
+        self.get_proto().service_urls.CopyFrom(service_urls.get_proto())
+        self._service_urls = ServiceUrls(self.get_proto().service_urls)
+        return self
 
 
 def validate_station_information(station_info: StationInformation) -> List[str]:
