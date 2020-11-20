@@ -48,6 +48,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         :return: Returns the codec that was used to store the images.
         """
         # noinspection Mypy
+        # pylint: disable=E1101
         return ImageCodec.from_proto(self._proto.image_codec)
 
     def get_file_ext(self) -> str:

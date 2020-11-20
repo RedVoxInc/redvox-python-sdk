@@ -224,6 +224,7 @@ class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload
         :return: The unit of this payload.
         """
         # noinspection Mypy
+        # pylint: disable=E1101
         return Unit.from_proto(self._proto.unit)
 
     def set_unit(self, unit: Unit) -> 'SamplePayload':
@@ -408,6 +409,7 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         :return: The timing unit.
         """
         # noinspection Mypy
+        # pylint: disable=E1101
         return Unit.from_proto(self._proto.unit)
 
     def set_unit(self, unit: Unit) -> 'TimingPayload':
@@ -498,6 +500,11 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         return self._timestamp_statistics
 
     def set_timestamp_statistics(self, timestamp_statistics: SummaryStatistics) -> 'TimingPayload':
+        """
+        Sets the timestamp statistics.
+        :param timestamp_statistics: TimestampStatistics to set.
+        :return: A modified instance of self.
+        """
         check_type(timestamp_statistics, [SummaryStatistics])
         self.get_proto().timestamp_statistics.CopyFrom(timestamp_statistics.get_proto())
         self._timestamp_statistics = SummaryStatistics(self.get_proto().timestamp_statistics)

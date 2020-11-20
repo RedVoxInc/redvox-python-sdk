@@ -56,5 +56,5 @@ def get_duration_seconds_from_sample_rate(sample_rate: Union[float, int]) -> flo
     try:
         position: int = np.where(SAMPLE_RATE_HZ == sample_rate)[0][0]
         return DURATION_SECONDS[position]
-    except Exception as e:
-        raise ValueError(f"Unknown sample rate {sample_rate} given to compute duration!") from e
+    except Exception as ex:
+        raise ValueError(f"Unknown sample rate {sample_rate} given to compute duration!") from ex

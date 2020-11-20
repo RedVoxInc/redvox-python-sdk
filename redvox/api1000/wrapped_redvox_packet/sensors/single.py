@@ -1,14 +1,12 @@
 """
 This module provides functionality for working with single channel API M sensors.
 """
-
-import redvox.api1000.common.common as common
-import redvox.api1000.common.typing
-import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
-
 from typing import List, Optional
 
+import redvox.api1000.common.common as common
 import redvox.api1000.common.generic
+import redvox.api1000.common.typing
+import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
 
 class Single(
@@ -51,6 +49,11 @@ class Single(
         return self._timestamps
 
     def set_timestamps(self, timestamps: common.TimingPayload) -> 'Single':
+        """
+        Sets the timestamps associated with the sensor payload.
+        :param timestamps: Timestamps to set.
+        :return: A modified instance of self.
+        """
         common.check_type(timestamps, [common.TimingPayload])
         self.get_proto().timestamps.CopyFrom(timestamps.get_proto())
         self._timestamps = common.TimingPayload(self.get_proto().timestamps)
@@ -63,7 +66,13 @@ class Single(
         return self._samples
 
     def set_samples(self, samples: common.SamplePayload) -> 'Single':
+        """
+        Sets the samples for this sensor.
+        :param samples: Samples to set.
+        :return: A modified instance of self.
+        """
         common.check_type(samples, [common.SamplePayload])
+        # noinspection Mypy
         self.get_proto().samples.CopyFrom(samples.get_proto())
         self._samples = common.SamplePayload(self.get_proto().samples)
         return self
