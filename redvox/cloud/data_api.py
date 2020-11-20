@@ -100,9 +100,11 @@ def request_report_data(api_config: ApiConfig,
     :param api_config: An API config.
     :param report_data_req: The request.
     :param session: An (optional) session for re-using an HTTP client.
+    :param timeout: An (optional) timeout.
     :return: The response.
     """
     # noinspection Mypy
+    # pylint: disable=E1101
     handle_resp: Callable[[requests.Response], ReportDataResp] = lambda resp: ReportDataResp.from_dict(resp.json())
     return post_req(api_config,
                     RoutesV1.DATA_REPORT_REQ,
@@ -136,6 +138,7 @@ def request_range_data(api_config: ApiConfig,
     :return: A DataRangeResp.
     """
     # noinspection Mypy
+    # pylint: disable=E1101
     handle_resp: Callable[[requests.Response], DataRangeResp] = lambda resp: DataRangeResp.from_dict(resp.json())
 
     # API 900

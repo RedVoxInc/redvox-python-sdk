@@ -9,18 +9,26 @@ import contextlib
 import threading
 from typing import List, Optional, Tuple
 
+import requests
+
 import redvox.cloud.api as api
 import redvox.cloud.auth_api as auth_api
 import redvox.cloud.errors as cloud_errors
 import redvox.common.constants as constants
 import redvox.cloud.data_api as data_api
 import redvox.cloud.metadata_api as metadata_api
-import requests
 
 
 def chunk_time_range(start_ts: int,
                      end_ts: int,
                      max_chunk: int) -> List[Tuple[int, int]]:
+    """
+    Chunks the given request window into smaller windows.
+    :param start_ts: Start of the request window.
+    :param end_ts: End of the request window.
+    :param max_chunk: Max chunk size.
+    :return: A list of window chunks.
+    """
 
     if end_ts <= start_ts:
         raise cloud_errors.CloudApiError("start_ts must be < end_ts")
@@ -77,9 +85,9 @@ class CloudClient:
         self.__session = requests.Session()  # This must be initialized before the auth req!
         try:
             auth_resp: auth_api.AuthResp = self.authenticate_user(username, password)
-        except cloud_errors.ApiConnectionError as e:
+        except cloud_errors.ApiConnectionError as ex:
             self.close()
-            raise e
+            raise ex
 
         self.__refresh_timer = None
         if auth_resp.status != 200 or auth_resp.auth_token is None or len(auth_resp.auth_token) == 0:
@@ -334,13 +342,17 @@ class CloudClient:
         report_data_req: data_api.ReportDataReq = data_api.ReportDataReq(self.auth_token,
                                                                          report_id,
                                                                          self.secret_token)
-        return data_api.request_report_data(self.api_conf, report_data_req, session=self.__session, timeout=self.timeout)
+        return data_api.request_report_data(self.api_conf,
+                                            report_data_req,
+                                            session=self.__session,
+                                            timeout=self.timeout)
 
     def request_data_range(self,
                            start_ts_s: int,
                            end_ts_s: int,
                            station_ids: List[str],
-                           req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900) -> data_api.DataRangeResp:
+                           req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900) \
+            -> data_api.DataRangeResp:
         """
         Request signed URLs for RedVox packets.
         :param start_ts_s: The start epoch of the window.
@@ -386,6 +398,7 @@ def cloud_client(username: str,
     :param api_conf: The Cloud API endpoint configuration.
     :param secret_token: An optional secret token.
     :param refresh_token_interval: An optional token refresh interval
+    :param timeout: An optional timeout.
     :return: A CloudClient.
     """
     client: CloudClient = CloudClient(username, password, api_conf, secret_token, refresh_token_interval, timeout)
@@ -394,4 +407,3 @@ def cloud_client(username: str,
     finally:
         if client is not None:
             client.close()
-
