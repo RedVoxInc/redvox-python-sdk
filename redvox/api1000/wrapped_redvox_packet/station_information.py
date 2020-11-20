@@ -768,6 +768,11 @@ class StationMetrics(
         return self._timestamps
 
     def set_timestamps(self, timestamps: common.TimingPayload) -> 'StationMetrics':
+        """
+        Sets the timing payload.
+        :param timestamps: Payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(timestamps, [common.TimingPayload])
         self.get_proto().timestamps.CopyFrom(timestamps.get_proto())
         self._timestamps = common.TimingPayload(self.get_proto().timestamps)
@@ -780,6 +785,11 @@ class StationMetrics(
         return self._network_type
 
     def set_network_type(self, network_type: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'StationMetrics':
+        """
+        Sets the network type payload.
+        :param network_type: The payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(network_type, [redvox.api1000.common.generic.ProtoRepeatedMessage])
         self._network_type.clear_values()
         self._network_type.append_values(network_type.get_values())
@@ -791,8 +801,13 @@ class StationMetrics(
         """
         return self._cell_service_state
 
-
-    def set_cell_service_state(self, cell_service_state: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'StationMetrics':
+    def set_cell_service_state(self, cell_service_state: redvox.api1000.common.generic.ProtoRepeatedMessage) \
+            -> 'StationMetrics':
+        """
+        Sets the cell service state payload.
+        :param cell_service_state: The payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(cell_service_state, [redvox.api1000.common.generic.ProtoRepeatedMessage])
         self._cell_service_state.clear_values()
         self._cell_service_state.append_values(cell_service_state.get_values())
@@ -805,7 +820,13 @@ class StationMetrics(
         return self._network_strength
 
     def set_network_strength(self, network_strength: common.SamplePayload) -> 'StationMetrics':
+        """
+        Sets the network strength payload.
+        :param network_strength: The payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(network_strength, [common.SamplePayload])
+        # noinspection Mypy
         self.get_proto().network_strength.CopyFrom(network_strength.get_proto())
         self._network_strength = common.SamplePayload(self.get_proto().network_strength)
         return self
@@ -817,7 +838,13 @@ class StationMetrics(
         return self._temperature
 
     def set_temperature(self, temperature: common.SamplePayload) -> 'StationMetrics':
+        """
+        Sets the temperature payload.
+        :param temperature: The payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(temperature, [common.SamplePayload])
+        # noinspection Mypy
         self.get_proto().temperature.CopyFrom(temperature.get_proto())
         self._temperature = common.SamplePayload(self.get_proto().temperature)
         return self
@@ -829,7 +856,13 @@ class StationMetrics(
         return self._battery
 
     def set_battery(self, battery: common.SamplePayload) -> 'StationMetrics':
+        """
+        Sets the battery payload.
+        :param battery: Payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(battery, [common.SamplePayload])
+        # noinspection Mypy
         self.get_proto().battery.CopyFrom(battery.get_proto())
         self._battery = common.SamplePayload(self.get_proto().battery)
         return self
@@ -841,7 +874,13 @@ class StationMetrics(
         return self._battery_current
 
     def set_battery_current(self, battery_current: common.SamplePayload) -> 'StationMetrics':
+        """
+        Sets the battery current payload.
+        :param battery_current: Payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(battery_current, [common.SamplePayload])
+        # noinspection Mypy
         self.get_proto().battery_current.CopyFrom(battery_current.get_proto())
         self._battery_current = common.SamplePayload(self.get_proto().battery_current)
         return self
@@ -853,7 +892,13 @@ class StationMetrics(
         return self._available_ram
 
     def set_available_ram(self, available_ram: common.SamplePayload) -> 'StationMetrics':
+        """
+        Sets the available ram payload.
+        :param available_ram: Payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(available_ram, [common.SamplePayload])
+        # noinspection Mypy
         self.get_proto().available_ram.CopyFrom(available_ram.get_proto())
         self._available_ram = common.SamplePayload(self.get_proto().available_ram)
         return self
@@ -865,7 +910,13 @@ class StationMetrics(
         return self._available_disk
 
     def set_available_disk(self, available_disk: common.SamplePayload) -> 'StationMetrics':
+        """
+        Sets the available disk payload.
+        :param available_disk: Payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(available_disk, [common.SamplePayload])
+        # noinspection Mypy
         self.get_proto().available_disk.CopyFrom(available_disk.get_proto())
         self._available_disk = common.SamplePayload(self.get_proto().available_disk)
         return self
@@ -877,7 +928,13 @@ class StationMetrics(
         return self._cpu_utilization
 
     def set_cpu_utilization(self, cpu_utilization: common.SamplePayload) -> 'StationMetrics':
+        """
+        Sets the CPU utilization payload.
+        :param cpu_utilization: The payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(cpu_utilization, [common.SamplePayload])
+        # noinspection Mypy
         self.get_proto().cpu_utilization.CopyFrom(cpu_utilization.get_proto())
         self._cpu_utilization = common.SamplePayload(self.get_proto().cpu_utilization)
         return self
@@ -901,6 +958,11 @@ class StationMetrics(
         return self._wifi_wake_loc
 
     def set_wifi_wake_loc(self, wifi_wake_loc: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'StationMetrics':
+        """
+        Sets the wifi wake lock payload.
+        :param wifi_wake_loc: The wifi wake lock payload to set.
+        :return: A modified instance of self.
+        """
         common.check_type(wifi_wake_loc, [redvox.api1000.common.generic.ProtoRepeatedMessage])
         self._wifi_wake_loc.clear_values()
         self._wifi_wake_loc.append_values(wifi_wake_loc.get_values())
@@ -913,6 +975,11 @@ class StationMetrics(
         return self._screen_state
 
     def set_screen_state(self, screen_state: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'StationMetrics':
+        """
+        Sets the screen state payload.
+        :param screen_state: ScreenState repeated message to set.
+        :return: A modified instance of self.
+        """
         common.check_type(screen_state, [redvox.api1000.common.generic.ProtoRepeatedMessage])
         self._screen_state.clear_values()
         self._screen_state.append_values(screen_state.get_values())
@@ -925,7 +992,13 @@ class StationMetrics(
         return self._screen_brightness
 
     def set_screen_brightness(self, screen_brightness: common.SamplePayload) -> 'StationMetrics':
+        """
+        Sets the screen brightness payload.
+        :param screen_brightness: A SamplePayload containing screen brightness.
+        :return: A modified instance of self.
+        """
         common.check_type(screen_brightness, [common.SamplePayload])
+        # noinspection Mypy
         self.get_proto().screen_brightness.CopyFrom(screen_brightness.get_proto())
         self._screen_brightness = common.SamplePayload(self.get_proto().screen_brightness)
         return self
@@ -1142,6 +1215,7 @@ class StationInformation(
         """
         return OsType(self.get_proto().os)
 
+    # pylint: disable=C0103
     def set_os(self, os: OsType) -> 'StationInformation':
         """
         Sets the station's OS
@@ -1207,6 +1281,11 @@ class StationInformation(
         return self._app_settings
 
     def set_app_settings(self, app_settings: AppSettings) -> 'StationInformation':
+        """
+        Sets the AppSettings.
+        :param app_settings: AppSettings to set.
+        :return: A modified instance of self.
+        """
         common.check_type(app_settings, [AppSettings])
         self.get_proto().app_settings.CopyFrom(app_settings.get_proto())
         self._app_settings = AppSettings(self.get_proto().app_settings)
@@ -1219,6 +1298,11 @@ class StationInformation(
         return self._station_metrics
 
     def set_station_metrics(self, station_metrics: StationMetrics) -> 'StationInformation':
+        """
+        Sets the StationMetrics.
+        :param station_metrics: StationMetrics to set.
+        :return: A modified instance of self.
+        """
         common.check_type(station_metrics, [StationMetrics])
         self.get_proto().station_metrics.CopyFrom(station_metrics.get_proto())
         self._station_metrics = StationMetrics(self.get_proto().station_metrics)
@@ -1231,6 +1315,11 @@ class StationInformation(
         return self._service_urls
 
     def set_service_urls(self, service_urls: ServiceUrls) -> 'StationInformation':
+        """
+        Sets the service urls.
+        :param service_urls: ServiceUrls to set.
+        :return: A modified instance of self.
+        """
         common.check_type(service_urls, [ServiceUrls])
         self.get_proto().service_urls.CopyFrom(service_urls.get_proto())
         self._service_urls = ServiceUrls(self.get_proto().service_urls)
