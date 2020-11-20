@@ -70,6 +70,11 @@ class MovementEvent:
         return self.movement_end_dt() - self.movement_start_dt()
 
     def time_diff(self, other: 'MovementEvent') -> datetime.timedelta:
+        """
+        Returns the time difference between two events.
+        :param other: The other event to compare against.
+        :return: The time difference between this and another event.
+        """
         events: List['MovementEvent'] = sorted([self, other])
         fst: 'MovementEvent' = events[0]
         scd: 'MovementEvent' = events[1]
@@ -127,6 +132,11 @@ class MovementEventStream:
         return MovementEventStream(event_stream.get_name(), movement_events)
 
     def events_by_channel(self, movement_channel: MovementChannel) -> List[MovementEvent]:
+        """
+        Returns events for a given channel.
+        :param movement_channel: Channel to filter events for.
+        :return: A list of movement events.
+        """
         return list(filter(lambda event: event.movement_channel == movement_channel, self.movement_events))
 
 
@@ -273,14 +283,14 @@ class MovementData:
         # The goal here is to find the first index that matches the start time and the first index that matches the end
         # time in a single O(N) pass. TODO: this could be improved with binary search.
         i: int = 0
-        for i, ts in enumerate(timestamps):
-            if ts >= start_ts:
+        for i, timestamp in enumerate(timestamps):
+            if timestamp >= start_ts:
                 start_idx = i
                 break
 
         for j in range(i, len(timestamps)):
-            ts = timestamps[j]
-            if ts >= end_ts:
+            timestamp = timestamps[j]
+            if timestamp >= end_ts:
                 end_idx = j + 1
                 break
 
