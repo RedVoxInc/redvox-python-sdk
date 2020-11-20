@@ -43,6 +43,11 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
         return self.__string_payload
 
     def set_string_payload(self, string_payload: Mapping[str]) -> 'Event':
+        """
+        Sets the string payload.
+        :param string_payload: Payload to set.
+        :return: A modified instance of self.
+        """
         check_type(string_payload, [Mapping])
         self.__string_payload.set_metadata(string_payload.get_metadata())
         return self
@@ -54,6 +59,11 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
         return self.__numeric_payload
 
     def set_numeric_payload(self, numeric_payload: Mapping[float]) -> 'Event':
+        """
+        Sets the numeric payload.
+        :param numeric_payload: Payload to set.
+        :return: A modified instance of self.
+        """
         check_type(numeric_payload, [Mapping])
         self.__numeric_payload.set_metadata(numeric_payload.get_metadata())
         return self
@@ -65,6 +75,11 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
         return self.__boolean_payload
 
     def set_boolean_payload(self, boolean_payload: Mapping[bool]) -> 'Event':
+        """
+        Sets the boolean payload.
+        :param boolean_payload: Payload to set.
+        :return: A modified instance of self.
+        """
         check_type(boolean_payload, [Mapping])
         self.__boolean_payload.set_metadata(boolean_payload.get_metadata())
         return self
@@ -76,6 +91,11 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
         return self.__byte_payload
 
     def set_byte_payload(self, byte_payload: Mapping[bytes]) -> 'Event':
+        """
+        Sets the byte payload.
+        :param byte_payload: Payload to set.
+        :return: A modified instance of self.
+        """
         check_type(byte_payload, [Mapping])
         self.__byte_payload.set_metadata(byte_payload.get_metadata())
         return self
@@ -119,6 +139,11 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
         return self.__timestamps
 
     def set_timestamps(self, timestamps: TimingPayload) -> 'EventStream':
+        """
+        Sets the timing payload.
+        :param timestamps: Timing payload to set.
+        :return: A modified instance of self.
+        """
         check_type(timestamps, [TimingPayload])
         self.get_proto().timestamps.CopyFrom(timestamps.get_proto())
         self.__timestamps = TimingPayload(self.get_proto().timestamps)
@@ -131,6 +156,11 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
         return self.__events
 
     def set_events(self, events: ProtoRepeatedMessage) -> 'EventStream':
+        """
+        Sets the Events from the provided ProtoRepeatedMessage.
+        :param events: Events encoded in a ProtoRepeatedMessage.
+        :return: A modified instance of self.
+        """
         self.__events.clear_values()
         self.__events.append_values(events.get_values())
         return self
