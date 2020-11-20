@@ -142,6 +142,7 @@ class AppSettings(
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings):
         super().__init__(proto)
         # noinspection Mypy
+        # pylint: disable=E1101
         self._additional_input_sensors: redvox.api1000.common.generic.ProtoRepeatedMessage[
             InputSensorProto, InputSensor] = \
             redvox.api1000.common.generic.ProtoRepeatedMessage(
