@@ -44,7 +44,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
             redvox_proto,
             redvox_proto.event_streams,
             "event_streams",
-            lambda event_stream_proto: EventStream(event_stream_proto),
+            EventStream,
             lambda event_stream: event_stream.get_proto()
         )
 
@@ -146,12 +146,12 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         Computes the default file directory structure for a structured layout for this particular packet.
         :return:  Directory structure for this packet when using structured layout
         """
-        ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
-        dt: datetime = dt_utils.datetime_from_epoch_microseconds_utc(ts)
-        year: str = f"{dt.year}:0>4"
-        month: str = f"{dt.month:0>2}"
-        day: str = f"{dt.day:0>2}"
-        hour: str = f"{dt.hour:0>2}"
+        timestamp: float = self.get_timing_information().get_packet_start_mach_timestamp()
+        date_time: datetime = dt_utils.datetime_from_epoch_microseconds_utc(timestamp)
+        year: str = f"{date_time.year}:0>4"
+        month: str = f"{date_time.month:0>2}"
+        day: str = f"{date_time.day:0>2}"
+        hour: str = f"{date_time.hour:0>2}"
         return os.path.join(year, month, day, hour)
 
     def default_file_path(self) -> str:

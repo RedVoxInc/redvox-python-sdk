@@ -104,12 +104,12 @@ class ReadFilter:
         return self.with_start_dt(dt_us(start_ts))
 
     def with_end_dt(self, end_dt: datetime) -> 'ReadFilter':
-        check_type(end_dt, [datetime])
         """
         Adds an end datetime filter.
         :param end_dt: Filter for which packets should come before.
         :return: A modified instance of this filter
         """
+        check_type(end_dt, [datetime])
         self.end_dt = end_dt
         return self
 
