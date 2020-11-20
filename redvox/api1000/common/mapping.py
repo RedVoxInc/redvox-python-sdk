@@ -7,6 +7,7 @@ from typing import Dict, Generic, Type, TypeVar
 from redvox.api1000.common.typing import check_type
 
 
+# pylint: disable=C0103
 T = TypeVar("T")
 
 
@@ -25,6 +26,10 @@ class Mapping(Generic[T]):
         self._metadata_proto = metadata_proto
 
     def get_proto(self):
+        """
+        Returns the protobuf definition associated with this mapping.
+        :return: The protobuf definition associated with this mapping.
+        """
         return self._metadata_proto
 
     def get_metadata_count(self) -> int:

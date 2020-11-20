@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 import os.path
 from functools import total_ordering
 from typing import Optional, List
+
+# noinspection PyPackageRequirements
 from google.protobuf import json_format
 
 from redvox.api1000.common.common import check_type
@@ -245,7 +247,13 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         return self._station_information
 
-    def set_station_information(self, station_information: _station_information.StationInformation) -> 'WrappedRedvoxPacketM':
+    def set_station_information(self,
+                                station_information: _station_information.StationInformation) -> 'WrappedRedvoxPacketM':
+        """
+        Sets the StationInformation.
+        :param station_information: StationInformation to set.
+        :return: A modified instance of self.
+        """
         check_type(station_information, [_station_information.StationInformation])
         self.get_proto().station_information.CopyFrom(station_information.get_proto())
         self._station_information = _station_information.StationInformation(self.get_proto().station_information)
@@ -257,7 +265,13 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         return self._timing_information
 
-    def set_timing_information(self, timing_information: _timing_information.TimingInformation) -> 'WrappedRedvoxPacketM':
+    def set_timing_information(self,
+                               timing_information: _timing_information.TimingInformation) -> 'WrappedRedvoxPacketM':
+        """
+        Sets the timing information.
+        :param timing_information: TimingInformation to set.
+        :return: A modified instance of self.
+        """
         check_type(timing_information, [_timing_information.TimingInformation])
         self.get_proto().timing_information.CopyFrom(timing_information.get_proto())
         self._timing_information = _timing_information.TimingInformation(self.get_proto().timing_information)
@@ -270,6 +284,11 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         return self._sensors
 
     def set_sensors(self, sensors: _sensors.Sensors) -> 'WrappedRedvoxPacketM':
+        """
+        Sets the sensors.
+        :param sensors: Sensors to set.
+        :return: A modified instance of self.
+        """
         check_type(sensors, [_sensors.Sensors])
         self.get_proto().sensors.CopyFrom(sensors.get_proto())
         self._sensors = _sensors.Sensors(self.get_proto().sensors)
@@ -282,6 +301,11 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         return self._event_streams
 
     def set_event_streams(self, event_streams: ProtoRepeatedMessage) -> 'WrappedRedvoxPacketM':
+        """
+        Set the event streams from the provided ProtoRepeatedMessage.
+        :param event_streams: EventStreams embedded in a ProtoRepeatedMessage.
+        :return: A modified instance of self.
+        """
         check_type(event_streams, [ProtoRepeatedMessage])
         self._event_streams.clear_values()
         self._event_streams.append_values(event_streams.get_values())

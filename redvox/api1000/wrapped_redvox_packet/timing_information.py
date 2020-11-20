@@ -39,6 +39,7 @@ class SynchExchange(
         :return: The unit for exchange values.
         """
         # noinspection Mypy
+        # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.unit)
 
     def set_default_unit(self) -> 'SynchExchange':
@@ -232,6 +233,7 @@ class TimingInformation(
         :return: Unit used for this timing information.
         """
         # noinspection Mypy
+        # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.unit)
 
     def set_default_unit(self) -> 'TimingInformation':
