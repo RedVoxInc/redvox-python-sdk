@@ -592,7 +592,7 @@ def load_apim_wrapped_packet(wrapped_packet: apim_wp.WrappedRedvoxPacketM) -> Di
     if sensors.has_proximity() and sensors.validate_proximity():
         data_dict[SensorType.PROXIMITY] = read_apim_single_sensor(sensors.get_proximity(), "proximity")
     if sensors.has_ambient_temperature() and sensors.validate_ambient_temperature():
-        data_dict[SensorType.TEMPERATURE] = read_apim_single_sensor(sensors.get_ambient_temperature(), "ambient_temp")
+        data_dict[SensorType.AMBIENT_TEMPERATURE] = read_apim_single_sensor(sensors.get_ambient_temperature(), "ambient_temp")
     if sensors.has_relative_humidity() and sensors.validate_relative_humidity():
         data_dict[SensorType.RELATIVE_HUMIDITY] = read_apim_single_sensor(sensors.get_relative_humidity(),
                                                                           "rel_humidity")
