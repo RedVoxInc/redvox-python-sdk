@@ -63,11 +63,23 @@ class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM
         """
         return self._timestamps
 
+    def set_timestamps(self, timestamps: common.TimingPayload) -> 'Xyz':
+        common.check_type(timestamps, [common.TimingPayload])
+        self.get_proto().timestamps.CopyFrom(timestamps.get_proto())
+        self._timestamps = common.TimingPayload(self.get_proto().timestamps)
+        return self
+
     def get_x_samples(self) -> common.SamplePayload:
         """
         :return: SamplePayload associated with x channel
         """
         return self._x_samples
+
+    def set_x_samples(self, x_samples: common.SamplePayload) -> 'Xyz':
+        common.check_type(x_samples, [common.SamplePayload])
+        self.get_proto().x_samples.CopyFrom(x_samples.get_proto())
+        self._x_samples = common.SamplePayload(self.get_proto().x_samples)
+        return self
 
     def get_y_samples(self) -> common.SamplePayload:
         """
@@ -75,11 +87,23 @@ class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM
         """
         return self._y_samples
 
+    def set_y_samples(self, x_samples: common.SamplePayload) -> 'Xyz':
+        common.check_type(x_samples, [common.SamplePayload])
+        self.get_proto().x_samples.CopyFrom(x_samples.get_proto())
+        self._y_samples = common.SamplePayload(self.get_proto().x_samples)
+        return self
+
     def get_z_samples(self) -> common.SamplePayload:
         """
         :return: SamplePayload associated with z channel
         """
         return self._z_samples
+
+    def set_z_samples(self, x_samples: common.SamplePayload) -> 'Xyz':
+        common.check_type(x_samples, [common.SamplePayload])
+        self.get_proto().x_samples.CopyFrom(x_samples.get_proto())
+        self._z_samples = common.SamplePayload(self.get_proto().x_samples)
+        return self
 
 
 def validate_xyz(xyz_sensor: Xyz, payload_unit: Optional[common.Unit] = None) -> List[str]:
