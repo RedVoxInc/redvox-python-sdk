@@ -145,6 +145,7 @@ class PacketMetadataResult:
 
 @dataclass_json
 @dataclass
+# pylint: disable=C0103
 class AvailableMetadata:
     """
     Contains definitions for all available metadata that an be requested from the cloud api.
@@ -249,6 +250,7 @@ class MetadataResp:
     metadata: List[PacketMetadataResult]
 
 
+# pylint: disable=C0103
 T = TypeVar('T')
 
 
@@ -261,6 +263,9 @@ def _get(key: str, json_dict: Dict, default: Optional[T] = None) -> Optional[T]:
 
 @dataclass
 class AdditionalMetadata:
+    """
+    Representation of additional metadata from database.
+    """
     data_key: Optional[str]
 
     @staticmethod

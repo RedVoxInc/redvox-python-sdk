@@ -11,7 +11,9 @@ from google.protobuf.json_format import MessageToJson, MessageToDict
 from redvox.api1000.common.metadata import Metadata
 from redvox.api1000.common.lz4 import compress
 
+# pylint: disable=C0103
 T = TypeVar('T')  # Type parameter for transformed wrapper type
+# pylint: disable=C0103
 P = TypeVar('P')  # Type parameter for protobuf type
 
 

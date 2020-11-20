@@ -29,6 +29,9 @@ class ApiConfig:
 
     @staticmethod
     def default() -> 'ApiConfig':
+        """
+        :return: The default API configuration for communicating with RedVox cloud services.
+        """
         return ApiConfig("https", "redvox.io", 8080)
 
 
@@ -38,6 +41,16 @@ def post_req(api_config: ApiConfig,
              resp_transform: Callable[[requests.Response], Any],
              session: Optional[requests.Session] = None,
              timeout: Optional[float] = 10.0) -> Optional[Any]:
+    """
+    Performs an HTTP POST request.
+    :param api_config: API endpoint configuration.
+    :param route: Route to POST to.
+    :param req: Request to send in POST.
+    :param resp_transform: Function to transform the response into something we can use.
+    :param session: The HTTP session.
+    :param timeout: An (optional) timeout.
+    :return: The optional response.
+    """
     url: str = api_config.url(route)
     # noinspection Mypy
     req_dict: Dict = req.to_dict()
@@ -52,8 +65,8 @@ def post_req(api_config: ApiConfig,
             return resp_transform(resp)
         else:
             return None
-    except requests.RequestException as e:
-        raise cloud_errors.ApiConnectionError(f"Error making POST request to {url}: with body: {req_dict}: {e}")
+    except requests.RequestException as ex:
+        raise cloud_errors.ApiConnectionError(f"Error making POST request to {url}: with body: {req_dict}: {ex}")
 
 
 def health_check(api_config: ApiConfig,
