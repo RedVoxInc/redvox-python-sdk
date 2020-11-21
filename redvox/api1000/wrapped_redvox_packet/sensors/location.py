@@ -122,6 +122,11 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         return self._latitude_longitude_timestamp
 
     def set_latitude_longitude_timestamp(self, latitude_longitude_timestamp: BestTimestamp) -> 'BestLocation':
+        """
+        Sets the latitude/longitude best timestamp.
+        :param latitude_longitude_timestamp: The BestTimestamp to set.
+        :return: A modified instance of self.
+        """
         common.check_type(latitude_longitude_timestamp, [BestTimestamp])
         self.get_proto().latitude_longitude_timestamp.CopyFrom(latitude_longitude_timestamp.get_proto())
         self._latitude_longitude_timestamp = BestTimestamp(self.get_proto().latitude_longitude_timestamp)
@@ -134,6 +139,11 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         return self._altitude_timestamp
 
     def set_altitude_timestamp(self, altitude_timestamp: BestTimestamp) -> 'BestLocation':
+        """
+        Sets the altitude timestamp.
+        :param altitude_timestamp: The BestTimestamp to set.
+        :return: A modified instance of self.
+        """
         common.check_type(altitude_timestamp, [BestTimestamp])
         self.get_proto().altitude_timestamp.CopyFrom(altitude_timestamp.get_proto())
         self._altitude_timestamp = BestTimestamp(self.get_proto().altitude_timestamp)
@@ -146,6 +156,11 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         return self._speed_timestamp
 
     def set_speed_timestamp(self, speed_timestamp: BestTimestamp) -> 'BestLocation':
+        """
+        Sets the speed timestamp.
+        :param speed_timestamp: The BestTimestamp to set.
+        :return: A modified instance of self.
+        """
         common.check_type(speed_timestamp, [BestTimestamp])
         self.get_proto().speed_timestamp.CopyFrom(speed_timestamp.get_proto())
         self._speed_timestamp = BestTimestamp(self.get_proto().speed_timestamp)
@@ -158,6 +173,11 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         return self._bearing_timestamp
 
     def set_bearing_timestamp(self, bearing_timestamp: BestTimestamp) -> 'BestLocation':
+        """
+        Sets the bearing timestamp.
+        :param bearing_timestamp: The BestTimestamp to set.
+        :return: A modified instance of self.
+        """
         common.check_type(bearing_timestamp, [BestTimestamp])
         self.get_proto().bearing_timestamp.CopyFrom(bearing_timestamp.get_proto())
         self._bearing_timestamp = BestTimestamp(self.get_proto().bearing_timestamp)
@@ -480,6 +500,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         :return: The best location score method
         """
         # noinspection Mypy
+        # pylint: disable=E1101
         return LocationScoreMethod.from_proto(self._proto.method)
 
     def set_method(self, method: LocationScoreMethod) -> 'BestLocation':
