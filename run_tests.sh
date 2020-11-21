@@ -9,8 +9,9 @@ set -o nounset
 set -o errexit
 set -o xtrace
 
-coverage run -m unittest discover
-coverage html
+python3 -m unittest discover
+#coverage run -m unittest discover
+#coverage html
 
 # Migrations have pretty much been validated at this point. If you want to test API 900 code with migrations, you can
 # uncomment the following line.
