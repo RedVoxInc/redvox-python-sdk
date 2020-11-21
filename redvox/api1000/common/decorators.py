@@ -3,6 +3,7 @@ This module provides decorators used throughout the API M SDK codebase.
 """
 from enum import Enum
 
+# noinspection PyPackageRequirements
 from google.protobuf.internal.enum_type_wrapper import EnumTypeWrapper
 
 
@@ -25,4 +26,3 @@ def wrap_enum(proto_type: EnumTypeWrapper):
         return enum
 
     return __wrap_enum
-
