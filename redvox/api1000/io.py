@@ -539,15 +539,3 @@ def read_dir(directory_path: str) -> ReadResult:
         read_result.add_packet(read_rdvxm_file(path))
 
     return read_result
-
-
-def stream_structured():
-    pass
-
-
-def stream_dir():
-    pass
-
-
-def read_buffers():
-    pass
