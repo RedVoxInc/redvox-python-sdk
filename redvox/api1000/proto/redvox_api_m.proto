@@ -2,7 +2,7 @@
 * This file contains the protobuf message definitions for RedVox API 1000 (M) data and network communications.
 *
 * Standards and related documentation for API M is available at:
-*   - https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/README.md
+*   - https://github.com/RedVoxInc/redvox-api-1000
 */
 
 syntax = "proto3";
@@ -142,8 +142,14 @@ message RedvoxPacketM {
             // If a wifi wake lock is being utilized
             repeated WifiWakeLock wifi_wake_lock = 12;
 
+            // The screen state (if available)
+            repeated ScreenState screen_state = 13;
+
+            // Screen brightness as a percentage
+            SamplePayload screen_brightness = 14;
+
             // A map from string to string for including untyped metadata
-            map<string, string> metadata = 13;
+            map<string, string> metadata = 15;
 
             // An enumeration specifying the available network types
             enum NetworkType {
@@ -182,10 +188,32 @@ message RedvoxPacketM {
 
             // The state of power supply to station
             enum PowerState {
+                // Station is in an unknown power state
                 UNKNOWN_POWER_STATE = 0;
+
+                // Station is unplugged
                 UNPLUGGED = 1;
+
+                // Station is charging
                 CHARGING = 2;
+
+                // Station is charged
                 CHARGED = 3;
+            }
+
+            // State of the station's screen
+            enum ScreenState {
+                // Unknown screen state
+                UNKNOWN_SCREEN_STATE = 0;
+
+                // Screen is turned on
+                ON = 1;
+
+                // Screen is turned off
+                OFF = 2;
+
+                // Station is running in headless mode and does not utilize a screen
+                HEADLESS = 3;
             }
         }
 
@@ -271,8 +299,11 @@ message RedvoxPacketM {
             // User set altitude meters
             float use_altitude = 27;
 
+            // User defined setting for how often metrics should be collected
+            MetricsRate metrics_rate = 28;
+
             // A map from string to string for including untyped metadata
-            map<string, string> metadata = 28;
+            map<string, string> metadata = 29;
 
             // Configured FFT overlap
             enum FftOverlap {
@@ -304,27 +335,39 @@ message RedvoxPacketM {
             enum InputSensor {
                 UNKNOWN_SENSOR = 0;
                 ACCELEROMETER = 1;
-                AMBIENT_TEMPERATURE = 2;
-                AUDIO = 3;
-                COMPRESSED_AUDIO = 4;
-                GRAVITY = 5;
-                GYROSCOPE = 6;
-                IMAGE = 7;
-                LIGHT = 8;
-                LINEAR_ACCELERATION = 9;
-                LOCATION = 10;
-                MAGNETOMETER = 11;
-                ORIENTATION = 12;
-                PRESSURE = 13;
-                PROXIMITY = 14;
-                RELATIVE_HUMIDITY = 15;
-                ROTATION_VECTOR = 16;
+                ACCELEROMETER_FAST = 2;
+                AMBIENT_TEMPERATURE = 3;
+                AUDIO = 4;
+                COMPRESSED_AUDIO = 5;
+                GRAVITY = 6;
+                GYROSCOPE = 7;
+                GYROSCOPE_FAST = 8;
+                IMAGE_PER_SECOND = 9;
+                IMAGE_PER_PACKET = 10;
+                LIGHT = 11;
+                LINEAR_ACCELERATION = 12;
+                LOCATION = 13;
+                MAGNETOMETER = 14;
+                MAGNETOMETER_FAST = 15;
+                ORIENTATION = 16;
+                PRESSURE = 17;
+                PROXIMITY = 18;
+                RELATIVE_HUMIDITY = 19;
+                ROTATION_VECTOR = 20;
+                VELOCITY = 21;
             }
+        }
+
+        // Defines how often metrics are collected
+        enum MetricsRate {
+            UNKNOWN = 0;
+            ONCE_PER_SECOND = 1;
+            ONCE_PER_PACKET = 2;
         }
     }
 
     // Stores timing information and related metrics
-    // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/keeping_time.md
+    // See: https://github.com/RedVoxInc/redvox-api-1000/src/master/docs/standards/keeping_time.md
     message TimingInformation {
         // Start timestamp of the packet using the os clock (corresponding to first audio sample)
         double packet_start_os_timestamp = 1;
@@ -388,7 +431,7 @@ message RedvoxPacketM {
     }
 
     // Collection of available sensor types
-    // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/standard_sensor_units.md
+    // See: https://github.com/RedVoxInc/redvox-api-1000/src/master/docs/standards/standard_sensor_units.md
     message Sensors {
         // meters/second^2
         Xyz accelerometer = 1;
@@ -438,11 +481,14 @@ message RedvoxPacketM {
         // Unitless
         Xyz rotation_vector = 16;
 
+        // m/s
+        Xyz velocity = 17;
+
         // A map from string to string for including untyped metadata
-        map<string, string> metadata = 17;
+        map<string, string> metadata = 18;
 
         // This message describes a stable audio channel
-        // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/storing_audio_data.md
+        // See: https://github.com/RedVoxInc/redvox-api-1000/src/master/docs/standards/storing_audio_data.md
         message Audio {
             // The name or description of the audio sensor
             string sensor_description = 1;
@@ -499,7 +545,7 @@ message RedvoxPacketM {
         }
 
         // A single channel of data
-        // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/storing_single_channel_data.md
+        // See: https://github.com/RedVoxInc/redvox-api-1000/src/master/docs/standards/storing_single_channel_data.md
         message Single {
             // The name or description of the sensor
             string sensor_description = 1;
@@ -515,7 +561,7 @@ message RedvoxPacketM {
         }
 
         // Location channels
-        // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/storing_location_data.md
+        // See: https://github.com/RedVoxInc/redvox-api-1000/src/master/docs/standards/storing_location_data.md
         message Location {
             // The name or description of the sensor
             string sensor_description = 1;
@@ -680,7 +726,7 @@ message RedvoxPacketM {
         }
 
         // Message representing data channels with X, Y, and Z components
-        // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/storing_xyz_channel_data.md
+        // See: https://github.com/RedVoxInc/redvox-api-1000/src/master/docs/standards/storing_xyz_channel_data.md
         message Xyz {
             // The name or description of the sensor
             string sensor_description = 1;
@@ -702,7 +748,7 @@ message RedvoxPacketM {
         }
 
         // Image/video channel
-        // See: https://bitbucket.org/redvoxhi/redvox-api-1000/src/master/docs/standards/storing_image_data.md
+        // See: https://github.com/RedVoxInc/redvox-api-1000/src/master/docs/standards/storing_image_data.md
         message Image {
             // The name or description of the sensor
             string sensor_description = 1;
