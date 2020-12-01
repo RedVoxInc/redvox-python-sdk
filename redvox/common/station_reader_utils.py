@@ -327,7 +327,7 @@ def read_api900_wrapped_packet(wrapped_packet: api900_io.WrappedRedvoxPacket) ->
             sample_interval_std = np.nan
         if wrapped_packet.location_sensor().check_for_preset_lat_lon():
             lat_lon = wrapped_packet.location_sensor().get_payload_lat_lon()
-            data_for_df = np.array([[timestamps[0], lat_lon[0], lat_lon[1], np.nan, np.nan, np.nan, np.nan,
+            data_for_df = np.array([[timestamps[0], lat_lon[0], lat_lon[1], np.nan, np.nan, np.nan,
                                      LocationProvider.USER, np.nan, np.nan, np.nan, np.nan]])
         else:
             if wrapped_packet.location_sensor().sensor_name().lower() == "network":
