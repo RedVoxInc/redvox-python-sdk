@@ -18,6 +18,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 * Optimize data download using a custom work-stealing process pool
 * Standardize CLI
 
+### 3.0.0a21 (2020-11-30)
+
+* fixed a bug when creating stations using set locations
+
 ### 3.0.0a19 (2020-11-10)
 
 * Fixed bug with recalculating metadata of stations
