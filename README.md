@@ -11,16 +11,13 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 * Add setters for all sub-messages
 * Extend start and end queries for reading data by slight amount
+* fixed a bug when creating stations using set locations
 
 ### 3.0.0a20 (2020-11-16)
 
 * Add support for downloading API M data from cloud servers
 * Optimize data download using a custom work-stealing process pool
 * Standardize CLI
-
-### 3.0.0a21 (2020-11-30)
-
-* fixed a bug when creating stations using set locations
 
 ### 3.0.0a19 (2020-11-10)
 
