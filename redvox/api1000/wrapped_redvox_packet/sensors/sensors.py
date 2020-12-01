@@ -37,6 +37,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
     __PROXIMITY_FIELD_NAME: str = "proximity"
     __RELATIVE_HUMIDITY_FIELD_NAME: str = "relative_humidity"
     __ROTATION_VECTOR: str = "rotation_vector"
+    __VELOCITY: str = "velocity"
 
     def __init__(self, sensors_proto: redvox_api_m_pb2.RedvoxPacketM.Sensors):
         super().__init__(sensors_proto)
@@ -56,6 +57,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._proximity: single.Single = single.Single(sensors_proto.proximity)
         self._relative_humidity: single.Single = single.Single(sensors_proto.relative_humidity)
         self._rotation_vector: xyz.Xyz = xyz.Xyz(sensors_proto.rotation_vector)
+        self._velocity: xyz.Xyz = xyz.Xyz(sensors_proto.velocity)
 
     @staticmethod
     def new() -> 'Sensors':
@@ -885,6 +887,57 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         return len(xyz.validate_xyz(self._rotation_vector, common.Unit.UNITLESS)) < 1 \
             and self._rotation_vector.get_x_samples().get_values_count() > 0
 
+    def has_velocity(self) -> bool:
+        """
+        :return: If this packet contains this channel
+        """
+        return self.get_proto().HasField(Sensors.__VELOCITY)
+
+    def get_velocity(self) -> Optional[xyz.Xyz]:
+        """
+        :return: The this sensor if it exists otherwise None
+        """
+        return self._velocity if self.has_velocity() else None
+
+    def new_velocity(self) -> xyz.Xyz:
+        """
+        :return: A new empty sensor
+        """
+        self.remove_velocity()
+        self.get_proto().velocity.SetInParent()
+        self._velocity = xyz.Xyz(self.get_proto().velocity)
+        self._velocity.get_timestamps().set_default_unit()
+        # noinspection PyTypeChecker
+        self._velocity.set_unit_xyz(common.Unit.METERS_PER_SECOND)
+        return self._velocity
+
+    def set_velocity(self, velocity: xyz.Xyz) -> 'Sensors':
+        """
+        Sets the channel
+        :param velocity: Channel to set
+        :return: A modified instance of self
+        """
+        redvox.api1000.common.typing.check_type(velocity, [xyz.Xyz])
+        self.get_proto().velocity.CopyFrom(velocity.get_proto())
+        return self
+
+    def remove_velocity(self) -> 'Sensors':
+        """
+        Removes this sensor
+        :return: A modified instance of self
+        """
+        self.get_proto().ClearField(Sensors.__VELOCITY)
+        return self
+
+    def validate_velocity(self) -> bool:
+        """
+        Checks if there are no errors with the sensor and it contains at least 1 data entry
+        :return: True if no errors
+        """
+        # noinspection PyTypeChecker
+        return len(xyz.validate_xyz(self._velocity, common.Unit.METERS_PER_SECOND)) < 1 \
+               and self._velocity.get_x_samples().get_values_count() > 0
+
 
 def validate_sensors(sensors_list: Sensors) -> List[str]:
     """
@@ -930,4 +983,6 @@ def validate_sensors(sensors_list: Sensors) -> List[str]:
         errors_list.extend(single.validate_single(sensors_list.get_relative_humidity(), common.Unit.PERCENTAGE))
     if sensors_list.has_rotation_vector():
         errors_list.extend(xyz.validate_xyz(sensors_list.get_rotation_vector(), common.Unit.UNITLESS))
+    if sensors_list.has_velocity():
+        errors_list.extend(xyz.validate_xyz(sensors_list.get_velocity(), common.Unit.METERS_PER_SECOND))
     return errors_list
