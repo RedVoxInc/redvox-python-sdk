@@ -915,7 +915,6 @@ def validate_location(loc_sensor: Location) -> List[str]:
         errors_list.append("Location sensor altitude units are not meters")
     errors_list.extend(common.validate_sample_payload(loc_sensor.get_altitude_samples(), "Altitude"))
 
-    # todo: any of the below can be turned off as needed
     if loc_sensor.get_speed_samples().get_unit() != common.Unit.METERS_PER_SECOND:
         errors_list.append("Location sensor speed units are not meters per second")
     errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_samples(), "Speed"))
@@ -954,40 +953,44 @@ def validate_best_location(best_loc: BestLocation) -> List[str]:
     :return: A list of validation errors
     """
     errors_list = []
-    if best_loc.get_latitude_longitude_unit() != common.Unit.DECIMAL_DEGREES:
-        errors_list.append("Best location latitude and longitude units are not decimal degrees")
 
-    if best_loc.get_latitude() < -90 or best_loc.get_latitude() > 90:
-        errors_list.append("Best location latitude value is beyond valid range")
+    # if not default empty settings, check the values
+    if not (best_loc.get_latitude() == 0 and best_loc.get_longitude() == 0 and best_loc.get_altitude() == 0
+            and best_loc.get_speed() == 0 and best_loc.get_bearing() == 0):
+        if best_loc.get_latitude_longitude_unit() != common.Unit.DECIMAL_DEGREES:
+            errors_list.append("Best location latitude and longitude units are not decimal degrees")
 
-    if best_loc.get_longitude() < -180 or best_loc.get_longitude() > 180:
-        errors_list.append("Best location longitude value is beyond valid range")
+        if best_loc.get_latitude() < -90 or best_loc.get_latitude() > 90:
+            errors_list.append("Best location latitude value is beyond valid range")
 
-    if best_loc.get_altitude_unit() != common.Unit.METERS:
-        errors_list.append("Best location altitude units are not meters")
+        if best_loc.get_longitude() < -180 or best_loc.get_longitude() > 180:
+            errors_list.append("Best location longitude value is beyond valid range")
 
-    if best_loc.get_speed_unit() != common.Unit.METERS_PER_SECOND:
-        errors_list.append("Best location speed units are not meters per second")
+        if best_loc.get_altitude_unit() != common.Unit.METERS:
+            errors_list.append("Best location altitude units are not meters")
 
-    if best_loc.get_bearing_unit() != common.Unit.DECIMAL_DEGREES:
-        errors_list.append("Best location bearing units are not decimal degrees")
+        if best_loc.get_speed_unit() != common.Unit.METERS_PER_SECOND:
+            errors_list.append("Best location speed units are not meters per second")
 
-    if best_loc.get_horizontal_accuracy_unit() != common.Unit.METERS:
-        errors_list.append("Best location horizontal accuracy units are not meters")
+        if best_loc.get_bearing_unit() != common.Unit.DECIMAL_DEGREES:
+            errors_list.append("Best location bearing units are not decimal degrees")
 
-    if best_loc.get_vertical_accuracy_unit() != common.Unit.METERS:
-        errors_list.append("Best location vertical accuracy units are not meters")
+        if best_loc.get_horizontal_accuracy_unit() != common.Unit.METERS:
+            errors_list.append("Best location horizontal accuracy units are not meters")
 
-    if best_loc.get_speed_accuracy_unit() != common.Unit.METERS_PER_SECOND:
-        errors_list.append("Best location speed accuracy units are not meters per second")
+        if best_loc.get_vertical_accuracy_unit() != common.Unit.METERS:
+            errors_list.append("Best location vertical accuracy units are not meters")
 
-    if best_loc.get_bearing_accuracy_unit() != common.Unit.DECIMAL_DEGREES:
-        errors_list.append("Best location bearing accuracy units are not decimal degrees")
+        if best_loc.get_speed_accuracy_unit() != common.Unit.METERS_PER_SECOND:
+            errors_list.append("Best location speed accuracy units are not meters per second")
 
-    if best_loc.get_location_provider() not in LocationProvider.__members__.values():
-        errors_list.append("Best location provider is unknown")
+        if best_loc.get_bearing_accuracy_unit() != common.Unit.DECIMAL_DEGREES:
+            errors_list.append("Best location bearing accuracy units are not decimal degrees")
 
-    if best_loc.get_latitude_longitude_timestamp() is None:
-        errors_list.append("Best location is missing latitude and longitude timestamp")
+        if best_loc.get_location_provider() not in LocationProvider.__members__.values():
+            errors_list.append("Best location provider is unknown")
+
+        if best_loc.get_latitude_longitude_timestamp() is None:
+            errors_list.append("Best location is missing latitude and longitude timestamp")
 
     return errors_list
