@@ -255,7 +255,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         redvox.api1000.common.typing.check_type(compressed_audio, [audio.CompressedAudio])
         # noinspection Mypy
-        self.get_proto().audio.CopyFrom(compressed_audio.get_proto())
+        self.get_proto().compressed_audio.CopyFrom(compressed_audio.get_proto())
         self._compressed_audio = audio.CompressedAudio(self.get_proto().compressed_audio)
         return self
 
