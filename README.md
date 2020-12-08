@@ -12,6 +12,8 @@ This repository contains code for reading and working with the RedVox API 900 an
 * Add setters for all sub-messages
 * Extend start and end queries for reading data by slight amount
 * fixed a bug when creating stations using set locations
+* API M protobuf updated
+* fixed bug setting compressed audio data
 
 ### 3.0.0a20 (2020-11-16)
 
