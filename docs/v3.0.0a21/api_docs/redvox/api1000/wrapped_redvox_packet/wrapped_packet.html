@@ -1,0 +1,2535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>redvox.api1000.wrapped_redvox_packet.wrapped_packet API documentation</title>
+<meta name="description" content="This module provides a high level API for creating, reading, and editing RedVox compliant API 1000 files." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.api1000.wrapped_redvox_packet.wrapped_packet</code></h1>
+</header>
+<section id="section-intro">
+<p>This module provides a high level API for creating, reading, and editing RedVox compliant API 1000 files.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+This module provides a high level API for creating, reading, and editing RedVox compliant API 1000 files.
+&#34;&#34;&#34;
+
+from datetime import datetime, timedelta
+import os.path
+from functools import total_ordering
+from typing import Optional, List
+
+# noinspection PyPackageRequirements
+from google.protobuf import json_format
+
+from redvox.api1000.common.common import check_type
+import redvox.api1000.common.lz4
+import redvox.api1000.common.typing
+import redvox.api1000.errors as errors
+import redvox.api1000.wrapped_redvox_packet.sensors.sensors as _sensors
+import redvox.api1000.wrapped_redvox_packet.station_information as _station_information
+import redvox.api1000.wrapped_redvox_packet.timing_information as _timing_information
+import redvox.common.date_time_utils as dt_utils
+
+from redvox.api1000.common.generic import ProtoBase, ProtoRepeatedMessage
+from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
+from redvox.api1000.wrapped_redvox_packet.event_streams import EventStream
+
+
+@total_ordering
+class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
+    &#34;&#34;&#34;
+    Wraps a RedVox API M protobuf buffer.
+    &#34;&#34;&#34;
+    def __init__(self, redvox_proto: RedvoxPacketM):
+        super().__init__(redvox_proto)
+
+        self._station_information: _station_information.StationInformation = _station_information.StationInformation(
+            redvox_proto.station_information)
+
+        self._timing_information: _timing_information.TimingInformation = _timing_information.TimingInformation(
+            redvox_proto.timing_information)
+
+        self._sensors: _sensors.Sensors = _sensors.Sensors(redvox_proto.sensors)
+
+        self._event_streams: ProtoRepeatedMessage = ProtoRepeatedMessage(
+            redvox_proto,
+            redvox_proto.event_streams,
+            &#34;event_streams&#34;,
+            EventStream,
+            lambda event_stream: event_stream.get_proto()
+        )
+
+    # Implement methods required for total_ordering
+    def __eq__(self, other) -&gt; bool:
+        &#34;&#34;&#34;
+        Tests if this packet is equal in time to another packet by comparing start mach timestamps.
+        :param other: Other packet to compare against
+        :return: True if the packets mach timestamps match, False otherwise
+        &#34;&#34;&#34;
+        self_ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
+        other_ts: float = other.get_timing_information().get_packet_start_mach_timestamp()
+        return self_ts == other_ts
+
+    def __lt__(self, other: &#39;WrappedRedvoxPacketM&#39;) -&gt; bool:
+        &#34;&#34;&#34;
+        Checks if this packet is less than another packet by comparing start mach times.
+        :param other: Other packet to compare against.
+        :return: True if this packet is less than the other packet
+        &#34;&#34;&#34;
+        self_ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
+        other_ts: float = other.get_timing_information().get_packet_start_mach_timestamp()
+        return self_ts &lt; other_ts
+
+    @staticmethod
+    def new() -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Returns a new default instance of a WrappedRedvoxPacketApi1000.
+        :return: A new default instance of a WrappedRedvoxPacketApi1000.
+        &#34;&#34;&#34;
+        return WrappedRedvoxPacketM(RedvoxPacketM())
+
+    @staticmethod
+    def from_compressed_bytes(data: bytes) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Deserializes the byte content of an API M encoded .rdvxz file.
+        :param data: The compressed bytes to deserialize.
+        :return: An instance of a WrappedRedvoxPacketAPi1000.
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(data, [bytes])
+        uncompressed_data: bytes = redvox.api1000.common.lz4.decompress(data)
+        proto: RedvoxPacketM = RedvoxPacketM()
+        proto.ParseFromString(uncompressed_data)
+        return WrappedRedvoxPacketM(proto)
+
+    @staticmethod
+    def from_compressed_path(rdvxm_path: str) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Deserialize an API M encoded .rdvxm file from the specified file system path.
+        :param rdvxm_path: Path to the API M encoded file.
+        :return: An instance of a WrappedRedvoxPacketApiM.
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(rdvxm_path, [str])
+
+        if not os.path.isfile(rdvxm_path):
+            raise errors.WrappedRedvoxPacketMError(f&#34;Path to file={rdvxm_path} does not exist.&#34;)
+
+        with open(rdvxm_path, &#34;rb&#34;) as rdvxz_in:
+            compressed_bytes: bytes = rdvxz_in.read()
+            return WrappedRedvoxPacketM.from_compressed_bytes(compressed_bytes)
+
+    @staticmethod
+    def from_json(json_str: str) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        read json packet representing an API 1000 packet
+        :param json_str: contains the json representing the packet
+        :return: An instance of a WrappedRedvoxPacketM
+        &#34;&#34;&#34;
+        return WrappedRedvoxPacketM(json_format.Parse(json_str, RedvoxPacketM()))
+
+    @staticmethod
+    def from_json_path(json_path: str) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        read json from a file representing an api 1000 packet
+        :param json_path: the path to the file to read
+        :return: wrapped redvox packet api 1000
+        &#34;&#34;&#34;
+        with open(json_path, &#34;r&#34;) as json_in:
+            return WrappedRedvoxPacketM.from_json(json_in.read())
+
+    def default_filename(self, extension: Optional[str] = &#34;rdvxm&#34;) -&gt; str:
+        &#34;&#34;&#34;
+        Returns the default filename for a given packet.
+        :param extension: An (optional) file extension to add to the default file name.
+        :return: The default filename for this packet.
+        &#34;&#34;&#34;
+        # Format to be exactly 10 characters
+        station_id: str = f&#34;{self.get_station_information().get_id():0&gt;10}&#34;
+        timestamp: int = round(self.get_timing_information().get_packet_start_mach_timestamp())
+        filename: str = f&#34;{station_id}_{timestamp}&#34;
+
+        if extension is not None:
+            filename = f&#34;{filename}.{extension}&#34;
+
+        return filename
+
+    def default_file_dir(self) -&gt; str:
+        &#34;&#34;&#34;
+        Computes the default file directory structure for a structured layout for this particular packet.
+        :return:  Directory structure for this packet when using structured layout
+        &#34;&#34;&#34;
+        timestamp: float = self.get_timing_information().get_packet_start_mach_timestamp()
+        date_time: datetime = dt_utils.datetime_from_epoch_microseconds_utc(timestamp)
+        year: str = f&#34;{date_time.year}:0&gt;4&#34;
+        month: str = f&#34;{date_time.month:0&gt;2}&#34;
+        day: str = f&#34;{date_time.day:0&gt;2}&#34;
+        hour: str = f&#34;{date_time.hour:0&gt;2}&#34;
+        return os.path.join(year, month, day, hour)
+
+    def default_file_path(self) -&gt; str:
+        &#34;&#34;&#34;
+        Computes the default directory structure and file name for this packet for structured layouts.
+        :return: The default directory structure and file name for this packet for structured layouts.
+        &#34;&#34;&#34;
+        return os.path.join(self.default_file_dir(), self.default_filename())
+
+    def write_compressed_to_file(self, base_dir: str, filename: Optional[str] = None) -&gt; str:
+        &#34;&#34;&#34;
+        Writes this packet to a .rdvxm file.
+        :param base_dir: Directory to write .rdvxm to.
+        :param filename: The (optional) file name to use. Will use default file name otherwise.
+        :return: Path of written file.
+        &#34;&#34;&#34;
+        if filename is None:
+            filename = self.default_filename(&#34;rdvxm&#34;)
+
+        if not os.path.isdir(base_dir):
+            raise errors.WrappedRedvoxPacketMError(f&#34;Base directory={base_dir} does not exist.&#34;)
+
+        out_path: str = os.path.join(base_dir, filename)
+        with open(out_path, &#34;wb&#34;) as compressed_out:
+            compressed_out.write(self.as_compressed_bytes())
+
+        return out_path
+
+    def write_json_to_file(self, base_dir: str, filename: Optional[str] = None) -&gt; str:
+        &#34;&#34;&#34;
+        Writes this packet to a .json file.
+        :param base_dir: Directory to write .json to.
+        :param filename: The (optional) file name to use. Will use default file name otherwise.
+        :return: Path of written file.
+        &#34;&#34;&#34;
+        if filename is None:
+            filename = self.default_filename(&#34;json&#34;)
+
+        if not os.path.isdir(base_dir):
+            raise errors.WrappedRedvoxPacketMError(f&#34;Base directory={base_dir} does not exist.&#34;)
+
+        out_path: str = os.path.join(base_dir, filename)
+        with open(out_path, &#34;w&#34;) as json_out:
+            json_out.write(self.as_json())
+
+        return out_path
+
+    def validate(self) -&gt; List[str]:
+        &#34;&#34;&#34;
+        Validates this packet.
+        :return: A list of validation errors.
+        &#34;&#34;&#34;
+        return validate_wrapped_packet(self)
+
+    # Top-level packet fields
+    def get_api(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the API version of this packet.
+        :return: The API version of this packet.
+        &#34;&#34;&#34;
+        return self._proto.api
+
+    def set_api(self, api: float) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Sets the api version of this packet.
+        :param api: The API version (should be 1000.0)
+        :return: The modified instance of this packet
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(api, [int, float])
+        self._proto.api = api
+        return self
+
+    def get_sub_api(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the sub_api version. This version tracks small changes within API 1000.
+        :return: The sub_api version. This version tracks small changes within API 1000.
+        &#34;&#34;&#34;
+        return self._proto.sub_api
+
+    def set_sub_api(self, sub_api: float) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Sets the sub_api.
+        :param sub_api: sub_api to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(sub_api, [int, float])
+        self._proto.sub_api = sub_api
+        return self
+
+    def get_station_information(self) -&gt; _station_information.StationInformation:
+        &#34;&#34;&#34;
+        :return: An instance of StationInformation
+        &#34;&#34;&#34;
+        return self._station_information
+
+    def set_station_information(self,
+                                station_information: _station_information.StationInformation) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Sets the StationInformation.
+        :param station_information: StationInformation to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(station_information, [_station_information.StationInformation])
+        self.get_proto().station_information.CopyFrom(station_information.get_proto())
+        self._station_information = _station_information.StationInformation(self.get_proto().station_information)
+        return self
+
+    def get_timing_information(self) -&gt; _timing_information.TimingInformation:
+        &#34;&#34;&#34;
+        :return: An instance of TimingInformation
+        &#34;&#34;&#34;
+        return self._timing_information
+
+    def set_timing_information(self,
+                               timing_information: _timing_information.TimingInformation) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Sets the timing information.
+        :param timing_information: TimingInformation to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(timing_information, [_timing_information.TimingInformation])
+        self.get_proto().timing_information.CopyFrom(timing_information.get_proto())
+        self._timing_information = _timing_information.TimingInformation(self.get_proto().timing_information)
+        return self
+
+    def get_sensors(self) -&gt; _sensors.Sensors:
+        &#34;&#34;&#34;
+        :return: An instance of Sensors
+        &#34;&#34;&#34;
+        return self._sensors
+
+    def set_sensors(self, sensors: _sensors.Sensors) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Sets the sensors.
+        :param sensors: Sensors to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(sensors, [_sensors.Sensors])
+        self.get_proto().sensors.CopyFrom(sensors.get_proto())
+        self._sensors = _sensors.Sensors(self.get_proto().sensors)
+        return self
+
+    def get_event_streams(self) -&gt; ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A collection of event streams.
+        &#34;&#34;&#34;
+        return self._event_streams
+
+    def set_event_streams(self, event_streams: ProtoRepeatedMessage) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Set the event streams from the provided ProtoRepeatedMessage.
+        :param event_streams: EventStreams embedded in a ProtoRepeatedMessage.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(event_streams, [ProtoRepeatedMessage])
+        self._event_streams.clear_values()
+        self._event_streams.append_values(event_streams.get_values())
+        return self
+
+    # todo: add packet_duration calculations that don&#39;t rely on sensors existing if possible
+
+    def get_packet_duration(self) -&gt; timedelta:
+        &#34;&#34;&#34;
+        :return: Packet duration as a timedelta
+        &#34;&#34;&#34;
+        audio = self.get_sensors().get_audio()
+        if audio is not None:
+            return audio.get_duration()
+        else:
+            return timedelta(seconds=0)
+
+    def get_packet_duration_s(self) -&gt; float:
+        &#34;&#34;&#34;
+        get the packet duration in seconds from the audio data
+        :return: packet duration in seconds
+        &#34;&#34;&#34;
+        if self.get_sensors().has_audio():
+            return self.get_sensors().get_audio().get_duration_s()
+        else:
+            return 0.0
+
+    def update_timestamps(self, delta_offset: float = None) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        update all timestamps in the packet by adding the delta offset
+        :param delta_offset: amount of microseconds to add to existing timestamps
+        :return: WrappedRedvoxPacketM with updated timestamps
+        &#34;&#34;&#34;
+        if delta_offset is None:
+            delta_offset = self.get_timing_information().get_best_offset()
+        redvox.api1000.common.typing.check_type(delta_offset, [float])
+        # create new wrapped packet to hold changed data
+        updated = WrappedRedvoxPacketM(self.get_proto())
+        if self.get_proto().HasField(&#34;timing_information&#34;):
+            # update timing information timestamps
+            updated.get_timing_information().set_packet_start_mach_timestamp(
+                self.get_timing_information().get_packet_start_mach_timestamp() + delta_offset)
+            updated.get_timing_information().set_packet_end_mach_timestamp(
+                self.get_timing_information().get_packet_end_mach_timestamp() + delta_offset)
+            updated.get_timing_information().set_packet_start_os_timestamp(
+                self.get_timing_information().get_packet_start_os_timestamp() + delta_offset)
+            updated.get_timing_information().set_packet_end_os_timestamp(
+                self.get_timing_information().get_packet_end_os_timestamp() + delta_offset)
+            updated.get_timing_information().set_app_start_mach_timestamp(
+                self.get_timing_information().get_app_start_mach_timestamp() + delta_offset)
+        if self.get_sensors().get_proto().HasField(&#34;audio&#34;):
+            # update audio first sample timestamp
+            updated.get_sensors().get_audio().set_first_sample_timestamp(
+                self.get_sensors().get_audio().get_first_sample_timestamp() + delta_offset)
+        # todo if self.get_sensors().get_proto().HasField(&#34;compressed_audio&#34;):
+        # update compressed audio first sample timestamp
+        # update timestamp payloads
+        if self.get_station_information().get_station_metrics().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_station_information().get_station_metrics().get_timestamps().set_timestamps(
+                self.get_station_information().get_station_metrics().get_timestamps().get_timestamps() + delta_offset,
+                True)
+        if self.get_sensors().get_accelerometer().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_accelerometer().get_timestamps().set_timestamps(
+                self.get_sensors().get_accelerometer().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_ambient_temperature().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_ambient_temperature().get_timestamps().set_timestamps(
+                self.get_sensors().get_ambient_temperature().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_gravity().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_gravity().get_timestamps().set_timestamps(
+                self.get_sensors().get_gravity().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_gyroscope().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_gyroscope().get_timestamps().set_timestamps(
+                self.get_sensors().get_gyroscope().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_image().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_image().get_timestamps().set_timestamps(
+                self.get_sensors().get_image().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_light().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_light().get_timestamps().set_timestamps(
+                self.get_sensors().get_light().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_linear_acceleration().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_linear_acceleration().get_timestamps().set_timestamps(
+                self.get_sensors().get_linear_acceleration().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_location().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_location().get_timestamps().set_timestamps(
+                self.get_sensors().get_location().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_magnetometer().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_magnetometer().get_timestamps().set_timestamps(
+                self.get_sensors().get_magnetometer().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_orientation().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_orientation().get_timestamps().set_timestamps(
+                self.get_sensors().get_orientation().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_pressure().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_pressure().get_timestamps().set_timestamps(
+                self.get_sensors().get_pressure().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_proximity().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_proximity().get_timestamps().set_timestamps(
+                self.get_sensors().get_proximity().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_relative_humidity().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_relative_humidity().get_timestamps().set_timestamps(
+                self.get_sensors().get_relative_humidity().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_rotation_vector().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_rotation_vector().get_timestamps().set_timestamps(
+                self.get_sensors().get_rotation_vector().get_timestamps().get_timestamps() + delta_offset, True)
+        return updated
+
+
+def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates a wrapped packet.
+    :param wrapped_packet: Packet to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
+    errors_list = _station_information.validate_station_information(wrapped_packet.get_station_information())
+    errors_list.extend(_timing_information.validate_timing_information(wrapped_packet.get_timing_information()))
+    errors_list.extend(_sensors.validate_sensors(wrapped_packet.get_sensors()))
+    if wrapped_packet.get_api() != 1000:
+        errors_list.append(&#34;Wrapped packet api is not 1000&#34;)
+    return errors_list</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.validate_wrapped_packet"><code class="name flex">
+<span>def <span class="ident">validate_wrapped_packet</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Validates a wrapped packet.
+:param wrapped_packet: Packet to validate.
+:return: A list of validation errors.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates a wrapped packet.
+    :param wrapped_packet: Packet to validate.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
+    errors_list = _station_information.validate_station_information(wrapped_packet.get_station_information())
+    errors_list.extend(_timing_information.validate_timing_information(wrapped_packet.get_timing_information()))
+    errors_list.extend(_sensors.validate_sensors(wrapped_packet.get_sensors()))
+    if wrapped_packet.get_api() != 1000:
+        errors_list.append(&#34;Wrapped packet api is not 1000&#34;)
+    return errors_list</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM"><code class="flex name class">
+<span>class <span class="ident">RedvoxPacketM</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Abstract base class for protocol messages.</p>
+<p>Protocol message classes are almost always generated by the protocol
+compiler.
+These generated types subclass Message and implement the methods
+shown below.</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.API_FIELD_NUMBER"><code class="name">var <span class="ident">API_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.BYTE"><code class="name">var <span class="ident">BYTE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.CENTIMETERS"><code class="name">var <span class="ident">CENTIMETERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DECIBEL"><code class="name">var <span class="ident">DECIBEL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DECIMAL_DEGREES"><code class="name">var <span class="ident">DECIMAL_DEGREES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DEGREES_CELSIUS"><code class="name">var <span class="ident">DEGREES_CELSIUS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DoubleSamplePayload"><code class="name">var <span class="ident">DoubleSamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>Abstract base class for protocol messages.</p>
+<p>Protocol message classes are almost always generated by the protocol
+compiler.
+These generated types subclass Message and implement the methods
+shown below.</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.EVENT_STREAMS_FIELD_NUMBER"><code class="name">var <span class="ident">EVENT_STREAMS_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.EventStream"><code class="name">var <span class="ident">EventStream</span></code></dt>
+<dd>
+<div class="desc"><p>Abstract base class for protocol messages.</p>
+<p>Protocol message classes are almost always generated by the protocol
+compiler.
+These generated types subclass Message and implement the methods
+shown below.</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.KILOPASCAL"><code class="name">var <span class="ident">KILOPASCAL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS"><code class="name">var <span class="ident">LSB_PLUS_MINUS_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.LUX"><code class="name">var <span class="ident">LUX</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.METADATA_FIELD_NUMBER"><code class="name">var <span class="ident">METADATA_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.METERS"><code class="name">var <span class="ident">METERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.METERS_PER_SECOND"><code class="name">var <span class="ident">METERS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.METERS_PER_SECOND_SQUARED"><code class="name">var <span class="ident">METERS_PER_SECOND_SQUARED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MICROAMPERES"><code class="name">var <span class="ident">MICROAMPERES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH"><code class="name">var <span class="ident">MICROSECONDS_SINCE_UNIX_EPOCH</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MICROTESLA"><code class="name">var <span class="ident">MICROTESLA</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MetadataEntry"><code class="name">var <span class="ident">MetadataEntry</span></code></dt>
+<dd>
+<div class="desc"><p>Abstract base class for protocol messages.</p>
+<p>Protocol message classes are almost always generated by the protocol
+compiler.
+These generated types subclass Message and implement the methods
+shown below.</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.NORMALIZED_COUNTS"><code class="name">var <span class="ident">NORMALIZED_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.PCM"><code class="name">var <span class="ident">PCM</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.PERCENTAGE"><code class="name">var <span class="ident">PERCENTAGE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.RADIANS"><code class="name">var <span class="ident">RADIANS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.RADIANS_PER_SECOND"><code class="name">var <span class="ident">RADIANS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SENSORS_FIELD_NUMBER"><code class="name">var <span class="ident">SENSORS_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.STATION_INFORMATION_FIELD_NUMBER"><code class="name">var <span class="ident">STATION_INFORMATION_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SUB_API_FIELD_NUMBER"><code class="name">var <span class="ident">SUB_API_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SamplePayload"><code class="name">var <span class="ident">SamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>Abstract base class for protocol messages.</p>
+<p>Protocol message classes are almost always generated by the protocol
+compiler.
+These generated types subclass Message and implement the methods
+shown below.</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.Sensors"><code class="name">var <span class="ident">Sensors</span></code></dt>
+<dd>
+<div class="desc"><p>Abstract base class for protocol messages.</p>
+<p>Protocol message classes are almost always generated by the protocol
+compiler.
+These generated types subclass Message and implement the methods
+shown below.</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.StationInformation"><code class="name">var <span class="ident">StationInformation</span></code></dt>
+<dd>
+<div class="desc"><p>Abstract base class for protocol messages.</p>
+<p>Protocol message classes are almost always generated by the protocol
+compiler.
+These generated types subclass Message and implement the methods
+shown below.</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SummaryStatistics"><code class="name">var <span class="ident">SummaryStatistics</span></code></dt>
+<dd>
+<div class="desc"><p>Abstract base class for protocol messages.</p>
+<p>Protocol message classes are almost always generated by the protocol
+compiler.
+These generated types subclass Message and implement the methods
+shown below.</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.TIMING_INFORMATION_FIELD_NUMBER"><code class="name">var <span class="ident">TIMING_INFORMATION_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.TimingInformation"><code class="name">var <span class="ident">TimingInformation</span></code></dt>
+<dd>
+<div class="desc"><p>Abstract base class for protocol messages.</p>
+<p>Protocol message classes are almost always generated by the protocol
+compiler.
+These generated types subclass Message and implement the methods
+shown below.</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.TimingPayload"><code class="name">var <span class="ident">TimingPayload</span></code></dt>
+<dd>
+<div class="desc"><p>Abstract base class for protocol messages.</p>
+<p>Protocol message classes are almost always generated by the protocol
+compiler.
+These generated types subclass Message and implement the methods
+shown below.</p></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.UNITLESS"><code class="name">var <span class="ident">UNITLESS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.Unit"><code class="name">var <span class="ident">Unit</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.FromString"><code class="name flex">
+<span>def <span class="ident">FromString</span></span>(<span>s)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def FromString(s):
+  message = cls()
+  message.MergeFromString(s)
+  return message</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.RegisterExtension"><code class="name flex">
+<span>def <span class="ident">RegisterExtension</span></span>(<span>extension_handle)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def RegisterExtension(extension_handle):
+  extension_handle.containing_type = cls.DESCRIPTOR
+  # TODO(amauryfa): Use cls.MESSAGE_FACTORY.pool when available.
+  # pylint: disable=protected-access
+  cls.DESCRIPTOR.file.pool._AddExtensionDescriptor(extension_handle)
+  _AttachFieldHelpers(cls, extension_handle)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.api"><code class="name">var <span class="ident">api</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for api.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  # TODO(protobuf-team): This may be broken since there may not be
+  # default_value.  Combine with has_default_value somehow.
+  return self._fields.get(field, default_value)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.event_streams"><code class="name">var <span class="ident">event_streams</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for event_streams.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  field_value = self._fields.get(field)
+  if field_value is None:
+    # Construct a new object to represent this field.
+    field_value = field._default_constructor(self)
+
+    # Atomically check if another thread has preempted us and, if not, swap
+    # in the new object we just created.  If someone has preempted us, we
+    # take that object and discard ours.
+    # WARNING:  We are relying on setdefault() being atomic.  This is true
+    #   in CPython but we haven&#39;t investigated others.  This warning appears
+    #   in several other locations in this file.
+    field_value = self._fields.setdefault(field, field_value)
+  return field_value</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for metadata.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  field_value = self._fields.get(field)
+  if field_value is None:
+    # Construct a new object to represent this field.
+    field_value = field._default_constructor(self)
+
+    # Atomically check if another thread has preempted us and, if not, swap
+    # in the new object we just created.  If someone has preempted us, we
+    # take that object and discard ours.
+    # WARNING:  We are relying on setdefault() being atomic.  This is true
+    #   in CPython but we haven&#39;t investigated others.  This warning appears
+    #   in several other locations in this file.
+    field_value = self._fields.setdefault(field, field_value)
+  return field_value</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.sensors"><code class="name">var <span class="ident">sensors</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for sensors.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  field_value = self._fields.get(field)
+  if field_value is None:
+    # Construct a new object to represent this field.
+    field_value = field._default_constructor(self)
+
+    # Atomically check if another thread has preempted us and, if not, swap
+    # in the new object we just created.  If someone has preempted us, we
+    # take that object and discard ours.
+    # WARNING:  We are relying on setdefault() being atomic.  This is true
+    #   in CPython but we haven&#39;t investigated others.  This warning appears
+    #   in several other locations in this file.
+    field_value = self._fields.setdefault(field, field_value)
+  return field_value</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.station_information"><code class="name">var <span class="ident">station_information</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for station_information.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  field_value = self._fields.get(field)
+  if field_value is None:
+    # Construct a new object to represent this field.
+    field_value = field._default_constructor(self)
+
+    # Atomically check if another thread has preempted us and, if not, swap
+    # in the new object we just created.  If someone has preempted us, we
+    # take that object and discard ours.
+    # WARNING:  We are relying on setdefault() being atomic.  This is true
+    #   in CPython but we haven&#39;t investigated others.  This warning appears
+    #   in several other locations in this file.
+    field_value = self._fields.setdefault(field, field_value)
+  return field_value</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.sub_api"><code class="name">var <span class="ident">sub_api</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for sub_api.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  # TODO(protobuf-team): This may be broken since there may not be
+  # default_value.  Combine with has_default_value somehow.
+  return self._fields.get(field, default_value)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.timing_information"><code class="name">var <span class="ident">timing_information</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for timing_information.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  field_value = self._fields.get(field)
+  if field_value is None:
+    # Construct a new object to represent this field.
+    field_value = field._default_constructor(self)
+
+    # Atomically check if another thread has preempted us and, if not, swap
+    # in the new object we just created.  If someone has preempted us, we
+    # take that object and discard ours.
+    # WARNING:  We are relying on setdefault() being atomic.  This is true
+    #   in CPython but we haven&#39;t investigated others.  This warning appears
+    #   in several other locations in this file.
+    field_value = self._fields.setdefault(field, field_value)
+  return field_value</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.ByteSize"><code class="name flex">
+<span>def <span class="ident">ByteSize</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ByteSize(self):
+  if not self._cached_byte_size_dirty:
+    return self._cached_byte_size
+
+  size = 0
+  descriptor = self.DESCRIPTOR
+  if descriptor.GetOptions().map_entry:
+    # Fields of map entry should always be serialized.
+    size = descriptor.fields_by_name[&#39;key&#39;]._sizer(self.key)
+    size += descriptor.fields_by_name[&#39;value&#39;]._sizer(self.value)
+  else:
+    for field_descriptor, field_value in self.ListFields():
+      size += field_descriptor._sizer(field_value)
+    for tag_bytes, value_bytes in self._unknown_fields:
+      size += len(tag_bytes) + len(value_bytes)
+
+  self._cached_byte_size = size
+  self._cached_byte_size_dirty = False
+  self._listener_for_children.dirty = False
+  return size</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.Clear"><code class="name flex">
+<span>def <span class="ident">Clear</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def _Clear(self):
+  # Clear fields.
+  self._fields = {}
+  self._unknown_fields = ()
+  # pylint: disable=protected-access
+  if self._unknown_field_set is not None:
+    self._unknown_field_set._clear()
+    self._unknown_field_set = None
+
+  self._oneofs = {}
+  self._Modified()</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.ClearField"><code class="name flex">
+<span>def <span class="ident">ClearField</span></span>(<span>self, field_name)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ClearField(self, field_name):
+  try:
+    field = message_descriptor.fields_by_name[field_name]
+  except KeyError:
+    try:
+      field = message_descriptor.oneofs_by_name[field_name]
+      if field in self._oneofs:
+        field = self._oneofs[field]
+      else:
+        return
+    except KeyError:
+      raise ValueError(&#39;Protocol message %s has no &#34;%s&#34; field.&#39; %
+                       (message_descriptor.name, field_name))
+
+  if field in self._fields:
+    # To match the C++ implementation, we need to invalidate iterators
+    # for map fields when ClearField() happens.
+    if hasattr(self._fields[field], &#39;InvalidateIterators&#39;):
+      self._fields[field].InvalidateIterators()
+
+    # Note:  If the field is a sub-message, its listener will still point
+    #   at us.  That&#39;s fine, because the worst than can happen is that it
+    #   will call _Modified() and invalidate our byte size.  Big deal.
+    del self._fields[field]
+
+    if self._oneofs.get(field.containing_oneof, None) is field:
+      del self._oneofs[field.containing_oneof]
+
+  # Always call _Modified() -- even if nothing was changed, this is
+  # a mutating method, and thus calling it should cause the field to become
+  # present in the parent message.
+  self._Modified()</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DiscardUnknownFields"><code class="name flex">
+<span>def <span class="ident">DiscardUnknownFields</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def _DiscardUnknownFields(self):
+  self._unknown_fields = []
+  self._unknown_field_set = None      # pylint: disable=protected-access
+  for field, value in self.ListFields():
+    if field.cpp_type == _FieldDescriptor.CPPTYPE_MESSAGE:
+      if _IsMapField(field):
+        if _IsMessageMapField(field):
+          for key in value:
+            value[key].DiscardUnknownFields()
+      elif field.label == _FieldDescriptor.LABEL_REPEATED:
+        for sub_message in value:
+          sub_message.DiscardUnknownFields()
+      else:
+        value.DiscardUnknownFields()</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.FindInitializationErrors"><code class="name flex">
+<span>def <span class="ident">FindInitializationErrors</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Finds required fields which are not initialized.</p>
+<h2 id="returns">Returns</h2>
+<p>A list of strings.
+Each string is a path to an uninitialized field from
+the top-level message, e.g. "foo.bar[5].baz".</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def FindInitializationErrors(self):
+  &#34;&#34;&#34;Finds required fields which are not initialized.
+
+  Returns:
+    A list of strings.  Each string is a path to an uninitialized field from
+    the top-level message, e.g. &#34;foo.bar[5].baz&#34;.
+  &#34;&#34;&#34;
+
+  errors = []  # simplify things
+
+  for field in required_fields:
+    if not self.HasField(field.name):
+      errors.append(field.name)
+
+  for field, value in self.ListFields():
+    if field.cpp_type == _FieldDescriptor.CPPTYPE_MESSAGE:
+      if field.is_extension:
+        name = &#39;(%s)&#39; % field.full_name
+      else:
+        name = field.name
+
+      if _IsMapField(field):
+        if _IsMessageMapField(field):
+          for key in value:
+            element = value[key]
+            prefix = &#39;%s[%s].&#39; % (name, key)
+            sub_errors = element.FindInitializationErrors()
+            errors += [prefix + error for error in sub_errors]
+        else:
+          # ScalarMaps can&#39;t have any initialization errors.
+          pass
+      elif field.label == _FieldDescriptor.LABEL_REPEATED:
+        for i in range(len(value)):
+          element = value[i]
+          prefix = &#39;%s[%d].&#39; % (name, i)
+          sub_errors = element.FindInitializationErrors()
+          errors += [prefix + error for error in sub_errors]
+      else:
+        prefix = name + &#39;.&#39;
+        sub_errors = value.FindInitializationErrors()
+        errors += [prefix + error for error in sub_errors]
+
+  return errors</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.HasField"><code class="name flex">
+<span>def <span class="ident">HasField</span></span>(<span>self, field_name)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def HasField(self, field_name):
+  try:
+    field = hassable_fields[field_name]
+  except KeyError:
+    raise ValueError(error_msg % (message_descriptor.full_name, field_name))
+
+  if isinstance(field, descriptor_mod.OneofDescriptor):
+    try:
+      return HasField(self, self._oneofs[field].name)
+    except KeyError:
+      return False
+  else:
+    if field.cpp_type == _FieldDescriptor.CPPTYPE_MESSAGE:
+      value = self._fields.get(field)
+      return value is not None and value._is_present_in_parent
+    else:
+      return field in self._fields</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.IsInitialized"><code class="name flex">
+<span>def <span class="ident">IsInitialized</span></span>(<span>self, errors=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Checks if all required fields of a message are set.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>errors</code></strong></dt>
+<dd>A list which, if provided, will be populated with the field
+paths of all missing required fields.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>True iff the specified message has all required fields set.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def IsInitialized(self, errors=None):
+  &#34;&#34;&#34;Checks if all required fields of a message are set.
+
+  Args:
+    errors:  A list which, if provided, will be populated with the field
+             paths of all missing required fields.
+
+  Returns:
+    True iff the specified message has all required fields set.
+  &#34;&#34;&#34;
+
+  # Performance is critical so we avoid HasField() and ListFields().
+
+  for field in required_fields:
+    if (field not in self._fields or
+        (field.cpp_type == _FieldDescriptor.CPPTYPE_MESSAGE and
+         not self._fields[field]._is_present_in_parent)):
+      if errors is not None:
+        errors.extend(self.FindInitializationErrors())
+      return False
+
+  for field, value in list(self._fields.items()):  # dict can change size!
+    if field.cpp_type == _FieldDescriptor.CPPTYPE_MESSAGE:
+      if field.label == _FieldDescriptor.LABEL_REPEATED:
+        if (field.message_type.has_options and
+            field.message_type.GetOptions().map_entry):
+          continue
+        for element in value:
+          if not element.IsInitialized():
+            if errors is not None:
+              errors.extend(self.FindInitializationErrors())
+            return False
+      elif value._is_present_in_parent and not value.IsInitialized():
+        if errors is not None:
+          errors.extend(self.FindInitializationErrors())
+        return False
+
+  return True</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.ListFields"><code class="name flex">
+<span>def <span class="ident">ListFields</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ListFields(self):
+  all_fields = [item for item in self._fields.items() if _IsPresent(item)]
+  all_fields.sort(key = lambda item: item[0].number)
+  return all_fields</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MergeFrom"><code class="name flex">
+<span>def <span class="ident">MergeFrom</span></span>(<span>self, msg)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def MergeFrom(self, msg):
+  if not isinstance(msg, cls):
+    raise TypeError(
+        &#39;Parameter to MergeFrom() must be instance of same class: &#39;
+        &#39;expected %s got %s.&#39; % (cls.__name__, msg.__class__.__name__))
+
+  assert msg is not self
+  self._Modified()
+
+  fields = self._fields
+
+  for field, value in msg._fields.items():
+    if field.label == LABEL_REPEATED:
+      field_value = fields.get(field)
+      if field_value is None:
+        # Construct a new object to represent this field.
+        field_value = field._default_constructor(self)
+        fields[field] = field_value
+      field_value.MergeFrom(value)
+    elif field.cpp_type == CPPTYPE_MESSAGE:
+      if value._is_present_in_parent:
+        field_value = fields.get(field)
+        if field_value is None:
+          # Construct a new object to represent this field.
+          field_value = field._default_constructor(self)
+          fields[field] = field_value
+        field_value.MergeFrom(value)
+    else:
+      self._fields[field] = value
+      if field.containing_oneof:
+        self._UpdateOneofState(field)
+
+  if msg._unknown_fields:
+    if not self._unknown_fields:
+      self._unknown_fields = []
+    self._unknown_fields.extend(msg._unknown_fields)
+    # pylint: disable=protected-access
+    if self._unknown_field_set is None:
+      self._unknown_field_set = containers.UnknownFieldSet()
+    self._unknown_field_set._extend(msg._unknown_field_set)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MergeFromString"><code class="name flex">
+<span>def <span class="ident">MergeFromString</span></span>(<span>self, serialized)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def MergeFromString(self, serialized):
+  if isinstance(serialized, memoryview) and six.PY2:
+    raise TypeError(
+        &#39;memoryview not supported in Python 2 with the pure Python proto &#39;
+        &#39;implementation: this is to maintain compatibility with the C++ &#39;
+        &#39;implementation&#39;)
+
+  serialized = memoryview(serialized)
+  length = len(serialized)
+  try:
+    if self._InternalParse(serialized, 0, length) != length:
+      # The only reason _InternalParse would return early is if it
+      # encountered an end-group tag.
+      raise message_mod.DecodeError(&#39;Unexpected end-group tag.&#39;)
+  except (IndexError, TypeError):
+    # Now ord(buf[p:p+1]) == ord(&#39;&#39;) gets TypeError.
+    raise message_mod.DecodeError(&#39;Truncated message.&#39;)
+  except struct.error as e:
+    raise message_mod.DecodeError(e)
+  return length   # Return this for legacy reasons.</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SerializePartialToString"><code class="name flex">
+<span>def <span class="ident">SerializePartialToString</span></span>(<span>self, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def SerializePartialToString(self, **kwargs):
+  out = BytesIO()
+  self._InternalSerialize(out.write, **kwargs)
+  return out.getvalue()</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SerializeToString"><code class="name flex">
+<span>def <span class="ident">SerializeToString</span></span>(<span>self, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def SerializeToString(self, **kwargs):
+  # Check if the message has all of its required fields set.
+  if not self.IsInitialized():
+    raise message_mod.EncodeError(
+        &#39;Message %s is missing required fields: %s&#39; % (
+        self.DESCRIPTOR.full_name, &#39;,&#39;.join(self.FindInitializationErrors())))
+  return self.SerializePartialToString(**kwargs)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SetInParent"><code class="name flex">
+<span>def <span class="ident">SetInParent</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the _cached_byte_size_dirty bit to true,
+and propagates this to our listener iff this was a state change.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def Modified(self):
+  &#34;&#34;&#34;Sets the _cached_byte_size_dirty bit to true,
+  and propagates this to our listener iff this was a state change.
+  &#34;&#34;&#34;
+
+  # Note:  Some callers check _cached_byte_size_dirty before calling
+  #   _Modified() as an extra optimization.  So, if this method is ever
+  #   changed such that it does stuff even when _cached_byte_size_dirty is
+  #   already true, the callers need to be updated.
+  if not self._cached_byte_size_dirty:
+    self._cached_byte_size_dirty = True
+    self._listener_for_children.dirty = True
+    self._is_present_in_parent = True
+    self._listener.Modified()</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.UnknownFields"><code class="name flex">
+<span>def <span class="ident">UnknownFields</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def _UnknownFields(self):
+  if self._unknown_field_set is None:  # pylint: disable=protected-access
+    # pylint: disable=protected-access
+    self._unknown_field_set = containers.UnknownFieldSet()
+  return self._unknown_field_set    # pylint: disable=protected-access</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.WhichOneof"><code class="name flex">
+<span>def <span class="ident">WhichOneof</span></span>(<span>self, oneof_name)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the name of the currently set field inside a oneof, or None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def WhichOneof(self, oneof_name):
+  &#34;&#34;&#34;Returns the name of the currently set field inside a oneof, or None.&#34;&#34;&#34;
+  try:
+    field = message_descriptor.oneofs_by_name[oneof_name]
+  except KeyError:
+    raise ValueError(
+        &#39;Protocol message has no oneof &#34;%s&#34; field.&#39; % oneof_name)
+
+  nested_field = self._oneofs.get(field, None)
+  if nested_field is not None and self.HasField(nested_field.name):
+    return nested_field.name
+  else:
+    return None</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM"><code class="flex name class">
+<span>class <span class="ident">WrappedRedvoxPacketM</span></span>
+<span>(</span><span>redvox_proto: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wraps a RedVox API M protobuf buffer.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@total_ordering
+class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
+    &#34;&#34;&#34;
+    Wraps a RedVox API M protobuf buffer.
+    &#34;&#34;&#34;
+    def __init__(self, redvox_proto: RedvoxPacketM):
+        super().__init__(redvox_proto)
+
+        self._station_information: _station_information.StationInformation = _station_information.StationInformation(
+            redvox_proto.station_information)
+
+        self._timing_information: _timing_information.TimingInformation = _timing_information.TimingInformation(
+            redvox_proto.timing_information)
+
+        self._sensors: _sensors.Sensors = _sensors.Sensors(redvox_proto.sensors)
+
+        self._event_streams: ProtoRepeatedMessage = ProtoRepeatedMessage(
+            redvox_proto,
+            redvox_proto.event_streams,
+            &#34;event_streams&#34;,
+            EventStream,
+            lambda event_stream: event_stream.get_proto()
+        )
+
+    # Implement methods required for total_ordering
+    def __eq__(self, other) -&gt; bool:
+        &#34;&#34;&#34;
+        Tests if this packet is equal in time to another packet by comparing start mach timestamps.
+        :param other: Other packet to compare against
+        :return: True if the packets mach timestamps match, False otherwise
+        &#34;&#34;&#34;
+        self_ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
+        other_ts: float = other.get_timing_information().get_packet_start_mach_timestamp()
+        return self_ts == other_ts
+
+    def __lt__(self, other: &#39;WrappedRedvoxPacketM&#39;) -&gt; bool:
+        &#34;&#34;&#34;
+        Checks if this packet is less than another packet by comparing start mach times.
+        :param other: Other packet to compare against.
+        :return: True if this packet is less than the other packet
+        &#34;&#34;&#34;
+        self_ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
+        other_ts: float = other.get_timing_information().get_packet_start_mach_timestamp()
+        return self_ts &lt; other_ts
+
+    @staticmethod
+    def new() -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Returns a new default instance of a WrappedRedvoxPacketApi1000.
+        :return: A new default instance of a WrappedRedvoxPacketApi1000.
+        &#34;&#34;&#34;
+        return WrappedRedvoxPacketM(RedvoxPacketM())
+
+    @staticmethod
+    def from_compressed_bytes(data: bytes) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Deserializes the byte content of an API M encoded .rdvxz file.
+        :param data: The compressed bytes to deserialize.
+        :return: An instance of a WrappedRedvoxPacketAPi1000.
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(data, [bytes])
+        uncompressed_data: bytes = redvox.api1000.common.lz4.decompress(data)
+        proto: RedvoxPacketM = RedvoxPacketM()
+        proto.ParseFromString(uncompressed_data)
+        return WrappedRedvoxPacketM(proto)
+
+    @staticmethod
+    def from_compressed_path(rdvxm_path: str) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Deserialize an API M encoded .rdvxm file from the specified file system path.
+        :param rdvxm_path: Path to the API M encoded file.
+        :return: An instance of a WrappedRedvoxPacketApiM.
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(rdvxm_path, [str])
+
+        if not os.path.isfile(rdvxm_path):
+            raise errors.WrappedRedvoxPacketMError(f&#34;Path to file={rdvxm_path} does not exist.&#34;)
+
+        with open(rdvxm_path, &#34;rb&#34;) as rdvxz_in:
+            compressed_bytes: bytes = rdvxz_in.read()
+            return WrappedRedvoxPacketM.from_compressed_bytes(compressed_bytes)
+
+    @staticmethod
+    def from_json(json_str: str) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        read json packet representing an API 1000 packet
+        :param json_str: contains the json representing the packet
+        :return: An instance of a WrappedRedvoxPacketM
+        &#34;&#34;&#34;
+        return WrappedRedvoxPacketM(json_format.Parse(json_str, RedvoxPacketM()))
+
+    @staticmethod
+    def from_json_path(json_path: str) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        read json from a file representing an api 1000 packet
+        :param json_path: the path to the file to read
+        :return: wrapped redvox packet api 1000
+        &#34;&#34;&#34;
+        with open(json_path, &#34;r&#34;) as json_in:
+            return WrappedRedvoxPacketM.from_json(json_in.read())
+
+    def default_filename(self, extension: Optional[str] = &#34;rdvxm&#34;) -&gt; str:
+        &#34;&#34;&#34;
+        Returns the default filename for a given packet.
+        :param extension: An (optional) file extension to add to the default file name.
+        :return: The default filename for this packet.
+        &#34;&#34;&#34;
+        # Format to be exactly 10 characters
+        station_id: str = f&#34;{self.get_station_information().get_id():0&gt;10}&#34;
+        timestamp: int = round(self.get_timing_information().get_packet_start_mach_timestamp())
+        filename: str = f&#34;{station_id}_{timestamp}&#34;
+
+        if extension is not None:
+            filename = f&#34;{filename}.{extension}&#34;
+
+        return filename
+
+    def default_file_dir(self) -&gt; str:
+        &#34;&#34;&#34;
+        Computes the default file directory structure for a structured layout for this particular packet.
+        :return:  Directory structure for this packet when using structured layout
+        &#34;&#34;&#34;
+        timestamp: float = self.get_timing_information().get_packet_start_mach_timestamp()
+        date_time: datetime = dt_utils.datetime_from_epoch_microseconds_utc(timestamp)
+        year: str = f&#34;{date_time.year}:0&gt;4&#34;
+        month: str = f&#34;{date_time.month:0&gt;2}&#34;
+        day: str = f&#34;{date_time.day:0&gt;2}&#34;
+        hour: str = f&#34;{date_time.hour:0&gt;2}&#34;
+        return os.path.join(year, month, day, hour)
+
+    def default_file_path(self) -&gt; str:
+        &#34;&#34;&#34;
+        Computes the default directory structure and file name for this packet for structured layouts.
+        :return: The default directory structure and file name for this packet for structured layouts.
+        &#34;&#34;&#34;
+        return os.path.join(self.default_file_dir(), self.default_filename())
+
+    def write_compressed_to_file(self, base_dir: str, filename: Optional[str] = None) -&gt; str:
+        &#34;&#34;&#34;
+        Writes this packet to a .rdvxm file.
+        :param base_dir: Directory to write .rdvxm to.
+        :param filename: The (optional) file name to use. Will use default file name otherwise.
+        :return: Path of written file.
+        &#34;&#34;&#34;
+        if filename is None:
+            filename = self.default_filename(&#34;rdvxm&#34;)
+
+        if not os.path.isdir(base_dir):
+            raise errors.WrappedRedvoxPacketMError(f&#34;Base directory={base_dir} does not exist.&#34;)
+
+        out_path: str = os.path.join(base_dir, filename)
+        with open(out_path, &#34;wb&#34;) as compressed_out:
+            compressed_out.write(self.as_compressed_bytes())
+
+        return out_path
+
+    def write_json_to_file(self, base_dir: str, filename: Optional[str] = None) -&gt; str:
+        &#34;&#34;&#34;
+        Writes this packet to a .json file.
+        :param base_dir: Directory to write .json to.
+        :param filename: The (optional) file name to use. Will use default file name otherwise.
+        :return: Path of written file.
+        &#34;&#34;&#34;
+        if filename is None:
+            filename = self.default_filename(&#34;json&#34;)
+
+        if not os.path.isdir(base_dir):
+            raise errors.WrappedRedvoxPacketMError(f&#34;Base directory={base_dir} does not exist.&#34;)
+
+        out_path: str = os.path.join(base_dir, filename)
+        with open(out_path, &#34;w&#34;) as json_out:
+            json_out.write(self.as_json())
+
+        return out_path
+
+    def validate(self) -&gt; List[str]:
+        &#34;&#34;&#34;
+        Validates this packet.
+        :return: A list of validation errors.
+        &#34;&#34;&#34;
+        return validate_wrapped_packet(self)
+
+    # Top-level packet fields
+    def get_api(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the API version of this packet.
+        :return: The API version of this packet.
+        &#34;&#34;&#34;
+        return self._proto.api
+
+    def set_api(self, api: float) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Sets the api version of this packet.
+        :param api: The API version (should be 1000.0)
+        :return: The modified instance of this packet
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(api, [int, float])
+        self._proto.api = api
+        return self
+
+    def get_sub_api(self) -&gt; float:
+        &#34;&#34;&#34;
+        Returns the sub_api version. This version tracks small changes within API 1000.
+        :return: The sub_api version. This version tracks small changes within API 1000.
+        &#34;&#34;&#34;
+        return self._proto.sub_api
+
+    def set_sub_api(self, sub_api: float) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Sets the sub_api.
+        :param sub_api: sub_api to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        redvox.api1000.common.typing.check_type(sub_api, [int, float])
+        self._proto.sub_api = sub_api
+        return self
+
+    def get_station_information(self) -&gt; _station_information.StationInformation:
+        &#34;&#34;&#34;
+        :return: An instance of StationInformation
+        &#34;&#34;&#34;
+        return self._station_information
+
+    def set_station_information(self,
+                                station_information: _station_information.StationInformation) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Sets the StationInformation.
+        :param station_information: StationInformation to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(station_information, [_station_information.StationInformation])
+        self.get_proto().station_information.CopyFrom(station_information.get_proto())
+        self._station_information = _station_information.StationInformation(self.get_proto().station_information)
+        return self
+
+    def get_timing_information(self) -&gt; _timing_information.TimingInformation:
+        &#34;&#34;&#34;
+        :return: An instance of TimingInformation
+        &#34;&#34;&#34;
+        return self._timing_information
+
+    def set_timing_information(self,
+                               timing_information: _timing_information.TimingInformation) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Sets the timing information.
+        :param timing_information: TimingInformation to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(timing_information, [_timing_information.TimingInformation])
+        self.get_proto().timing_information.CopyFrom(timing_information.get_proto())
+        self._timing_information = _timing_information.TimingInformation(self.get_proto().timing_information)
+        return self
+
+    def get_sensors(self) -&gt; _sensors.Sensors:
+        &#34;&#34;&#34;
+        :return: An instance of Sensors
+        &#34;&#34;&#34;
+        return self._sensors
+
+    def set_sensors(self, sensors: _sensors.Sensors) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Sets the sensors.
+        :param sensors: Sensors to set.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(sensors, [_sensors.Sensors])
+        self.get_proto().sensors.CopyFrom(sensors.get_proto())
+        self._sensors = _sensors.Sensors(self.get_proto().sensors)
+        return self
+
+    def get_event_streams(self) -&gt; ProtoRepeatedMessage:
+        &#34;&#34;&#34;
+        :return: A collection of event streams.
+        &#34;&#34;&#34;
+        return self._event_streams
+
+    def set_event_streams(self, event_streams: ProtoRepeatedMessage) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        Set the event streams from the provided ProtoRepeatedMessage.
+        :param event_streams: EventStreams embedded in a ProtoRepeatedMessage.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(event_streams, [ProtoRepeatedMessage])
+        self._event_streams.clear_values()
+        self._event_streams.append_values(event_streams.get_values())
+        return self
+
+    # todo: add packet_duration calculations that don&#39;t rely on sensors existing if possible
+
+    def get_packet_duration(self) -&gt; timedelta:
+        &#34;&#34;&#34;
+        :return: Packet duration as a timedelta
+        &#34;&#34;&#34;
+        audio = self.get_sensors().get_audio()
+        if audio is not None:
+            return audio.get_duration()
+        else:
+            return timedelta(seconds=0)
+
+    def get_packet_duration_s(self) -&gt; float:
+        &#34;&#34;&#34;
+        get the packet duration in seconds from the audio data
+        :return: packet duration in seconds
+        &#34;&#34;&#34;
+        if self.get_sensors().has_audio():
+            return self.get_sensors().get_audio().get_duration_s()
+        else:
+            return 0.0
+
+    def update_timestamps(self, delta_offset: float = None) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+        &#34;&#34;&#34;
+        update all timestamps in the packet by adding the delta offset
+        :param delta_offset: amount of microseconds to add to existing timestamps
+        :return: WrappedRedvoxPacketM with updated timestamps
+        &#34;&#34;&#34;
+        if delta_offset is None:
+            delta_offset = self.get_timing_information().get_best_offset()
+        redvox.api1000.common.typing.check_type(delta_offset, [float])
+        # create new wrapped packet to hold changed data
+        updated = WrappedRedvoxPacketM(self.get_proto())
+        if self.get_proto().HasField(&#34;timing_information&#34;):
+            # update timing information timestamps
+            updated.get_timing_information().set_packet_start_mach_timestamp(
+                self.get_timing_information().get_packet_start_mach_timestamp() + delta_offset)
+            updated.get_timing_information().set_packet_end_mach_timestamp(
+                self.get_timing_information().get_packet_end_mach_timestamp() + delta_offset)
+            updated.get_timing_information().set_packet_start_os_timestamp(
+                self.get_timing_information().get_packet_start_os_timestamp() + delta_offset)
+            updated.get_timing_information().set_packet_end_os_timestamp(
+                self.get_timing_information().get_packet_end_os_timestamp() + delta_offset)
+            updated.get_timing_information().set_app_start_mach_timestamp(
+                self.get_timing_information().get_app_start_mach_timestamp() + delta_offset)
+        if self.get_sensors().get_proto().HasField(&#34;audio&#34;):
+            # update audio first sample timestamp
+            updated.get_sensors().get_audio().set_first_sample_timestamp(
+                self.get_sensors().get_audio().get_first_sample_timestamp() + delta_offset)
+        # todo if self.get_sensors().get_proto().HasField(&#34;compressed_audio&#34;):
+        # update compressed audio first sample timestamp
+        # update timestamp payloads
+        if self.get_station_information().get_station_metrics().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_station_information().get_station_metrics().get_timestamps().set_timestamps(
+                self.get_station_information().get_station_metrics().get_timestamps().get_timestamps() + delta_offset,
+                True)
+        if self.get_sensors().get_accelerometer().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_accelerometer().get_timestamps().set_timestamps(
+                self.get_sensors().get_accelerometer().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_ambient_temperature().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_ambient_temperature().get_timestamps().set_timestamps(
+                self.get_sensors().get_ambient_temperature().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_gravity().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_gravity().get_timestamps().set_timestamps(
+                self.get_sensors().get_gravity().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_gyroscope().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_gyroscope().get_timestamps().set_timestamps(
+                self.get_sensors().get_gyroscope().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_image().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_image().get_timestamps().set_timestamps(
+                self.get_sensors().get_image().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_light().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_light().get_timestamps().set_timestamps(
+                self.get_sensors().get_light().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_linear_acceleration().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_linear_acceleration().get_timestamps().set_timestamps(
+                self.get_sensors().get_linear_acceleration().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_location().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_location().get_timestamps().set_timestamps(
+                self.get_sensors().get_location().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_magnetometer().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_magnetometer().get_timestamps().set_timestamps(
+                self.get_sensors().get_magnetometer().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_orientation().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_orientation().get_timestamps().set_timestamps(
+                self.get_sensors().get_orientation().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_pressure().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_pressure().get_timestamps().set_timestamps(
+                self.get_sensors().get_pressure().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_proximity().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_proximity().get_timestamps().set_timestamps(
+                self.get_sensors().get_proximity().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_relative_humidity().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_relative_humidity().get_timestamps().set_timestamps(
+                self.get_sensors().get_relative_humidity().get_timestamps().get_timestamps() + delta_offset, True)
+        if self.get_sensors().get_rotation_vector().get_proto().HasField(&#34;timestamps&#34;):
+            updated.get_sensors().get_rotation_vector().get_timestamps().set_timestamps(
+                self.get_sensors().get_rotation_vector().get_timestamps().get_timestamps() + delta_offset, True)
+        return updated</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="redvox.api1000.common.generic.ProtoBase" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase">ProtoBase</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_compressed_bytes"><code class="name flex">
+<span>def <span class="ident">from_compressed_bytes</span></span>(<span>data: bytes) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deserializes the byte content of an API M encoded .rdvxz file.
+:param data: The compressed bytes to deserialize.
+:return: An instance of a WrappedRedvoxPacketAPi1000.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_compressed_bytes(data: bytes) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    Deserializes the byte content of an API M encoded .rdvxz file.
+    :param data: The compressed bytes to deserialize.
+    :return: An instance of a WrappedRedvoxPacketAPi1000.
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(data, [bytes])
+    uncompressed_data: bytes = redvox.api1000.common.lz4.decompress(data)
+    proto: RedvoxPacketM = RedvoxPacketM()
+    proto.ParseFromString(uncompressed_data)
+    return WrappedRedvoxPacketM(proto)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_compressed_path"><code class="name flex">
+<span>def <span class="ident">from_compressed_path</span></span>(<span>rdvxm_path: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deserialize an API M encoded .rdvxm file from the specified file system path.
+:param rdvxm_path: Path to the API M encoded file.
+:return: An instance of a WrappedRedvoxPacketApiM.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_compressed_path(rdvxm_path: str) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    Deserialize an API M encoded .rdvxm file from the specified file system path.
+    :param rdvxm_path: Path to the API M encoded file.
+    :return: An instance of a WrappedRedvoxPacketApiM.
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(rdvxm_path, [str])
+
+    if not os.path.isfile(rdvxm_path):
+        raise errors.WrappedRedvoxPacketMError(f&#34;Path to file={rdvxm_path} does not exist.&#34;)
+
+    with open(rdvxm_path, &#34;rb&#34;) as rdvxz_in:
+        compressed_bytes: bytes = rdvxz_in.read()
+        return WrappedRedvoxPacketM.from_compressed_bytes(compressed_bytes)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>json_str: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>read json packet representing an API 1000 packet
+:param json_str: contains the json representing the packet
+:return: An instance of a WrappedRedvoxPacketM</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_json(json_str: str) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    read json packet representing an API 1000 packet
+    :param json_str: contains the json representing the packet
+    :return: An instance of a WrappedRedvoxPacketM
+    &#34;&#34;&#34;
+    return WrappedRedvoxPacketM(json_format.Parse(json_str, RedvoxPacketM()))</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_json_path"><code class="name flex">
+<span>def <span class="ident">from_json_path</span></span>(<span>json_path: str) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>read json from a file representing an api 1000 packet
+:param json_path: the path to the file to read
+:return: wrapped redvox packet api 1000</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_json_path(json_path: str) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    read json from a file representing an api 1000 packet
+    :param json_path: the path to the file to read
+    :return: wrapped redvox packet api 1000
+    &#34;&#34;&#34;
+    with open(json_path, &#34;r&#34;) as json_in:
+        return WrappedRedvoxPacketM.from_json(json_in.read())</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.new"><code class="name flex">
+<span>def <span class="ident">new</span></span>(<span>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a new default instance of a WrappedRedvoxPacketApi1000.
+:return: A new default instance of a WrappedRedvoxPacketApi1000.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def new() -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    Returns a new default instance of a WrappedRedvoxPacketApi1000.
+    :return: A new default instance of a WrappedRedvoxPacketApi1000.
+    &#34;&#34;&#34;
+    return WrappedRedvoxPacketM(RedvoxPacketM())</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.default_file_dir"><code class="name flex">
+<span>def <span class="ident">default_file_dir</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the default file directory structure for a structured layout for this particular packet.
+:return:
+Directory structure for this packet when using structured layout</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def default_file_dir(self) -&gt; str:
+    &#34;&#34;&#34;
+    Computes the default file directory structure for a structured layout for this particular packet.
+    :return:  Directory structure for this packet when using structured layout
+    &#34;&#34;&#34;
+    timestamp: float = self.get_timing_information().get_packet_start_mach_timestamp()
+    date_time: datetime = dt_utils.datetime_from_epoch_microseconds_utc(timestamp)
+    year: str = f&#34;{date_time.year}:0&gt;4&#34;
+    month: str = f&#34;{date_time.month:0&gt;2}&#34;
+    day: str = f&#34;{date_time.day:0&gt;2}&#34;
+    hour: str = f&#34;{date_time.hour:0&gt;2}&#34;
+    return os.path.join(year, month, day, hour)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.default_file_path"><code class="name flex">
+<span>def <span class="ident">default_file_path</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes the default directory structure and file name for this packet for structured layouts.
+:return: The default directory structure and file name for this packet for structured layouts.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def default_file_path(self) -&gt; str:
+    &#34;&#34;&#34;
+    Computes the default directory structure and file name for this packet for structured layouts.
+    :return: The default directory structure and file name for this packet for structured layouts.
+    &#34;&#34;&#34;
+    return os.path.join(self.default_file_dir(), self.default_filename())</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.default_filename"><code class="name flex">
+<span>def <span class="ident">default_filename</span></span>(<span>self, extension: typing.Optional[str] = 'rdvxm') ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the default filename for a given packet.
+:param extension: An (optional) file extension to add to the default file name.
+:return: The default filename for this packet.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def default_filename(self, extension: Optional[str] = &#34;rdvxm&#34;) -&gt; str:
+    &#34;&#34;&#34;
+    Returns the default filename for a given packet.
+    :param extension: An (optional) file extension to add to the default file name.
+    :return: The default filename for this packet.
+    &#34;&#34;&#34;
+    # Format to be exactly 10 characters
+    station_id: str = f&#34;{self.get_station_information().get_id():0&gt;10}&#34;
+    timestamp: int = round(self.get_timing_information().get_packet_start_mach_timestamp())
+    filename: str = f&#34;{station_id}_{timestamp}&#34;
+
+    if extension is not None:
+        filename = f&#34;{filename}.{extension}&#34;
+
+    return filename</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_api"><code class="name flex">
+<span>def <span class="ident">get_api</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the API version of this packet.
+:return: The API version of this packet.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_api(self) -&gt; float:
+    &#34;&#34;&#34;
+    Returns the API version of this packet.
+    :return: The API version of this packet.
+    &#34;&#34;&#34;
+    return self._proto.api</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_event_streams"><code class="name flex">
+<span>def <span class="ident">get_event_streams</span></span>(<span>self) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="../common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: A collection of event streams.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_event_streams(self) -&gt; ProtoRepeatedMessage:
+    &#34;&#34;&#34;
+    :return: A collection of event streams.
+    &#34;&#34;&#34;
+    return self._event_streams</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_packet_duration"><code class="name flex">
+<span>def <span class="ident">get_packet_duration</span></span>(<span>self) ‑> datetime.timedelta</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: Packet duration as a timedelta</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_packet_duration(self) -&gt; timedelta:
+    &#34;&#34;&#34;
+    :return: Packet duration as a timedelta
+    &#34;&#34;&#34;
+    audio = self.get_sensors().get_audio()
+    if audio is not None:
+        return audio.get_duration()
+    else:
+        return timedelta(seconds=0)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_packet_duration_s"><code class="name flex">
+<span>def <span class="ident">get_packet_duration_s</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get the packet duration in seconds from the audio data
+:return: packet duration in seconds</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_packet_duration_s(self) -&gt; float:
+    &#34;&#34;&#34;
+    get the packet duration in seconds from the audio data
+    :return: packet duration in seconds
+    &#34;&#34;&#34;
+    if self.get_sensors().has_audio():
+        return self.get_sensors().get_audio().get_duration_s()
+    else:
+        return 0.0</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_sensors"><code class="name flex">
+<span>def <span class="ident">get_sensors</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors" href="sensors/sensors.html#redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors">Sensors</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: An instance of Sensors</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_sensors(self) -&gt; _sensors.Sensors:
+    &#34;&#34;&#34;
+    :return: An instance of Sensors
+    &#34;&#34;&#34;
+    return self._sensors</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_station_information"><code class="name flex">
+<span>def <span class="ident">get_station_information</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: An instance of StationInformation</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_station_information(self) -&gt; _station_information.StationInformation:
+    &#34;&#34;&#34;
+    :return: An instance of StationInformation
+    &#34;&#34;&#34;
+    return self._station_information</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_sub_api"><code class="name flex">
+<span>def <span class="ident">get_sub_api</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the sub_api version. This version tracks small changes within API 1000.
+:return: The sub_api version. This version tracks small changes within API 1000.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_sub_api(self) -&gt; float:
+    &#34;&#34;&#34;
+    Returns the sub_api version. This version tracks small changes within API 1000.
+    :return: The sub_api version. This version tracks small changes within API 1000.
+    &#34;&#34;&#34;
+    return self._proto.sub_api</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_timing_information"><code class="name flex">
+<span>def <span class="ident">get_timing_information</span></span>(<span>self) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="timing_information.html#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: An instance of TimingInformation</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_timing_information(self) -&gt; _timing_information.TimingInformation:
+    &#34;&#34;&#34;
+    :return: An instance of TimingInformation
+    &#34;&#34;&#34;
+    return self._timing_information</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_api"><code class="name flex">
+<span>def <span class="ident">set_api</span></span>(<span>self, api: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the api version of this packet.
+:param api: The API version (should be 1000.0)
+:return: The modified instance of this packet</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_api(self, api: float) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    Sets the api version of this packet.
+    :param api: The API version (should be 1000.0)
+    :return: The modified instance of this packet
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(api, [int, float])
+    self._proto.api = api
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_event_streams"><code class="name flex">
+<span>def <span class="ident">set_event_streams</span></span>(<span>self, event_streams: <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="../common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Set the event streams from the provided ProtoRepeatedMessage.
+:param event_streams: EventStreams embedded in a ProtoRepeatedMessage.
+:return: A modified instance of self.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_event_streams(self, event_streams: ProtoRepeatedMessage) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    Set the event streams from the provided ProtoRepeatedMessage.
+    :param event_streams: EventStreams embedded in a ProtoRepeatedMessage.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
+    check_type(event_streams, [ProtoRepeatedMessage])
+    self._event_streams.clear_values()
+    self._event_streams.append_values(event_streams.get_values())
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_sensors"><code class="name flex">
+<span>def <span class="ident">set_sensors</span></span>(<span>self, sensors: <a title="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors" href="sensors/sensors.html#redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors">Sensors</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the sensors.
+:param sensors: Sensors to set.
+:return: A modified instance of self.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_sensors(self, sensors: _sensors.Sensors) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    Sets the sensors.
+    :param sensors: Sensors to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
+    check_type(sensors, [_sensors.Sensors])
+    self.get_proto().sensors.CopyFrom(sensors.get_proto())
+    self._sensors = _sensors.Sensors(self.get_proto().sensors)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_station_information"><code class="name flex">
+<span>def <span class="ident">set_station_information</span></span>(<span>self, station_information: <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the StationInformation.
+:param station_information: StationInformation to set.
+:return: A modified instance of self.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_station_information(self,
+                            station_information: _station_information.StationInformation) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    Sets the StationInformation.
+    :param station_information: StationInformation to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
+    check_type(station_information, [_station_information.StationInformation])
+    self.get_proto().station_information.CopyFrom(station_information.get_proto())
+    self._station_information = _station_information.StationInformation(self.get_proto().station_information)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_sub_api"><code class="name flex">
+<span>def <span class="ident">set_sub_api</span></span>(<span>self, sub_api: float) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the sub_api.
+:param sub_api: sub_api to set.
+:return: A modified instance of self.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_sub_api(self, sub_api: float) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    Sets the sub_api.
+    :param sub_api: sub_api to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
+    redvox.api1000.common.typing.check_type(sub_api, [int, float])
+    self._proto.sub_api = sub_api
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_timing_information"><code class="name flex">
+<span>def <span class="ident">set_timing_information</span></span>(<span>self, timing_information: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="timing_information.html#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the timing information.
+:param timing_information: TimingInformation to set.
+:return: A modified instance of self.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_timing_information(self,
+                           timing_information: _timing_information.TimingInformation) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    Sets the timing information.
+    :param timing_information: TimingInformation to set.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
+    check_type(timing_information, [_timing_information.TimingInformation])
+    self.get_proto().timing_information.CopyFrom(timing_information.get_proto())
+    self._timing_information = _timing_information.TimingInformation(self.get_proto().timing_information)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.update_timestamps"><code class="name flex">
+<span>def <span class="ident">update_timestamps</span></span>(<span>self, delta_offset: float = None) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>update all timestamps in the packet by adding the delta offset
+:param delta_offset: amount of microseconds to add to existing timestamps
+:return: WrappedRedvoxPacketM with updated timestamps</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_timestamps(self, delta_offset: float = None) -&gt; &#39;WrappedRedvoxPacketM&#39;:
+    &#34;&#34;&#34;
+    update all timestamps in the packet by adding the delta offset
+    :param delta_offset: amount of microseconds to add to existing timestamps
+    :return: WrappedRedvoxPacketM with updated timestamps
+    &#34;&#34;&#34;
+    if delta_offset is None:
+        delta_offset = self.get_timing_information().get_best_offset()
+    redvox.api1000.common.typing.check_type(delta_offset, [float])
+    # create new wrapped packet to hold changed data
+    updated = WrappedRedvoxPacketM(self.get_proto())
+    if self.get_proto().HasField(&#34;timing_information&#34;):
+        # update timing information timestamps
+        updated.get_timing_information().set_packet_start_mach_timestamp(
+            self.get_timing_information().get_packet_start_mach_timestamp() + delta_offset)
+        updated.get_timing_information().set_packet_end_mach_timestamp(
+            self.get_timing_information().get_packet_end_mach_timestamp() + delta_offset)
+        updated.get_timing_information().set_packet_start_os_timestamp(
+            self.get_timing_information().get_packet_start_os_timestamp() + delta_offset)
+        updated.get_timing_information().set_packet_end_os_timestamp(
+            self.get_timing_information().get_packet_end_os_timestamp() + delta_offset)
+        updated.get_timing_information().set_app_start_mach_timestamp(
+            self.get_timing_information().get_app_start_mach_timestamp() + delta_offset)
+    if self.get_sensors().get_proto().HasField(&#34;audio&#34;):
+        # update audio first sample timestamp
+        updated.get_sensors().get_audio().set_first_sample_timestamp(
+            self.get_sensors().get_audio().get_first_sample_timestamp() + delta_offset)
+    # todo if self.get_sensors().get_proto().HasField(&#34;compressed_audio&#34;):
+    # update compressed audio first sample timestamp
+    # update timestamp payloads
+    if self.get_station_information().get_station_metrics().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_station_information().get_station_metrics().get_timestamps().set_timestamps(
+            self.get_station_information().get_station_metrics().get_timestamps().get_timestamps() + delta_offset,
+            True)
+    if self.get_sensors().get_accelerometer().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_accelerometer().get_timestamps().set_timestamps(
+            self.get_sensors().get_accelerometer().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_ambient_temperature().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_ambient_temperature().get_timestamps().set_timestamps(
+            self.get_sensors().get_ambient_temperature().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_gravity().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_gravity().get_timestamps().set_timestamps(
+            self.get_sensors().get_gravity().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_gyroscope().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_gyroscope().get_timestamps().set_timestamps(
+            self.get_sensors().get_gyroscope().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_image().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_image().get_timestamps().set_timestamps(
+            self.get_sensors().get_image().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_light().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_light().get_timestamps().set_timestamps(
+            self.get_sensors().get_light().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_linear_acceleration().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_linear_acceleration().get_timestamps().set_timestamps(
+            self.get_sensors().get_linear_acceleration().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_location().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_location().get_timestamps().set_timestamps(
+            self.get_sensors().get_location().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_magnetometer().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_magnetometer().get_timestamps().set_timestamps(
+            self.get_sensors().get_magnetometer().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_orientation().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_orientation().get_timestamps().set_timestamps(
+            self.get_sensors().get_orientation().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_pressure().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_pressure().get_timestamps().set_timestamps(
+            self.get_sensors().get_pressure().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_proximity().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_proximity().get_timestamps().set_timestamps(
+            self.get_sensors().get_proximity().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_relative_humidity().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_relative_humidity().get_timestamps().set_timestamps(
+            self.get_sensors().get_relative_humidity().get_timestamps().get_timestamps() + delta_offset, True)
+    if self.get_sensors().get_rotation_vector().get_proto().HasField(&#34;timestamps&#34;):
+        updated.get_sensors().get_rotation_vector().get_timestamps().set_timestamps(
+            self.get_sensors().get_rotation_vector().get_timestamps().get_timestamps() + delta_offset, True)
+    return updated</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.validate"><code class="name flex">
+<span>def <span class="ident">validate</span></span>(<span>self) ‑> typing.List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Validates this packet.
+:return: A list of validation errors.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate(self) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Validates this packet.
+    :return: A list of validation errors.
+    &#34;&#34;&#34;
+    return validate_wrapped_packet(self)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.write_compressed_to_file"><code class="name flex">
+<span>def <span class="ident">write_compressed_to_file</span></span>(<span>self, base_dir: str, filename: typing.Optional[str] = None) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Writes this packet to a .rdvxm file.
+:param base_dir: Directory to write .rdvxm to.
+:param filename: The (optional) file name to use. Will use default file name otherwise.
+:return: Path of written file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_compressed_to_file(self, base_dir: str, filename: Optional[str] = None) -&gt; str:
+    &#34;&#34;&#34;
+    Writes this packet to a .rdvxm file.
+    :param base_dir: Directory to write .rdvxm to.
+    :param filename: The (optional) file name to use. Will use default file name otherwise.
+    :return: Path of written file.
+    &#34;&#34;&#34;
+    if filename is None:
+        filename = self.default_filename(&#34;rdvxm&#34;)
+
+    if not os.path.isdir(base_dir):
+        raise errors.WrappedRedvoxPacketMError(f&#34;Base directory={base_dir} does not exist.&#34;)
+
+    out_path: str = os.path.join(base_dir, filename)
+    with open(out_path, &#34;wb&#34;) as compressed_out:
+        compressed_out.write(self.as_compressed_bytes())
+
+    return out_path</code></pre>
+</details>
+</dd>
+<dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.write_json_to_file"><code class="name flex">
+<span>def <span class="ident">write_json_to_file</span></span>(<span>self, base_dir: str, filename: typing.Optional[str] = None) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Writes this packet to a .json file.
+:param base_dir: Directory to write .json to.
+:param filename: The (optional) file name to use. Will use default file name otherwise.
+:return: Path of written file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_json_to_file(self, base_dir: str, filename: Optional[str] = None) -&gt; str:
+    &#34;&#34;&#34;
+    Writes this packet to a .json file.
+    :param base_dir: Directory to write .json to.
+    :param filename: The (optional) file name to use. Will use default file name otherwise.
+    :return: Path of written file.
+    &#34;&#34;&#34;
+    if filename is None:
+        filename = self.default_filename(&#34;json&#34;)
+
+    if not os.path.isdir(base_dir):
+        raise errors.WrappedRedvoxPacketMError(f&#34;Base directory={base_dir} does not exist.&#34;)
+
+    out_path: str = os.path.join(base_dir, filename)
+    with open(out_path, &#34;w&#34;) as json_out:
+        json_out.write(self.as_json())
+
+    return out_path</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="redvox.api1000.common.generic.ProtoBase" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase">ProtoBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_bytes" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_bytes">as_bytes</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_compressed_bytes" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_compressed_bytes">as_compressed_bytes</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_dict" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_dict">as_dict</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.as_json" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.as_json">as_json</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.get_metadata" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.get_metadata">get_metadata</a></code></li>
+<li><code><a title="redvox.api1000.common.generic.ProtoBase.get_proto" href="../common/generic.html#redvox.api1000.common.generic.ProtoBase.get_proto">get_proto</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet" href="index.html">redvox.api1000.wrapped_redvox_packet</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.validate_wrapped_packet" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.validate_wrapped_packet">validate_wrapped_packet</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM">RedvoxPacketM</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.API_FIELD_NUMBER" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.API_FIELD_NUMBER">API_FIELD_NUMBER</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.BYTE" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.BYTE">BYTE</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.ByteSize" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.ByteSize">ByteSize</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.CENTIMETERS" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.CENTIMETERS">CENTIMETERS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.Clear" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.Clear">Clear</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.ClearField" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.ClearField">ClearField</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DECIBEL" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DECIBEL">DECIBEL</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DECIMAL_DEGREES" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DECIMAL_DEGREES">DECIMAL_DEGREES</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DEGREES_CELSIUS" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DEGREES_CELSIUS">DEGREES_CELSIUS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DESCRIPTOR" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DiscardUnknownFields" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DiscardUnknownFields">DiscardUnknownFields</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DoubleSamplePayload" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.DoubleSamplePayload">DoubleSamplePayload</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.EVENT_STREAMS_FIELD_NUMBER" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.EVENT_STREAMS_FIELD_NUMBER">EVENT_STREAMS_FIELD_NUMBER</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.EventStream" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.EventStream">EventStream</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.FindInitializationErrors" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.FindInitializationErrors">FindInitializationErrors</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.FromString" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.FromString">FromString</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.HasField" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.HasField">HasField</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.IsInitialized" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.IsInitialized">IsInitialized</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.KILOPASCAL" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.KILOPASCAL">KILOPASCAL</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS">LSB_PLUS_MINUS_COUNTS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.LUX" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.LUX">LUX</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.ListFields" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.ListFields">ListFields</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.METADATA_FIELD_NUMBER" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.METADATA_FIELD_NUMBER">METADATA_FIELD_NUMBER</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.METERS" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.METERS">METERS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.METERS_PER_SECOND" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.METERS_PER_SECOND">METERS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.METERS_PER_SECOND_SQUARED" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.METERS_PER_SECOND_SQUARED">METERS_PER_SECOND_SQUARED</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MICROAMPERES" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MICROAMPERES">MICROAMPERES</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH">MICROSECONDS_SINCE_UNIX_EPOCH</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MICROTESLA" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MICROTESLA">MICROTESLA</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MergeFrom" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MergeFrom">MergeFrom</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MergeFromString" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MergeFromString">MergeFromString</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MetadataEntry" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.MetadataEntry">MetadataEntry</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.NORMALIZED_COUNTS" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.NORMALIZED_COUNTS">NORMALIZED_COUNTS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.PCM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.PCM">PCM</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.PERCENTAGE" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.PERCENTAGE">PERCENTAGE</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.RADIANS" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.RADIANS">RADIANS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.RADIANS_PER_SECOND" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.RADIANS_PER_SECOND">RADIANS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.RegisterExtension" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.RegisterExtension">RegisterExtension</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SENSORS_FIELD_NUMBER" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SENSORS_FIELD_NUMBER">SENSORS_FIELD_NUMBER</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.STATION_INFORMATION_FIELD_NUMBER" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.STATION_INFORMATION_FIELD_NUMBER">STATION_INFORMATION_FIELD_NUMBER</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SUB_API_FIELD_NUMBER" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SUB_API_FIELD_NUMBER">SUB_API_FIELD_NUMBER</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SamplePayload" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SamplePayload">SamplePayload</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.Sensors" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.Sensors">Sensors</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SerializePartialToString" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SerializePartialToString">SerializePartialToString</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SerializeToString" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SerializeToString">SerializeToString</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SetInParent" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SetInParent">SetInParent</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.StationInformation" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.StationInformation">StationInformation</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SummaryStatistics" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.SummaryStatistics">SummaryStatistics</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.TIMING_INFORMATION_FIELD_NUMBER" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.TIMING_INFORMATION_FIELD_NUMBER">TIMING_INFORMATION_FIELD_NUMBER</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.TimingInformation">TimingInformation</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.TimingPayload" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.TimingPayload">TimingPayload</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.UNITLESS" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.UNITLESS">UNITLESS</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.UNKNOWN" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.UNKNOWN">UNKNOWN</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.Unit" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.Unit">Unit</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.UnknownFields" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.UnknownFields">UnknownFields</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.WhichOneof" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.WhichOneof">WhichOneof</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.api" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.api">api</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.event_streams" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.event_streams">event_streams</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.metadata" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.metadata">metadata</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.sensors" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.sensors">sensors</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.station_information" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.station_information">station_information</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.sub_api" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.sub_api">sub_api</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.timing_information" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM.timing_information">timing_information</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.default_file_dir" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.default_file_dir">default_file_dir</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.default_file_path" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.default_file_path">default_file_path</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.default_filename" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.default_filename">default_filename</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_compressed_bytes" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_compressed_bytes">from_compressed_bytes</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_compressed_path" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_compressed_path">from_compressed_path</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_json" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_json">from_json</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_json_path" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.from_json_path">from_json_path</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_api" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_api">get_api</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_event_streams" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_event_streams">get_event_streams</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_packet_duration" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_packet_duration">get_packet_duration</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_packet_duration_s" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_packet_duration_s">get_packet_duration_s</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_sensors" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_sensors">get_sensors</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_station_information" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_station_information">get_station_information</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_sub_api" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_sub_api">get_sub_api</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_timing_information" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_timing_information">get_timing_information</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.new" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.new">new</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_api" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_api">set_api</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_event_streams" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_event_streams">set_event_streams</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_sensors" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_sensors">set_sensors</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_station_information" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_station_information">set_station_information</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_sub_api" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_sub_api">set_sub_api</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_timing_information" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.set_timing_information">set_timing_information</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.update_timestamps" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.update_timestamps">update_timestamps</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.validate" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.validate">validate</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.write_compressed_to_file" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.write_compressed_to_file">write_compressed_to_file</a></code></li>
+<li><code><a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.write_json_to_file" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.write_json_to_file">write_json_to_file</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>redvox.api900.reader API documentation</title>
+<meta name="description" content="This module provides functions and classes for working with RedVox API 900 data." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.api900.reader</code></h1>
+</header>
+<section id="section-intro">
+<p>This module provides functions and classes for working with RedVox API 900 data.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># pylint: disable=too-many-lines
+&#34;&#34;&#34;
+This module provides functions and classes for working with RedVox API 900 data.
+&#34;&#34;&#34;
+
+import collections
+import glob
+import os
+import os.path
+import typing
+
+import redvox.api900.lib.api900_pb2 as api900_pb2
+import redvox.api900.concat as concat
+import redvox.common.date_time_utils as date_time_utils
+import redvox.api900.reader_utils as reader_utils
+
+# For backwards compatibility, we want to expose as much as we can from this file since everything used to live in this
+# file. This will allow old code that referenced everything through this module to still function. Someday &#34;soon&#34; we
+# should probably deprecate this.
+from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+# noinspection PyUnresolvedReferences
+# pylint: disable=W0611
+from redvox.api900.sensors.interleaved_channel import InterleavedChannel
+# noinspection PyUnresolvedReferences
+# pylint: disable=W0611
+from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
+# noinspection PyUnresolvedReferences
+# pylint: disable=W0611
+from redvox.api900.sensors.evenly_sampled_channel import EvenlySampledChannel
+from redvox.api900.sensors.evenly_sampled_sensor import EvenlySampledSensor
+from redvox.api900.sensors.unevenly_sampled_sensor import UnevenlySampledSensor
+# noinspection PyUnresolvedReferences
+# pylint: disable=W0611
+from redvox.api900.sensors.xyz_unevenly_sampled_sensor import XyzUnevenlySampledSensor
+from redvox.api900.sensors.microphone_sensor import MicrophoneSensor
+from redvox.api900.sensors.barometer_sensor import BarometerSensor
+from redvox.api900.sensors.location_sensor import LocationSensor
+from redvox.api900.sensors.time_synchronization_sensor import TimeSynchronizationSensor
+from redvox.api900.sensors.accelerometer_sensor import AccelerometerSensor
+from redvox.api900.sensors.magnetometer_sensor import MagnetometerSensor
+from redvox.api900.sensors.gyroscope_sensor import GyroscopeSensor
+from redvox.api900.sensors.light_sensor import LightSensor
+from redvox.api900.sensors.infrared_sensor import InfraredSensor
+from redvox.api900.sensors.image_sensor import ImageSensor
+
+# pylint: disable=C0103
+WrappedRedvoxPackets = typing.List[WrappedRedvoxPacket]
+# pylint: disable=C0103
+RedvoxSensor = typing.Union[
+    EvenlySampledSensor,
+    UnevenlySampledSensor,
+    MicrophoneSensor,
+    BarometerSensor,
+    LocationSensor,
+    TimeSynchronizationSensor,
+    AccelerometerSensor,
+    GyroscopeSensor,
+    MagnetometerSensor,
+    LightSensor,
+    InfraredSensor,
+    ImageSensor
+]
+# pylint: disable=C0103
+RedvoxSensors = typing.List[RedvoxSensor]
+
+
+def wrap(redvox_packet: api900_pb2.RedvoxPacket) -&gt; WrappedRedvoxPacket:
+    &#34;&#34;&#34;
+    Wraps a protobuf packet in a WrappedRedocPacket.
+    :param redvox_packet: Protobuf packet to wrap.
+    :return: A WrappedRedvoxPacket.
+    &#34;&#34;&#34;
+    return WrappedRedvoxPacket(redvox_packet)
+
+
+def read_buffer(buf: bytes, is_compressed: bool = True) -&gt; api900_pb2.RedvoxPacket:
+    &#34;&#34;&#34;
+    Deserializes a serialized protobuf RedvoxPacket buffer.
+    :param buf: Buffer to deserialize.
+    :param is_compressed: Whether or not the buffer is compressed or decompressed.
+    :return: Deserialized protobuf redvox packet.
+    &#34;&#34;&#34;
+    buffer = reader_utils.lz4_decompress(buf) if is_compressed else buf
+    redvox_packet = api900_pb2.RedvoxPacket()
+    redvox_packet.ParseFromString(buffer)
+    return redvox_packet
+
+
+def read_file(file: str, is_compressed: bool = None) -&gt; api900_pb2.RedvoxPacket:
+    &#34;&#34;&#34;
+    Deserializes a serialized protobuf RedvoxPacket file.
+    :param file: File to deserialize.
+    :param is_compressed: Whether or not the file is compressed or decompressed.
+    :return: Deserialized protobuf redvox packet.
+    &#34;&#34;&#34;
+    file_ext = file.split(&#34;.&#34;)[-1]
+
+    if is_compressed is None:
+        _is_compressed = True if file_ext == &#34;rdvxz&#34; else False
+    else:
+        _is_compressed = is_compressed
+    with open(file, &#34;rb&#34;) as fin:
+        return read_buffer(fin.read(), _is_compressed)
+
+
+def read_rdvxz_file(path: str) -&gt; WrappedRedvoxPacket:
+    &#34;&#34;&#34;
+    Reads a .rdvxz file from the specified path and returns a WrappedRedvoxPacket.
+    :param path: The path of the file.
+    :return: A WrappedRedvoxPacket.
+    &#34;&#34;&#34;
+    return wrap(read_file(path))
+
+
+def _is_int(int_as_str: str) -&gt; bool:
+    &#34;&#34;&#34;
+    Returns true if the given string can be parsed as an int.
+    :param int_as_str: String to test.
+    :return: True if it is an int, False otherwise.
+    &#34;&#34;&#34;
+    try:
+        int(int_as_str)
+        return True
+    except ValueError:
+        return False
+
+
+def _is_valid_redvox_filename(filename: str) -&gt; bool:
+    &#34;&#34;&#34;
+    Given a filename, determine if the filename is a valid redvox file name.
+    :param filename: Filename to test.
+    :return: True if it is valid, valse otherwise.
+    &#34;&#34;&#34;
+    return len(filename) == 30 \
+           and _is_int(filename[0:10]) \
+           and filename[10:11] == &#34;_&#34; \
+           and _is_int(filename[11:24]) \
+           and filename[24:len(filename)] == &#34;.rdvxz&#34;
+
+
+def _is_path_in_set(path: str,
+                    start_timestamp_utc_s: int,
+                    end_timestamp_utc_s: int,
+                    redvox_ids: typing.Set[str] = None) -&gt; bool:
+    &#34;&#34;&#34;
+    Determines whether a given path is in a provided time range and set of redvox_ids.
+    :param path: The path to check.
+    :param start_timestamp_utc_s: Start of time range.
+    :param end_timestamp_utc_s: End of time range.
+    :param redvox_ids: Optional set of redvox ids.
+    :return: True if path is in set false otherwise.
+    &#34;&#34;&#34;
+    if redvox_ids is None:
+        redvox_ids = set()
+    filename = path.split(os.sep)[-1]
+
+    if not _is_valid_redvox_filename(filename):
+        return False
+
+    timestamp = int(date_time_utils.milliseconds_to_seconds(float(filename[11:24])))
+
+    if not start_timestamp_utc_s &lt;= timestamp &lt;= end_timestamp_utc_s:
+        return False
+
+    if len(redvox_ids) &gt; 0:
+        if len(redvox_ids) &gt; 0:
+            redvox_id = filename[0:10]
+            if redvox_id not in redvox_ids:
+                return False
+
+    return True
+
+
+def _extract_timestamp_s(path: str) -&gt; int:
+    &#34;&#34;&#34;
+    Extracts a timestamp from a file path.
+    :param path: Path to extract a timestamp from.
+    :return: The timestamp in seconds from a path.
+    &#34;&#34;&#34;
+    file = path.split(os.path.sep)[-1].split(&#34;.&#34;)[0]
+    return int(round(float(file.split(&#34;_&#34;)[1]) / 1000.0))
+
+
+def _extract_redvox_id(path: str) -&gt; str:
+    &#34;&#34;&#34;
+    Extracts a redvox id from a file path.
+    :param path: A path to extract the id from.
+    :return: The redvox id.
+    &#34;&#34;&#34;
+    file = path.split(os.path.sep)[-1]
+    return file.split(&#34;_&#34;)[0]
+
+
+def _get_time_range_paths(paths: typing.List[str],
+                          redvox_ids: typing.Optional[typing.Set[str]]) -&gt; typing.Tuple[int, int]:
+    &#34;&#34;&#34;
+    Given a set of paths, get the start and end timestamps.
+    :param paths: Paths to get time range from.
+    :param redvox_ids: Redvox ids to filter on.
+    :return: A tuple containing the start and end timestamps of the data range.
+    &#34;&#34;&#34;
+    if redvox_ids is not None:
+        paths = list(filter(lambda path: _extract_redvox_id(path) in redvox_ids, paths))
+
+    if len(paths) == 0:
+        return -1, -1
+
+    if len(paths) == 1:
+        timestamp = _extract_timestamp_s(paths[0])
+        return timestamp, timestamp
+
+    timestamps = sorted(list(map(_extract_timestamp_s, paths)))
+    return timestamps[0], timestamps[-1]
+
+
+def _get_paths_time_range(directory: str,
+                          redvox_ids: typing.Optional[typing.Set[str]],
+                          recursive: bool) -&gt; typing.Tuple[int, int]:
+    &#34;&#34;&#34;
+    Gets the start and end time range of a given set of data.
+    :param directory: The base directory of the data.
+    :param redvox_ids: Redvox ids to filter on.
+    :param recursive: Whether or not to perform a recursive search.
+    :return: A tuple containing the start and end timestamps of the given data set.
+    &#34;&#34;&#34;
+    if recursive:
+        all_paths = glob.glob(os.path.join(directory, &#34;**&#34;, &#34;*.rdvxz&#34;),
+                              recursive=recursive)
+    else:
+        all_paths = glob.glob(os.path.join(directory, &#34;*.rdvxz&#34;),
+                              recursive=recursive)
+
+    return _get_time_range_paths(all_paths, redvox_ids)
+
+
+def _sort_dict_by_key(unsorted_dict: typing.Dict[str, typing.List[WrappedRedvoxPacket]]) -&gt; typing.Dict[
+        str, typing.List[WrappedRedvoxPacket]]:
+    &#34;&#34;&#34;
+    Sorts a dictionary by key.
+    :param unsorted_dict: The dictionary to sort by key.
+    :return: A dictionary with sorted keys.
+    &#34;&#34;&#34;
+    return {key: unsorted_dict[key] for key in sorted(unsorted_dict.keys())}
+
+
+def _get_structured_paths(directory: str,
+                          start_timestamp_utc_s: int,
+                          end_timestamp_utc_s: int,
+                          redvox_ids: typing.Set[str] = None) -&gt; typing.List[str]:
+    &#34;&#34;&#34;
+    Given a base directory (which should end with api900), find the paths of all structured .rdvxz files.
+    :param directory: The base directory path (which should end with api900)
+    :param start_timestamp_utc_s: Start timestamp as seconds since the epoch UTC.
+    :param end_timestamp_utc_s: End timestamp as seconds since the epoch UTC.
+    :param redvox_ids: An optional set of redvox_ids to filter against.
+    :return: A list of paths in a structured layout of filtered .rdvxz files.
+    &#34;&#34;&#34;
+    if redvox_ids is None:
+        redvox_ids = set()
+    paths = []
+    for (year, month, day) in date_time_utils.DateIterator(start_timestamp_utc_s, end_timestamp_utc_s):
+        all_paths = glob.glob(os.path.join(directory, year, month, day, &#34;*.rdvxz&#34;))
+        valid_paths = list(
+            filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, redvox_ids),
+                   all_paths))
+        paths.extend(valid_paths)
+    return paths
+
+
+# These type vars are used for defining a generic group by function further down.
+T = typing.TypeVar(&#34;T&#34;)
+TT = typing.TypeVar(&#34;TT&#34;)
+
+
+def _group_by(grouping_fn: typing.Callable[[T], TT],
+              items: typing.Iterable[T]) -&gt; typing.Dict[TT, typing.List[T]]:
+    &#34;&#34;&#34;
+    Groups items by a grouping function.
+    :param grouping_fn: A function that takes an item and returns a key that should be used to group the items.
+    :param items: The items to group.
+    :return: A dictionary where each key groups similar items into the value.
+    &#34;&#34;&#34;
+    grouped = collections.defaultdict(list)
+
+    for item in items:
+        grouped[grouping_fn(item)].append(item)
+    return grouped
+
+
+def _id_uuid(wrapped_redvox_packet: WrappedRedvoxPacket) -&gt; str:
+    &#34;&#34;&#34;
+    Extracts and formats the redvox id and uuid from a WrappedRedvoxPacket.
+    :param wrapped_redvox_packet: Packet to extract redvox id and uuid from.
+    :return: Formatted redvox_id:uuid
+    &#34;&#34;&#34;
+    return &#34;%s:%s&#34; % (wrapped_redvox_packet.redvox_id(),
+                      wrapped_redvox_packet.uuid())
+
+
+# pylint: disable=R0913
+def read_rdvxz_file_range(directory: str,
+                          start_timestamp_utc_s: typing.Optional[int] = None,
+                          end_timestamp_utc_s: typing.Optional[int] = None,
+                          redvox_ids: typing.Optional[typing.List[str]] = None,
+                          structured_layout: bool = False,
+                          concat_continuous_segments: bool = True) -&gt; typing.Dict[
+                              str, typing.List[WrappedRedvoxPacket]]:
+    &#34;&#34;&#34;
+    Reads a range of .rdvxz files from a given directory.
+
+    Given start and end timestamps which represent UNIX time (the number of seconds from the epoch) UTC and an
+    optional set of redvox ids, this function reads .rdvxz within the given time range with the given redvox ids. If
+    not redvox ids are provided, all valid .rdvxz files within the given time range will be included.
+
+    We also support a standardized structured layout. The structured layout organizes .rdvxz files by api, year, month,
+    and day. The structured layout is as follows. api900/YYYY/MM/DD/*.rdvxz where YYYY is the year, MM is the month,
+    and DD is the day. When using the structured layout option, be sure that the root directory path is api900.
+    :param directory: The root directory of the data. If structured_layout is False, then this directory will contain
+                      various unorganized .rdvxz files. If structured_layout is True, then this directory must be the
+                      root api900 directory of the structured files.
+    :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
+    :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
+    :param redvox_ids: An optional list of redvox_ids to filter against (default=[]).
+    :param structured_layout: An optional value to define if this is loading structured data (default=False).
+    :param concat_continuous_segments: An optional value to define if this function should concatenate rdvxz files into
+                                       a multiple continuous rdvxz files seperated at gaps.
+    :return: A dictionary where each key is a single redvox id and each value is a list of ordered WrappedRedvoxPackets.
+    &#34;&#34;&#34;
+
+    # Remove trailing directory separators
+    if redvox_ids is None:
+        redvox_ids = []
+    while directory.endswith(&#34;/&#34;) or directory.endswith(&#34;\\&#34;):
+        directory = directory[:-1]
+
+    if start_timestamp_utc_s is None or end_timestamp_utc_s is None:
+        ids = None if len(redvox_ids) == 0 else set(redvox_ids)
+        start_adjusted, end_adjusted = _get_paths_time_range(directory, ids, structured_layout)
+
+        if start_timestamp_utc_s is None:
+            start_timestamp_utc_s = start_adjusted
+
+        if end_timestamp_utc_s is None:
+            end_timestamp_utc_s = end_adjusted
+    if structured_layout:
+        paths = _get_structured_paths(directory,
+                                      start_timestamp_utc_s,
+                                      end_timestamp_utc_s,
+                                      set(redvox_ids))
+    else:
+        all_paths = glob.glob(os.path.join(directory, &#34;*.rdvxz&#34;))
+        paths = list(
+            filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, set(redvox_ids)),
+                   all_paths))
+
+    # Convert to WrappedRedvoxPackets
+    wrapped_redvox_packets = map(read_rdvxz_file, paths)
+
+    # Group by redvox_id
+    grouped = _group_by(_id_uuid, wrapped_redvox_packets)
+
+    # Sort
+    for packets in grouped.values():
+        packets.sort(key=WrappedRedvoxPacket.app_file_start_timestamp_machine)
+
+    # If not concatenating, return what we have
+    if not concat_continuous_segments:
+        return grouped
+
+    # Otherwise, concatenate and return
+    for id_uuid in grouped:
+        grouped[id_uuid] = concat.concat_wrapped_redvox_packets(grouped[id_uuid])
+
+    # Finally, sort by device id
+    grouped_and_sorted: typing.Dict[str, typing.List[WrappedRedvoxPacket]] = _sort_dict_by_key(grouped)
+
+    return grouped_and_sorted
+
+
+def read_rdvxz_buffer(buf: bytes) -&gt; WrappedRedvoxPacket:
+    &#34;&#34;&#34;
+    Reads a .rdvxz file from the provided buffer and returns a WrappedRedvoxPacket.
+    :param buf: The buffer of bytes consisting of a compressed .rdvxz file.
+    :return: A WrappedRedvoxPacket.
+    &#34;&#34;&#34;
+    return wrap(read_buffer(buf))
+
+
+def read_json_file(path: str) -&gt; WrappedRedvoxPacket:
+    &#34;&#34;&#34;
+    Reads a RedVox compliant API 900 .json file from the provided path and returns a WrappedRedvoxPacket.
+    :param path: Path to the RedVox compliant API 900 .json file.
+    :return: A WrappedRedvoxPacket.
+    &#34;&#34;&#34;
+    with open(path, &#34;r&#34;) as json_in:
+        return wrap(reader_utils.from_json(json_in.read()))
+
+
+def read_json_string(json: str) -&gt; WrappedRedvoxPacket:
+    &#34;&#34;&#34;
+    Reads a RedVox compliant API 900 json string and returns a WrappedRedvoxPacket.
+    :param json: RedVox API 900 compliant json string.
+    :return: A WrappedRedvoxPacket.
+    &#34;&#34;&#34;
+    return wrap(reader_utils.from_json(json))
+
+
+def read_directory(directory_path: str) -&gt; typing.Dict[str, typing.List[WrappedRedvoxPacket]]:
+    &#34;&#34;&#34;
+    Reads .rdvxz files from a directory and returns a dictionary from redvox_id -&gt; a list of sorted wrapped redvox
+    packets that belong to that device.
+    :param directory_path: The path to the directory containing .rdvxz files.
+    :return: A dictionary representing a mapping from redvox_id to its packets.
+    &#34;&#34;&#34;
+
+    # Make sure the directory ends with a trailing slash &#34;/&#34;
+    if directory_path[-1] != &#34;/&#34;:
+        directory_path = directory_path + &#34;/&#34;
+
+    file_paths = sorted(glob.glob(directory_path + &#34;*.rdvxz&#34;))
+    protobuf_packets = map(read_file, file_paths)
+    wrapped_packets = list(map(wrap, protobuf_packets))
+    grouped = collections.defaultdict(list)
+
+    for wrapped_packet in wrapped_packets:
+        grouped[wrapped_packet.redvox_id()].append(wrapped_packet)
+
+    return grouped</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.api900.reader.read_buffer"><code class="name flex">
+<span>def <span class="ident">read_buffer</span></span>(<span>buf: bytes, is_compressed: bool = True) ‑> api900_pb2.RedvoxPacket</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deserializes a serialized protobuf RedvoxPacket buffer.
+:param buf: Buffer to deserialize.
+:param is_compressed: Whether or not the buffer is compressed or decompressed.
+:return: Deserialized protobuf redvox packet.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_buffer(buf: bytes, is_compressed: bool = True) -&gt; api900_pb2.RedvoxPacket:
+    &#34;&#34;&#34;
+    Deserializes a serialized protobuf RedvoxPacket buffer.
+    :param buf: Buffer to deserialize.
+    :param is_compressed: Whether or not the buffer is compressed or decompressed.
+    :return: Deserialized protobuf redvox packet.
+    &#34;&#34;&#34;
+    buffer = reader_utils.lz4_decompress(buf) if is_compressed else buf
+    redvox_packet = api900_pb2.RedvoxPacket()
+    redvox_packet.ParseFromString(buffer)
+    return redvox_packet</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.reader.read_directory"><code class="name flex">
+<span>def <span class="ident">read_directory</span></span>(<span>directory_path: str) ‑> typing.Dict[str, typing.List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reads .rdvxz files from a directory and returns a dictionary from redvox_id -&gt; a list of sorted wrapped redvox
+packets that belong to that device.
+:param directory_path: The path to the directory containing .rdvxz files.
+:return: A dictionary representing a mapping from redvox_id to its packets.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_directory(directory_path: str) -&gt; typing.Dict[str, typing.List[WrappedRedvoxPacket]]:
+    &#34;&#34;&#34;
+    Reads .rdvxz files from a directory and returns a dictionary from redvox_id -&gt; a list of sorted wrapped redvox
+    packets that belong to that device.
+    :param directory_path: The path to the directory containing .rdvxz files.
+    :return: A dictionary representing a mapping from redvox_id to its packets.
+    &#34;&#34;&#34;
+
+    # Make sure the directory ends with a trailing slash &#34;/&#34;
+    if directory_path[-1] != &#34;/&#34;:
+        directory_path = directory_path + &#34;/&#34;
+
+    file_paths = sorted(glob.glob(directory_path + &#34;*.rdvxz&#34;))
+    protobuf_packets = map(read_file, file_paths)
+    wrapped_packets = list(map(wrap, protobuf_packets))
+    grouped = collections.defaultdict(list)
+
+    for wrapped_packet in wrapped_packets:
+        grouped[wrapped_packet.redvox_id()].append(wrapped_packet)
+
+    return grouped</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.reader.read_file"><code class="name flex">
+<span>def <span class="ident">read_file</span></span>(<span>file: str, is_compressed: bool = None) ‑> api900_pb2.RedvoxPacket</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deserializes a serialized protobuf RedvoxPacket file.
+:param file: File to deserialize.
+:param is_compressed: Whether or not the file is compressed or decompressed.
+:return: Deserialized protobuf redvox packet.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_file(file: str, is_compressed: bool = None) -&gt; api900_pb2.RedvoxPacket:
+    &#34;&#34;&#34;
+    Deserializes a serialized protobuf RedvoxPacket file.
+    :param file: File to deserialize.
+    :param is_compressed: Whether or not the file is compressed or decompressed.
+    :return: Deserialized protobuf redvox packet.
+    &#34;&#34;&#34;
+    file_ext = file.split(&#34;.&#34;)[-1]
+
+    if is_compressed is None:
+        _is_compressed = True if file_ext == &#34;rdvxz&#34; else False
+    else:
+        _is_compressed = is_compressed
+    with open(file, &#34;rb&#34;) as fin:
+        return read_buffer(fin.read(), _is_compressed)</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.reader.read_json_file"><code class="name flex">
+<span>def <span class="ident">read_json_file</span></span>(<span>path: str) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reads a RedVox compliant API 900 .json file from the provided path and returns a WrappedRedvoxPacket.
+:param path: Path to the RedVox compliant API 900 .json file.
+:return: A WrappedRedvoxPacket.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json_file(path: str) -&gt; WrappedRedvoxPacket:
+    &#34;&#34;&#34;
+    Reads a RedVox compliant API 900 .json file from the provided path and returns a WrappedRedvoxPacket.
+    :param path: Path to the RedVox compliant API 900 .json file.
+    :return: A WrappedRedvoxPacket.
+    &#34;&#34;&#34;
+    with open(path, &#34;r&#34;) as json_in:
+        return wrap(reader_utils.from_json(json_in.read()))</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.reader.read_json_string"><code class="name flex">
+<span>def <span class="ident">read_json_string</span></span>(<span>json: str) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reads a RedVox compliant API 900 json string and returns a WrappedRedvoxPacket.
+:param json: RedVox API 900 compliant json string.
+:return: A WrappedRedvoxPacket.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json_string(json: str) -&gt; WrappedRedvoxPacket:
+    &#34;&#34;&#34;
+    Reads a RedVox compliant API 900 json string and returns a WrappedRedvoxPacket.
+    :param json: RedVox API 900 compliant json string.
+    :return: A WrappedRedvoxPacket.
+    &#34;&#34;&#34;
+    return wrap(reader_utils.from_json(json))</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.reader.read_rdvxz_buffer"><code class="name flex">
+<span>def <span class="ident">read_rdvxz_buffer</span></span>(<span>buf: bytes) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reads a .rdvxz file from the provided buffer and returns a WrappedRedvoxPacket.
+:param buf: The buffer of bytes consisting of a compressed .rdvxz file.
+:return: A WrappedRedvoxPacket.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_rdvxz_buffer(buf: bytes) -&gt; WrappedRedvoxPacket:
+    &#34;&#34;&#34;
+    Reads a .rdvxz file from the provided buffer and returns a WrappedRedvoxPacket.
+    :param buf: The buffer of bytes consisting of a compressed .rdvxz file.
+    :return: A WrappedRedvoxPacket.
+    &#34;&#34;&#34;
+    return wrap(read_buffer(buf))</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.reader.read_rdvxz_file"><code class="name flex">
+<span>def <span class="ident">read_rdvxz_file</span></span>(<span>path: str) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reads a .rdvxz file from the specified path and returns a WrappedRedvoxPacket.
+:param path: The path of the file.
+:return: A WrappedRedvoxPacket.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_rdvxz_file(path: str) -&gt; WrappedRedvoxPacket:
+    &#34;&#34;&#34;
+    Reads a .rdvxz file from the specified path and returns a WrappedRedvoxPacket.
+    :param path: The path of the file.
+    :return: A WrappedRedvoxPacket.
+    &#34;&#34;&#34;
+    return wrap(read_file(path))</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.reader.read_rdvxz_file_range"><code class="name flex">
+<span>def <span class="ident">read_rdvxz_file_range</span></span>(<span>directory: str, start_timestamp_utc_s: typing.Optional[int] = None, end_timestamp_utc_s: typing.Optional[int] = None, redvox_ids: typing.Optional[typing.List[str]] = None, structured_layout: bool = False, concat_continuous_segments: bool = True) ‑> typing.Dict[str, typing.List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reads a range of .rdvxz files from a given directory.</p>
+<p>Given start and end timestamps which represent UNIX time (the number of seconds from the epoch) UTC and an
+optional set of redvox ids, this function reads .rdvxz within the given time range with the given redvox ids. If
+not redvox ids are provided, all valid .rdvxz files within the given time range will be included.</p>
+<p>We also support a standardized structured layout. The structured layout organizes .rdvxz files by api, year, month,
+and day. The structured layout is as follows. api900/YYYY/MM/DD/*.rdvxz where YYYY is the year, MM is the month,
+and DD is the day. When using the structured layout option, be sure that the root directory path is api900.
+:param directory: The root directory of the data. If structured_layout is False, then this directory will contain
+various unorganized .rdvxz files. If structured_layout is True, then this directory must be the
+root api900 directory of the structured files.
+:param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
+:param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
+:param redvox_ids: An optional list of redvox_ids to filter against (default=[]).
+:param structured_layout: An optional value to define if this is loading structured data (default=False).
+:param concat_continuous_segments: An optional value to define if this function should concatenate rdvxz files into
+a multiple continuous rdvxz files seperated at gaps.
+:return: A dictionary where each key is a single redvox id and each value is a list of ordered WrappedRedvoxPackets.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_rdvxz_file_range(directory: str,
+                          start_timestamp_utc_s: typing.Optional[int] = None,
+                          end_timestamp_utc_s: typing.Optional[int] = None,
+                          redvox_ids: typing.Optional[typing.List[str]] = None,
+                          structured_layout: bool = False,
+                          concat_continuous_segments: bool = True) -&gt; typing.Dict[
+                              str, typing.List[WrappedRedvoxPacket]]:
+    &#34;&#34;&#34;
+    Reads a range of .rdvxz files from a given directory.
+
+    Given start and end timestamps which represent UNIX time (the number of seconds from the epoch) UTC and an
+    optional set of redvox ids, this function reads .rdvxz within the given time range with the given redvox ids. If
+    not redvox ids are provided, all valid .rdvxz files within the given time range will be included.
+
+    We also support a standardized structured layout. The structured layout organizes .rdvxz files by api, year, month,
+    and day. The structured layout is as follows. api900/YYYY/MM/DD/*.rdvxz where YYYY is the year, MM is the month,
+    and DD is the day. When using the structured layout option, be sure that the root directory path is api900.
+    :param directory: The root directory of the data. If structured_layout is False, then this directory will contain
+                      various unorganized .rdvxz files. If structured_layout is True, then this directory must be the
+                      root api900 directory of the structured files.
+    :param start_timestamp_utc_s: The start timestamp as seconds since the epoch UTC.
+    :param end_timestamp_utc_s: The end timestamp as seconds since the epoch UTC.
+    :param redvox_ids: An optional list of redvox_ids to filter against (default=[]).
+    :param structured_layout: An optional value to define if this is loading structured data (default=False).
+    :param concat_continuous_segments: An optional value to define if this function should concatenate rdvxz files into
+                                       a multiple continuous rdvxz files seperated at gaps.
+    :return: A dictionary where each key is a single redvox id and each value is a list of ordered WrappedRedvoxPackets.
+    &#34;&#34;&#34;
+
+    # Remove trailing directory separators
+    if redvox_ids is None:
+        redvox_ids = []
+    while directory.endswith(&#34;/&#34;) or directory.endswith(&#34;\\&#34;):
+        directory = directory[:-1]
+
+    if start_timestamp_utc_s is None or end_timestamp_utc_s is None:
+        ids = None if len(redvox_ids) == 0 else set(redvox_ids)
+        start_adjusted, end_adjusted = _get_paths_time_range(directory, ids, structured_layout)
+
+        if start_timestamp_utc_s is None:
+            start_timestamp_utc_s = start_adjusted
+
+        if end_timestamp_utc_s is None:
+            end_timestamp_utc_s = end_adjusted
+    if structured_layout:
+        paths = _get_structured_paths(directory,
+                                      start_timestamp_utc_s,
+                                      end_timestamp_utc_s,
+                                      set(redvox_ids))
+    else:
+        all_paths = glob.glob(os.path.join(directory, &#34;*.rdvxz&#34;))
+        paths = list(
+            filter(lambda path: _is_path_in_set(path, start_timestamp_utc_s, end_timestamp_utc_s, set(redvox_ids)),
+                   all_paths))
+
+    # Convert to WrappedRedvoxPackets
+    wrapped_redvox_packets = map(read_rdvxz_file, paths)
+
+    # Group by redvox_id
+    grouped = _group_by(_id_uuid, wrapped_redvox_packets)
+
+    # Sort
+    for packets in grouped.values():
+        packets.sort(key=WrappedRedvoxPacket.app_file_start_timestamp_machine)
+
+    # If not concatenating, return what we have
+    if not concat_continuous_segments:
+        return grouped
+
+    # Otherwise, concatenate and return
+    for id_uuid in grouped:
+        grouped[id_uuid] = concat.concat_wrapped_redvox_packets(grouped[id_uuid])
+
+    # Finally, sort by device id
+    grouped_and_sorted: typing.Dict[str, typing.List[WrappedRedvoxPacket]] = _sort_dict_by_key(grouped)
+
+    return grouped_and_sorted</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.reader.wrap"><code class="name flex">
+<span>def <span class="ident">wrap</span></span>(<span>redvox_packet: api900_pb2.RedvoxPacket) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wraps a protobuf packet in a WrappedRedocPacket.
+:param redvox_packet: Protobuf packet to wrap.
+:return: A WrappedRedvoxPacket.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wrap(redvox_packet: api900_pb2.RedvoxPacket) -&gt; WrappedRedvoxPacket:
+    &#34;&#34;&#34;
+    Wraps a protobuf packet in a WrappedRedocPacket.
+    :param redvox_packet: Protobuf packet to wrap.
+    :return: A WrappedRedvoxPacket.
+    &#34;&#34;&#34;
+    return WrappedRedvoxPacket(redvox_packet)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.api900" href="index.html">redvox.api900</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.api900.reader.read_buffer" href="#redvox.api900.reader.read_buffer">read_buffer</a></code></li>
+<li><code><a title="redvox.api900.reader.read_directory" href="#redvox.api900.reader.read_directory">read_directory</a></code></li>
+<li><code><a title="redvox.api900.reader.read_file" href="#redvox.api900.reader.read_file">read_file</a></code></li>
+<li><code><a title="redvox.api900.reader.read_json_file" href="#redvox.api900.reader.read_json_file">read_json_file</a></code></li>
+<li><code><a title="redvox.api900.reader.read_json_string" href="#redvox.api900.reader.read_json_string">read_json_string</a></code></li>
+<li><code><a title="redvox.api900.reader.read_rdvxz_buffer" href="#redvox.api900.reader.read_rdvxz_buffer">read_rdvxz_buffer</a></code></li>
+<li><code><a title="redvox.api900.reader.read_rdvxz_file" href="#redvox.api900.reader.read_rdvxz_file">read_rdvxz_file</a></code></li>
+<li><code><a title="redvox.api900.reader.read_rdvxz_file_range" href="#redvox.api900.reader.read_rdvxz_file_range">read_rdvxz_file_range</a></code></li>
+<li><code><a title="redvox.api900.reader.wrap" href="#redvox.api900.reader.wrap">wrap</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>

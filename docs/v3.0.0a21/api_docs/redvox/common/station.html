@@ -1,0 +1,3477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>redvox.common.station API documentation</title>
+<meta name="description" content="Defines generic station objects for API-independent analysis
+all timestamps are integers in microseconds unless otherwise stated" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.common.station</code></h1>
+</header>
+<section id="section-intro">
+<p>Defines generic station objects for API-independent analysis
+all timestamps are integers in microseconds unless otherwise stated</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Defines generic station objects for API-independent analysis
+all timestamps are integers in microseconds unless otherwise stated
+&#34;&#34;&#34;
+from typing import List, Dict, Optional
+
+import redvox.common.date_time_utils as dtu
+from redvox.common.sensor_data import SensorData, SensorType
+from redvox.common.station_utils import StationKey, StationMetadata, DataPacket, StationLocation, \
+    station_location_from_data
+
+
+class Station:
+    &#34;&#34;&#34;
+    generic station for api-independent stuff
+    Properties:
+        station_metadata: StationMetadata
+        station_data: dict, all the data associated with this station, default empty dict
+        packet_data: list, all DataPacket metadata associated with this station, default empty list
+        station_key: Tuple of str, str, float, a unique combination of three values defining the station
+    &#34;&#34;&#34;
+
+    def __init__(self, metadata: StationMetadata, data: Optional[Dict[SensorType, SensorData]] = None,
+                 packets: Optional[List[DataPacket]] = None):
+        &#34;&#34;&#34;
+        initialize Station
+        :param metadata: the station&#39;s metadata
+        :param data: the station&#39;s sensors&#39; data, default None (value is converted to empty dict)
+        :param packets: the packets that the data came from, default None (value is converted to empty list)
+        &#34;&#34;&#34;
+        self.station_metadata: StationMetadata = metadata
+        if data:
+            self.station_data: Dict[SensorType, SensorData] = data
+        else:
+            self.station_data: Dict[SensorType, SensorData] = {}
+        # todo add event streams as dict[str, list[event]] i.e movement: [accelerometer, gyroscope, etc]
+        if packets:
+            self.packet_data: List[DataPacket] = packets
+        else:
+            self.packet_data: List[DataPacket] = []
+        # todo: assert station key is valid
+        self.station_key = StationKey(self.station_metadata.station_id, self.station_metadata.station_uuid,
+                                      self.station_metadata.timing_data.station_start_timestamp)
+
+    def append_station(self, new_station: &#39;Station&#39;):
+        &#34;&#34;&#34;
+        append a new station to the current station
+        :param new_station: Station to append to current station
+        &#34;&#34;&#34;
+        if new_station.station_metadata.station_id == self.station_metadata.station_id:
+            self.append_station_data(new_station.station_data)
+            self.packet_data.extend(new_station.packet_data)
+        # todo: regenerate the metadata when adding new station data
+
+    def append_station_data(self, new_station_data: Dict[SensorType, SensorData]):
+        &#34;&#34;&#34;
+        append new station data to existing station data
+        :param new_station_data: the dictionary of data to add
+        &#34;&#34;&#34;
+        for sensor_type, sensor_data in new_station_data.items():
+            self.append_sensor(sensor_type, sensor_data)
+
+    def append_sensor(self, sensor_type: SensorType, sensor_data: SensorData):
+        &#34;&#34;&#34;
+        append sensor data to an existing sensor_type or add a new sensor to the dictionary
+        :param sensor_type: the sensor to append to
+        :param sensor_data: the data to append
+        &#34;&#34;&#34;
+        if sensor_type in self.station_data.keys():
+            self.station_data[sensor_type] = self.station_data[sensor_type].append_data(sensor_data.data_df)
+        else:
+            self._add_sensor(sensor_type, sensor_data)
+
+    def _delete_sensor(self, sensor_type: SensorType):
+        &#34;&#34;&#34;
+        removes a sensor from the data packet if it exists
+        :param sensor_type: the sensor to remove
+        &#34;&#34;&#34;
+        if sensor_type in self.station_data.keys():
+            self.station_data.pop(sensor_type)
+
+    def _add_sensor(self, sensor_type: SensorType, sensor: SensorData):
+        &#34;&#34;&#34;
+        adds a sensor to the sensor_data_dict
+        :param sensor_type: the type of sensor to add
+        :param sensor: the sensor data to add
+        &#34;&#34;&#34;
+        if sensor_type in self.station_data.keys():
+            raise ValueError(f&#34;Cannot add sensor type ({sensor_type.name}) that already exists in packet!&#34;)
+        else:
+            self.station_data[sensor_type] = sensor
+
+    def has_audio_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if audio sensor is in sensor_data_dict
+        :return: True if audio sensor exists
+        &#34;&#34;&#34;
+        return SensorType.AUDIO in self.station_data.keys()
+
+    def has_audio_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the audio sensor has any data
+        :return: True if audio sensor has any data
+        &#34;&#34;&#34;
+        return self.has_audio_sensor() and self.audio_sensor().num_samples() &gt; 0
+
+    def audio_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the audio sensor if it exists
+        :return: audio sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_audio_sensor():
+            return self.station_data[SensorType.AUDIO]
+        return None
+
+    def set_audio_sensor(self, audio_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the audio sensor; can remove audio sensor by passing None
+        :param audio_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_audio_sensor():
+            self._delete_sensor(SensorType.AUDIO)
+        if audio_sensor is not None:
+            self._add_sensor(SensorType.AUDIO, audio_sensor)
+        return self
+
+    def has_location_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if location sensor is in sensor_data_dict
+        :return: True if location sensor exists
+        &#34;&#34;&#34;
+        return SensorType.LOCATION in self.station_data.keys()
+
+    def has_location_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the location sensor has any data
+        :return: True if location sensor has any data
+        &#34;&#34;&#34;
+        return self.has_location_sensor() and self.location_sensor().num_samples() &gt; 0
+
+    def location_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the location sensor if it exists
+        :return: location sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_location_sensor():
+            return self.station_data[SensorType.LOCATION]
+        return None
+
+    def set_location_sensor(self, loc_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the location sensor; can remove location sensor by passing None
+        :param loc_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_location_sensor():
+            self._delete_sensor(SensorType.LOCATION)
+        if loc_sensor is not None:
+            self._add_sensor(SensorType.LOCATION, loc_sensor)
+        return self
+
+    def has_accelerometer_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if accelerometer sensor is in sensor_data_dict
+        :return: True if accelerometer sensor exists
+        &#34;&#34;&#34;
+        return SensorType.ACCELEROMETER in self.station_data.keys()
+
+    def has_accelerometer_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the accelerometer sensor has any data
+        :return: True if accelerometer sensor has any data
+        &#34;&#34;&#34;
+        return self.has_accelerometer_sensor() and self.accelerometer_sensor().num_samples() &gt; 0
+
+    def accelerometer_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the accelerometer sensor if it exists
+        :return: accelerometer sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_accelerometer_sensor():
+            return self.station_data[SensorType.ACCELEROMETER]
+        return None
+
+    def set_accelerometer_sensor(self, acc_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the accelerometer sensor; can remove accelerometer sensor by passing None
+        :param acc_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_accelerometer_sensor():
+            self._delete_sensor(SensorType.ACCELEROMETER)
+        if acc_sensor is not None:
+            self._add_sensor(SensorType.ACCELEROMETER, acc_sensor)
+        return self
+
+    def has_magnetometer_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if magnetometer sensor is in sensor_data_dict
+        :return: True if magnetometer sensor exists
+        &#34;&#34;&#34;
+        return SensorType.MAGNETOMETER in self.station_data.keys()
+
+    def has_magnetometer_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the magnetometer sensor has any data
+        :return: True if magnetometer sensor has any data
+        &#34;&#34;&#34;
+        return self.has_magnetometer_sensor() and self.magnetometer_sensor().num_samples() &gt; 0
+
+    def magnetometer_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the magnetometer sensor if it exists
+        :return: magnetometer sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_magnetometer_sensor():
+            return self.station_data[SensorType.MAGNETOMETER]
+        return None
+
+    def set_magnetometer_sensor(self, mag_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the magnetometer sensor; can remove magnetometer sensor by passing None
+        :param mag_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_magnetometer_sensor():
+            self._delete_sensor(SensorType.MAGNETOMETER)
+        if mag_sensor is not None:
+            self._add_sensor(SensorType.MAGNETOMETER, mag_sensor)
+        return self
+
+    def has_gyroscope_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if gyroscope sensor is in sensor_data_dict
+        :return: True if gyroscope sensor exists
+        &#34;&#34;&#34;
+        return SensorType.GYROSCOPE in self.station_data.keys()
+
+    def has_gyroscope_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the gyroscope sensor has any data
+        :return: True if gyroscope sensor has any data
+        &#34;&#34;&#34;
+        return self.has_gyroscope_sensor() and self.gyroscope_sensor().num_samples() &gt; 0
+
+    def gyroscope_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the gyroscope sensor if it exists
+        :return: gyroscope sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_gyroscope_sensor():
+            return self.station_data[SensorType.GYROSCOPE]
+        return None
+
+    def set_gyroscope_sensor(self, gyro_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the gyroscope sensor; can remove gyroscope sensor by passing None
+        :param gyro_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_gyroscope_sensor():
+            self._delete_sensor(SensorType.GYROSCOPE)
+        if gyro_sensor is not None:
+            self._add_sensor(SensorType.GYROSCOPE, gyro_sensor)
+        return self
+
+    def has_barometer_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if barometer sensor is in sensor_data_dict
+        :return: True if barometer sensor exists
+        &#34;&#34;&#34;
+        return SensorType.PRESSURE in self.station_data.keys()
+
+    def has_barometer_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the barometer sensor has any data
+        :return: True if barometer sensor has any data
+        &#34;&#34;&#34;
+        return self.has_barometer_sensor() and self.barometer_sensor().num_samples() &gt; 0
+
+    def barometer_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the barometer sensor if it exists
+        :return: barometer sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_barometer_sensor():
+            return self.station_data[SensorType.PRESSURE]
+        return None
+
+    def set_barometer_sensor(self, bar_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the barometer sensor; can remove barometer sensor by passing None
+        :param bar_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_barometer_sensor():
+            self._delete_sensor(SensorType.PRESSURE)
+        if bar_sensor is not None:
+            self._add_sensor(SensorType.PRESSURE, bar_sensor)
+        return self
+
+    def has_light_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if light sensor is in sensor_data_dict
+        :return: True if light sensor exists
+        &#34;&#34;&#34;
+        return SensorType.LIGHT in self.station_data.keys()
+
+    def has_light_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the light sensor has any data
+        :return: True if light sensor has any data
+        &#34;&#34;&#34;
+        return self.has_light_sensor() and self.light_sensor().num_samples() &gt; 0
+
+    def light_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the light sensor if it exists
+        :return: light sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_light_sensor():
+            return self.station_data[SensorType.LIGHT]
+        return None
+
+    def set_light_sensor(self, light_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the light sensor; can remove light sensor by passing None
+        :param light_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_light_sensor():
+            self._delete_sensor(SensorType.LIGHT)
+        if light_sensor is not None:
+            self._add_sensor(SensorType.LIGHT, light_sensor)
+        return self
+
+    def has_infrared_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if infrared sensor is in sensor_data_dict
+        :return: True if infrared sensor exists
+        &#34;&#34;&#34;
+        return SensorType.INFRARED in self.station_data.keys()
+
+    def has_infrared_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the infrared sensor has any data
+        :return: True if infrared sensor has any data
+        &#34;&#34;&#34;
+        return self.has_infrared_sensor() and self.infrared_sensor().num_samples() &gt; 0
+
+    def infrared_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the infrared sensor if it exists
+        :return: infrared sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_infrared_sensor():
+            return self.station_data[SensorType.INFRARED]
+        return None
+
+    def set_infrared_sensor(self, infrd_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the infrared sensor; can remove infrared sensor by passing None
+        :param infrd_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_infrared_sensor():
+            self._delete_sensor(SensorType.INFRARED)
+        if infrd_sensor is not None:
+            self._add_sensor(SensorType.INFRARED, infrd_sensor)
+        return self
+
+    def has_image_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if image sensor is in sensor_data_dict
+        :return: True if image sensor exists
+        &#34;&#34;&#34;
+        return SensorType.IMAGE in self.station_data.keys()
+
+    def has_image_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the image sensor has any data
+        :return: True if image sensor has any data
+        &#34;&#34;&#34;
+        return self.has_image_sensor() and self.image_sensor().num_samples() &gt; 0
+
+    def image_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the image sensor if it exists
+        :return: image sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_image_sensor():
+            return self.station_data[SensorType.IMAGE]
+        return None
+
+    def set_image_sensor(self, img_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the image sensor; can remove image sensor by passing None
+        :param img_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_image_sensor():
+            self._delete_sensor(SensorType.IMAGE)
+        if img_sensor is not None:
+            self._add_sensor(SensorType.IMAGE, img_sensor)
+        return self
+
+    def has_ambient_temperature_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if ambient temperature sensor is in sensor_data_dict
+        :return: True if ambient temperature sensor exists
+        &#34;&#34;&#34;
+        return SensorType.AMBIENT_TEMPERATURE in self.station_data.keys()
+
+    def has_ambient_temperature_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the ambient temperature sensor has any data
+        :return: True if ambient temperature sensor has any data
+        &#34;&#34;&#34;
+        return self.has_ambient_temperature_sensor() and self.ambient_temperature_sensor().num_samples() &gt; 0
+
+    def ambient_temperature_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the ambient temperature sensor if it exists
+        :return: image ambient temperature if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_ambient_temperature_sensor():
+            return self.station_data[SensorType.AMBIENT_TEMPERATURE]
+        return None
+
+    def set_ambient_temperature_sensor(self, amtemp_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the ambient temperature sensor; can remove ambient temperature sensor by passing None
+        :param amtemp_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_ambient_temperature_sensor():
+            self._delete_sensor(SensorType.AMBIENT_TEMPERATURE)
+        if amtemp_sensor is not None:
+            self._add_sensor(SensorType.AMBIENT_TEMPERATURE, amtemp_sensor)
+        return self
+
+    def has_gravity_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if gravity sensor is in sensor_data_dict
+        :return: True if gravity sensor exists
+        &#34;&#34;&#34;
+        return SensorType.GRAVITY in self.station_data.keys()
+
+    def has_gravity_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the gravity sensor has any data
+        :return: True if gravity sensor has any data
+        &#34;&#34;&#34;
+        return self.has_gravity_sensor() and self.gravity_sensor().num_samples() &gt; 0
+
+    def gravity_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the gravity sensor if it exists
+        :return: gravity sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_gravity_sensor():
+            return self.station_data[SensorType.GRAVITY]
+        return None
+
+    def set_gravity_sensor(self, grav_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the gravity sensor; can remove gravity sensor by passing None
+        :param grav_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_gravity_sensor():
+            self._delete_sensor(SensorType.GRAVITY)
+        if grav_sensor is not None:
+            self._add_sensor(SensorType.GRAVITY, grav_sensor)
+        return self
+
+    def has_linear_acceleration_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if linear acceleration sensor is in sensor_data_dict
+        :return: True if linear acceleration sensor exists
+        &#34;&#34;&#34;
+        return SensorType.LINEAR_ACCELERATION in self.station_data.keys()
+
+    def has_linear_acceleration_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the linear acceleration sensor has any data
+        :return: True if linear acceleration sensor has any data
+        &#34;&#34;&#34;
+        return self.has_linear_acceleration_sensor() and self.linear_acceleration_sensor().num_samples() &gt; 0
+
+    def linear_acceleration_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the linear acceleration sensor if it exists
+        :return: linear acceleration sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_linear_acceleration_sensor():
+            return self.station_data[SensorType.LINEAR_ACCELERATION]
+        return None
+
+    def set_linear_acceleration_sensor(self, linacc_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the linear acceleration sensor; can remove linear acceleration sensor by passing None
+        :param linacc_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_linear_acceleration_sensor():
+            self._delete_sensor(SensorType.LINEAR_ACCELERATION)
+        if linacc_sensor is not None:
+            self._add_sensor(SensorType.LINEAR_ACCELERATION, linacc_sensor)
+        return self
+
+    def has_orientation_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if orientation sensor is in sensor_data_dict
+        :return: True if orientation sensor exists
+        &#34;&#34;&#34;
+        return SensorType.ORIENTATION in self.station_data.keys()
+
+    def has_orientation_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the orientation sensor has any data
+        :return: True if orientation sensor has any data
+        &#34;&#34;&#34;
+        return self.has_orientation_sensor() and self.orientation_sensor().num_samples() &gt; 0
+
+    def orientation_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the orientation sensor if it exists
+        :return: orientation sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_orientation_sensor():
+            return self.station_data[SensorType.ORIENTATION]
+        return None
+
+    def set_orientation_sensor(self, orient_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the orientation sensor; can remove orientation sensor by passing None
+        :param orient_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_orientation_sensor():
+            self._delete_sensor(SensorType.ORIENTATION)
+        if orient_sensor is not None:
+            self._add_sensor(SensorType.ORIENTATION, orient_sensor)
+        return self
+
+    def has_proximity_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if proximity sensor is in sensor_data_dict
+        :return: True if proximity sensor exists
+        &#34;&#34;&#34;
+        return SensorType.PROXIMITY in self.station_data.keys()
+
+    def has_proximity_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the proximity sensor has any data
+        :return: True if proximity sensor has any data
+        &#34;&#34;&#34;
+        return self.has_proximity_sensor() and self.proximity_sensor().num_samples() &gt; 0
+
+    def proximity_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the proximity sensor if it exists
+        :return: proximity sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_proximity_sensor():
+            return self.station_data[SensorType.PROXIMITY]
+        return None
+
+    def set_proximity_sensor(self, prox_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the proximity sensor; can remove proximity sensor by passing None
+        :param prox_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_proximity_sensor():
+            self._delete_sensor(SensorType.PROXIMITY)
+        if prox_sensor is not None:
+            self._add_sensor(SensorType.PROXIMITY, prox_sensor)
+        return self
+
+    def has_relative_humidity_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if relative humidity sensor is in sensor_data_dict
+        :return: True if linear relative humidity sensor exists
+        &#34;&#34;&#34;
+        return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
+
+    def has_relative_humidity_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the relative humidity sensor has any data
+        :return: True if relative humidity sensor has any data
+        &#34;&#34;&#34;
+        return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() &gt; 0
+
+    def relative_humidity_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the relative humidity sensor if it exists
+        :return: relative humidity sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_relative_humidity_sensor():
+            return self.station_data[SensorType.RELATIVE_HUMIDITY]
+        return None
+
+    def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the relative humidity sensor; can remove relative humidity sensor by passing None
+        :param relhum_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_relative_humidity_sensor():
+            self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
+        if relhum_sensor is not None:
+            self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
+        return self
+
+    def has_rotation_vector_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if rotation vector sensor is in sensor_data_dict
+        :return: True if rotation vector sensor exists
+        &#34;&#34;&#34;
+        return SensorType.ROTATION_VECTOR in self.station_data.keys()
+
+    def has_rotation_vector_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the rotation vector sensor has any data
+        :return: True if rotation vector sensor has any data
+        &#34;&#34;&#34;
+        return self.has_rotation_vector_sensor() and self.rotation_vector_sensor().num_samples() &gt; 0
+
+    def rotation_vector_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the rotation vector sensor if it exists
+        :return: rotation vector sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_rotation_vector_sensor():
+            return self.station_data[SensorType.ROTATION_VECTOR]
+        return None
+
+    def set_rotation_vector_sensor(self, rotvec_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the rotation vector sensor; can remove rotation vector sensor by passing None
+        :param rotvec_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_rotation_vector_sensor():
+            self._delete_sensor(SensorType.ROTATION_VECTOR)
+        if rotvec_sensor is not None:
+            self._add_sensor(SensorType.ROTATION_VECTOR, rotvec_sensor)
+        return self
+
+    def has_compressed_audio_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if compressed audio sensor is in sensor_data_dict
+        :return: True if compressed audio sensor exists
+        &#34;&#34;&#34;
+        return SensorType.COMPRESSED_AUDIO in self.station_data.keys()
+
+    def has_compressed_audio_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the compressed audio sensor has any data
+        :return: True if compressed audio sensor has any data
+        &#34;&#34;&#34;
+        return self.has_compressed_audio_sensor() and self.compressed_audio_sensor().num_samples() &gt; 0
+
+    def compressed_audio_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the compressed audio sensor if it exists
+        :return: compressed audio sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_compressed_audio_sensor():
+            return self.station_data[SensorType.COMPRESSED_AUDIO]
+        return None
+
+    def set_compressed_audio_sensor(self, compaudio_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the compressed audio sensor; can remove compressed audio sensor by passing None
+        :param compaudio_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_compressed_audio_sensor():
+            self._delete_sensor(SensorType.COMPRESSED_AUDIO)
+        if compaudio_sensor is not None:
+            self._add_sensor(SensorType.COMPRESSED_AUDIO, compaudio_sensor)
+        return self
+
+    def has_health_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if station health is in sensor_data_dict
+        :return: True if station health sensor exists
+        &#34;&#34;&#34;
+        return SensorType.STATION_HEALTH in self.station_data.keys()
+
+    def has_health_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the station health sensor has any data
+        :return: True if station health sensor has any data
+        &#34;&#34;&#34;
+        return self.has_health_sensor() and self.health_sensor().num_samples() &gt; 0
+
+    def health_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the station health sensor if it exists
+        :return: station health sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_health_sensor():
+            return self.station_data[SensorType.STATION_HEALTH]
+        return None
+
+    def set_health_sensor(self, health_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the station health sensor; can remove station health sensor by passing None
+        :param health_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_health_sensor():
+            self._delete_sensor(SensorType.STATION_HEALTH)
+        if health_sensor is not None:
+            self._add_sensor(SensorType.STATION_HEALTH, health_sensor)
+        return self
+
+    def get_non_audio_sensors(self) -&gt; Dict[SensorType, SensorData]:
+        &#34;&#34;&#34;
+        returns all non-audio sensors in the station
+        :return: dict of SensorType and SensorData of all non-audio sensors in the station
+        &#34;&#34;&#34;
+        return {k: v for (k, v) in self.station_data.items() if SensorType.AUDIO not in k}
+
+    def update_station_locations(self, from_data: bool = False):
+        &#34;&#34;&#34;
+        updates the station locations in the metadata
+        :param from_data: if True, pulls location data from the location sensor, default False
+        &#34;&#34;&#34;
+        if from_data:
+            if self.has_location_sensor():
+                # noinspection PyTypeChecker
+                self.station_metadata.location_data.all_locations = \
+                    self.location_sensor().data_df.apply(station_location_from_data, axis=1).values
+            else:
+                raise ValueError(f&#34;Attempted to update locations of station {self.station_metadata.station_id} &#34;
+                                 f&#34;using data, but there is no data!&#34;)
+        else:
+            self.station_metadata.location_data.all_locations = \
+                [packet.best_location if packet.best_location else StationLocation() for packet in self.packet_data]
+
+    def update_station_location_metadata(self, start_datetime: float, end_datetime: float):
+        &#34;&#34;&#34;
+        update the station&#39;s location metadata using the metadata and/or location data of the station
+        :param start_datetime: the start timestamp in microseconds since epoch UTC of the window to consider
+        :param end_datetime: the end timestamp in microseconds since epoch UTC of the window to consider
+        &#34;&#34;&#34;
+        # get locations from packet metadata
+        self.update_station_locations()
+        self.station_metadata.location_data.update_window_locations(start_datetime, end_datetime)
+        # not enough packet metadata locations, get data locations
+        if not self.station_metadata.location_data.calc_mean_and_std_from_locations() and self.has_location_data():
+            self.update_station_locations(from_data=True)
+            self.station_metadata.location_data.update_window_locations(start_datetime, end_datetime)
+            self.station_metadata.location_data.calc_mean_and_std_from_locations()
+
+    def packet_gap_detector(self, gap_time_s: float):
+        &#34;&#34;&#34;
+        Uses the station&#39;s packet and audio data to detect gaps at least gap_time_s seconds long.
+        updates the station&#39;s packet metadata if there are no gaps
+        :param gap_time_s: float, minimum gap time in seconds
+        &#34;&#34;&#34;
+        for packet in range(len(self.packet_data) - 1):
+            data_start = self.packet_data[packet].data_start_timestamp
+            data_num_samples = self.packet_data[packet].num_audio_samples
+            next_packet_start_index = \
+                self.audio_sensor().data_df.query(&#34;timestamps &gt;= @data_start&#34;).first_valid_index() + data_num_samples
+            data_end = self.audio_sensor().data_timestamps()[next_packet_start_index - 1]
+            next_packet_start = self.audio_sensor().data_timestamps()[next_packet_start_index]
+            if next_packet_start - data_end &lt; dtu.seconds_to_microseconds(gap_time_s):
+                self.packet_data[packet].micros_to_next_packet = \
+                    (next_packet_start - data_start) / data_num_samples
+
+    def update_timestamps(self):
+        &#34;&#34;&#34;
+        updates the timestamps in all SensorData objects using the station_best_offset of the station_timing
+        &#34;&#34;&#34;
+        if self.station_metadata.station_timing_is_corrected:
+            print(&#34;WARNING: Timestamps already corrected!&#34;)
+        else:
+            if not self.station_metadata.timing_data:
+                print(&#34;WARNING: Station does not have timing data, assuming existing values are the correct ones!&#34;)
+            else:
+                delta = self.station_metadata.timing_data.station_best_offset
+                for sensor in self.station_data.values():
+                    sensor.update_data_timestamps(delta)
+                for packet in self.packet_data:
+                    packet.data_start_timestamp += delta
+                    packet.data_end_timestamp += delta
+                    if packet.best_location:
+                        packet.best_location.update_timestamps(delta)
+                self.station_metadata.timing_data.station_first_data_timestamp += delta
+                self.station_metadata.location_data.update_timestamps(delta)
+            self.station_metadata.station_timing_is_corrected = True
+
+    def revert_timestamps(self):
+        &#34;&#34;&#34;
+        reverts the timestamps in all SensorData objects using the station_best_offset of the station_timing
+        &#34;&#34;&#34;
+        if self.station_metadata.station_timing_is_corrected:
+            if not self.station_metadata.timing_data:
+                print(&#34;WARNING: Station does not have timing data, assuming existing values are the correct ones!&#34;)
+            else:
+                delta = self.station_metadata.timing_data.station_best_offset
+                for sensor in self.station_data.values():
+                    sensor.update_data_timestamps(-delta)
+                for packet in self.packet_data:
+                    packet.data_start_timestamp -= delta
+                    packet.data_end_timestamp -= delta
+                    if packet.best_location:
+                        packet.best_location.update_timestamps(-delta)
+                self.station_metadata.timing_data.station_first_data_timestamp -= delta
+                self.station_metadata.location_data.update_timestamps(-delta)
+                self.station_metadata.station_timing_is_corrected = False
+        else:
+            print(&#34;WARNING: Cannot revert timestamps that are not corrected!&#34;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.common.station.Station"><code class="flex name class">
+<span>class <span class="ident">Station</span></span>
+<span>(</span><span>metadata: <a title="redvox.common.station_utils.StationMetadata" href="station_utils.html#redvox.common.station_utils.StationMetadata">StationMetadata</a>, data: typing.Optional[typing.Dict[<a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, <a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]] = None, packets: typing.Optional[typing.List[<a title="redvox.common.station_utils.DataPacket" href="station_utils.html#redvox.common.station_utils.DataPacket">DataPacket</a>]] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>generic station for api-independent stuff</p>
+<h2 id="properties">Properties</h2>
+<p>station_metadata: StationMetadata
+station_data: dict, all the data associated with this station, default empty dict
+packet_data: list, all DataPacket metadata associated with this station, default empty list
+station_key: Tuple of str, str, float, a unique combination of three values defining the station</p>
+<p>initialize Station
+:param metadata: the station's metadata
+:param data: the station's sensors' data, default None (value is converted to empty dict)
+:param packets: the packets that the data came from, default None (value is converted to empty list)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Station:
+    &#34;&#34;&#34;
+    generic station for api-independent stuff
+    Properties:
+        station_metadata: StationMetadata
+        station_data: dict, all the data associated with this station, default empty dict
+        packet_data: list, all DataPacket metadata associated with this station, default empty list
+        station_key: Tuple of str, str, float, a unique combination of three values defining the station
+    &#34;&#34;&#34;
+
+    def __init__(self, metadata: StationMetadata, data: Optional[Dict[SensorType, SensorData]] = None,
+                 packets: Optional[List[DataPacket]] = None):
+        &#34;&#34;&#34;
+        initialize Station
+        :param metadata: the station&#39;s metadata
+        :param data: the station&#39;s sensors&#39; data, default None (value is converted to empty dict)
+        :param packets: the packets that the data came from, default None (value is converted to empty list)
+        &#34;&#34;&#34;
+        self.station_metadata: StationMetadata = metadata
+        if data:
+            self.station_data: Dict[SensorType, SensorData] = data
+        else:
+            self.station_data: Dict[SensorType, SensorData] = {}
+        # todo add event streams as dict[str, list[event]] i.e movement: [accelerometer, gyroscope, etc]
+        if packets:
+            self.packet_data: List[DataPacket] = packets
+        else:
+            self.packet_data: List[DataPacket] = []
+        # todo: assert station key is valid
+        self.station_key = StationKey(self.station_metadata.station_id, self.station_metadata.station_uuid,
+                                      self.station_metadata.timing_data.station_start_timestamp)
+
+    def append_station(self, new_station: &#39;Station&#39;):
+        &#34;&#34;&#34;
+        append a new station to the current station
+        :param new_station: Station to append to current station
+        &#34;&#34;&#34;
+        if new_station.station_metadata.station_id == self.station_metadata.station_id:
+            self.append_station_data(new_station.station_data)
+            self.packet_data.extend(new_station.packet_data)
+        # todo: regenerate the metadata when adding new station data
+
+    def append_station_data(self, new_station_data: Dict[SensorType, SensorData]):
+        &#34;&#34;&#34;
+        append new station data to existing station data
+        :param new_station_data: the dictionary of data to add
+        &#34;&#34;&#34;
+        for sensor_type, sensor_data in new_station_data.items():
+            self.append_sensor(sensor_type, sensor_data)
+
+    def append_sensor(self, sensor_type: SensorType, sensor_data: SensorData):
+        &#34;&#34;&#34;
+        append sensor data to an existing sensor_type or add a new sensor to the dictionary
+        :param sensor_type: the sensor to append to
+        :param sensor_data: the data to append
+        &#34;&#34;&#34;
+        if sensor_type in self.station_data.keys():
+            self.station_data[sensor_type] = self.station_data[sensor_type].append_data(sensor_data.data_df)
+        else:
+            self._add_sensor(sensor_type, sensor_data)
+
+    def _delete_sensor(self, sensor_type: SensorType):
+        &#34;&#34;&#34;
+        removes a sensor from the data packet if it exists
+        :param sensor_type: the sensor to remove
+        &#34;&#34;&#34;
+        if sensor_type in self.station_data.keys():
+            self.station_data.pop(sensor_type)
+
+    def _add_sensor(self, sensor_type: SensorType, sensor: SensorData):
+        &#34;&#34;&#34;
+        adds a sensor to the sensor_data_dict
+        :param sensor_type: the type of sensor to add
+        :param sensor: the sensor data to add
+        &#34;&#34;&#34;
+        if sensor_type in self.station_data.keys():
+            raise ValueError(f&#34;Cannot add sensor type ({sensor_type.name}) that already exists in packet!&#34;)
+        else:
+            self.station_data[sensor_type] = sensor
+
+    def has_audio_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if audio sensor is in sensor_data_dict
+        :return: True if audio sensor exists
+        &#34;&#34;&#34;
+        return SensorType.AUDIO in self.station_data.keys()
+
+    def has_audio_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the audio sensor has any data
+        :return: True if audio sensor has any data
+        &#34;&#34;&#34;
+        return self.has_audio_sensor() and self.audio_sensor().num_samples() &gt; 0
+
+    def audio_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the audio sensor if it exists
+        :return: audio sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_audio_sensor():
+            return self.station_data[SensorType.AUDIO]
+        return None
+
+    def set_audio_sensor(self, audio_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the audio sensor; can remove audio sensor by passing None
+        :param audio_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_audio_sensor():
+            self._delete_sensor(SensorType.AUDIO)
+        if audio_sensor is not None:
+            self._add_sensor(SensorType.AUDIO, audio_sensor)
+        return self
+
+    def has_location_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if location sensor is in sensor_data_dict
+        :return: True if location sensor exists
+        &#34;&#34;&#34;
+        return SensorType.LOCATION in self.station_data.keys()
+
+    def has_location_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the location sensor has any data
+        :return: True if location sensor has any data
+        &#34;&#34;&#34;
+        return self.has_location_sensor() and self.location_sensor().num_samples() &gt; 0
+
+    def location_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the location sensor if it exists
+        :return: location sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_location_sensor():
+            return self.station_data[SensorType.LOCATION]
+        return None
+
+    def set_location_sensor(self, loc_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the location sensor; can remove location sensor by passing None
+        :param loc_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_location_sensor():
+            self._delete_sensor(SensorType.LOCATION)
+        if loc_sensor is not None:
+            self._add_sensor(SensorType.LOCATION, loc_sensor)
+        return self
+
+    def has_accelerometer_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if accelerometer sensor is in sensor_data_dict
+        :return: True if accelerometer sensor exists
+        &#34;&#34;&#34;
+        return SensorType.ACCELEROMETER in self.station_data.keys()
+
+    def has_accelerometer_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the accelerometer sensor has any data
+        :return: True if accelerometer sensor has any data
+        &#34;&#34;&#34;
+        return self.has_accelerometer_sensor() and self.accelerometer_sensor().num_samples() &gt; 0
+
+    def accelerometer_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the accelerometer sensor if it exists
+        :return: accelerometer sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_accelerometer_sensor():
+            return self.station_data[SensorType.ACCELEROMETER]
+        return None
+
+    def set_accelerometer_sensor(self, acc_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the accelerometer sensor; can remove accelerometer sensor by passing None
+        :param acc_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_accelerometer_sensor():
+            self._delete_sensor(SensorType.ACCELEROMETER)
+        if acc_sensor is not None:
+            self._add_sensor(SensorType.ACCELEROMETER, acc_sensor)
+        return self
+
+    def has_magnetometer_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if magnetometer sensor is in sensor_data_dict
+        :return: True if magnetometer sensor exists
+        &#34;&#34;&#34;
+        return SensorType.MAGNETOMETER in self.station_data.keys()
+
+    def has_magnetometer_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the magnetometer sensor has any data
+        :return: True if magnetometer sensor has any data
+        &#34;&#34;&#34;
+        return self.has_magnetometer_sensor() and self.magnetometer_sensor().num_samples() &gt; 0
+
+    def magnetometer_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the magnetometer sensor if it exists
+        :return: magnetometer sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_magnetometer_sensor():
+            return self.station_data[SensorType.MAGNETOMETER]
+        return None
+
+    def set_magnetometer_sensor(self, mag_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the magnetometer sensor; can remove magnetometer sensor by passing None
+        :param mag_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_magnetometer_sensor():
+            self._delete_sensor(SensorType.MAGNETOMETER)
+        if mag_sensor is not None:
+            self._add_sensor(SensorType.MAGNETOMETER, mag_sensor)
+        return self
+
+    def has_gyroscope_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if gyroscope sensor is in sensor_data_dict
+        :return: True if gyroscope sensor exists
+        &#34;&#34;&#34;
+        return SensorType.GYROSCOPE in self.station_data.keys()
+
+    def has_gyroscope_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the gyroscope sensor has any data
+        :return: True if gyroscope sensor has any data
+        &#34;&#34;&#34;
+        return self.has_gyroscope_sensor() and self.gyroscope_sensor().num_samples() &gt; 0
+
+    def gyroscope_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the gyroscope sensor if it exists
+        :return: gyroscope sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_gyroscope_sensor():
+            return self.station_data[SensorType.GYROSCOPE]
+        return None
+
+    def set_gyroscope_sensor(self, gyro_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the gyroscope sensor; can remove gyroscope sensor by passing None
+        :param gyro_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_gyroscope_sensor():
+            self._delete_sensor(SensorType.GYROSCOPE)
+        if gyro_sensor is not None:
+            self._add_sensor(SensorType.GYROSCOPE, gyro_sensor)
+        return self
+
+    def has_barometer_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if barometer sensor is in sensor_data_dict
+        :return: True if barometer sensor exists
+        &#34;&#34;&#34;
+        return SensorType.PRESSURE in self.station_data.keys()
+
+    def has_barometer_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the barometer sensor has any data
+        :return: True if barometer sensor has any data
+        &#34;&#34;&#34;
+        return self.has_barometer_sensor() and self.barometer_sensor().num_samples() &gt; 0
+
+    def barometer_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the barometer sensor if it exists
+        :return: barometer sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_barometer_sensor():
+            return self.station_data[SensorType.PRESSURE]
+        return None
+
+    def set_barometer_sensor(self, bar_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the barometer sensor; can remove barometer sensor by passing None
+        :param bar_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_barometer_sensor():
+            self._delete_sensor(SensorType.PRESSURE)
+        if bar_sensor is not None:
+            self._add_sensor(SensorType.PRESSURE, bar_sensor)
+        return self
+
+    def has_light_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if light sensor is in sensor_data_dict
+        :return: True if light sensor exists
+        &#34;&#34;&#34;
+        return SensorType.LIGHT in self.station_data.keys()
+
+    def has_light_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the light sensor has any data
+        :return: True if light sensor has any data
+        &#34;&#34;&#34;
+        return self.has_light_sensor() and self.light_sensor().num_samples() &gt; 0
+
+    def light_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the light sensor if it exists
+        :return: light sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_light_sensor():
+            return self.station_data[SensorType.LIGHT]
+        return None
+
+    def set_light_sensor(self, light_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the light sensor; can remove light sensor by passing None
+        :param light_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_light_sensor():
+            self._delete_sensor(SensorType.LIGHT)
+        if light_sensor is not None:
+            self._add_sensor(SensorType.LIGHT, light_sensor)
+        return self
+
+    def has_infrared_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if infrared sensor is in sensor_data_dict
+        :return: True if infrared sensor exists
+        &#34;&#34;&#34;
+        return SensorType.INFRARED in self.station_data.keys()
+
+    def has_infrared_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the infrared sensor has any data
+        :return: True if infrared sensor has any data
+        &#34;&#34;&#34;
+        return self.has_infrared_sensor() and self.infrared_sensor().num_samples() &gt; 0
+
+    def infrared_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the infrared sensor if it exists
+        :return: infrared sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_infrared_sensor():
+            return self.station_data[SensorType.INFRARED]
+        return None
+
+    def set_infrared_sensor(self, infrd_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the infrared sensor; can remove infrared sensor by passing None
+        :param infrd_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_infrared_sensor():
+            self._delete_sensor(SensorType.INFRARED)
+        if infrd_sensor is not None:
+            self._add_sensor(SensorType.INFRARED, infrd_sensor)
+        return self
+
+    def has_image_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if image sensor is in sensor_data_dict
+        :return: True if image sensor exists
+        &#34;&#34;&#34;
+        return SensorType.IMAGE in self.station_data.keys()
+
+    def has_image_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the image sensor has any data
+        :return: True if image sensor has any data
+        &#34;&#34;&#34;
+        return self.has_image_sensor() and self.image_sensor().num_samples() &gt; 0
+
+    def image_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the image sensor if it exists
+        :return: image sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_image_sensor():
+            return self.station_data[SensorType.IMAGE]
+        return None
+
+    def set_image_sensor(self, img_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the image sensor; can remove image sensor by passing None
+        :param img_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_image_sensor():
+            self._delete_sensor(SensorType.IMAGE)
+        if img_sensor is not None:
+            self._add_sensor(SensorType.IMAGE, img_sensor)
+        return self
+
+    def has_ambient_temperature_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if ambient temperature sensor is in sensor_data_dict
+        :return: True if ambient temperature sensor exists
+        &#34;&#34;&#34;
+        return SensorType.AMBIENT_TEMPERATURE in self.station_data.keys()
+
+    def has_ambient_temperature_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the ambient temperature sensor has any data
+        :return: True if ambient temperature sensor has any data
+        &#34;&#34;&#34;
+        return self.has_ambient_temperature_sensor() and self.ambient_temperature_sensor().num_samples() &gt; 0
+
+    def ambient_temperature_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the ambient temperature sensor if it exists
+        :return: image ambient temperature if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_ambient_temperature_sensor():
+            return self.station_data[SensorType.AMBIENT_TEMPERATURE]
+        return None
+
+    def set_ambient_temperature_sensor(self, amtemp_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the ambient temperature sensor; can remove ambient temperature sensor by passing None
+        :param amtemp_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_ambient_temperature_sensor():
+            self._delete_sensor(SensorType.AMBIENT_TEMPERATURE)
+        if amtemp_sensor is not None:
+            self._add_sensor(SensorType.AMBIENT_TEMPERATURE, amtemp_sensor)
+        return self
+
+    def has_gravity_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if gravity sensor is in sensor_data_dict
+        :return: True if gravity sensor exists
+        &#34;&#34;&#34;
+        return SensorType.GRAVITY in self.station_data.keys()
+
+    def has_gravity_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the gravity sensor has any data
+        :return: True if gravity sensor has any data
+        &#34;&#34;&#34;
+        return self.has_gravity_sensor() and self.gravity_sensor().num_samples() &gt; 0
+
+    def gravity_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the gravity sensor if it exists
+        :return: gravity sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_gravity_sensor():
+            return self.station_data[SensorType.GRAVITY]
+        return None
+
+    def set_gravity_sensor(self, grav_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the gravity sensor; can remove gravity sensor by passing None
+        :param grav_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_gravity_sensor():
+            self._delete_sensor(SensorType.GRAVITY)
+        if grav_sensor is not None:
+            self._add_sensor(SensorType.GRAVITY, grav_sensor)
+        return self
+
+    def has_linear_acceleration_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if linear acceleration sensor is in sensor_data_dict
+        :return: True if linear acceleration sensor exists
+        &#34;&#34;&#34;
+        return SensorType.LINEAR_ACCELERATION in self.station_data.keys()
+
+    def has_linear_acceleration_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the linear acceleration sensor has any data
+        :return: True if linear acceleration sensor has any data
+        &#34;&#34;&#34;
+        return self.has_linear_acceleration_sensor() and self.linear_acceleration_sensor().num_samples() &gt; 0
+
+    def linear_acceleration_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the linear acceleration sensor if it exists
+        :return: linear acceleration sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_linear_acceleration_sensor():
+            return self.station_data[SensorType.LINEAR_ACCELERATION]
+        return None
+
+    def set_linear_acceleration_sensor(self, linacc_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the linear acceleration sensor; can remove linear acceleration sensor by passing None
+        :param linacc_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_linear_acceleration_sensor():
+            self._delete_sensor(SensorType.LINEAR_ACCELERATION)
+        if linacc_sensor is not None:
+            self._add_sensor(SensorType.LINEAR_ACCELERATION, linacc_sensor)
+        return self
+
+    def has_orientation_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if orientation sensor is in sensor_data_dict
+        :return: True if orientation sensor exists
+        &#34;&#34;&#34;
+        return SensorType.ORIENTATION in self.station_data.keys()
+
+    def has_orientation_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the orientation sensor has any data
+        :return: True if orientation sensor has any data
+        &#34;&#34;&#34;
+        return self.has_orientation_sensor() and self.orientation_sensor().num_samples() &gt; 0
+
+    def orientation_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the orientation sensor if it exists
+        :return: orientation sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_orientation_sensor():
+            return self.station_data[SensorType.ORIENTATION]
+        return None
+
+    def set_orientation_sensor(self, orient_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the orientation sensor; can remove orientation sensor by passing None
+        :param orient_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_orientation_sensor():
+            self._delete_sensor(SensorType.ORIENTATION)
+        if orient_sensor is not None:
+            self._add_sensor(SensorType.ORIENTATION, orient_sensor)
+        return self
+
+    def has_proximity_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if proximity sensor is in sensor_data_dict
+        :return: True if proximity sensor exists
+        &#34;&#34;&#34;
+        return SensorType.PROXIMITY in self.station_data.keys()
+
+    def has_proximity_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the proximity sensor has any data
+        :return: True if proximity sensor has any data
+        &#34;&#34;&#34;
+        return self.has_proximity_sensor() and self.proximity_sensor().num_samples() &gt; 0
+
+    def proximity_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the proximity sensor if it exists
+        :return: proximity sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_proximity_sensor():
+            return self.station_data[SensorType.PROXIMITY]
+        return None
+
+    def set_proximity_sensor(self, prox_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the proximity sensor; can remove proximity sensor by passing None
+        :param prox_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_proximity_sensor():
+            self._delete_sensor(SensorType.PROXIMITY)
+        if prox_sensor is not None:
+            self._add_sensor(SensorType.PROXIMITY, prox_sensor)
+        return self
+
+    def has_relative_humidity_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if relative humidity sensor is in sensor_data_dict
+        :return: True if linear relative humidity sensor exists
+        &#34;&#34;&#34;
+        return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()
+
+    def has_relative_humidity_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the relative humidity sensor has any data
+        :return: True if relative humidity sensor has any data
+        &#34;&#34;&#34;
+        return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() &gt; 0
+
+    def relative_humidity_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the relative humidity sensor if it exists
+        :return: relative humidity sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_relative_humidity_sensor():
+            return self.station_data[SensorType.RELATIVE_HUMIDITY]
+        return None
+
+    def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the relative humidity sensor; can remove relative humidity sensor by passing None
+        :param relhum_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_relative_humidity_sensor():
+            self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
+        if relhum_sensor is not None:
+            self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
+        return self
+
+    def has_rotation_vector_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if rotation vector sensor is in sensor_data_dict
+        :return: True if rotation vector sensor exists
+        &#34;&#34;&#34;
+        return SensorType.ROTATION_VECTOR in self.station_data.keys()
+
+    def has_rotation_vector_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the rotation vector sensor has any data
+        :return: True if rotation vector sensor has any data
+        &#34;&#34;&#34;
+        return self.has_rotation_vector_sensor() and self.rotation_vector_sensor().num_samples() &gt; 0
+
+    def rotation_vector_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the rotation vector sensor if it exists
+        :return: rotation vector sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_rotation_vector_sensor():
+            return self.station_data[SensorType.ROTATION_VECTOR]
+        return None
+
+    def set_rotation_vector_sensor(self, rotvec_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the rotation vector sensor; can remove rotation vector sensor by passing None
+        :param rotvec_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_rotation_vector_sensor():
+            self._delete_sensor(SensorType.ROTATION_VECTOR)
+        if rotvec_sensor is not None:
+            self._add_sensor(SensorType.ROTATION_VECTOR, rotvec_sensor)
+        return self
+
+    def has_compressed_audio_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if compressed audio sensor is in sensor_data_dict
+        :return: True if compressed audio sensor exists
+        &#34;&#34;&#34;
+        return SensorType.COMPRESSED_AUDIO in self.station_data.keys()
+
+    def has_compressed_audio_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the compressed audio sensor has any data
+        :return: True if compressed audio sensor has any data
+        &#34;&#34;&#34;
+        return self.has_compressed_audio_sensor() and self.compressed_audio_sensor().num_samples() &gt; 0
+
+    def compressed_audio_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the compressed audio sensor if it exists
+        :return: compressed audio sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_compressed_audio_sensor():
+            return self.station_data[SensorType.COMPRESSED_AUDIO]
+        return None
+
+    def set_compressed_audio_sensor(self, compaudio_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the compressed audio sensor; can remove compressed audio sensor by passing None
+        :param compaudio_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_compressed_audio_sensor():
+            self._delete_sensor(SensorType.COMPRESSED_AUDIO)
+        if compaudio_sensor is not None:
+            self._add_sensor(SensorType.COMPRESSED_AUDIO, compaudio_sensor)
+        return self
+
+    def has_health_sensor(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if station health is in sensor_data_dict
+        :return: True if station health sensor exists
+        &#34;&#34;&#34;
+        return SensorType.STATION_HEALTH in self.station_data.keys()
+
+    def has_health_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        check if the station health sensor has any data
+        :return: True if station health sensor has any data
+        &#34;&#34;&#34;
+        return self.has_health_sensor() and self.health_sensor().num_samples() &gt; 0
+
+    def health_sensor(self) -&gt; Optional[SensorData]:
+        &#34;&#34;&#34;
+        return the station health sensor if it exists
+        :return: station health sensor if it exists, None otherwise
+        &#34;&#34;&#34;
+        if self.has_health_sensor():
+            return self.station_data[SensorType.STATION_HEALTH]
+        return None
+
+    def set_health_sensor(self, health_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+        &#34;&#34;&#34;
+        sets the station health sensor; can remove station health sensor by passing None
+        :param health_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        &#34;&#34;&#34;
+        if self.has_health_sensor():
+            self._delete_sensor(SensorType.STATION_HEALTH)
+        if health_sensor is not None:
+            self._add_sensor(SensorType.STATION_HEALTH, health_sensor)
+        return self
+
+    def get_non_audio_sensors(self) -&gt; Dict[SensorType, SensorData]:
+        &#34;&#34;&#34;
+        returns all non-audio sensors in the station
+        :return: dict of SensorType and SensorData of all non-audio sensors in the station
+        &#34;&#34;&#34;
+        return {k: v for (k, v) in self.station_data.items() if SensorType.AUDIO not in k}
+
+    def update_station_locations(self, from_data: bool = False):
+        &#34;&#34;&#34;
+        updates the station locations in the metadata
+        :param from_data: if True, pulls location data from the location sensor, default False
+        &#34;&#34;&#34;
+        if from_data:
+            if self.has_location_sensor():
+                # noinspection PyTypeChecker
+                self.station_metadata.location_data.all_locations = \
+                    self.location_sensor().data_df.apply(station_location_from_data, axis=1).values
+            else:
+                raise ValueError(f&#34;Attempted to update locations of station {self.station_metadata.station_id} &#34;
+                                 f&#34;using data, but there is no data!&#34;)
+        else:
+            self.station_metadata.location_data.all_locations = \
+                [packet.best_location if packet.best_location else StationLocation() for packet in self.packet_data]
+
+    def update_station_location_metadata(self, start_datetime: float, end_datetime: float):
+        &#34;&#34;&#34;
+        update the station&#39;s location metadata using the metadata and/or location data of the station
+        :param start_datetime: the start timestamp in microseconds since epoch UTC of the window to consider
+        :param end_datetime: the end timestamp in microseconds since epoch UTC of the window to consider
+        &#34;&#34;&#34;
+        # get locations from packet metadata
+        self.update_station_locations()
+        self.station_metadata.location_data.update_window_locations(start_datetime, end_datetime)
+        # not enough packet metadata locations, get data locations
+        if not self.station_metadata.location_data.calc_mean_and_std_from_locations() and self.has_location_data():
+            self.update_station_locations(from_data=True)
+            self.station_metadata.location_data.update_window_locations(start_datetime, end_datetime)
+            self.station_metadata.location_data.calc_mean_and_std_from_locations()
+
+    def packet_gap_detector(self, gap_time_s: float):
+        &#34;&#34;&#34;
+        Uses the station&#39;s packet and audio data to detect gaps at least gap_time_s seconds long.
+        updates the station&#39;s packet metadata if there are no gaps
+        :param gap_time_s: float, minimum gap time in seconds
+        &#34;&#34;&#34;
+        for packet in range(len(self.packet_data) - 1):
+            data_start = self.packet_data[packet].data_start_timestamp
+            data_num_samples = self.packet_data[packet].num_audio_samples
+            next_packet_start_index = \
+                self.audio_sensor().data_df.query(&#34;timestamps &gt;= @data_start&#34;).first_valid_index() + data_num_samples
+            data_end = self.audio_sensor().data_timestamps()[next_packet_start_index - 1]
+            next_packet_start = self.audio_sensor().data_timestamps()[next_packet_start_index]
+            if next_packet_start - data_end &lt; dtu.seconds_to_microseconds(gap_time_s):
+                self.packet_data[packet].micros_to_next_packet = \
+                    (next_packet_start - data_start) / data_num_samples
+
+    def update_timestamps(self):
+        &#34;&#34;&#34;
+        updates the timestamps in all SensorData objects using the station_best_offset of the station_timing
+        &#34;&#34;&#34;
+        if self.station_metadata.station_timing_is_corrected:
+            print(&#34;WARNING: Timestamps already corrected!&#34;)
+        else:
+            if not self.station_metadata.timing_data:
+                print(&#34;WARNING: Station does not have timing data, assuming existing values are the correct ones!&#34;)
+            else:
+                delta = self.station_metadata.timing_data.station_best_offset
+                for sensor in self.station_data.values():
+                    sensor.update_data_timestamps(delta)
+                for packet in self.packet_data:
+                    packet.data_start_timestamp += delta
+                    packet.data_end_timestamp += delta
+                    if packet.best_location:
+                        packet.best_location.update_timestamps(delta)
+                self.station_metadata.timing_data.station_first_data_timestamp += delta
+                self.station_metadata.location_data.update_timestamps(delta)
+            self.station_metadata.station_timing_is_corrected = True
+
+    def revert_timestamps(self):
+        &#34;&#34;&#34;
+        reverts the timestamps in all SensorData objects using the station_best_offset of the station_timing
+        &#34;&#34;&#34;
+        if self.station_metadata.station_timing_is_corrected:
+            if not self.station_metadata.timing_data:
+                print(&#34;WARNING: Station does not have timing data, assuming existing values are the correct ones!&#34;)
+            else:
+                delta = self.station_metadata.timing_data.station_best_offset
+                for sensor in self.station_data.values():
+                    sensor.update_data_timestamps(-delta)
+                for packet in self.packet_data:
+                    packet.data_start_timestamp -= delta
+                    packet.data_end_timestamp -= delta
+                    if packet.best_location:
+                        packet.best_location.update_timestamps(-delta)
+                self.station_metadata.timing_data.station_first_data_timestamp -= delta
+                self.station_metadata.location_data.update_timestamps(-delta)
+                self.station_metadata.station_timing_is_corrected = False
+        else:
+            print(&#34;WARNING: Cannot revert timestamps that are not corrected!&#34;)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.station.Station.accelerometer_sensor"><code class="name flex">
+<span>def <span class="ident">accelerometer_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the accelerometer sensor if it exists
+:return: accelerometer sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def accelerometer_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the accelerometer sensor if it exists
+    :return: accelerometer sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_accelerometer_sensor():
+        return self.station_data[SensorType.ACCELEROMETER]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.ambient_temperature_sensor"><code class="name flex">
+<span>def <span class="ident">ambient_temperature_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the ambient temperature sensor if it exists
+:return: image ambient temperature if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ambient_temperature_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the ambient temperature sensor if it exists
+    :return: image ambient temperature if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_ambient_temperature_sensor():
+        return self.station_data[SensorType.AMBIENT_TEMPERATURE]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.append_sensor"><code class="name flex">
+<span>def <span class="ident">append_sensor</span></span>(<span>self, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, sensor_data: <a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>append sensor data to an existing sensor_type or add a new sensor to the dictionary
+:param sensor_type: the sensor to append to
+:param sensor_data: the data to append</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append_sensor(self, sensor_type: SensorType, sensor_data: SensorData):
+    &#34;&#34;&#34;
+    append sensor data to an existing sensor_type or add a new sensor to the dictionary
+    :param sensor_type: the sensor to append to
+    :param sensor_data: the data to append
+    &#34;&#34;&#34;
+    if sensor_type in self.station_data.keys():
+        self.station_data[sensor_type] = self.station_data[sensor_type].append_data(sensor_data.data_df)
+    else:
+        self._add_sensor(sensor_type, sensor_data)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.append_station"><code class="name flex">
+<span>def <span class="ident">append_station</span></span>(<span>self, new_station: <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>append a new station to the current station
+:param new_station: Station to append to current station</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append_station(self, new_station: &#39;Station&#39;):
+    &#34;&#34;&#34;
+    append a new station to the current station
+    :param new_station: Station to append to current station
+    &#34;&#34;&#34;
+    if new_station.station_metadata.station_id == self.station_metadata.station_id:
+        self.append_station_data(new_station.station_data)
+        self.packet_data.extend(new_station.packet_data)
+    # todo: regenerate the metadata when adding new station data</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.append_station_data"><code class="name flex">
+<span>def <span class="ident">append_station_data</span></span>(<span>self, new_station_data: typing.Dict[<a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, <a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>append new station data to existing station data
+:param new_station_data: the dictionary of data to add</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append_station_data(self, new_station_data: Dict[SensorType, SensorData]):
+    &#34;&#34;&#34;
+    append new station data to existing station data
+    :param new_station_data: the dictionary of data to add
+    &#34;&#34;&#34;
+    for sensor_type, sensor_data in new_station_data.items():
+        self.append_sensor(sensor_type, sensor_data)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.audio_sensor"><code class="name flex">
+<span>def <span class="ident">audio_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the audio sensor if it exists
+:return: audio sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def audio_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the audio sensor if it exists
+    :return: audio sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_audio_sensor():
+        return self.station_data[SensorType.AUDIO]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.barometer_sensor"><code class="name flex">
+<span>def <span class="ident">barometer_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the barometer sensor if it exists
+:return: barometer sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def barometer_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the barometer sensor if it exists
+    :return: barometer sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_barometer_sensor():
+        return self.station_data[SensorType.PRESSURE]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.compressed_audio_sensor"><code class="name flex">
+<span>def <span class="ident">compressed_audio_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the compressed audio sensor if it exists
+:return: compressed audio sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compressed_audio_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the compressed audio sensor if it exists
+    :return: compressed audio sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_compressed_audio_sensor():
+        return self.station_data[SensorType.COMPRESSED_AUDIO]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.get_non_audio_sensors"><code class="name flex">
+<span>def <span class="ident">get_non_audio_sensors</span></span>(<span>self) ‑> typing.Dict[<a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, <a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>returns all non-audio sensors in the station
+:return: dict of SensorType and SensorData of all non-audio sensors in the station</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_non_audio_sensors(self) -&gt; Dict[SensorType, SensorData]:
+    &#34;&#34;&#34;
+    returns all non-audio sensors in the station
+    :return: dict of SensorType and SensorData of all non-audio sensors in the station
+    &#34;&#34;&#34;
+    return {k: v for (k, v) in self.station_data.items() if SensorType.AUDIO not in k}</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.gravity_sensor"><code class="name flex">
+<span>def <span class="ident">gravity_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the gravity sensor if it exists
+:return: gravity sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gravity_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the gravity sensor if it exists
+    :return: gravity sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_gravity_sensor():
+        return self.station_data[SensorType.GRAVITY]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.gyroscope_sensor"><code class="name flex">
+<span>def <span class="ident">gyroscope_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the gyroscope sensor if it exists
+:return: gyroscope sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gyroscope_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the gyroscope sensor if it exists
+    :return: gyroscope sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_gyroscope_sensor():
+        return self.station_data[SensorType.GYROSCOPE]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_accelerometer_data"><code class="name flex">
+<span>def <span class="ident">has_accelerometer_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the accelerometer sensor has any data
+:return: True if accelerometer sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_accelerometer_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the accelerometer sensor has any data
+    :return: True if accelerometer sensor has any data
+    &#34;&#34;&#34;
+    return self.has_accelerometer_sensor() and self.accelerometer_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_accelerometer_sensor"><code class="name flex">
+<span>def <span class="ident">has_accelerometer_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if accelerometer sensor is in sensor_data_dict
+:return: True if accelerometer sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_accelerometer_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if accelerometer sensor is in sensor_data_dict
+    :return: True if accelerometer sensor exists
+    &#34;&#34;&#34;
+    return SensorType.ACCELEROMETER in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_ambient_temperature_data"><code class="name flex">
+<span>def <span class="ident">has_ambient_temperature_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the ambient temperature sensor has any data
+:return: True if ambient temperature sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_ambient_temperature_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the ambient temperature sensor has any data
+    :return: True if ambient temperature sensor has any data
+    &#34;&#34;&#34;
+    return self.has_ambient_temperature_sensor() and self.ambient_temperature_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_ambient_temperature_sensor"><code class="name flex">
+<span>def <span class="ident">has_ambient_temperature_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if ambient temperature sensor is in sensor_data_dict
+:return: True if ambient temperature sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_ambient_temperature_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if ambient temperature sensor is in sensor_data_dict
+    :return: True if ambient temperature sensor exists
+    &#34;&#34;&#34;
+    return SensorType.AMBIENT_TEMPERATURE in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_audio_data"><code class="name flex">
+<span>def <span class="ident">has_audio_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the audio sensor has any data
+:return: True if audio sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_audio_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the audio sensor has any data
+    :return: True if audio sensor has any data
+    &#34;&#34;&#34;
+    return self.has_audio_sensor() and self.audio_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_audio_sensor"><code class="name flex">
+<span>def <span class="ident">has_audio_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if audio sensor is in sensor_data_dict
+:return: True if audio sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_audio_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if audio sensor is in sensor_data_dict
+    :return: True if audio sensor exists
+    &#34;&#34;&#34;
+    return SensorType.AUDIO in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_barometer_data"><code class="name flex">
+<span>def <span class="ident">has_barometer_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the barometer sensor has any data
+:return: True if barometer sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_barometer_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the barometer sensor has any data
+    :return: True if barometer sensor has any data
+    &#34;&#34;&#34;
+    return self.has_barometer_sensor() and self.barometer_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_barometer_sensor"><code class="name flex">
+<span>def <span class="ident">has_barometer_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if barometer sensor is in sensor_data_dict
+:return: True if barometer sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_barometer_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if barometer sensor is in sensor_data_dict
+    :return: True if barometer sensor exists
+    &#34;&#34;&#34;
+    return SensorType.PRESSURE in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_compressed_audio_data"><code class="name flex">
+<span>def <span class="ident">has_compressed_audio_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the compressed audio sensor has any data
+:return: True if compressed audio sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_compressed_audio_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the compressed audio sensor has any data
+    :return: True if compressed audio sensor has any data
+    &#34;&#34;&#34;
+    return self.has_compressed_audio_sensor() and self.compressed_audio_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_compressed_audio_sensor"><code class="name flex">
+<span>def <span class="ident">has_compressed_audio_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if compressed audio sensor is in sensor_data_dict
+:return: True if compressed audio sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_compressed_audio_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if compressed audio sensor is in sensor_data_dict
+    :return: True if compressed audio sensor exists
+    &#34;&#34;&#34;
+    return SensorType.COMPRESSED_AUDIO in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_gravity_data"><code class="name flex">
+<span>def <span class="ident">has_gravity_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the gravity sensor has any data
+:return: True if gravity sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_gravity_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the gravity sensor has any data
+    :return: True if gravity sensor has any data
+    &#34;&#34;&#34;
+    return self.has_gravity_sensor() and self.gravity_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_gravity_sensor"><code class="name flex">
+<span>def <span class="ident">has_gravity_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if gravity sensor is in sensor_data_dict
+:return: True if gravity sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_gravity_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if gravity sensor is in sensor_data_dict
+    :return: True if gravity sensor exists
+    &#34;&#34;&#34;
+    return SensorType.GRAVITY in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_gyroscope_data"><code class="name flex">
+<span>def <span class="ident">has_gyroscope_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the gyroscope sensor has any data
+:return: True if gyroscope sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_gyroscope_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the gyroscope sensor has any data
+    :return: True if gyroscope sensor has any data
+    &#34;&#34;&#34;
+    return self.has_gyroscope_sensor() and self.gyroscope_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_gyroscope_sensor"><code class="name flex">
+<span>def <span class="ident">has_gyroscope_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if gyroscope sensor is in sensor_data_dict
+:return: True if gyroscope sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_gyroscope_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if gyroscope sensor is in sensor_data_dict
+    :return: True if gyroscope sensor exists
+    &#34;&#34;&#34;
+    return SensorType.GYROSCOPE in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_health_data"><code class="name flex">
+<span>def <span class="ident">has_health_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the station health sensor has any data
+:return: True if station health sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_health_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the station health sensor has any data
+    :return: True if station health sensor has any data
+    &#34;&#34;&#34;
+    return self.has_health_sensor() and self.health_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_health_sensor"><code class="name flex">
+<span>def <span class="ident">has_health_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if station health is in sensor_data_dict
+:return: True if station health sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_health_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if station health is in sensor_data_dict
+    :return: True if station health sensor exists
+    &#34;&#34;&#34;
+    return SensorType.STATION_HEALTH in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_image_data"><code class="name flex">
+<span>def <span class="ident">has_image_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the image sensor has any data
+:return: True if image sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_image_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the image sensor has any data
+    :return: True if image sensor has any data
+    &#34;&#34;&#34;
+    return self.has_image_sensor() and self.image_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_image_sensor"><code class="name flex">
+<span>def <span class="ident">has_image_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if image sensor is in sensor_data_dict
+:return: True if image sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_image_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if image sensor is in sensor_data_dict
+    :return: True if image sensor exists
+    &#34;&#34;&#34;
+    return SensorType.IMAGE in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_infrared_data"><code class="name flex">
+<span>def <span class="ident">has_infrared_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the infrared sensor has any data
+:return: True if infrared sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_infrared_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the infrared sensor has any data
+    :return: True if infrared sensor has any data
+    &#34;&#34;&#34;
+    return self.has_infrared_sensor() and self.infrared_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_infrared_sensor"><code class="name flex">
+<span>def <span class="ident">has_infrared_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if infrared sensor is in sensor_data_dict
+:return: True if infrared sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_infrared_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if infrared sensor is in sensor_data_dict
+    :return: True if infrared sensor exists
+    &#34;&#34;&#34;
+    return SensorType.INFRARED in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_light_data"><code class="name flex">
+<span>def <span class="ident">has_light_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the light sensor has any data
+:return: True if light sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_light_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the light sensor has any data
+    :return: True if light sensor has any data
+    &#34;&#34;&#34;
+    return self.has_light_sensor() and self.light_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_light_sensor"><code class="name flex">
+<span>def <span class="ident">has_light_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if light sensor is in sensor_data_dict
+:return: True if light sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_light_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if light sensor is in sensor_data_dict
+    :return: True if light sensor exists
+    &#34;&#34;&#34;
+    return SensorType.LIGHT in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_linear_acceleration_data"><code class="name flex">
+<span>def <span class="ident">has_linear_acceleration_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the linear acceleration sensor has any data
+:return: True if linear acceleration sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_linear_acceleration_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the linear acceleration sensor has any data
+    :return: True if linear acceleration sensor has any data
+    &#34;&#34;&#34;
+    return self.has_linear_acceleration_sensor() and self.linear_acceleration_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_linear_acceleration_sensor"><code class="name flex">
+<span>def <span class="ident">has_linear_acceleration_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if linear acceleration sensor is in sensor_data_dict
+:return: True if linear acceleration sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_linear_acceleration_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if linear acceleration sensor is in sensor_data_dict
+    :return: True if linear acceleration sensor exists
+    &#34;&#34;&#34;
+    return SensorType.LINEAR_ACCELERATION in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_location_data"><code class="name flex">
+<span>def <span class="ident">has_location_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the location sensor has any data
+:return: True if location sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_location_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the location sensor has any data
+    :return: True if location sensor has any data
+    &#34;&#34;&#34;
+    return self.has_location_sensor() and self.location_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_location_sensor"><code class="name flex">
+<span>def <span class="ident">has_location_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if location sensor is in sensor_data_dict
+:return: True if location sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_location_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if location sensor is in sensor_data_dict
+    :return: True if location sensor exists
+    &#34;&#34;&#34;
+    return SensorType.LOCATION in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_magnetometer_data"><code class="name flex">
+<span>def <span class="ident">has_magnetometer_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the magnetometer sensor has any data
+:return: True if magnetometer sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_magnetometer_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the magnetometer sensor has any data
+    :return: True if magnetometer sensor has any data
+    &#34;&#34;&#34;
+    return self.has_magnetometer_sensor() and self.magnetometer_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_magnetometer_sensor"><code class="name flex">
+<span>def <span class="ident">has_magnetometer_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if magnetometer sensor is in sensor_data_dict
+:return: True if magnetometer sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_magnetometer_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if magnetometer sensor is in sensor_data_dict
+    :return: True if magnetometer sensor exists
+    &#34;&#34;&#34;
+    return SensorType.MAGNETOMETER in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_orientation_data"><code class="name flex">
+<span>def <span class="ident">has_orientation_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the orientation sensor has any data
+:return: True if orientation sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_orientation_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the orientation sensor has any data
+    :return: True if orientation sensor has any data
+    &#34;&#34;&#34;
+    return self.has_orientation_sensor() and self.orientation_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_orientation_sensor"><code class="name flex">
+<span>def <span class="ident">has_orientation_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if orientation sensor is in sensor_data_dict
+:return: True if orientation sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_orientation_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if orientation sensor is in sensor_data_dict
+    :return: True if orientation sensor exists
+    &#34;&#34;&#34;
+    return SensorType.ORIENTATION in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_proximity_data"><code class="name flex">
+<span>def <span class="ident">has_proximity_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the proximity sensor has any data
+:return: True if proximity sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_proximity_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the proximity sensor has any data
+    :return: True if proximity sensor has any data
+    &#34;&#34;&#34;
+    return self.has_proximity_sensor() and self.proximity_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_proximity_sensor"><code class="name flex">
+<span>def <span class="ident">has_proximity_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if proximity sensor is in sensor_data_dict
+:return: True if proximity sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_proximity_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if proximity sensor is in sensor_data_dict
+    :return: True if proximity sensor exists
+    &#34;&#34;&#34;
+    return SensorType.PROXIMITY in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_relative_humidity_data"><code class="name flex">
+<span>def <span class="ident">has_relative_humidity_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the relative humidity sensor has any data
+:return: True if relative humidity sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_relative_humidity_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the relative humidity sensor has any data
+    :return: True if relative humidity sensor has any data
+    &#34;&#34;&#34;
+    return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_relative_humidity_sensor"><code class="name flex">
+<span>def <span class="ident">has_relative_humidity_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if relative humidity sensor is in sensor_data_dict
+:return: True if linear relative humidity sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_relative_humidity_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if relative humidity sensor is in sensor_data_dict
+    :return: True if linear relative humidity sensor exists
+    &#34;&#34;&#34;
+    return SensorType.RELATIVE_HUMIDITY in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_rotation_vector_data"><code class="name flex">
+<span>def <span class="ident">has_rotation_vector_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if the rotation vector sensor has any data
+:return: True if rotation vector sensor has any data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_rotation_vector_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if the rotation vector sensor has any data
+    :return: True if rotation vector sensor has any data
+    &#34;&#34;&#34;
+    return self.has_rotation_vector_sensor() and self.rotation_vector_sensor().num_samples() &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.has_rotation_vector_sensor"><code class="name flex">
+<span>def <span class="ident">has_rotation_vector_sensor</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>check if rotation vector sensor is in sensor_data_dict
+:return: True if rotation vector sensor exists</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_rotation_vector_sensor(self) -&gt; bool:
+    &#34;&#34;&#34;
+    check if rotation vector sensor is in sensor_data_dict
+    :return: True if rotation vector sensor exists
+    &#34;&#34;&#34;
+    return SensorType.ROTATION_VECTOR in self.station_data.keys()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.health_sensor"><code class="name flex">
+<span>def <span class="ident">health_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the station health sensor if it exists
+:return: station health sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def health_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the station health sensor if it exists
+    :return: station health sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_health_sensor():
+        return self.station_data[SensorType.STATION_HEALTH]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.image_sensor"><code class="name flex">
+<span>def <span class="ident">image_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the image sensor if it exists
+:return: image sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def image_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the image sensor if it exists
+    :return: image sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_image_sensor():
+        return self.station_data[SensorType.IMAGE]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.infrared_sensor"><code class="name flex">
+<span>def <span class="ident">infrared_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the infrared sensor if it exists
+:return: infrared sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def infrared_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the infrared sensor if it exists
+    :return: infrared sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_infrared_sensor():
+        return self.station_data[SensorType.INFRARED]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.light_sensor"><code class="name flex">
+<span>def <span class="ident">light_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the light sensor if it exists
+:return: light sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def light_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the light sensor if it exists
+    :return: light sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_light_sensor():
+        return self.station_data[SensorType.LIGHT]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.linear_acceleration_sensor"><code class="name flex">
+<span>def <span class="ident">linear_acceleration_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the linear acceleration sensor if it exists
+:return: linear acceleration sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def linear_acceleration_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the linear acceleration sensor if it exists
+    :return: linear acceleration sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_linear_acceleration_sensor():
+        return self.station_data[SensorType.LINEAR_ACCELERATION]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.location_sensor"><code class="name flex">
+<span>def <span class="ident">location_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the location sensor if it exists
+:return: location sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def location_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the location sensor if it exists
+    :return: location sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_location_sensor():
+        return self.station_data[SensorType.LOCATION]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.magnetometer_sensor"><code class="name flex">
+<span>def <span class="ident">magnetometer_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the magnetometer sensor if it exists
+:return: magnetometer sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def magnetometer_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the magnetometer sensor if it exists
+    :return: magnetometer sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_magnetometer_sensor():
+        return self.station_data[SensorType.MAGNETOMETER]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.orientation_sensor"><code class="name flex">
+<span>def <span class="ident">orientation_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the orientation sensor if it exists
+:return: orientation sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def orientation_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the orientation sensor if it exists
+    :return: orientation sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_orientation_sensor():
+        return self.station_data[SensorType.ORIENTATION]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.packet_gap_detector"><code class="name flex">
+<span>def <span class="ident">packet_gap_detector</span></span>(<span>self, gap_time_s: float)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Uses the station's packet and audio data to detect gaps at least gap_time_s seconds long.
+updates the station's packet metadata if there are no gaps
+:param gap_time_s: float, minimum gap time in seconds</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def packet_gap_detector(self, gap_time_s: float):
+    &#34;&#34;&#34;
+    Uses the station&#39;s packet and audio data to detect gaps at least gap_time_s seconds long.
+    updates the station&#39;s packet metadata if there are no gaps
+    :param gap_time_s: float, minimum gap time in seconds
+    &#34;&#34;&#34;
+    for packet in range(len(self.packet_data) - 1):
+        data_start = self.packet_data[packet].data_start_timestamp
+        data_num_samples = self.packet_data[packet].num_audio_samples
+        next_packet_start_index = \
+            self.audio_sensor().data_df.query(&#34;timestamps &gt;= @data_start&#34;).first_valid_index() + data_num_samples
+        data_end = self.audio_sensor().data_timestamps()[next_packet_start_index - 1]
+        next_packet_start = self.audio_sensor().data_timestamps()[next_packet_start_index]
+        if next_packet_start - data_end &lt; dtu.seconds_to_microseconds(gap_time_s):
+            self.packet_data[packet].micros_to_next_packet = \
+                (next_packet_start - data_start) / data_num_samples</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.proximity_sensor"><code class="name flex">
+<span>def <span class="ident">proximity_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the proximity sensor if it exists
+:return: proximity sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def proximity_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the proximity sensor if it exists
+    :return: proximity sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_proximity_sensor():
+        return self.station_data[SensorType.PROXIMITY]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.relative_humidity_sensor"><code class="name flex">
+<span>def <span class="ident">relative_humidity_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the relative humidity sensor if it exists
+:return: relative humidity sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def relative_humidity_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the relative humidity sensor if it exists
+    :return: relative humidity sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_relative_humidity_sensor():
+        return self.station_data[SensorType.RELATIVE_HUMIDITY]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.revert_timestamps"><code class="name flex">
+<span>def <span class="ident">revert_timestamps</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>reverts the timestamps in all SensorData objects using the station_best_offset of the station_timing</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def revert_timestamps(self):
+    &#34;&#34;&#34;
+    reverts the timestamps in all SensorData objects using the station_best_offset of the station_timing
+    &#34;&#34;&#34;
+    if self.station_metadata.station_timing_is_corrected:
+        if not self.station_metadata.timing_data:
+            print(&#34;WARNING: Station does not have timing data, assuming existing values are the correct ones!&#34;)
+        else:
+            delta = self.station_metadata.timing_data.station_best_offset
+            for sensor in self.station_data.values():
+                sensor.update_data_timestamps(-delta)
+            for packet in self.packet_data:
+                packet.data_start_timestamp -= delta
+                packet.data_end_timestamp -= delta
+                if packet.best_location:
+                    packet.best_location.update_timestamps(-delta)
+            self.station_metadata.timing_data.station_first_data_timestamp -= delta
+            self.station_metadata.location_data.update_timestamps(-delta)
+            self.station_metadata.station_timing_is_corrected = False
+    else:
+        print(&#34;WARNING: Cannot revert timestamps that are not corrected!&#34;)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.rotation_vector_sensor"><code class="name flex">
+<span>def <span class="ident">rotation_vector_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return the rotation vector sensor if it exists
+:return: rotation vector sensor if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rotation_vector_sensor(self) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    return the rotation vector sensor if it exists
+    :return: rotation vector sensor if it exists, None otherwise
+    &#34;&#34;&#34;
+    if self.has_rotation_vector_sensor():
+        return self.station_data[SensorType.ROTATION_VECTOR]
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_accelerometer_sensor"><code class="name flex">
+<span>def <span class="ident">set_accelerometer_sensor</span></span>(<span>self, acc_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the accelerometer sensor; can remove accelerometer sensor by passing None
+:param acc_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_accelerometer_sensor(self, acc_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the accelerometer sensor; can remove accelerometer sensor by passing None
+    :param acc_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_accelerometer_sensor():
+        self._delete_sensor(SensorType.ACCELEROMETER)
+    if acc_sensor is not None:
+        self._add_sensor(SensorType.ACCELEROMETER, acc_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_ambient_temperature_sensor"><code class="name flex">
+<span>def <span class="ident">set_ambient_temperature_sensor</span></span>(<span>self, amtemp_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the ambient temperature sensor; can remove ambient temperature sensor by passing None
+:param amtemp_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_ambient_temperature_sensor(self, amtemp_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the ambient temperature sensor; can remove ambient temperature sensor by passing None
+    :param amtemp_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_ambient_temperature_sensor():
+        self._delete_sensor(SensorType.AMBIENT_TEMPERATURE)
+    if amtemp_sensor is not None:
+        self._add_sensor(SensorType.AMBIENT_TEMPERATURE, amtemp_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_audio_sensor"><code class="name flex">
+<span>def <span class="ident">set_audio_sensor</span></span>(<span>self, audio_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the audio sensor; can remove audio sensor by passing None
+:param audio_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_audio_sensor(self, audio_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the audio sensor; can remove audio sensor by passing None
+    :param audio_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_audio_sensor():
+        self._delete_sensor(SensorType.AUDIO)
+    if audio_sensor is not None:
+        self._add_sensor(SensorType.AUDIO, audio_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_barometer_sensor"><code class="name flex">
+<span>def <span class="ident">set_barometer_sensor</span></span>(<span>self, bar_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the barometer sensor; can remove barometer sensor by passing None
+:param bar_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_barometer_sensor(self, bar_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the barometer sensor; can remove barometer sensor by passing None
+    :param bar_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_barometer_sensor():
+        self._delete_sensor(SensorType.PRESSURE)
+    if bar_sensor is not None:
+        self._add_sensor(SensorType.PRESSURE, bar_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_compressed_audio_sensor"><code class="name flex">
+<span>def <span class="ident">set_compressed_audio_sensor</span></span>(<span>self, compaudio_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the compressed audio sensor; can remove compressed audio sensor by passing None
+:param compaudio_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_compressed_audio_sensor(self, compaudio_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the compressed audio sensor; can remove compressed audio sensor by passing None
+    :param compaudio_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_compressed_audio_sensor():
+        self._delete_sensor(SensorType.COMPRESSED_AUDIO)
+    if compaudio_sensor is not None:
+        self._add_sensor(SensorType.COMPRESSED_AUDIO, compaudio_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_gravity_sensor"><code class="name flex">
+<span>def <span class="ident">set_gravity_sensor</span></span>(<span>self, grav_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the gravity sensor; can remove gravity sensor by passing None
+:param grav_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_gravity_sensor(self, grav_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the gravity sensor; can remove gravity sensor by passing None
+    :param grav_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_gravity_sensor():
+        self._delete_sensor(SensorType.GRAVITY)
+    if grav_sensor is not None:
+        self._add_sensor(SensorType.GRAVITY, grav_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_gyroscope_sensor"><code class="name flex">
+<span>def <span class="ident">set_gyroscope_sensor</span></span>(<span>self, gyro_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the gyroscope sensor; can remove gyroscope sensor by passing None
+:param gyro_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_gyroscope_sensor(self, gyro_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the gyroscope sensor; can remove gyroscope sensor by passing None
+    :param gyro_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_gyroscope_sensor():
+        self._delete_sensor(SensorType.GYROSCOPE)
+    if gyro_sensor is not None:
+        self._add_sensor(SensorType.GYROSCOPE, gyro_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_health_sensor"><code class="name flex">
+<span>def <span class="ident">set_health_sensor</span></span>(<span>self, health_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the station health sensor; can remove station health sensor by passing None
+:param health_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_health_sensor(self, health_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the station health sensor; can remove station health sensor by passing None
+    :param health_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_health_sensor():
+        self._delete_sensor(SensorType.STATION_HEALTH)
+    if health_sensor is not None:
+        self._add_sensor(SensorType.STATION_HEALTH, health_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_image_sensor"><code class="name flex">
+<span>def <span class="ident">set_image_sensor</span></span>(<span>self, img_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the image sensor; can remove image sensor by passing None
+:param img_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_image_sensor(self, img_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the image sensor; can remove image sensor by passing None
+    :param img_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_image_sensor():
+        self._delete_sensor(SensorType.IMAGE)
+    if img_sensor is not None:
+        self._add_sensor(SensorType.IMAGE, img_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_infrared_sensor"><code class="name flex">
+<span>def <span class="ident">set_infrared_sensor</span></span>(<span>self, infrd_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the infrared sensor; can remove infrared sensor by passing None
+:param infrd_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_infrared_sensor(self, infrd_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the infrared sensor; can remove infrared sensor by passing None
+    :param infrd_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_infrared_sensor():
+        self._delete_sensor(SensorType.INFRARED)
+    if infrd_sensor is not None:
+        self._add_sensor(SensorType.INFRARED, infrd_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_light_sensor"><code class="name flex">
+<span>def <span class="ident">set_light_sensor</span></span>(<span>self, light_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the light sensor; can remove light sensor by passing None
+:param light_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_light_sensor(self, light_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the light sensor; can remove light sensor by passing None
+    :param light_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_light_sensor():
+        self._delete_sensor(SensorType.LIGHT)
+    if light_sensor is not None:
+        self._add_sensor(SensorType.LIGHT, light_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_linear_acceleration_sensor"><code class="name flex">
+<span>def <span class="ident">set_linear_acceleration_sensor</span></span>(<span>self, linacc_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the linear acceleration sensor; can remove linear acceleration sensor by passing None
+:param linacc_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_linear_acceleration_sensor(self, linacc_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the linear acceleration sensor; can remove linear acceleration sensor by passing None
+    :param linacc_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_linear_acceleration_sensor():
+        self._delete_sensor(SensorType.LINEAR_ACCELERATION)
+    if linacc_sensor is not None:
+        self._add_sensor(SensorType.LINEAR_ACCELERATION, linacc_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_location_sensor"><code class="name flex">
+<span>def <span class="ident">set_location_sensor</span></span>(<span>self, loc_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the location sensor; can remove location sensor by passing None
+:param loc_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_location_sensor(self, loc_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the location sensor; can remove location sensor by passing None
+    :param loc_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_location_sensor():
+        self._delete_sensor(SensorType.LOCATION)
+    if loc_sensor is not None:
+        self._add_sensor(SensorType.LOCATION, loc_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_magnetometer_sensor"><code class="name flex">
+<span>def <span class="ident">set_magnetometer_sensor</span></span>(<span>self, mag_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the magnetometer sensor; can remove magnetometer sensor by passing None
+:param mag_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_magnetometer_sensor(self, mag_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the magnetometer sensor; can remove magnetometer sensor by passing None
+    :param mag_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_magnetometer_sensor():
+        self._delete_sensor(SensorType.MAGNETOMETER)
+    if mag_sensor is not None:
+        self._add_sensor(SensorType.MAGNETOMETER, mag_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_orientation_sensor"><code class="name flex">
+<span>def <span class="ident">set_orientation_sensor</span></span>(<span>self, orient_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the orientation sensor; can remove orientation sensor by passing None
+:param orient_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_orientation_sensor(self, orient_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the orientation sensor; can remove orientation sensor by passing None
+    :param orient_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_orientation_sensor():
+        self._delete_sensor(SensorType.ORIENTATION)
+    if orient_sensor is not None:
+        self._add_sensor(SensorType.ORIENTATION, orient_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_proximity_sensor"><code class="name flex">
+<span>def <span class="ident">set_proximity_sensor</span></span>(<span>self, prox_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the proximity sensor; can remove proximity sensor by passing None
+:param prox_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_proximity_sensor(self, prox_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the proximity sensor; can remove proximity sensor by passing None
+    :param prox_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_proximity_sensor():
+        self._delete_sensor(SensorType.PROXIMITY)
+    if prox_sensor is not None:
+        self._add_sensor(SensorType.PROXIMITY, prox_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_relative_humidity_sensor"><code class="name flex">
+<span>def <span class="ident">set_relative_humidity_sensor</span></span>(<span>self, relhum_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the relative humidity sensor; can remove relative humidity sensor by passing None
+:param relhum_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_relative_humidity_sensor(self, relhum_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the relative humidity sensor; can remove relative humidity sensor by passing None
+    :param relhum_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_relative_humidity_sensor():
+        self._delete_sensor(SensorType.RELATIVE_HUMIDITY)
+    if relhum_sensor is not None:
+        self._add_sensor(SensorType.RELATIVE_HUMIDITY, relhum_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_rotation_vector_sensor"><code class="name flex">
+<span>def <span class="ident">set_rotation_vector_sensor</span></span>(<span>self, rotvec_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the rotation vector sensor; can remove rotation vector sensor by passing None
+:param rotvec_sensor: the SensorData to set or None
+:return: the edited DataPacket</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_rotation_vector_sensor(self, rotvec_sensor: Optional[SensorData]) -&gt; &#39;Station&#39;:
+    &#34;&#34;&#34;
+    sets the rotation vector sensor; can remove rotation vector sensor by passing None
+    :param rotvec_sensor: the SensorData to set or None
+    :return: the edited DataPacket
+    &#34;&#34;&#34;
+    if self.has_rotation_vector_sensor():
+        self._delete_sensor(SensorType.ROTATION_VECTOR)
+    if rotvec_sensor is not None:
+        self._add_sensor(SensorType.ROTATION_VECTOR, rotvec_sensor)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.update_station_location_metadata"><code class="name flex">
+<span>def <span class="ident">update_station_location_metadata</span></span>(<span>self, start_datetime: float, end_datetime: float)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>update the station's location metadata using the metadata and/or location data of the station
+:param start_datetime: the start timestamp in microseconds since epoch UTC of the window to consider
+:param end_datetime: the end timestamp in microseconds since epoch UTC of the window to consider</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_station_location_metadata(self, start_datetime: float, end_datetime: float):
+    &#34;&#34;&#34;
+    update the station&#39;s location metadata using the metadata and/or location data of the station
+    :param start_datetime: the start timestamp in microseconds since epoch UTC of the window to consider
+    :param end_datetime: the end timestamp in microseconds since epoch UTC of the window to consider
+    &#34;&#34;&#34;
+    # get locations from packet metadata
+    self.update_station_locations()
+    self.station_metadata.location_data.update_window_locations(start_datetime, end_datetime)
+    # not enough packet metadata locations, get data locations
+    if not self.station_metadata.location_data.calc_mean_and_std_from_locations() and self.has_location_data():
+        self.update_station_locations(from_data=True)
+        self.station_metadata.location_data.update_window_locations(start_datetime, end_datetime)
+        self.station_metadata.location_data.calc_mean_and_std_from_locations()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.update_station_locations"><code class="name flex">
+<span>def <span class="ident">update_station_locations</span></span>(<span>self, from_data: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>updates the station locations in the metadata
+:param from_data: if True, pulls location data from the location sensor, default False</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_station_locations(self, from_data: bool = False):
+    &#34;&#34;&#34;
+    updates the station locations in the metadata
+    :param from_data: if True, pulls location data from the location sensor, default False
+    &#34;&#34;&#34;
+    if from_data:
+        if self.has_location_sensor():
+            # noinspection PyTypeChecker
+            self.station_metadata.location_data.all_locations = \
+                self.location_sensor().data_df.apply(station_location_from_data, axis=1).values
+        else:
+            raise ValueError(f&#34;Attempted to update locations of station {self.station_metadata.station_id} &#34;
+                             f&#34;using data, but there is no data!&#34;)
+    else:
+        self.station_metadata.location_data.all_locations = \
+            [packet.best_location if packet.best_location else StationLocation() for packet in self.packet_data]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.update_timestamps"><code class="name flex">
+<span>def <span class="ident">update_timestamps</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>updates the timestamps in all SensorData objects using the station_best_offset of the station_timing</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_timestamps(self):
+    &#34;&#34;&#34;
+    updates the timestamps in all SensorData objects using the station_best_offset of the station_timing
+    &#34;&#34;&#34;
+    if self.station_metadata.station_timing_is_corrected:
+        print(&#34;WARNING: Timestamps already corrected!&#34;)
+    else:
+        if not self.station_metadata.timing_data:
+            print(&#34;WARNING: Station does not have timing data, assuming existing values are the correct ones!&#34;)
+        else:
+            delta = self.station_metadata.timing_data.station_best_offset
+            for sensor in self.station_data.values():
+                sensor.update_data_timestamps(delta)
+            for packet in self.packet_data:
+                packet.data_start_timestamp += delta
+                packet.data_end_timestamp += delta
+                if packet.best_location:
+                    packet.best_location.update_timestamps(delta)
+            self.station_metadata.timing_data.station_first_data_timestamp += delta
+            self.station_metadata.location_data.update_timestamps(delta)
+        self.station_metadata.station_timing_is_corrected = True</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.common" href="index.html">redvox.common</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.station.Station.accelerometer_sensor" href="#redvox.common.station.Station.accelerometer_sensor">accelerometer_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.ambient_temperature_sensor" href="#redvox.common.station.Station.ambient_temperature_sensor">ambient_temperature_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.append_sensor" href="#redvox.common.station.Station.append_sensor">append_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.append_station" href="#redvox.common.station.Station.append_station">append_station</a></code></li>
+<li><code><a title="redvox.common.station.Station.append_station_data" href="#redvox.common.station.Station.append_station_data">append_station_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.audio_sensor" href="#redvox.common.station.Station.audio_sensor">audio_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.barometer_sensor" href="#redvox.common.station.Station.barometer_sensor">barometer_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.compressed_audio_sensor" href="#redvox.common.station.Station.compressed_audio_sensor">compressed_audio_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.get_non_audio_sensors" href="#redvox.common.station.Station.get_non_audio_sensors">get_non_audio_sensors</a></code></li>
+<li><code><a title="redvox.common.station.Station.gravity_sensor" href="#redvox.common.station.Station.gravity_sensor">gravity_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.gyroscope_sensor" href="#redvox.common.station.Station.gyroscope_sensor">gyroscope_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_accelerometer_data" href="#redvox.common.station.Station.has_accelerometer_data">has_accelerometer_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_accelerometer_sensor" href="#redvox.common.station.Station.has_accelerometer_sensor">has_accelerometer_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_ambient_temperature_data" href="#redvox.common.station.Station.has_ambient_temperature_data">has_ambient_temperature_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_ambient_temperature_sensor" href="#redvox.common.station.Station.has_ambient_temperature_sensor">has_ambient_temperature_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_audio_data" href="#redvox.common.station.Station.has_audio_data">has_audio_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_audio_sensor" href="#redvox.common.station.Station.has_audio_sensor">has_audio_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_barometer_data" href="#redvox.common.station.Station.has_barometer_data">has_barometer_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_barometer_sensor" href="#redvox.common.station.Station.has_barometer_sensor">has_barometer_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_compressed_audio_data" href="#redvox.common.station.Station.has_compressed_audio_data">has_compressed_audio_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_compressed_audio_sensor" href="#redvox.common.station.Station.has_compressed_audio_sensor">has_compressed_audio_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_gravity_data" href="#redvox.common.station.Station.has_gravity_data">has_gravity_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_gravity_sensor" href="#redvox.common.station.Station.has_gravity_sensor">has_gravity_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_gyroscope_data" href="#redvox.common.station.Station.has_gyroscope_data">has_gyroscope_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_gyroscope_sensor" href="#redvox.common.station.Station.has_gyroscope_sensor">has_gyroscope_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_health_data" href="#redvox.common.station.Station.has_health_data">has_health_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_health_sensor" href="#redvox.common.station.Station.has_health_sensor">has_health_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_image_data" href="#redvox.common.station.Station.has_image_data">has_image_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_image_sensor" href="#redvox.common.station.Station.has_image_sensor">has_image_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_infrared_data" href="#redvox.common.station.Station.has_infrared_data">has_infrared_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_infrared_sensor" href="#redvox.common.station.Station.has_infrared_sensor">has_infrared_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_light_data" href="#redvox.common.station.Station.has_light_data">has_light_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_light_sensor" href="#redvox.common.station.Station.has_light_sensor">has_light_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_linear_acceleration_data" href="#redvox.common.station.Station.has_linear_acceleration_data">has_linear_acceleration_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_linear_acceleration_sensor" href="#redvox.common.station.Station.has_linear_acceleration_sensor">has_linear_acceleration_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_location_data" href="#redvox.common.station.Station.has_location_data">has_location_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_location_sensor" href="#redvox.common.station.Station.has_location_sensor">has_location_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_magnetometer_data" href="#redvox.common.station.Station.has_magnetometer_data">has_magnetometer_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_magnetometer_sensor" href="#redvox.common.station.Station.has_magnetometer_sensor">has_magnetometer_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_orientation_data" href="#redvox.common.station.Station.has_orientation_data">has_orientation_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_orientation_sensor" href="#redvox.common.station.Station.has_orientation_sensor">has_orientation_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_proximity_data" href="#redvox.common.station.Station.has_proximity_data">has_proximity_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_proximity_sensor" href="#redvox.common.station.Station.has_proximity_sensor">has_proximity_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_relative_humidity_data" href="#redvox.common.station.Station.has_relative_humidity_data">has_relative_humidity_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_relative_humidity_sensor" href="#redvox.common.station.Station.has_relative_humidity_sensor">has_relative_humidity_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_rotation_vector_data" href="#redvox.common.station.Station.has_rotation_vector_data">has_rotation_vector_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.has_rotation_vector_sensor" href="#redvox.common.station.Station.has_rotation_vector_sensor">has_rotation_vector_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.health_sensor" href="#redvox.common.station.Station.health_sensor">health_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.image_sensor" href="#redvox.common.station.Station.image_sensor">image_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.infrared_sensor" href="#redvox.common.station.Station.infrared_sensor">infrared_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.light_sensor" href="#redvox.common.station.Station.light_sensor">light_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.linear_acceleration_sensor" href="#redvox.common.station.Station.linear_acceleration_sensor">linear_acceleration_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.location_sensor" href="#redvox.common.station.Station.location_sensor">location_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.magnetometer_sensor" href="#redvox.common.station.Station.magnetometer_sensor">magnetometer_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.orientation_sensor" href="#redvox.common.station.Station.orientation_sensor">orientation_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.packet_gap_detector" href="#redvox.common.station.Station.packet_gap_detector">packet_gap_detector</a></code></li>
+<li><code><a title="redvox.common.station.Station.proximity_sensor" href="#redvox.common.station.Station.proximity_sensor">proximity_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.relative_humidity_sensor" href="#redvox.common.station.Station.relative_humidity_sensor">relative_humidity_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.revert_timestamps" href="#redvox.common.station.Station.revert_timestamps">revert_timestamps</a></code></li>
+<li><code><a title="redvox.common.station.Station.rotation_vector_sensor" href="#redvox.common.station.Station.rotation_vector_sensor">rotation_vector_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_accelerometer_sensor" href="#redvox.common.station.Station.set_accelerometer_sensor">set_accelerometer_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_ambient_temperature_sensor" href="#redvox.common.station.Station.set_ambient_temperature_sensor">set_ambient_temperature_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_audio_sensor" href="#redvox.common.station.Station.set_audio_sensor">set_audio_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_barometer_sensor" href="#redvox.common.station.Station.set_barometer_sensor">set_barometer_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_compressed_audio_sensor" href="#redvox.common.station.Station.set_compressed_audio_sensor">set_compressed_audio_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_gravity_sensor" href="#redvox.common.station.Station.set_gravity_sensor">set_gravity_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_gyroscope_sensor" href="#redvox.common.station.Station.set_gyroscope_sensor">set_gyroscope_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_health_sensor" href="#redvox.common.station.Station.set_health_sensor">set_health_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_image_sensor" href="#redvox.common.station.Station.set_image_sensor">set_image_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_infrared_sensor" href="#redvox.common.station.Station.set_infrared_sensor">set_infrared_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_light_sensor" href="#redvox.common.station.Station.set_light_sensor">set_light_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_linear_acceleration_sensor" href="#redvox.common.station.Station.set_linear_acceleration_sensor">set_linear_acceleration_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_location_sensor" href="#redvox.common.station.Station.set_location_sensor">set_location_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_magnetometer_sensor" href="#redvox.common.station.Station.set_magnetometer_sensor">set_magnetometer_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_orientation_sensor" href="#redvox.common.station.Station.set_orientation_sensor">set_orientation_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_proximity_sensor" href="#redvox.common.station.Station.set_proximity_sensor">set_proximity_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_relative_humidity_sensor" href="#redvox.common.station.Station.set_relative_humidity_sensor">set_relative_humidity_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_rotation_vector_sensor" href="#redvox.common.station.Station.set_rotation_vector_sensor">set_rotation_vector_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.update_station_location_metadata" href="#redvox.common.station.Station.update_station_location_metadata">update_station_location_metadata</a></code></li>
+<li><code><a title="redvox.common.station.Station.update_station_locations" href="#redvox.common.station.Station.update_station_locations">update_station_locations</a></code></li>
+<li><code><a title="redvox.common.station.Station.update_timestamps" href="#redvox.common.station.Station.update_timestamps">update_timestamps</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
