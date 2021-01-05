@@ -6,15 +6,10 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 from functools import reduce
-from glob import glob
-from multiprocessing import Pool
-import os.path
-from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Set
+from typing import Dict, Iterator, List
 
 from redvox.api1000.common.common import check_type
-from redvox.api1000.common.lz4 import decompress
-import redvox.api1000.proto.redvox_api_m_pb2 as pb
+import redvox.api1000.io_lib as io_lib
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
@@ -70,138 +65,6 @@ class StationSummary:
             start_dt,
             end_dt
         )
-
-
-@dataclass
-class ReadFilter:
-    """
-    Filter API M files from the file system.
-    """
-    start_dt: Optional[datetime] = None
-    end_dt: Optional[datetime] = None
-    station_ids: Optional[Set[str]] = None
-    extension: str = ".rdvxm"
-    start_dt_buf: timedelta = timedelta(minutes=2.0)
-    end_dt_buf: timedelta = timedelta(minutes=2.0)
-
-    def with_start_dt(self, start_dt: datetime) -> 'ReadFilter':
-        """
-        Adds a start datetime filter.
-        :param start_dt: Start datetime that files should come after.
-        :return: A modified instance of this filter
-        """
-        check_type(start_dt, [datetime])
-        self.start_dt = start_dt
-        return self
-
-    def with_start_ts(self, start_ts: float) -> 'ReadFilter':
-        """
-        Adds a start time filter.
-        :param start_ts: Start timestamp (microseconds)
-        :return: A modified instance of this filter
-        """
-        check_type(start_ts, [int, float])
-        return self.with_start_dt(dt_us(start_ts))
-
-    def with_end_dt(self, end_dt: datetime) -> 'ReadFilter':
-        """
-        Adds an end datetime filter.
-        :param end_dt: Filter for which packets should come before.
-        :return: A modified instance of this filter
-        """
-        check_type(end_dt, [datetime])
-        self.end_dt = end_dt
-        return self
-
-    def with_end_ts(self, end_ts: float) -> 'ReadFilter':
-        """
-        Like with_end_dt, but uses a microsecond timestamp.
-        :param end_ts: Timestamp microseconds.
-        :return: A modified instance of this filter
-        """
-        check_type(end_ts, [int, float])
-        return self.with_end_dt(dt_us(end_ts))
-
-    def with_station_ids(self, station_ids: Set[str]) -> 'ReadFilter':
-        """
-        Add a station id filter. Filters against provided station ids.
-        :param station_ids: Station ids to filter against.
-        :return: A modified instance of this filter
-        """
-        check_type(station_ids, [Set])
-        self.station_ids = station_ids
-        return self
-
-    def with_extension(self, extension: str) -> 'ReadFilter':
-        """
-        Filters against a known file extension.
-        :param extension: Extension to filter against
-        :return: A modified instance of this filter
-        """
-        check_type(extension, [str])
-        self.extension = extension
-        return self
-
-    def with_start_dt_buf(self, start_dt_buf: timedelta) -> 'ReadFilter':
-        """
-        Modifies the time buffer prepended to the start time.
-        :param start_dt_buf: Amount of time to buffer before start time.
-        :return: A modified instance of self.
-        """
-        check_type(start_dt_buf, [timedelta])
-        self.start_dt_buf = start_dt_buf
-        return self
-
-    def with_end_dt_buf(self, end_dt_buf: timedelta) -> 'ReadFilter':
-        """
-        Modifies the time buffer appended to the end time.
-        :param end_dt_buf: Amount of time to buffer after end time.
-        :return: A modified instance of self.
-        """
-        check_type(end_dt_buf, [timedelta])
-        self.end_dt_buf = end_dt_buf
-        return self
-
-    def filter_dt(self, date_time: datetime) -> bool:
-        """
-        Tests if a given datetime passes this filter.
-        :param date_time: Datetime to test
-        :return: True if the datetime is included, False otherwise
-        """
-        check_type(date_time, [datetime])
-        if self.start_dt is not None and date_time < (self.start_dt - self.start_dt_buf):
-            return False
-
-        if self.end_dt is not None and date_time > (self.end_dt + self.end_dt_buf):
-            return False
-
-        return True
-
-    def filter_path(self, path: str) -> bool:
-        """
-        Tests a given file system path against this filter.
-        :param path: Path to test.
-        :return: True if the path is accepted, False otherwise
-        """
-        check_type(path, [str])
-        _path: Path = Path(path)
-        ext: str = "".join(_path.suffixes)
-        station_ts: str = _path.stem
-        split: List[str] = station_ts.split("_")
-        station_id: str = split[0]
-        timestamp: float = float(split[1])
-        date_time: datetime = dt_us(timestamp)
-
-        if not self.filter_dt(date_time):
-            return False
-
-        if self.station_ids is not None and station_id not in self.station_ids:
-            return False
-
-        if self.extension is not None and self.extension != ext:
-            return False
-
-        return True
 
 
 class ReadResult:
@@ -283,99 +146,20 @@ class ReadResult:
             return self.__get_packets_for_station_id(station_id)
 
 
-# We need to parse the API M structured directory structure. Here, we enumerate the valid values for the various
-# levels in the hierarchy.
-__VALID_YEARS: Set[str] = {f"{i:04}" for i in range(2018, 2031)}
-__VALID_MONTHS: Set[str] = {f"{i:02}" for i in range(1, 13)}
-__VALID_DATES: Set[str] = {f"{i:02}" for i in range(1, 32)}
-__VALID_HOURS: Set[str] = {f"{i:02}" for i in range(0, 24)}
-
-
-def __deserialize_path(path: str):
-    with open(path, "rb") as fin:
-        buf: bytes = fin.read()
-        debuf: bytes = decompress(buf)
-        proto: pb.RedvoxPacketM = pb.RedvoxPacketM()
-        proto.ParseFromString(debuf)
-        return proto
-
-
-def __deserialize_paths(paths: List[str], parallel: bool = False) -> List[WrappedRedvoxPacketM]:
-    """
-    Deserialize a list of paths into a list of WrappedRedvoxPacketMs
-    :param paths: Paths to deserialize
-    :param parallel: If True, a process pool is used to perform all decompression and deserialization. After
-                     decompression and deserialization, wrapping takes place in the original process. If False,
-                     decompression, deserialization, and wrapping take place in the original process serially.
-
-    :return: A list of WrappedRedvoxPacketMs.
-    """
-    if parallel:
-        pool = Pool()
-        deserialized = list(pool.map(__deserialize_path, paths))
-        return sorted(list(map(WrappedRedvoxPacketM, deserialized)))
-    else:
-        return sorted(list(map(WrappedRedvoxPacketM.from_compressed_path, paths)))
-
-
-def __list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
-    """
-    Lists sub-directors in a given base directory that match the provided choices.
-    :param base_dir: Base dir to find sub dirs in.
-    :param valid_choices: A list of valid directory names.
-    :return: A list of valid subdirs.
-    """
-    subdirs: Iterator[str] = map(lambda p: Path(p).name, glob(os.path.join(base_dir, "*", "")))
-    return sorted(list(filter(valid_choices.__contains__, subdirs)))
-
-
-def __parse_structured_layout(base_dir: str,
-                              read_filter: ReadFilter = ReadFilter()) -> List[str]:
-    """
-    This parses a structured API M directory structure and identifies files that match the provided filter.
-    :param base_dir: Base directory (should be named api1000)
-    :param read_filter: Filter to filter files with
-    :return: A list of wrapped packets on an empty list if none match the filter or none are found
-    """
-    all_paths: List[str] = []
-    for year in __list_subdirs(base_dir, __VALID_YEARS):
-        for month in __list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
-            for day in __list_subdirs(os.path.join(base_dir, year, month), __VALID_DATES):
-                for hour in __list_subdirs(os.path.join(base_dir, year, month, day), __VALID_HOURS):
-                    # Before scanning for *.rdvxm files, let's see if the current year, month, day, hour are in the
-                    # filter's range. If not, we can short circuit and skip getting the *.rdvxm files.
-                    if not read_filter.filter_dt(datetime(int(year),
-                                                          int(month),
-                                                          int(day),
-                                                          int(hour))):
-                        continue
-
-                    paths: List[str] = glob(os.path.join(base_dir,
-                                                         year,
-                                                         month,
-                                                         day,
-                                                         hour,
-                                                         f"*{read_filter.extension}"))
-                    # Filer paths that match the predicate
-                    valid_paths: List[str] = list(filter(read_filter.filter_path, paths))
-                    if len(valid_paths) > 0:
-                        all_paths.extend(valid_paths)
-
-    return all_paths
-
-
-def read_bufs(bufs: List[bytes]) -> ReadResult:
+def read_bufs(bufs: List[bytes], parallel: bool = False) -> ReadResult:
     """
     Reads a list of API M packet buffers.
     :param bufs: Buffers to read.
     :return: A ReadResult of the read data.
     """
     check_type(bufs, [List])
-    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(map(WrappedRedvoxPacketM.from_compressed_bytes, bufs)))
+    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(io_lib.read_bufs(bufs, parallel)))
     return ReadResult.from_packets(wrapped_packets)
 
 
-def read_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> ReadResult:
+def read_structured(base_dir: str,
+                    read_filter: io_lib.ReadFilter = io_lib.ReadFilter(),
+                    parallel: bool = False) -> ReadResult:
     """
     Read structured API M data. Structured API data is stored using the following directory hierarchy.
         api1000/[YYYY]/[MM]/[DD]/[HH]/*.rdvxm
@@ -384,13 +168,15 @@ def read_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Re
     :return: A ReadResult
     """
     check_type(base_dir, [str])
-    check_type(read_filter, [ReadFilter])
-    paths: List[str] = __parse_structured_layout(base_dir, read_filter)
-    wrapped_packets: List[WrappedRedvoxPacketM] = __deserialize_paths(paths)
+    check_type(read_filter, [io_lib.ReadFilter])
+    paths: Iterator[str] = io_lib.index_structured(base_dir, read_filter)
+    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(io_lib.read_paths(paths, parallel)))
     return ReadResult.from_packets(wrapped_packets)
 
 
-def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> ReadResult:
+def read_unstructured(base_dir: str,
+                      read_filter: io_lib.ReadFilter = io_lib.ReadFilter(),
+                      parallel: bool = False) -> ReadResult:
     """
     Reads RedVox files from a provided directory.
     :param base_dir: Directory to read files from.
@@ -398,15 +184,15 @@ def read_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> 
     :return: A ReadResult.
     """
     check_type(base_dir, [str])
-    check_type(read_filter, [ReadFilter])
-    pattern: str = os.path.join(base_dir, f"*{read_filter.extension}")
-    paths: List[str] = glob(os.path.join(base_dir, pattern))
-    paths = list(filter(read_filter.filter_path, paths))
-    wrapped_packets: List[WrappedRedvoxPacketM] = __deserialize_paths(paths)
+    check_type(read_filter, [io_lib.ReadFilter])
+    paths: Iterator[str] = io_lib.index_unstructured(base_dir, read_filter)
+    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(io_lib.read_paths(paths, parallel)))
     return ReadResult.from_packets(wrapped_packets)
 
 
-def stream_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Iterator[WrappedRedvoxPacketM]:
+def stream_structured(base_dir: str,
+                      read_filter: io_lib.ReadFilter = io_lib.ReadFilter(),
+                      parallel: bool = False) -> Iterator[WrappedRedvoxPacketM]:
     """
     Lazily loads API M data from a structured layout.
     :param base_dir: Directory to read files from.
@@ -414,14 +200,14 @@ def stream_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> 
     :return: An iterator that reads and loads one WrappedRedvoxPacketM at a time.
     """
     check_type(base_dir, [str])
-    check_type(read_filter, [ReadFilter])
-    paths: List[str] = __parse_structured_layout(base_dir, read_filter)
-
-    for path in paths:
-        yield WrappedRedvoxPacketM.from_compressed_path(path)
+    check_type(read_filter, [io_lib.ReadFilter])
+    paths: Iterator[str] = io_lib.index_structured(base_dir, read_filter)
+    return io_lib.read_paths(paths, parallel)
 
 
-def stream_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Iterator[WrappedRedvoxPacketM]:
+def stream_unstructured(base_dir: str,
+                        read_filter: io_lib.ReadFilter = io_lib.ReadFilter(),
+                        parallel: bool = False) -> Iterator[WrappedRedvoxPacketM]:
     """
     Lazily loads API M data from an unstructured layout.
     :param base_dir: Directory to read files from.
@@ -429,10 +215,6 @@ def stream_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -
     :return: An iterator that reads and loads one WrappedRedvoxPacketM at a time.
     """
     check_type(base_dir, [str])
-    check_type(read_filter, [ReadFilter])
-    pattern: str = os.path.join(base_dir, f"*{read_filter.extension}")
-    paths: List[str] = glob(os.path.join(base_dir, pattern))
-    paths = list(filter(read_filter.filter_path, paths))
-
-    for path in paths:
-        yield WrappedRedvoxPacketM.from_compressed_path(path)
+    check_type(read_filter, [io_lib.ReadFilter])
+    paths: Iterator[str] = io_lib.index_unstructured(base_dir, read_filter)
+    return io_lib.read_paths(paths, parallel)
