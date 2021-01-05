@@ -354,6 +354,8 @@ def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:
     :return: A tuple containing (mean_sample_rate, stdev_sample_rate)
     """
     sample_interval: np.ndarray = np.diff(timestamps)
+    if len(sample_interval) < 2:
+        return 0.0, 0.0
     mean_sample_interval: float = sample_interval.mean()
     stdev_sample_interval: float = sample_interval.std()
 
