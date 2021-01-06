@@ -206,27 +206,38 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
 def decompress_bufs(bufs: Iterator[bytes], parallel: bool = False) -> Iterator[bytes]:
     if parallel:
         pool: Pool = Pool()
-        return pool.imap_unordered(decompress, bufs)
+        return pool.imap(decompress, bufs)
     else:
-        buf: bytes
-        for buf in bufs:
-            yield decompress(buf)
+        return map(decompress, bufs)
 
 
-def read_path(path: str) -> bytes:
+def read_path_buf(path: str) -> bytes:
     with open(path, "rb") as fin:
         return fin.read()
 
 
-def decompress_paths(paths: Iterator[str], parallel: bool = False) -> Iterator[bytes]:
+def read_path_bufs(paths: Iterator[str], parallel: bool = False) -> Iterator[bytes]:
     if parallel:
         pool: Pool = Pool()
-        return decompress_bufs(pool.imap_unordered(read_path, paths), parallel)
+        return pool.imap(read_path_buf, paths)
     else:
         path: str
         for path in paths:
-            buf: bytes = read_path(path)
-            yield decompress(buf)
+            yield read_path_buf(path)
+
+
+def decompress_paths(paths: Iterator[str], parallel: bool = False) -> Iterator[bytes]:
+    # bufs: Iterator[bytes] = read_path_bufs(paths, True)
+    return decompress_bufs(read_path_bufs(paths, False), False)
+    # if parallel:
+    #     pool: Pool = Pool()
+    #
+    #     return decompress_bufs(pool.imap(read_path`, paths), parallel)
+    # else:
+    #     path: str
+    #     for path in paths:
+    #         buf: bytes = read_path(path)
+    #         yield decompress(buf)
 
 
 def deserialize_bufs(bufs: Iterator[bytes]) -> Iterator[pb.RedvoxPacketM]:
@@ -249,7 +260,19 @@ def read_bufs(bufs: Iterator[bytes], parallel: bool = False) -> Iterator[Wrapped
     return wrap_protos(protos)
 
 
+def read_path(path: str) -> bytes:
+    with open(path, "rb") as fin:
+        buf: bytes = fin.read()
+        return decompress(buf)
+
+
 def read_paths(paths: Iterator[str], parallel: bool = False) -> Iterator[WrappedRedvoxPacketM]:
-    decompressed_bufs: Iterator[bytes] = decompress_paths(paths, parallel)
-    protos: Iterator[pb.RedvoxPacketM] = deserialize_bufs(decompressed_bufs)
-    return wrap_protos(protos)
+    if parallel:
+        pool: Pool = Pool()
+        bufs_iter: Iterator[bytes] = pool.imap(read_path, paths)
+        protos_iter: Iterator[pb.RedvoxPacketM] = deserialize_bufs(bufs_iter)
+        return wrap_protos(protos_iter)
+    else:
+        bufs_iter = map(read_path, paths)
+        protos_iter = deserialize_bufs(bufs_iter)
+        return wrap_protos(protos_iter)
