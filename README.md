@@ -7,6 +7,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a22 (2021-1-5)
+
+* Update LZ4 compression to be compatible with other LZ4 libraries that work with API M data
+
 ### 3.0.0a21 (2020-11)
 
 * Add setters for all sub-messages
