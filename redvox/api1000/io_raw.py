@@ -146,20 +146,19 @@ class ReadResult:
             return self.__get_packets_for_station_id(station_id)
 
 
-def read_bufs(bufs: List[bytes], parallel: bool = False) -> ReadResult:
+def read_bufs(bufs: List[bytes]) -> ReadResult:
     """
     Reads a list of API M packet buffers.
     :param bufs: Buffers to read.
     :return: A ReadResult of the read data.
     """
     check_type(bufs, [List])
-    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(io_lib.read_bufs(bufs, parallel)))
+    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(io_lib.read_bufs(bufs)))
     return ReadResult.from_packets(wrapped_packets)
 
 
 def read_structured(base_dir: str,
-                    read_filter: io_lib.ReadFilter = io_lib.ReadFilter(),
-                    parallel: bool = False) -> ReadResult:
+                    read_filter: io_lib.ReadFilter = io_lib.ReadFilter()) -> ReadResult:
     """
     Read structured API M data. Structured API data is stored using the following directory hierarchy.
         api1000/[YYYY]/[MM]/[DD]/[HH]/*.rdvxm
@@ -170,13 +169,12 @@ def read_structured(base_dir: str,
     check_type(base_dir, [str])
     check_type(read_filter, [io_lib.ReadFilter])
     paths: Iterator[str] = io_lib.index_structured(base_dir, read_filter)
-    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(io_lib.read_paths(paths, parallel)))
+    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(io_lib.read_paths(paths)))
     return ReadResult.from_packets(wrapped_packets)
 
 
 def read_unstructured(base_dir: str,
-                      read_filter: io_lib.ReadFilter = io_lib.ReadFilter(),
-                      parallel: bool = False) -> ReadResult:
+                      read_filter: io_lib.ReadFilter = io_lib.ReadFilter()) -> ReadResult:
     """
     Reads RedVox files from a provided directory.
     :param base_dir: Directory to read files from.
@@ -186,13 +184,12 @@ def read_unstructured(base_dir: str,
     check_type(base_dir, [str])
     check_type(read_filter, [io_lib.ReadFilter])
     paths: Iterator[str] = io_lib.index_unstructured(base_dir, read_filter)
-    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(io_lib.read_paths(paths, parallel)))
+    wrapped_packets: List[WrappedRedvoxPacketM] = list(sorted(io_lib.read_paths(paths)))
     return ReadResult.from_packets(wrapped_packets)
 
 
 def stream_structured(base_dir: str,
-                      read_filter: io_lib.ReadFilter = io_lib.ReadFilter(),
-                      parallel: bool = False) -> Iterator[WrappedRedvoxPacketM]:
+                      read_filter: io_lib.ReadFilter = io_lib.ReadFilter()) -> Iterator[WrappedRedvoxPacketM]:
     """
     Lazily loads API M data from a structured layout.
     :param base_dir: Directory to read files from.
@@ -202,12 +199,11 @@ def stream_structured(base_dir: str,
     check_type(base_dir, [str])
     check_type(read_filter, [io_lib.ReadFilter])
     paths: Iterator[str] = io_lib.index_structured(base_dir, read_filter)
-    return io_lib.read_paths(paths, parallel)
+    return io_lib.read_paths(paths)
 
 
 def stream_unstructured(base_dir: str,
-                        read_filter: io_lib.ReadFilter = io_lib.ReadFilter(),
-                        parallel: bool = False) -> Iterator[WrappedRedvoxPacketM]:
+                        read_filter: io_lib.ReadFilter = io_lib.ReadFilter()) -> Iterator[WrappedRedvoxPacketM]:
     """
     Lazily loads API M data from an unstructured layout.
     :param base_dir: Directory to read files from.
@@ -217,4 +213,4 @@ def stream_unstructured(base_dir: str,
     check_type(base_dir, [str])
     check_type(read_filter, [io_lib.ReadFilter])
     paths: Iterator[str] = io_lib.index_unstructured(base_dir, read_filter)
-    return io_lib.read_paths(paths, parallel)
+    return io_lib.read_paths(paths)
