@@ -132,10 +132,10 @@ def _is_valid_redvox_filename(filename: str) -> bool:
     :return: True if it is valid, valse otherwise.
     """
     return len(filename) == 30 \
-           and _is_int(filename[0:10]) \
-           and filename[10:11] == "_" \
-           and _is_int(filename[11:24]) \
-           and filename[24:len(filename)] == ".rdvxz"
+        and _is_int(filename[0:10]) \
+        and filename[10:11] == "_" \
+        and _is_int(filename[11:24]) \
+        and filename[24:len(filename)] == ".rdvxz"
 
 
 def _is_path_in_set(path: str,
@@ -178,7 +178,7 @@ def _extract_timestamp_s(path: str) -> int:
     :return: The timestamp in seconds from a path.
     """
     file = path.split(os.path.sep)[-1].split(".")[0]
-    return int(round(float(file.split("_")[1]) / 1000.0))
+    return int(float(file.split("_")[1]) / 1000.0)
 
 
 def _extract_redvox_id(path: str) -> str:
