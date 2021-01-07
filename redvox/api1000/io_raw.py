@@ -10,6 +10,7 @@ from typing import Dict, Iterator, List
 
 from redvox.api1000.common.common import check_type
 import redvox.api1000.io_lib as io_lib
+from redvox.api1000.io_lib import ReadFilter
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
@@ -158,7 +159,7 @@ def read_bufs(bufs: List[bytes]) -> ReadResult:
 
 
 def read_structured(base_dir: str,
-                    read_filter: io_lib.ReadFilter = io_lib.ReadFilter()) -> ReadResult:
+                    read_filter: io_lib.ReadFilter = ReadFilter) -> ReadResult:
     """
     Read structured API M data. Structured API data is stored using the following directory hierarchy.
         api1000/[YYYY]/[MM]/[DD]/[HH]/*.rdvxm
@@ -174,7 +175,7 @@ def read_structured(base_dir: str,
 
 
 def read_unstructured(base_dir: str,
-                      read_filter: io_lib.ReadFilter = io_lib.ReadFilter()) -> ReadResult:
+                      read_filter: io_lib.ReadFilter = ReadFilter) -> ReadResult:
     """
     Reads RedVox files from a provided directory.
     :param base_dir: Directory to read files from.
@@ -189,7 +190,7 @@ def read_unstructured(base_dir: str,
 
 
 def stream_structured(base_dir: str,
-                      read_filter: io_lib.ReadFilter = io_lib.ReadFilter()) -> Iterator[WrappedRedvoxPacketM]:
+                      read_filter: io_lib.ReadFilter = ReadFilter) -> Iterator[WrappedRedvoxPacketM]:
     """
     Lazily loads API M data from a structured layout.
     :param base_dir: Directory to read files from.
@@ -203,7 +204,7 @@ def stream_structured(base_dir: str,
 
 
 def stream_unstructured(base_dir: str,
-                        read_filter: io_lib.ReadFilter = io_lib.ReadFilter()) -> Iterator[WrappedRedvoxPacketM]:
+                        read_filter: io_lib.ReadFilter = ReadFilter) -> Iterator[WrappedRedvoxPacketM]:
     """
     Lazily loads API M data from an unstructured layout.
     :param base_dir: Directory to read files from.
