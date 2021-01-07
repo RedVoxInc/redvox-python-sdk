@@ -53,7 +53,7 @@ class StationSummary:
                                            timedelta(seconds=0.0))
         start_dt: datetime = dt_us(first_packet.get_timing_information().get_packet_start_mach_timestamp())
         end_dt: datetime = dt_us(last_packet.get_timing_information().get_packet_start_mach_timestamp()) + \
-                           last_packet.get_packet_duration()
+            last_packet.get_packet_duration()
 
         station_info = first_packet.get_station_information()
         audio = first_packet.get_sensors().get_audio()
@@ -356,7 +356,7 @@ def __parse_structured_layout(base_dir: str,
                                                          day,
                                                          hour,
                                                          f"*{read_filter.extension}"))
-                    # Filer paths that match the predicate
+                    # Filter paths that match the predicate
                     valid_paths: List[str] = list(filter(read_filter.filter_path, paths))
                     if len(valid_paths) > 0:
                         all_paths.extend(valid_paths)

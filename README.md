@@ -7,6 +7,12 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0a23 (2021-1-7)
+
+* Update api900 file reader to truncate file timestamps instead of round
+* Update api900 to api1000 conversion to properly convert locations
+* Added functions to read api900 and api1000 data from common base directory
+
 ### 3.0.0a22 (2021-1-5)
 
 * Update LZ4 compression to be compatible with other LZ4 libraries that work with API M data

@@ -204,11 +204,11 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
         location_m.get_speed_samples().set_values(location_sensor_900.payload_values_speed(), True)
         location_m.get_horizontal_accuracy_samples().set_values(location_sensor_900.payload_values_accuracy(), True)
 
-        def _extract_meta_bool(meta: Dict[str, str], key: str) -> bool:
-            if key not in meta:
+        def _extract_meta_bool(metad: Dict[str, str], key: str) -> bool:
+            if key not in metad:
                 return False
 
-            return meta[key] == "T"
+            return metad[key] == "T"
 
         loc_meta_900 = location_sensor_900.metadata_as_dict()
         use_location = _extract_meta_bool(loc_meta_900, "useLocation")
@@ -217,13 +217,13 @@ def convert_api_900_to_1000(wrapped_packet_900: reader_900.WrappedRedvoxPacket) 
         enabled_location = _extract_meta_bool(loc_meta_900, "enabledLocation")
 
         if desired_location:
-            location_m.set_location_provider(LocationProvider.USER)
+            location_m.get_location_providers().set_values([LocationProvider.USER])
         elif enabled_location:
-            location_m.set_location_provider(LocationProvider.GPS)
+            location_m.get_location_providers().set_values([LocationProvider.GPS])
         elif use_location and desired_location and permission_location:
-            location_m.set_location_provider(LocationProvider.NETWORK)
+            location_m.get_location_providers().set_values([LocationProvider.NETWORK])
         else:
-            location_m.set_location_provider(LocationProvider.NONE)
+            location_m.get_location_providers().set_values([LocationProvider.NONE])
 
         location_m.set_location_permissions_granted(permission_location)
         location_m.set_location_services_enabled(use_location)
