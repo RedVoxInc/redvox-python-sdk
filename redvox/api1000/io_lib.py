@@ -1,3 +1,10 @@
+"""
+This module provides several primitives for reading and filtering RedVox data.
+
+Generally, methods in this module should not be used directly, but instead these provide building blocks
+ for higher-level IO operations.
+"""
+
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from glob import glob
@@ -195,6 +202,12 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
 
 
 def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Iterator[str]:
+    """
+    Returns the list of file paths that match the given filter for unstructured data.
+    :param base_dir: Directory containing unstructured data.
+    :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
+    :return: An iterator of valid paths.
+    """
     check_type(base_dir, [str])
     check_type(read_filter, [ReadFilter])
     pattern: str = os.path.join(base_dir, f"*{read_filter.extension}")
@@ -203,25 +216,48 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
 
 
 def decompress_bufs(bufs: Iterator[bytes]) -> Iterator[bytes]:
+    """
+    Decompresses a stream of byte buffers.
+    :param bufs: Stream to decompress.
+    :return: A stream of decompressed byte buffers.
+    """
     return map(decompress, bufs)
 
 
 def read_path_buf(path: str) -> bytes:
+    """
+    Returns the bytes stored at the provided file path.
+    :param path: Path to load bytes from.
+    :return: The bytes stored at the provided file path.
+    """
     with open(path, "rb") as fin:
         return fin.read()
 
 
 def read_path_bufs(paths: Iterator[str]) -> Iterator[bytes]:
-    path: str
-    for path in paths:
-        yield read_path_buf(path)
+    """
+    Streams multiple byte buffers (each representing a single RedVox file).
+    :param paths: A stream of paths to read.
+    :return: A stream of byte buffers.
+    """
+    return map(read_path_buf, paths)
 
 
 def decompress_paths(paths: Iterator[str]) -> Iterator[bytes]:
+    """
+    Reads and decompresses a stream of file paths representing API M data.
+    :param paths: A stream of paths to read and decompress.
+    :return: A stream of bytes representing the decompressed packet content.
+    """
     return decompress_bufs(read_path_bufs(paths))
 
 
 def deserialize_bufs(bufs: Iterator[bytes]) -> Iterator[pb.RedvoxPacketM]:
+    """
+    Deserializes a stream of buffers into a stream of RedvoxPacketM protobuf types.
+    :param bufs: A stream of buffers to deserialize.
+    :return: A stream of protobuf RedvoxPacketM objects.
+    """
     buf: bytes
     for buf in bufs:
         proto: pb.RedvoxPacketM = pb.RedvoxPacketM()
@@ -230,24 +266,44 @@ def deserialize_bufs(bufs: Iterator[bytes]) -> Iterator[pb.RedvoxPacketM]:
 
 
 def wrap_protos(protos: Iterator[pb.RedvoxPacketM]) -> Iterator[WrappedRedvoxPacketM]:
+    """
+    Transforms a stream of protobuf RedvoxPacketM objects into a stream of WrappedRedvoxPacketM objects.
+    :param protos: A stream of protobuf encoded RedvoxPacketM objects.
+    :return: A stream of WrappedRedvoxPacketM objects.
+    """
     proto: pb.RedvoxPacketM
     for proto in protos:
         yield WrappedRedvoxPacketM(proto)
 
 
 def read_bufs(bufs: Iterator[bytes]) -> Iterator[WrappedRedvoxPacketM]:
+    """
+    Converts a stream of compressed serialized buffers into a stream of WrappedRedvoxPacketM objects.
+    :param bufs: A stream of compressed serialized buffers.
+    :return: A stream of WrappedRedvoxPacketM objects.
+    """
     decompressed_bufs: Iterator[bytes] = decompress_bufs(bufs)
     protos: Iterator[pb.RedvoxPacketM] = deserialize_bufs(decompressed_bufs)
     return wrap_protos(protos)
 
 
 def read_path(path: str) -> bytes:
+    """
+    Reads and decompressed and individual path.
+    :param path: The path to read and decompress.
+    :return: The bytes associated with the decompressed file.
+    """
     with open(path, "rb") as fin:
         buf: bytes = fin.read()
         return decompress(buf)
 
 
 def read_paths(paths: Iterator[str]) -> Iterator[WrappedRedvoxPacketM]:
+    """
+    Reads, decompresses, deserialized, and wraps RedVox data.
+    :param paths: A stream of file paths to transform.
+    :return: A stream of WrappedRedvoxPacketM packets.
+    """
     bufs_iter = map(read_path, paths)
     protos_iter = deserialize_bufs(bufs_iter)
     return wrap_protos(protos_iter)
