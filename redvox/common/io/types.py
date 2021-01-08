@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from functools import reduce
 from pathlib import Path
-from typing import Dict, List, Optional, Set, TYPE_CHECKING, Any
+from typing import Any, Dict, List, Optional, Set, TYPE_CHECKING, Union
 
 from redvox.api1000.common.common import check_type
 from redvox.common.versioning import check_version, ApiVersion, api_num_to_version
@@ -12,9 +12,12 @@ from redvox.common.date_time_utils import (
     datetime_from_epoch_milliseconds_utc as dt_ms
 )
 
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+from redvox.api900.reader import read_rdvxz_file
+
 if TYPE_CHECKING:
     from redvox.api1000.wrapped_redvox_packet.station_information import OsType
-    from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
 
 def _is_int(v: Any) -> Optional[int]:
@@ -62,6 +65,14 @@ class PathDescriptor:
                               dt,
                               ext,
                               api_version)
+
+    def read(self) -> Optional[Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]]:
+        if self.api_version == ApiVersion.API_900:
+            return read_rdvxz_file(self.full_path)
+        elif self.api_version == ApiVersion.API_1000:
+            return WrappedRedvoxPacketM.from_compressed_path(self.full_path)
+        else:
+            return None
 
 
 @dataclass
