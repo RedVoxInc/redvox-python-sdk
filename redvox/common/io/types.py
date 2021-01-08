@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from functools import reduce
-from pathlib import PurePath
+from pathlib import Path
 from typing import Dict, List, Optional, Set, TYPE_CHECKING, Any
 
 from redvox.api1000.common.common import check_type
@@ -36,6 +36,7 @@ def _is_int(v: Any) -> Optional[int]:
 
 @dataclass
 class PathDescriptor:
+    full_path: str
     station_id: str
     date_time: datetime
     extension: str
@@ -44,7 +45,7 @@ class PathDescriptor:
     @staticmethod
     def from_path(path_str: str) -> Optional['PathDescriptor']:
         api_version: ApiVersion = check_version(path_str)
-        path: PurePath = PurePath(path_str)
+        path: Path = Path(path_str)
         name: str = path.stem
         ext: str = path.suffix
 
@@ -66,7 +67,11 @@ class PathDescriptor:
         else:
             dt = dt_ms(ts)
 
-        return PathDescriptor(station_id, dt, ext, api_version)
+        return PathDescriptor(str(path.resolve(strict=True)),
+                              station_id,
+                              dt,
+                              ext,
+                              api_version)
 
 
 @dataclass
@@ -198,6 +203,7 @@ class StationSummary:
     station_id: str
     station_uuid: str
     auth_id: str
+    api_version: ApiVersion
     # pylint: disable=C0103
     os: 'OsType'
     os_version: str
