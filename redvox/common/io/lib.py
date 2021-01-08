@@ -31,7 +31,7 @@ def __list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
     return sorted(list(filter(valid_choices.__contains__, subdirs)))
 
 
-def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Iterator[str]:
+def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[PathDescriptor]:
     """
     This parses a structured API M directory structure and identifies files that match the provided filter.
     :param base_dir: Base directory (should be named api1000)
@@ -44,26 +44,40 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                 for hour in __list_subdirs(os.path.join(base_dir, year, month, day), __VALID_HOURS):
                     # Before scanning for *.rdvxm files, let's see if the current year, month, day, hour are in the
                     # filter's range. If not, we can short circuit and skip getting the *.rdvxm files.
-                    if not read_filter.filter_dt(datetime(int(year),
-                                                          int(month),
-                                                          int(day),
-                                                          int(hour))):
+                    if not read_filter.apply_dt(datetime(int(year),
+                                                         int(month),
+                                                         int(day),
+                                                         int(hour))):
                         continue
 
-                    paths: List[str] = glob(os.path.join(base_dir,
-                                                         year,
-                                                         month,
-                                                         day,
-                                                         hour,
-                                                         f"*{read_filter.extension}"))
-                    # Filter paths that match the predicate
-                    valid_path: str
-                    for valid_path in filter(read_filter.filter_path, paths):
-                        yield valid_path
+                    path_descriptors: List[PathDescriptor] = []
+
+                    extension: str
+                    for extension in read_filter.extensions:
+                        paths: List[str] = glob(os.path.join(base_dir,
+                                                             year,
+                                                             month,
+                                                             day,
+                                                             hour,
+                                                             f"*{extension}"))
+                        descriptors: Iterator[PathDescriptor] = filter(not_none, map(PathDescriptor.from_path, paths))
+                        path_descriptors.extend(descriptors)
+
+                    return path_descriptors
 
 
-def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> None:
-    pass
+def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[PathDescriptor]:
+    base_path: PurePath = PurePath(base_dir)
+
+    # API 900
+    if base_path.name == "api900":
+        pass
+    # API 1000
+    elif base_path.name == "api1000":
+        return index_structured_api_1000(base_dir, read_filter)
+    # Maybe parent to one or both?
+    else:
+        pass
 
 
 def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[PathDescriptor]:
