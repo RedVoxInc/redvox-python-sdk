@@ -12,6 +12,7 @@ import redvox.api900.migrations as migrations
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data")
 LA_TEST_DATA_DIR = os.path.join(TEST_DATA_DIR, "location_analyzer_test_data")
+APIX_READER_TEST_DATA_DIR = os.path.join(TEST_DATA_DIR, "apix_reader_test_data")
 
 
 def test_data(file: str) -> str:
