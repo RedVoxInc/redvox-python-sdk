@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, TYPE_CHECKING, Any
 
 from redvox.api1000.common.common import check_type
+from redvox.common.versioning import check_version
 from redvox.common.date_time_utils import (
     datetime_from_epoch_microseconds_utc as dt_us,
     datetime_from_epoch_milliseconds_utc as dt_ms
@@ -15,7 +16,6 @@ from redvox.common.date_time_utils import (
 if TYPE_CHECKING:
     from redvox.api1000.wrapped_redvox_packet.station_information import OsType
     from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-    from redvox.common.versioning import check_version
 
 
 class ApiVersion(Enum):
