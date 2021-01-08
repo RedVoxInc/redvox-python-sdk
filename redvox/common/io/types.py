@@ -27,12 +27,6 @@ class ApiVersion(Enum):
     UNKNOWN: str = "UNKNOWN"
 
 
-class FileExtension(Enum):
-    RDVXZ: str = ".rdvxz"
-    RDVXM: str = ".rdvxm"
-    NONE: str = ""
-
-
 def _is_int(v: Any) -> bool:
     try:
         int(v)
@@ -84,7 +78,7 @@ class ReadFilter:
     start_dt: Optional[datetime] = None
     end_dt: Optional[datetime] = None
     station_ids: Optional[Set[str]] = None
-    extensions: Set[FileExtension] = field(default_factory=lambda: {FileExtension.RDVXZ, FileExtension.RDVXM})
+    extensions: Set[str] = field(default={".rdvxm", ".rdvxz"})
     start_dt_buf: timedelta = timedelta(minutes=2.0)
     end_dt_buf: timedelta = timedelta(minutes=2.0)
 
@@ -136,14 +130,14 @@ class ReadFilter:
         self.station_ids = station_ids
         return self
 
-    def with_extension(self, extension: str) -> 'ReadFilter':
+    def with_extensions(self, extensions: Set[str]) -> 'ReadFilter':
         """
         Filters against a known file extension.
-        :param extension: Extension to filter against
+        :param extensions: One or more extensions to filter against
         :return: A modified instance of this filter
         """
-        check_type(extension, [str])
-        self.extension = extension
+        check_type(extensions, [Set])
+        self.extensions = extensions
         return self
 
     def with_start_dt_buf(self, start_dt_buf: timedelta) -> 'ReadFilter':
@@ -190,31 +184,10 @@ class ReadFilter:
         if self.station_ids is not None and path_descriptor.station_id not in self.station_ids:
             return False
 
-    # def filter_path(self, path: str) -> bool:
-    #     """
-    #     Tests a given file system path against this filter.
-    #     :param path: Path to test.
-    #     :return: True if the path is accepted, False otherwise
-    #     """
-    #     check_type(path, [str])
-    #     _path: Path = Path(path)
-    #     ext: str = "".join(_path.suffixes)
-    #     station_ts: str = _path.stem
-    #     split: List[str] = station_ts.split("_")
-    #     station_id: str = split[0]
-    #     timestamp: float = float(split[1])
-    #     date_time: datetime = dt_us(timestamp)
-    #
-    #     if not self.filter_dt(date_time):
-    #         return False
-    #
-    #     if self.station_ids is not None and station_id not in self.station_ids:
-    #         return False
-    #
-    #     if self.extension is not None and self.extension != ext:
-    #         return False
-    #
-    #     return True
+        if self.extensions is not None and path_descriptor.extension not in self.extensions:
+            return False
+
+        return True
 
 
 # noinspection DuplicatedCode
