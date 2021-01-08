@@ -27,12 +27,11 @@ class ApiVersion(Enum):
     UNKNOWN: str = "UNKNOWN"
 
 
-def _is_int(v: Any) -> bool:
+def _is_int(v: Any) -> Optional[int]:
     try:
-        int(v)
-        return True
+        return int(v)
     except ValueError:
-        return False
+        return None
 
 
 @dataclass
@@ -56,11 +55,11 @@ class PathDescriptor:
 
         station_id: str = split_name[0]
         ts_str: str = split_name[1]
+        ts: Optional[int] = _is_int(ts_str)
 
-        if not _is_int(station_id) or not _is_int(ts_str):
+        if _is_int(station_id) is None or ts is None:
             return None
 
-        ts: int = int(ts_str)
         dt: datetime
         if api_version == ApiVersion.API_1000:
             dt = dt_us(ts)
