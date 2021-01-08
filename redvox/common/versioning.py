@@ -13,6 +13,19 @@ class ApiVersion(Enum):
     UNKNOWN: str = "UNKNOWN"
 
 
+def api_num_to_version(api_num: float) -> ApiVersion:
+    """
+    converts api number to version enum
+    :param api_num: float representing api version
+    :return: An enum that represents the API version of the number.
+    """
+    if api_num == 900:
+        return ApiVersion["API_900"]
+    if api_num == 1000:
+        return ApiVersion["API_1000"]
+    return ApiVersion["UNKNOWN"]
+
+
 def check_version_buf(buf: bytes) -> ApiVersion:
     """
     Attempts to check the API version of a given RedVox buffer by looking for the LZ4 frame header which is only present
