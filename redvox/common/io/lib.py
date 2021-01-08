@@ -66,7 +66,6 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> N
     pass
 
 
-
 def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[PathDescriptor]:
     """
     Returns the list of file paths that match the given filter for unstructured data.
