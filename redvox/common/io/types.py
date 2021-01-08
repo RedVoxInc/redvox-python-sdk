@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from functools import reduce
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, TYPE_CHECKING, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional, Set, TYPE_CHECKING, Union
 
 from redvox.api1000.common.common import check_type
 from redvox.common.versioning import check_version, ApiVersion
@@ -27,8 +27,12 @@ def _is_int(v: Any) -> Optional[int]:
         return None
 
 
+def _not_none(v: Any) -> bool:
+    return v is not None
+
+
 @dataclass
-class PathDescriptor:
+class IndexEntry:
     full_path: str
     station_id: str
     date_time: datetime
@@ -36,7 +40,7 @@ class PathDescriptor:
     api_version: ApiVersion
 
     @staticmethod
-    def from_path(path_str: str) -> Optional['PathDescriptor']:
+    def from_path(path_str: str) -> Optional['IndexEntry']:
         api_version: ApiVersion = check_version(path_str)
         path: Path = Path(path_str)
         name: str = path.stem
@@ -60,11 +64,11 @@ class PathDescriptor:
         else:
             dt = dt_ms(ts)
 
-        return PathDescriptor(str(path.resolve(strict=True)),
-                              station_id,
-                              dt,
-                              ext,
-                              api_version)
+        return IndexEntry(str(path.resolve(strict=True)),
+                          station_id,
+                          dt,
+                          ext,
+                          api_version)
 
     def read(self) -> Optional[Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]]:
         if self.api_version == ApiVersion.API_900:
@@ -73,6 +77,29 @@ class PathDescriptor:
             return WrappedRedvoxPacketM.from_compressed_path(self.full_path)
         else:
             return None
+
+
+@dataclass
+class Index:
+    entries: List[IndexEntry]
+
+    def stream(self, filt_fn=lambda _: True) -> Iterator[Union[WrappedRedvoxPacket, WrappedRedvoxPacketM]]:
+        return filter(filt_fn, filter(_not_none, map(IndexEntry.read, self.entries)))
+
+    def stream_api_900(self, filt_fn=lambda _: True) -> Iterator[WrappedRedvoxPacket]:
+        return self.stream(lambda entry: entry.api_version == ApiVersion.API_900 and filt_fn(entry))
+
+    def stream_api_1000(self, filt_fn=lambda _: True) -> Iterator[WrappedRedvoxPacketM]:
+        return self.stream(lambda entry: entry.api_version == ApiVersion.API_1000 and filt_fn(entry))
+
+    def read(self, filt_fn=lambda _: True) -> List[Union[WrappedRedvoxPacket, WrappedRedvoxPacketM]]:
+        return list(self.stream(filt_fn))
+
+    def read_api_900(self, filt_fn=lambda _: True) -> List[WrappedRedvoxPacket]:
+        return list(self.stream_api_900(filt_fn))
+
+    def read_api_1000(self, filt_fn=lambda _: True) -> List[WrappedRedvoxPacketM]:
+        return list(self.stream_api_1000(filt_fn))
 
 
 @dataclass
@@ -180,8 +207,8 @@ class ReadFilter:
 
         return True
 
-    def apply(self, path_descriptor: PathDescriptor) -> bool:
-        check_type(path_descriptor, [PathDescriptor])
+    def apply(self, path_descriptor: IndexEntry) -> bool:
+        check_type(path_descriptor, [IndexEntry])
 
         if not self.apply_dt(path_descriptor.date_time):
             return False
