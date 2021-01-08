@@ -43,9 +43,9 @@ class PathDescriptor:
     api_version: ApiVersion
 
     @staticmethod
-    def from_path(path: str) -> Optional['PathDescriptor']:
-        api_version: ApiVersion = check_version(path)
-        path: PurePath = PurePath(path)
+    def from_path(path_str: str) -> Optional['PathDescriptor']:
+        api_version: ApiVersion = check_version(path_str)
+        path: PurePath = PurePath(path_str)
         name: str = path.stem
         ext: str = path.suffix
 
