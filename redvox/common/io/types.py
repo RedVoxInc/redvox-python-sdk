@@ -184,7 +184,7 @@ class ReadFilter:
         if self.station_ids is not None and path_descriptor.station_id not in self.station_ids:
             return False
 
-        if self.extensions is not None and path_descriptor.extension not in self.extensions:
+        if self.extensions is not None and f".{path_descriptor.extension}" not in self.extensions:
             return False
 
         return True
