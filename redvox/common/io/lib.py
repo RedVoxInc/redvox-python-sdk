@@ -64,7 +64,7 @@ def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter
                     descriptors: Iterator[IndexEntry] = filter(not_none, map(IndexEntry.from_path, paths))
                     path_descriptors.extend(descriptors)
 
-                return Index(path_descriptors)
+                return Index(sort(path_descriptors))
 
 
 def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
@@ -99,7 +99,7 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                         descriptors: Iterator[IndexEntry] = filter(not_none, map(IndexEntry.from_path, paths))
                         path_descriptors.extend(descriptors)
 
-                    return Index(path_descriptors)
+                    return Index(sorted(path_descriptors))
 
 
 def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
@@ -122,7 +122,7 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
         if "api1000" in subdirs:
             path_descriptors.extend(index_structured_api_1000(str(base_path.joinpath("api1000"))))
 
-        return Index(path_descriptors)
+        return Index(sorted(path_descriptors))
 
 
 def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
@@ -144,5 +144,5 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
         descriptors: Iterator[IndexEntry] = filter(not_none, map(IndexEntry.from_path, paths))
         path_descriptors.extend(descriptors)
 
-    return Index(path_descriptors)
+    return Index(sorted(path_descriptors))
 

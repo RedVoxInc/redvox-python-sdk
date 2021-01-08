@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from functools import reduce
+from functools import reduce, total_ordering
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterator, List, Optional, Set, TYPE_CHECKING, Union
 
@@ -31,6 +31,7 @@ def _not_none(v: Any) -> bool:
     return v is not None
 
 
+@total_ordering
 @dataclass
 class IndexEntry:
     full_path: str
@@ -53,20 +54,20 @@ class IndexEntry:
 
         station_id: str = split_name[0]
         ts_str: str = split_name[1]
-        ts: Optional[int] = _is_int(ts_str)
+        timestamp: Optional[int] = _is_int(ts_str)
 
-        if _is_int(station_id) is None or ts is None:
+        if _is_int(station_id) is None or timestamp is None:
             return None
 
-        dt: datetime
+        date_time: datetime
         if api_version == ApiVersion.API_1000:
-            dt = dt_us(ts)
+            date_time = dt_us(timestamp)
         else:
-            dt = dt_ms(ts)
+            date_time = dt_ms(timestamp)
 
         return IndexEntry(str(path.resolve(strict=True)),
                           station_id,
-                          dt,
+                          date_time,
                           ext,
                           api_version)
 
@@ -77,6 +78,12 @@ class IndexEntry:
             return WrappedRedvoxPacketM.from_compressed_path(self.full_path)
         else:
             return None
+
+    def __lt__(self, other: 'IndexEntry') -> bool:
+        return self.full_path.__lt__(other.full_path)
+
+    def __eq__(self, other: 'IndexEntry') -> bool:
+        return self.full_path == other.full_path
 
 
 @dataclass
@@ -223,56 +230,56 @@ class ReadFilter:
 
 
 # noinspection DuplicatedCode
-@dataclass
-class StationSummary:
-    """
-    Contains a summary of each stations data read result.
-    """
-    station_id: str
-    station_uuid: str
-    auth_id: str
-    api_version: ApiVersion
-    # pylint: disable=C0103
-    os: 'OsType'
-    os_version: str
-    app_version: str
-    audio_sampling_rate: float
-    total_packets: int
-    total_duration: timedelta
-    start_dt: datetime
-    end_dt: datetime
-
-    @staticmethod
-    def from_packets(packets: List['WrappedRedvoxPacketM']) -> 'StationSummary':
-        """
-        Generates a station summary from the provided packets.
-        :param packets: Packets to generate summary from.
-        :return: An instance of a StationSummary.
-        """
-        first_packet: 'WrappedRedvoxPacketM' = packets[0]
-        last_packet: 'WrappedRedvoxPacketM' = packets[-1]
-        total_duration: timedelta = reduce(lambda acc, packet: acc + packet.get_packet_duration(),
-                                           packets,
-                                           timedelta(seconds=0.0))
-        start_dt: datetime = dt_us(first_packet.get_timing_information().get_packet_start_mach_timestamp())
-        end_dt: datetime = dt_us(last_packet.get_timing_information().get_packet_start_mach_timestamp()) + \
-                           last_packet.get_packet_duration()
-
-        station_info = first_packet.get_station_information()
-        audio = first_packet.get_sensors().get_audio()
-        return StationSummary(
-            station_info.get_id(),
-            station_info.get_uuid(),
-            station_info.get_auth_id(),
-            station_info.get_os(),
-            station_info.get_os_version(),
-            station_info.get_app_version(),
-            audio.get_sample_rate() if audio is not None else float("NaN"),
-            len(packets),
-            total_duration,
-            start_dt,
-            end_dt
-        )
+# @dataclass
+# class StationSummary:
+#     """
+#     Contains a summary of each stations data read result.
+#     """
+#     station_id: str
+#     station_uuid: str
+#     auth_id: str
+#     api_version: ApiVersion
+#     # pylint: disable=C0103
+#     os: 'OsType'
+#     os_version: str
+#     app_version: str
+#     audio_sampling_rate: float
+#     total_packets: int
+#     total_duration: timedelta
+#     start_dt: datetime
+#     end_dt: datetime
+#
+#     @staticmethod
+#     def from_packets(packets: List['WrappedRedvoxPacketM']) -> 'StationSummary':
+#         """
+#         Generates a station summary from the provided packets.
+#         :param packets: Packets to generate summary from.
+#         :return: An instance of a StationSummary.
+#         """
+#         first_packet: 'WrappedRedvoxPacketM' = packets[0]
+#         last_packet: 'WrappedRedvoxPacketM' = packets[-1]
+#         total_duration: timedelta = reduce(lambda acc, packet: acc + packet.get_packet_duration(),
+#                                            packets,
+#                                            timedelta(seconds=0.0))
+#         start_dt: datetime = dt_us(first_packet.get_timing_information().get_packet_start_mach_timestamp())
+#         end_dt: datetime = dt_us(last_packet.get_timing_information().get_packet_start_mach_timestamp()) + \
+#                            last_packet.get_packet_duration()
+#
+#         station_info = first_packet.get_station_information()
+#         audio = first_packet.get_sensors().get_audio()
+#         return StationSummary(
+#             station_info.get_id(),
+#             station_info.get_uuid(),
+#             station_info.get_auth_id(),
+#             station_info.get_os(),
+#             station_info.get_os_version(),
+#             station_info.get_app_version(),
+#             audio.get_sample_rate() if audio is not None else float("NaN"),
+#             len(packets),
+#             total_duration,
+#             start_dt,
+#             end_dt
+#         )
 
 
 class ReadResult:
@@ -287,12 +294,12 @@ class ReadResult:
         """
         self.station_id_uuid_to_packets: Dict[str, List['WrappedRedvoxPacketM']] = station_id_uuid_to_packets
         self.__station_id_to_id_uuid: Dict[str, str] = {}
-        self.__station_summaries: List[StationSummary] = []
+        # self.__station_summaries: List[StationSummary] = []
 
         for id_uuid, packets in self.station_id_uuid_to_packets.items():
             split_id_uuid: List[str] = id_uuid.split(":")
             self.__station_id_to_id_uuid[split_id_uuid[0]] = id_uuid
-            self.__station_summaries.append(StationSummary.from_packets(packets))
+            # self.__station_summaries.append(StationSummary.from_packets(packets))
 
     @staticmethod
     def from_packets(packets: List['WrappedRedvoxPacketM']) -> 'ReadResult':
@@ -335,11 +342,11 @@ class ReadResult:
 
         return []
 
-    def get_station_summaries(self) -> List[StationSummary]:
-        """
-        :return: A list of StationSummaries contained in this ReadResult
-        """
-        return self.__station_summaries
+    # def get_station_summaries(self) -> List[StationSummary]:
+    #     """
+    #     :return: A list of StationSummaries contained in this ReadResult
+    #     """
+    #     return self.__station_summaries
 
     def get_packets_for_station_id(self, station_id: str) -> List['WrappedRedvoxPacketM']:
         """
