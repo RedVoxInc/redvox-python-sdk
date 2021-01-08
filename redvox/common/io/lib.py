@@ -1,9 +1,14 @@
 from glob import glob
-from typing import Iterator, List, Optional
+from pathlib import PurePath
+from typing import Any, Iterator, List, Optional
 import os.path
 
 from redvox.api1000.common.typing import check_type
 from redvox.common.io.types import ReadFilter, PathDescriptor
+
+
+def not_none(v: Any) -> bool:
+    return v is not None
 
 
 def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[PathDescriptor]:
@@ -20,11 +25,9 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
 
     extension: str
     for extension in read_filter.extensions:
-        pass
-
-    # pattern: str = os.path.join(base_dir, f"*{read_filter.extension}")
-    # paths: List[str] = glob(os.path.join(base_dir, pattern))
-    # path_descriptors: Iterator[Optional[PathDescriptor]] = map()
-    # return filter(read_filter.apply, paths)
+        pattern: str = str(PurePath(base_dir).joinpath(f"*${extension}"))
+        paths: List[str] = glob(os.path.join(base_dir, pattern))
+        descriptors: Iterator[PathDescriptor] = filter(not_none, map(PathDescriptor.from_path, paths))
+        path_descriptors.extend(descriptors)
 
     return path_descriptors
