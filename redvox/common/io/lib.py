@@ -6,7 +6,7 @@ import os.path
 
 from redvox.common.versioning import ApiVersion
 from redvox.api1000.common.typing import check_type
-from redvox.common.io.types import ReadFilter, PathDescriptor
+from redvox.common.io.types import ReadFilter, IndexEntry
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 from redvox.api900.reader import read_rdvxz_file
@@ -35,7 +35,7 @@ def __list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
     return sorted(list(filter(valid_choices.__contains__, subdirs)))
 
 
-def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[PathDescriptor]:
+def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[IndexEntry]:
     """
     This parses a structured API 900 directory structure and identifies files that match the provided filter.
     :param base_dir: Base directory (should be named api900)
@@ -52,7 +52,7 @@ def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter
                                                      int(day))):
                     continue
 
-                path_descriptors: List[PathDescriptor] = []
+                path_descriptors: List[IndexEntry] = []
 
                 extension: str
                 for extension in read_filter.extensions:
@@ -61,13 +61,13 @@ def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter
                                                          month,
                                                          day,
                                                          f"*{extension}"))
-                    descriptors: Iterator[PathDescriptor] = filter(not_none, map(PathDescriptor.from_path, paths))
+                    descriptors: Iterator[IndexEntry] = filter(not_none, map(IndexEntry.from_path, paths))
                     path_descriptors.extend(descriptors)
 
                 return path_descriptors
 
 
-def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[PathDescriptor]:
+def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[IndexEntry]:
     """
     This parses a structured API M directory structure and identifies files that match the provided filter.
     :param base_dir: Base directory (should be named api1000)
@@ -86,7 +86,7 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                                                          int(hour))):
                         continue
 
-                    path_descriptors: List[PathDescriptor] = []
+                    path_descriptors: List[IndexEntry] = []
 
                     extension: str
                     for extension in read_filter.extensions:
@@ -96,13 +96,13 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                                                              day,
                                                              hour,
                                                              f"*{extension}"))
-                        descriptors: Iterator[PathDescriptor] = filter(not_none, map(PathDescriptor.from_path, paths))
+                        descriptors: Iterator[IndexEntry] = filter(not_none, map(IndexEntry.from_path, paths))
                         path_descriptors.extend(descriptors)
 
                     return path_descriptors
 
 
-def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[PathDescriptor]:
+def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[IndexEntry]:
     base_path: PurePath = PurePath(base_dir)
 
     # API 900
@@ -113,7 +113,7 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> L
         return index_structured_api_1000(base_dir, read_filter)
     # Maybe parent to one or both?
     else:
-        path_descriptors: List[PathDescriptor] = []
+        path_descriptors: List[IndexEntry] = []
         subdirs: List[str] = __list_subdirs(base_dir, {"api900", "api1000"})
 
         if "api900" in subdirs:
@@ -125,7 +125,7 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> L
         return path_descriptors
 
 
-def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[PathDescriptor]:
+def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[IndexEntry]:
     """
     Returns the list of file paths that match the given filter for unstructured data.
     :param base_dir: Directory containing unstructured data.
@@ -135,17 +135,14 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
     check_type(base_dir, [str])
     check_type(read_filter, [ReadFilter])
 
-    path_descriptors: List[PathDescriptor] = []
+    path_descriptors: List[IndexEntry] = []
 
     extension: str
     for extension in read_filter.extensions:
         pattern: str = str(PurePath(base_dir).joinpath(f"*{extension}"))
         paths: List[str] = glob(os.path.join(base_dir, pattern))
-        descriptors: Iterator[PathDescriptor] = filter(not_none, map(PathDescriptor.from_path, paths))
+        descriptors: Iterator[IndexEntry] = filter(not_none, map(IndexEntry.from_path, paths))
         path_descriptors.extend(descriptors)
 
     return path_descriptors
 
-
-def read_index(index: List[PathDescriptor]) -> Iterator[Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]]:
-    return filter(not_none, map(PathDescriptor.read, index))
