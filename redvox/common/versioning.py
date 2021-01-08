@@ -3,15 +3,6 @@ from enum import Enum
 LZ4_MAGIC: bytes = b'\x04"M\x18'
 
 
-class ApiVersion(Enum):
-    """
-    Enumerates the API versions this SDK supports.
-    """
-    API_900: str = "API_900"
-    API_1000: str = "API_1000"
-    UNKNOWN: str = "UNKNOWN"
-
-
 # noinspection PyTypeChecker
 def check_version_buf(buf: bytes) -> ApiVersion:
     """
