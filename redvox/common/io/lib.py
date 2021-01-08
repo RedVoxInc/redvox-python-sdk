@@ -66,18 +66,57 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                     return path_descriptors
 
 
+def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[PathDescriptor]:
+    """
+    This parses a structured API 900 directory structure and identifies files that match the provided filter.
+    :param base_dir: Base directory (should be named api900)
+    :param read_filter: Filter to filter files with
+    :return: A list of wrapped packets on an empty list if none match the filter or none are found
+    """
+    for year in __list_subdirs(base_dir, __VALID_YEARS):
+        for month in __list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
+            for day in __list_subdirs(os.path.join(base_dir, year, month), __VALID_DATES):
+                # Before scanning for *.rdvxz files, let's see if the current year, month, day, hour are in the
+                # filter's range. If not, we can short circuit and skip getting the *.rdvxz files.
+                if not read_filter.apply_dt(datetime(int(year),
+                                                     int(month),
+                                                     int(day))):
+                    continue
+
+                path_descriptors: List[PathDescriptor] = []
+
+                extension: str
+                for extension in read_filter.extensions:
+                    paths: List[str] = glob(os.path.join(base_dir,
+                                                         year,
+                                                         month,
+                                                         day,
+                                                         f"*{extension}"))
+                    descriptors: Iterator[PathDescriptor] = filter(not_none, map(PathDescriptor.from_path, paths))
+                    path_descriptors.extend(descriptors)
+
+                return path_descriptors
+
+
 def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[PathDescriptor]:
     base_path: PurePath = PurePath(base_dir)
 
     # API 900
     if base_path.name == "api900":
-        pass
+        return index_structured_api_900(base_dir, read_filter)
     # API 1000
     elif base_path.name == "api1000":
         return index_structured_api_1000(base_dir, read_filter)
     # Maybe parent to one or both?
     else:
-        pass
+        paths = []
+        api1000_path = os.path.join(base_dir, "api1000")
+        if os.path.exists(api1000_path):
+            paths.extend(index_structured_api_1000(api1000_path, read_filter))
+        api900_path = os.path.join(base_dir, "api900")
+        if os.path.exists(api900_path):
+            paths.extend(index_structured_api_900(api900_path, read_filter))
+        return paths
 
 
 def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> List[PathDescriptor]:
@@ -95,7 +134,7 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
     extension: str
     for extension in read_filter.extensions:
         pattern: str = str(PurePath(base_dir).joinpath(f"*{extension}"))
-        print(pattern)
+        # print(pattern)
         paths: List[str] = glob(os.path.join(base_dir, pattern))
         descriptors: Iterator[PathDescriptor] = filter(not_none, map(PathDescriptor.from_path, paths))
         path_descriptors.extend(descriptors)
