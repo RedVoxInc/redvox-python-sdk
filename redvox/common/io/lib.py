@@ -80,7 +80,8 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
 
     extension: str
     for extension in read_filter.extensions:
-        pattern: str = str(PurePath(base_dir).joinpath(f"*${extension}"))
+        pattern: str = str(PurePath(base_dir).joinpath(f"*{extension}"))
+        print(pattern)
         paths: List[str] = glob(os.path.join(base_dir, pattern))
         descriptors: Iterator[PathDescriptor] = filter(not_none, map(PathDescriptor.from_path, paths))
         path_descriptors.extend(descriptors)
