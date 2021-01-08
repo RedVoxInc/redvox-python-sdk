@@ -194,6 +194,17 @@ class ReadFilter:
 
         return True
 
+    def create_file_names(self) -> List[str]:
+        file_names = []
+        extension: str
+        for extension in self.extensions:
+            if self.station_ids:
+                for station_id in self.station_ids:
+                    file_names.append(f"{station_id}*{extension}")
+            else:
+                file_names.append(f"*{extension}")
+        return file_names
+
 
 # noinspection DuplicatedCode
 @dataclass
