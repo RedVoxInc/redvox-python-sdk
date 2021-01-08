@@ -1,26 +1,90 @@
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from enum import Enum
 from functools import reduce
-from pathlib import Path
-from typing import Dict, List, Optional, Set, TYPE_CHECKING
+from pathlib import PurePath
+from typing import Dict, List, Optional, Set, TYPE_CHECKING, Any
 
 from redvox.api1000.common.common import check_type
-from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as dt_us
+from redvox.common.date_time_utils import (
+    datetime_from_epoch_microseconds_utc as dt_us,
+    datetime_from_epoch_milliseconds_utc as dt_ms
+)
 
 if TYPE_CHECKING:
     from redvox.api1000.wrapped_redvox_packet.station_information import OsType
     from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+    from redvox.common.versioning import check_version
+
+
+class ApiVersion(Enum):
+    """
+    Enumerates the API versions this SDK supports.
+    """
+    API_900: str = "API_900"
+    API_1000: str = "API_1000"
+    UNKNOWN: str = "UNKNOWN"
+
+
+class FileExtension(Enum):
+    RDVXZ: str = ".rdvxz"
+    RDVXM: str = ".rdvxm"
+    NONE: str = ""
+
+
+def _is_int(v: Any) -> bool:
+    try:
+        int(v)
+        return True
+    except ValueError:
+        return False
+
+
+@dataclass
+class PathDescriptor:
+    station_id: str
+    date_time: datetime
+    extension: str
+    api_version: ApiVersion
+
+    @staticmethod
+    def from_path(path: str) -> Optional['PathDescriptor']:
+        api_version: ApiVersion = check_version(path)
+        path: PurePath = PurePath(path)
+        name: str = path.stem
+        ext: str = path.suffix
+
+        split_name = name.split("_")
+
+        if len(split_name) != 2:
+            return None
+
+        station_id: str = split_name[0]
+        ts_str: str = split_name[1]
+
+        if not _is_int(station_id) or not _is_int(ts_str):
+            return None
+
+        ts: int = int(ts_str)
+        dt: datetime
+        if api_version == ApiVersion.API_1000:
+            dt = dt_us(ts)
+        else:
+            dt = dt_ms(ts)
+
+        return PathDescriptor(station_id, dt, ext, api_version)
+
 
 @dataclass
 class ReadFilter:
     """
-    Filter API M files from the file system.
+    Filter RedVox files from the file system.
     """
     start_dt: Optional[datetime] = None
     end_dt: Optional[datetime] = None
     station_ids: Optional[Set[str]] = None
-    extension: str = ".rdvxm"
+    extensions: Set[FileExtension] = field(default_factory=lambda: {FileExtension.RDVXZ, FileExtension.RDVXM})
     start_dt_buf: timedelta = timedelta(minutes=2.0)
     end_dt_buf: timedelta = timedelta(minutes=2.0)
 
@@ -102,7 +166,7 @@ class ReadFilter:
         self.end_dt_buf = end_dt_buf
         return self
 
-    def filter_dt(self, date_time: datetime) -> bool:
+    def apply_dt(self, date_time: datetime) -> bool:
         """
         Tests if a given datetime passes this filter.
         :param date_time: Datetime to test
@@ -117,31 +181,41 @@ class ReadFilter:
 
         return True
 
-    def filter_path(self, path: str) -> bool:
-        """
-        Tests a given file system path against this filter.
-        :param path: Path to test.
-        :return: True if the path is accepted, False otherwise
-        """
-        check_type(path, [str])
-        _path: Path = Path(path)
-        ext: str = "".join(_path.suffixes)
-        station_ts: str = _path.stem
-        split: List[str] = station_ts.split("_")
-        station_id: str = split[0]
-        timestamp: float = float(split[1])
-        date_time: datetime = dt_us(timestamp)
+    def apply(self, path_descriptor: PathDescriptor) -> bool:
+        check_type(path_descriptor, [PathDescriptor])
 
-        if not self.filter_dt(date_time):
+        if not self.apply_dt(path_descriptor.date_time):
             return False
 
-        if self.station_ids is not None and station_id not in self.station_ids:
+        if self.station_ids is not None and path_descriptor.station_id not in self.station_ids:
             return False
 
-        if self.extension is not None and self.extension != ext:
-            return False
+    # def filter_path(self, path: str) -> bool:
+    #     """
+    #     Tests a given file system path against this filter.
+    #     :param path: Path to test.
+    #     :return: True if the path is accepted, False otherwise
+    #     """
+    #     check_type(path, [str])
+    #     _path: Path = Path(path)
+    #     ext: str = "".join(_path.suffixes)
+    #     station_ts: str = _path.stem
+    #     split: List[str] = station_ts.split("_")
+    #     station_id: str = split[0]
+    #     timestamp: float = float(split[1])
+    #     date_time: datetime = dt_us(timestamp)
+    #
+    #     if not self.filter_dt(date_time):
+    #         return False
+    #
+    #     if self.station_ids is not None and station_id not in self.station_ids:
+    #         return False
+    #
+    #     if self.extension is not None and self.extension != ext:
+    #         return False
+    #
+    #     return True
 
-        return True
 
 # noinspection DuplicatedCode
 @dataclass
