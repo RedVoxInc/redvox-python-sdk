@@ -82,7 +82,7 @@ class ReadFilter:
     start_dt: Optional[datetime] = None
     end_dt: Optional[datetime] = None
     station_ids: Optional[Set[str]] = None
-    extensions: Set[str] = field(default={".rdvxm", ".rdvxz"})
+    extensions: Set[str] = field(default_factory=lambda: {".rdvxm", ".rdvxz"})
     start_dt_buf: timedelta = timedelta(minutes=2.0)
     end_dt_buf: timedelta = timedelta(minutes=2.0)
 
