@@ -13,6 +13,7 @@ class ApiVersion(Enum):
     UNKNOWN: str = "UNKNOWN"
 
 
+# noinspection PyTypeChecker
 def check_version_buf(buf: bytes) -> ApiVersion:
     """
     Attempts to check the API version of a given RedVox buffer by looking for the LZ4 frame header which is only present
