@@ -23,20 +23,34 @@ if TYPE_CHECKING:
     from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
 
-def _is_int(v: Any) -> Optional[int]:
+def _is_int(value: str) -> Optional[int]:
+    """
+    Tests if a given str is a valid integer. If it is, the integer is returned, if it is not, None is returned.
+    :param value: The string to test.
+    :return: The integer value if it is valid, or None if it is not valid.
+    """
     try:
-        return int(v)
+        return int(value)
     except ValueError:
         return None
 
 
-def _not_none(v: Any) -> bool:
-    return v is not None
+def _not_none(value: Any) -> bool:
+    """
+    Tests that the given value is not None.
+    :param value: The value to test.
+    :return: True if the value is not None, False if it is None.
+    """
+    return value is not None
 
 
 @total_ordering
 @dataclass
 class IndexEntry:
+    """
+    This class represents a single index entry. It extracts and encapsulated API agnostic fields that represent the
+    information stored in standard RedVox file names.
+    """
     full_path: str
     station_id: str
     date_time: datetime
@@ -45,13 +59,19 @@ class IndexEntry:
 
     @staticmethod
     def from_path(path_str: str) -> Optional['IndexEntry']:
+        """
+        Attempts to parse a file path into an IndexEntry. If a given path is not recognized as a valid RedVox file, None
+        will be returned instead.
+        :param path_str: The file system path to attempt to parse.
+        :return: Either an IndexEntry or successful parse or None.
+        """
         api_version: ApiVersion = check_version(path_str)
         path: Path = Path(path_str)
         name: str = path.stem
         ext: str = path.suffix
 
+        # Attempt to parse file name parts
         split_name = name.split("_")
-
         if len(split_name) != 2:
             return None
 
@@ -59,9 +79,11 @@ class IndexEntry:
         ts_str: str = split_name[1]
         timestamp: Optional[int] = _is_int(ts_str)
 
+        # Ensure that both the station ID and timestamp can be represented as ints
         if _is_int(station_id) is None or timestamp is None:
             return None
 
+        # Parse the datetime per the specified API version
         date_time: datetime
         if api_version == ApiVersion.API_1000:
             date_time = dt_us(timestamp)
@@ -75,6 +97,10 @@ class IndexEntry:
                           api_version)
 
     def read(self) -> Optional[Union[WrappedRedvoxPacketM, 'WrappedRedvoxPacket']]:
+        """
+        Reads, decompresses, deserializes, and wraps the RedVox file pointed to by this entry.
+        :return: One of WrappedRedvoxPacket, WrappedRedvoxPacketM, or None.
+        """
         if self.api_version == ApiVersion.API_900:
             return read_rdvxz_file(self.full_path)
         elif self.api_version == ApiVersion.API_1000:
@@ -83,12 +109,32 @@ class IndexEntry:
             return None
 
     def __lt__(self, other: 'IndexEntry') -> bool:
+        """
+        Tests if this value is less than another value.
+
+        This along with __eq__ are used to fulfill the total ordering contract. Compares this entry's full path to
+        another entries full path.
+        :param other: Other IndexEntry to compare against.
+        :return: True if this full path is less than the other full path.
+        """
         return self.full_path.__lt__(other.full_path)
 
-    def __eq__(self, other: 'IndexEntry') -> bool:
-        return self.full_path == other.full_path
+    def __eq__(self, other: object) -> bool:
+        """
+        Tests if this value is equal to another value.
+
+        This along with __lt__ are used to fulfill the total ordering contract. Compares this entry's full path to
+        another entries full path.
+        :param other: Other IndexEntry to compare against.
+        :return: True if this full path is less than the other full path.
+        """
+        if isinstance(other, IndexEntry):
+            return self.full_path == other.full_path
+
+        return False
 
 
+# noinspection DuplicatedCode
 @dataclass
 class ReadFilter:
     """
@@ -152,7 +198,7 @@ class ReadFilter:
 
     def with_extensions(self, extensions: Set[str]) -> 'ReadFilter':
         """
-        Filters against a known file extension.
+        Filters against known file extensions.
         :param extensions: One or more extensions to filter against
         :return: A modified instance of this filter
         """
@@ -181,6 +227,11 @@ class ReadFilter:
         return self
 
     def with_api_versions(self, api_versions: Set[ApiVersion]) -> 'ReadFilter':
+        """
+        Filters for specifeid API versions.
+        :param api_versions: A set containing valid ApiVersion enums that should be included.
+        :return: A modified instance of self.
+        """
         check_type(api_versions, [Set])
         self.api_versions = api_versions
         return self
@@ -201,6 +252,11 @@ class ReadFilter:
         return True
 
     def apply(self, entry: IndexEntry) -> bool:
+        """
+        Applies this filter to the given IndexEntry.
+        :param entry: The entry to test.
+        :return: True if the entry is accepted by the filter, False otherwise.
+        """
         check_type(entry, [IndexEntry])
 
         if not self.apply_dt(entry.date_time):
@@ -220,19 +276,34 @@ class ReadFilter:
 
 @dataclass
 class Index:
+    """
+    An index of available RedVox files from the file system.
+    """
     entries: List[IndexEntry] = field(default_factory=lambda: [])
 
     def sort(self) -> None:
+        """
+        Sorts the entries stored in this index.
+        """
         self.entries.sort()
 
     def append(self, entries: Iterator[IndexEntry]) -> None:
+        """
+        Appends new entries to this index.
+        :param entries: Entries to append.
+        """
         self.entries.extend(entries)
 
     def summarize(self):
         pass
 
     def stream(self, read_filter: ReadFilter = ReadFilter()) -> Iterator[
-        Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
+            Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
+        """
+        Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
+        :param read_filter: Additional filtering to specify which data should be streamed.
+        :return: An iterator over WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
+        """
         # noinspection Mypy
         return map(IndexEntry.read, filter(lambda entry: read_filter.apply(entry), self.entries))
 
@@ -333,8 +404,8 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                     entries: Iterator[IndexEntry] = iter(index_unstructured(data_dir, read_filter).entries)
                     index.append(entries)
 
-        index.sort()
-        return index
+    index.sort()
+    return index
 
 
 def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
@@ -349,7 +420,6 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
     # Maybe parent to one or both?
     else:
         index: Index = Index()
-        # entries: List[IndexEntry] = []
         subdirs: List[str] = __list_subdirs(base_dir, {"api900", "api1000"})
 
         if "api900" in subdirs:
