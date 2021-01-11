@@ -1,5 +1,8 @@
 """
 This module creates specific time-bounded segments of data for users
+todo: take the latest api_x_reader and convert all data to api_m format
+combine the data packets into a new data packet based on the user parameters
+todo: use the filters created in redvox.common.io as the config source
 """
 from typing import Optional, Set, List
 
@@ -191,33 +194,11 @@ class DataWindow:
             elif self.debug:
                 print(f"WARNING: Data window for {station_id} {sensor_type.name} sensor has no data points!")
 
-    def truncate_metadata(self, station: Station, start_date_timestamp: float, end_date_timestamp: float):
-        """
-        truncates and updates the metadata of the station to only be from start_date_timestamp to end_date_timestamp.
-        Returns nothing; updates metadata in place
-        :param station: station object to update
-        :param start_date_timestamp: float, timestamp in microseconds since epoch UTC of start of window
-        :param end_date_timestamp: float, timestamp in microseconds since epoch UTC of end of window
-        """
-        # station.packet_gap_detector(self.gap_time_s)
-        station.packet_data = [p for p in station.packet_data
-                               if p.data_end_timestamp > start_date_timestamp and
-                               p.data_start_timestamp < end_date_timestamp]
-        if station.has_location_data():
-            # anything with 0 altitude is likely a network provided location
-            station.location_sensor().data_df.loc[(station.location_sensor().data_df["altitude"] == 0),
-                                                  "location_provider"] = LocationProvider.NETWORK
-        station.update_station_location_metadata(start_date_timestamp, end_date_timestamp)
-        station.station_metadata.timing_data.episode_start_timestamp_s = \
-            dtu.microseconds_to_seconds(start_date_timestamp)
-        station.station_metadata.timing_data.episode_end_timestamp_s = dtu.microseconds_to_seconds(end_date_timestamp)
-        station.station_metadata.timing_data.station_first_data_timestamp = \
-            station.audio_sensor().first_data_timestamp()
-
+    # todo: keep this after transition to api_m format
     def create_data_window(self):
         """
         updates the data window to contain only the data within the window parameters
-        stations without audio or any data within the window are removed
+        stations without audio or any data outside the window are removed
         """
         ids_to_pop = []
         for station in self.stations.get_all_stations():
@@ -236,11 +217,34 @@ class DataWindow:
                 end_datetime = station.audio_sensor().last_data_timestamp()
             # TRUNCATE!
             self.create_window_in_sensors(station, start_datetime, end_datetime)
-            self.truncate_metadata(station, start_datetime, end_datetime)
+            truncate_metadata(station, start_datetime, end_datetime)
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
         # remove any stations that don't have audio data
         for ids in ids_to_pop:
             self.stations.pop_station(ids)
+
+
+def truncate_metadata(station: Station, start_date_timestamp: float, end_date_timestamp: float):
+    """
+    truncates and updates the metadata of the station to only be from start_date_timestamp to end_date_timestamp.
+    Returns nothing; updates metadata in place
+    :param station: station object to update
+    :param start_date_timestamp: float, timestamp in microseconds since epoch UTC of start of window
+    :param end_date_timestamp: float, timestamp in microseconds since epoch UTC of end of window
+    """
+    station.packet_data = [p for p in station.packet_data
+                           if p.data_end_timestamp > start_date_timestamp and
+                           p.data_start_timestamp < end_date_timestamp]
+    if station.has_location_data():
+        # anything with 0 altitude is likely a network provided location
+        station.location_sensor().data_df.loc[(station.location_sensor().data_df["altitude"] == 0),
+                                              "location_provider"] = LocationProvider.NETWORK
+    station.update_station_location_metadata(start_date_timestamp, end_date_timestamp)
+    station.station_metadata.timing_data.episode_start_timestamp_s = \
+        dtu.microseconds_to_seconds(start_date_timestamp)
+    station.station_metadata.timing_data.episode_end_timestamp_s = dtu.microseconds_to_seconds(end_date_timestamp)
+    station.station_metadata.timing_data.station_first_data_timestamp = \
+        station.audio_sensor().first_data_timestamp()
 
 
 def check_audio_data(station: Station, ids_to_remove: List[str], debug: bool = False) -> List[str]:

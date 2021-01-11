@@ -6,7 +6,6 @@ import os.path
 
 from redvox.common.versioning import ApiVersion
 from redvox.api1000.common.typing import check_type
-from redvox.common.io.types import ReadFilter, IndexEntry, Index
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 from redvox.api900.reader import read_rdvxz_file
@@ -30,6 +29,7 @@ from redvox.api900.reader import read_rdvxz_file
 
 if TYPE_CHECKING:
     from redvox.api1000.wrapped_redvox_packet.station_information import OsType
+
 
 @total_ordering
 @dataclass
@@ -228,6 +228,17 @@ class ReadFilter:
 
         return True
 
+    def create_file_names(self) -> List[str]:
+        file_names = []
+        extension: str
+        for extension in self.extensions:
+            if self.station_ids:
+                for station_id in self.station_ids:
+                    file_names.append(f"{station_id}*{extension}")
+            else:
+                file_names.append(f"*{extension}")
+        return file_names
+
 
 # noinspection DuplicatedCode
 # @dataclass
@@ -399,6 +410,15 @@ def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter
 
                 path_descriptors: List[IndexEntry] = []
 
+                # for file_name in read_filter.create_file_names():
+                #     paths: List[str] = glob(os.path.join(base_dir,
+                #                                          year,
+                #                                          month,
+                #                                          day,
+                #                                          file_name))
+                #     descriptors: Iterator[PathDescriptor] = filter(not_none, map(PathDescriptor.from_path, paths))
+                #     path_descriptors.extend(descriptors)
+
                 extension: str
                 for extension in read_filter.extensions:
                     paths: List[str] = glob(os.path.join(base_dir,
@@ -462,10 +482,10 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
         subdirs: List[str] = __list_subdirs(base_dir, {"api900", "api1000"})
 
         if "api900" in subdirs:
-            path_descriptors.extend(index_structured_api_900(str(base_path.joinpath("api900"))))
+            path_descriptors.extend(index_structured_api_900(str(base_path.joinpath("api900")), read_filter))
 
         if "api1000" in subdirs:
-            path_descriptors.extend(index_structured_api_1000(str(base_path.joinpath("api1000"))))
+            path_descriptors.extend(index_structured_api_1000(str(base_path.joinpath("api1000")), read_filter))
 
         return Index(sorted(path_descriptors))
 
