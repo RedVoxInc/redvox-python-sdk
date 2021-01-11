@@ -2,25 +2,25 @@
 This module provides IO primitives for working with cross-API RedVox data.
 """
 
-from glob import glob
-from pathlib import PurePath
-import os.path
-
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from glob import glob
 from functools import total_ordering
-from pathlib import Path
-from typing import Any, Iterator, List, Optional, Set, Union
+import os.path
+from pathlib import Path, PurePath
+from typing import Any, Iterator, List, Optional, Set, Union, TYPE_CHECKING
 
+from redvox.api900.reader import read_rdvxz_file
 from redvox.api1000.common.common import check_type
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common.versioning import check_version, ApiVersion
 from redvox.common.date_time_utils import (
     datetime_from_epoch_microseconds_utc as dt_us,
     datetime_from_epoch_milliseconds_utc as dt_ms
 )
-from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
-from redvox.api900.reader import read_rdvxz_file
+
+if TYPE_CHECKING:
+    from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
 
 def _is_int(v: Any) -> Optional[int]:
@@ -74,7 +74,7 @@ class IndexEntry:
                           ext,
                           api_version)
 
-    def read(self) -> Optional[Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]]:
+    def read(self) -> Optional[Union[WrappedRedvoxPacketM, 'WrappedRedvoxPacket']]:
         if self.api_version == ApiVersion.API_900:
             return read_rdvxz_file(self.full_path)
         elif self.api_version == ApiVersion.API_1000:
@@ -231,11 +231,12 @@ class Index:
     def summarize(self):
         pass
 
-    def stream(self, read_filter: ReadFilter = ReadFilter()) -> Iterator[Union[WrappedRedvoxPacket, WrappedRedvoxPacketM]]:
+    def stream(self, read_filter: ReadFilter = ReadFilter()) -> Iterator[
+        Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
         # noinspection Mypy
         return map(IndexEntry.read, filter(lambda entry: read_filter.apply(entry), self.entries))
 
-    def read(self, read_filter: ReadFilter = ReadFilter()) -> List[Union[WrappedRedvoxPacket, WrappedRedvoxPacketM]]:
+    def read(self, read_filter: ReadFilter = ReadFilter()) -> List[Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
         return list(self.stream(read_filter))
 
 
