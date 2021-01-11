@@ -390,7 +390,7 @@ def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter
     for year in __list_subdirs(base_dir, __VALID_YEARS):
         for month in __list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
             for day in __list_subdirs(os.path.join(base_dir, year, month), __VALID_DATES):
-                # Before scanning for *.rdvxm files, let's see if the current year, month, day, are in the
+                # Before scanning for *.rdvxz files, let's see if the current year, month, day are in the
                 # filter's range. If not, we can short circuit and skip getting the *.rdvxz files.
                 if not read_filter.apply_dt(datetime(int(year),
                                                      int(month),
@@ -400,12 +400,20 @@ def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter
                 path_descriptors: List[IndexEntry] = []
 
                 extension: str
+                file_str: str
+                file_strs: List[str] = []
                 for extension in read_filter.extensions:
+                    if read_filter.station_ids:
+                        for ids in read_filter.station_ids:
+                            file_strs.append(f"{ids}*{extension}")
+                    else:
+                        file_strs.append(f"*{extension}")
+                for file_str in file_strs:
                     paths: List[str] = glob(os.path.join(base_dir,
                                                          year,
                                                          month,
                                                          day,
-                                                         f"*{extension}"))
+                                                         f"{file_str}"))
                     descriptors: Iterator[IndexEntry] = filter(_not_none, map(IndexEntry.from_path, paths))
                     path_descriptors.extend(descriptors)
 
@@ -434,13 +442,21 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                     path_descriptors: List[IndexEntry] = []
 
                     extension: str
+                    file_str: str
+                    file_strs: List[str] = []
                     for extension in read_filter.extensions:
+                        if read_filter.station_ids:
+                            for ids in read_filter.station_ids:
+                                file_strs.append(f"{ids}*{extension}")
+                        else:
+                            file_strs.append(f"*{extension}")
+                    for file_str in file_strs:
                         paths: List[str] = glob(os.path.join(base_dir,
                                                              year,
                                                              month,
                                                              day,
                                                              hour,
-                                                             f"*{extension}"))
+                                                             f"{file_str}"))
                         descriptors: Iterator[IndexEntry] = filter(_not_none, map(IndexEntry.from_path, paths))
                         path_descriptors.extend(descriptors)
 
@@ -462,10 +478,10 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
         subdirs: List[str] = __list_subdirs(base_dir, {"api900", "api1000"})
 
         if "api900" in subdirs:
-            path_descriptors.extend(index_structured_api_900(str(base_path.joinpath("api900"))).entries)
+            path_descriptors.extend(index_structured_api_900(str(base_path.joinpath("api900")), read_filter).entries)
 
         if "api1000" in subdirs:
-            path_descriptors.extend(index_structured_api_1000(str(base_path.joinpath("api1000"))).entries)
+            path_descriptors.extend(index_structured_api_1000(str(base_path.joinpath("api1000")), read_filter).entries)
 
         return Index(sorted(path_descriptors))
 
