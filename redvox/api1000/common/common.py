@@ -357,7 +357,7 @@ def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:
     mean_sample_interval: float = sample_interval.mean()
     stdev_sample_interval: float = sample_interval.std()
 
-    if mean_sample_interval <= 0:
+    if len(sample_interval) < 2 or mean_sample_interval <= 0:
         return 0.0, 0.0
 
     mean_sample_rate: float = 1.0 / dt_utils.microseconds_to_seconds(mean_sample_interval)
