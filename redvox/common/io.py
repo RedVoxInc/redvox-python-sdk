@@ -1,21 +1,13 @@
-from datetime import datetime
 from glob import glob
 from pathlib import PurePath
-from typing import Any, Iterator, List, Optional, Set, Union
 import os.path
 
-from redvox.common.versioning import ApiVersion
-from redvox.api1000.common.typing import check_type
-from redvox.common.io.types import ReadFilter, IndexEntry, Index
-from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
-from redvox.api900.reader import read_rdvxz_file
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from functools import reduce, total_ordering
+from functools import total_ordering
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterator, List, Optional, Set, TYPE_CHECKING, Union
+from typing import Any, Dict, Iterator, List, Optional, Set, Union
 
 from redvox.api1000.common.common import check_type
 from redvox.common.versioning import check_version, ApiVersion
@@ -23,13 +15,21 @@ from redvox.common.date_time_utils import (
     datetime_from_epoch_microseconds_utc as dt_us,
     datetime_from_epoch_milliseconds_utc as dt_ms
 )
-
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 from redvox.api900.reader import read_rdvxz_file
 
-if TYPE_CHECKING:
-    from redvox.api1000.wrapped_redvox_packet.station_information import OsType
+
+def _is_int(v: Any) -> Optional[int]:
+    try:
+        return int(v)
+    except ValueError:
+        return None
+
+
+def _not_none(v: Any) -> bool:
+    return v is not None
+
 
 @total_ordering
 @dataclass
@@ -406,10 +406,10 @@ def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter
                                                          month,
                                                          day,
                                                          f"*{extension}"))
-                    descriptors: Iterator[IndexEntry] = filter(not_none, map(IndexEntry.from_path, paths))
+                    descriptors: Iterator[IndexEntry] = filter(_not_none, map(IndexEntry.from_path, paths))
                     path_descriptors.extend(descriptors)
 
-                return Index(sort(path_descriptors))
+                return Index(sorted(path_descriptors))
 
 
 def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
@@ -441,7 +441,7 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                                                              day,
                                                              hour,
                                                              f"*{extension}"))
-                        descriptors: Iterator[IndexEntry] = filter(not_none, map(IndexEntry.from_path, paths))
+                        descriptors: Iterator[IndexEntry] = filter(_not_none, map(IndexEntry.from_path, paths))
                         path_descriptors.extend(descriptors)
 
                     return Index(sorted(path_descriptors))
@@ -462,10 +462,10 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
         subdirs: List[str] = __list_subdirs(base_dir, {"api900", "api1000"})
 
         if "api900" in subdirs:
-            path_descriptors.extend(index_structured_api_900(str(base_path.joinpath("api900"))))
+            path_descriptors.extend(index_structured_api_900(str(base_path.joinpath("api900"))).entries)
 
         if "api1000" in subdirs:
-            path_descriptors.extend(index_structured_api_1000(str(base_path.joinpath("api1000"))))
+            path_descriptors.extend(index_structured_api_1000(str(base_path.joinpath("api1000"))).entries)
 
         return Index(sorted(path_descriptors))
 
@@ -486,8 +486,7 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
     for extension in read_filter.extensions:
         pattern: str = str(PurePath(base_dir).joinpath(f"*{extension}"))
         paths: List[str] = glob(os.path.join(base_dir, pattern))
-        descriptors: Iterator[IndexEntry] = filter(not_none, map(IndexEntry.from_path, paths))
+        descriptors: Iterator[IndexEntry] = filter(_not_none, map(IndexEntry.from_path, paths))
         path_descriptors.extend(descriptors)
 
     return Index(sorted(path_descriptors))
-
