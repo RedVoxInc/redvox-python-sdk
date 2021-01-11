@@ -845,6 +845,7 @@ def load_from_file_range_api_m(directory: str,
     return all_stations
 
 
+# todo: drop support or refactor into api_m
 def load_from_mseed(file_path: str, station_ids: Optional[List[str]] = None) -> ReadResult:
     """
     load station data from a miniseed file
