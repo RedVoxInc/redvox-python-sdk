@@ -26,6 +26,7 @@ def api_num_to_version(api_num: float) -> ApiVersion:
     return ApiVersion["UNKNOWN"]
 
 
+# noinspection PyTypeChecker
 def check_version_buf(buf: bytes) -> ApiVersion:
     """
     Attempts to check the API version of a given RedVox buffer by looking for the LZ4 frame header which is only present
