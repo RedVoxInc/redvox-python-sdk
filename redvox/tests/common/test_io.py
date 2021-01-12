@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import os
 import os.path
 import tempfile
-from typing import Iterator, Tuple
+from typing import Iterator
 from unittest import TestCase
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
@@ -10,44 +10,8 @@ from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPac
 import redvox.common.io as io
 from redvox.common.date_time_utils import (
     datetime_to_epoch_microseconds_utc as dt2us,
-    datetime_to_epoch_milliseconds_utc as dt2ms
 )
 from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
-
-class IoTests(TestCase):
-    def test_is_int_good(self):
-        self.assertEqual(0, io._is_int("0"))
-        self.assertEqual(1, io._is_int("01"))
-        self.assertEqual(1, io._is_int("00001"))
-        self.assertEqual(10, io._is_int("000010"))
-        self.assertEqual(-10, io._is_int("-000010"))
-
-    def test_is_int_bad(self):
-        self.assertIsNone(io._is_int(""))
-        self.assertIsNone(io._is_int("000a"))
-        self.assertIsNone(io._is_int("foo"))
-        self.assertIsNone(io._is_int("1.325"))
-
-    def test_not_none(self):
-        self.assertTrue(io._not_none(""))
-        self.assertFalse(io._not_none(None))
-
-
-class IndexEntryTests(TestCase):
-    def setUp(self) -> None:
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_dir_path = self.temp_dir.name
-
-        # Create unstructured synthetic API M data
-
-        # Create unstructured synthetic API 900 data
-
-        # Create structured synthetic API M data
-
-        # Create structured synthetic API M data
-
-    def tearDown(self) -> None:
-        self.temp_dir.cleanup()
 
 
 def dt_range(start: datetime,
@@ -96,6 +60,56 @@ def generate_synth_1000(base_dir: str,
         packet.get_station_information().set_id(station_id)
         packet.get_timing_information().set_packet_start_mach_timestamp(dt2us(dt))
         packet.write_compressed_to_file(target_dir)
+
+
+class IoTests(TestCase):
+    def test_is_int_good(self):
+        self.assertEqual(0, io._is_int("0"))
+        self.assertEqual(1, io._is_int("01"))
+        self.assertEqual(1, io._is_int("00001"))
+        self.assertEqual(10, io._is_int("000010"))
+        self.assertEqual(-10, io._is_int("-000010"))
+
+    def test_is_int_bad(self):
+        self.assertIsNone(io._is_int(""))
+        self.assertIsNone(io._is_int("000a"))
+        self.assertIsNone(io._is_int("foo"))
+        self.assertIsNone(io._is_int("1.325"))
+
+    def test_not_none(self):
+        self.assertTrue(io._not_none(""))
+        self.assertFalse(io._not_none(None))
+
+
+class IndexEntryTests(TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.temp_dir_path = self.temp_dir.name
+
+    def tearDown(self) -> None:
+        self.temp_dir.cleanup()
+
+    def test_from_path_900_good(self) -> None:
+        generate_synth_900(self.temp_dir_path,
+                           datetime(2021, 1, 1),
+                           datetime(2021, 1, 1, 1),
+                           timedelta(minutes=1),
+                           "0000000900")
+        idx = io.index_structured(self.temp_dir_path)
+        print(idx)
+        entry: io.IndexEntry = io.IndexEntry.from_path(os.path.join(
+            self.temp_dir_path,
+            "api900",
+            "2021",
+            "01",
+            "01",
+            "0000000900_1577836800000.rdvxz"
+        ))
+
+        print(entry)
+
+    def test_from_path_900_bad(self) -> None:
+        pass
 
 
 class IndexTests(TestCase):

@@ -265,7 +265,7 @@ class ReadFilter:
         if self.station_ids is not None and entry.station_id not in self.station_ids:
             return False
 
-        if self.extensions is not None and f".{entry.extension}" not in self.extensions:
+        if self.extensions is not None and entry.extension not in self.extensions:
             return False
 
         if self.api_versions is not None and entry.api_version not in self.api_versions:
@@ -304,8 +304,9 @@ class Index:
         :param read_filter: Additional filtering to specify which data should be streamed.
         :return: An iterator over WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
         """
+        filtered: Iterator[IndexEntry] = filter(lambda entry: read_filter.apply(entry), self.entries)
         # noinspection Mypy
-        return map(IndexEntry.read, filter(lambda entry: read_filter.apply(entry), self.entries))
+        return map(IndexEntry.read, filtered)
 
     def read(self, read_filter: ReadFilter = ReadFilter()) -> List[Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
         return list(self.stream(read_filter))
@@ -422,7 +423,6 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
     else:
         index: Index = Index()
         subdirs: List[str] = __list_subdirs(base_dir, {"api900", "api1000"})
-
         if "api900" in subdirs:
             index.append(iter(index_structured_api_900(str(base_path.joinpath("api900")), read_filter).entries))
 
