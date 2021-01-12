@@ -1,40 +1,56 @@
-from glob import glob
-from pathlib import PurePath
-import os.path
+"""
+This module provides IO primitives for working with cross-API RedVox data.
+"""
 
-from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from glob import glob
 from functools import total_ordering
-from itertools import chain
-from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Set, Union
+import os.path
+from pathlib import Path, PurePath
+from typing import Any, Iterator, List, Optional, Set, Union, TYPE_CHECKING
 
+from redvox.api900.reader import read_rdvxz_file
 from redvox.api1000.common.common import check_type
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common.versioning import check_version, ApiVersion
 from redvox.common.date_time_utils import (
     datetime_from_epoch_microseconds_utc as dt_us,
     datetime_from_epoch_milliseconds_utc as dt_ms
 )
-from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
-from redvox.api900.reader import read_rdvxz_file
+
+if TYPE_CHECKING:
+    from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
 
-def _is_int(v: Any) -> Optional[int]:
+def _is_int(value: str) -> Optional[int]:
+    """
+    Tests if a given str is a valid integer. If it is, the integer is returned, if it is not, None is returned.
+    :param value: The string to test.
+    :return: The integer value if it is valid, or None if it is not valid.
+    """
     try:
-        return int(v)
+        return int(value)
     except ValueError:
         return None
 
 
-def _not_none(v: Any) -> bool:
-    return v is not None
+def _not_none(value: Any) -> bool:
+    """
+    Tests that the given value is not None.
+    :param value: The value to test.
+    :return: True if the value is not None, False if it is None.
+    """
+    return value is not None
 
 
 @total_ordering
 @dataclass
 class IndexEntry:
+    """
+    This class represents a single index entry. It extracts and encapsulated API agnostic fields that represent the
+    information stored in standard RedVox file names.
+    """
     full_path: str
     station_id: str
     date_time: datetime
@@ -43,13 +59,19 @@ class IndexEntry:
 
     @staticmethod
     def from_path(path_str: str) -> Optional['IndexEntry']:
+        """
+        Attempts to parse a file path into an IndexEntry. If a given path is not recognized as a valid RedVox file, None
+        will be returned instead.
+        :param path_str: The file system path to attempt to parse.
+        :return: Either an IndexEntry or successful parse or None.
+        """
         api_version: ApiVersion = check_version(path_str)
         path: Path = Path(path_str)
         name: str = path.stem
         ext: str = path.suffix
 
+        # Attempt to parse file name parts
         split_name = name.split("_")
-
         if len(split_name) != 2:
             return None
 
@@ -57,9 +79,11 @@ class IndexEntry:
         ts_str: str = split_name[1]
         timestamp: Optional[int] = _is_int(ts_str)
 
+        # Ensure that both the station ID and timestamp can be represented as ints
         if _is_int(station_id) is None or timestamp is None:
             return None
 
+        # Parse the datetime per the specified API version
         date_time: datetime
         if api_version == ApiVersion.API_1000:
             date_time = dt_us(timestamp)
@@ -72,7 +96,11 @@ class IndexEntry:
                           ext,
                           api_version)
 
-    def read(self) -> Optional[Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]]:
+    def read(self) -> Optional[Union[WrappedRedvoxPacketM, 'WrappedRedvoxPacket']]:
+        """
+        Reads, decompresses, deserializes, and wraps the RedVox file pointed to by this entry.
+        :return: One of WrappedRedvoxPacket, WrappedRedvoxPacketM, or None.
+        """
         if self.api_version == ApiVersion.API_900:
             return read_rdvxz_file(self.full_path)
         elif self.api_version == ApiVersion.API_1000:
@@ -81,13 +109,32 @@ class IndexEntry:
             return None
 
     def __lt__(self, other: 'IndexEntry') -> bool:
+        """
+        Tests if this value is less than another value.
+
+        This along with __eq__ are used to fulfill the total ordering contract. Compares this entry's full path to
+        another entries full path.
+        :param other: Other IndexEntry to compare against.
+        :return: True if this full path is less than the other full path.
+        """
         return self.full_path.__lt__(other.full_path)
 
-    def __eq__(self, other: 'IndexEntry') -> bool:
-        return self.full_path == other.full_path
+    def __eq__(self, other: object) -> bool:
+        """
+        Tests if this value is equal to another value.
+
+        This along with __lt__ are used to fulfill the total ordering contract. Compares this entry's full path to
+        another entries full path.
+        :param other: Other IndexEntry to compare against.
+        :return: True if this full path is less than the other full path.
+        """
+        if isinstance(other, IndexEntry):
+            return self.full_path == other.full_path
+
+        return False
 
 
-
+# noinspection DuplicatedCode
 @dataclass
 class ReadFilter:
     """
@@ -151,7 +198,7 @@ class ReadFilter:
 
     def with_extensions(self, extensions: Set[str]) -> 'ReadFilter':
         """
-        Filters against a known file extension.
+        Filters against known file extensions.
         :param extensions: One or more extensions to filter against
         :return: A modified instance of this filter
         """
@@ -180,6 +227,11 @@ class ReadFilter:
         return self
 
     def with_api_versions(self, api_versions: Set[ApiVersion]) -> 'ReadFilter':
+        """
+        Filters for specifeid API versions.
+        :param api_versions: A set containing valid ApiVersion enums that should be included.
+        :return: A modified instance of self.
+        """
         check_type(api_versions, [Set])
         self.api_versions = api_versions
         return self
@@ -199,228 +251,66 @@ class ReadFilter:
 
         return True
 
-    def apply(self, path_descriptor: IndexEntry) -> bool:
-        check_type(path_descriptor, [IndexEntry])
+    def apply(self, entry: IndexEntry) -> bool:
+        """
+        Applies this filter to the given IndexEntry.
+        :param entry: The entry to test.
+        :return: True if the entry is accepted by the filter, False otherwise.
+        """
+        check_type(entry, [IndexEntry])
 
-        if not self.apply_dt(path_descriptor.date_time):
+        if not self.apply_dt(entry.date_time):
             return False
 
-        if self.station_ids is not None and path_descriptor.station_id not in self.station_ids:
+        if self.station_ids is not None and entry.station_id not in self.station_ids:
             return False
 
-        if self.extensions is not None and f".{path_descriptor.extension}" not in self.extensions:
+        if self.extensions is not None and f".{entry.extension}" not in self.extensions:
             return False
 
-        if self.api_versions is not None and path_descriptor.api_version not in self.api_versions:
+        if self.api_versions is not None and entry.api_version not in self.api_versions:
             return False
 
         return True
 
 
-
-
-
 @dataclass
 class Index:
-    entries: List[IndexEntry]
+    """
+    An index of available RedVox files from the file system.
+    """
+    entries: List[IndexEntry] = field(default_factory=lambda: [])
 
-    def stream(self, filt_fn=lambda _: True) -> Iterator[Union[WrappedRedvoxPacket, WrappedRedvoxPacketM]]:
-        return filter(filt_fn, filter(_not_none, map(IndexEntry.read, self.entries)))
+    def sort(self) -> None:
+        """
+        Sorts the entries stored in this index.
+        """
+        self.entries.sort()
 
-    def stream_api_900(self, filt_fn=lambda _: True) -> Iterator[WrappedRedvoxPacket]:
-        return self.stream(lambda entry: entry.api_version == ApiVersion.API_900 and filt_fn(entry))
-
-    def stream_api_1000(self, filt_fn=lambda _: True) -> Iterator[WrappedRedvoxPacketM]:
-        return self.stream(lambda entry: entry.api_version == ApiVersion.API_1000 and filt_fn(entry))
-
-    def read(self, filt_fn=lambda _: True) -> List[Union[WrappedRedvoxPacket, WrappedRedvoxPacketM]]:
-        return list(self.stream(filt_fn))
-
-    def read_api_900(self, filt_fn=lambda _: True) -> List[WrappedRedvoxPacket]:
-        return list(self.stream_api_900(filt_fn))
-
-    def read_api_1000(self, filt_fn=lambda _: True) -> List[WrappedRedvoxPacketM]:
-        return list(self.stream_api_1000(filt_fn))
-
-
-class PacketIndex:
-    def __init__(self, entries: List[IndexEntry] = []):
-        self.station_to_entries_900: Dict[str, List[IndexEntry]] = defaultdict(list)
-        self.station_to_entries_1000: Dict[str, List[IndexEntry]] = defaultdict(list)
-        self.append_entries(entries)
-
-    def append_entries(self, entries: List[IndexEntry]):
-        entry: IndexEntry
-        for entry in entries:
-            if entry.api_version == ApiVersion.API_1000:
-                self.station_to_entries_1000[entry.station_id].append(entry)
-            if entry.api_version == ApiVersion.API_900:
-                self.station_to_entries_900[entry.station_id].append(entry)
-
-        for values in self.station_to_entries_900.values():
-            values.sort()
-
-        for values in self.station_to_entries_1000.values():
-            values.sort()
+    def append(self, entries: Iterator[IndexEntry]) -> None:
+        """
+        Appends new entries to this index.
+        :param entries: Entries to append.
+        """
+        self.entries.extend(entries)
 
     def summarize(self):
         pass
 
-    def stream(self, read_filter: ReadFilter = ReadFilter()) -> Iterator[Union[WrappedRedvoxPacket, WrappedRedvoxPacketM]]:
-        pass
+    def stream(self, read_filter: ReadFilter = ReadFilter()) -> Iterator[
+            Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
+        """
+        Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
+        :param read_filter: Additional filtering to specify which data should be streamed.
+        :return: An iterator over WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
+        """
+        # noinspection Mypy
+        return map(IndexEntry.read, filter(lambda entry: read_filter.apply(entry), self.entries))
 
-    def read(self, read_filter: ReadFilter = ReadFilter()) -> List[Union[WrappedRedvoxPacket, WrappedRedvoxPacketM]]:
-        pass
-
-
-
-
-# noinspection DuplicatedCode
-# @dataclass
-# class StationSummary:
-#     """
-#     Contains a summary of each stations data read result.
-#     """
-#     station_id: str
-#     station_uuid: str
-#     auth_id: str
-#     api_version: ApiVersion
-#     # pylint: disable=C0103
-#     os: 'OsType'
-#     os_version: str
-#     app_version: str
-#     audio_sampling_rate: float
-#     total_packets: int
-#     total_duration: timedelta
-#     start_dt: datetime
-#     end_dt: datetime
-#
-#     @staticmethod
-#     def from_packets(packets: List['WrappedRedvoxPacketM']) -> 'StationSummary':
-#         """
-#         Generates a station summary from the provided packets.
-#         :param packets: Packets to generate summary from.
-#         :return: An instance of a StationSummary.
-#         """
-#         first_packet: 'WrappedRedvoxPacketM' = packets[0]
-#         last_packet: 'WrappedRedvoxPacketM' = packets[-1]
-#         total_duration: timedelta = reduce(lambda acc, packet: acc + packet.get_packet_duration(),
-#                                            packets,
-#                                            timedelta(seconds=0.0))
-#         start_dt: datetime = dt_us(first_packet.get_timing_information().get_packet_start_mach_timestamp())
-#         end_dt: datetime = dt_us(last_packet.get_timing_information().get_packet_start_mach_timestamp()) + \
-#                            last_packet.get_packet_duration()
-#
-#         station_info = first_packet.get_station_information()
-#         audio = first_packet.get_sensors().get_audio()
-#         return StationSummary(
-#             station_info.get_id(),
-#             station_info.get_uuid(),
-#             station_info.get_auth_id(),
-#             station_info.get_os(),
-#             station_info.get_os_version(),
-#             station_info.get_app_version(),
-#             audio.get_sample_rate() if audio is not None else float("NaN"),
-#             len(packets),
-#             total_duration,
-#             start_dt,
-#             end_dt
-#         )
+    def read(self, read_filter: ReadFilter = ReadFilter()) -> List[Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
+        return list(self.stream(read_filter))
 
 
-# @dataclass
-# class ReadResult:
-#     """
-#     Result of reading RedVox packets into memory.
-#     """
-#     station_to_packets_900: Dict[str, List['WrappedRedvoxPacket']]
-#     station_to_packets_1000: Dict[str, List['WrappedRedvoxPacketM']]
-#
-#     @staticmethod
-#     def from_index
-
-
-# class ReadResult:
-#     """
-#     Result of reading multiple API M files.
-#     """
-# 
-#     def __init__(self,
-#                  station_id_uuid_to_packets: Dict[str, List['WrappedRedvoxPacketM']]):
-#         """
-#         :param station_id_uuid_to_packets: station_id:station_uuid -> packets
-#         """
-#         self.station_id_uuid_to_packets: Dict[str, List['WrappedRedvoxPacketM']] = station_id_uuid_to_packets
-#         self.__station_id_to_id_uuid: Dict[str, str] = {}
-#         # self.__station_summaries: List[StationSummary] = []
-# 
-#         for id_uuid, packets in self.station_id_uuid_to_packets.items():
-#             split_id_uuid: List[str] = id_uuid.split(":")
-#             self.__station_id_to_id_uuid[split_id_uuid[0]] = id_uuid
-#             # self.__station_summaries.append(StationSummary.from_packets(packets))
-# 
-#     @staticmethod
-#     def from_packets(packets: List['WrappedRedvoxPacketM']) -> 'ReadResult':
-#         """
-#         Constructs a read result from the provided packets.
-#         :param packets: Packets to construct read result from.
-#         :return: ReadResult from provided packets
-#         """
-#         check_type(packets, [List])
-#         station_id_uuid_to_packets: Dict[str, List['WrappedRedvoxPacketM']] = defaultdict(list)
-# 
-#         for packet in packets:
-#             station_info = packet.get_station_information()
-#             station_id: str = station_info.get_id()
-#             station_uuid: str = station_info.get_uuid()
-#             id_uuid: str = f"{station_id}:{station_uuid}"
-#             station_id_uuid_to_packets[id_uuid].append(packet)
-# 
-#         return ReadResult(station_id_uuid_to_packets)
-# 
-#     def __get_packets_for_station_id_uuid(self, station_id_uuid) -> List['WrappedRedvoxPacketM']:
-#         """
-#         Find packets given a station_id:uuid.
-#         :param station_id_uuid: Station id and uuid to get packets for.
-#         :return: A list of wrapped packets or an empty list if none match.
-#         """
-#         if station_id_uuid in self.station_id_uuid_to_packets:
-#             return self.station_id_uuid_to_packets[station_id_uuid]
-# 
-#         return []
-# 
-#     def __get_packets_for_station_id(self, station_id: str) -> List['WrappedRedvoxPacketM']:
-#         """
-#         Get packets for an associated station id.
-#         :param station_id: The station id.
-#         :return: A list of wrapped packets or an empty list if none provided.
-#         """
-#         if station_id in self.__station_id_to_id_uuid:
-#             return self.__get_packets_for_station_id_uuid(self.__station_id_to_id_uuid[station_id])
-# 
-#         return []
-# 
-#     # def get_station_summaries(self) -> List[StationSummary]:
-#     #     """
-#     #     :return: A list of StationSummaries contained in this ReadResult
-#     #     """
-#     #     return self.__station_summaries
-# 
-#     def get_packets_for_station_id(self, station_id: str) -> List['WrappedRedvoxPacketM']:
-#         """
-#         Gets packets either for the provided station_id or the provided station_id:uuid.
-#         :param station_id: station_id or station_id:uuid to get packets for.
-#         :return: A list of packets of an empty list of none provided.
-#         """
-#         check_type(station_id, [str])
-#         if ":" in station_id:
-#             return self.__get_packets_for_station_id_uuid(station_id)
-#         else:
-#             return self.__get_packets_for_station_id(station_id)
-
-
-# We need to parse the API M structured directory structure. Here, we enumerate the valid values for the various
-# levels in the hierarchy.
 __VALID_YEARS: Set[str] = {f"{i:04}" for i in range(2015, 2031)}
 __VALID_MONTHS: Set[str] = {f"{i:02}" for i in range(1, 13)}
 __VALID_DATES: Set[str] = {f"{i:02}" for i in range(1, 32)}
@@ -438,6 +328,30 @@ def __list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
     return sorted(list(filter(valid_choices.__contains__, subdirs)))
 
 
+def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
+    """
+    Returns the list of file paths that match the given filter for unstructured data.
+    :param base_dir: Directory containing unstructured data.
+    :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
+    :return: An iterator of valid paths.
+    """
+    check_type(base_dir, [str])
+    check_type(read_filter, [ReadFilter])
+
+    index: Index = Index()
+
+    extension: str
+    for extension in read_filter.extensions:
+        pattern: str = str(PurePath(base_dir).joinpath(f"*{extension}"))
+        paths: List[str] = glob(os.path.join(base_dir, pattern))
+        # noinspection Mypy
+        entries: Iterator[IndexEntry] = filter(_not_none, map(IndexEntry.from_path, paths))
+        index.append(entries)
+
+    index.sort()
+    return index
+
+
 def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
     """
     This parses a structured API 900 directory structure and identifies files that match the provided filter.
@@ -445,7 +359,7 @@ def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter
     :param read_filter: Filter to filter files with
     :return: A list of wrapped packets on an empty list if none match the filter or none are found
     """
-    path_descriptors: List[IndexEntry] = []
+    index: Index = Index()
 
     for year in __list_subdirs(base_dir, __VALID_YEARS):
         for month in __list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
@@ -457,25 +371,12 @@ def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter
                                                      int(day))):
                     continue
 
-                extension: str
-                file_str: str
-                file_strs: List[str] = []
-                for extension in read_filter.extensions:
-                    if read_filter.station_ids:
-                        for ids in read_filter.station_ids:
-                            file_strs.append(f"{ids}*{extension}")
-                    else:
-                        file_strs.append(f"*{extension}")
-                for file_str in file_strs:
-                    paths: List[str] = glob(os.path.join(base_dir,
-                                                         year,
-                                                         month,
-                                                         day,
-                                                         f"{file_str}"))
-                    descriptors: Iterator[IndexEntry] = filter(_not_none, map(IndexEntry.from_path, paths))
-                    path_descriptors.extend(descriptors)
+                data_dir: str = os.path.join(base_dir, year, month, day)
+                entries: Iterator[IndexEntry] = iter(index_unstructured(data_dir, read_filter).entries)
+                index.append(entries)
 
-    return Index(sorted(path_descriptors))
+    index.sort()
+    return index
 
 
 def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
@@ -485,7 +386,7 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
     :param read_filter: Filter to filter files with
     :return: A list of wrapped packets on an empty list if none match the filter or none are found
     """
-    path_descriptors: List[IndexEntry] = []
+    index: Index = Index()
 
     for year in __list_subdirs(base_dir, __VALID_YEARS):
         for month in __list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
@@ -499,26 +400,12 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                                                          int(hour))):
                         continue
 
-                    extension: str
-                    file_str: str
-                    file_strs: List[str] = []
-                    for extension in read_filter.extensions:
-                        if read_filter.station_ids:
-                            for ids in read_filter.station_ids:
-                                file_strs.append(f"{ids}*{extension}")
-                        else:
-                            file_strs.append(f"*{extension}")
-                    for file_str in file_strs:
-                        paths: List[str] = glob(os.path.join(base_dir,
-                                                             year,
-                                                             month,
-                                                             day,
-                                                             hour,
-                                                             f"{file_str}"))
-                        descriptors: Iterator[IndexEntry] = filter(_not_none, map(IndexEntry.from_path, paths))
-                        path_descriptors.extend(descriptors)
+                    data_dir: str = os.path.join(base_dir, year, month, day)
+                    entries: Iterator[IndexEntry] = iter(index_unstructured(data_dir, read_filter).entries)
+                    index.append(entries)
 
-        return Index(sorted(path_descriptors))
+    index.sort()
+    return index
 
 
 def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
@@ -532,35 +419,18 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
         return index_structured_api_1000(base_dir, read_filter)
     # Maybe parent to one or both?
     else:
-        path_descriptors: List[IndexEntry] = []
+        index: Index = Index()
         subdirs: List[str] = __list_subdirs(base_dir, {"api900", "api1000"})
 
         if "api900" in subdirs:
+            index.append(iter(index_structured_api_900(str(base_path.joinpath("api900"))).entries))
             path_descriptors.extend(index_structured_api_900(str(base_path.joinpath("api900")), read_filter).entries)
 
         if "api1000" in subdirs:
+            index.append(iter(index_structured_api_1000(str(base_path.joinpath("api1000"))).entries))
             path_descriptors.extend(index_structured_api_1000(str(base_path.joinpath("api1000")), read_filter).entries)
 
         return Index(sorted(path_descriptors))
 
-
-def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
-    """
-    Returns the list of file paths that match the given filter for unstructured data.
-    :param base_dir: Directory containing unstructured data.
-    :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
-    :return: An iterator of valid paths.
-    """
-    check_type(base_dir, [str])
-    check_type(read_filter, [ReadFilter])
-
-    path_descriptors: List[IndexEntry] = []
-
-    extension: str
-    for extension in read_filter.extensions:
-        pattern: str = str(PurePath(base_dir).joinpath(f"*{extension}"))
-        paths: List[str] = glob(os.path.join(base_dir, pattern))
-        descriptors: Iterator[IndexEntry] = filter(_not_none, map(IndexEntry.from_path, paths))
-        path_descriptors.extend(descriptors)
-
-    return Index(sorted(path_descriptors))
+        index.sort()
+        return index
