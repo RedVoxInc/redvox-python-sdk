@@ -11,7 +11,7 @@ from redvox.common import api_conversions as ac
 from redvox.common import io
 
 
-def read_all_in_dir(base_dir: str, io_filter: io.ReadFilter, structured: bool = False) -> io.ReadResult:
+def read_all_in_dir(base_dir: str, io_filter: io.ReadFilter, structured: bool = False):
     if structured:
         paths = io.index_structured(base_dir, io_filter)
     else:
@@ -24,4 +24,4 @@ def read_all_in_dir(base_dir: str, io_filter: io.ReadFilter, structured: bool = 
         elif path.extension == ".rdvxm":
             api_m_data.append(WrappedRedvoxPacketM.from_compressed_path(path.full_path))
 
-    return io.ReadResult.from_packets(api_m_data)
+    return api_m_data
