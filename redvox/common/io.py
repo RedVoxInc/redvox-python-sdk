@@ -6,9 +6,9 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from glob import glob
 from functools import total_ordering
-import os.path
 from pathlib import Path, PurePath
 from typing import Any, Iterator, List, Optional, Set, Union, TYPE_CHECKING
+import os.path
 
 from redvox.api900.reader import read_rdvxz_file
 from redvox.api1000.common.common import check_type
@@ -60,8 +60,8 @@ class IndexEntry:
     @staticmethod
     def from_path(path_str: str) -> Optional['IndexEntry']:
         """
-        Attempts to parse a file path into an IndexEntry. If a given path is not recognized as a valid RedVox file, None
-        will be returned instead.
+        Attempts to parse a file path into an IndexEntry. If a given path is not recognized as a valid RedVox file,
+        None will be returned instead.
         :param path_str: The file system path to attempt to parse.
         :return: Either an IndexEntry or successful parse or None.
         """
@@ -228,7 +228,7 @@ class ReadFilter:
 
     def with_api_versions(self, api_versions: Set[ApiVersion]) -> 'ReadFilter':
         """
-        Filters for specifeid API versions.
+        Filters for specified API versions.
         :param api_versions: A set containing valid ApiVersion enums that should be included.
         :return: A modified instance of self.
         """
@@ -346,6 +346,7 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
         paths: List[str] = glob(os.path.join(base_dir, pattern))
         # noinspection Mypy
         entries: Iterator[IndexEntry] = filter(_not_none, map(IndexEntry.from_path, paths))
+        values_test = list(map(ReadFilter.apply, entries))
         index.append(entries)
 
     index.sort()
@@ -400,7 +401,7 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                                                          int(hour))):
                         continue
 
-                    data_dir: str = os.path.join(base_dir, year, month, day)
+                    data_dir: str = os.path.join(base_dir, year, month, day, hour)
                     entries: Iterator[IndexEntry] = iter(index_unstructured(data_dir, read_filter).entries)
                     index.append(entries)
 
@@ -423,14 +424,10 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
         subdirs: List[str] = __list_subdirs(base_dir, {"api900", "api1000"})
 
         if "api900" in subdirs:
-            index.append(iter(index_structured_api_900(str(base_path.joinpath("api900"))).entries))
-            path_descriptors.extend(index_structured_api_900(str(base_path.joinpath("api900")), read_filter).entries)
+            index.append(iter(index_structured_api_900(str(base_path.joinpath("api900")), read_filter).entries))
 
         if "api1000" in subdirs:
-            index.append(iter(index_structured_api_1000(str(base_path.joinpath("api1000"))).entries))
-            path_descriptors.extend(index_structured_api_1000(str(base_path.joinpath("api1000")), read_filter).entries)
-
-        return Index(sorted(path_descriptors))
+            index.append(iter(index_structured_api_1000(str(base_path.joinpath("api1000")), read_filter).entries))
 
         index.sort()
         return index
