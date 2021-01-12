@@ -260,20 +260,15 @@ class ReadFilter:
         check_type(entry, [IndexEntry])
 
         if not self.apply_dt(entry.date_time):
-            print("a")
             return False
 
         if self.station_ids is not None and entry.station_id not in self.station_ids:
-            print("b")
             return False
 
         if self.extensions is not None and entry.extension not in self.extensions:
-            print(entry.extension, self.extensions)
-            print("c")
             return False
 
         if self.api_versions is not None and entry.api_version not in self.api_versions:
-            print("d")
             return False
 
         return True
@@ -406,7 +401,7 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                                                          int(hour))):
                         continue
 
-                    data_dir: str = os.path.join(base_dir, year, month, day)
+                    data_dir: str = os.path.join(base_dir, year, month, day, hour)
                     entries: Iterator[IndexEntry] = iter(index_unstructured(data_dir, read_filter).entries)
                     index.append(entries)
 
@@ -427,7 +422,6 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
     else:
         index: Index = Index()
         subdirs: List[str] = __list_subdirs(base_dir, {"api900", "api1000"})
-
         if "api900" in subdirs:
             index.append(iter(index_structured_api_900(str(base_path.joinpath("api900"))).entries))
 
