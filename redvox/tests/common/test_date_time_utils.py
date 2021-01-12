@@ -183,3 +183,27 @@ class TestDateTime(unittest.TestCase):
         self.assertEqual([("2020", "07", "03"),
                           ("2020", "07", "04")],
                          list(date_it))
+
+    def test_trucate_dt_ymd(self):
+        _dt = datetime(2020, 1, 2, 3, 4, 5, 6)
+        _dt = dt.truncate_dt_ymd(_dt)
+
+        self.assertEqual(2020, _dt.year)
+        self.assertEqual(1, _dt.month)
+        self.assertEqual(2, _dt.day)
+        self.assertEqual(0, _dt.hour)
+        self.assertEqual(0, _dt.minute)
+        self.assertEqual(0, _dt.second)
+        self.assertEqual(0, _dt.microsecond)
+
+    def test_trucate_dt_ymdh(self):
+        _dt = datetime(2020, 1, 2, 3, 4, 5, 6)
+        _dt = dt.truncate_dt_ymdh(_dt)
+
+        self.assertEqual(2020, _dt.year)
+        self.assertEqual(1, _dt.month)
+        self.assertEqual(2, _dt.day)
+        self.assertEqual(3, _dt.hour)
+        self.assertEqual(0, _dt.minute)
+        self.assertEqual(0, _dt.second)
+        self.assertEqual(0, _dt.microsecond)

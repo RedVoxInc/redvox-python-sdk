@@ -1,14 +1,22 @@
 """
 This module provides IO primitives for working with cross-API RedVox data.
 """
-
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from glob import glob
 from functools import total_ordering
 from pathlib import Path, PurePath
-from typing import Any, Iterator, List, Optional, Set, Union, TYPE_CHECKING
-import os.path
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Set,
+    Union,
+    TYPE_CHECKING, Callable
+)
 
 from redvox.api900.reader import read_rdvxz_file
 from redvox.api1000.common.common import check_type
@@ -16,7 +24,9 @@ from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPac
 from redvox.common.versioning import check_version, ApiVersion
 from redvox.common.date_time_utils import (
     datetime_from_epoch_microseconds_utc as dt_us,
-    datetime_from_epoch_milliseconds_utc as dt_ms
+    datetime_from_epoch_milliseconds_utc as dt_ms,
+    truncate_dt_ymd,
+    truncate_dt_ymdh
 )
 
 if TYPE_CHECKING:
@@ -133,7 +143,6 @@ class IndexEntry:
 
         return False
 
-
 # noinspection DuplicatedCode
 @dataclass
 class ReadFilter:
@@ -236,17 +245,19 @@ class ReadFilter:
         self.api_versions = api_versions
         return self
 
-    def apply_dt(self, date_time: datetime) -> bool:
+    def apply_dt(self, date_time: datetime,
+                 dt_fn: Callable[[datetime], datetime] = lambda dt: dt) -> bool:
         """
         Tests if a given datetime passes this filter.
         :param date_time: Datetime to test
+        :param dt_fn: An (optional) function that will transform one datetime into another.
         :return: True if the datetime is included, False otherwise
         """
         check_type(date_time, [datetime])
-        if self.start_dt is not None and date_time < (self.start_dt - self.start_dt_buf):
+        if self.start_dt is not None and date_time < (dt_fn(self.start_dt) - self.start_dt_buf):
             return False
 
-        if self.end_dt is not None and date_time > (self.end_dt + self.end_dt_buf):
+        if self.end_dt is not None and date_time > (dt_fn(self.end_dt) + self.end_dt_buf):
             return False
 
         return True
@@ -275,6 +286,59 @@ class ReadFilter:
 
 
 @dataclass
+class IndexStationSummary:
+    station_id: str
+    api_version: ApiVersion
+    total_packets: int
+    first_packet: datetime
+    last_packet: datetime
+    # mean_diff: timedelta
+    # var_diff: float
+
+    @staticmethod
+    def from_entry(entry: IndexEntry) -> 'IndexStationSummary':
+        return IndexStationSummary(
+            entry.station_id,
+            entry.api_version,
+            1,
+            first_packet=entry.date_time,
+            last_packet=entry.date_time)
+
+    def update(self, entry: IndexEntry):
+        self.total_packets += 1
+        if entry.date_time < self.first_packet:
+            self.first_packet = entry.date_time
+
+        if entry.date_time > self.last_packet:
+            self.last_packet = entry.date_time
+
+
+@dataclass
+class IndexSummary:
+    station_summaries: Dict[ApiVersion, Dict[str, IndexStationSummary]]
+
+    def station_ids(self, api_version: ApiVersion = None) -> List[str]:
+        pass
+
+    def total_packets(self, api_version: ApiVersion = None) -> int:
+        pass
+
+    @staticmethod
+    def from_index(index: 'Index') -> 'IndexSummary':
+        station_summaries: Dict[ApiVersion, Dict[str, IndexStationSummary]] = defaultdict(dict)
+
+        entry: IndexEntry
+        for entry in index.entries:
+            sub_entry: Dict[str, IndexStationSummary] = station_summaries[entry.api_version]
+            if entry.station_id in sub_entry:
+                sub_entry[entry.station_id].update(entry)
+            else:
+                sub_entry[entry.station_id] = IndexStationSummary.from_entry(entry)
+
+        return IndexSummary(station_summaries)
+
+
+@dataclass
 class Index:
     """
     An index of available RedVox files from the file system.
@@ -294,11 +358,11 @@ class Index:
         """
         self.entries.extend(entries)
 
-    def summarize(self):
-        pass
+    def summarize(self) -> IndexSummary:
+        return IndexSummary.from_index(self)
 
     def stream(self, read_filter: ReadFilter = ReadFilter()) -> Iterator[
-            Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
+        Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
         """
         Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
         :param read_filter: Additional filtering to specify which data should be streamed.
@@ -369,7 +433,8 @@ def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter
                 # filter's range. If not, we can short circuit and skip getting the *.rdvxz files.
                 if not read_filter.apply_dt(datetime(int(year),
                                                      int(month),
-                                                     int(day))):
+                                                     int(day)),
+                                            dt_fn=truncate_dt_ymd):
                     continue
 
                 data_dir: str = os.path.join(base_dir, year, month, day)
@@ -398,7 +463,8 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                     if not read_filter.apply_dt(datetime(int(year),
                                                          int(month),
                                                          int(day),
-                                                         int(hour))):
+                                                         int(hour)),
+                                                dt_fn=truncate_dt_ymdh):
                         continue
 
                     data_dir: str = os.path.join(base_dir, year, month, day, hour)
