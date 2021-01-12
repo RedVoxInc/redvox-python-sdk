@@ -260,15 +260,20 @@ class ReadFilter:
         check_type(entry, [IndexEntry])
 
         if not self.apply_dt(entry.date_time):
+            print("a")
             return False
 
         if self.station_ids is not None and entry.station_id not in self.station_ids:
+            print("b")
             return False
 
-        if self.extensions is not None and f".{entry.extension}" not in self.extensions:
+        if self.extensions is not None and entry.extension not in self.extensions:
+            print(entry.extension, self.extensions)
+            print("c")
             return False
 
         if self.api_versions is not None and entry.api_version not in self.api_versions:
+            print("d")
             return False
 
         return True
@@ -304,8 +309,9 @@ class Index:
         :param read_filter: Additional filtering to specify which data should be streamed.
         :return: An iterator over WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
         """
+        filtered: Iterator[IndexEntry] = filter(lambda entry: read_filter.apply(entry), self.entries)
         # noinspection Mypy
-        return map(IndexEntry.read, filter(lambda entry: read_filter.apply(entry), self.entries))
+        return map(IndexEntry.read, filtered)
 
     def read(self, read_filter: ReadFilter = ReadFilter()) -> List[Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
         return list(self.stream(read_filter))
