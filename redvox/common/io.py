@@ -290,7 +290,6 @@ class IndexStationSummary:
     total_packets: int
     first_packet: datetime
     last_packet: datetime
-
     # mean_diff: timedelta
     # var_diff: float
 
@@ -316,12 +315,10 @@ class IndexStationSummary:
 class IndexSummary:
     station_summaries: Dict[ApiVersion, Dict[str, IndexStationSummary]]
 
-    # noinspection PyDefaultArgument
-    def station_ids(self, api_versions: Set[ApiVersion] = {ApiVersion.API_900, ApiVersion.API_1000}) -> List[str]:
+    def station_ids(self, api_version: ApiVersion = None) -> List[str]:
         pass
 
-    # noinspection PyDefaultArgument
-    def total_packets(self, api_versions: Set[ApiVersion] = {ApiVersion.API_900, ApiVersion.API_1000}) -> int:
+    def total_packets(self, api_version: ApiVersion = None) -> int:
         pass
 
     @staticmethod
