@@ -1,14 +1,23 @@
 """
 This module provides IO primitives for working with cross-API RedVox data.
 """
-
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from glob import glob
 from functools import reduce, total_ordering
 import os.path
 from pathlib import Path, PurePath
-from typing import Any, Iterator, List, Optional, Set, Union, TYPE_CHECKING
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Set,
+    Union,
+    TYPE_CHECKING
+)
 
 from redvox.api900.reader import read_rdvxz_file
 from redvox.api1000.common.common import check_type
@@ -276,15 +285,58 @@ class ReadFilter:
 
 @dataclass
 class IndexStationSummary:
+    station_id: str
     api_version: ApiVersion
     total_packets: int
     first_packet: datetime
     last_packet: datetime
 
+    # mean_diff: timedelta
+    # var_diff: float
+
+    @staticmethod
+    def from_entry(entry: IndexEntry) -> 'IndexStationSummary':
+        return IndexStationSummary(
+            entry.station_id,
+            entry.api_version,
+            1,
+            first_packet=entry.date_time,
+            last_packet=entry.date_time)
+
+    def update(self, entry: IndexEntry):
+        self.total_packets += 1
+        if entry.date_time < self.first_packet:
+            self.first_packet = entry.date_time
+
+        if entry.date_time > self.last_packet:
+            self.last_packet = entry.date_time
+
 
 @dataclass
 class IndexSummary:
-    station_summaries: List[IndexStationSummary]
+    station_summaries: Dict[ApiVersion, Dict[str, IndexStationSummary]]
+
+    # noinspection PyDefaultArgument
+    def station_ids(self, api_versions: Set[ApiVersion] = {ApiVersion.API_900, ApiVersion.API_1000}) -> List[str]:
+        pass
+
+    # noinspection PyDefaultArgument
+    def total_packets(self, api_versions: Set[ApiVersion] = {ApiVersion.API_900, ApiVersion.API_1000}) -> int:
+        pass
+
+    @staticmethod
+    def from_index(index: 'Index') -> 'IndexSummary':
+        station_summaries: Dict[ApiVersion, Dict[str, IndexStationSummary]] = defaultdict(dict)
+
+        entry: IndexEntry
+        for entry in index.entries:
+            sub_entry: Dict[str, IndexStationSummary] = station_summaries[entry.api_version]
+            if entry.station_id in sub_entry:
+                sub_entry[entry.station_id].update(entry)
+            else:
+                sub_entry[entry.station_id] = IndexStationSummary.from_entry(entry)
+
+        return IndexSummary(station_summaries)
 
 
 @dataclass
@@ -307,14 +359,8 @@ class Index:
         """
         self.entries.extend(entries)
 
-    def summarize(self):
-        pass
-
-    # noinspection PyDefaultArgument
-    def station_ids(self, api_versions: Set[ApiVersion] = {ApiVersion.API_900, ApiVersion.API_1000}) -> List[str]:
-        entries: Iterator[IndexEntry] = filter(lambda entry: entry.api_version in api_versions, self.entries)
-        ids: Iterator[str] = map(lambda entry: entry.station_id, entries)
-        return sorted(list(ids))
+    def summarize(self) -> IndexSummary:
+        return IndexSummary.from_index(self)
 
     def stream(self, read_filter: ReadFilter = ReadFilter()) -> Iterator[
         Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
