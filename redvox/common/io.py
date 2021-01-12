@@ -144,6 +144,7 @@ class IndexEntry:
 
         return False
 
+
 # noinspection DuplicatedCode
 @dataclass
 class ReadFilter:
@@ -288,16 +289,25 @@ class ReadFilter:
 
 @dataclass
 class IndexStationSummary:
+    """
+    Summary of a single station in the index.
+    """
     station_id: str
     api_version: ApiVersion
     total_packets: int
     first_packet: datetime
     last_packet: datetime
+
     # mean_diff: timedelta
     # var_diff: float
 
     @staticmethod
     def from_entry(entry: IndexEntry) -> 'IndexStationSummary':
+        """
+        Instantiates a new summary from a given IndexEntry.
+        :param entry: Entry to copy information from.
+        :return: An instance of IndexStationSummary.
+        """
         return IndexStationSummary(
             entry.station_id,
             entry.api_version,
@@ -305,7 +315,11 @@ class IndexStationSummary:
             first_packet=entry.date_time,
             last_packet=entry.date_time)
 
-    def update(self, entry: IndexEntry):
+    def update(self, entry: IndexEntry) -> None:
+        """
+        Updates this summary given a new index entry.
+        :param entry: Entry to update this summary from.
+        """
         self.total_packets += 1
         if entry.date_time < self.first_packet:
             self.first_packet = entry.date_time
@@ -316,24 +330,60 @@ class IndexStationSummary:
 
 @dataclass
 class IndexSummary:
+    """
+    Summarizes the contents of the index.
+    """
     station_summaries: Dict[ApiVersion, Dict[str, IndexStationSummary]]
 
     def station_ids(self, api_version: ApiVersion = None) -> List[str]:
-        pass
+        """
+        Returns the station IDs referenced by this index.
+        :param api_version: An (optional) filter to only return packets for a specified RedVox API version.
+                            None will collect station IDs from all API versions.
+        :return: The station IDs referenced by this index.
+        """
+        if api_version is not None:
+            return list(set(map(lambda summary: summary.station_id, self.station_summaries[api_version].values())))
+        else:
+            # noinspection PyTypeChecker
+            return list(set(map(lambda summary: summary.station_id,
+                                self.station_summaries[ApiVersion.API_900].values()))) + \
+                   list(set(map(lambda summary: summary.station_id,
+                                self.station_summaries[ApiVersion.API_1000].values())))
 
     def total_packets(self, api_version: ApiVersion = None) -> int:
-        pass
+        """
+        Returns the total number of packets referenced by this index.
+        :param api_version: An (optional) filter to only return packets for a specified RedVox API version.
+                            None will count packets from all API versions.
+        :return: The total number of packets referenced by this index.
+        """
+        if api_version is not None:
+            return sum(map(lambda summary: summary.total_packets, self.station_summaries[api_version].values()))
+        else:
+            # noinspection PyTypeChecker
+            return sum(map(lambda summary: summary.total_packets,
+                           self.station_summaries[ApiVersion.API_900].values())) + \
+                   sum(map(lambda summary: summary.total_packets,
+                           self.station_summaries[ApiVersion.API_1000].values()))
 
     @staticmethod
     def from_index(index: 'Index') -> 'IndexSummary':
+        """
+        Builds an IndexSummary from a given index.
+        :param index: Index to build summary from.
+        :return: An instance of IndexSummary.
+        """
         station_summaries: Dict[ApiVersion, Dict[str, IndexStationSummary]] = defaultdict(dict)
 
         entry: IndexEntry
         for entry in index.entries:
             sub_entry: Dict[str, IndexStationSummary] = station_summaries[entry.api_version]
             if entry.station_id in sub_entry:
+                # Update existing station summary
                 sub_entry[entry.station_id].update(entry)
             else:
+                # Create new station summary
                 sub_entry[entry.station_id] = IndexStationSummary.from_entry(entry)
 
         return IndexSummary(station_summaries)
@@ -360,10 +410,13 @@ class Index:
         self.entries.extend(entries)
 
     def summarize(self) -> IndexSummary:
+        """
+        :return: A summary of the contents of this index.
+        """
         return IndexSummary.from_index(self)
 
     def stream(self, read_filter: ReadFilter = ReadFilter()) -> Iterator[
-        Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
+            Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
         """
         Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
         :param read_filter: Additional filtering to specify which data should be streamed.
@@ -377,6 +430,7 @@ class Index:
         return list(self.stream(read_filter))
 
 
+# The following constants are used for identifying valid RedVox API 900 and API 1000 structured directory layouts.
 __VALID_YEARS: Set[str] = {f"{i:04}" for i in range(2015, 2031)}
 __VALID_MONTHS: Set[str] = {f"{i:02}" for i in range(1, 13)}
 __VALID_DATES: Set[str] = {f"{i:02}" for i in range(1, 32)}
@@ -477,6 +531,13 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
 
 
 def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
+    """
+    "Indexes both API 900 and API 1000 structured directory layouts.
+    :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
+                     API 900 and API 1000.
+    :param read_filter: Filter to further filter results.
+    :return: An Index of RedVox files.
+    """
     base_path: PurePath = PurePath(base_dir)
 
     # API 900
