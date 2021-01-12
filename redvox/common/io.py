@@ -423,10 +423,10 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
         index: Index = Index()
         subdirs: List[str] = __list_subdirs(base_dir, {"api900", "api1000"})
         if "api900" in subdirs:
-            index.append(iter(index_structured_api_900(str(base_path.joinpath("api900"))).entries))
+            index.append(iter(index_structured_api_900(str(base_path.joinpath("api900")), read_filter).entries))
 
         if "api1000" in subdirs:
-            index.append(iter(index_structured_api_1000(str(base_path.joinpath("api1000"))).entries))
+            index.append(iter(index_structured_api_1000(str(base_path.joinpath("api1000")), read_filter).entries))
 
         index.sort()
         return index
