@@ -5,7 +5,7 @@ This module provides IO primitives for working with cross-API RedVox data.
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from glob import glob
-from functools import total_ordering
+from functools import reduce, total_ordering
 import os.path
 from pathlib import Path, PurePath
 from typing import Any, Iterator, List, Optional, Set, Union, TYPE_CHECKING
@@ -275,6 +275,19 @@ class ReadFilter:
 
 
 @dataclass
+class IndexStationSummary:
+    api_version: ApiVersion
+    total_packets: int
+    first_packet: datetime
+    last_packet: datetime
+
+
+@dataclass
+class IndexSummary:
+    station_summaries: List[IndexStationSummary]
+
+
+@dataclass
 class Index:
     """
     An index of available RedVox files from the file system.
@@ -297,8 +310,14 @@ class Index:
     def summarize(self):
         pass
 
+    # noinspection PyDefaultArgument
+    def station_ids(self, api_versions: Set[ApiVersion] = {ApiVersion.API_900, ApiVersion.API_1000}) -> List[str]:
+        entries: Iterator[IndexEntry] = filter(lambda entry: entry.api_version in api_versions, self.entries)
+        ids: Iterator[str] = map(lambda entry: entry.station_id, entries)
+        return sorted(list(ids))
+
     def stream(self, read_filter: ReadFilter = ReadFilter()) -> Iterator[
-            Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
+        Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
         """
         Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
         :param read_filter: Additional filtering to specify which data should be streamed.
