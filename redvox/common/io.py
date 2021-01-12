@@ -346,8 +346,7 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
         pattern: str = str(PurePath(base_dir).joinpath(f"*{extension}"))
         paths: List[str] = glob(os.path.join(base_dir, pattern))
         # noinspection Mypy
-        entries: Iterator[IndexEntry] = filter(_not_none, map(IndexEntry.from_path, paths))
-        values_test = list(map(ReadFilter.apply, entries))
+        entries: Iterator[IndexEntry] = filter(read_filter.apply, filter(_not_none, map(IndexEntry.from_path, paths)))
         index.append(entries)
 
     index.sort()
