@@ -573,3 +573,21 @@ class DateIteratorAPIM:
         self.start_dt += self._one_hour
 
         return year, month, day, hour
+
+
+def truncate_dt_ymd(dt: datetime) -> datetime:
+    """
+    Truncates the provides datetime to only year, month, day.
+    :param dt: The datetime to truncate.
+    :return: A truncated datetime.
+    """
+    return datetime(dt.year, dt.month, dt.day)
+
+
+def truncate_dt_ymdh(dt: datetime) -> datetime:
+    """
+    Truncates the provides datetime to only year, month, day, hour.
+    :param dt: The datetime to truncate.
+    :return: A truncated datetime.
+    """
+    return datetime(dt.year, dt.month, dt.day, dt.hour)

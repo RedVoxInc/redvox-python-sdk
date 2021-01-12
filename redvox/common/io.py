@@ -16,7 +16,7 @@ from typing import (
     Optional,
     Set,
     Union,
-    TYPE_CHECKING
+    TYPE_CHECKING, Callable
 )
 
 from redvox.api900.reader import read_rdvxz_file
@@ -142,7 +142,6 @@ class IndexEntry:
 
         return False
 
-
 # noinspection DuplicatedCode
 @dataclass
 class ReadFilter:
@@ -245,17 +244,19 @@ class ReadFilter:
         self.api_versions = api_versions
         return self
 
-    def apply_dt(self, date_time: datetime) -> bool:
+    def apply_dt(self, date_time: datetime,
+                 dt_fn: Callable[[datetime], datetime] = lambda dt: dt) -> bool:
         """
         Tests if a given datetime passes this filter.
         :param date_time: Datetime to test
+        :param dt_fn: An (optional) function that will transform one datetime into another.
         :return: True if the datetime is included, False otherwise
         """
         check_type(date_time, [datetime])
-        if self.start_dt is not None and date_time < (self.start_dt - self.start_dt_buf):
+        if self.start_dt is not None and date_time < (dt_fn(self.start_dt) - self.start_dt_buf):
             return False
 
-        if self.end_dt is not None and date_time > (self.end_dt + self.end_dt_buf):
+        if self.end_dt is not None and date_time > (dt_fn(self.end_dt) + self.end_dt_buf):
             return False
 
         return True
