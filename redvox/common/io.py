@@ -5,7 +5,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from glob import glob
-from functools import reduce, total_ordering
+from functools import total_ordering
 import os.path
 from pathlib import Path, PurePath
 from typing import (
@@ -25,7 +25,9 @@ from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPac
 from redvox.common.versioning import check_version, ApiVersion
 from redvox.common.date_time_utils import (
     datetime_from_epoch_microseconds_utc as dt_us,
-    datetime_from_epoch_milliseconds_utc as dt_ms
+    datetime_from_epoch_milliseconds_utc as dt_ms,
+    truncate_dt_ymd,
+    truncate_dt_ymdh
 )
 
 if TYPE_CHECKING:
@@ -432,7 +434,8 @@ def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter
                 # filter's range. If not, we can short circuit and skip getting the *.rdvxz files.
                 if not read_filter.apply_dt(datetime(int(year),
                                                      int(month),
-                                                     int(day))):
+                                                     int(day)),
+                                            dt_fn=truncate_dt_ymd):
                     continue
 
                 data_dir: str = os.path.join(base_dir, year, month, day)
@@ -461,7 +464,8 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
                     if not read_filter.apply_dt(datetime(int(year),
                                                          int(month),
                                                          int(day),
-                                                         int(hour))):
+                                                         int(hour)),
+                                                dt_fn=truncate_dt_ymdh):
                         continue
 
                     data_dir: str = os.path.join(base_dir, year, month, day, hour)
