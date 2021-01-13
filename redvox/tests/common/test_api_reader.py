@@ -1,6 +1,7 @@
 """
 tests for api X reader
 """
+from datetime import timedelta
 import unittest
 import os
 
@@ -16,15 +17,18 @@ class ApiReaderTest(unittest.TestCase):
         self.api_900_filter = io.ReadFilter(extensions={".rdvxz"})
         self.api_1000_filter = io.ReadFilter(extensions={".rdvxm"})
 
-    # def test_read_all_in_dir_start_time(self):
-    #     time_filter = io.ReadFilter(extensions={".rdvxm", ".rdvxz"},
-    #                                 start_dt=dtu.datetime_from_epoch_microseconds_utc(1609984850000000))
-    #     api900_dir = os.path.join(tests.APIX_READER_TEST_DATA_DIR, "api900")
-    #     reader = api_reader.ApiReader(api900_dir, time_filter, True)
-    #     result = reader.read_files()
-    #     result_by_id = api_reader.get_data_by_id(result, "1637610021")
-    #     self.assertEqual(len(result), 9)
-    #     self.assertEqual(len(result_by_id), 3)
+    def test_read_all_in_dir_start_time(self):
+        time_filter = io.ReadFilter(extensions={".rdvxm", ".rdvxz"}, start_dt_buf=timedelta(seconds=10),
+                                    start_dt=dtu.datetime_from_epoch_microseconds_utc(1609984850000000))
+        reader = api_reader.ApiReader(time_filter, self.input_dir, True)
+        result = reader.read_files()
+        self.assertEqual(len(result), 12)
+        result_by_id = api_reader.get_data_by_id(result, "1637610021")
+        self.assertEqual(len(result_by_id), 2)
+        result_by_id = api_reader.get_data_by_id(result, "1637620009")
+        self.assertEqual(len(result_by_id), 2)
+        result_by_id = api_reader.get_data_by_id(result, "1637110703")
+        self.assertEqual(len(result_by_id), 2)
 
     def test_read_all_in_dir_station_ids_fail(self):
         ids_filter = io.ReadFilter(extensions={".rdvxm", ".rdvxz"}, station_ids={"1637610021"})

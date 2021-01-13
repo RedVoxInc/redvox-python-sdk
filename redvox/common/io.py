@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from glob import glob
 from functools import total_ordering
 from pathlib import Path, PurePath
+import os.path
 from typing import (
     Any,
     Dict,
@@ -142,6 +143,7 @@ class IndexEntry:
             return self.full_path == other.full_path
 
         return False
+
 
 # noinspection DuplicatedCode
 @dataclass
@@ -361,8 +363,8 @@ class Index:
     def summarize(self) -> IndexSummary:
         return IndexSummary.from_index(self)
 
-    def stream(self, read_filter: ReadFilter = ReadFilter()) -> Iterator[
-        Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
+    def stream(self, read_filter: ReadFilter = ReadFilter()) -> \
+            Iterator[Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
         """
         Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
         :param read_filter: Additional filtering to specify which data should be streamed.
