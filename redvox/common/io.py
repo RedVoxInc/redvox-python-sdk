@@ -69,11 +69,13 @@ class IndexEntry:
     api_version: ApiVersion
 
     @staticmethod
-    def from_path(path_str: str) -> Optional['IndexEntry']:
+    def from_path(path_str: str,
+                  strict: bool = True) -> Optional['IndexEntry']:
         """
         Attempts to parse a file path into an IndexEntry. If a given path is not recognized as a valid RedVox file, None
         will be returned instead.
         :param path_str: The file system path to attempt to parse.
+        :param strict: When set, None is returned if the referenced file DNE.
         :return: Either an IndexEntry or successful parse or None.
         """
         api_version: ApiVersion = check_version(path_str)
@@ -112,6 +114,8 @@ class IndexEntry:
         try:
             full_path = str(path.resolve(strict=True))
         except FileNotFoundError:
+            if strict:
+                return None
             full_path = path_str
 
         return IndexEntry(full_path,
@@ -266,7 +270,7 @@ class ReadFilter:
 
     def with_api_versions(self, api_versions: Optional[Set[ApiVersion]]) -> 'ReadFilter':
         """
-        Filters for specifeid API versions.
+        Filters for specified API versions.
         :param api_versions: A set containing valid ApiVersion enums that should be included.
         :return: A modified instance of self.
         """
