@@ -451,3 +451,83 @@ class ReadFilterTests(TestCase):
         read_filter = io.ReadFilter().with_station_ids({"1", "2", "3"}).with_extensions(None).with_api_versions(None)
         entries = [io.IndexEntry.from_path("1_0"), io.IndexEntry.from_path("2_0"), io.IndexEntry.from_path("3_0")]
         self.assertEqual(["1", "2", "3"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+
+    def test_extensions_default(self):
+        read_filter = io.ReadFilter().with_api_versions(None)
+        entries = [
+            io.IndexEntry.from_path("1_0.rdvxm"),
+            io.IndexEntry.from_path("2_0.rdvxz"),
+            io.IndexEntry.from_path("3_0.foo"),
+            io.IndexEntry.from_path("4_0."),
+            io.IndexEntry.from_path("5_0"),
+        ]
+        self.assertEqual(["1", "2"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+
+    def test_extensions_all(self):
+        read_filter = io.ReadFilter().with_api_versions(None).with_extensions(None)
+        entries = [
+            io.IndexEntry.from_path("1_0.rdvxm"),
+            io.IndexEntry.from_path("2_0.rdvxz"),
+            io.IndexEntry.from_path("3_0.foo"),
+            io.IndexEntry.from_path("4_0."),
+            io.IndexEntry.from_path("5_0"),
+        ]
+        self.assertEqual(["1", "2", "3", "4", "5"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+
+    def test_extensions_none(self):
+        read_filter = io.ReadFilter().with_api_versions(None).with_extensions(set())
+        entries = [
+            io.IndexEntry.from_path("1_0.rdvxm"),
+            io.IndexEntry.from_path("2_0.rdvxz"),
+            io.IndexEntry.from_path("3_0.foo"),
+            io.IndexEntry.from_path("4_0."),
+            io.IndexEntry.from_path("5_0"),
+        ]
+        self.assertEqual([], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+
+
+    def test_extensions_none_2(self):
+        read_filter = io.ReadFilter().with_api_versions(None).with_extensions({".bar"})
+        entries = [
+            io.IndexEntry.from_path("1_0.rdvxm"),
+            io.IndexEntry.from_path("2_0.rdvxz"),
+            io.IndexEntry.from_path("3_0.foo"),
+            io.IndexEntry.from_path("4_0."),
+            io.IndexEntry.from_path("5_0"),
+        ]
+        self.assertEqual([], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+
+
+    def test_extensions_one(self):
+        read_filter = io.ReadFilter().with_api_versions(None).with_extensions({".foo"})
+        entries = [
+            io.IndexEntry.from_path("1_0.rdvxm"),
+            io.IndexEntry.from_path("2_0.rdvxz"),
+            io.IndexEntry.from_path("3_0.foo"),
+            io.IndexEntry.from_path("4_0."),
+            io.IndexEntry.from_path("5_0"),
+        ]
+        self.assertEqual(["3"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+
+    def test_extensions_some(self):
+        read_filter = io.ReadFilter().with_api_versions(None).with_extensions({".foo", ".bar", ".rdvxm"})
+        entries = [
+            io.IndexEntry.from_path("1_0.rdvxm"),
+            io.IndexEntry.from_path("2_0.rdvxz"),
+            io.IndexEntry.from_path("3_0.foo"),
+            io.IndexEntry.from_path("4_0."),
+            io.IndexEntry.from_path("5_0"),
+        ]
+        self.assertEqual(["1", "3"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+
+    def test_extensions_select_all(self):
+        read_filter = io.ReadFilter().with_api_versions(None).with_extensions({".rdvxm", ".rdvxz", ".foo", "", "."})
+        entries = [
+            io.IndexEntry.from_path("1_0.rdvxm"),
+            io.IndexEntry.from_path("2_0.rdvxz"),
+            io.IndexEntry.from_path("3_0.foo"),
+            io.IndexEntry.from_path("4_0."),
+            io.IndexEntry.from_path("5_0"),
+        ]
+        self.assertEqual(["1", "2", "3", "4", "5"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
