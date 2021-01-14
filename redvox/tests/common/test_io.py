@@ -309,6 +309,20 @@ class IndexEntryTests(TestCase):
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
         self.assertIsNone(entry)
 
+    def test_read_900(self):
+        path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "0000000900_1609459200000.rdvxz")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        packet = entry.read()
+        self.assertIsNotNone(packet)
+        self.assertEqual(900, packet.api())
+
+    def test_read_1000(self):
+        path: str = copy_exact(self.template_1000_path, self.unstructured_900_dir, "0000001000_1609459200000000.rdvxm")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        packet = entry.read()
+        self.assertIsNotNone(packet)
+        self.assertEqual(1000.0, packet.get_api())
+
 
 class IndexTests(TestCase):
     pass
