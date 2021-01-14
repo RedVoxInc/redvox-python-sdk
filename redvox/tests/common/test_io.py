@@ -349,6 +349,34 @@ class IndexTests(TestCase):
 
 
 class ReadFilterTests(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.temp_dir = tempfile.TemporaryDirectory()
+        cls.temp_dir_path = cls.temp_dir.name
+
+        cls.template_dir: str = os.path.join(cls.temp_dir_path, "templates")
+        os.makedirs(cls.template_dir, exist_ok=True)
+
+        cls.unstructured_900_dir: str = os.path.join(cls.temp_dir_path, "unstructured_900")
+        os.makedirs(cls.unstructured_900_dir, exist_ok=True)
+
+        cls.unstructured_1000_dir: str = os.path.join(cls.temp_dir_path, "unstructured_1000")
+        os.makedirs(cls.unstructured_1000_dir, exist_ok=True)
+
+        cls.unstructured_900_1000_dir: str = os.path.join(cls.temp_dir_path, "unstructured_900_1000")
+        os.makedirs(cls.unstructured_900_1000_dir, exist_ok=True)
+
+        cls.template_900_path = os.path.join(cls.template_dir, "template_900.rdvxz")
+        cls.template_1000_path = os.path.join(cls.template_dir, "template_1000.rdvxm")
+
+        write_min_api_900(cls.template_dir, "template_900.rdvxz")
+        write_min_api_1000(cls.template_dir, "template_1000.rdvxm")
+
+    # noinspection PyUnresolvedReferences
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.temp_dir.cleanup()
+
     def test_default(self) -> None:
         read_filter = io.ReadFilter()
         self.assertEqual(None, read_filter.start_dt)
@@ -486,7 +514,6 @@ class ReadFilterTests(TestCase):
         ]
         self.assertEqual([], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
-
     def test_extensions_none_2(self):
         read_filter = io.ReadFilter().with_api_versions(None).with_extensions({".bar"})
         entries = [
@@ -497,7 +524,6 @@ class ReadFilterTests(TestCase):
             io.IndexEntry.from_path("5_0"),
         ]
         self.assertEqual([], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
-
 
     def test_extensions_one(self):
         read_filter = io.ReadFilter().with_api_versions(None).with_extensions({".foo"})
@@ -530,19 +556,101 @@ class ReadFilterTests(TestCase):
             io.IndexEntry.from_path("4_0."),
             io.IndexEntry.from_path("5_0"),
         ]
-        self.assertEqual(["1", "2", "3", "4", "5"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+        self.assertEqual(["1", "2", "3", "4", "5"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_api_version_all(self):
-        pass
+        read_filter = io.ReadFilter() \
+            .with_extensions(None) \
+            .with_api_versions(None)
+        api_900_path = copy_exact(self.template_900_path,
+                                  self.unstructured_900_dir,
+                                  "900_0.rdvxz")
+        api_1000_path = copy_exact(self.template_1000_path,
+                                   self.unstructured_1000_dir,
+                                   "1000_0.rdvxz")
+        entries = [
+            io.IndexEntry.from_path(api_900_path),
+            io.IndexEntry.from_path(api_1000_path),
+            io.IndexEntry.from_path("0_0")
+        ]
+        self.assertEqual(["900", "1000", "0"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_api_version_unknown(self):
-        pass
+        read_filter = io.ReadFilter() \
+            .with_extensions(None) \
+            .with_api_versions({io.ApiVersion.UNKNOWN})
+        api_900_path = copy_exact(self.template_900_path,
+                                  self.unstructured_900_dir,
+                                  "900_0.rdvxz")
+        api_1000_path = copy_exact(self.template_1000_path,
+                                   self.unstructured_1000_dir,
+                                   "1000_0.rdvxz")
+        entries = [
+            io.IndexEntry.from_path(api_900_path),
+            io.IndexEntry.from_path(api_1000_path),
+            io.IndexEntry.from_path("0_0")
+        ]
+        self.assertEqual(["0"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_api_version_900(self):
-        pass
+        read_filter = io.ReadFilter() \
+            .with_extensions(None) \
+            .with_api_versions({io.ApiVersion.API_900})
+        api_900_path = copy_exact(self.template_900_path,
+                                  self.unstructured_900_dir,
+                                  "900_0.rdvxz")
+        api_1000_path = copy_exact(self.template_1000_path,
+                                   self.unstructured_1000_dir,
+                                   "1000_0.rdvxz")
+        entries = [
+            io.IndexEntry.from_path(api_900_path),
+            io.IndexEntry.from_path(api_1000_path),
+            io.IndexEntry.from_path("0_0")
+        ]
+        self.assertEqual(["900"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+
 
     def test_api_version_1000(self):
-        pass
+        read_filter = io.ReadFilter() \
+            .with_extensions(None) \
+            .with_api_versions({io.ApiVersion.API_1000})
+        api_900_path = copy_exact(self.template_900_path,
+                                  self.unstructured_900_dir,
+                                  "900_0.rdvxz")
+        api_1000_path = copy_exact(self.template_1000_path,
+                                   self.unstructured_1000_dir,
+                                   "1000_0.rdvxz")
+        entries = [
+            io.IndexEntry.from_path(api_900_path),
+            io.IndexEntry.from_path(api_1000_path),
+            io.IndexEntry.from_path("0_0")
+        ]
+        self.assertEqual(["1000"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+
 
     def test_api_version_multi(self):
-        pass
+        read_filter = io.ReadFilter() \
+            .with_extensions(None) \
+            .with_api_versions({
+            io.ApiVersion.API_900,
+            io.ApiVersion.API_1000,
+            io.ApiVersion.UNKNOWN
+        })
+        api_900_path = copy_exact(self.template_900_path,
+                                  self.unstructured_900_dir,
+                                  "900_0.rdvxz")
+        api_1000_path = copy_exact(self.template_1000_path,
+                                   self.unstructured_1000_dir,
+                                   "1000_0.rdvxz")
+        entries = [
+            io.IndexEntry.from_path(api_900_path),
+            io.IndexEntry.from_path(api_1000_path),
+            io.IndexEntry.from_path("0_0")
+        ]
+        self.assertEqual(["900", "1000", "0"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
