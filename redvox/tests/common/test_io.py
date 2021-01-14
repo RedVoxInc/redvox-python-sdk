@@ -384,7 +384,20 @@ class IndexTests(IoTestCase):
 
         index = io.Index(entries)
         index.sort()
-        # self.assertEqual(["2", "1", "0"], list(map(lambda entry: entry.station_id, index.entries)))
+        self.assertEqual([
+            entries[11],
+            entries[10],
+            entries[9],
+            entries[8],
+            entries[7],
+            entries[6],
+            entries[5],
+            entries[4],
+            entries[3],
+            entries[2],
+            entries[1],
+            entries[0],
+        ], index.entries)
 
 
 
