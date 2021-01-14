@@ -88,6 +88,12 @@ class IndexEntry:
 
         station_id: str = split_name[0]
         ts_str: str = split_name[1]
+
+        # If you have a filename with a dot, but not an extension, i.e. "0000000001_0.", we need to remove the dot
+        # from the end
+        if ts_str[-1] == ".":
+            ts_str = ts_str[:-1]
+
         timestamp: Optional[int] = _is_int(ts_str)
 
         # Ensure that both the station ID and timestamp can be represented as ints
