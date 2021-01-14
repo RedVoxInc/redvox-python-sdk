@@ -428,17 +428,19 @@ class ReadFilterTests(TestCase):
         self.assertTrue(read_filter.apply_dt(datetime(2021, 1, 1, 23), truncate_dt_ymdh))
 
     def test_apply_all_station_ids(self):
-        read_filter = io.ReadFilter()
+        read_filter = io.ReadFilter().with_extensions(None).with_api_versions(None)
         entries = [io.IndexEntry.from_path("1_0"), io.IndexEntry.from_path("2_0"), io.IndexEntry.from_path("3_0")]
         self.assertEqual(["1", "2", "3"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_apply_no_station_ids(self):
-        read_filter = io.ReadFilter().with_station_ids({"4"})
+        read_filter = io.ReadFilter().with_station_ids({"4"}).with_extensions(None).with_api_versions(None)
         entries = [io.IndexEntry.from_path("1_0"), io.IndexEntry.from_path("2_0"), io.IndexEntry.from_path("3_0")]
         self.assertEqual([], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_apply_one_station_ids(self):
-        pass
+        read_filter = io.ReadFilter().with_station_ids({"2"}).with_extensions(None).with_api_versions(None)
+        entries = [io.IndexEntry.from_path("1_0"), io.IndexEntry.from_path("2_0"), io.IndexEntry.from_path("3_0")]
+        self.assertEqual(["2"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_apply_some_station_ids(self):
         pass
