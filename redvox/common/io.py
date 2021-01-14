@@ -88,6 +88,13 @@ class IndexEntry:
 
         station_id: str = split_name[0]
         ts_str: str = split_name[1]
+
+        # If you have a filename with a dot, but not an extension, i.e. "0000000001_0.", we need to remove the dot
+        # from the end and make in the extension
+        if ts_str[-1] == ".":
+            ts_str = ts_str[:-1]
+            ext = "."
+
         timestamp: Optional[int] = _is_int(ts_str)
 
         # Ensure that both the station ID and timestamp can be represented as ints
@@ -101,7 +108,13 @@ class IndexEntry:
         else:
             date_time = dt_ms(timestamp)
 
-        return IndexEntry(str(path.resolve(strict=True)),
+        full_path: str
+        try:
+            full_path = str(path.resolve(strict=True))
+        except FileNotFoundError:
+            full_path = path_str
+
+        return IndexEntry(full_path,
                           station_id,
                           date_time,
                           ext,
@@ -154,96 +167,102 @@ class ReadFilter:
     start_dt: Optional[datetime] = None
     end_dt: Optional[datetime] = None
     station_ids: Optional[Set[str]] = None
-    extensions: Set[str] = field(default_factory=lambda: {".rdvxm", ".rdvxz"})
-    start_dt_buf: timedelta = timedelta(minutes=2.0)
-    end_dt_buf: timedelta = timedelta(minutes=2.0)
-    api_versions: Set[ApiVersion] = field(default_factory=lambda: {ApiVersion.API_900, ApiVersion.API_1000})
+    extensions: Optional[Set[str]] = field(default_factory=lambda: {".rdvxm", ".rdvxz"})
+    start_dt_buf: Optional[timedelta] = timedelta(minutes=2.0)
+    end_dt_buf: Optional[timedelta] = timedelta(minutes=2.0)
+    api_versions: Optional[Set[ApiVersion]] = field(default_factory=lambda: {ApiVersion.API_900, ApiVersion.API_1000})
 
-    def with_start_dt(self, start_dt: datetime) -> 'ReadFilter':
+    def with_start_dt(self, start_dt: Optional[datetime]) -> 'ReadFilter':
         """
         Adds a start datetime filter.
         :param start_dt: Start datetime that files should come after.
         :return: A modified instance of this filter
         """
-        check_type(start_dt, [datetime])
+        check_type(start_dt, [datetime, None])
         self.start_dt = start_dt
         return self
 
-    def with_start_ts(self, start_ts: float) -> 'ReadFilter':
+    def with_start_ts(self, start_ts: Optional[float]) -> 'ReadFilter':
         """
         Adds a start time filter.
         :param start_ts: Start timestamp (microseconds)
         :return: A modified instance of this filter
         """
-        check_type(start_ts, [int, float])
+        check_type(start_ts, [int, float, None])
+        if start_ts is None:
+            return self.with_start_dt(None)
+
         return self.with_start_dt(dt_us(start_ts))
 
-    def with_end_dt(self, end_dt: datetime) -> 'ReadFilter':
+    def with_end_dt(self, end_dt: Optional[datetime]) -> 'ReadFilter':
         """
         Adds an end datetime filter.
         :param end_dt: Filter for which packets should come before.
         :return: A modified instance of this filter
         """
-        check_type(end_dt, [datetime])
+        check_type(end_dt, [datetime, None])
         self.end_dt = end_dt
         return self
 
-    def with_end_ts(self, end_ts: float) -> 'ReadFilter':
+    def with_end_ts(self, end_ts: Optional[float]) -> 'ReadFilter':
         """
         Like with_end_dt, but uses a microsecond timestamp.
         :param end_ts: Timestamp microseconds.
         :return: A modified instance of this filter
         """
-        check_type(end_ts, [int, float])
+        check_type(end_ts, [int, float, None])
+        if end_ts is None:
+            return self.with_end_dt(None)
+
         return self.with_end_dt(dt_us(end_ts))
 
-    def with_station_ids(self, station_ids: Set[str]) -> 'ReadFilter':
+    def with_station_ids(self, station_ids: Optional[Set[str]]) -> 'ReadFilter':
         """
         Add a station id filter. Filters against provided station ids.
         :param station_ids: Station ids to filter against.
         :return: A modified instance of this filter
         """
-        check_type(station_ids, [Set])
+        check_type(station_ids, [set, None])
         self.station_ids = station_ids
         return self
 
-    def with_extensions(self, extensions: Set[str]) -> 'ReadFilter':
+    def with_extensions(self, extensions: Optional[Set[str]]) -> 'ReadFilter':
         """
         Filters against known file extensions.
         :param extensions: One or more extensions to filter against
         :return: A modified instance of this filter
         """
-        check_type(extensions, [Set])
+        check_type(extensions, [set, None])
         self.extensions = extensions
         return self
 
-    def with_start_dt_buf(self, start_dt_buf: timedelta) -> 'ReadFilter':
+    def with_start_dt_buf(self, start_dt_buf: Optional[timedelta]) -> 'ReadFilter':
         """
         Modifies the time buffer prepended to the start time.
         :param start_dt_buf: Amount of time to buffer before start time.
         :return: A modified instance of self.
         """
-        check_type(start_dt_buf, [timedelta])
+        check_type(start_dt_buf, [timedelta, None])
         self.start_dt_buf = start_dt_buf
         return self
 
-    def with_end_dt_buf(self, end_dt_buf: timedelta) -> 'ReadFilter':
+    def with_end_dt_buf(self, end_dt_buf: Optional[timedelta]) -> 'ReadFilter':
         """
         Modifies the time buffer appended to the end time.
         :param end_dt_buf: Amount of time to buffer after end time.
         :return: A modified instance of self.
         """
-        check_type(end_dt_buf, [timedelta])
+        check_type(end_dt_buf, [timedelta, None])
         self.end_dt_buf = end_dt_buf
         return self
 
-    def with_api_versions(self, api_versions: Set[ApiVersion]) -> 'ReadFilter':
+    def with_api_versions(self, api_versions: Optional[Set[ApiVersion]]) -> 'ReadFilter':
         """
         Filters for specified API versions.
         :param api_versions: A set containing valid ApiVersion enums that should be included.
         :return: A modified instance of self.
         """
-        check_type(api_versions, [Set])
+        check_type(api_versions, [set, None])
         self.api_versions = api_versions
         return self
 
@@ -256,10 +275,12 @@ class ReadFilter:
         :return: True if the datetime is included, False otherwise
         """
         check_type(date_time, [datetime])
-        if self.start_dt is not None and date_time < (dt_fn(self.start_dt) - self.start_dt_buf):
+        start_buf: timedelta = timedelta(seconds=0) if self.start_dt_buf is None else self.start_dt_buf
+        if self.start_dt is not None and date_time < (dt_fn(self.start_dt) - start_buf):
             return False
 
-        if self.end_dt is not None and date_time > (dt_fn(self.end_dt) + self.end_dt_buf):
+        end_buf: timedelta = timedelta(seconds=0) if self.end_dt_buf is None else self.end_dt_buf
+        if self.end_dt is not None and date_time > (dt_fn(self.end_dt) + end_buf):
             return False
 
         return True
@@ -289,16 +310,25 @@ class ReadFilter:
 
 @dataclass
 class IndexStationSummary:
+    """
+    Summary of a single station in the index.
+    """
     station_id: str
     api_version: ApiVersion
     total_packets: int
     first_packet: datetime
     last_packet: datetime
+
     # mean_diff: timedelta
     # var_diff: float
 
     @staticmethod
     def from_entry(entry: IndexEntry) -> 'IndexStationSummary':
+        """
+        Instantiates a new summary from a given IndexEntry.
+        :param entry: Entry to copy information from.
+        :return: An instance of IndexStationSummary.
+        """
         return IndexStationSummary(
             entry.station_id,
             entry.api_version,
@@ -306,7 +336,11 @@ class IndexStationSummary:
             first_packet=entry.date_time,
             last_packet=entry.date_time)
 
-    def update(self, entry: IndexEntry):
+    def update(self, entry: IndexEntry) -> None:
+        """
+        Updates this summary given a new index entry.
+        :param entry: Entry to update this summary from.
+        """
         self.total_packets += 1
         if entry.date_time < self.first_packet:
             self.first_packet = entry.date_time
@@ -317,24 +351,60 @@ class IndexStationSummary:
 
 @dataclass
 class IndexSummary:
+    """
+    Summarizes the contents of the index.
+    """
     station_summaries: Dict[ApiVersion, Dict[str, IndexStationSummary]]
 
     def station_ids(self, api_version: ApiVersion = None) -> List[str]:
-        pass
+        """
+        Returns the station IDs referenced by this index.
+        :param api_version: An (optional) filter to only return packets for a specified RedVox API version.
+                            None will collect station IDs from all API versions.
+        :return: The station IDs referenced by this index.
+        """
+        if api_version is not None:
+            return list(set(map(lambda summary: summary.station_id, self.station_summaries[api_version].values())))
+        else:
+            # noinspection PyTypeChecker
+            return list(set(map(lambda summary: summary.station_id,
+                                self.station_summaries[ApiVersion.API_900].values()))) + \
+                   list(set(map(lambda summary: summary.station_id,
+                                self.station_summaries[ApiVersion.API_1000].values())))
 
     def total_packets(self, api_version: ApiVersion = None) -> int:
-        pass
+        """
+        Returns the total number of packets referenced by this index.
+        :param api_version: An (optional) filter to only return packets for a specified RedVox API version.
+                            None will count packets from all API versions.
+        :return: The total number of packets referenced by this index.
+        """
+        if api_version is not None:
+            return sum(map(lambda summary: summary.total_packets, self.station_summaries[api_version].values()))
+        else:
+            # noinspection PyTypeChecker
+            return sum(map(lambda summary: summary.total_packets,
+                           self.station_summaries[ApiVersion.API_900].values())) + \
+                   sum(map(lambda summary: summary.total_packets,
+                           self.station_summaries[ApiVersion.API_1000].values()))
 
     @staticmethod
     def from_index(index: 'Index') -> 'IndexSummary':
+        """
+        Builds an IndexSummary from a given index.
+        :param index: Index to build summary from.
+        :return: An instance of IndexSummary.
+        """
         station_summaries: Dict[ApiVersion, Dict[str, IndexStationSummary]] = defaultdict(dict)
 
         entry: IndexEntry
         for entry in index.entries:
             sub_entry: Dict[str, IndexStationSummary] = station_summaries[entry.api_version]
             if entry.station_id in sub_entry:
+                # Update existing station summary
                 sub_entry[entry.station_id].update(entry)
             else:
+                # Create new station summary
                 sub_entry[entry.station_id] = IndexStationSummary.from_entry(entry)
 
         return IndexSummary(station_summaries)
@@ -361,10 +431,13 @@ class Index:
         self.entries.extend(entries)
 
     def summarize(self) -> IndexSummary:
+        """
+        :return: A summary of the contents of this index.
+        """
         return IndexSummary.from_index(self)
 
-    def stream(self, read_filter: ReadFilter = ReadFilter()) -> \
-            Iterator[Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
+    def stream(self, read_filter: ReadFilter = ReadFilter()) -> Iterator[
+            Union['WrappedRedvoxPacket', WrappedRedvoxPacketM]]:
         """
         Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
         :param read_filter: Additional filtering to specify which data should be streamed.
@@ -378,6 +451,7 @@ class Index:
         return list(self.stream(read_filter))
 
 
+# The following constants are used for identifying valid RedVox API 900 and API 1000 structured directory layouts.
 __VALID_YEARS: Set[str] = {f"{i:04}" for i in range(2015, 2031)}
 __VALID_MONTHS: Set[str] = {f"{i:02}" for i in range(1, 13)}
 __VALID_DATES: Set[str] = {f"{i:02}" for i in range(1, 32)}
@@ -478,6 +552,13 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
 
 
 def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
+    """
+    "Indexes both API 900 and API 1000 structured directory layouts.
+    :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
+                     API 900 and API 1000.
+    :param read_filter: Filter to further filter results.
+    :return: An Index of RedVox files.
+    """
     base_path: PurePath = PurePath(base_dir)
 
     # API 900
