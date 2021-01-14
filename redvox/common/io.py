@@ -69,11 +69,13 @@ class IndexEntry:
     api_version: ApiVersion
 
     @staticmethod
-    def from_path(path_str: str) -> Optional['IndexEntry']:
+    def from_path(path_str: str,
+                  strict: bool = True) -> Optional['IndexEntry']:
         """
         Attempts to parse a file path into an IndexEntry. If a given path is not recognized as a valid RedVox file,
         None will be returned instead.
         :param path_str: The file system path to attempt to parse.
+        :param strict: When set, None is returned if the referenced file DNE.
         :return: Either an IndexEntry or successful parse or None.
         """
         api_version: ApiVersion = check_version(path_str)
@@ -112,6 +114,8 @@ class IndexEntry:
         try:
             full_path = str(path.resolve(strict=True))
         except FileNotFoundError:
+            if strict:
+                return None
             full_path = path_str
 
         return IndexEntry(full_path,
@@ -171,6 +175,14 @@ class ReadFilter:
     start_dt_buf: Optional[timedelta] = timedelta(minutes=2.0)
     end_dt_buf: Optional[timedelta] = timedelta(minutes=2.0)
     api_versions: Optional[Set[ApiVersion]] = field(default_factory=lambda: {ApiVersion.API_900, ApiVersion.API_1000})
+
+    @staticmethod
+    def empty() -> 'ReadFilter':
+        """
+        :return: A ReadFilter with ALL filters set to None. This is opposed to the default
+                 which sets sane defaults for extensions, APIs, and window buffers.
+        """
+        return ReadFilter(None, None, None, None, None, None, None)
 
     def with_start_dt(self, start_dt: Optional[datetime]) -> 'ReadFilter':
         """
@@ -318,9 +330,6 @@ class IndexStationSummary:
     total_packets: int
     first_packet: datetime
     last_packet: datetime
-
-    # mean_diff: timedelta
-    # var_diff: float
 
     @staticmethod
     def from_entry(entry: IndexEntry) -> 'IndexStationSummary':
@@ -481,8 +490,10 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
 
     index: Index = Index()
 
+    extensions: Set[str] = read_filter.extensions if read_filter.extensions is not None else {""}
+
     extension: str
-    for extension in read_filter.extensions:
+    for extension in extensions:
         pattern: str = str(PurePath(base_dir).joinpath(f"*{extension}"))
         paths: List[str] = glob(os.path.join(base_dir, pattern))
         # noinspection Mypy
