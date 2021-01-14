@@ -91,7 +91,7 @@ class IndexEntry:
 
         # If you have a filename with a dot, but not an extension, i.e. "0000000001_0.", we need to remove the dot
         # from the end and make in the extension
-        if ts_str[-1] == ".":
+        if len(ts_str) > 0 and ts_str[-1] == ".":
             ts_str = ts_str[:-1]
             ext = "."
 

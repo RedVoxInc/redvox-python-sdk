@@ -486,7 +486,6 @@ class ReadFilterTests(TestCase):
         ]
         self.assertEqual([], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
-
     def test_extensions_none_2(self):
         read_filter = io.ReadFilter().with_api_versions(None).with_extensions({".bar"})
         entries = [
@@ -497,7 +496,6 @@ class ReadFilterTests(TestCase):
             io.IndexEntry.from_path("5_0"),
         ]
         self.assertEqual([], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
-
 
     def test_extensions_one(self):
         read_filter = io.ReadFilter().with_api_versions(None).with_extensions({".foo"})
@@ -530,7 +528,8 @@ class ReadFilterTests(TestCase):
             io.IndexEntry.from_path("4_0."),
             io.IndexEntry.from_path("5_0"),
         ]
-        self.assertEqual(["1", "2", "3", "4", "5"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+        self.assertEqual(["1", "2", "3", "4", "5"], list(map(lambda entry: entry.station_id,
+                                                             filter(read_filter.apply, entries))))
 
     def test_api_version_all(self):
         pass
