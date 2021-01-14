@@ -196,6 +196,11 @@ class IndexEntryTests(TestCase):
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
         self.assertIsNone(entry)
 
+    def test_from_path_900_bad_epoch(self) -> None:
+        path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "00000009000000000900_foo.rdvxz")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNone(entry)
+
     def test_from_path_900_different_ext(self) -> None:
         path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "0_0.foo")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
@@ -205,6 +210,16 @@ class IndexEntryTests(TestCase):
         path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "0_0")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
         self.assertEqual("", entry.extension)
+
+    def test_from_path_900_no_split(self) -> None:
+        path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "00.rdvxz")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNone(entry)
+
+    def test_from_path_900_multi_split(self) -> None:
+        path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "0_0_0.rdvxz")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNone(entry)
 
 
 class IndexTests(TestCase):
