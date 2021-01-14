@@ -1,17 +1,19 @@
 from datetime import datetime, timedelta
 import os
 import os.path
+import shutil
 import tempfile
-from typing import Iterator
+from typing import Iterator, Optional, Union
 from unittest import TestCase
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-
-import redvox.common.io as io
 from redvox.common.date_time_utils import (
+    datetime_from_epoch_milliseconds_utc as ms2dt,
+    datetime_from_epoch_microseconds_utc as us2dt,
+    datetime_to_epoch_milliseconds_utc as dt2ms,
     datetime_to_epoch_microseconds_utc as dt2us,
 )
-from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+import redvox.common.io as io
 
 
 def dt_range(start: datetime,
@@ -23,43 +25,75 @@ def dt_range(start: datetime,
         dt += step
 
 
-def generate_synth_900(base_dir: str,
-                       start: datetime,
-                       end: datetime,
-                       packet_duration: timedelta,
-                       station_id: str):
-    for dt in dt_range(start, end, packet_duration):
-        target_dir: str = os.path.join(base_dir,
-                                       "api900"
-                                       f"{dt.year:04}",
-                                       f"{dt.month:02}",
-                                       f"{dt.day:02}")
-        os.makedirs(target_dir, exist_ok=True)
-
-        packet: WrappedRedvoxPacket = WrappedRedvoxPacket()
-        packet.set_redvox_id(station_id)
-        packet.set_app_file_start_timestamp_machine(int(dt2us(dt)))
-        packet.write_rdvxz(target_dir)
+def write_min_api_1000(base_dir: str, file_name: Optional[str] = None) -> str:
+    packet: WrappedRedvoxPacketM = WrappedRedvoxPacketM.new()
+    packet.set_api(1000.0)
+    return packet.write_compressed_to_file(base_dir, file_name)
 
 
-def generate_synth_1000(base_dir: str,
-                        start: datetime,
-                        end: datetime,
-                        packet_duration: timedelta,
-                        station_id: str):
-    for dt in dt_range(start, end, packet_duration):
-        target_dir: str = os.path.join(base_dir,
-                                       "api1000",
-                                       f"{dt.year:04}",
-                                       f"{dt.month:02}",
-                                       f"{dt.day:02}",
-                                       f"{dt.hour:02}")
-        os.makedirs(target_dir, exist_ok=True)
+def write_min_api_900(base_dir: str, file_name: Optional[str] = None) -> str:
+    from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+    packet: WrappedRedvoxPacket = WrappedRedvoxPacket()
+    packet.set_api(900)
+    packet.write_rdvxz(base_dir, file_name)
+    return os.path.join(base_dir, packet.default_filename() if file_name is None else file_name)
 
-        packet: WrappedRedvoxPacketM = WrappedRedvoxPacketM.new()
-        packet.get_station_information().set_id(station_id)
-        packet.get_timing_information().set_packet_start_mach_timestamp(dt2us(dt))
-        packet.write_compressed_to_file(target_dir)
+
+def copy_api_900(template_path: str,
+                 base_dir: str,
+                 structured: bool,
+                 station_id: str,
+                 ts_dt: Union[int, datetime],
+                 ext: str = ".rdvxz") -> str:
+    ts_ms: int = ts_dt if isinstance(ts_dt, int) else dt2ms(ts_dt)
+
+    target_dir: str
+    if structured:
+        dt: datetime = ms2dt(ts_ms)
+        target_dir = os.path.join(base_dir,
+                                  "api900",
+                                  f"{dt.year:04}",
+                                  f"{dt.month:02}",
+                                  f"{dt.day:02}")
+    else:
+        target_dir = base_dir
+
+    os.makedirs(target_dir, exist_ok=True)
+
+    file_name: str = f"{station_id}_{ts_ms}{ext}"
+    file_path: str = os.path.join(target_dir, file_name)
+    shutil.copy2(template_path, file_path)
+
+    return file_path
+
+
+def copy_api_1000(template_path: str,
+                  base_dir: str,
+                  structured: bool,
+                  station_id: str,
+                  ts_dt: Union[int, datetime],
+                  ext: str = ".rdvxm") -> str:
+    ts_us: int = ts_dt if isinstance(ts_dt, int) else dt2us(ts_dt)
+
+    target_dir: str
+    if structured:
+        dt: datetime = us2dt(ts_us)
+        target_dir = os.path.join(base_dir,
+                                  "api1000",
+                                  f"{dt.year:04}",
+                                  f"{dt.month:02}",
+                                  f"{dt.day:02}",
+                                  f"{dt.hour:02}")
+    else:
+        target_dir = base_dir
+
+    os.makedirs(target_dir, exist_ok=True)
+
+    file_name: str = f"{station_id}_{ts_us}{ext}"
+    file_path: str = os.path.join(target_dir, file_name)
+    shutil.copy2(template_path, file_path)
+
+    return file_path
 
 
 class IoTests(TestCase):
@@ -82,35 +116,119 @@ class IoTests(TestCase):
 
 
 class IndexEntryTests(TestCase):
-    def setUp(self) -> None:
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_dir_path = self.temp_dir.name
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.temp_dir = tempfile.TemporaryDirectory()
+        cls.temp_dir_path = cls.temp_dir.name
 
-    def tearDown(self) -> None:
-        self.temp_dir.cleanup()
+        cls.template_dir: str = os.path.join(cls.temp_dir_path, "templates")
+        os.makedirs(cls.template_dir, exist_ok=True)
+
+        cls.unstructured_900_dir: str = os.path.join(cls.temp_dir_path, "unstructured_900")
+        os.makedirs(cls.unstructured_900_dir, exist_ok=True)
+
+        cls.unstructured_1000_dir: str = os.path.join(cls.temp_dir_path, "unstructured_1000")
+        os.makedirs(cls.unstructured_1000_dir, exist_ok=True)
+
+        cls.unstructured_900_1000_dir: str = os.path.join(cls.temp_dir_path, "unstructured_900_1000")
+        os.makedirs(cls.unstructured_900_1000_dir, exist_ok=True)
+
+        cls.template_900_path = os.path.join(cls.template_dir, "template_900.rdvxz")
+        cls.template_1000_path = os.path.join(cls.template_dir, "template_1000.rdvxm")
+
+        write_min_api_900(cls.template_dir, "template_900.rdvxz")
+        write_min_api_1000(cls.template_dir, "template_1000.rdvxm")
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.temp_dir.cleanup()
 
     def test_from_path_900_good(self) -> None:
-        generate_synth_900(self.temp_dir_path,
-                           datetime(2021, 1, 1),
-                           datetime(2021, 1, 1, 1),
-                           timedelta(minutes=1),
-                           "0000000900")
-        idx = io.index_structured(self.temp_dir_path)
-        print(idx)
-        entry: io.IndexEntry = io.IndexEntry.from_path(os.path.join(
-            self.temp_dir_path,
-            "api900",
-            "2021",
-            "01",
-            "01",
-            "0000000900_1577836800000.rdvxz"
-        ))
+        path: str = copy_api_900(self.template_900_path,
+                                 self.unstructured_900_dir,
+                                 False,
+                                 "0000000900",
+                                 1609459200000)
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNotNone(entry)
+        self.assertEqual("0000000900", entry.station_id)
+        self.assertEqual(io.ApiVersion.API_900, entry.api_version)
+        self.assertEqual(datetime(2021, 1, 1), entry.date_time)
+        self.assertEqual(".rdvxz", entry.extension)
 
-        print(entry)
+    def test_from_path_900_good_short_station_id(self) -> None:
+        path: str = copy_api_900(self.template_900_path,
+                                 self.unstructured_900_dir,
+                                 False,
+                                 "9",
+                                 1609459200000)
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual("9", entry.station_id)
 
-    def test_from_path_900_bad(self) -> None:
-        pass
+    def test_from_path_900_good_long_station_id(self) -> None:
+        path: str = copy_api_900(self.template_900_path,
+                                 self.unstructured_900_dir,
+                                 False,
+                                 "00000009000000000900",
+                                 1609459200000)
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual("00000009000000000900", entry.station_id)
 
+    def test_from_path_900_no_station_id(self) -> None:
+        path: str = copy_api_900(self.template_900_path,
+                                 self.unstructured_900_dir,
+                                 False,
+                                 "",
+                                 1609459200000)
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNone(entry)
+
+    def test_from_path_900_bad_station_id(self) -> None:
+        path: str = copy_api_900(self.template_900_path,
+                                 self.unstructured_900_dir,
+                                 False,
+                                 "foo",
+                                 1609459200000)
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNone(entry)
+
+    def test_from_path_900_unix_epoch(self) -> None:
+        path: str = copy_api_900(self.template_900_path,
+                                 self.unstructured_900_dir,
+                                 False,
+                                 "0000000900",
+                                 0)
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(datetime(1970, 1, 1), entry.date_time)
+
+    def test_from_path_900_neg_epoch(self) -> None:
+        path: str = copy_api_900(self.template_900_path,
+                                 self.unstructured_900_dir,
+                                 False,
+                                 "0000000900",
+                                 -31536000000)
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(datetime(1969, 1, 1), entry.date_time)
+
+    def test_from_path_900_different_ext(self) -> None:
+        path: str = copy_api_900(self.template_900_path,
+                                 self.unstructured_900_dir,
+                                 False,
+                                 "0000000900",
+                                 0,
+                                 ext=".foo")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(".foo", entry.extension)
+
+    def test_from_path_900_no_ext(self) -> None:
+        path: str = copy_api_900(self.template_900_path,
+                                 self.unstructured_900_dir,
+                                 False,
+                                 "0000000900",
+                                 0,
+                                 ext="")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual("", entry.extension)
 
 class IndexTests(TestCase):
     pass
