@@ -365,6 +365,28 @@ class IndexTests(IoTestCase):
         self.assertEqual(0, total_streamed)
         self.assertEqual(0, len(index.read()))
 
+    def test_sort(self):
+        entries = [
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "901_1.rdvxz")),
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "901_0.rdvxz")),
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "901_-1")),
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1.rdvxz")),
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "900_0.rdvxz")),
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "900_-1")),
+
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_1.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_0.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_-1")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_1.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_0.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_-1")),
+        ]
+
+        index = io.Index(entries)
+        index.sort()
+        # self.assertEqual(["2", "1", "0"], list(map(lambda entry: entry.station_id, index.entries)))
+
+
 
 # noinspection PyTypeChecker,DuplicatedCode,Mypy
 class ReadFilterTests(IoTestCase):
