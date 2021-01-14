@@ -107,27 +107,8 @@ def copy_exact(template_path: str,
     return file_path
 
 
-class IoTests(TestCase):
-    def test_is_int_good(self):
-        self.assertEqual(0, io._is_int("0"))
-        self.assertEqual(1, io._is_int("01"))
-        self.assertEqual(1, io._is_int("00001"))
-        self.assertEqual(10, io._is_int("000010"))
-        self.assertEqual(-10, io._is_int("-000010"))
-
-    def test_is_int_bad(self):
-        self.assertIsNone(io._is_int(""))
-        self.assertIsNone(io._is_int("000a"))
-        self.assertIsNone(io._is_int("foo"))
-        self.assertIsNone(io._is_int("1.325"))
-
-    def test_not_none(self):
-        self.assertTrue(io._not_none(""))
-        self.assertFalse(io._not_none(None))
-
-
-# noinspection Mypy
-class IndexEntryTests(TestCase):
+# noinspection DuplicatedCode,Mypy
+class IoTestCase(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.temp_dir = tempfile.TemporaryDirectory()
@@ -156,6 +137,27 @@ class IndexEntryTests(TestCase):
     def tearDownClass(cls) -> None:
         cls.temp_dir.cleanup()
 
+
+class IoTests(TestCase):
+    def test_is_int_good(self):
+        self.assertEqual(0, io._is_int("0"))
+        self.assertEqual(1, io._is_int("01"))
+        self.assertEqual(1, io._is_int("00001"))
+        self.assertEqual(10, io._is_int("000010"))
+        self.assertEqual(-10, io._is_int("-000010"))
+
+    def test_is_int_bad(self):
+        self.assertIsNone(io._is_int(""))
+        self.assertIsNone(io._is_int("000a"))
+        self.assertIsNone(io._is_int("foo"))
+        self.assertIsNone(io._is_int("1.325"))
+
+    def test_not_none(self):
+        self.assertTrue(io._not_none(""))
+        self.assertFalse(io._not_none(None))
+
+
+class IndexEntryTests(IoTestCase):
     def test_from_path_900_good(self) -> None:
         path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "0000000900_1609459200000.rdvxz")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
@@ -311,6 +313,10 @@ class IndexEntryTests(TestCase):
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
         self.assertIsNone(entry)
 
+    def test_from_path_dne(self):
+        entry: io.IndexEntry = io.IndexEntry.from_path("/foo/0_0.rdvxm")
+        self.assertIsNone(entry)
+
     def test_read_900(self):
         path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "0000000900_1609459200000.rdvxz")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
@@ -344,11 +350,24 @@ class IndexEntryTests(TestCase):
         self.assertEqual("0000001003", entries[2].station_id)
 
 
-class IndexTests(TestCase):
-    pass
+class IndexTests(IoTestCase):
+    def test_empty_index(self):
+        index: io.Index = io.Index()
+        self.assertEqual(0, len(index.entries))
+        index.sort()
+        self.assertEqual(0, len(index.entries))
+        summary: io.IndexSummary = index.summarize()
+        self.assertEqual(0, len(summary.station_summaries))
+
+        total_streamed: int = 0
+        for _ in index.stream():
+            total_streamed += 1
+        self.assertEqual(0, total_streamed)
+        self.assertEqual(0, len(index.read()))
 
 
-class ReadFilterTests(TestCase):
+# noinspection PyTypeChecker,DuplicatedCode,Mypy
+class ReadFilterTests(IoTestCase):
     def test_default(self) -> None:
         read_filter = io.ReadFilter()
         self.assertEqual(None, read_filter.start_dt)
@@ -429,48 +448,68 @@ class ReadFilterTests(TestCase):
 
     def test_apply_all_station_ids(self):
         read_filter = io.ReadFilter().with_extensions(None).with_api_versions(None)
-        entries = [io.IndexEntry.from_path("1_0"), io.IndexEntry.from_path("2_0"), io.IndexEntry.from_path("3_0")]
+        entries = [
+            io.IndexEntry.from_path("1_0", strict=False),
+            io.IndexEntry.from_path("2_0", strict=False),
+            io.IndexEntry.from_path("3_0", strict=False)
+        ]
         self.assertEqual(["1", "2", "3"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_apply_no_station_ids(self):
         read_filter = io.ReadFilter().with_station_ids({"4"}).with_extensions(None).with_api_versions(None)
-        entries = [io.IndexEntry.from_path("1_0"), io.IndexEntry.from_path("2_0"), io.IndexEntry.from_path("3_0")]
+        entries = [
+            io.IndexEntry.from_path("1_0", strict=False),
+            io.IndexEntry.from_path("2_0", strict=False),
+            io.IndexEntry.from_path("3_0", strict=False)
+        ]
         self.assertEqual([], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_apply_one_station_ids(self):
         read_filter = io.ReadFilter().with_station_ids({"2"}).with_extensions(None).with_api_versions(None)
-        entries = [io.IndexEntry.from_path("1_0"), io.IndexEntry.from_path("2_0"), io.IndexEntry.from_path("3_0")]
+        entries = [
+            io.IndexEntry.from_path("1_0", strict=False),
+            io.IndexEntry.from_path("2_0", strict=False),
+            io.IndexEntry.from_path("3_0", strict=False)
+        ]
         self.assertEqual(["2"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_apply_some_station_ids(self):
         read_filter = io.ReadFilter().with_station_ids({"2", "3", "4"}).with_extensions(None).with_api_versions(None)
-        entries = [io.IndexEntry.from_path("1_0"), io.IndexEntry.from_path("2_0"), io.IndexEntry.from_path("3_0")]
+        entries = [
+            io.IndexEntry.from_path("1_0", strict=False),
+            io.IndexEntry.from_path("2_0", strict=False),
+            io.IndexEntry.from_path("3_0", strict=False)
+        ]
         self.assertEqual(["2", "3"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_apply_select_all_station_ids(self):
         read_filter = io.ReadFilter().with_station_ids({"1", "2", "3"}).with_extensions(None).with_api_versions(None)
-        entries = [io.IndexEntry.from_path("1_0"), io.IndexEntry.from_path("2_0"), io.IndexEntry.from_path("3_0")]
+        entries = [
+            io.IndexEntry.from_path("1_0", strict=False),
+            io.IndexEntry.from_path("2_0", strict=False),
+            io.IndexEntry.from_path("3_0", strict=False)
+        ]
         self.assertEqual(["1", "2", "3"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_extensions_default(self):
         read_filter = io.ReadFilter().with_api_versions(None)
         entries = [
-            io.IndexEntry.from_path("1_0.rdvxm"),
-            io.IndexEntry.from_path("2_0.rdvxz"),
-            io.IndexEntry.from_path("3_0.foo"),
-            io.IndexEntry.from_path("4_0."),
-            io.IndexEntry.from_path("5_0"),
+            io.IndexEntry.from_path("1_0.rdvxm", strict=False),
+            io.IndexEntry.from_path("2_0.rdvxz", strict=False),
+            io.IndexEntry.from_path("3_0.foo", strict=False),
+            io.IndexEntry.from_path("4_0.", strict=False),
+            io.IndexEntry.from_path("5_0", strict=False),
         ]
         self.assertEqual(["1", "2"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_extensions_all(self):
         read_filter = io.ReadFilter().with_api_versions(None).with_extensions(None)
         entries = [
-            io.IndexEntry.from_path("1_0.rdvxm"),
-            io.IndexEntry.from_path("2_0.rdvxz"),
-            io.IndexEntry.from_path("3_0.foo"),
-            io.IndexEntry.from_path("4_0."),
-            io.IndexEntry.from_path("5_0"),
+            io.IndexEntry.from_path("1_0.rdvxm", strict=False),
+            io.IndexEntry.from_path("2_0.rdvxz", strict=False),
+            io.IndexEntry.from_path("3_0.foo", strict=False),
+            io.IndexEntry.from_path("4_0.", strict=False),
+            io.IndexEntry.from_path("5_0", strict=False),
         ]
         self.assertEqual(["1", "2", "3", "4", "5"],
                          list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
@@ -478,70 +517,149 @@ class ReadFilterTests(TestCase):
     def test_extensions_none(self):
         read_filter = io.ReadFilter().with_api_versions(None).with_extensions(set())
         entries = [
-            io.IndexEntry.from_path("1_0.rdvxm"),
-            io.IndexEntry.from_path("2_0.rdvxz"),
-            io.IndexEntry.from_path("3_0.foo"),
-            io.IndexEntry.from_path("4_0."),
-            io.IndexEntry.from_path("5_0"),
+            io.IndexEntry.from_path("1_0.rdvxm", strict=False),
+            io.IndexEntry.from_path("2_0.rdvxz", strict=False),
+            io.IndexEntry.from_path("3_0.foo", strict=False),
+            io.IndexEntry.from_path("4_0.", strict=False),
+            io.IndexEntry.from_path("5_0", strict=False),
         ]
         self.assertEqual([], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_extensions_none_2(self):
         read_filter = io.ReadFilter().with_api_versions(None).with_extensions({".bar"})
         entries = [
-            io.IndexEntry.from_path("1_0.rdvxm"),
-            io.IndexEntry.from_path("2_0.rdvxz"),
-            io.IndexEntry.from_path("3_0.foo"),
-            io.IndexEntry.from_path("4_0."),
-            io.IndexEntry.from_path("5_0"),
+            io.IndexEntry.from_path("1_0.rdvxm", strict=False),
+            io.IndexEntry.from_path("2_0.rdvxz", strict=False),
+            io.IndexEntry.from_path("3_0.foo", strict=False),
+            io.IndexEntry.from_path("4_0.", strict=False),
+            io.IndexEntry.from_path("5_0", strict=False),
         ]
         self.assertEqual([], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_extensions_one(self):
         read_filter = io.ReadFilter().with_api_versions(None).with_extensions({".foo"})
         entries = [
-            io.IndexEntry.from_path("1_0.rdvxm"),
-            io.IndexEntry.from_path("2_0.rdvxz"),
-            io.IndexEntry.from_path("3_0.foo"),
-            io.IndexEntry.from_path("4_0."),
-            io.IndexEntry.from_path("5_0"),
+            io.IndexEntry.from_path("1_0.rdvxm", strict=False),
+            io.IndexEntry.from_path("2_0.rdvxz", strict=False),
+            io.IndexEntry.from_path("3_0.foo", strict=False),
+            io.IndexEntry.from_path("4_0.", strict=False),
+            io.IndexEntry.from_path("5_0", strict=False),
         ]
         self.assertEqual(["3"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_extensions_some(self):
         read_filter = io.ReadFilter().with_api_versions(None).with_extensions({".foo", ".bar", ".rdvxm"})
         entries = [
-            io.IndexEntry.from_path("1_0.rdvxm"),
-            io.IndexEntry.from_path("2_0.rdvxz"),
-            io.IndexEntry.from_path("3_0.foo"),
-            io.IndexEntry.from_path("4_0."),
-            io.IndexEntry.from_path("5_0"),
+            io.IndexEntry.from_path("1_0.rdvxm", strict=False),
+            io.IndexEntry.from_path("2_0.rdvxz", strict=False),
+            io.IndexEntry.from_path("3_0.foo", strict=False),
+            io.IndexEntry.from_path("4_0.", strict=False),
+            io.IndexEntry.from_path("5_0", strict=False),
         ]
         self.assertEqual(["1", "3"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_extensions_select_all(self):
         read_filter = io.ReadFilter().with_api_versions(None).with_extensions({".rdvxm", ".rdvxz", ".foo", "", "."})
         entries = [
-            io.IndexEntry.from_path("1_0.rdvxm"),
-            io.IndexEntry.from_path("2_0.rdvxz"),
-            io.IndexEntry.from_path("3_0.foo"),
-            io.IndexEntry.from_path("4_0."),
-            io.IndexEntry.from_path("5_0"),
+            io.IndexEntry.from_path("1_0.rdvxm", strict=False),
+            io.IndexEntry.from_path("2_0.rdvxz", strict=False),
+            io.IndexEntry.from_path("3_0.foo", strict=False),
+            io.IndexEntry.from_path("4_0.", strict=False),
+            io.IndexEntry.from_path("5_0", strict=False),
         ]
-        self.assertEqual(["1", "2", "3", "4", "5"], list(map(lambda entry: entry.station_id,
-                                                             filter(read_filter.apply, entries))))
+        self.assertEqual(["1", "2", "3", "4", "5"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_api_version_all(self):
-        pass
+        read_filter = io.ReadFilter() \
+            .with_extensions(None) \
+            .with_api_versions(None)
+        api_900_path = copy_exact(self.template_900_path,
+                                  self.unstructured_900_dir,
+                                  "900_0.rdvxz")
+        api_1000_path = copy_exact(self.template_1000_path,
+                                   self.unstructured_1000_dir,
+                                   "1000_0.rdvxz")
+        entries = [
+            io.IndexEntry.from_path(api_900_path),
+            io.IndexEntry.from_path(api_1000_path),
+            io.IndexEntry.from_path("0_0", strict=False)
+        ]
+        self.assertEqual(["900", "1000", "0"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_api_version_unknown(self):
-        pass
+        read_filter = io.ReadFilter() \
+            .with_extensions(None) \
+            .with_api_versions({io.ApiVersion.UNKNOWN})
+        api_900_path = copy_exact(self.template_900_path,
+                                  self.unstructured_900_dir,
+                                  "900_0.rdvxz")
+        api_1000_path = copy_exact(self.template_1000_path,
+                                   self.unstructured_1000_dir,
+                                   "1000_0.rdvxz")
+        entries = [
+            io.IndexEntry.from_path(api_900_path),
+            io.IndexEntry.from_path(api_1000_path),
+            io.IndexEntry.from_path("0_0", strict=False)
+        ]
+        self.assertEqual(["0"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_api_version_900(self):
-        pass
+        read_filter = io.ReadFilter() \
+            .with_extensions(None) \
+            .with_api_versions({io.ApiVersion.API_900})
+        api_900_path = copy_exact(self.template_900_path,
+                                  self.unstructured_900_dir,
+                                  "900_0.rdvxz")
+        api_1000_path = copy_exact(self.template_1000_path,
+                                   self.unstructured_1000_dir,
+                                   "1000_0.rdvxz")
+        entries = [
+            io.IndexEntry.from_path(api_900_path),
+            io.IndexEntry.from_path(api_1000_path),
+            io.IndexEntry.from_path("0_0", strict=False)
+        ]
+        self.assertEqual(["900"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_api_version_1000(self):
-        pass
+        read_filter = io.ReadFilter() \
+            .with_extensions(None) \
+            .with_api_versions({io.ApiVersion.API_1000})
+        api_900_path = copy_exact(self.template_900_path,
+                                  self.unstructured_900_dir,
+                                  "900_0.rdvxz")
+        api_1000_path = copy_exact(self.template_1000_path,
+                                   self.unstructured_1000_dir,
+                                   "1000_0.rdvxz")
+        entries = [
+            io.IndexEntry.from_path(api_900_path),
+            io.IndexEntry.from_path(api_1000_path),
+            io.IndexEntry.from_path("0_0", strict=False)
+        ]
+        self.assertEqual(["1000"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
     def test_api_version_multi(self):
-        pass
+        read_filter = io.ReadFilter() \
+            .with_extensions(None) \
+            .with_api_versions({
+                io.ApiVersion.API_900,
+                io.ApiVersion.API_1000,
+                io.ApiVersion.UNKNOWN})
+
+        api_900_path = copy_exact(self.template_900_path,
+                                  self.unstructured_900_dir,
+                                  "900_0.rdvxz")
+        api_1000_path = copy_exact(self.template_1000_path,
+                                   self.unstructured_1000_dir,
+                                   "1000_0.rdvxz")
+        entries = [
+            io.IndexEntry.from_path(api_900_path),
+            io.IndexEntry.from_path(api_1000_path),
+            io.IndexEntry.from_path("0_0", strict=False)
+        ]
+        self.assertEqual(["900", "1000", "0"],
+                         list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
