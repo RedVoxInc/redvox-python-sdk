@@ -311,6 +311,10 @@ class IndexEntryTests(TestCase):
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
         self.assertIsNone(entry)
 
+    def test_from_path_dne(self):
+        entry: io.IndexEntry = io.IndexEntry.from_path("/foo/0_0.rdvxm")
+        self.assertIsNone(entry)
+
     def test_read_900(self):
         path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "0000000900_1609459200000.rdvxz")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
@@ -345,7 +349,47 @@ class IndexEntryTests(TestCase):
 
 
 class IndexTests(TestCase):
-    pass
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.temp_dir = tempfile.TemporaryDirectory()
+        cls.temp_dir_path = cls.temp_dir.name
+
+        cls.template_dir: str = os.path.join(cls.temp_dir_path, "templates")
+        os.makedirs(cls.template_dir, exist_ok=True)
+
+        cls.unstructured_900_dir: str = os.path.join(cls.temp_dir_path, "unstructured_900")
+        os.makedirs(cls.unstructured_900_dir, exist_ok=True)
+
+        cls.unstructured_1000_dir: str = os.path.join(cls.temp_dir_path, "unstructured_1000")
+        os.makedirs(cls.unstructured_1000_dir, exist_ok=True)
+
+        cls.unstructured_900_1000_dir: str = os.path.join(cls.temp_dir_path, "unstructured_900_1000")
+        os.makedirs(cls.unstructured_900_1000_dir, exist_ok=True)
+
+        cls.template_900_path = os.path.join(cls.template_dir, "template_900.rdvxz")
+        cls.template_1000_path = os.path.join(cls.template_dir, "template_1000.rdvxm")
+
+        write_min_api_900(cls.template_dir, "template_900.rdvxz")
+        write_min_api_1000(cls.template_dir, "template_1000.rdvxm")
+
+    # noinspection PyUnresolvedReferences
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.temp_dir.cleanup()
+
+    def test_empty_index(self):
+        index: io.Index = io.Index()
+        self.assertEqual(0, len(index.entries))
+        index.sort()
+        self.assertEqual(0, len(index.entries))
+        summary: io.IndexSummary = index.summarize()
+        self.assertEqual(0, len(summary.station_summaries))
+
+        total_streamed: int = 0
+        for _ in index.stream():
+            total_streamed += 1
+        self.assertEqual(0, total_streamed)
+        self.assertEqual(0, len(index.read()))
 
 
 class ReadFilterTests(TestCase):
@@ -613,7 +657,6 @@ class ReadFilterTests(TestCase):
         self.assertEqual(["900"],
                          list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
 
-
     def test_api_version_1000(self):
         read_filter = io.ReadFilter() \
             .with_extensions(None) \
@@ -631,7 +674,6 @@ class ReadFilterTests(TestCase):
         ]
         self.assertEqual(["1000"],
                          list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
-
 
     def test_api_version_multi(self):
         read_filter = io.ReadFilter() \
