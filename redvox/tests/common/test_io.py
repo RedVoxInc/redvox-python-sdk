@@ -45,7 +45,7 @@ def copy_api_900(template_path: str,
                  station_id: str,
                  ts_dt: Union[int, datetime],
                  ext: str = ".rdvxz") -> str:
-    ts_ms: int = ts_dt if isinstance(ts_dt, int) else dt2ms(ts_dt)
+    ts_ms: int = ts_dt if isinstance(ts_dt, int) else int(dt2ms(ts_dt))
 
     target_dir: str
     if structured:
@@ -73,7 +73,7 @@ def copy_api_1000(template_path: str,
                   station_id: str,
                   ts_dt: Union[int, datetime],
                   ext: str = ".rdvxm") -> str:
-    ts_us: int = ts_dt if isinstance(ts_dt, int) else dt2us(ts_dt)
+    ts_us: int = ts_dt if isinstance(ts_dt, int) else int(dt2us(ts_dt))
 
     target_dir: str
     if structured:
@@ -124,6 +124,7 @@ class IoTests(TestCase):
         self.assertFalse(io._not_none(None))
 
 
+# noinspection Mypy
 class IndexEntryTests(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -148,6 +149,7 @@ class IndexEntryTests(TestCase):
         write_min_api_900(cls.template_dir, "template_900.rdvxz")
         write_min_api_1000(cls.template_dir, "template_1000.rdvxm")
 
+    # noinspection PyUnresolvedReferences
     @classmethod
     def tearDownClass(cls) -> None:
         cls.temp_dir.cleanup()
@@ -164,11 +166,14 @@ class IndexEntryTests(TestCase):
     def test_from_path_900_good_short_station_id(self) -> None:
         path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "9_1609459200000.rdvxz")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(io.ApiVersion.API_900, entry.api_version)
         self.assertEqual("9", entry.station_id)
 
     def test_from_path_900_good_long_station_id(self) -> None:
-        path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "00000009000000000900_1609459200000.rdvxz")
+        path: str = copy_exact(self.template_900_path, self.unstructured_900_dir,
+                               "00000009000000000900_1609459200000.rdvxz")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(io.ApiVersion.API_900, entry.api_version)
         self.assertEqual("00000009000000000900", entry.station_id)
 
     def test_from_path_900_no_station_id(self) -> None:
@@ -184,11 +189,14 @@ class IndexEntryTests(TestCase):
     def test_from_path_900_unix_epoch(self) -> None:
         path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "00000009000000000900_0.rdvxz")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(io.ApiVersion.API_900, entry.api_version)
         self.assertEqual(datetime(1970, 1, 1), entry.date_time)
 
     def test_from_path_900_neg_epoch(self) -> None:
-        path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "00000009000000000900_-31536000000.rdvxz")
+        path: str = copy_exact(self.template_900_path, self.unstructured_900_dir,
+                               "00000009000000000900_-31536000000.rdvxz")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(io.ApiVersion.API_900, entry.api_version)
         self.assertEqual(datetime(1969, 1, 1), entry.date_time)
 
     def test_from_path_900_no_epoch(self) -> None:
@@ -204,11 +212,13 @@ class IndexEntryTests(TestCase):
     def test_from_path_900_different_ext(self) -> None:
         path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "0_0.foo")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(io.ApiVersion.API_900, entry.api_version)
         self.assertEqual(".foo", entry.extension)
 
     def test_from_path_900_no_ext(self) -> None:
         path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "0_0")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(io.ApiVersion.API_900, entry.api_version)
         self.assertEqual("", entry.extension)
 
     def test_from_path_900_no_split(self) -> None:
@@ -218,6 +228,84 @@ class IndexEntryTests(TestCase):
 
     def test_from_path_900_multi_split(self) -> None:
         path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "0_0_0.rdvxz")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNone(entry)
+
+    def test_from_path_1000_good(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir,
+                               "00000001000_1609459200000000.rdvxz")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNotNone(entry)
+        self.assertEqual("00000001000", entry.station_id)
+        self.assertEqual(io.ApiVersion.API_1000, entry.api_version)
+        self.assertEqual(datetime(2021, 1, 1), entry.date_time)
+        self.assertEqual(".rdvxz", entry.extension)
+
+    def test_from_path_1000_good_short_station_id(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "9_1609459200000000.rdvxz")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(io.ApiVersion.API_1000, entry.api_version)
+        self.assertEqual("9", entry.station_id)
+
+    def test_from_path_1000_good_long_station_id(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir,
+                               "0000000100000000001000_1609459200000000.rdvxz")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(io.ApiVersion.API_1000, entry.api_version)
+        self.assertEqual("0000000100000000001000", entry.station_id)
+
+    def test_from_path_1000_no_station_id(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "_1609459200000000.rdvxm")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNone(entry)
+
+    def test_from_path_1000_bad_station_id(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "foo_1609459200000000.rdvxm")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNone(entry)
+
+    def test_from_path_1000_unix_epoch(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0000000100000000001000_0.rdvxm")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(io.ApiVersion.API_1000, entry.api_version)
+        self.assertEqual(datetime(1970, 1, 1), entry.date_time)
+
+    def test_from_path_1000_neg_epoch(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir,
+                               "0000000100000000001000_-31536000000000.rdvxm")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(io.ApiVersion.API_1000, entry.api_version)
+        self.assertEqual(datetime(1969, 1, 1), entry.date_time)
+
+    def test_from_path_1000_no_epoch(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0000000100000000001000_.rdvxm")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNone(entry)
+
+    def test_from_path_1000_bad_epoch(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0000000100000000001000_foo.rdvxm")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNone(entry)
+
+    def test_from_path_1000_different_ext(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0_0.foo")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(io.ApiVersion.API_1000, entry.api_version)
+        self.assertEqual(".foo", entry.extension)
+
+    def test_from_path_1000_no_ext(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0_0")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertEqual(io.ApiVersion.API_1000, entry.api_version)
+        self.assertEqual("", entry.extension)
+
+    def test_from_path_1000_no_split(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "00.rdvxm")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        self.assertIsNone(entry)
+
+    def test_from_path_1000_multi_split(self) -> None:
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0_0_0.rdvxm")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
         self.assertIsNone(entry)
 
