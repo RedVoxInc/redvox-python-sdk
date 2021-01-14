@@ -90,9 +90,10 @@ class IndexEntry:
         ts_str: str = split_name[1]
 
         # If you have a filename with a dot, but not an extension, i.e. "0000000001_0.", we need to remove the dot
-        # from the end
+        # from the end and make in the extension
         if ts_str[-1] == ".":
             ts_str = ts_str[:-1]
+            ext = "."
 
         timestamp: Optional[int] = _is_int(ts_str)
 
