@@ -172,6 +172,14 @@ class ReadFilter:
     end_dt_buf: Optional[timedelta] = timedelta(minutes=2.0)
     api_versions: Optional[Set[ApiVersion]] = field(default_factory=lambda: {ApiVersion.API_900, ApiVersion.API_1000})
 
+    @staticmethod
+    def empty() -> 'ReadFilter':
+        """
+        :return: A ReadFilter with ALL filters set to None. This is opposed to the default
+                 which sets sane defaults for extensions, APIs, and window buffers.
+        """
+        return ReadFilter(None, None, None, None, None, None, None)
+
     def with_start_dt(self, start_dt: Optional[datetime]) -> 'ReadFilter':
         """
         Adds a start datetime filter.
@@ -318,9 +326,6 @@ class IndexStationSummary:
     total_packets: int
     first_packet: datetime
     last_packet: datetime
-
-    # mean_diff: timedelta
-    # var_diff: float
 
     @staticmethod
     def from_entry(entry: IndexEntry) -> 'IndexStationSummary':
