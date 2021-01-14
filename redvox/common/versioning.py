@@ -36,5 +36,8 @@ def check_version(path: str) -> ApiVersion:
     :param path: Path of file to check.
     :return: An enum that represents the API version of the file.
     """
-    with open(path, "rb") as fin:
-        return check_version_buf(fin.read(4))
+    try:
+        with open(path, "rb") as fin:
+            return check_version_buf(fin.read(4))
+    except FileNotFoundError:
+        return ApiVersion.UNKNOWN

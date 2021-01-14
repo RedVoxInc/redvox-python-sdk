@@ -25,6 +25,9 @@ def check_type(value: Any,
                             is provided by default.
     """
 
+    if value is None and None in valid_types:
+        return None
+
     # It turns out that isinstance(True, int) will return True.... handle edge case first
     # https://stackoverflow.com/questions/37888620/comparing-boolean-and-int-using-isinstance
     if bool not in valid_types and isinstance(value, bool):
