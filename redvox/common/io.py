@@ -481,12 +481,14 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
 
     index: Index = Index()
 
+    extensions: Set[str] = read_filter.extensions if read_filter.extensions is not None else {""}
+
     extension: str
-    for extension in read_filter.extensions:
+    for extension in extensions:
         pattern: str = str(PurePath(base_dir).joinpath(f"*{extension}"))
         paths: List[str] = glob(os.path.join(base_dir, pattern))
         # noinspection Mypy
-        entries: Iterator[IndexEntry] = filter(_not_none, map(IndexEntry.from_path, paths))
+        entries: Iterator[IndexEntry] = filter(read_filter.apply, filter(_not_none, map(IndexEntry.from_path, paths)))
         index.append(entries)
 
     index.sort()
