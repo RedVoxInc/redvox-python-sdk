@@ -12,6 +12,9 @@ class ApiVersion(Enum):
     API_1000: str = "API_1000"
     UNKNOWN: str = "UNKNOWN"
 
+    def __lt__(self, other: 'ApiVersion') -> bool:
+        return self.name < other.name
+
 
 # noinspection PyTypeChecker
 def check_version_buf(buf: bytes) -> ApiVersion:
