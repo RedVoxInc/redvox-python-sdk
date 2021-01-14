@@ -3,7 +3,7 @@ import os
 import os.path
 import shutil
 import tempfile
-from typing import Iterator, Optional, Union
+from typing import Iterator, Optional, Union, List
 from unittest import TestCase
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
@@ -322,6 +322,18 @@ class IndexEntryTests(TestCase):
         packet = entry.read()
         self.assertIsNotNone(packet)
         self.assertEqual(1000.0, packet.get_api())
+
+    def test_ordering(self) -> None:
+        entries: List[io.IndexEntry] = [
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_900_dir, "0000001003_1.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_900_dir, "0000001002_0.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_900_dir, "0000001001_-1.rdvxm"))
+        ]
+
+        entries.sort()
+        self.assertEqual("0000001001", entries[0].station_id)
+        self.assertEqual("0000001002", entries[1].station_id)
+        self.assertEqual("0000001003", entries[2].station_id)
 
 
 class IndexTests(TestCase):
