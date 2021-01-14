@@ -347,4 +347,41 @@ class IndexTests(TestCase):
 
 
 class ReadFilterTests(TestCase):
-    pass
+    def test_default(self) -> None:
+        read_filter = io.ReadFilter()
+        self.assertEqual(None, read_filter.start_dt)
+        self.assertEqual(timedelta(minutes=2), read_filter.start_dt_buf)
+        self.assertEqual(None, read_filter.end_dt)
+        self.assertEqual(timedelta(minutes=2), read_filter.end_dt_buf)
+        self.assertEqual(None, read_filter.station_ids)
+        self.assertEqual({io.ApiVersion.API_900, io.ApiVersion.API_1000}, read_filter.api_versions)
+        self.assertEqual({".rdvxm", ".rdvxz"}, read_filter.extensions)
+
+    def test_with_start_ts(self):
+        read_filter = io.ReadFilter().with_start_ts(1609459200000000)
+        self.assertEqual(datetime(2021, 1, 1), read_filter.start_dt)
+
+    def test_with_end_ts(self):
+        read_filter = io.ReadFilter().with_start_ts(1609545600000000)
+        self.assertEqual(datetime(2021, 1, 2), read_filter.start_dt)
+
+    def test_apply_dt_in_range(self):
+        pass
+
+    def test_apply_dt_in_buf(self):
+        pass
+
+    def test_apply_dt_eq_start(self):
+        pass
+
+    def test_apply_dt_eq_end(self):
+        pass
+
+    def test_apply_dt_before_start(self):
+        pass
+
+    def test_apply_dt_before_end(self):
+        pass
+
+    def test_apply_dt_with_fn(self):
+        pass
