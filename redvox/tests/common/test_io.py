@@ -325,9 +325,12 @@ class IndexEntryTests(TestCase):
 
     def test_ordering(self) -> None:
         entries: List[io.IndexEntry] = [
-            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_900_dir, "0000001003_1.rdvxm")),
-            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_900_dir, "0000001002_0.rdvxm")),
-            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_900_dir, "0000001001_-1.rdvxm"))
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path,
+                                               self.unstructured_900_dir, "0000001003_1.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path,
+                                               self.unstructured_900_dir, "0000001002_0.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path,
+                                               self.unstructured_900_dir, "0000001001_-1.rdvxm"))
         ]
 
         entries.sort()
