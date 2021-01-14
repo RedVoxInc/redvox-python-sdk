@@ -12,6 +12,8 @@ from redvox.common.date_time_utils import (
     datetime_from_epoch_microseconds_utc as us2dt,
     datetime_to_epoch_milliseconds_utc as dt2ms,
     datetime_to_epoch_microseconds_utc as dt2us,
+    truncate_dt_ymd,
+    truncate_dt_ymdh,
 )
 import redvox.common.io as io
 
@@ -366,22 +368,62 @@ class ReadFilterTests(TestCase):
         self.assertEqual(datetime(2021, 1, 2), read_filter.start_dt)
 
     def test_apply_dt_in_range(self):
-        pass
+        start = datetime(2021, 1, 1)
+        end = datetime(2021, 1, 2)
+        target = datetime(2021, 1, 1, 12)
+        read_filter = io.ReadFilter().with_start_dt(start).with_end_dt(end)
+        self.assertTrue(read_filter.apply_dt(target))
 
-    def test_apply_dt_in_buf(self):
-        pass
+    def test_apply_dt_in_buf_start(self):
+        start = datetime(2021, 1, 1)
+        end = datetime(2021, 1, 2)
+        target = datetime(2020, 12, 31, 23, 59)
+        read_filter = io.ReadFilter().with_start_dt(start).with_end_dt(end)
+        self.assertTrue(read_filter.apply_dt(target))
+
+    def test_apply_dt_in_buf_end(self):
+        start = datetime(2021, 1, 1)
+        end = datetime(2021, 1, 2)
+        target = datetime(2021, 1, 2, 0, 1)
+        read_filter = io.ReadFilter().with_start_dt(start).with_end_dt(end)
+        self.assertTrue(read_filter.apply_dt(target))
 
     def test_apply_dt_eq_start(self):
-        pass
+        start = datetime(2021, 1, 1)
+        buf = timedelta(seconds=0)
+        target = datetime(2021, 1, 1)
+        read_filter = io.ReadFilter().with_start_dt(start).with_start_dt_buf(buf)
+        self.assertTrue(read_filter.apply_dt(target))
 
     def test_apply_dt_eq_end(self):
-        pass
+        end = datetime(2021, 1, 1)
+        buf = timedelta(seconds=0)
+        target = datetime(2021, 1, 1)
+        read_filter = io.ReadFilter().with_end_dt(end).with_end_dt_buf(buf)
+        self.assertTrue(read_filter.apply_dt(target))
 
     def test_apply_dt_before_start(self):
-        pass
+        start = datetime(2021, 1, 2)
+        buf = timedelta(seconds=0)
+        target = datetime(2021, 1, 1, 23, 59)
+        read_filter = io.ReadFilter().with_start_dt(start).with_start_dt_buf(buf)
+        self.assertFalse(read_filter.apply_dt(target))
 
-    def test_apply_dt_before_end(self):
-        pass
+    def test_apply_dt_after_end(self):
+        end = datetime(2021, 1, 2)
+        buf = timedelta(seconds=0)
+        target = datetime(2021, 1, 2, 0, 1)
+        read_filter = io.ReadFilter().with_end_dt(end).with_end_dt_buf(buf)
+        self.assertFalse(read_filter.apply_dt(target))
 
-    def test_apply_dt_with_fn(self):
-        pass
+    def test_apply_dt_with_fn_start(self):
+        start = datetime(2021, 1, 1, 23, 59)
+        buf = timedelta(seconds=0)
+        read_filter = io.ReadFilter().with_start_dt(start).with_start_dt_buf(buf)
+
+        self.assertFalse(read_filter.apply_dt(datetime(2021, 1, 1)))
+        self.assertTrue(read_filter.apply_dt(datetime(2021, 1, 1), truncate_dt_ymd))
+
+        self.assertFalse(read_filter.apply_dt(datetime(2021, 1, 1, 23)))
+        self.assertTrue(read_filter.apply_dt(datetime(2021, 1, 1, 23), truncate_dt_ymdh))
+
