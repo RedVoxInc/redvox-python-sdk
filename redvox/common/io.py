@@ -101,7 +101,13 @@ class IndexEntry:
         else:
             date_time = dt_ms(timestamp)
 
-        return IndexEntry(str(path.resolve(strict=True)),
+        full_path: str
+        try:
+            full_path = str(path.resolve(strict=True))
+        except FileNotFoundError:
+            full_path = path_str
+
+        return IndexEntry(full_path,
                           station_id,
                           date_time,
                           ext,
