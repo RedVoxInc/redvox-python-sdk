@@ -414,6 +414,18 @@ class IndexTests(IoTestCase):
         ]))
         self.assertEqual(3, len(index.entries))
 
+    def test_stream_all(self):
+        pass
+
+    def test_read_all(self):
+        pass
+
+    def test_stream_filtered(self):
+        pass
+
+    def test_real_filtered(self):
+        pass
+
 
 
 # noinspection PyTypeChecker,DuplicatedCode,Mypy
