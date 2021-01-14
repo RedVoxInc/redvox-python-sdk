@@ -399,6 +399,21 @@ class IndexTests(IoTestCase):
             entries[0],
         ], index.entries)
 
+    def test_append(self):
+        index = io.Index()
+        self.assertEqual(0, len(index.entries))
+        index.append(iter([]))
+        self.assertEqual(0, len(index.entries))
+        index.append(iter([
+            io.IndexEntry.from_path("0_0", False)
+        ]))
+        self.assertEqual(1, len(index.entries))
+        index.append(iter([
+            io.IndexEntry.from_path("0_0", False),
+            io.IndexEntry.from_path("0_1", False),
+        ]))
+        self.assertEqual(3, len(index.entries))
+
 
 
 # noinspection PyTypeChecker,DuplicatedCode,Mypy
