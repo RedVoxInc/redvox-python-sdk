@@ -55,7 +55,6 @@ def _not_none(value: Any) -> bool:
     return value is not None
 
 
-@total_ordering
 @dataclass
 class IndexEntry:
     """
@@ -136,16 +135,16 @@ class IndexEntry:
         else:
             return None
 
-    def __lt__(self, other: 'IndexEntry') -> bool:
-        """
-        Tests if this value is less than another value.
-
-        This along with __eq__ are used to fulfill the total ordering contract. Compares this entry's full path to
-        another entries full path.
-        :param other: Other IndexEntry to compare against.
-        :return: True if this full path is less than the other full path.
-        """
-        return self.full_path.__lt__(other.full_path)
+    # def __lt__(self, other: 'IndexEntry') -> bool:
+    #     """
+    #     Tests if this value is less than another value.
+    #
+    #     This along with __eq__ are used to fulfill the total ordering contract. Compares this entry's full path to
+    #     another entries full path.
+    #     :param other: Other IndexEntry to compare against.
+    #     :return: True if this full path is less than the other full path.
+    #     """
+    #     return self.full_path.__lt__(other.full_path)
 
     def __eq__(self, other: object) -> bool:
         """
@@ -430,7 +429,8 @@ class Index:
         """
         Sorts the entries stored in this index.
         """
-        self.entries.sort()
+        self.entries = sorted(self.entries,
+                              key=lambda entry: (entry.api_version, entry.station_id, entry.date_time))
 
     def append(self, entries: Iterator[IndexEntry]) -> None:
         """
