@@ -107,27 +107,8 @@ def copy_exact(template_path: str,
     return file_path
 
 
-class IoTests(TestCase):
-    def test_is_int_good(self):
-        self.assertEqual(0, io._is_int("0"))
-        self.assertEqual(1, io._is_int("01"))
-        self.assertEqual(1, io._is_int("00001"))
-        self.assertEqual(10, io._is_int("000010"))
-        self.assertEqual(-10, io._is_int("-000010"))
-
-    def test_is_int_bad(self):
-        self.assertIsNone(io._is_int(""))
-        self.assertIsNone(io._is_int("000a"))
-        self.assertIsNone(io._is_int("foo"))
-        self.assertIsNone(io._is_int("1.325"))
-
-    def test_not_none(self):
-        self.assertTrue(io._not_none(""))
-        self.assertFalse(io._not_none(None))
-
-
-# noinspection Mypy
-class IndexEntryTests(TestCase):
+# noinspection DuplicatedCode,Mypy
+class IoTestCase(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.temp_dir = tempfile.TemporaryDirectory()
@@ -156,6 +137,27 @@ class IndexEntryTests(TestCase):
     def tearDownClass(cls) -> None:
         cls.temp_dir.cleanup()
 
+
+class IoTests(TestCase):
+    def test_is_int_good(self):
+        self.assertEqual(0, io._is_int("0"))
+        self.assertEqual(1, io._is_int("01"))
+        self.assertEqual(1, io._is_int("00001"))
+        self.assertEqual(10, io._is_int("000010"))
+        self.assertEqual(-10, io._is_int("-000010"))
+
+    def test_is_int_bad(self):
+        self.assertIsNone(io._is_int(""))
+        self.assertIsNone(io._is_int("000a"))
+        self.assertIsNone(io._is_int("foo"))
+        self.assertIsNone(io._is_int("1.325"))
+
+    def test_not_none(self):
+        self.assertTrue(io._not_none(""))
+        self.assertFalse(io._not_none(None))
+
+
+class IndexEntryTests(IoTestCase):
     def test_from_path_900_good(self) -> None:
         path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "0000000900_1609459200000.rdvxz")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
@@ -348,35 +350,7 @@ class IndexEntryTests(TestCase):
         self.assertEqual("0000001003", entries[2].station_id)
 
 
-class IndexTests(TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.temp_dir = tempfile.TemporaryDirectory()
-        cls.temp_dir_path = cls.temp_dir.name
-
-        cls.template_dir: str = os.path.join(cls.temp_dir_path, "templates")
-        os.makedirs(cls.template_dir, exist_ok=True)
-
-        cls.unstructured_900_dir: str = os.path.join(cls.temp_dir_path, "unstructured_900")
-        os.makedirs(cls.unstructured_900_dir, exist_ok=True)
-
-        cls.unstructured_1000_dir: str = os.path.join(cls.temp_dir_path, "unstructured_1000")
-        os.makedirs(cls.unstructured_1000_dir, exist_ok=True)
-
-        cls.unstructured_900_1000_dir: str = os.path.join(cls.temp_dir_path, "unstructured_900_1000")
-        os.makedirs(cls.unstructured_900_1000_dir, exist_ok=True)
-
-        cls.template_900_path = os.path.join(cls.template_dir, "template_900.rdvxz")
-        cls.template_1000_path = os.path.join(cls.template_dir, "template_1000.rdvxm")
-
-        write_min_api_900(cls.template_dir, "template_900.rdvxz")
-        write_min_api_1000(cls.template_dir, "template_1000.rdvxm")
-
-    # noinspection PyUnresolvedReferences
-    @classmethod
-    def tearDownClass(cls) -> None:
-        cls.temp_dir.cleanup()
-
+class IndexTests(IoTestCase):
     def test_empty_index(self):
         index: io.Index = io.Index()
         self.assertEqual(0, len(index.entries))
@@ -392,35 +366,8 @@ class IndexTests(TestCase):
         self.assertEqual(0, len(index.read()))
 
 
-class ReadFilterTests(TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.temp_dir = tempfile.TemporaryDirectory()
-        cls.temp_dir_path = cls.temp_dir.name
-
-        cls.template_dir: str = os.path.join(cls.temp_dir_path, "templates")
-        os.makedirs(cls.template_dir, exist_ok=True)
-
-        cls.unstructured_900_dir: str = os.path.join(cls.temp_dir_path, "unstructured_900")
-        os.makedirs(cls.unstructured_900_dir, exist_ok=True)
-
-        cls.unstructured_1000_dir: str = os.path.join(cls.temp_dir_path, "unstructured_1000")
-        os.makedirs(cls.unstructured_1000_dir, exist_ok=True)
-
-        cls.unstructured_900_1000_dir: str = os.path.join(cls.temp_dir_path, "unstructured_900_1000")
-        os.makedirs(cls.unstructured_900_1000_dir, exist_ok=True)
-
-        cls.template_900_path = os.path.join(cls.template_dir, "template_900.rdvxz")
-        cls.template_1000_path = os.path.join(cls.template_dir, "template_1000.rdvxm")
-
-        write_min_api_900(cls.template_dir, "template_900.rdvxz")
-        write_min_api_1000(cls.template_dir, "template_1000.rdvxm")
-
-    # noinspection PyUnresolvedReferences
-    @classmethod
-    def tearDownClass(cls) -> None:
-        cls.temp_dir.cleanup()
-
+# noinspection PyTypeChecker,DuplicatedCode,Mypy
+class ReadFilterTests(IoTestCase):
     def test_default(self) -> None:
         read_filter = io.ReadFilter()
         self.assertEqual(None, read_filter.start_dt)
@@ -699,10 +646,10 @@ class ReadFilterTests(TestCase):
         read_filter = io.ReadFilter() \
             .with_extensions(None) \
             .with_api_versions({
-            io.ApiVersion.API_900,
-            io.ApiVersion.API_1000,
-            io.ApiVersion.UNKNOWN
-        })
+                io.ApiVersion.API_900,
+                io.ApiVersion.API_1000,
+                io.ApiVersion.UNKNOWN})
+
         api_900_path = copy_exact(self.template_900_path,
                                   self.unstructured_900_dir,
                                   "900_0.rdvxz")
