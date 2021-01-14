@@ -531,3 +531,18 @@ class ReadFilterTests(TestCase):
             io.IndexEntry.from_path("5_0"),
         ]
         self.assertEqual(["1", "2", "3", "4", "5"], list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+
+    def test_api_version_all(self):
+        pass
+
+    def test_api_version_unknown(self):
+        pass
+
+    def test_api_version_900(self):
+        pass
+
+    def test_api_version_1000(self):
+        pass
+
+    def test_api_version_multi(self):
+        pass
