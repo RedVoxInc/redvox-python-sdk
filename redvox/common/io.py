@@ -5,7 +5,6 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from glob import glob
-from functools import total_ordering
 import os.path
 from pathlib import Path, PurePath
 from typing import (
@@ -467,7 +466,7 @@ __VALID_DATES: Set[str] = {f"{i:02}" for i in range(1, 32)}
 __VALID_HOURS: Set[str] = {f"{i:02}" for i in range(0, 24)}
 
 
-def __list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
+def _list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
     """
     Lists sub-directors in a given base directory that match the provided choices.
     :param base_dir: Base dir to find sub dirs in.
@@ -513,9 +512,9 @@ def index_structured_api_900(base_dir: str, read_filter: ReadFilter = ReadFilter
     """
     index: Index = Index()
 
-    for year in __list_subdirs(base_dir, __VALID_YEARS):
-        for month in __list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
-            for day in __list_subdirs(os.path.join(base_dir, year, month), __VALID_DATES):
+    for year in _list_subdirs(base_dir, __VALID_YEARS):
+        for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
+            for day in _list_subdirs(os.path.join(base_dir, year, month), __VALID_DATES):
                 # Before scanning for *.rdvxm files, let's see if the current year, month, day, are in the
                 # filter's range. If not, we can short circuit and skip getting the *.rdvxz files.
                 if not read_filter.apply_dt(datetime(int(year),
@@ -541,10 +540,10 @@ def index_structured_api_1000(base_dir: str, read_filter: ReadFilter = ReadFilte
     """
     index: Index = Index()
 
-    for year in __list_subdirs(base_dir, __VALID_YEARS):
-        for month in __list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
-            for day in __list_subdirs(os.path.join(base_dir, year, month), __VALID_DATES):
-                for hour in __list_subdirs(os.path.join(base_dir, year, month, day), __VALID_HOURS):
+    for year in _list_subdirs(base_dir, __VALID_YEARS):
+        for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
+            for day in _list_subdirs(os.path.join(base_dir, year, month), __VALID_DATES):
+                for hour in _list_subdirs(os.path.join(base_dir, year, month, day), __VALID_HOURS):
                     # Before scanning for *.rdvxm files, let's see if the current year, month, day, hour are in the
                     # filter's range. If not, we can short circuit and skip getting the *.rdvxm files.
                     if not read_filter.apply_dt(datetime(int(year),
@@ -581,7 +580,7 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
     # Maybe parent to one or both?
     else:
         index: Index = Index()
-        subdirs: List[str] = __list_subdirs(base_dir, {"api900", "api1000"})
+        subdirs: List[str] = _list_subdirs(base_dir, {"api900", "api1000"})
         if "api900" in subdirs:
             index.append(iter(index_structured_api_900(str(base_path.joinpath("api900")), read_filter).entries))
 
