@@ -500,7 +500,7 @@ class Index:
         :return: An iterator over WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
         """
         filtered: Iterator[IndexEntry] = filter(
-            lambda entry: read_filter.apply(entry), self.entries
+            read_filter.apply, self.entries
         )
         # noinspection Mypy
         return map(IndexEntry.read, filtered)
