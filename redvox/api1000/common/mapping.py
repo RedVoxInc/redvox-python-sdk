@@ -49,7 +49,7 @@ class Mapping(Generic[T]):
             metadata_dict[key] = value
         return metadata_dict
 
-    def set_metadata(self, metadata: Dict[str, T]) -> 'Mapping':
+    def set_metadata(self, metadata: Dict[str, T]) -> "Mapping":
         """
         Sets the metadata to passed in dictionary.
         :param metadata: Sets the metadata to this.
@@ -65,7 +65,7 @@ class Mapping(Generic[T]):
 
         return self
 
-    def append_metadata(self, key: str, value: T) -> 'Mapping':
+    def append_metadata(self, key: str, value: T) -> "Mapping":
         """
         Appends a key-value pair to the metadata mapping.
         :param key: Key to append.
@@ -78,7 +78,7 @@ class Mapping(Generic[T]):
         self._metadata_proto[key] = value
         return self
 
-    def clear_metadata(self) -> 'Mapping':
+    def clear_metadata(self) -> "Mapping":
         """
         Clears all metadata.
         :return: This instance of metadata

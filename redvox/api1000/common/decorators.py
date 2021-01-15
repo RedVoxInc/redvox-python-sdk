@@ -14,6 +14,7 @@ def wrap_enum(proto_type: EnumTypeWrapper):
     :param proto_type: The protobuf type
     :return: A function for decorating Python enums.
     """
+
     def __wrap_enum(enum: Enum) -> Enum:
         """
         Wrapper function for decorating enums.
