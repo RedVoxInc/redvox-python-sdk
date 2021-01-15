@@ -7,8 +7,6 @@ class CloudApiError(Exception):
     """
     A generic Cloud API error.
     """
-    def __init__(self, message: str = ""):
-        super().__init__(message)
 
 
 class AuthenticationError(CloudApiError):
