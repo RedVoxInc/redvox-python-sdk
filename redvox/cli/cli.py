@@ -323,7 +323,26 @@ def gallery_args(args) -> None:
     CLI function for opening image gallery.
     :param args: Args for passing to gallery function.
     """
+    if not check_files(args.rdvxm_paths):
+        determine_exit(False)
+
     determine_exit(gallery(args.rdvxm_paths))
+
+
+def sort_unstructured(input_dir: str, out_dir: Optional[str] = None) -> bool:
+    out_dir = out_dir if out_dir is not None else "."
+    io.sort_unstructured_redvox_data(input_dir, out_dir)
+    return True
+
+
+def sort_unstructured_args(args) -> None:
+    if not check_files(args.redvox_paths):
+        determine_exit(False)
+
+    if not check_out_dir(args.out_dir):
+        determine_exit(False)
+
+    determine_exit(sort_unstructured(args.redvox_paths, args.out_dir))
 
 
 def main():
@@ -454,16 +473,15 @@ def main():
         help="Sorts unstructured RedVox files into their structured counterpart",
     )
     sort_unstructured_parser.add_argument(
-        "redvox_paths",
-        help="One or more RedVox files to sort into a structured layout",
-        nargs="+",
+        "input_dir",
+        help="Directory containing RedVox files to sort into a structured layout",
     )
     sort_unstructured_parser.add_argument(
         "--out-dir",
         "-o",
-        help="Optional output directory (will use same directory as source files by "
-        "default)",
+        help="Optional output directory (current working directory by default)",
     )
+    sort_unstructured_parser.set_defaults(func=sort_unstructured_args)
 
     # print rdvxz
     rdvxz_print_parser = sub_parser.add_parser(
