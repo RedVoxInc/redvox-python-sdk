@@ -13,10 +13,12 @@ def compress(data: bytes, compression_level: int = 12) -> bytes:
                               provides more compression.
     :return: Compressed bytes.
     """
-    return lz4.frame.compress(data,
-                              compression_level=compression_level,
-                              return_bytearray=True,
-                              block_linked=False)
+    return lz4.frame.compress(
+        data,
+        compression_level=compression_level,
+        return_bytearray=True,
+        block_linked=False,
+    )
 
 
 def decompress(data: bytes) -> bytes:

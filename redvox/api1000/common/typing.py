@@ -9,10 +9,12 @@ import numpy as np
 from redvox.api1000 import errors
 
 
-def check_type(value: Any,
-               valid_types: List[Any],
-               exception: Optional[Callable[[str], errors.ApiMError]] = None,
-               additional_info: Optional[str] = None) -> None:
+def check_type(
+    value: Any,
+    valid_types: List[Any],
+    exception: Optional[Callable[[str], errors.ApiMError]] = None,
+    additional_info: Optional[str] = None,
+) -> None:
     """
     This provides some rudimentary type checking when setting API M data.
     This allows type errors to be a bit more consumable to users compared to errors thrown by the protobuf library. If
@@ -38,9 +40,13 @@ def check_type(value: Any,
             return None
 
     # There are type check issues
-    type_names: List[str] = list(map(lambda _valid_type: f"'{_valid_type.__name__}'", valid_types))
-    message: str = f"Expected type(s) {' or '.join(type_names)}," \
-                   f" but found '{type(value).__name__}'."
+    type_names: List[str] = list(
+        map(lambda _valid_type: f"'{_valid_type.__name__}'", valid_types)
+    )
+    message: str = (
+        f"Expected type(s) {' or '.join(type_names)},"
+        f" but found '{type(value).__name__}'."
+    )
 
     if additional_info is not None:
         message += f" ({additional_info})"
