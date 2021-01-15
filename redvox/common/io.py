@@ -508,6 +508,11 @@ class Index:
     def read(
         self, read_filter: ReadFilter = ReadFilter()
     ) -> List[Union["WrappedRedvoxPacket", WrappedRedvoxPacketM]]:
+        """
+        Read, decompress, deserialize, and wrap RedVox data pointed to by this index.
+        :param read_filter: Additional filtering to specify which data should be read.
+        :return: An list of WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
+        """
         return list(self.stream(read_filter))
 
 
