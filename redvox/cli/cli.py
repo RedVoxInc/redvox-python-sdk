@@ -336,13 +336,13 @@ def sort_unstructured(input_dir: str, out_dir: Optional[str] = None) -> bool:
 
 
 def sort_unstructured_args(args) -> None:
-    if not check_files(args.redvox_paths):
+    if not check_out_dir(args.input_dir):
         determine_exit(False)
 
     if not check_out_dir(args.out_dir):
         determine_exit(False)
 
-    determine_exit(sort_unstructured(args.redvox_paths, args.out_dir))
+    determine_exit(sort_unstructured(args.input_dir, args.out_dir))
 
 
 def main():
