@@ -784,3 +784,28 @@ class ReadFilterTests(IoTestCase):
         ]
         self.assertEqual(["900", "1000", "0"],
                          list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+
+
+class IndexSummaryTests(IoTestCase):
+    def test_empty(self):
+        summary = io.IndexSummary.from_index(io.Index())
+        self.assertEqual(0, summary.total_packets())
+        self.assertEqual(0, len(summary.station_ids()))
+
+    def test_mixed(self):
+        index = io.Index([
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "1_0.rdvxz")),
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "2_0.rdvxz")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "3_0.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "4_0.rdvxm")),
+        ])
+        index.sort()
+        summary = index.summarize()
+        self.assertEqual(4, summary.total_packets())
+        self.assertEqual(2, summary.total_packets(io.ApiVersion.API_900))
+        self.assertEqual(2, summary.total_packets(io.ApiVersion.API_1000))
+
+        self.assertEqual(set(["1", "2", "3", "4"]), set(summary.station_ids()))
+        self.assertEqual(set(["1", "2"]), set(summary.station_ids(io.ApiVersion.API_900)))
+        self.assertEqual(set(["3", "4"]), set(summary.station_ids(io.ApiVersion.API_1000)))
+
