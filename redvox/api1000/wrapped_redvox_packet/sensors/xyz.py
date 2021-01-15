@@ -10,10 +10,13 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 import redvox.api1000.common.generic
 
 
-class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz]):
+class Xyz(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz]
+):
     """
     Encapsulates a sensor with x, y, and z data and metadata
     """
+
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
@@ -22,13 +25,13 @@ class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM
         self._z_samples: common.SamplePayload = common.SamplePayload(proto.z_samples)
 
     @staticmethod
-    def new() -> 'Xyz':
+    def new() -> "Xyz":
         """
         :return: A new, empty Xyz sensor instance
         """
         return Xyz(redvox_api_m_pb2.RedvoxPacketM.Sensors.Xyz())
 
-    def set_unit_xyz(self, unit: common.Unit) -> 'Xyz':
+    def set_unit_xyz(self, unit: common.Unit) -> "Xyz":
         """
         Sets the unit of the x, y, and z channels
         :param unit: Unit to set
@@ -46,7 +49,7 @@ class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM
         """
         return self._proto.sensor_description
 
-    def set_sensor_description(self, sensor_description: str) -> 'Xyz':
+    def set_sensor_description(self, sensor_description: str) -> "Xyz":
         """
         Sets this sensor's description
         :param sensor_description: Description to set
@@ -62,7 +65,7 @@ class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM
         """
         return self._timestamps
 
-    def set_timestamps(self, timestamps: common.TimingPayload) -> 'Xyz':
+    def set_timestamps(self, timestamps: common.TimingPayload) -> "Xyz":
         """
         Sets the timestamps.
         :param timestamps: Timestamps to set.
@@ -79,7 +82,7 @@ class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM
         """
         return self._x_samples
 
-    def set_x_samples(self, x_samples: common.SamplePayload) -> 'Xyz':
+    def set_x_samples(self, x_samples: common.SamplePayload) -> "Xyz":
         """
         Sets the X channel samples.
         :param x_samples: Samples to set.
@@ -97,7 +100,7 @@ class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM
         """
         return self._y_samples
 
-    def set_y_samples(self, y_samples: common.SamplePayload) -> 'Xyz':
+    def set_y_samples(self, y_samples: common.SamplePayload) -> "Xyz":
         """
         Sets the Y channel samples.
         :param y_samples: Samples to set.
@@ -115,7 +118,7 @@ class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM
         """
         return self._z_samples
 
-    def set_z_samples(self, z_samples: common.SamplePayload) -> 'Xyz':
+    def set_z_samples(self, z_samples: common.SamplePayload) -> "Xyz":
         """
         Sets the Z channel samples.
         :param z_samples: Samples to set.
@@ -128,7 +131,9 @@ class Xyz(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM
         return self
 
 
-def validate_xyz(xyz_sensor: Xyz, payload_unit: Optional[common.Unit] = None) -> List[str]:
+def validate_xyz(
+    xyz_sensor: Xyz, payload_unit: Optional[common.Unit] = None
+) -> List[str]:
     """
     Validates the XYZ sensor.
     :param xyz_sensor: Sensor to validate.
@@ -136,10 +141,25 @@ def validate_xyz(xyz_sensor: Xyz, payload_unit: Optional[common.Unit] = None) ->
     :return:
     """
     errors_list = common.validate_timing_payload(xyz_sensor.get_timestamps())
-    errors_list.extend(common.validate_sample_payload(xyz_sensor.get_x_samples(),
-                                                      xyz_sensor.get_sensor_description(), payload_unit))
-    errors_list.extend(common.validate_sample_payload(xyz_sensor.get_y_samples(),
-                                                      xyz_sensor.get_sensor_description(), payload_unit))
-    errors_list.extend(common.validate_sample_payload(xyz_sensor.get_z_samples(),
-                                                      xyz_sensor.get_sensor_description(), payload_unit))
+    errors_list.extend(
+        common.validate_sample_payload(
+            xyz_sensor.get_x_samples(),
+            xyz_sensor.get_sensor_description(),
+            payload_unit,
+        )
+    )
+    errors_list.extend(
+        common.validate_sample_payload(
+            xyz_sensor.get_y_samples(),
+            xyz_sensor.get_sensor_description(),
+            payload_unit,
+        )
+    )
+    errors_list.extend(
+        common.validate_sample_payload(
+            xyz_sensor.get_z_samples(),
+            xyz_sensor.get_sensor_description(),
+            payload_unit,
+        )
+    )
     return errors_list

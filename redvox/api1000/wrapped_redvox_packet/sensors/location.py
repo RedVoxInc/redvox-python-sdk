@@ -19,6 +19,7 @@ class LocationProvider(enum.Enum):
     """
     An enum that represents valid location providers
     """
+
     UNKNOWN: int = 0
     NONE: int = 1
     USER: int = 2
@@ -32,16 +33,22 @@ class LocationScoreMethod(enum.Enum):
     """
     An enum that represents location scoring methods
     """
+
     UNKNOWN_METHOD: int = 0
 
 
 class BestTimestamp(
-    redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation.BestTimestamp]
+    redvox.api1000.common.generic.ProtoBase[
+        RedvoxPacketM.Sensors.Location.BestLocation.BestTimestamp
+    ]
 ):
     """
     This class encapsulates the best timestamps associated with the best location estimates.
     """
-    def __init__(self, proto: RedvoxPacketM.Sensors.Location.BestLocation.BestTimestamp):
+
+    def __init__(
+        self, proto: RedvoxPacketM.Sensors.Location.BestLocation.BestTimestamp
+    ):
         super().__init__(proto)
 
     def get_unit(self) -> common.Unit:
@@ -52,7 +59,7 @@ class BestTimestamp(
         # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.unit)
 
-    def set_default_unit(self) -> 'BestTimestamp':
+    def set_default_unit(self) -> "BestTimestamp":
         """
         Sets the default timestamp unit.
         :return: A modified instance of self
@@ -60,7 +67,7 @@ class BestTimestamp(
         # noinspection PyTypeChecker
         return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
-    def set_unit(self, unit: common.Unit) -> 'BestTimestamp':
+    def set_unit(self, unit: common.Unit) -> "BestTimestamp":
         """
         Sets the unit of the best timestamps.
         :param unit: Unit to set.
@@ -77,7 +84,7 @@ class BestTimestamp(
         """
         return self._proto.mach
 
-    def set_mach(self, mach: float) -> 'BestTimestamp':
+    def set_mach(self, mach: float) -> "BestTimestamp":
         """
         Sets the best machine timestamp.
         :param mach: Timestamp to set.
@@ -93,7 +100,7 @@ class BestTimestamp(
         """
         return self._proto.gps
 
-    def set_gps(self, gps: float) -> 'BestTimestamp':
+    def set_gps(self, gps: float) -> "BestTimestamp":
         """
         Sets the best GPS provided timestamp
         :param gps: Timestamp to set
@@ -108,10 +115,15 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
     """
     Encapsulates the best location estimates
     """
+
     def __init__(self, proto: RedvoxPacketM.Sensors.Location.BestLocation):
         super().__init__(proto)
-        self._latitude_longitude_timestamp: BestTimestamp = BestTimestamp(proto.latitude_longitude_timestamp)
-        self._altitude_timestamp: BestTimestamp = BestTimestamp(proto.altitude_timestamp)
+        self._latitude_longitude_timestamp: BestTimestamp = BestTimestamp(
+            proto.latitude_longitude_timestamp
+        )
+        self._altitude_timestamp: BestTimestamp = BestTimestamp(
+            proto.altitude_timestamp
+        )
         self._speed_timestamp: BestTimestamp = BestTimestamp(proto.speed_timestamp)
         self._bearing_timestamp: BestTimestamp = BestTimestamp(proto.bearing_timestamp)
 
@@ -121,15 +133,21 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._latitude_longitude_timestamp
 
-    def set_latitude_longitude_timestamp(self, latitude_longitude_timestamp: BestTimestamp) -> 'BestLocation':
+    def set_latitude_longitude_timestamp(
+        self, latitude_longitude_timestamp: BestTimestamp
+    ) -> "BestLocation":
         """
         Sets the latitude/longitude best timestamp.
         :param latitude_longitude_timestamp: The BestTimestamp to set.
         :return: A modified instance of self.
         """
         common.check_type(latitude_longitude_timestamp, [BestTimestamp])
-        self.get_proto().latitude_longitude_timestamp.CopyFrom(latitude_longitude_timestamp.get_proto())
-        self._latitude_longitude_timestamp = BestTimestamp(self.get_proto().latitude_longitude_timestamp)
+        self.get_proto().latitude_longitude_timestamp.CopyFrom(
+            latitude_longitude_timestamp.get_proto()
+        )
+        self._latitude_longitude_timestamp = BestTimestamp(
+            self.get_proto().latitude_longitude_timestamp
+        )
         return self
 
     def get_altitude_timestamp(self) -> BestTimestamp:
@@ -138,7 +156,9 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._altitude_timestamp
 
-    def set_altitude_timestamp(self, altitude_timestamp: BestTimestamp) -> 'BestLocation':
+    def set_altitude_timestamp(
+        self, altitude_timestamp: BestTimestamp
+    ) -> "BestLocation":
         """
         Sets the altitude timestamp.
         :param altitude_timestamp: The BestTimestamp to set.
@@ -155,7 +175,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._speed_timestamp
 
-    def set_speed_timestamp(self, speed_timestamp: BestTimestamp) -> 'BestLocation':
+    def set_speed_timestamp(self, speed_timestamp: BestTimestamp) -> "BestLocation":
         """
         Sets the speed timestamp.
         :param speed_timestamp: The BestTimestamp to set.
@@ -172,7 +192,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._bearing_timestamp
 
-    def set_bearing_timestamp(self, bearing_timestamp: BestTimestamp) -> 'BestLocation':
+    def set_bearing_timestamp(self, bearing_timestamp: BestTimestamp) -> "BestLocation":
         """
         Sets the bearing timestamp.
         :param bearing_timestamp: The BestTimestamp to set.
@@ -191,7 +211,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.latitude_longitude_unit)
 
-    def set_latitude_longitude_unit(self, unit: common.Unit) -> 'BestLocation':
+    def set_latitude_longitude_unit(self, unit: common.Unit) -> "BestLocation":
         """
         Sets the unit associated with latitude and longitude
         :param unit: Unit to set
@@ -210,7 +230,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.altitude_unit)
 
-    def set_altitude_unit(self, unit: common.Unit) -> 'BestLocation':
+    def set_altitude_unit(self, unit: common.Unit) -> "BestLocation":
         """
         Sets the unit associated with altitude
         :param unit: Unit to set
@@ -229,7 +249,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.speed_unit)
 
-    def set_speed_unit(self, unit: common.Unit) -> 'BestLocation':
+    def set_speed_unit(self, unit: common.Unit) -> "BestLocation":
         """
         Sets the unit associated with speed
         :param unit: Unit to set
@@ -248,7 +268,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.bearing_unit)
 
-    def set_bearing_unit(self, unit: common.Unit) -> 'BestLocation':
+    def set_bearing_unit(self, unit: common.Unit) -> "BestLocation":
         """
         Sets the unit associated with speed
         :param unit: Unit to set
@@ -267,7 +287,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.vertical_accuracy_unit)
 
-    def set_vertical_accuracy_unit(self, unit: common.Unit) -> 'BestLocation':
+    def set_vertical_accuracy_unit(self, unit: common.Unit) -> "BestLocation":
         """
         Sets the unit associated with vertical accuracy
         :param unit: Unit to set
@@ -286,7 +306,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.horizontal_accuracy_unit)
 
-    def set_horizontal_accuracy_unit(self, unit: common.Unit) -> 'BestLocation':
+    def set_horizontal_accuracy_unit(self, unit: common.Unit) -> "BestLocation":
         """
         Sets the unit associated with horizontal accuracy
         :param unit: Unit to set
@@ -305,7 +325,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.speed_accuracy_unit)
 
-    def set_speed_accuracy_unit(self, unit: common.Unit) -> 'BestLocation':
+    def set_speed_accuracy_unit(self, unit: common.Unit) -> "BestLocation":
         """
         Sets the unit associated with speed accuracy
         :param unit: Unit to set
@@ -324,7 +344,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.bearing_accuracy_unit)
 
-    def set_bearing_accuracy_unit(self, unit: common.Unit) -> 'BestLocation':
+    def set_bearing_accuracy_unit(self, unit: common.Unit) -> "BestLocation":
         """
         Sets the unit associated with bearing accuracy
         :param unit: Unit to set
@@ -341,7 +361,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._proto.latitude
 
-    def set_latitude(self, latitude: float) -> 'BestLocation':
+    def set_latitude(self, latitude: float) -> "BestLocation":
         """
         Sets the best latitude
         :param latitude: Latitude to set
@@ -357,7 +377,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._proto.longitude
 
-    def set_longitude(self, longitude: float) -> 'BestLocation':
+    def set_longitude(self, longitude: float) -> "BestLocation":
         """
         Sets the best longitude
         :param longitude: Longitude to set
@@ -373,7 +393,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._proto.altitude
 
-    def set_altitude(self, altitude: float) -> 'BestLocation':
+    def set_altitude(self, altitude: float) -> "BestLocation":
         """
         Sets the best altitude
         :param altitude: Altitude to set
@@ -389,7 +409,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._proto.speed
 
-    def set_speed(self, speed: float) -> 'BestLocation':
+    def set_speed(self, speed: float) -> "BestLocation":
         """
         Sets the best speed
         :param speed: Speed to set
@@ -405,7 +425,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._proto.bearing
 
-    def set_bearing(self, bearing: float) -> 'BestLocation':
+    def set_bearing(self, bearing: float) -> "BestLocation":
         """
         Sets the best bearing
         :param bearing: Bearing to set
@@ -421,7 +441,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._proto.vertical_accuracy
 
-    def set_vertical_accuracy(self, vertical_accuracy: float) -> 'BestLocation':
+    def set_vertical_accuracy(self, vertical_accuracy: float) -> "BestLocation":
         """
         Sets the best vertical accuracy.
         :param vertical_accuracy: Accuracy to set
@@ -437,7 +457,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._proto.horizontal_accuracy
 
-    def set_horizontal_accuracy(self, horizontal_accuracy: float) -> 'BestLocation':
+    def set_horizontal_accuracy(self, horizontal_accuracy: float) -> "BestLocation":
         """
         Sets the best horizontal accuracy
         :param horizontal_accuracy: Accuracy to set
@@ -453,7 +473,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._proto.speed_accuracy
 
-    def set_speed_accuracy(self, speed_accuracy: float) -> 'BestLocation':
+    def set_speed_accuracy(self, speed_accuracy: float) -> "BestLocation":
         """
         Sets the best speed accuracy
         :param speed_accuracy: Accuracy to set
@@ -469,7 +489,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._proto.bearing_accuracy
 
-    def set_bearing_accuracy(self, bearing_accuracy: float) -> 'BestLocation':
+    def set_bearing_accuracy(self, bearing_accuracy: float) -> "BestLocation":
         """
         Sets the best bearing accuracy
         :param bearing_accuracy: Accuracy to set
@@ -485,7 +505,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         """
         return self._proto.score
 
-    def set_score(self, score: float) -> 'BestLocation':
+    def set_score(self, score: float) -> "BestLocation":
         """
         Sets the best location score
         :param score: Score to set
@@ -503,7 +523,7 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         # pylint: disable=E1101
         return LocationScoreMethod.from_proto(self._proto.method)
 
-    def set_method(self, method: LocationScoreMethod) -> 'BestLocation':
+    def set_method(self, method: LocationScoreMethod) -> "BestLocation":
         """
         Sets the best location score method.
         :param method: Method to set
@@ -522,7 +542,9 @@ class BestLocation(ProtoBase[RedvoxPacketM.Sensors.Location.BestLocation]):
         # pylint: disable=E1101
         return LocationProvider.from_proto(self._proto.location_provider)
 
-    def set_location_provider(self, location_provider: LocationProvider) -> 'BestLocation':
+    def set_location_provider(
+        self, location_provider: LocationProvider
+    ) -> "BestLocation":
         """
         Sets the location provider associated with the best location.
         :param location_provider: Location provider to set.
@@ -538,22 +560,44 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
     """
     Encapsulates location data and metadata
     """
+
     def __init__(self, proto: RedvoxPacketM.Sensors.Location):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
-        self._timestamps_gps: common.TimingPayload = common.TimingPayload(proto.timestamps_gps)
-        self._latitude_samples: common.SamplePayload = common.SamplePayload(proto.latitude_samples)
-        self._longitude_samples: common.SamplePayload = common.SamplePayload(proto.longitude_samples)
-        self._altitude_samples: common.SamplePayload = common.SamplePayload(proto.altitude_samples)
-        self._speed_samples: common.SamplePayload = common.SamplePayload(proto.speed_samples)
-        self._bearing_samples: common.SamplePayload = common.SamplePayload(proto.bearing_samples)
+        self._timestamps_gps: common.TimingPayload = common.TimingPayload(
+            proto.timestamps_gps
+        )
+        self._latitude_samples: common.SamplePayload = common.SamplePayload(
+            proto.latitude_samples
+        )
+        self._longitude_samples: common.SamplePayload = common.SamplePayload(
+            proto.longitude_samples
+        )
+        self._altitude_samples: common.SamplePayload = common.SamplePayload(
+            proto.altitude_samples
+        )
+        self._speed_samples: common.SamplePayload = common.SamplePayload(
+            proto.speed_samples
+        )
+        self._bearing_samples: common.SamplePayload = common.SamplePayload(
+            proto.bearing_samples
+        )
         self._horizontal_accuracy_samples: common.SamplePayload = common.SamplePayload(
-            proto.horizontal_accuracy_samples)
-        self._vertical_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.vertical_accuracy_samples)
-        self._speed_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.speed_accuracy_samples)
-        self._bearing_accuracy_samples: common.SamplePayload = common.SamplePayload(proto.bearing_accuracy_samples)
+            proto.horizontal_accuracy_samples
+        )
+        self._vertical_accuracy_samples: common.SamplePayload = common.SamplePayload(
+            proto.vertical_accuracy_samples
+        )
+        self._speed_accuracy_samples: common.SamplePayload = common.SamplePayload(
+            proto.speed_accuracy_samples
+        )
+        self._bearing_accuracy_samples: common.SamplePayload = common.SamplePayload(
+            proto.bearing_accuracy_samples
+        )
         self._last_best_location: BestLocation = BestLocation(proto.last_best_location)
-        self._overall_best_location: BestLocation = BestLocation(proto.overall_best_location)
+        self._overall_best_location: BestLocation = BestLocation(
+            proto.overall_best_location
+        )
         # noinspection Mypy
         # pylint: disable=E1101
         self._location_providers: ProtoRepeatedMessage = ProtoRepeatedMessage(
@@ -565,7 +609,7 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         )
 
     @staticmethod
-    def new() -> 'Location':
+    def new() -> "Location":
         """
         :return: A new, empty Location instance
         """
@@ -577,7 +621,7 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._proto.sensor_description
 
-    def set_sensor_description(self, sensor_description: str) -> 'Location':
+    def set_sensor_description(self, sensor_description: str) -> "Location":
         """
         Sets the location sensor's description
         :param sensor_description: Description to set
@@ -593,7 +637,7 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._timestamps
 
-    def set_timestamps(self, timestamps: common.TimingPayload) -> 'Location':
+    def set_timestamps(self, timestamps: common.TimingPayload) -> "Location":
         """
         Sets the timestamps.
         :param timestamps: Timing payload to set.
@@ -610,7 +654,7 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._timestamps_gps
 
-    def set_timestamps_gps(self, timestamps_gps: common.TimingPayload) -> 'Location':
+    def set_timestamps_gps(self, timestamps_gps: common.TimingPayload) -> "Location":
         """
         Sets the GPS timing samples.
         :param timestamps_gps: Payload to set.
@@ -627,7 +671,9 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._latitude_samples
 
-    def set_latitude_samples(self, latitude_samples: common.SamplePayload) -> 'Location':
+    def set_latitude_samples(
+        self, latitude_samples: common.SamplePayload
+    ) -> "Location":
         """
         Sets the latitude samples.
         :param latitude_samples: Payload top set.
@@ -645,7 +691,9 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._longitude_samples
 
-    def set_longitude_samples(self, longitude_samples: common.SamplePayload) -> 'Location':
+    def set_longitude_samples(
+        self, longitude_samples: common.SamplePayload
+    ) -> "Location":
         """
         Sets the longitude samples.
         :param longitude_samples: Payload to set.
@@ -654,7 +702,9 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         common.check_type(longitude_samples, [common.SamplePayload])
         # noinspection Mypy
         self.get_proto().longitude_samples.CopyFrom(longitude_samples.get_proto())
-        self._longitude_samples = common.SamplePayload(self.get_proto().longitude_samples)
+        self._longitude_samples = common.SamplePayload(
+            self.get_proto().longitude_samples
+        )
         return self
 
     def get_altitude_samples(self) -> common.SamplePayload:
@@ -663,7 +713,9 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._altitude_samples
 
-    def set_altitude_samples(self, altitude_samples: common.SamplePayload) -> 'Location':
+    def set_altitude_samples(
+        self, altitude_samples: common.SamplePayload
+    ) -> "Location":
         """
         Sets the altitude samples.
         :param altitude_samples: Payload to set.
@@ -681,7 +733,7 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._speed_samples
 
-    def set_speed_samples(self, speed_samples: common.SamplePayload) -> 'Location':
+    def set_speed_samples(self, speed_samples: common.SamplePayload) -> "Location":
         """
         Sets the speed samples.
         :param speed_samples: Payload to set.
@@ -699,7 +751,7 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._bearing_samples
 
-    def set_bearing_samples(self, bearing_samples: common.SamplePayload) -> 'Location':
+    def set_bearing_samples(self, bearing_samples: common.SamplePayload) -> "Location":
         """
         Sets the bearing samples.
         :param bearing_samples: Payload to set.
@@ -717,7 +769,9 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._horizontal_accuracy_samples
 
-    def set_horizontal_accuracy_samples(self, horizontal_accuracy_samples: common.SamplePayload) -> 'Location':
+    def set_horizontal_accuracy_samples(
+        self, horizontal_accuracy_samples: common.SamplePayload
+    ) -> "Location":
         """
         Sets the horizontal accuracy samples.
         :param horizontal_accuracy_samples: Payload to set.
@@ -725,8 +779,12 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         common.check_type(horizontal_accuracy_samples, [common.SamplePayload])
         # noinspection Mypy
-        self.get_proto().horizontal_accuracy_samples.CopyFrom(horizontal_accuracy_samples.get_proto())
-        self._horizontal_accuracy_samples = common.SamplePayload(self.get_proto().horizontal_accuracy_samples)
+        self.get_proto().horizontal_accuracy_samples.CopyFrom(
+            horizontal_accuracy_samples.get_proto()
+        )
+        self._horizontal_accuracy_samples = common.SamplePayload(
+            self.get_proto().horizontal_accuracy_samples
+        )
         return self
 
     def get_vertical_accuracy_samples(self) -> common.SamplePayload:
@@ -735,7 +793,9 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._vertical_accuracy_samples
 
-    def set_vertical_accuracy_samples(self, vertical_accuracy_samples: common.SamplePayload) -> 'Location':
+    def set_vertical_accuracy_samples(
+        self, vertical_accuracy_samples: common.SamplePayload
+    ) -> "Location":
         """
         Sets the vertical accuracy samples.
         :param vertical_accuracy_samples: Payload to set.
@@ -743,8 +803,12 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         common.check_type(vertical_accuracy_samples, [common.SamplePayload])
         # noinspection Mypy
-        self.get_proto().vertical_accuracy_samples.CopyFrom(vertical_accuracy_samples.get_proto())
-        self._vertical_accuracy_samples = common.SamplePayload(self.get_proto().vertical_accuracy_samples)
+        self.get_proto().vertical_accuracy_samples.CopyFrom(
+            vertical_accuracy_samples.get_proto()
+        )
+        self._vertical_accuracy_samples = common.SamplePayload(
+            self.get_proto().vertical_accuracy_samples
+        )
         return self
 
     def get_speed_accuracy_samples(self) -> common.SamplePayload:
@@ -753,7 +817,9 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._speed_accuracy_samples
 
-    def set_speed_accuracy_samples(self, speed_accuracy_samples: common.SamplePayload) -> 'Location':
+    def set_speed_accuracy_samples(
+        self, speed_accuracy_samples: common.SamplePayload
+    ) -> "Location":
         """
         Sets the speed accuracy samples.
         :param speed_accuracy_samples: Payload to set.
@@ -761,8 +827,12 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         common.check_type(speed_accuracy_samples, [common.SamplePayload])
         # noinspection Mypy
-        self.get_proto().speed_accuracy_samples.CopyFrom(speed_accuracy_samples.get_proto())
-        self._speed_accuracy_samples = common.SamplePayload(self.get_proto().speed_accuracy_samples)
+        self.get_proto().speed_accuracy_samples.CopyFrom(
+            speed_accuracy_samples.get_proto()
+        )
+        self._speed_accuracy_samples = common.SamplePayload(
+            self.get_proto().speed_accuracy_samples
+        )
         return self
 
     def get_bearing_accuracy_samples(self) -> common.SamplePayload:
@@ -771,7 +841,9 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._bearing_accuracy_samples
 
-    def set_bearing_accuracy_samples(self, bearing_accuracy_samples: common.SamplePayload) -> 'Location':
+    def set_bearing_accuracy_samples(
+        self, bearing_accuracy_samples: common.SamplePayload
+    ) -> "Location":
         """
         Sets the samples for the bearing accuracy channel.
         :param bearing_accuracy_samples: Samples to set.
@@ -779,8 +851,12 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         common.check_type(bearing_accuracy_samples, [common.SamplePayload])
         # noinspection Mypy
-        self.get_proto().bearing_accuracy_samples.CopyFrom(bearing_accuracy_samples.get_proto())
-        self._bearing_accuracy_samples = common.SamplePayload(self.get_proto().bearing_accuracy_samples)
+        self.get_proto().bearing_accuracy_samples.CopyFrom(
+            bearing_accuracy_samples.get_proto()
+        )
+        self._bearing_accuracy_samples = common.SamplePayload(
+            self.get_proto().bearing_accuracy_samples
+        )
         return self
 
     def get_last_best_location(self) -> BestLocation:
@@ -789,7 +865,7 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._last_best_location
 
-    def set_last_best_location(self, last_best_location: BestLocation) -> 'Location':
+    def set_last_best_location(self, last_best_location: BestLocation) -> "Location":
         """
         Sets the most recent best location.
         :param last_best_location:  The most recent best location to set.
@@ -806,15 +882,21 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._overall_best_location
 
-    def set_overall_best_location(self, overall_best_location: BestLocation) -> 'Location':
+    def set_overall_best_location(
+        self, overall_best_location: BestLocation
+    ) -> "Location":
         """
         Sets the overall best location.
         :param overall_best_location: BestLocation to set.
         :return: A modified instance of self.
         """
         common.check_type(overall_best_location, [BestLocation])
-        self.get_proto().overall_best_location.CopyFrom(overall_best_location.get_proto())
-        self._overall_best_location = BestLocation(self.get_proto().overall_best_location)
+        self.get_proto().overall_best_location.CopyFrom(
+            overall_best_location.get_proto()
+        )
+        self._overall_best_location = BestLocation(
+            self.get_proto().overall_best_location
+        )
         return self
 
     def get_location_permissions_granted(self) -> bool:
@@ -823,7 +905,9 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._proto.location_permissions_granted
 
-    def set_location_permissions_granted(self, location_permissions_granted: bool) -> 'Location':
+    def set_location_permissions_granted(
+        self, location_permissions_granted: bool
+    ) -> "Location":
         """
         Sets if location permissions have been granted.
         :param location_permissions_granted: Permissions to set
@@ -839,7 +923,9 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._proto.location_services_requested
 
-    def set_location_services_requested(self, location_services_requested: bool) -> 'Location':
+    def set_location_services_requested(
+        self, location_services_requested: bool
+    ) -> "Location":
         """
         Sets if location services have been requested.
         :param location_services_requested:
@@ -855,7 +941,9 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._proto.location_services_enabled
 
-    def set_location_services_enabled(self, location_services_enabled: bool) -> 'Location':
+    def set_location_services_enabled(
+        self, location_services_enabled: bool
+    ) -> "Location":
         """
         Sets if location servers are enabled.
         :param location_services_enabled: Set enabled or disabled
@@ -871,7 +959,9 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         return self._location_providers
 
-    def set_location_providers(self, location_providers: ProtoRepeatedMessage) -> 'Location':
+    def set_location_providers(
+        self, location_providers: ProtoRepeatedMessage
+    ) -> "Location":
         """
         Sets the location provides.
         :param location_providers: An instance of a ProtoRepeatedMessage containing the location providers.
@@ -886,8 +976,10 @@ class Location(redvox.api1000.common.generic.ProtoBase[RedvoxPacketM.Sensors.Loc
         """
         :return: True if the location does not have data in it and has a last_best_location or overall_best_location
         """
-        return self.get_location_providers().get_count() < 1 and \
-            (self.get_last_best_location() is not None or self.get_overall_best_location() is not None)
+        return self.get_location_providers().get_count() < 1 and (
+            self.get_last_best_location() is not None
+            or self.get_overall_best_location() is not None
+        )
 
 
 def validate_location(loc_sensor: Location) -> List[str]:
@@ -905,43 +997,75 @@ def validate_location(loc_sensor: Location) -> List[str]:
     errors_list.extend(common.validate_timing_payload(loc_sensor.get_timestamps()))
     if loc_sensor.get_latitude_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
         errors_list.append("Location sensor latitude units are not decimal degrees")
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_latitude_samples(), "Latitude"))
+    errors_list.extend(
+        common.validate_sample_payload(loc_sensor.get_latitude_samples(), "Latitude")
+    )
 
     if loc_sensor.get_longitude_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
         errors_list.append("Location sensor longitude units are not decimal degrees")
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_longitude_samples(), "Longitude"))
+    errors_list.extend(
+        common.validate_sample_payload(loc_sensor.get_longitude_samples(), "Longitude")
+    )
 
     if loc_sensor.get_altitude_samples().get_unit() != common.Unit.METERS:
         errors_list.append("Location sensor altitude units are not meters")
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_altitude_samples(), "Altitude"))
+    errors_list.extend(
+        common.validate_sample_payload(loc_sensor.get_altitude_samples(), "Altitude")
+    )
 
     if loc_sensor.get_speed_samples().get_unit() != common.Unit.METERS_PER_SECOND:
         errors_list.append("Location sensor speed units are not meters per second")
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_samples(), "Speed"))
+    errors_list.extend(
+        common.validate_sample_payload(loc_sensor.get_speed_samples(), "Speed")
+    )
 
     if loc_sensor.get_bearing_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
         errors_list.append("Location sensor bearing units are not decimal degrees")
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_bearing_samples(), "Bearing"))
+    errors_list.extend(
+        common.validate_sample_payload(loc_sensor.get_bearing_samples(), "Bearing")
+    )
 
     if loc_sensor.get_horizontal_accuracy_samples().get_unit() != common.Unit.METERS:
         errors_list.append("Location sensor horizontal accuracy units are not meters")
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_horizontal_accuracy_samples(),
-                                                      "Horizontal Accuracy"))
+    errors_list.extend(
+        common.validate_sample_payload(
+            loc_sensor.get_horizontal_accuracy_samples(), "Horizontal Accuracy"
+        )
+    )
 
     if loc_sensor.get_vertical_accuracy_samples().get_unit() != common.Unit.METERS:
         errors_list.append("Location sensor vertical accuracy units are not meters")
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_vertical_accuracy_samples(),
-                                                      "Vertical Accuracy"))
+    errors_list.extend(
+        common.validate_sample_payload(
+            loc_sensor.get_vertical_accuracy_samples(), "Vertical Accuracy"
+        )
+    )
 
-    if loc_sensor.get_speed_accuracy_samples().get_unit() != common.Unit.METERS_PER_SECOND:
-        errors_list.append("Location sensor speed accuracy units are not meters per second")
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_speed_accuracy_samples(),
-                                                      "Speed Accuracy"))
+    if (
+        loc_sensor.get_speed_accuracy_samples().get_unit()
+        != common.Unit.METERS_PER_SECOND
+    ):
+        errors_list.append(
+            "Location sensor speed accuracy units are not meters per second"
+        )
+    errors_list.extend(
+        common.validate_sample_payload(
+            loc_sensor.get_speed_accuracy_samples(), "Speed Accuracy"
+        )
+    )
 
-    if loc_sensor.get_bearing_accuracy_samples().get_unit() != common.Unit.DECIMAL_DEGREES:
-        errors_list.append("Location sensor bearing accuracy units are not decimal degrees")
-    errors_list.extend(common.validate_sample_payload(loc_sensor.get_bearing_accuracy_samples(),
-                                                      "Bearing Accuracy"))
+    if (
+        loc_sensor.get_bearing_accuracy_samples().get_unit()
+        != common.Unit.DECIMAL_DEGREES
+    ):
+        errors_list.append(
+            "Location sensor bearing accuracy units are not decimal degrees"
+        )
+    errors_list.extend(
+        common.validate_sample_payload(
+            loc_sensor.get_bearing_accuracy_samples(), "Bearing Accuracy"
+        )
+    )
 
     return errors_list
 
@@ -955,10 +1079,17 @@ def validate_best_location(best_loc: BestLocation) -> List[str]:
     errors_list = []
 
     # if not default empty settings, check the values
-    if not (best_loc.get_latitude() == 0 and best_loc.get_longitude() == 0 and best_loc.get_altitude() == 0
-            and best_loc.get_speed() == 0 and best_loc.get_bearing() == 0):
+    if not (
+        best_loc.get_latitude() == 0
+        and best_loc.get_longitude() == 0
+        and best_loc.get_altitude() == 0
+        and best_loc.get_speed() == 0
+        and best_loc.get_bearing() == 0
+    ):
         if best_loc.get_latitude_longitude_unit() != common.Unit.DECIMAL_DEGREES:
-            errors_list.append("Best location latitude and longitude units are not decimal degrees")
+            errors_list.append(
+                "Best location latitude and longitude units are not decimal degrees"
+            )
 
         if best_loc.get_latitude() < -90 or best_loc.get_latitude() > 90:
             errors_list.append("Best location latitude value is beyond valid range")
@@ -982,15 +1113,24 @@ def validate_best_location(best_loc: BestLocation) -> List[str]:
             errors_list.append("Best location vertical accuracy units are not meters")
 
         if best_loc.get_speed_accuracy_unit() != common.Unit.METERS_PER_SECOND:
-            errors_list.append("Best location speed accuracy units are not meters per second")
+            errors_list.append(
+                "Best location speed accuracy units are not meters per second"
+            )
 
         if best_loc.get_bearing_accuracy_unit() != common.Unit.DECIMAL_DEGREES:
-            errors_list.append("Best location bearing accuracy units are not decimal degrees")
+            errors_list.append(
+                "Best location bearing accuracy units are not decimal degrees"
+            )
 
-        if best_loc.get_location_provider() not in LocationProvider.__members__.values():
+        if (
+            best_loc.get_location_provider()
+            not in LocationProvider.__members__.values()
+        ):
             errors_list.append("Best location provider is unknown")
 
         if best_loc.get_latitude_longitude_timestamp() is None:
-            errors_list.append("Best location is missing latitude and longitude timestamp")
+            errors_list.append(
+                "Best location is missing latitude and longitude timestamp"
+            )
 
     return errors_list

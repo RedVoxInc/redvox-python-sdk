@@ -29,14 +29,17 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
     """
     Wraps a RedVox API M protobuf buffer.
     """
+
     def __init__(self, redvox_proto: RedvoxPacketM):
         super().__init__(redvox_proto)
 
-        self._station_information: _station_information.StationInformation = _station_information.StationInformation(
-            redvox_proto.station_information)
+        self._station_information: _station_information.StationInformation = (
+            _station_information.StationInformation(redvox_proto.station_information)
+        )
 
-        self._timing_information: _timing_information.TimingInformation = _timing_information.TimingInformation(
-            redvox_proto.timing_information)
+        self._timing_information: _timing_information.TimingInformation = (
+            _timing_information.TimingInformation(redvox_proto.timing_information)
+        )
 
         self._sensors: _sensors.Sensors = _sensors.Sensors(redvox_proto.sensors)
 
@@ -45,7 +48,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
             redvox_proto.event_streams,
             "event_streams",
             EventStream,
-            lambda event_stream: event_stream.get_proto()
+            lambda event_stream: event_stream.get_proto(),
         )
 
     # Implement methods required for total_ordering
@@ -56,21 +59,25 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         :return: True if the packets mach timestamps match, False otherwise
         """
         self_ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
-        other_ts: float = other.get_timing_information().get_packet_start_mach_timestamp()
+        other_ts: float = (
+            other.get_timing_information().get_packet_start_mach_timestamp()
+        )
         return self_ts == other_ts
 
-    def __lt__(self, other: 'WrappedRedvoxPacketM') -> bool:
+    def __lt__(self, other: "WrappedRedvoxPacketM") -> bool:
         """
         Checks if this packet is less than another packet by comparing start mach times.
         :param other: Other packet to compare against.
         :return: True if this packet is less than the other packet
         """
         self_ts: float = self.get_timing_information().get_packet_start_mach_timestamp()
-        other_ts: float = other.get_timing_information().get_packet_start_mach_timestamp()
+        other_ts: float = (
+            other.get_timing_information().get_packet_start_mach_timestamp()
+        )
         return self_ts < other_ts
 
     @staticmethod
-    def new() -> 'WrappedRedvoxPacketM':
+    def new() -> "WrappedRedvoxPacketM":
         """
         Returns a new default instance of a WrappedRedvoxPacketApi1000.
         :return: A new default instance of a WrappedRedvoxPacketApi1000.
@@ -78,7 +85,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         return WrappedRedvoxPacketM(RedvoxPacketM())
 
     @staticmethod
-    def from_compressed_bytes(data: bytes) -> 'WrappedRedvoxPacketM':
+    def from_compressed_bytes(data: bytes) -> "WrappedRedvoxPacketM":
         """
         Deserializes the byte content of an API M encoded .rdvxz file.
         :param data: The compressed bytes to deserialize.
@@ -91,7 +98,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         return WrappedRedvoxPacketM(proto)
 
     @staticmethod
-    def from_compressed_path(rdvxm_path: str) -> 'WrappedRedvoxPacketM':
+    def from_compressed_path(rdvxm_path: str) -> "WrappedRedvoxPacketM":
         """
         Deserialize an API M encoded .rdvxm file from the specified file system path.
         :param rdvxm_path: Path to the API M encoded file.
@@ -100,14 +107,16 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         redvox.api1000.common.typing.check_type(rdvxm_path, [str])
 
         if not os.path.isfile(rdvxm_path):
-            raise errors.WrappedRedvoxPacketMError(f"Path to file={rdvxm_path} does not exist.")
+            raise errors.WrappedRedvoxPacketMError(
+                f"Path to file={rdvxm_path} does not exist."
+            )
 
         with open(rdvxm_path, "rb") as rdvxz_in:
             compressed_bytes: bytes = rdvxz_in.read()
             return WrappedRedvoxPacketM.from_compressed_bytes(compressed_bytes)
 
     @staticmethod
-    def from_json(json_str: str) -> 'WrappedRedvoxPacketM':
+    def from_json(json_str: str) -> "WrappedRedvoxPacketM":
         """
         read json packet representing an API 1000 packet
         :param json_str: contains the json representing the packet
@@ -116,7 +125,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         return WrappedRedvoxPacketM(json_format.Parse(json_str, RedvoxPacketM()))
 
     @staticmethod
-    def from_json_path(json_path: str) -> 'WrappedRedvoxPacketM':
+    def from_json_path(json_path: str) -> "WrappedRedvoxPacketM":
         """
         read json from a file representing an api 1000 packet
         :param json_path: the path to the file to read
@@ -133,7 +142,9 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         # Format to be exactly 10 characters
         station_id: str = f"{self.get_station_information().get_id():0>10}"
-        timestamp: int = round(self.get_timing_information().get_packet_start_mach_timestamp())
+        timestamp: int = round(
+            self.get_timing_information().get_packet_start_mach_timestamp()
+        )
         filename: str = f"{station_id}_{timestamp}"
 
         if extension is not None:
@@ -146,7 +157,9 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         Computes the default file directory structure for a structured layout for this particular packet.
         :return:  Directory structure for this packet when using structured layout
         """
-        timestamp: float = self.get_timing_information().get_packet_start_mach_timestamp()
+        timestamp: float = (
+            self.get_timing_information().get_packet_start_mach_timestamp()
+        )
         date_time: datetime = dt_utils.datetime_from_epoch_microseconds_utc(timestamp)
         year: str = f"{date_time.year}:0>4"
         month: str = f"{date_time.month:0>2}"
@@ -161,7 +174,9 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         return os.path.join(self.default_file_dir(), self.default_filename())
 
-    def write_compressed_to_file(self, base_dir: str, filename: Optional[str] = None) -> str:
+    def write_compressed_to_file(
+        self, base_dir: str, filename: Optional[str] = None
+    ) -> str:
         """
         Writes this packet to a .rdvxm file.
         :param base_dir: Directory to write .rdvxm to.
@@ -172,7 +187,9 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
             filename = self.default_filename("rdvxm")
 
         if not os.path.isdir(base_dir):
-            raise errors.WrappedRedvoxPacketMError(f"Base directory={base_dir} does not exist.")
+            raise errors.WrappedRedvoxPacketMError(
+                f"Base directory={base_dir} does not exist."
+            )
 
         out_path: str = os.path.join(base_dir, filename)
         with open(out_path, "wb") as compressed_out:
@@ -191,7 +208,9 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
             filename = self.default_filename("json")
 
         if not os.path.isdir(base_dir):
-            raise errors.WrappedRedvoxPacketMError(f"Base directory={base_dir} does not exist.")
+            raise errors.WrappedRedvoxPacketMError(
+                f"Base directory={base_dir} does not exist."
+            )
 
         out_path: str = os.path.join(base_dir, filename)
         with open(out_path, "w") as json_out:
@@ -214,7 +233,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         return self._proto.api
 
-    def set_api(self, api: float) -> 'WrappedRedvoxPacketM':
+    def set_api(self, api: float) -> "WrappedRedvoxPacketM":
         """
         Sets the api version of this packet.
         :param api: The API version (should be 1000.0)
@@ -231,7 +250,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         return self._proto.sub_api
 
-    def set_sub_api(self, sub_api: float) -> 'WrappedRedvoxPacketM':
+    def set_sub_api(self, sub_api: float) -> "WrappedRedvoxPacketM":
         """
         Sets the sub_api.
         :param sub_api: sub_api to set.
@@ -247,8 +266,9 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         return self._station_information
 
-    def set_station_information(self,
-                                station_information: _station_information.StationInformation) -> 'WrappedRedvoxPacketM':
+    def set_station_information(
+        self, station_information: _station_information.StationInformation
+    ) -> "WrappedRedvoxPacketM":
         """
         Sets the StationInformation.
         :param station_information: StationInformation to set.
@@ -256,7 +276,9 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         check_type(station_information, [_station_information.StationInformation])
         self.get_proto().station_information.CopyFrom(station_information.get_proto())
-        self._station_information = _station_information.StationInformation(self.get_proto().station_information)
+        self._station_information = _station_information.StationInformation(
+            self.get_proto().station_information
+        )
         return self
 
     def get_timing_information(self) -> _timing_information.TimingInformation:
@@ -265,8 +287,9 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         return self._timing_information
 
-    def set_timing_information(self,
-                               timing_information: _timing_information.TimingInformation) -> 'WrappedRedvoxPacketM':
+    def set_timing_information(
+        self, timing_information: _timing_information.TimingInformation
+    ) -> "WrappedRedvoxPacketM":
         """
         Sets the timing information.
         :param timing_information: TimingInformation to set.
@@ -274,7 +297,9 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         check_type(timing_information, [_timing_information.TimingInformation])
         self.get_proto().timing_information.CopyFrom(timing_information.get_proto())
-        self._timing_information = _timing_information.TimingInformation(self.get_proto().timing_information)
+        self._timing_information = _timing_information.TimingInformation(
+            self.get_proto().timing_information
+        )
         return self
 
     def get_sensors(self) -> _sensors.Sensors:
@@ -283,7 +308,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         return self._sensors
 
-    def set_sensors(self, sensors: _sensors.Sensors) -> 'WrappedRedvoxPacketM':
+    def set_sensors(self, sensors: _sensors.Sensors) -> "WrappedRedvoxPacketM":
         """
         Sets the sensors.
         :param sensors: Sensors to set.
@@ -300,7 +325,9 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         """
         return self._event_streams
 
-    def set_event_streams(self, event_streams: ProtoRepeatedMessage) -> 'WrappedRedvoxPacketM':
+    def set_event_streams(
+        self, event_streams: ProtoRepeatedMessage
+    ) -> "WrappedRedvoxPacketM":
         """
         Set the event streams from the provided ProtoRepeatedMessage.
         :param event_streams: EventStreams embedded in a ProtoRepeatedMessage.
@@ -333,7 +360,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         else:
             return 0.0
 
-    def update_timestamps(self, delta_offset: float = None) -> 'WrappedRedvoxPacketM':
+    def update_timestamps(self, delta_offset: float = None) -> "WrappedRedvoxPacketM":
         """
         update all timestamps in the packet by adding the delta offset
         :param delta_offset: amount of microseconds to add to existing timestamps
@@ -347,68 +374,159 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         if self.get_proto().HasField("timing_information"):
             # update timing information timestamps
             updated.get_timing_information().set_packet_start_mach_timestamp(
-                self.get_timing_information().get_packet_start_mach_timestamp() + delta_offset)
+                self.get_timing_information().get_packet_start_mach_timestamp()
+                + delta_offset
+            )
             updated.get_timing_information().set_packet_end_mach_timestamp(
-                self.get_timing_information().get_packet_end_mach_timestamp() + delta_offset)
+                self.get_timing_information().get_packet_end_mach_timestamp()
+                + delta_offset
+            )
             updated.get_timing_information().set_packet_start_os_timestamp(
-                self.get_timing_information().get_packet_start_os_timestamp() + delta_offset)
+                self.get_timing_information().get_packet_start_os_timestamp()
+                + delta_offset
+            )
             updated.get_timing_information().set_packet_end_os_timestamp(
-                self.get_timing_information().get_packet_end_os_timestamp() + delta_offset)
+                self.get_timing_information().get_packet_end_os_timestamp()
+                + delta_offset
+            )
             updated.get_timing_information().set_app_start_mach_timestamp(
-                self.get_timing_information().get_app_start_mach_timestamp() + delta_offset)
+                self.get_timing_information().get_app_start_mach_timestamp()
+                + delta_offset
+            )
         if self.get_sensors().get_proto().HasField("audio"):
             # update audio first sample timestamp
             updated.get_sensors().get_audio().set_first_sample_timestamp(
-                self.get_sensors().get_audio().get_first_sample_timestamp() + delta_offset)
+                self.get_sensors().get_audio().get_first_sample_timestamp()
+                + delta_offset
+            )
         # todo if self.get_sensors().get_proto().HasField("compressed_audio"):
         # update compressed audio first sample timestamp
         # update timestamp payloads
-        if self.get_station_information().get_station_metrics().get_proto().HasField("timestamps"):
+        if (
+            self.get_station_information()
+            .get_station_metrics()
+            .get_proto()
+            .HasField("timestamps")
+        ):
             updated.get_station_information().get_station_metrics().get_timestamps().set_timestamps(
-                self.get_station_information().get_station_metrics().get_timestamps().get_timestamps() + delta_offset,
-                True)
+                self.get_station_information()
+                .get_station_metrics()
+                .get_timestamps()
+                .get_timestamps()
+                + delta_offset,
+                True,
+            )
         if self.get_sensors().get_accelerometer().get_proto().HasField("timestamps"):
             updated.get_sensors().get_accelerometer().get_timestamps().set_timestamps(
-                self.get_sensors().get_accelerometer().get_timestamps().get_timestamps() + delta_offset, True)
-        if self.get_sensors().get_ambient_temperature().get_proto().HasField("timestamps"):
+                self.get_sensors().get_accelerometer().get_timestamps().get_timestamps()
+                + delta_offset,
+                True,
+            )
+        if (
+            self.get_sensors()
+            .get_ambient_temperature()
+            .get_proto()
+            .HasField("timestamps")
+        ):
             updated.get_sensors().get_ambient_temperature().get_timestamps().set_timestamps(
-                self.get_sensors().get_ambient_temperature().get_timestamps().get_timestamps() + delta_offset, True)
+                self.get_sensors()
+                .get_ambient_temperature()
+                .get_timestamps()
+                .get_timestamps()
+                + delta_offset,
+                True,
+            )
         if self.get_sensors().get_gravity().get_proto().HasField("timestamps"):
             updated.get_sensors().get_gravity().get_timestamps().set_timestamps(
-                self.get_sensors().get_gravity().get_timestamps().get_timestamps() + delta_offset, True)
+                self.get_sensors().get_gravity().get_timestamps().get_timestamps()
+                + delta_offset,
+                True,
+            )
         if self.get_sensors().get_gyroscope().get_proto().HasField("timestamps"):
             updated.get_sensors().get_gyroscope().get_timestamps().set_timestamps(
-                self.get_sensors().get_gyroscope().get_timestamps().get_timestamps() + delta_offset, True)
+                self.get_sensors().get_gyroscope().get_timestamps().get_timestamps()
+                + delta_offset,
+                True,
+            )
         if self.get_sensors().get_image().get_proto().HasField("timestamps"):
             updated.get_sensors().get_image().get_timestamps().set_timestamps(
-                self.get_sensors().get_image().get_timestamps().get_timestamps() + delta_offset, True)
+                self.get_sensors().get_image().get_timestamps().get_timestamps()
+                + delta_offset,
+                True,
+            )
         if self.get_sensors().get_light().get_proto().HasField("timestamps"):
             updated.get_sensors().get_light().get_timestamps().set_timestamps(
-                self.get_sensors().get_light().get_timestamps().get_timestamps() + delta_offset, True)
-        if self.get_sensors().get_linear_acceleration().get_proto().HasField("timestamps"):
+                self.get_sensors().get_light().get_timestamps().get_timestamps()
+                + delta_offset,
+                True,
+            )
+        if (
+            self.get_sensors()
+            .get_linear_acceleration()
+            .get_proto()
+            .HasField("timestamps")
+        ):
             updated.get_sensors().get_linear_acceleration().get_timestamps().set_timestamps(
-                self.get_sensors().get_linear_acceleration().get_timestamps().get_timestamps() + delta_offset, True)
+                self.get_sensors()
+                .get_linear_acceleration()
+                .get_timestamps()
+                .get_timestamps()
+                + delta_offset,
+                True,
+            )
         if self.get_sensors().get_location().get_proto().HasField("timestamps"):
             updated.get_sensors().get_location().get_timestamps().set_timestamps(
-                self.get_sensors().get_location().get_timestamps().get_timestamps() + delta_offset, True)
+                self.get_sensors().get_location().get_timestamps().get_timestamps()
+                + delta_offset,
+                True,
+            )
         if self.get_sensors().get_magnetometer().get_proto().HasField("timestamps"):
             updated.get_sensors().get_magnetometer().get_timestamps().set_timestamps(
-                self.get_sensors().get_magnetometer().get_timestamps().get_timestamps() + delta_offset, True)
+                self.get_sensors().get_magnetometer().get_timestamps().get_timestamps()
+                + delta_offset,
+                True,
+            )
         if self.get_sensors().get_orientation().get_proto().HasField("timestamps"):
             updated.get_sensors().get_orientation().get_timestamps().set_timestamps(
-                self.get_sensors().get_orientation().get_timestamps().get_timestamps() + delta_offset, True)
+                self.get_sensors().get_orientation().get_timestamps().get_timestamps()
+                + delta_offset,
+                True,
+            )
         if self.get_sensors().get_pressure().get_proto().HasField("timestamps"):
             updated.get_sensors().get_pressure().get_timestamps().set_timestamps(
-                self.get_sensors().get_pressure().get_timestamps().get_timestamps() + delta_offset, True)
+                self.get_sensors().get_pressure().get_timestamps().get_timestamps()
+                + delta_offset,
+                True,
+            )
         if self.get_sensors().get_proximity().get_proto().HasField("timestamps"):
             updated.get_sensors().get_proximity().get_timestamps().set_timestamps(
-                self.get_sensors().get_proximity().get_timestamps().get_timestamps() + delta_offset, True)
-        if self.get_sensors().get_relative_humidity().get_proto().HasField("timestamps"):
+                self.get_sensors().get_proximity().get_timestamps().get_timestamps()
+                + delta_offset,
+                True,
+            )
+        if (
+            self.get_sensors()
+            .get_relative_humidity()
+            .get_proto()
+            .HasField("timestamps")
+        ):
             updated.get_sensors().get_relative_humidity().get_timestamps().set_timestamps(
-                self.get_sensors().get_relative_humidity().get_timestamps().get_timestamps() + delta_offset, True)
+                self.get_sensors()
+                .get_relative_humidity()
+                .get_timestamps()
+                .get_timestamps()
+                + delta_offset,
+                True,
+            )
         if self.get_sensors().get_rotation_vector().get_proto().HasField("timestamps"):
             updated.get_sensors().get_rotation_vector().get_timestamps().set_timestamps(
-                self.get_sensors().get_rotation_vector().get_timestamps().get_timestamps() + delta_offset, True)
+                self.get_sensors()
+                .get_rotation_vector()
+                .get_timestamps()
+                .get_timestamps()
+                + delta_offset,
+                True,
+            )
         return updated
 
 
@@ -418,8 +536,14 @@ def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -> List[str]:
     :param wrapped_packet: Packet to validate.
     :return: A list of validation errors.
     """
-    errors_list = _station_information.validate_station_information(wrapped_packet.get_station_information())
-    errors_list.extend(_timing_information.validate_timing_information(wrapped_packet.get_timing_information()))
+    errors_list = _station_information.validate_station_information(
+        wrapped_packet.get_station_information()
+    )
+    errors_list.extend(
+        _timing_information.validate_timing_information(
+            wrapped_packet.get_timing_information()
+        )
+    )
     errors_list.extend(_sensors.validate_sensors(wrapped_packet.get_sensors()))
     if wrapped_packet.get_api() != 1000:
         errors_list.append("Wrapped packet api is not 1000")

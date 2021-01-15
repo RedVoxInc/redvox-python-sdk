@@ -21,13 +21,18 @@ class ImageCodec(enum.Enum):
     """
     Image Codecs for image data
     """
+
     UNKNOWN: int = 0
     PNG: int = 1
     JPG: int = 2
     BMP: int = 3
 
 
-class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Image]):
+class Image(
+    redvox.api1000.common.generic.ProtoBase[
+        redvox_api_m_pb2.RedvoxPacketM.Sensors.Image
+    ]
+):
     """
     This class encapsulates metadata and data associated with the image sensor.
     """
@@ -37,7 +42,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
 
     @staticmethod
-    def new() -> 'Image':
+    def new() -> "Image":
         """
         :return: A new, empty Image sensor instance
         """
@@ -57,7 +62,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return self.get_image_codec().name.lower()
 
-    def set_image_codec(self, codec: ImageCodec) -> 'Image':
+    def set_image_codec(self, codec: ImageCodec) -> "Image":
         """
         Sets the codec used to store the images.
         :param codec: Codec to set.
@@ -74,7 +79,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return self._proto.sensor_description
 
-    def set_sensor_description(self, sensor_description: str) -> 'Image':
+    def set_sensor_description(self, sensor_description: str) -> "Image":
         """
         Sets the image sensor description.
         :param sensor_description: Description to set.
@@ -90,7 +95,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return self._timestamps
 
-    def set_timestamps(self, timestamps: common.TimingPayload) -> 'Image':
+    def set_timestamps(self, timestamps: common.TimingPayload) -> "Image":
         """
         Sets the timestamps.
         :param timestamps: Timestamps to set.
@@ -107,7 +112,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return list(self.get_proto().samples)
 
-    def set_samples(self, images: List[bytes]) -> 'Image':
+    def set_samples(self, images: List[bytes]) -> "Image":
         """
         Set images.
         :param images: List of bytes objects representing each image.
@@ -117,7 +122,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         self._proto.samples[:] = images
         return self
 
-    def append_value(self, image: bytes) -> 'Image':
+    def append_value(self, image: bytes) -> "Image":
         """
         Appends a single image to this sensors list of images.
         :param image: Image to append as serialized bytes.
@@ -127,7 +132,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         self._proto.samples.append(image)
         return self
 
-    def append_values(self, images: List[bytes]) -> 'Image':
+    def append_values(self, images: List[bytes]) -> "Image":
         """
         Appends multiple images to this sensor's image payload.
         :param images: Images to append as a list of bytes objects.
@@ -137,7 +142,7 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         self._proto.samples.extend(list(images))
         return self
 
-    def clear_values(self) -> 'Image':
+    def clear_values(self) -> "Image":
         """
         Clears all images from this sensor
         :return: A modified instance of self
@@ -151,10 +156,9 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return len(self.get_samples())
 
-    def write_image(self,
-                    index: int,
-                    base_dir: str = ".",
-                    out_file: Optional[str] = None) -> str:
+    def write_image(
+        self, index: int, base_dir: str = ".", out_file: Optional[str] = None
+    ) -> str:
         """
         Writes an image to disk.
         :param base_dir: Base directory to write image to (default: ".")
@@ -163,22 +167,28 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         :return: Path of written file.
         """
         if index < 0 or index >= self.get_num_images():
-            raise ApiMImageChannelError(f"Index={index} must be > 0 and < {self.get_num_images()}")
+            raise ApiMImageChannelError(
+                f"Index={index} must be > 0 and < {self.get_num_images()}"
+            )
 
         ext: str = self.get_file_ext()
-        base_name: str = str(int(self._timestamps.get_timestamps()[index])) if out_file is None else out_file
+        base_name: str = (
+            str(int(self._timestamps.get_timestamps()[index]))
+            if out_file is None
+            else out_file
+        )
         file_name: str = f"{base_name}.{ext}"
         file_path: str = os.path.join(base_dir, file_name)
 
-        with open(file_path, 'wb') as image_out:
+        with open(file_path, "wb") as image_out:
             img_bytes: bytes = self.get_samples()[index]
             image_out.write(img_bytes)
 
         return file_path
 
-    def write_images(self,
-                     indices: Optional[List[int]] = None,
-                     base_dir: str = ".") -> List[str]:
+    def write_images(
+        self, indices: Optional[List[int]] = None, base_dir: str = "."
+    ) -> List[str]:
         """
         Write multiple images to disk.
         :param base_dir: Base directory to write images to (default: ".").
@@ -186,7 +196,9 @@ class Image(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         :return: List of written file paths.
         """
 
-        indices = indices if indices is not None else list(range(0, self.get_num_images()))
+        indices = (
+            indices if indices is not None else list(range(0, self.get_num_images()))
+        )
         return list(map(lambda i: self.write_image(i, base_dir), indices))
 
     def gallery(self):
