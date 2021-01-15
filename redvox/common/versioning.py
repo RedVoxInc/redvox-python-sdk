@@ -1,3 +1,7 @@
+"""
+This module provides functionality for determining the version of RedVox compressed packets.
+"""
+
 from enum import Enum
 
 LZ4_MAGIC: bytes = b'\x04"M\x18'
@@ -8,9 +12,14 @@ class ApiVersion(Enum):
     """
     Enumerates the API versions this SDK supports.
     """
+
     API_900: str = "API_900"
     API_1000: str = "API_1000"
     UNKNOWN: str = "UNKNOWN"
+
+    # pylint: disable=W0143
+    def __lt__(self, other: "ApiVersion") -> bool:
+        return self.name < other.name
 
 
 # noinspection PyTypeChecker

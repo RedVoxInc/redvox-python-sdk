@@ -35,6 +35,8 @@ def get_file(url: str,
     :param session: An instance of a session.
     :return: The bytes of the file.
     """
+    # pylint: disable=W0702
+    # noinspection PyBroadException
     try:
         resp: requests.Response = session.get(url)
         if resp.status_code == 200:

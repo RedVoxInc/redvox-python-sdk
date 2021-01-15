@@ -3,7 +3,7 @@ import os
 import os.path
 import shutil
 import tempfile
-from typing import Iterator, Optional, Union, List
+from typing import Optional, Union
 from unittest import TestCase
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
@@ -16,15 +16,6 @@ from redvox.common.date_time_utils import (
     truncate_dt_ymdh,
 )
 import redvox.common.io as io
-
-
-def dt_range(start: datetime,
-             end: datetime,
-             step: timedelta) -> Iterator[datetime]:
-    dt: datetime = start
-    while dt <= end:
-        yield dt
-        dt += step
 
 
 def write_min_api_1000(base_dir: str, file_name: Optional[str] = None) -> str:
@@ -138,7 +129,7 @@ class IoTestCase(TestCase):
         cls.temp_dir.cleanup()
 
 
-class IoTests(TestCase):
+class IoTests(IoTestCase):
     def test_is_int_good(self):
         self.assertEqual(0, io._is_int("0"))
         self.assertEqual(1, io._is_int("01"))
@@ -155,6 +146,116 @@ class IoTests(TestCase):
     def test_not_none(self):
         self.assertTrue(io._not_none(""))
         self.assertFalse(io._not_none(None))
+
+    def test_list_subdirs_no_valid(self):
+        self.assertEqual([], io._list_subdirs(self.template_dir, set()))
+
+    def test_list_subdirs_all_valid(self):
+        lvl1 = os.path.join(self.temp_dir_path, "foo")
+        os.makedirs(lvl1, exist_ok=True)
+        os.makedirs(os.path.join(lvl1, "bar"))
+        os.makedirs(os.path.join(lvl1, "baz"))
+
+        self.assertEqual(["bar", "baz"], io._list_subdirs(lvl1, {"bar", "baz"}))
+
+    def test_list_subdirs_some_valid(self):
+        lvl1 = os.path.join(self.temp_dir_path, "foo")
+        os.makedirs(lvl1, exist_ok=True)
+        os.makedirs(os.path.join(lvl1, "bar"), exist_ok=True)
+        os.makedirs(os.path.join(lvl1, "baz"), exist_ok=True)
+
+        self.assertEqual(["baz"], io._list_subdirs(lvl1, {"baz"}))
+
+    def test_index_unstructured_all(self):
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1546300800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1577836800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1609459200000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "901_1546300800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "901_1577836800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "901_1609459200000.rdvxz")
+
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1000_1546300800000000.rdvxm")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1000_1577836800000000.rdvxm")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1000_1609459200000000.foo")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1001_1546300800000000.foo")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1001_1577836800000000")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1001_1609459200000000")
+
+        index = io.index_unstructured(self.unstructured_900_1000_dir, io.ReadFilter.empty())
+        self.assertEqual(12, len(index.entries))
+
+    def test_index_unstructured_by_api(self):
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1546300800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1577836800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1609459200000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "901_1546300800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "901_1577836800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "901_1609459200000.rdvxz")
+
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1000_1546300800000000.rdvxm")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1000_1577836800000000.rdvxm")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1000_1609459200000000.foo")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1001_1546300800000000.foo")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1001_1577836800000000")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1001_1609459200000000")
+
+        index_900 = io.index_unstructured(self.unstructured_900_1000_dir,
+                                          io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_900}))
+        self.assertEqual(6, len(index_900.entries))
+
+        index_1000 = io.index_unstructured(self.unstructured_900_1000_dir,
+                                           io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_1000}))
+        self.assertEqual(6, len(index_1000.entries))
+
+    def test_index_unstructured_by_ext(self):
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1546300800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1577836800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1609459200000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "901_1546300800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "901_1577836800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "901_1609459200000.rdvxz")
+
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1000_1546300800000000.rdvxm")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1000_1577836800000000.rdvxm")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1000_1609459200000000.foo")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1001_1546300800000000.foo")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1001_1577836800000000")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1001_1609459200000000")
+
+        index = io.index_unstructured(self.unstructured_900_1000_dir,
+                                      io.ReadFilter.empty().with_extensions({".rdvxz"}))
+        self.assertEqual(6, len(index.entries))
+        index = io.index_unstructured(self.unstructured_900_1000_dir,
+                                      io.ReadFilter.empty().with_extensions({".rdvxm", ".foo"}))
+        self.assertEqual(4, len(index.entries))
+        index = io.index_unstructured(self.unstructured_900_1000_dir,
+                                      io.ReadFilter.empty().with_extensions({""}))
+        self.assertEqual(2, len(index.entries))
+
+    def test_index_unstructured_by_date(self):
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1546300800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1577836800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1609459200000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "901_1546300800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "901_1577836800000.rdvxz")
+        copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "901_1609459200000.rdvxz")
+
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1000_1546300800000000.rdvxm")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1000_1577836800000000.rdvxm")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1000_1609459200000000.foo")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1001_1546300800000000.foo")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1001_1577836800000000")
+        copy_exact(self.template_1000_path, self.unstructured_900_1000_dir, "1001_1609459200000000")
+
+        index = io.index_unstructured(self.unstructured_900_1000_dir,
+                                      io.ReadFilter.empty().with_start_ts(1577836800000000))
+        self.assertEqual(8, len(index.entries))
+        index = io.index_unstructured(self.unstructured_900_1000_dir,
+                                      io.ReadFilter.empty().with_start_ts(1577836800000000).with_end_ts(1577836800000000))
+        self.assertEqual(4, len(index.entries))
+        index = io.index_unstructured(self.unstructured_900_1000_dir,
+                                      io.ReadFilter.empty().with_end_ts(1577836800000000))
+        self.assertEqual(8, len(index.entries))
 
 
 class IndexEntryTests(IoTestCase):
@@ -325,29 +426,11 @@ class IndexEntryTests(IoTestCase):
         self.assertEqual(900, packet.api())
 
     def test_read_1000(self):
-        path: str = copy_exact(self.template_1000_path, self.unstructured_900_dir, "0000001000_1609459200000000.rdvxm")
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0000001000_1609459200000000.rdvxm")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
         packet = entry.read()
         self.assertIsNotNone(packet)
         self.assertEqual(1000.0, packet.get_api())
-
-    def test_ordering(self) -> None:
-        entries: List[io.IndexEntry] = [
-            io.IndexEntry.from_path(copy_exact(self.template_1000_path,
-                                               self.unstructured_900_dir,
-                                               "0000001003_1.rdvxm")),
-            io.IndexEntry.from_path(copy_exact(self.template_1000_path,
-                                               self.unstructured_900_dir,
-                                               "0000001002_0.rdvxm")),
-            io.IndexEntry.from_path(copy_exact(self.template_1000_path,
-                                               self.unstructured_900_dir,
-                                               "0000001001_-1.rdvxm"))
-        ]
-
-        entries.sort()
-        self.assertEqual("0000001001", entries[0].station_id)
-        self.assertEqual("0000001002", entries[1].station_id)
-        self.assertEqual("0000001003", entries[2].station_id)
 
 
 class IndexTests(IoTestCase):
@@ -364,6 +447,145 @@ class IndexTests(IoTestCase):
             total_streamed += 1
         self.assertEqual(0, total_streamed)
         self.assertEqual(0, len(index.read()))
+
+    def test_sort(self):
+        entries = [
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "901_1.rdvxz")),
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "901_0.rdvxz")),
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "901_-1")),
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1.rdvxz")),
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "900_0.rdvxz")),
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "900_-1")),
+
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_1.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_0.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_-1")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_1.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_0.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_-1")),
+        ]
+
+        index = io.Index(entries)
+        index.sort()
+        self.assertEqual([
+            entries[11],
+            entries[10],
+            entries[9],
+            entries[8],
+            entries[7],
+            entries[6],
+            entries[5],
+            entries[4],
+            entries[3],
+            entries[2],
+            entries[1],
+            entries[0],
+        ], index.entries)
+
+    def test_append(self):
+        index = io.Index()
+        self.assertEqual(0, len(index.entries))
+        index.append(iter([]))
+        self.assertEqual(0, len(index.entries))
+        index.append(iter([
+            io.IndexEntry.from_path("0_0", False)
+        ]))
+        self.assertEqual(1, len(index.entries))
+        index.append(iter([
+            io.IndexEntry.from_path("0_0", False),
+            io.IndexEntry.from_path("0_1", False),
+        ]))
+        self.assertEqual(3, len(index.entries))
+
+    def test_stream_all(self):
+        from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+
+        index: io.Index = io.Index([
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1609459200000.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1609459200001.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "901_1609459200000.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "901_1609459200001.rdvxz")),
+
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_1609459200000000.rdvxm")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_1609459200001000.foo")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_1609459200000000.rdvxm")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_1609459200001000.foo")),
+        ])
+
+        i: int = 0
+        for packet in index.stream(io.ReadFilter.empty()):
+            self.assertTrue(isinstance(packet, WrappedRedvoxPacketM) or isinstance(packet, WrappedRedvoxPacket))
+            i += 1
+
+        self.assertEqual(8, len(index.entries))
+
+    def test_read_all(self):
+        from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+
+        index: io.Index = io.Index([
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1609459200000.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1609459200001.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "901_1609459200000.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "901_1609459200001.rdvxz")),
+
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_1609459200000000.rdvxm")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_1609459200001000.foo")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_1609459200000000.rdvxm")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_1609459200001000.foo")),
+        ])
+
+        i: int = 0
+        for packet in index.read(io.ReadFilter.empty()):
+            self.assertTrue(isinstance(packet, WrappedRedvoxPacketM) or isinstance(packet, WrappedRedvoxPacket))
+            i += 1
+
+        self.assertEqual(8, len(index.entries))
+
+    def test_read_filtered(self):
+        from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+
+        index: io.Index = io.Index([
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1609459200000.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1609459201000.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "901_1609459200000.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "901_1609459201000.rdvxz")),
+
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_1609459200000000.rdvxm")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_1609459201000000.foo")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_1609459200000000.rdvxm")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_1609459201000000.foo")),
+        ])
+
+        self.assertEqual(4, len(index.read(io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_900}))))
+        self.assertEqual(4, len(index.read(io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_1000}))))
+        self.assertEqual(2, len(index.read(io.ReadFilter.empty().with_station_ids({"901"}))))
+        self.assertEqual(6, len(index.read(io.ReadFilter.empty().with_extensions({".foo", ".rdvxz"}))))
+        self.assertEqual(4, len(index.read(io.ReadFilter.empty().with_start_dt(datetime(2021, 1, 1, 0, 0, 1)))))
+        self.assertEqual(4, len(index.read(io.ReadFilter.empty().with_end_dt(datetime(2021, 1, 1, 0, 0, 0)))))
 
 
 # noinspection PyTypeChecker,DuplicatedCode,Mypy
@@ -646,9 +868,9 @@ class ReadFilterTests(IoTestCase):
         read_filter = io.ReadFilter() \
             .with_extensions(None) \
             .with_api_versions({
-                io.ApiVersion.API_900,
-                io.ApiVersion.API_1000,
-                io.ApiVersion.UNKNOWN})
+            io.ApiVersion.API_900,
+            io.ApiVersion.API_1000,
+            io.ApiVersion.UNKNOWN})
 
         api_900_path = copy_exact(self.template_900_path,
                                   self.unstructured_900_dir,
@@ -663,3 +885,79 @@ class ReadFilterTests(IoTestCase):
         ]
         self.assertEqual(["900", "1000", "0"],
                          list(map(lambda entry: entry.station_id, filter(read_filter.apply, entries))))
+
+
+class IndexSummaryTests(IoTestCase):
+    def test_empty(self):
+        summary = io.IndexSummary.from_index(io.Index())
+        self.assertEqual(0, summary.total_packets())
+        self.assertEqual(0, len(summary.station_ids()))
+
+    def test_mixed(self):
+        index = io.Index([
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "1_0.rdvxz")),
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "2_0.rdvxz")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "3_0.rdvxm")),
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "4_0.rdvxm")),
+        ])
+        index.sort()
+        summary = index.summarize()
+        self.assertEqual(4, summary.total_packets())
+        self.assertEqual(2, summary.total_packets(io.ApiVersion.API_900))
+        self.assertEqual(2, summary.total_packets(io.ApiVersion.API_1000))
+
+        self.assertEqual(set(["1", "2", "3", "4"]), set(summary.station_ids()))
+        self.assertEqual(set(["1", "2"]), set(summary.station_ids(io.ApiVersion.API_900)))
+        self.assertEqual(set(["3", "4"]), set(summary.station_ids(io.ApiVersion.API_1000)))
+
+
+class IndexStationSummaryTests(IoTestCase):
+    def test_from_entry_update_900(self):
+        summary_900 = io.IndexStationSummary.from_entry(
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "0_0.rdvxz"))
+        )
+
+        self.assertEqual(1, summary_900.total_packets)
+        self.assertEqual("0", summary_900.station_id)
+        self.assertEqual(io.ApiVersion.API_900, summary_900.api_version)
+        self.assertEqual(datetime(1970, 1, 1), summary_900.first_packet)
+        self.assertEqual(datetime(1970, 1, 1), summary_900.last_packet)
+
+        summary_900.update(
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "0_1000.rdvxz"))
+        )
+        self.assertEqual(2, summary_900.total_packets)
+        self.assertEqual(datetime(1970, 1, 1), summary_900.first_packet)
+        self.assertEqual(datetime(1970, 1, 1, 0, 0, 1), summary_900.last_packet)
+
+        summary_900.update(
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "0_-1000.rdvxz"))
+        )
+        self.assertEqual(3, summary_900.total_packets)
+        self.assertEqual(datetime(1969, 12, 31, 23, 59, 59), summary_900.first_packet)
+        self.assertEqual(datetime(1970, 1, 1, 0, 0, 1), summary_900.last_packet)
+
+    def test_from_entry_update_1000(self):
+        summary_1000 = io.IndexStationSummary.from_entry(
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0_0.rdvxm"))
+        )
+
+        self.assertEqual(1, summary_1000.total_packets)
+        self.assertEqual("0", summary_1000.station_id)
+        self.assertEqual(io.ApiVersion.API_1000, summary_1000.api_version)
+        self.assertEqual(datetime(1970, 1, 1), summary_1000.first_packet)
+        self.assertEqual(datetime(1970, 1, 1), summary_1000.last_packet)
+
+        summary_1000.update(
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0_1000000.rdvxm"))
+        )
+        self.assertEqual(2, summary_1000.total_packets)
+        self.assertEqual(datetime(1970, 1, 1), summary_1000.first_packet)
+        self.assertEqual(datetime(1970, 1, 1, 0, 0, 1), summary_1000.last_packet)
+
+        summary_1000.update(
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0_-1000000.rdvxm"))
+        )
+        self.assertEqual(3, summary_1000.total_packets)
+        self.assertEqual(datetime(1969, 12, 31, 23, 59, 59), summary_1000.first_packet)
+        self.assertEqual(datetime(1970, 1, 1, 0, 0, 1), summary_1000.last_packet)
