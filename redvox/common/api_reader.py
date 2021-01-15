@@ -3,13 +3,14 @@ Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 """
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Dict
 from datetime import datetime, timedelta
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api900 import reader as api900_io
 from redvox.common import api_conversions as ac
 from redvox.common import io
+from redvox.common.station import Station
 
 
 DEFAULT_GAP_TIME_S: float = 0.25        # default length of a gap in seconds
@@ -86,34 +87,45 @@ class ApiReader:
             index = io.index_unstructured(self.base_dir, self.filter)
         return index
 
-    def read_files(self) -> List[WrappedRedvoxPacketM]:
+    def read_files(self) -> Dict[str, List[WrappedRedvoxPacketM]]:
         """
-        read the files in the index of all files
-        :return: list of WrappedRedvoxPacketM, converted from API 900 if necessary
+        read the all files in the index
+        :return: dictionary of id: list of WrappedRedvoxPacketM, converted from API 900 if necessary
         """
-        api_m_data: List[WrappedRedvoxPacketM] = []
+        result: Dict[str, List[WrappedRedvoxPacketM]] = {}
         for path in self.files_index.entries:
             if path.extension == ".rdvxz":
                 data = api900_io.wrap(api900_io.read_file(path.full_path, True))
-                api_m_data.append(ac.convert_api_900_to_1000(data))
+                result[data.redvox_id()].append(ac.convert_api_900_to_1000(data))
             elif path.extension == ".rdvxm":
-                api_m_data.append(WrappedRedvoxPacketM.from_compressed_path(path.full_path))
+                data = WrappedRedvoxPacketM.from_compressed_path(path.full_path)
+                result[data.get_station_information().get_id()].append(data)
+        return result
 
-        return api_m_data
+    def read_files_by_id(self, get_id: str) -> Optional[List[WrappedRedvoxPacketM]]:
+        """
+        return the files that have the id requested
+        :param get_id: the id to filter on
+        :return: the list of data with the requested id, or None if the id can't be found
+        """
+        result: List[WrappedRedvoxPacketM] = []
+        for path in self.files_index.entries:
+            if path.extension == ".rdvxz":
+                data = api900_io.wrap(api900_io.read_file(path.full_path, True))
+                if data.redvox_id() == get_id:
+                    result.append(ac.convert_api_900_to_1000(data))
+            elif path.extension == ".rdvxm":
+                data = WrappedRedvoxPacketM.from_compressed_path(path.full_path)
+                if data.get_station_information().get_id() == get_id:
+                    result.append(data)
+        if len(result) == 0:
+            return None
+        return result
 
-
-def get_data_by_id(data_list: List[WrappedRedvoxPacketM], get_id: str) -> Optional[List[WrappedRedvoxPacketM]]:
-    """
-    return the data that has the id requested
-    only used as a test to check batch requests for specific ids; ideally the filter handles everything
-    :param data_list: the list of data to read
-    :param get_id: the id to filter on
-    :return: the list of data with the requested id, or None if the id can't be found
-    """
-    result: List[WrappedRedvoxPacketM] = []
-    for data in data_list:
-        if data.get_station_information().get_id() == get_id:
-            result.append(data)
-    if len(result) == 0:
-        return None
-    return result
+    def get_station_by_id(self, get_id: str) -> Station:
+        """
+        get a station representation of the data with the requested id
+        :param get_id: the id to filter on
+        :return: a station containing the data of the packets with the requested id
+        """
+        return Station(self.read_files_by_id(get_id))

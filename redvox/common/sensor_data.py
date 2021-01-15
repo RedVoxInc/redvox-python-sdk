@@ -3,12 +3,13 @@ Defines generic sensor data and metadata for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 """
 import enum
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
 
 import redvox.common.date_time_utils as dtu
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
 
 class SensorType(enum.Enum):
@@ -43,6 +44,7 @@ class SensorData:
     Generic SensorData class for API-independent analysis
     Properties:
         name: string, name of sensor
+        type: SensorType, enumerated type of sensor
         data_df: dataframe of the sensor data; always has timestamps as the first column,
                     the other columns are the data fields
         sample_rate: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
@@ -51,12 +53,13 @@ class SensorData:
         is_sample_rate_fixed: bool, True if sample rate is constant, default False
     """
 
-    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame, sample_rate: float = np.nan,
-                 sample_interval_s: float = np.nan, sample_interval_std_s: float = np.nan,
-                 is_sample_rate_fixed: bool = False):
+    def __init__(self, sensor_name: str, sensor_type: SensorType, sensor_data: pd.DataFrame,
+                 sample_rate: float = np.nan, sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan, is_sample_rate_fixed: bool = False):
         """
         initialize the sensor data with params
         :param sensor_name: str, name of the sensor
+        :param sensor_type: SensorType, enumerated type of the sensor
         :param sensor_data: dataframe with the timestamps and sensor data
         :param sample_rate: float, sample rate in hz of the data
         :param sample_interval_s: float, sample interval in seconds of the data
@@ -66,6 +69,7 @@ class SensorData:
         if "timestamps" not in sensor_data.columns:
             raise AttributeError('SensorData requires the data frame to contain a column titled "timestamps"')
         self.name: str = sensor_name
+        self.type: SensorType = sensor_type
         self.data_df: pd.DataFrame = sensor_data
         self.sample_rate: float = sample_rate
         self.sample_interval_s: float = sample_interval_s
@@ -196,3 +200,47 @@ class SensorData:
         :param ascending: if True, timestamps are sorted in ascending order
         """
         self.data_df = self.data_df.sort_values("timestamps", ascending=ascending)
+
+
+def calc_evenly_sampled_timestamps(start: float, samples: int, rate_hz: float) -> np.array:
+    """
+    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+    :param start: float, start timestamp in microseconds
+    :param samples: int, number of samples
+    :param rate_hz: float, sample rate in hz
+    :return: np.array with evenly spaced timestamps starting at start
+    """
+    return start + dtu.seconds_to_microseconds(np.arange(0, samples) / rate_hz)
+
+
+def load_apim_audio(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData]:
+    audio = wrapped_packet.get_sensors().get_audio()
+    if audio and wrapped_packet.get_sensors().validate_audio():
+        sample_rate_hz = audio.get_sample_rate()
+        data_for_df = audio.get_samples().get_values()
+        timestamps = calc_evenly_sampled_timestamps(audio.get_first_sample_timestamp(),
+                                                    audio.get_num_samples(), sample_rate_hz)
+        return SensorData(audio.get_sensor_description(), SensorType.AUDIO,
+                          pd.DataFrame(np.transpose([timestamps, data_for_df]), columns=["timestamps", "microphone"]),
+                          sample_rate_hz, 1 / sample_rate_hz, 0.0, True)
+    return None
+
+
+def load_apim_audio_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Optional[SensorData]:
+    all_timestamps = np.array([])
+    all_data = np.array([])
+    if len(wrapped_packets) > 0:
+        sample_rate_hz = wrapped_packets[0].get_sensors().get_audio().get_sample_rate()
+        description = wrapped_packets[0].get_sensors().get_audio().get_sensor_description()
+        for wrapped_packet in wrapped_packets:
+            audio = wrapped_packet.get_sensors().get_audio()
+            if audio and wrapped_packet.get_sensors().validate_audio():
+                all_timestamps = np.append(all_timestamps,
+                                           calc_evenly_sampled_timestamps(audio.get_first_sample_timestamp(),
+                                                                          audio.get_num_samples(), sample_rate_hz))
+                all_data = np.append(all_data, audio.get_samples().get_values())
+        return SensorData(sensor_name=description, sensor_type=SensorType.AUDIO, sample_rate=sample_rate_hz,
+                          sample_interval_s=1 / sample_rate_hz, sample_interval_std_s=0.0, is_sample_rate_fixed=True,
+                          sensor_data=pd.DataFrame(np.transpose([all_timestamps, all_data]),
+                                                   columns=["timestamps", "microphone"]))
+    return None
