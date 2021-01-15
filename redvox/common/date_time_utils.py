@@ -395,7 +395,9 @@ def weeks_to_days(weeks: float) -> float:
     return weeks * DAYS_IN_WEEK
 
 
-def datetime_from(year: int, month: int, day: int, hour: int = 0, minute: int = 0, second: int = 0) -> datetime:
+def datetime_from(
+    year: int, month: int, day: int, hour: int = 0, minute: int = 0, second: int = 0
+) -> datetime:
     """
     Returns a datetime object in UTC based off the given parameters.
     :param year: The year.
@@ -476,7 +478,9 @@ def datetimes_from_epoch_seconds_utc(epochs_seconds_utc: List[int]) -> List[date
     return list(map(datetime_from_epoch_seconds_utc, epochs_seconds_utc))
 
 
-def generate_timestamps_s_utc(start_timestamp_s_utc: float, sample_rate_hz: float, num_samples: int) -> np.ndarray:
+def generate_timestamps_s_utc(
+    start_timestamp_s_utc: float, sample_rate_hz: float, num_samples: int
+) -> np.ndarray:
     """
     Given a starting timestamp, a sample rate, and a number of samples, compute timestamps for all samples.
     :param start_timestamp_s_utc: The start timestamp.
@@ -502,19 +506,21 @@ class DateIterator:
     of year, month, day for each date between the start and end.
     """
 
-    def __init__(self,
-                 start_timestamp_utc_s: int,
-                 end_timestamp_utc_s: int):
+    def __init__(self, start_timestamp_utc_s: int, end_timestamp_utc_s: int):
 
         start_dt_full: datetime = datetime.utcfromtimestamp(start_timestamp_utc_s)
         end_dt_full: datetime = datetime.utcfromtimestamp(end_timestamp_utc_s)
 
-        self.start_dt: datetime = datetime_from(start_dt_full.year, start_dt_full.month, start_dt_full.day)
-        self.end_dt: datetime = datetime_from(end_dt_full.year, end_dt_full.month, end_dt_full.day)
+        self.start_dt: datetime = datetime_from(
+            start_dt_full.year, start_dt_full.month, start_dt_full.day
+        )
+        self.end_dt: datetime = datetime_from(
+            end_dt_full.year, end_dt_full.month, end_dt_full.day
+        )
 
         self._one_day: timedelta = timedelta(days=1)
 
-    def __iter__(self) -> 'DateIterator':
+    def __iter__(self) -> "DateIterator":
         return self
 
     def __next__(self) -> Tuple[str, str, str]:
@@ -540,21 +546,25 @@ class DateIteratorAPIM:
     of year, month, day and hour for each date between the start and end.
     """
 
-    def __init__(self,
-                 start_timestamp_utc_s: int,
-                 end_timestamp_utc_s: int):
+    def __init__(self, start_timestamp_utc_s: int, end_timestamp_utc_s: int):
 
         start_dt_full: datetime = datetime.utcfromtimestamp(start_timestamp_utc_s)
         end_dt_full: datetime = datetime.utcfromtimestamp(end_timestamp_utc_s)
 
-        self.start_dt: datetime = datetime_from(start_dt_full.year, start_dt_full.month, start_dt_full.day,
-                                                start_dt_full.hour)
-        self.end_dt: datetime = datetime_from(end_dt_full.year, end_dt_full.month, end_dt_full.day, end_dt_full.hour)
+        self.start_dt: datetime = datetime_from(
+            start_dt_full.year,
+            start_dt_full.month,
+            start_dt_full.day,
+            start_dt_full.hour,
+        )
+        self.end_dt: datetime = datetime_from(
+            end_dt_full.year, end_dt_full.month, end_dt_full.day, end_dt_full.hour
+        )
 
         self._one_day: timedelta = timedelta(days=1)
         self._one_hour: timedelta = timedelta(hours=1)
 
-    def __iter__(self) -> 'DateIteratorAPIM':
+    def __iter__(self) -> "DateIteratorAPIM":
         return self
 
     def __next__(self) -> Tuple[str, str, str, str]:
@@ -575,19 +585,19 @@ class DateIteratorAPIM:
         return year, month, day, hour
 
 
-def truncate_dt_ymd(dt: datetime) -> datetime:
+def truncate_dt_ymd(date_time: datetime) -> datetime:
     """
     Truncates the provides datetime to only year, month, day.
-    :param dt: The datetime to truncate.
+    :param date_time: The datetime to truncate.
     :return: A truncated datetime.
     """
-    return datetime(dt.year, dt.month, dt.day)
+    return datetime(date_time.year, date_time.month, date_time.day)
 
 
-def truncate_dt_ymdh(dt: datetime) -> datetime:
+def truncate_dt_ymdh(date_time: datetime) -> datetime:
     """
     Truncates the provides datetime to only year, month, day, hour.
-    :param dt: The datetime to truncate.
+    :param date_time: The datetime to truncate.
     :return: A truncated datetime.
     """
-    return datetime(dt.year, dt.month, dt.day, dt.hour)
+    return datetime(date_time.year, date_time.month, date_time.day, date_time.hour)

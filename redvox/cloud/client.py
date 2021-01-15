@@ -103,6 +103,8 @@ class CloudClient:
         """
         Automatically refreshes this client's auth token in the background once per minute.
         """
+        # pylint: disable=W0702
+        # noinspection PyBroadException
         try:
             self.auth_token = self.refresh_own_auth_token().auth_token
             self.__refresh_timer = threading.Timer(self.refresh_token_interval, self.__refresh_token)
@@ -114,12 +116,16 @@ class CloudClient:
         """
         Terminates this client process by cancelling the refresh token timer.
         """
+        # pylint: disable=W0702
+        # noinspection PyBroadException
         try:
             if self.__refresh_timer is not None:
                 self.__refresh_timer.cancel()
         except:
             pass
 
+        # pylint: disable=W0702
+        # noinspection PyBroadException
         try:
             if self.__session is not None:
                 self.__session.close()
