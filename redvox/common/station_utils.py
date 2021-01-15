@@ -1,6 +1,6 @@
 """
 Defines generic station metadata for API-independent analysis
-all timestamps are integers in microseconds unless otherwise stated
+all timestamps are floats in microseconds unless otherwise stated
 """
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple

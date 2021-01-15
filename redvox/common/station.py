@@ -1,152 +1,165 @@
 """
 Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
+Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
 """
 from typing import List, Dict, Optional
 
+import numpy as np
+
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 import redvox.common.date_time_utils as dtu
-from redvox.common.sensor_data import SensorData, SensorType
+from redvox.common import sensor_data as sd
 from redvox.common.station_utils import StationKey, StationMetadata, DataPacket, StationLocation, \
     station_location_from_data
+
+
+def validate_station_data(data_packets: List[WrappedRedvoxPacketM]) -> bool:
+    """
+    Check if all packets have the same key values
+    :param data_packets: packets to check
+    :return: True if all packets have the same key values
+    """
+    if len(data_packets) == 1:
+        return True
+    elif len(data_packets) < 1:
+        return False
+    elif all(lambda: t.get_station_information().get_id() == data_packets[0].get_station_information().get_id()
+             and t.get_station_information().get_uuid() == data_packets[0].get_station_information().get_uuid()
+             and t.get_timing_information().get_app_start_mach_timestamp() ==
+             data_packets[0].get_timing_information().get_app_start_mach_timestamp()
+             for t in data_packets):
+        return True
+    return False
 
 
 class Station:
     """
     generic station for api-independent stuff
+    In order for a list of packets to be a station, all of the packets must:
+        Have the same station id
+        Have the same station uuid
+        Have the same start time
     Properties:
-        station_metadata: StationMetadata
-        station_data: dict, all the data associated with this station, default empty dict
-        packet_data: list, all DataPacket metadata associated with this station, default empty list
-        station_key: Tuple of str, str, float, a unique combination of three values defining the station
+        data: List of data packets associated with the station
+        id: str id of the station, default None
+        uuid: str uuid of the station, default None
+        start_timestamp: float of microseconds since epoch UTC when the station started recording, default np.nan
+        key: Tuple of str, str, float, a unique combination of three values defining the station, default None
     """
 
-    def __init__(self, metadata: StationMetadata, data: Optional[Dict[SensorType, SensorData]] = None,
-                 packets: Optional[List[DataPacket]] = None):
+    def __init__(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None):
         """
         initialize Station
-        :param metadata: the station's metadata
-        :param data: the station's sensors' data, default None (value is converted to empty dict)
-        :param packets: the packets that the data came from, default None (value is converted to empty list)
+        :param data_packets: optional list of data packets representing the station, default None
         """
-        self.station_metadata: StationMetadata = metadata
-        if data:
-            self.station_data: Dict[SensorType, SensorData] = data
+        self.data = data_packets
+        if self.data and validate_station_data(self.data):
+            self._sort_data_packets()
+            self.id = self.data[0].get_station_information().get_id()
+            self.uuid = self.data[0].get_station_information().get_uuid()
+            self.start_timestamp = self.data[0].get_timing_information().get_app_start_mach_timestamp()
+            self.key = StationKey(self.id, self.uuid, self.start_timestamp)
         else:
-            self.station_data: Dict[SensorType, SensorData] = {}
-        # todo add event streams as dict[str, list[event]] i.e movement: [accelerometer, gyroscope, etc]
-        if packets:
-            self.packet_data: List[DataPacket] = packets
-        else:
-            self.packet_data: List[DataPacket] = []
-        # todo: assert station key is valid
-        self.station_key = StationKey(self.station_metadata.station_id, self.station_metadata.station_uuid,
-                                      self.station_metadata.timing_data.station_start_timestamp)
+            self.id = None
+            self.uuid = None
+            self.start_timestamp = np.nan
+            self.key = None
+
+    def _sort_data_packets(self):
+        """
+        orders the data packets by their starting timestamps.  Returns nothing, sorts the data in place
+        """
+        self.data.sort(key=lambda t: t.get_timing_information().get_packet_start_mach_timestamp())
+
+    def set_id(self, station_id: str) -> 'Station':
+        """
+        set the station's id
+        :param station_id: id of station
+        :return: modified version of self
+        """
+        self.id = station_id
+        return self
+
+    def set_uuid(self, uuid: str) -> 'Station':
+        """
+        set the station's uuid
+        :param uuid: uuid of station
+        :return: modified version of self
+        """
+        self.uuid = uuid
+        return self
+
+    def set_start_timestamp(self, start_timestamp: float) -> 'Station':
+        """
+        set the station's start timestamp in microseconds since epoch utc
+        :param start_timestamp: start_timestamp of station
+        :return: modified version of self
+        """
+        self.start_timestamp = start_timestamp
+        return self
+
+    def set_key(self) -> 'Station':
+        """
+        set the station's key if enough information is set
+        :return: modified version of self
+        """
+        if self.id and self.uuid and not np.isnan(self.start_timestamp):
+            self.key = StationKey(self.id, self.uuid, self.start_timestamp)
+        return self
 
     def append_station(self, new_station: 'Station'):
         """
         append a new station to the current station
         :param new_station: Station to append to current station
         """
-        if new_station.station_metadata.station_id == self.station_metadata.station_id:
-            self.append_station_data(new_station.station_data)
-            self.packet_data.extend(new_station.packet_data)
-        # todo: regenerate the metadata when adding new station data
+        if new_station.key == self.key:
+            self.data.extend(new_station.data)
+            self._sort_data_packets()
+        else:
+            print("Warning: Cannot append new station data if station keys do not match.")
 
-    def append_station_data(self, new_station_data: Dict[SensorType, SensorData]):
+    def append_station_data(self, new_data: List[WrappedRedvoxPacketM]):
         """
         append new station data to existing station data
-        :param new_station_data: the dictionary of data to add
+        :param new_data: the list of packets to add
         """
-        for sensor_type, sensor_data in new_station_data.items():
-            self.append_sensor(sensor_type, sensor_data)
-
-    def append_sensor(self, sensor_type: SensorType, sensor_data: SensorData):
-        """
-        append sensor data to an existing sensor_type or add a new sensor to the dictionary
-        :param sensor_type: the sensor to append to
-        :param sensor_data: the data to append
-        """
-        if sensor_type in self.station_data.keys():
-            self.station_data[sensor_type] = self.station_data[sensor_type].append_data(sensor_data.data_df)
+        new_data_key = StationKey(new_data[0].get_station_information().get_id(),
+                                  new_data[0].get_station_information().get_uuid(),
+                                  new_data[0].get_timing_information().get_packet_start_mach_timestamp())
+        if new_data_key == self.key:
+            self.data.extend(new_data)
+            self._sort_data_packets()
         else:
-            self._add_sensor(sensor_type, sensor_data)
-
-    def _delete_sensor(self, sensor_type: SensorType):
-        """
-        removes a sensor from the data packet if it exists
-        :param sensor_type: the sensor to remove
-        """
-        if sensor_type in self.station_data.keys():
-            self.station_data.pop(sensor_type)
-
-    def _add_sensor(self, sensor_type: SensorType, sensor: SensorData):
-        """
-        adds a sensor to the sensor_data_dict
-        :param sensor_type: the type of sensor to add
-        :param sensor: the sensor data to add
-        """
-        if sensor_type in self.station_data.keys():
-            raise ValueError(f"Cannot add sensor type ({sensor_type.name}) that already exists in packet!")
-        else:
-            self.station_data[sensor_type] = sensor
+            print("Warning: Cannot append new data packets if station keys do not match.")
 
     def has_audio_sensor(self) -> bool:
         """
-        check if audio sensor is in sensor_data_dict
-        :return: True if audio sensor exists
+        check if audio sensor is in any of the packets
+        :return: True if audio sensor exists in any of the packets
         """
-        return SensorType.AUDIO in self.station_data.keys()
+        return any(lambda: s.get_sensors().has_audio() for s in self.data)
 
-    def has_audio_data(self) -> bool:
-        """
-        check if the audio sensor has any data
-        :return: True if audio sensor has any data
-        """
-        return self.has_audio_sensor() and self.audio_sensor().num_samples() > 0
-
-    def audio_sensor(self) -> Optional[SensorData]:
+    def audio_sensor(self) -> Optional[sd.SensorData]:
         """
         return the audio sensor if it exists
         :return: audio sensor if it exists, None otherwise
         """
-        if self.has_audio_sensor():
-            return self.station_data[SensorType.AUDIO]
-        return None
-
-    def set_audio_sensor(self, audio_sensor: Optional[SensorData]) -> 'Station':
-        """
-        sets the audio sensor; can remove audio sensor by passing None
-        :param audio_sensor: the SensorData to set or None
-        :return: the edited DataPacket
-        """
-        if self.has_audio_sensor():
-            self._delete_sensor(SensorType.AUDIO)
-        if audio_sensor is not None:
-            self._add_sensor(SensorType.AUDIO, audio_sensor)
-        return self
+        return sd.load_apim_audio_from_list(self.data)
 
     def has_location_sensor(self) -> bool:
         """
         check if location sensor is in sensor_data_dict
         :return: True if location sensor exists
         """
-        return SensorType.LOCATION in self.station_data.keys()
+        return any(lambda: s.get_sensors().has_location() for s in self.data)
 
-    def has_location_data(self) -> bool:
-        """
-        check if the location sensor has any data
-        :return: True if location sensor has any data
-        """
-        return self.has_location_sensor() and self.location_sensor().num_samples() > 0
-
-    def location_sensor(self) -> Optional[SensorData]:
+    def location_sensor(self) -> Optional[sd.SensorData]:
         """
         return the location sensor if it exists
         :return: location sensor if it exists, None otherwise
         """
-        if self.has_location_sensor():
-            return self.station_data[SensorType.LOCATION]
-        return None
+        return sd.load_apim_location_from_list(self.data)
 
     def set_location_sensor(self, loc_sensor: Optional[SensorData]) -> 'Station':
         """
