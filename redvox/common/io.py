@@ -500,9 +500,7 @@ class Index:
         :param read_filter: Additional filtering to specify which data should be streamed.
         :return: An iterator over WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
         """
-        filtered: Iterator[IndexEntry] = filter(
-            read_filter.apply, self.entries
-        )
+        filtered: Iterator[IndexEntry] = filter(read_filter.apply, self.entries)
         # noinspection Mypy
         return map(IndexEntry.read, filtered)
 
@@ -679,8 +677,11 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
         return index
 
 
-def sort_unstructured_redvox_data(input_dir: str, output_dir: Optional[str] = None,
-                                  read_filter: ReadFilter = ReadFilter()) -> bool:
+def sort_unstructured_redvox_data(
+    input_dir: str,
+    output_dir: Optional[str] = None,
+    read_filter: ReadFilter = ReadFilter(),
+) -> bool:
     """
     takes all redvox files in input_dir and sorts them into appropriate sub-directories
     :param input_dir: directory containing all the files to sort
@@ -695,11 +696,15 @@ def sort_unstructured_redvox_data(input_dir: str, output_dir: Optional[str] = No
     check_type(read_filter, [ReadFilter])
 
     if not os.path.exists(input_dir):
-        print(f"Directory with files to sort: {input_dir} does not exist.  Stopping program.")
+        print(
+            f"Directory with files to sort: {input_dir} does not exist.  Stopping program."
+        )
         return False
 
     if not os.path.exists(output_dir):
-        print(f"Base directory for creation: {output_dir} does not exist.  Please create it.  Stopping program.")
+        print(
+            f"Base directory for creation: {output_dir} does not exist.  Please create it.  Stopping program."
+        )
         return False
 
     index: Index = Index()
@@ -707,29 +712,42 @@ def sort_unstructured_redvox_data(input_dir: str, output_dir: Optional[str] = No
     for extension in read_filter.extensions:
         pattern: str = str(PurePath(input_dir).joinpath(f"*{extension}"))
         paths: List[str] = glob(os.path.join(input_dir, pattern))
-        entries: Iterator[IndexEntry] = filter(read_filter.apply,
-                                                  filter(_not_none, map(IndexEntry.from_path, paths)))
+        entries: Iterator[IndexEntry] = filter(
+            read_filter.apply, filter(_not_none, map(IndexEntry.from_path, paths))
+        )
         index.append(entries)
 
     if len(index.entries) < 1:
-        print(f"Directory with files to sort: {input_dir} does not contain Redvox data to read.  Stopping program.")
+        print(
+            f"Directory with files to sort: {input_dir} does not contain Redvox data to read.  Stopping program."
+        )
         return False
 
     for value in index.entries:
         api_version = value.api_version
         if api_version == ApiVersion.API_1000:
-            file_out_dir = str(PurePath(output_dir).joinpath("api1000",
-                                                             f"{value.date_time.year:04}",
-                                                             f"{value.date_time.month:02}",
-                                                             f"{value.date_time.day:02}",
-                                                             f"{value.date_time.hour:02}"))
+            file_out_dir = str(
+                PurePath(output_dir).joinpath(
+                    "api1000",
+                    f"{value.date_time.year:04}",
+                    f"{value.date_time.month:02}",
+                    f"{value.date_time.day:02}",
+                    f"{value.date_time.hour:02}",
+                )
+            )
         elif api_version == ApiVersion.API_900:
-            file_out_dir = str(PurePath(output_dir).joinpath("api900",
-                                                             f"{value.date_time.year:04}",
-                                                             f"{value.date_time.month:02}",
-                                                             f"{value.date_time.day:02}"))
+            file_out_dir = str(
+                PurePath(output_dir).joinpath(
+                    "api900",
+                    f"{value.date_time.year:04}",
+                    f"{value.date_time.month:02}",
+                    f"{value.date_time.day:02}",
+                )
+            )
         else:
-            print(f"Unknown API version {api_version} found in data.  Stopping program.")
+            print(
+                f"Unknown API version {api_version} found in data.  Stopping program."
+            )
             return False
         os.makedirs(file_out_dir, exist_ok=True)
         copy2(value.full_path, file_out_dir)
