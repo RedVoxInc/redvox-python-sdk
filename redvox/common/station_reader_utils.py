@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 from obspy import read
 
-from redvox.api1000 import io as apim_io
 from redvox.api900 import reader as api900_io
 from redvox.common import file_statistics as fs, date_time_utils as dtu, timesync as ts
 from redvox.common.sensor_data import SensorType, SensorData
