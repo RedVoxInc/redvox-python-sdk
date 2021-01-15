@@ -329,9 +329,9 @@ def gallery_args(args) -> None:
     determine_exit(gallery(args.rdvxm_paths))
 
 
-def sort_unstructured(input_dir: str, out_dir: Optional[str] = None) -> bool:
+def sort_unstructured(input_dir: str, out_dir: Optional[str] = None, copy: bool = True) -> bool:
     out_dir = out_dir if out_dir is not None else "."
-    io.sort_unstructured_redvox_data(input_dir, out_dir)
+    io.sort_unstructured_redvox_data(input_dir, out_dir, copy=copy)
     return True
 
 
@@ -342,7 +342,7 @@ def sort_unstructured_args(args) -> None:
     if not check_out_dir(args.out_dir):
         determine_exit(False)
 
-    determine_exit(sort_unstructured(args.input_dir, args.out_dir))
+    determine_exit(sort_unstructured(args.input_dir, args.out_dir, not args.mv))
 
 
 def main():
@@ -480,6 +480,11 @@ def main():
         "--out-dir",
         "-o",
         help="Optional output directory (current working directory by default)",
+    )
+    sort_unstructured_parser.add_argument(
+        "--mv",
+        help="When set, file contents will be moved to the structured layout rather than copied.",
+        action="store_true"
     )
     sort_unstructured_parser.set_defaults(func=sort_unstructured_args)
 
