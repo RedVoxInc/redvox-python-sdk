@@ -16,21 +16,27 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 from redvox.api1000.wrapped_redvox_packet.station_information import AudioSamplingRate
 
 
-class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio]):
+class Audio(
+    redvox.api1000.common.generic.ProtoBase[
+        redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio
+    ]
+):
     """
     This class encapsulates audio metadata and data.
     """
+
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio):
         super().__init__(proto)
         self._samples: common.SamplePayload = common.SamplePayload(proto.samples)
 
     @staticmethod
-    def new() -> 'Audio':
+    def new() -> "Audio":
         """
         :return: A new, empty Audio sensor instance.
         """
-        proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio \
-            = redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio()
+        proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio = (
+            redvox_api_m_pb2.RedvoxPacketM.Sensors.Audio()
+        )
         return Audio(proto)
 
     def get_sensor_description(self) -> str:
@@ -39,7 +45,7 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return self._proto.sensor_description
 
-    def set_sensor_description(self, sensor_description: str) -> 'Audio':
+    def set_sensor_description(self, sensor_description: str) -> "Audio":
         """
         Sets this sensor's description.
         :param sensor_description: Description to set.
@@ -55,7 +61,7 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return self._proto.first_sample_timestamp
 
-    def set_first_sample_timestamp(self, first_sample_timestamp: float) -> 'Audio':
+    def set_first_sample_timestamp(self, first_sample_timestamp: float) -> "Audio":
         """
         Sets the machine timestamp that corresponds to the first audio sample.
         :param first_sample_timestamp: Timestamp to set.
@@ -71,7 +77,7 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return self._proto.sample_rate
 
-    def set_sample_rate(self, sample_rate: float) -> 'Audio':
+    def set_sample_rate(self, sample_rate: float) -> "Audio":
         """
         Sets the sampling rate.
         :param sample_rate: Sampling rate Hz.
@@ -87,7 +93,7 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return self._proto.bits_of_precision
 
-    def set_bits_of_precision(self, bits_of_precision: float) -> 'Audio':
+    def set_bits_of_precision(self, bits_of_precision: float) -> "Audio":
         """
         Set the bits or precision (dynamic range) of the audio samples.
         :param bits_of_precision: Bits of precision
@@ -103,7 +109,7 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return self._proto.is_scrambled
 
-    def set_is_scrambled(self, is_scrambled: bool) -> 'Audio':
+    def set_is_scrambled(self, is_scrambled: bool) -> "Audio":
         """
         Sets if the audio has been scrambled or not.
         :param is_scrambled: True if scrambled, False otherwise
@@ -119,7 +125,7 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return self._proto.encoding
 
-    def set_encoding(self, encoding: str) -> 'Audio':
+    def set_encoding(self, encoding: str) -> "Audio":
         """
         Sets the audio encoding scheme.
         :param encoding: Encoding to use.
@@ -135,7 +141,7 @@ class Audio(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacke
         """
         return self._samples
 
-    def set_samples(self, audio_samples: common.SamplePayload) -> 'Audio':
+    def set_samples(self, audio_samples: common.SamplePayload) -> "Audio":
         """
         Sets the SamplePayload associated with the audio sensor.
         :param audio_samples:
@@ -175,9 +181,13 @@ def validate_audio(audio_sensor: Audio) -> List[str]:
     errors_list = common.validate_sample_payload(audio_sensor.get_samples(), "Audio")
     if audio_sensor.get_samples().get_values_count() > 0:
         if np.min(audio_sensor.get_samples().get_values()) < -1.0:
-            errors_list.append("Audio minimum value of samples cannot be less than -1.0")
+            errors_list.append(
+                "Audio minimum value of samples cannot be less than -1.0"
+            )
         if np.max(audio_sensor.get_samples().get_values()) > 1.0:
-            errors_list.append("Audio maximum value of samples cannot be greater than 1.0")
+            errors_list.append(
+                "Audio maximum value of samples cannot be greater than 1.0"
+            )
     if audio_sensor.get_first_sample_timestamp() == 0:
         errors_list.append("Audio first sample timestamp is default value")
     if AudioSamplingRate.from_sampling_rate(audio_sensor.get_sample_rate()) is None:
@@ -191,23 +201,28 @@ class AudioCodec(enum.Enum):
     """
     Audio codec used for compressed audio streams
     """
+
     UNKNOWN: int = 0
     FLAC: int = 1
 
 
 class CompressedAudio(
-        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio]):
+    redvox.api1000.common.generic.ProtoBase[
+        redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio
+    ]
+):
     """
     Encapsulates metadata and data for compressed audio streams.
     """
 
     @staticmethod
-    def new() -> 'CompressedAudio':
+    def new() -> "CompressedAudio":
         """
         :return: A new, empty CompressedAudio sensor instance
         """
-        proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio \
-            = redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio()
+        proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio = (
+            redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio()
+        )
         return CompressedAudio(proto)
 
     def get_sensor_description(self) -> str:
@@ -216,7 +231,7 @@ class CompressedAudio(
         """
         return self._proto.sensor_description
 
-    def set_sensor_description(self, sensor_description: str) -> 'CompressedAudio':
+    def set_sensor_description(self, sensor_description: str) -> "CompressedAudio":
         """
         Sets this sensor's description.
         :param sensor_description: Description to set.
@@ -232,7 +247,9 @@ class CompressedAudio(
         """
         return self._proto.first_sample_timestamp
 
-    def set_first_sample_timestamp(self, first_sample_timestamp: float) -> 'CompressedAudio':
+    def set_first_sample_timestamp(
+        self, first_sample_timestamp: float
+    ) -> "CompressedAudio":
         """
         Sets the machine timestamp that corresponds to the first audio sample.
         :param first_sample_timestamp: Timestamp to set.
@@ -248,7 +265,7 @@ class CompressedAudio(
         """
         return self._proto.sample_rate
 
-    def set_sample_rate(self, sample_rate: float) -> 'CompressedAudio':
+    def set_sample_rate(self, sample_rate: float) -> "CompressedAudio":
         """
         Sets the sampling rate.
         :param sample_rate: Sampling rate Hz.
@@ -264,7 +281,7 @@ class CompressedAudio(
         """
         return self._proto.is_scrambled
 
-    def set_is_scrambled(self, is_scrambled: bool) -> 'CompressedAudio':
+    def set_is_scrambled(self, is_scrambled: bool) -> "CompressedAudio":
         """
         Sets if the audio has been scrambled or not.
         :param is_scrambled: True if scrambled, False otherwise
@@ -280,7 +297,7 @@ class CompressedAudio(
         """
         return self._proto.audio_bytes
 
-    def set_audio_bytes(self, audio_bytes: bytes) -> 'CompressedAudio':
+    def set_audio_bytes(self, audio_bytes: bytes) -> "CompressedAudio":
         """
         Set the bytes that make up the compressed audio stream
         :param audio_bytes:
@@ -297,15 +314,18 @@ class CompressedAudio(
         # noinspection Mypy
         return self._proto.audio_codec
 
-    def set_audio_codec(self, audio_codec: AudioCodec) -> 'CompressedAudio':
+    def set_audio_codec(self, audio_codec: AudioCodec) -> "CompressedAudio":
         """
         Sets the audio codec used to compress this audio stream
         :param audio_codec: Audio codec used to compress this stream
         :return: A modified instance of self
         """
         redvox.api1000.common.typing.check_type(audio_codec, [AudioCodec])
-        self.get_proto().audio_codec = \
-            redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec.Value(audio_codec.name)
+        self.get_proto().audio_codec = (
+            redvox_api_m_pb2.RedvoxPacketM.Sensors.CompressedAudio.AudioCodec.Value(
+                audio_codec.name
+            )
+        )
         return self
 
 

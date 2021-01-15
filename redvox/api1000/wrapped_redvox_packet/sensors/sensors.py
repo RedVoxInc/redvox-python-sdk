@@ -15,7 +15,9 @@ import redvox.api1000.wrapped_redvox_packet.sensors.single as single
 import redvox.api1000.wrapped_redvox_packet.sensors.xyz as xyz
 
 
-class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]):
+class Sensors(
+    redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors]
+):
     """
     This class encapsulated available API M sensors.
     """
@@ -42,9 +44,13 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
     def __init__(self, sensors_proto: redvox_api_m_pb2.RedvoxPacketM.Sensors):
         super().__init__(sensors_proto)
         self._accelerometer: xyz.Xyz = xyz.Xyz(sensors_proto.accelerometer)
-        self._ambient_temperature: single.Single = single.Single(sensors_proto.ambient_temperature)
+        self._ambient_temperature: single.Single = single.Single(
+            sensors_proto.ambient_temperature
+        )
         self._audio: audio.Audio = audio.Audio(sensors_proto.audio)
-        self._compressed_audio: audio.CompressedAudio = audio.CompressedAudio(sensors_proto.compressed_audio)
+        self._compressed_audio: audio.CompressedAudio = audio.CompressedAudio(
+            sensors_proto.compressed_audio
+        )
         self._gravity: xyz.Xyz = xyz.Xyz(sensors_proto.gravity)
         self._gyroscope: xyz.Xyz = xyz.Xyz(sensors_proto.gyroscope)
         self._image: image.Image = image.Image(sensors_proto.image)
@@ -55,12 +61,14 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._orientation: xyz.Xyz = xyz.Xyz(sensors_proto.orientation)
         self._pressure: single.Single = single.Single(sensors_proto.pressure)
         self._proximity: single.Single = single.Single(sensors_proto.proximity)
-        self._relative_humidity: single.Single = single.Single(sensors_proto.relative_humidity)
+        self._relative_humidity: single.Single = single.Single(
+            sensors_proto.relative_humidity
+        )
         self._rotation_vector: xyz.Xyz = xyz.Xyz(sensors_proto.rotation_vector)
         self._velocity: xyz.Xyz = xyz.Xyz(sensors_proto.velocity)
 
     @staticmethod
-    def new() -> 'Sensors':
+    def new() -> "Sensors":
         """
         :return: A new, empty Sensors instance
         """
@@ -91,7 +99,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._accelerometer.set_unit_xyz(common.Unit.METERS_PER_SECOND_SQUARED)
         return self._accelerometer
 
-    def set_accelerometer(self, accelerometer: xyz.Xyz) -> 'Sensors':
+    def set_accelerometer(self, accelerometer: xyz.Xyz) -> "Sensors":
         """
         Sets the channel
         :param accelerometer: Channel to set
@@ -102,7 +110,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._accelerometer = xyz.Xyz(self.get_proto().accelerometer)
         return self
 
-    def remove_accelerometer(self) -> 'Sensors':
+    def remove_accelerometer(self) -> "Sensors":
         """
         Removes this channel
         :return: A modified instance of self
@@ -117,8 +125,15 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(xyz.validate_xyz(self._accelerometer, common.Unit.METERS_PER_SECOND_SQUARED)) < 1 \
+        return (
+            len(
+                xyz.validate_xyz(
+                    self._accelerometer, common.Unit.METERS_PER_SECOND_SQUARED
+                )
+            )
+            < 1
             and self._accelerometer.get_x_samples().get_values_count() > 0
+        )
 
     def has_ambient_temperature(self) -> bool:
         """
@@ -145,7 +160,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._ambient_temperature.get_samples().set_unit(common.Unit.DEGREES_CELSIUS)
         return self._ambient_temperature
 
-    def set_ambient_temperature(self, ambient_temperature: single.Single) -> 'Sensors':
+    def set_ambient_temperature(self, ambient_temperature: single.Single) -> "Sensors":
         """
         Sets the channel
         :param ambient_temperature: Channel to set
@@ -156,7 +171,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._ambient_temperature = single.Single(self.get_proto().ambient_temperature)
         return self
 
-    def remove_ambient_temperature(self) -> 'Sensors':
+    def remove_ambient_temperature(self) -> "Sensors":
         """
         Removes this channel
         :return: A modified instance of self
@@ -171,8 +186,15 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(single.validate_single(self._ambient_temperature, common.Unit.DEGREES_CELSIUS)) < 1 \
+        return (
+            len(
+                single.validate_single(
+                    self._ambient_temperature, common.Unit.DEGREES_CELSIUS
+                )
+            )
+            < 1
             and self._ambient_temperature.get_samples().get_values_count() > 0
+        )
 
     def has_audio(self) -> bool:
         """
@@ -198,7 +220,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._audio.get_samples().set_unit(common.Unit.LSB_PLUS_MINUS_COUNTS)
         return self._audio
 
-    def set_audio(self, _audio: audio.Audio) -> 'Sensors':
+    def set_audio(self, _audio: audio.Audio) -> "Sensors":
         """
         Sets the channel
         :param _audio: Channel to set
@@ -209,7 +231,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._audio = audio.Audio(self.get_proto().audio)
         return self
 
-    def remove_audio(self) -> 'Sensors':
+    def remove_audio(self) -> "Sensors":
         """
         Removes this channel
         :return: A modified instance of self
@@ -223,7 +245,10 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Checks if there are no errors with the audio sensor and it contains at least 1 data entry
         :return: True if no errors
         """
-        return len(audio.validate_audio(self._audio)) < 1 and self._audio.get_samples().get_values_count() > 0
+        return (
+            len(audio.validate_audio(self._audio)) < 1
+            and self._audio.get_samples().get_values_count() > 0
+        )
 
     def has_compress_audio(self) -> bool:
         """
@@ -244,22 +269,30 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         """
         self.remove_compressed_audio()
         self.get_proto().compressed_audio.SetInParent()
-        self._compressed_audio = audio.CompressedAudio(self.get_proto().compressed_audio)
+        self._compressed_audio = audio.CompressedAudio(
+            self.get_proto().compressed_audio
+        )
         return self._compressed_audio
 
-    def set_compressed_audio(self, compressed_audio: audio.CompressedAudio) -> 'Sensors':
+    def set_compressed_audio(
+        self, compressed_audio: audio.CompressedAudio
+    ) -> "Sensors":
         """
         Sets the channel
         :param compressed_audio: Channel to set
         :return: A modified instance of self
         """
-        redvox.api1000.common.typing.check_type(compressed_audio, [audio.CompressedAudio])
+        redvox.api1000.common.typing.check_type(
+            compressed_audio, [audio.CompressedAudio]
+        )
         # noinspection Mypy
         self.get_proto().compressed_audio.CopyFrom(compressed_audio.get_proto())
-        self._compressed_audio = audio.CompressedAudio(self.get_proto().compressed_audio)
+        self._compressed_audio = audio.CompressedAudio(
+            self.get_proto().compressed_audio
+        )
         return self
 
-    def remove_compressed_audio(self) -> 'Sensors':
+    def remove_compressed_audio(self) -> "Sensors":
         """
         Removes this channel
         :return: A modified instance of self
@@ -300,7 +333,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._gravity.set_unit_xyz(common.Unit.METERS_PER_SECOND_SQUARED)
         return self._gravity
 
-    def set_gravity(self, gravity: xyz.Xyz) -> 'Sensors':
+    def set_gravity(self, gravity: xyz.Xyz) -> "Sensors":
         """
         Sets the channel
         :param gravity: Channel to set
@@ -311,7 +344,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._gravity = xyz.Xyz(self.get_proto().gravity)
         return self
 
-    def remove_gravity(self) -> 'Sensors':
+    def remove_gravity(self) -> "Sensors":
         """
         Removes this channel
         :return: A modified instance of self
@@ -326,8 +359,11 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(xyz.validate_xyz(self._gravity, common.Unit.METERS_PER_SECOND_SQUARED)) < 1 \
+        return (
+            len(xyz.validate_xyz(self._gravity, common.Unit.METERS_PER_SECOND_SQUARED))
+            < 1
             and self._gravity.get_x_samples().get_values_count() > 0
+        )
 
     def has_gyroscope(self) -> bool:
         """
@@ -354,7 +390,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._gyroscope.set_unit_xyz(common.Unit.RADIANS_PER_SECOND)
         return self._gyroscope
 
-    def set_gyroscope(self, gyroscope: xyz.Xyz) -> 'Sensors':
+    def set_gyroscope(self, gyroscope: xyz.Xyz) -> "Sensors":
         """
         Sets the channel
         :param gyroscope: Channel to set
@@ -365,7 +401,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._gyroscope = xyz.Xyz(self.get_proto().gyroscope)
         return self
 
-    def remove_gyroscope(self) -> 'Sensors':
+    def remove_gyroscope(self) -> "Sensors":
         """
         Removes this sensor
         :return: A modified instance of self
@@ -380,8 +416,10 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(xyz.validate_xyz(self._gyroscope, common.Unit.RADIANS_PER_SECOND)) < 1 \
+        return (
+            len(xyz.validate_xyz(self._gyroscope, common.Unit.RADIANS_PER_SECOND)) < 1
             and self._gyroscope.get_x_samples().get_values_count() > 0
+        )
 
     def has_image(self) -> bool:
         """
@@ -407,7 +445,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._image.set_image_codec(image.ImageCodec.PNG)
         return self._image
 
-    def set_image(self, _image: image.Image) -> 'Sensors':
+    def set_image(self, _image: image.Image) -> "Sensors":
         """
         Sets the channel
         :param _image: Channel to set
@@ -418,7 +456,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._image = image.Image(self.get_proto().image)
         return self
 
-    def remove_image(self) -> 'Sensors':
+    def remove_image(self) -> "Sensors":
         """
         Removes this sensor
         :return: A modified instance of self
@@ -432,7 +470,10 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         Checks if there are no errors with the image sensor and it contains at least 1 data entry
         :return: True if no errors
         """
-        return len(image.validate_image(self._image)) < 1 and self._image.get_num_images() > 0
+        return (
+            len(image.validate_image(self._image)) < 1
+            and self._image.get_num_images() > 0
+        )
 
     def has_light(self) -> bool:
         """
@@ -459,7 +500,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._light.get_samples().set_unit(common.Unit.LUX)
         return self._light
 
-    def set_light(self, light: single.Single) -> 'Sensors':
+    def set_light(self, light: single.Single) -> "Sensors":
         """
         Sets the channel
         :param light: Channel to set
@@ -470,7 +511,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._light = single.Single(self.get_proto().light)
         return self
 
-    def remove_light(self) -> 'Sensors':
+    def remove_light(self) -> "Sensors":
         """
         Removes this sensor
         :return: A modified instance of self
@@ -485,8 +526,10 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(single.validate_single(self._light, common.Unit.LUX)) < 1 \
+        return (
+            len(single.validate_single(self._light, common.Unit.LUX)) < 1
             and self._light.get_samples().get_values_count() > 0
+        )
 
     def has_linear_acceleration(self) -> bool:
         """
@@ -513,7 +556,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._linear_acceleration.set_unit_xyz(common.Unit.METERS_PER_SECOND_SQUARED)
         return self._linear_acceleration
 
-    def set_linear_acceleration(self, linear_acceleration: xyz.Xyz) -> 'Sensors':
+    def set_linear_acceleration(self, linear_acceleration: xyz.Xyz) -> "Sensors":
         """
         Sets the channel
         :param linear_acceleration: Channel to set
@@ -524,7 +567,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._linear_acceleration = xyz.Xyz(self.get_proto().linear_acceleration)
         return self
 
-    def remove_linear_acceleration(self) -> 'Sensors':
+    def remove_linear_acceleration(self) -> "Sensors":
         """
         Removes this sensor
         :return: A modified instance of self
@@ -539,8 +582,15 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(xyz.validate_xyz(self._linear_acceleration, common.Unit.METERS_PER_SECOND_SQUARED)) < 1 \
+        return (
+            len(
+                xyz.validate_xyz(
+                    self._linear_acceleration, common.Unit.METERS_PER_SECOND_SQUARED
+                )
+            )
+            < 1
             and self._linear_acceleration.get_x_samples().get_values_count() > 0
+        )
 
     def has_location(self) -> bool:
         """
@@ -578,12 +628,16 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         # noinspection PyTypeChecker
         self._location.get_vertical_accuracy_samples().set_unit(common.Unit.METERS)
         # noinspection PyTypeChecker
-        self._location.get_speed_accuracy_samples().set_unit(common.Unit.METERS_PER_SECOND)
+        self._location.get_speed_accuracy_samples().set_unit(
+            common.Unit.METERS_PER_SECOND
+        )
         # noinspection PyTypeChecker
-        self._location.get_bearing_accuracy_samples().set_unit(common.Unit.DECIMAL_DEGREES)
+        self._location.get_bearing_accuracy_samples().set_unit(
+            common.Unit.DECIMAL_DEGREES
+        )
         return self._location
 
-    def set_location(self, _location: location.Location) -> 'Sensors':
+    def set_location(self, _location: location.Location) -> "Sensors":
         """
         Sets the channel
         :param _location: Channel to set
@@ -594,7 +648,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._location = location.Location(self.get_proto().location)
         return self
 
-    def remove_location(self) -> 'Sensors':
+    def remove_location(self) -> "Sensors":
         """
         Removes this sensor
         :return: A modified instance of self
@@ -635,7 +689,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._magnetometer.set_unit_xyz(common.Unit.MICROTESLA)
         return self._magnetometer
 
-    def set_magnetometer(self, magnetometer: xyz.Xyz) -> 'Sensors':
+    def set_magnetometer(self, magnetometer: xyz.Xyz) -> "Sensors":
         """
         Sets the channel
         :param magnetometer: Channel to set
@@ -646,7 +700,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._magnetometer = xyz.Xyz(self.get_proto().magnetometer)
         return self
 
-    def remove_magnetometer(self) -> 'Sensors':
+    def remove_magnetometer(self) -> "Sensors":
         """
         Removes this sensor
         :return: A modified instance of self
@@ -661,8 +715,10 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(xyz.validate_xyz(self._magnetometer, common.Unit.MICROTESLA)) < 1 \
+        return (
+            len(xyz.validate_xyz(self._magnetometer, common.Unit.MICROTESLA)) < 1
             and self._magnetometer.get_x_samples().get_values_count() > 0
+        )
 
     def has_orientation(self) -> bool:
         """
@@ -689,7 +745,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._orientation.set_unit_xyz(common.Unit.RADIANS)
         return self._orientation
 
-    def set_orientation(self, orientation: xyz.Xyz) -> 'Sensors':
+    def set_orientation(self, orientation: xyz.Xyz) -> "Sensors":
         """
         Sets the channel
         :param orientation: Channel to set
@@ -700,7 +756,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._orientation = xyz.Xyz(self.get_proto().orientation)
         return self
 
-    def remove_orientation(self) -> 'Sensors':
+    def remove_orientation(self) -> "Sensors":
         """
         Removes this sensor
         :return: A modified instance of self
@@ -715,8 +771,10 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(xyz.validate_xyz(self._orientation, common.Unit.RADIANS)) < 1 \
+        return (
+            len(xyz.validate_xyz(self._orientation, common.Unit.RADIANS)) < 1
             and self._orientation.get_x_samples().get_values_count() > 0
+        )
 
     def has_pressure(self) -> bool:
         """
@@ -743,7 +801,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._pressure.get_samples().set_unit(common.Unit.KILOPASCAL)
         return self._pressure
 
-    def set_pressure(self, pressure: single.Single) -> 'Sensors':
+    def set_pressure(self, pressure: single.Single) -> "Sensors":
         """
         Sets the channel
         :param pressure: Channel to set
@@ -754,7 +812,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._pressure = single.Single(self.get_proto().pressure)
         return self
 
-    def remove_pressure(self) -> 'Sensors':
+    def remove_pressure(self) -> "Sensors":
         """
         Removes this sensor
         :return: A modified instance of self
@@ -769,8 +827,10 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(single.validate_single(self._pressure, common.Unit.KILOPASCAL)) < 1 \
+        return (
+            len(single.validate_single(self._pressure, common.Unit.KILOPASCAL)) < 1
             and self._pressure.get_samples().get_values_count() > 0
+        )
 
     def has_proximity(self) -> bool:
         """
@@ -797,7 +857,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._proximity.get_samples().set_unit(common.Unit.CENTIMETERS)
         return self._proximity
 
-    def set_proximity(self, proximity: single.Single) -> 'Sensors':
+    def set_proximity(self, proximity: single.Single) -> "Sensors":
         """
         Sets the channel
         :param proximity: Channel to set
@@ -808,7 +868,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._proximity = single.Single(self.get_proto().proximity)
         return self
 
-    def remove_proximity(self) -> 'Sensors':
+    def remove_proximity(self) -> "Sensors":
         """
         Removes this sensor
         :return: A modified instance of self
@@ -823,8 +883,10 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(single.validate_single(self._proximity, common.Unit.CENTIMETERS)) < 1 \
+        return (
+            len(single.validate_single(self._proximity, common.Unit.CENTIMETERS)) < 1
             and self._proximity.get_samples().get_values_count() > 0
+        )
 
     def has_relative_humidity(self) -> bool:
         """
@@ -851,7 +913,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._relative_humidity.get_samples().set_unit(common.Unit.PERCENTAGE)
         return self._relative_humidity
 
-    def set_relative_humidity(self, relative_humidity: single.Single) -> 'Sensors':
+    def set_relative_humidity(self, relative_humidity: single.Single) -> "Sensors":
         """
         Sets the channel
         :param relative_humidity: Channel to set
@@ -862,7 +924,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._relative_humidity = single.Single(self.get_proto().relative_humidity)
         return self
 
-    def remove_relative_humidity(self) -> 'Sensors':
+    def remove_relative_humidity(self) -> "Sensors":
         """
         Removes this sensor
         :return: A modified instance of self
@@ -877,8 +939,11 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(single.validate_single(self._relative_humidity, common.Unit.PERCENTAGE)) < 1 \
+        return (
+            len(single.validate_single(self._relative_humidity, common.Unit.PERCENTAGE))
+            < 1
             and self._relative_humidity.get_samples().get_values_count() > 0
+        )
 
     def has_rotation_vector(self) -> bool:
         """
@@ -905,7 +970,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._rotation_vector.set_unit_xyz(common.Unit.UNITLESS)
         return self._rotation_vector
 
-    def set_rotation_vector(self, rotation_vector: xyz.Xyz) -> 'Sensors':
+    def set_rotation_vector(self, rotation_vector: xyz.Xyz) -> "Sensors":
         """
         Sets the channel
         :param rotation_vector: Channel to set
@@ -916,7 +981,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._rotation_vector = xyz.Xyz(self.get_proto().rotation_vector)
         return self
 
-    def remove_rotation_vector(self) -> 'Sensors':
+    def remove_rotation_vector(self) -> "Sensors":
         """
         Removes this sensor
         :return: A modified instance of self
@@ -931,8 +996,10 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(xyz.validate_xyz(self._rotation_vector, common.Unit.UNITLESS)) < 1 \
+        return (
+            len(xyz.validate_xyz(self._rotation_vector, common.Unit.UNITLESS)) < 1
             and self._rotation_vector.get_x_samples().get_values_count() > 0
+        )
 
     def has_velocity(self) -> bool:
         """
@@ -959,7 +1026,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._velocity.set_unit_xyz(common.Unit.METERS_PER_SECOND)
         return self._velocity
 
-    def set_velocity(self, velocity: xyz.Xyz) -> 'Sensors':
+    def set_velocity(self, velocity: xyz.Xyz) -> "Sensors":
         """
         Sets the channel
         :param velocity: Channel to set
@@ -970,7 +1037,7 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         self._velocity = xyz.Xyz(self.get_proto().velocity)
         return self
 
-    def remove_velocity(self) -> 'Sensors':
+    def remove_velocity(self) -> "Sensors":
         """
         Removes this sensor
         :return: A modified instance of self
@@ -985,8 +1052,10 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         # noinspection PyTypeChecker
-        return len(xyz.validate_xyz(self._velocity, common.Unit.METERS_PER_SECOND)) < 1 \
-               and self._velocity.get_x_samples().get_values_count() > 0
+        return (
+            len(xyz.validate_xyz(self._velocity, common.Unit.METERS_PER_SECOND)) < 1
+            and self._velocity.get_x_samples().get_values_count() > 0
+        )
 
 
 def validate_sensors(sensors_list: Sensors) -> List[str]:
@@ -1003,36 +1072,78 @@ def validate_sensors(sensors_list: Sensors) -> List[str]:
         if sensors_list.has_audio():
             errors_list.extend(audio.validate_audio(sensors_list.get_audio()))
         if sensors_list.has_compress_audio():
-            errors_list.extend(audio.validate_compress_audio(sensors_list.get_compressed_audio()))
+            errors_list.extend(
+                audio.validate_compress_audio(sensors_list.get_compressed_audio())
+            )
     if sensors_list.has_accelerometer():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_accelerometer(), common.Unit.METERS_PER_SECOND_SQUARED))
+        errors_list.extend(
+            xyz.validate_xyz(
+                sensors_list.get_accelerometer(), common.Unit.METERS_PER_SECOND_SQUARED
+            )
+        )
     if sensors_list.has_ambient_temperature():
-        errors_list.extend(single.validate_single(sensors_list.get_ambient_temperature(), common.Unit.DEGREES_CELSIUS))
+        errors_list.extend(
+            single.validate_single(
+                sensors_list.get_ambient_temperature(), common.Unit.DEGREES_CELSIUS
+            )
+        )
     if sensors_list.has_gravity():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_gravity(), common.Unit.METERS_PER_SECOND_SQUARED))
+        errors_list.extend(
+            xyz.validate_xyz(
+                sensors_list.get_gravity(), common.Unit.METERS_PER_SECOND_SQUARED
+            )
+        )
     if sensors_list.has_gyroscope():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_gyroscope(), common.Unit.RADIANS_PER_SECOND))
+        errors_list.extend(
+            xyz.validate_xyz(
+                sensors_list.get_gyroscope(), common.Unit.RADIANS_PER_SECOND
+            )
+        )
     if sensors_list.has_image():
         errors_list.extend(image.validate_image(sensors_list.get_image()))
     if sensors_list.has_light():
-        errors_list.extend(single.validate_single(sensors_list.get_light(), common.Unit.LUX))
+        errors_list.extend(
+            single.validate_single(sensors_list.get_light(), common.Unit.LUX)
+        )
     if sensors_list.has_linear_acceleration():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_linear_acceleration(),
-                                            common.Unit.METERS_PER_SECOND_SQUARED))
+        errors_list.extend(
+            xyz.validate_xyz(
+                sensors_list.get_linear_acceleration(),
+                common.Unit.METERS_PER_SECOND_SQUARED,
+            )
+        )
     if sensors_list.has_location():
         errors_list.extend(location.validate_location(sensors_list.get_location()))
     if sensors_list.has_magnetometer():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_magnetometer(), common.Unit.MICROTESLA))
+        errors_list.extend(
+            xyz.validate_xyz(sensors_list.get_magnetometer(), common.Unit.MICROTESLA)
+        )
     if sensors_list.has_orientation():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_orientation(), common.Unit.RADIANS))
+        errors_list.extend(
+            xyz.validate_xyz(sensors_list.get_orientation(), common.Unit.RADIANS)
+        )
     if sensors_list.has_pressure():
-        errors_list.extend(single.validate_single(sensors_list.get_pressure(), common.Unit.KILOPASCAL))
+        errors_list.extend(
+            single.validate_single(sensors_list.get_pressure(), common.Unit.KILOPASCAL)
+        )
     if sensors_list.has_proximity():
-        errors_list.extend(single.validate_single(sensors_list.get_proximity(), common.Unit.CENTIMETERS))
+        errors_list.extend(
+            single.validate_single(
+                sensors_list.get_proximity(), common.Unit.CENTIMETERS
+            )
+        )
     if sensors_list.has_relative_humidity():
-        errors_list.extend(single.validate_single(sensors_list.get_relative_humidity(), common.Unit.PERCENTAGE))
+        errors_list.extend(
+            single.validate_single(
+                sensors_list.get_relative_humidity(), common.Unit.PERCENTAGE
+            )
+        )
     if sensors_list.has_rotation_vector():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_rotation_vector(), common.Unit.UNITLESS))
+        errors_list.extend(
+            xyz.validate_xyz(sensors_list.get_rotation_vector(), common.Unit.UNITLESS)
+        )
     if sensors_list.has_velocity():
-        errors_list.extend(xyz.validate_xyz(sensors_list.get_velocity(), common.Unit.METERS_PER_SECOND))
+        errors_list.extend(
+            xyz.validate_xyz(sensors_list.get_velocity(), common.Unit.METERS_PER_SECOND)
+        )
     return errors_list

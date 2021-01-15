@@ -14,6 +14,7 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
     """
     Represents a single Event
     """
+
     def __init__(self, proto: RedvoxPacketM.EventStream.Event):
         super().__init__(proto)
         self.__string_payload: Mapping[str] = Mapping(proto.string_payload, str)
@@ -27,7 +28,7 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
         """
         return self._proto.description
 
-    def set_description(self, description: str) -> 'Event':
+    def set_description(self, description: str) -> "Event":
         """
         Sets the event description.
         :param description: Description to set.
@@ -43,7 +44,7 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
         """
         return self.__string_payload
 
-    def set_string_payload(self, string_payload: Mapping[str]) -> 'Event':
+    def set_string_payload(self, string_payload: Mapping[str]) -> "Event":
         """
         Sets the string payload.
         :param string_payload: Payload to set.
@@ -59,7 +60,7 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
         """
         return self.__numeric_payload
 
-    def set_numeric_payload(self, numeric_payload: Mapping[float]) -> 'Event':
+    def set_numeric_payload(self, numeric_payload: Mapping[float]) -> "Event":
         """
         Sets the numeric payload.
         :param numeric_payload: Payload to set.
@@ -75,7 +76,7 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
         """
         return self.__boolean_payload
 
-    def set_boolean_payload(self, boolean_payload: Mapping[bool]) -> 'Event':
+    def set_boolean_payload(self, boolean_payload: Mapping[bool]) -> "Event":
         """
         Sets the boolean payload.
         :param boolean_payload: Payload to set.
@@ -91,7 +92,7 @@ class Event(ProtoBase[RedvoxPacketM.EventStream.Event]):
         """
         return self.__byte_payload
 
-    def set_byte_payload(self, byte_payload: Mapping[bytes]) -> 'Event':
+    def set_byte_payload(self, byte_payload: Mapping[bytes]) -> "Event":
         """
         Sets the byte payload.
         :param byte_payload: Payload to set.
@@ -106,15 +107,12 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
     """
     A collection of Events.
     """
+
     def __init__(self, proto: RedvoxPacketM.EventStream):
         super().__init__(proto)
         self.__timestamps: TimingPayload = TimingPayload(proto.timestamps)
         self.__events: ProtoRepeatedMessage = ProtoRepeatedMessage(
-            proto,
-            proto.events,
-            "events",
-            Event,
-            lambda event: event.get_proto()
+            proto, proto.events, "events", Event, lambda event: event.get_proto()
         )
 
     def get_name(self) -> str:
@@ -123,7 +121,7 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
         """
         return self._proto.name
 
-    def set_name(self, name: str) -> 'EventStream':
+    def set_name(self, name: str) -> "EventStream":
         """
         Sets the name of this event stream.
         :param name: Name to set.
@@ -139,7 +137,7 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
         """
         return self.__timestamps
 
-    def set_timestamps(self, timestamps: TimingPayload) -> 'EventStream':
+    def set_timestamps(self, timestamps: TimingPayload) -> "EventStream":
         """
         Sets the timing payload.
         :param timestamps: Timing payload to set.
@@ -156,7 +154,7 @@ class EventStream(ProtoBase[RedvoxPacketM.EventStream]):
         """
         return self.__events
 
-    def set_events(self, events: ProtoRepeatedMessage) -> 'EventStream':
+    def set_events(self, events: ProtoRepeatedMessage) -> "EventStream":
         """
         Sets the Events from the provided ProtoRepeatedMessage.
         :param events: Events encoded in a ProtoRepeatedMessage.
