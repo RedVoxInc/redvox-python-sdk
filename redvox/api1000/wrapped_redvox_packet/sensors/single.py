@@ -10,17 +10,21 @@ import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
 
 class Single(
-        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.Sensors.Single]):
+    redvox.api1000.common.generic.ProtoBase[
+        redvox_api_m_pb2.RedvoxPacketM.Sensors.Single
+    ]
+):
     """
     This class encapsulates single channel sensors data and metadata
     """
+
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.Sensors.Single):
         super().__init__(proto)
         self._timestamps: common.TimingPayload = common.TimingPayload(proto.timestamps)
         self._samples: common.SamplePayload = common.SamplePayload(proto.samples)
 
     @staticmethod
-    def new() -> 'Single':
+    def new() -> "Single":
         """
         :return: A new, empty Single sensor instance
         """
@@ -32,7 +36,7 @@ class Single(
         """
         return self._proto.sensor_description
 
-    def set_sensor_description(self, sensor_description: str) -> 'Single':
+    def set_sensor_description(self, sensor_description: str) -> "Single":
         """
         Sets the sensor description.
         :param sensor_description: Description to set.
@@ -48,7 +52,7 @@ class Single(
         """
         return self._timestamps
 
-    def set_timestamps(self, timestamps: common.TimingPayload) -> 'Single':
+    def set_timestamps(self, timestamps: common.TimingPayload) -> "Single":
         """
         Sets the timestamps associated with the sensor payload.
         :param timestamps: Timestamps to set.
@@ -65,7 +69,7 @@ class Single(
         """
         return self._samples
 
-    def set_samples(self, samples: common.SamplePayload) -> 'Single':
+    def set_samples(self, samples: common.SamplePayload) -> "Single":
         """
         Sets the samples for this sensor.
         :param samples: Samples to set.
@@ -78,7 +82,9 @@ class Single(
         return self
 
 
-def validate_single(single_sensor: Single, payload_unit: Optional[common.Unit] = None) -> List[str]:
+def validate_single(
+    single_sensor: Single, payload_unit: Optional[common.Unit] = None
+) -> List[str]:
     """
     Validates the single channel sensor.
     :param single_sensor: Sensor to validate.
@@ -86,6 +92,11 @@ def validate_single(single_sensor: Single, payload_unit: Optional[common.Unit] =
     :return: A list of validated errors
     """
     errors_list = common.validate_timing_payload(single_sensor.get_timestamps())
-    errors_list.extend(common.validate_sample_payload(single_sensor.get_samples(),
-                                                      single_sensor.get_sensor_description(), payload_unit))
+    errors_list.extend(
+        common.validate_sample_payload(
+            single_sensor.get_samples(),
+            single_sensor.get_sensor_description(),
+            payload_unit,
+        )
+    )
     return errors_list

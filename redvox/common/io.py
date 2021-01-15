@@ -500,7 +500,7 @@ class Index:
         :return: An iterator over WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
         """
         filtered: Iterator[IndexEntry] = filter(
-            lambda entry: read_filter.apply(entry), self.entries
+            read_filter.apply, self.entries
         )
         # noinspection Mypy
         return map(IndexEntry.read, filtered)
@@ -508,6 +508,11 @@ class Index:
     def read(
         self, read_filter: ReadFilter = ReadFilter()
     ) -> List[Union["WrappedRedvoxPacket", WrappedRedvoxPacketM]]:
+        """
+        Read, decompress, deserialize, and wrap RedVox data pointed to by this index.
+        :param read_filter: Additional filtering to specify which data should be read.
+        :return: An list of WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
+        """
         return list(self.stream(read_filter))
 
 
