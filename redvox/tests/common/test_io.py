@@ -809,3 +809,55 @@ class IndexSummaryTests(IoTestCase):
         self.assertEqual(set(["1", "2"]), set(summary.station_ids(io.ApiVersion.API_900)))
         self.assertEqual(set(["3", "4"]), set(summary.station_ids(io.ApiVersion.API_1000)))
 
+
+class IndexStationSummaryTests(IoTestCase):
+    def test_from_entry_update_900(self):
+        summary_900 = io.IndexStationSummary.from_entry(
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "0_0.rdvxz"))
+        )
+
+        self.assertEqual(1, summary_900.total_packets)
+        self.assertEqual("0", summary_900.station_id)
+        self.assertEqual(io.ApiVersion.API_900, summary_900.api_version)
+        self.assertEqual(datetime(1970, 1, 1), summary_900.first_packet)
+        self.assertEqual(datetime(1970, 1, 1), summary_900.last_packet)
+
+        summary_900.update(
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "0_1000.rdvxz"))
+        )
+        self.assertEqual(2, summary_900.total_packets)
+        self.assertEqual(datetime(1970, 1, 1), summary_900.first_packet)
+        self.assertEqual(datetime(1970, 1, 1, 0, 0, 1), summary_900.last_packet)
+
+        summary_900.update(
+            io.IndexEntry.from_path(copy_exact(self.template_900_path, self.unstructured_900_dir, "0_-1000.rdvxz"))
+        )
+        self.assertEqual(3, summary_900.total_packets)
+        self.assertEqual(datetime(1969, 12, 31, 23, 59, 59), summary_900.first_packet)
+        self.assertEqual(datetime(1970, 1, 1, 0, 0, 1), summary_900.last_packet)
+
+    def test_from_entry_update_1000(self):
+        summary_1000 = io.IndexStationSummary.from_entry(
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0_0.rdvxm"))
+        )
+
+        self.assertEqual(1, summary_1000.total_packets)
+        self.assertEqual("0", summary_1000.station_id)
+        self.assertEqual(io.ApiVersion.API_1000, summary_1000.api_version)
+        self.assertEqual(datetime(1970, 1, 1), summary_1000.first_packet)
+        self.assertEqual(datetime(1970, 1, 1), summary_1000.last_packet)
+
+        summary_1000.update(
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0_1000000.rdvxm"))
+        )
+        self.assertEqual(2, summary_1000.total_packets)
+        self.assertEqual(datetime(1970, 1, 1), summary_1000.first_packet)
+        self.assertEqual(datetime(1970, 1, 1, 0, 0, 1), summary_1000.last_packet)
+
+        summary_1000.update(
+            io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0_-1000000.rdvxm"))
+        )
+        self.assertEqual(3, summary_1000.total_packets)
+        self.assertEqual(datetime(1969, 12, 31, 23, 59, 59), summary_1000.first_packet)
+        self.assertEqual(datetime(1970, 1, 1, 0, 0, 1), summary_1000.last_packet)
+
