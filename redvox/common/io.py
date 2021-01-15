@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from glob import glob
 import os.path
 from pathlib import Path, PurePath
-from shutil import copy2
+from shutil import copy2, move
 from typing import (
     Any,
     Dict,
@@ -681,12 +681,16 @@ def sort_unstructured_redvox_data(
     input_dir: str,
     output_dir: Optional[str] = None,
     read_filter: ReadFilter = ReadFilter(),
+    copy: bool = True
 ) -> bool:
     """
     takes all redvox files in input_dir and sorts them into appropriate sub-directories
     :param input_dir: directory containing all the files to sort
     :param output_dir: optional directory to put the results in; if this is None, uses the input_dir, default None.
     :param read_filter: optional ReadFilter to limit which files to sort, default empty filter (sort everything)
+    :param copy: optional value that when set ensures the file contents are copied into the new structure. When this
+                 is set to False, the files will instead by moved.
+
     :return: True if success, False if failure
     """
     if output_dir is None:
@@ -750,5 +754,10 @@ def sort_unstructured_redvox_data(
             )
             return False
         os.makedirs(file_out_dir, exist_ok=True)
-        copy2(value.full_path, file_out_dir)
+
+        if copy:
+            copy2(value.full_path, file_out_dir)
+        else:
+            move(value.full_path, file_out_dir)
+
     return True
