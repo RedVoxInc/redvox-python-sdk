@@ -12,9 +12,9 @@ from redvox.api1000.common.metadata import Metadata
 from redvox.api1000.common.lz4 import compress
 
 # pylint: disable=C0103
-T = TypeVar('T')  # Type parameter for transformed wrapper type
+T = TypeVar("T")  # Type parameter for transformed wrapper type
 # pylint: disable=C0103
-P = TypeVar('P')  # Type parameter for protobuf type
+P = TypeVar("P")  # Type parameter for protobuf type
 
 
 class ProtoRepeatedMessage(Generic[P, T]):
@@ -22,12 +22,14 @@ class ProtoRepeatedMessage(Generic[P, T]):
     Encapsulates protobuf repeated fields while transforming values between protobuf and wrapper types.
     """
 
-    def __init__(self,
-                 parent_proto,
-                 repeated_field_proto,
-                 repeated_field_name: str,
-                 from_proto: Callable[[P], T],
-                 to_proto: Callable[[T], P]):
+    def __init__(
+        self,
+        parent_proto,
+        repeated_field_proto,
+        repeated_field_name: str,
+        from_proto: Callable[[P], T],
+        to_proto: Callable[[T], P],
+    ):
         """
         :param parent_proto: A reference to this message's parent protobuf
         :param repeated_field_proto: A reference to the repeated field protobuf
@@ -55,7 +57,7 @@ class ProtoRepeatedMessage(Generic[P, T]):
         """
         return list(map(self._from_proto, self._repeated_field_proto))
 
-    def set_values(self, values: List[T]) -> 'ProtoRepeatedMessage[P, T]':
+    def set_values(self, values: List[T]) -> "ProtoRepeatedMessage[P, T]":
         """
         Sets the contents of this collection to the passed in values. The wrapped values are automatically converted
         into protobuf messages.
@@ -64,7 +66,7 @@ class ProtoRepeatedMessage(Generic[P, T]):
         """
         return self.clear_values().append_values(values)
 
-    def append_values(self, values: List[T]) -> 'ProtoRepeatedMessage[P, T]':
+    def append_values(self, values: List[T]) -> "ProtoRepeatedMessage[P, T]":
         """
         Appends the given values to the collection, automatically converting them into protobuf messages.
         :param values: The wrapped values to append.
@@ -73,7 +75,7 @@ class ProtoRepeatedMessage(Generic[P, T]):
         self._repeated_field_proto.extend(list(map(self._to_proto, values)))
         return self
 
-    def clear_values(self) -> 'ProtoRepeatedMessage[P, T]':
+    def clear_values(self) -> "ProtoRepeatedMessage[P, T]":
         """
         Clears all values in this collection.
         :return: This instance of ProtoRepeatedMessage.
@@ -94,8 +96,7 @@ class ProtoBase(Generic[P]):
     This class represents common routines between all sub-messages in API M.
     """
 
-    def __init__(self,
-                 proto: P):
+    def __init__(self, proto: P):
         self._proto: P = proto
         self._metadata: Metadata = Metadata(self._proto.metadata)
 

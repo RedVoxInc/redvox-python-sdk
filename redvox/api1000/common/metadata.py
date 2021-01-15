@@ -12,6 +12,7 @@ class Metadata:
     This class encapsulates the API M metadata fields providing high-level methods for manipulating the underlying
     mapping.
     """
+
     def __init__(self, metadata_proto) -> None:
         """
         Instantiates this wrapper.
@@ -36,7 +37,7 @@ class Metadata:
             metadata_dict[key] = value
         return metadata_dict
 
-    def set_metadata(self, metadata: Dict[str, str]) -> 'Metadata':
+    def set_metadata(self, metadata: Dict[str, str]) -> "Metadata":
         """
         Sets the metadata to passed in dictionary.
         :param metadata: Sets the metadata to this.
@@ -52,7 +53,7 @@ class Metadata:
 
         return self
 
-    def append_metadata(self, key: str, value: str) -> 'Metadata':
+    def append_metadata(self, key: str, value: str) -> "Metadata":
         """
         Appends a key-value pair to the metadata mapping.
         :param key: Key to append.
@@ -65,7 +66,7 @@ class Metadata:
         self._metadata_proto[key] = value
         return self
 
-    def clear_metadata(self) -> 'Metadata':
+    def clear_metadata(self) -> "Metadata":
         """
         Clears all metadata.
         :return: This instance of metadata

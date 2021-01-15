@@ -897,25 +897,6 @@ class WrappedRedvoxPacket:
 
         return self
 
-    @deprecation.deprecated("2.0.0", has_microphone_sensor)
-    def has_microphone_channel(self) -> bool:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", microphone_sensor)
-    def microphone_channel(self) -> typing.Optional[_microphone_sensor.MicrophoneSensor]:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", set_microphone_sensor)
-    def set_microphone_channel(self, microphone_sensor: typing.Optional[
-            _microphone_sensor.MicrophoneSensor]) -> 'WrappedRedvoxPacket':
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
     def has_barometer_sensor(self) -> bool:
         """
         Returns if this packet has a barometer channel.
@@ -948,25 +929,6 @@ class WrappedRedvoxPacket:
             self._add_channel(barometer_sensor._unevenly_sampled_channel)
 
         return self
-
-    @deprecation.deprecated("2.0.0", barometer_sensor)
-    def barometer_channel(self) -> typing.Optional[_barometer_sensor.BarometerSensor]:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", has_barometer_sensor)
-    def has_barometer_channel(self) -> bool:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", set_barometer_sensor)
-    def set_barometer_channel(self, barometer_sensor: typing.Optional[
-            _barometer_sensor.BarometerSensor]) -> 'WrappedRedvoxPacket':
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
 
     def has_location_sensor(self) -> bool:
         """
@@ -1002,26 +964,6 @@ class WrappedRedvoxPacket:
             self._add_channel(location_sensor._unevenly_sampled_channel)
 
         return self
-
-    @deprecation.deprecated("2.0.0", has_location_sensor)
-    def has_location_channel(self) -> bool:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", location_sensor)
-    def location_channel(self) -> typing.Optional[_location_sensor.LocationSensor]:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", set_location_sensor)
-    def set_location_channel(self,
-                             location_sensor: typing.Optional[
-                                 _location_sensor.LocationSensor]) -> 'WrappedRedvoxPacket':
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
 
     # pylint: disable=invalid-name,C1801
     def has_time_synchronization_sensor(self) -> bool:
@@ -1065,26 +1007,6 @@ class WrappedRedvoxPacket:
 
         return self
 
-    # pylint: disable=invalid-name,C1801
-    @deprecation.deprecated("2.0.0", has_time_synchronization_sensor)
-    def has_time_synchronization_channel(self) -> bool:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", time_synchronization_sensor)
-    def time_synchronization_channel(self) -> typing.Optional[_time_synchronization_sensor.TimeSynchronizationSensor]:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", set_time_synchronization_sensor)
-    def set_time_synchronization_channel(self, time_synchronization_sensor: typing.Optional[
-            _time_synchronization_sensor.TimeSynchronizationSensor]) -> 'WrappedRedvoxPacket':
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
     def has_accelerometer_sensor(self) -> bool:
         """
         Returns if this packet has an accelerometer channel.
@@ -1117,26 +1039,6 @@ class WrappedRedvoxPacket:
             self._add_channel(accelerometer_sensor._unevenly_sampled_channel)
 
         return self
-
-    @deprecation.deprecated("2.0.0", has_accelerometer_sensor)
-    def has_accelerometer_channel(self) -> bool:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", accelerometer_sensor)
-    def accelerometer_channel(self) -> typing.Optional[_accelerometer_sensor.AccelerometerSensor]:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", set_accelerometer_sensor)
-    def set_accelerometer_channel(self,
-                                  accelerometer_sensor: typing.Optional[
-                                      _accelerometer_sensor.AccelerometerSensor]) -> 'WrappedRedvoxPacket':
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
 
     def has_magnetometer_sensor(self) -> bool:
         """
@@ -1172,26 +1074,6 @@ class WrappedRedvoxPacket:
 
         return self
 
-    @deprecation.deprecated("2.0.0", has_magnetometer_sensor)
-    def has_magnetometer_channel(self) -> bool:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", magnetometer_sensor)
-    def magnetometer_channel(self) -> typing.Optional[_magnetometer_sensor.MagnetometerSensor]:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", set_magnetometer_sensor)
-    def set_magnetometer_channel(self,
-                                 magnetometer_sensor: typing.Optional[
-                                     _magnetometer_sensor.MagnetometerSensor]) -> 'WrappedRedvoxPacket':
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
     def has_gyroscope_sensor(self) -> bool:
         """
         Returns if this packet has a gyroscope channel.
@@ -1225,25 +1107,6 @@ class WrappedRedvoxPacket:
 
         return self
 
-    @deprecation.deprecated("2.0.0", has_gyroscope_sensor)
-    def has_gyroscope_channel(self) -> bool:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", gyroscope_sensor)
-    def gyroscope_channel(self) -> typing.Optional[_gyroscope_sensor.GyroscopeSensor]:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", set_gyroscope_sensor)
-    def set_gyroscope_channel(self, gyroscope_sensor: typing.Optional[
-            _gyroscope_sensor.GyroscopeSensor]) -> 'WrappedRedvoxPacket':
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
     def has_light_sensor(self) -> bool:
         """
         Returns if this packet has a light channel.
@@ -1275,24 +1138,6 @@ class WrappedRedvoxPacket:
             self._add_channel(light_sensor._unevenly_sampled_channel)
 
         return self
-
-    @deprecation.deprecated("2.0.0", has_light_sensor)
-    def has_light_channel(self) -> bool:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", light_sensor)
-    def light_channel(self) -> typing.Optional[_light_sensor.LightSensor]:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", set_light_sensor)
-    def set_light_channel(self, light_sensor: typing.Optional[_light_sensor.LightSensor]) -> 'WrappedRedvoxPacket':
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
 
     def has_infrared_sensor(self) -> bool:
         """
@@ -1327,26 +1172,6 @@ class WrappedRedvoxPacket:
 
         return self
 
-    @deprecation.deprecated("2.0.0", has_infrared_sensor)
-    def has_infrared_channel(self) -> bool:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", infrared_sensor)
-    def infrared_channel(self) -> typing.Optional[_infrared_sensor.InfraredSensor]:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", set_infrared_sensor)
-    def set_infrared_channel(self,
-                             infrared_sensor: typing.Optional[
-                                 _infrared_sensor.InfraredSensor]) -> 'WrappedRedvoxPacket':
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
     def has_image_sensor(self) -> bool:
         """
         Returns if this packet has an image channel.
@@ -1377,24 +1202,6 @@ class WrappedRedvoxPacket:
             self._add_channel(image_sensor._unevenly_sampled_channel)
 
         return self
-
-    @deprecation.deprecated("2.0.0", has_image_sensor)
-    def has_image_channel(self) -> bool:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", image_sensor)
-    def image_channel(self) -> typing.Optional[_image_sensor.ImageSensor]:
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
-
-    @deprecation.deprecated("2.0.0", set_image_sensor)
-    def set_image_channel(self, image_sensor: typing.Optional[_image_sensor.ImageSensor]) -> 'WrappedRedvoxPacket':
-        """
-        This method has been deprecated. See the sensor method equivalent.
-        """
 
     def __str__(self):
         """

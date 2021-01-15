@@ -17,19 +17,27 @@ SynchExchangeProto = redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExcha
 
 
 class SynchExchange(
-        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange]):
+    redvox.api1000.common.generic.ProtoBase[
+        redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange
+    ]
+):
     """
     Encapsulates a single complete exchange of the RedVox custom synch exchange algorithm.
     """
-    def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange):
+
+    def __init__(
+        self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange
+    ):
         super().__init__(proto)
 
     @staticmethod
-    def new() -> 'SynchExchange':
+    def new() -> "SynchExchange":
         """
         :return: A new, empty SynchExchange instance
         """
-        exchange = SynchExchange(redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange())
+        exchange = SynchExchange(
+            redvox_api_m_pb2.RedvoxPacketM.TimingInformation.SynchExchange()
+        )
         exchange.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
         return exchange
 
@@ -42,14 +50,14 @@ class SynchExchange(
         # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.unit)
 
-    def set_default_unit(self) -> 'SynchExchange':
+    def set_default_unit(self) -> "SynchExchange":
         """
         Sets the default unit for this type.
         :return: A modified instance of self
         """
         return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
-    def set_unit(self, unit: Union[common.Unit, int]) -> 'SynchExchange':
+    def set_unit(self, unit: Union[common.Unit, int]) -> "SynchExchange":
         """
         Sets the unit for this exchange type
         :param unit: Unit to set
@@ -67,7 +75,7 @@ class SynchExchange(
         return self._proto.a1
 
     # pylint: disable=C0103
-    def set_a1(self, a1: float) -> 'SynchExchange':
+    def set_a1(self, a1: float) -> "SynchExchange":
         """
         Sets the A1 value of this exchange
         :param a1: Value to set
@@ -84,7 +92,7 @@ class SynchExchange(
         return self._proto.a2
 
     # pylint: disable=C0103
-    def set_a2(self, a2: float) -> 'SynchExchange':
+    def set_a2(self, a2: float) -> "SynchExchange":
         """
         Sets the A2 value of this exchange
         :param a2: Value to set
@@ -101,7 +109,7 @@ class SynchExchange(
         return self._proto.a3
 
     # pylint: disable=C0103
-    def set_a3(self, a3: float) -> 'SynchExchange':
+    def set_a3(self, a3: float) -> "SynchExchange":
         """
         Sets the A3 value of this exchange
         :param a3: Value to set
@@ -118,7 +126,7 @@ class SynchExchange(
         return self._proto.b1
 
     # pylint: disable=C0103
-    def set_b1(self, b1: float) -> 'SynchExchange':
+    def set_b1(self, b1: float) -> "SynchExchange":
         """
         Sets the B1 value of this exchange
         :param b1: Value to set
@@ -135,7 +143,7 @@ class SynchExchange(
         return self._proto.b2
 
     # pylint: disable=C0103
-    def set_b2(self, b2: float) -> 'SynchExchange':
+    def set_b2(self, b2: float) -> "SynchExchange":
         """
         Sets the B2 value of this exchange
         :param b2: Value to set
@@ -152,7 +160,7 @@ class SynchExchange(
         return self._proto.b3
 
     # pylint: disable=C0103
-    def set_b3(self, b3: float) -> 'SynchExchange':
+    def set_b3(self, b3: float) -> "SynchExchange":
         """
         Sets the B3 value of this exchange
         :param b3: Value to set
@@ -202,27 +210,33 @@ class TimingScoreMethod(enum.Enum):
     """
     Method used to score the timing.
     """
+
     UNKNOWN: int = 0
 
 
 class TimingInformation(
-        redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingInformation]):
+    redvox.api1000.common.generic.ProtoBase[
+        redvox_api_m_pb2.RedvoxPacketM.TimingInformation
+    ]
+):
     """
     Collection of timing information for this packet.
     """
+
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingInformation):
         super().__init__(proto)
-        self._synch_exchanges: redvox.api1000.common.generic.ProtoRepeatedMessage[SynchExchangeProto, SynchExchange] = \
-            redvox.api1000.common.generic.ProtoRepeatedMessage(
-                proto,
-                proto.synch_exchanges,
-                _SYNCH_EXCHANGES_FIELD_NAME,
-                SynchExchange,
-                lambda exchange: exchange.get_proto()
-            )
+        self._synch_exchanges: redvox.api1000.common.generic.ProtoRepeatedMessage[
+            SynchExchangeProto, SynchExchange
+        ] = redvox.api1000.common.generic.ProtoRepeatedMessage(
+            proto,
+            proto.synch_exchanges,
+            _SYNCH_EXCHANGES_FIELD_NAME,
+            SynchExchange,
+            lambda exchange: exchange.get_proto(),
+        )
 
     @staticmethod
-    def new() -> 'TimingInformation':
+    def new() -> "TimingInformation":
         """
         :return: A new, empty TimingInformation instance
         """
@@ -236,14 +250,14 @@ class TimingInformation(
         # pylint: disable=E1101
         return common.Unit.from_proto(self._proto.unit)
 
-    def set_default_unit(self) -> 'TimingInformation':
+    def set_default_unit(self) -> "TimingInformation":
         """
         Sets the default time unit.
         :return: A modified instance of self
         """
         return self.set_unit(common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
-    def set_unit(self, unit: Union[common.Unit, int]) -> 'TimingInformation':
+    def set_unit(self, unit: Union[common.Unit, int]) -> "TimingInformation":
         """
         Sets a unit for this timing info.
         :param unit: Unit to set.
@@ -260,7 +274,9 @@ class TimingInformation(
         """
         return self._proto.packet_start_os_timestamp
 
-    def set_packet_start_os_timestamp(self, packet_start_os_timestamp) -> 'TimingInformation':
+    def set_packet_start_os_timestamp(
+        self, packet_start_os_timestamp
+    ) -> "TimingInformation":
         """
         Sets the packet start OS (non-monotonic) timestamp. Corresponds with first audio sample.
         :param packet_start_os_timestamp: Timestamp to set.
@@ -276,13 +292,17 @@ class TimingInformation(
         """
         return self._proto.packet_start_mach_timestamp
 
-    def set_packet_start_mach_timestamp(self, packet_start_mach_timestamp: float) -> 'TimingInformation':
+    def set_packet_start_mach_timestamp(
+        self, packet_start_mach_timestamp: float
+    ) -> "TimingInformation":
         """
         Sets the packet's start machine timestamp (monotonic). Corresponds with first audio sample.
         :param packet_start_mach_timestamp:
         :return:
         """
-        redvox.api1000.common.typing.check_type(packet_start_mach_timestamp, [int, float])
+        redvox.api1000.common.typing.check_type(
+            packet_start_mach_timestamp, [int, float]
+        )
         self._proto.packet_start_mach_timestamp = packet_start_mach_timestamp
         return self
 
@@ -292,7 +312,9 @@ class TimingInformation(
         """
         return self._proto.packet_end_os_timestamp
 
-    def set_packet_end_os_timestamp(self, packet_end_os_timestamp: float) -> 'TimingInformation':
+    def set_packet_end_os_timestamp(
+        self, packet_end_os_timestamp: float
+    ) -> "TimingInformation":
         """
         Set the packet's end OS timestamp (non-monotonic). Corresponds with the last audio sample.
         :param packet_end_os_timestamp: Timestamp to set.
@@ -308,7 +330,9 @@ class TimingInformation(
         """
         return self._proto.packet_end_mach_timestamp
 
-    def set_packet_end_mach_timestamp(self, packet_end_mach_timestamp: float) -> 'TimingInformation':
+    def set_packet_end_mach_timestamp(
+        self, packet_end_mach_timestamp: float
+    ) -> "TimingInformation":
         """
         Set the packets machine end timestamp (monotonic). Corresponds with the last audio sample.
         :param packet_end_mach_timestamp: Timestamp to set.
@@ -324,15 +348,20 @@ class TimingInformation(
         """
         return self._proto.server_acquisition_arrival_timestamp
 
-    def set_server_acquisition_arrival_timestamp(self,
-                                                 server_acquisition_arrival_timestamp: float) -> 'TimingInformation':
+    def set_server_acquisition_arrival_timestamp(
+        self, server_acquisition_arrival_timestamp: float
+    ) -> "TimingInformation":
         """
         Sets the server acquisition timestamp.
         :param server_acquisition_arrival_timestamp: Timestamp to set.
         :return: A modified instance of self.
         """
-        redvox.api1000.common.typing.check_type(server_acquisition_arrival_timestamp, [int, float])
-        self._proto.server_acquisition_arrival_timestamp = server_acquisition_arrival_timestamp
+        redvox.api1000.common.typing.check_type(
+            server_acquisition_arrival_timestamp, [int, float]
+        )
+        self._proto.server_acquisition_arrival_timestamp = (
+            server_acquisition_arrival_timestamp
+        )
         return self
 
     def get_app_start_mach_timestamp(self) -> float:
@@ -341,7 +370,9 @@ class TimingInformation(
         """
         return self._proto.app_start_mach_timestamp
 
-    def set_app_start_mach_timestamp(self, app_start_mach_timestamp: float) -> 'TimingInformation':
+    def set_app_start_mach_timestamp(
+        self, app_start_mach_timestamp: float
+    ) -> "TimingInformation":
         """
         Sets the machine timestamp of when the app started recording.
         :param app_start_mach_timestamp:
@@ -357,14 +388,17 @@ class TimingInformation(
         """
         return self._synch_exchanges
 
-    def set_synch_exchanges(self,
-                            synch_exchanges: redvox.api1000.common.generic.ProtoRepeatedMessage) -> 'TimingInformation':
+    def set_synch_exchanges(
+        self, synch_exchanges: redvox.api1000.common.generic.ProtoRepeatedMessage
+    ) -> "TimingInformation":
         """
         Sets the synch exchanges.
         :param synch_exchanges: An instance of a ProtoRepeatedMessage containing SyncExchanges.
         :return: A modified instance of self.
         """
-        common.check_type(synch_exchanges, [redvox.api1000.common.generic.ProtoRepeatedMessage])
+        common.check_type(
+            synch_exchanges, [redvox.api1000.common.generic.ProtoRepeatedMessage]
+        )
         self._synch_exchanges.clear_values()
         self._synch_exchanges.append_values(synch_exchanges.get_values())
         return self
@@ -378,8 +412,16 @@ class TimingInformation(
         time_sync_exchanges = self.get_synch_exchanges().get_values()
         time_sync = []
         for exchange in time_sync_exchanges:
-            time_sync.extend([exchange.get_a1(), exchange.get_a2(), exchange.get_a3(),
-                              exchange.get_b1(), exchange.get_b2(), exchange.get_b3()])
+            time_sync.extend(
+                [
+                    exchange.get_a1(),
+                    exchange.get_a2(),
+                    exchange.get_a3(),
+                    exchange.get_b1(),
+                    exchange.get_b2(),
+                    exchange.get_b3(),
+                ]
+            )
         return time_sync
 
     def get_best_latency(self) -> float:
@@ -388,7 +430,7 @@ class TimingInformation(
         """
         return self._proto.best_latency
 
-    def set_best_latency(self, best_latency: float) -> 'TimingInformation':
+    def set_best_latency(self, best_latency: float) -> "TimingInformation":
         """
         Sets the best latency.
         :param best_latency: Latency to set.
@@ -404,7 +446,7 @@ class TimingInformation(
         """
         return self._proto.best_offset
 
-    def set_best_offset(self, best_offset: float) -> 'TimingInformation':
+    def set_best_offset(self, best_offset: float) -> "TimingInformation":
         """
         Sets the best offset.
         :param best_offset: Offset to set.
@@ -420,7 +462,7 @@ class TimingInformation(
         """
         return self._proto.score
 
-    def set_score(self, score: float) -> 'TimingInformation':
+    def set_score(self, score: float) -> "TimingInformation":
         """
         Set score of timing information.
         :param score: Score to set.
@@ -436,15 +478,18 @@ class TimingInformation(
         """
         return TimingScoreMethod(self._proto.score_method)
 
-    def set_score_method(self, score_method: TimingScoreMethod) -> 'TimingInformation':
+    def set_score_method(self, score_method: TimingScoreMethod) -> "TimingInformation":
         """
         Sets the score method.
         :param score_method: Score to set.
         :return: A modified instance of self.
         """
         redvox.api1000.common.typing.check_type(score_method, [TimingScoreMethod])
-        self._proto.score_method = \
-            redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(score_method.name)
+        self._proto.score_method = (
+            redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod.Value(
+                score_method.name
+            )
+        )
         return self
 
 
@@ -462,7 +507,9 @@ def validate_timing_information(timing_information: TimingInformation) -> List[s
         for sync_exch in synch_vals:
             errors_list.extend(validate_synch_exchange(sync_exch))
     if timing_information.get_unit() != common.Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
-        errors_list.append("Timing information unit is not microseconds since unix epoch")
+        errors_list.append(
+            "Timing information unit is not microseconds since unix epoch"
+        )
     if timing_information.get_packet_start_os_timestamp() == 0:
         errors_list.append("Timing information os start timestamp is 0")
     if timing_information.get_packet_start_mach_timestamp() == 0:
@@ -473,10 +520,20 @@ def validate_timing_information(timing_information: TimingInformation) -> List[s
         errors_list.append("Timing information mach end timestamp is 0")
     if timing_information.get_app_start_mach_timestamp() == 0:
         errors_list.append("Timing information app mach start timestamp is 0")
-    if timing_information.get_packet_start_os_timestamp() > timing_information.get_packet_end_os_timestamp():
-        errors_list.append("Timing information os end timestamp is less than start timestamp")
-    if timing_information.get_packet_start_mach_timestamp() > timing_information.get_packet_end_mach_timestamp():
-        errors_list.append("Timing information mach end timestamp is less than start timestamp")
+    if (
+        timing_information.get_packet_start_os_timestamp()
+        > timing_information.get_packet_end_os_timestamp()
+    ):
+        errors_list.append(
+            "Timing information os end timestamp is less than start timestamp"
+        )
+    if (
+        timing_information.get_packet_start_mach_timestamp()
+        > timing_information.get_packet_end_mach_timestamp()
+    ):
+        errors_list.append(
+            "Timing information mach end timestamp is less than start timestamp"
+        )
         # if timing.get_server_acquisition_arrival_timestamp() == 0:
         #     errors_list.append("Timing information server acquisition arrival timestamp is 0")
     return errors_list

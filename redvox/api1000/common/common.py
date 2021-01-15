@@ -26,6 +26,7 @@ class Unit(enum.Enum):
     """
     Standard units expected to be used within API M.
     """
+
     UNKNOWN: int = 0
     METERS_PER_SECOND_SQUARED: int = 1
     KILOPASCAL: int = 2
@@ -53,17 +54,19 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
     """
     Encapsulates the API M SummaryStatistics protobuf message type and provides automatic stat updates from values.
     """
+
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.SummaryStatistics):
         super().__init__(proto)
 
     @staticmethod
-    def new() -> 'SummaryStatistics':
+    def new() -> "SummaryStatistics":
         """
         Returns a new SummaryStatistics instance backed by a default SummaryStatistics protobuf message.
         :return: A new SummaryStatistics instance backed by a default SummaryStatistics protobuf message.
         """
-        proto: redvox_api_m_pb2.RedvoxPacketM.SummaryStatistics = \
+        proto: redvox_api_m_pb2.RedvoxPacketM.SummaryStatistics = (
             redvox_api_m_pb2.RedvoxPacketM.SummaryStatistics()
+        )
         return SummaryStatistics(proto)
 
     def get_count(self) -> float:
@@ -73,7 +76,7 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
         """
         return self._proto.count
 
-    def set_count(self, count: float) -> 'SummaryStatistics':
+    def set_count(self, count: float) -> "SummaryStatistics":
         """
         Sets the count of values that were used to calculate these statistics.
         :param count:
@@ -90,7 +93,7 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
         """
         return self._proto.mean
 
-    def set_mean(self, mean: float) -> 'SummaryStatistics':
+    def set_mean(self, mean: float) -> "SummaryStatistics":
         """
         Sets the mean.
         :param mean: Mean to set.
@@ -107,7 +110,7 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
         """
         return self._proto.standard_deviation
 
-    def set_standard_deviation(self, standard_deviation: float) -> 'SummaryStatistics':
+    def set_standard_deviation(self, standard_deviation: float) -> "SummaryStatistics":
         """
         Set's the standard deviation.
         :param standard_deviation: Standard deviation to set.
@@ -124,7 +127,7 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
         """
         return self._proto.min
 
-    def set_min(self, min_value: float) -> 'SummaryStatistics':
+    def set_min(self, min_value: float) -> "SummaryStatistics":
         """
         Sets the min value.
         :param min_value: Value to set.
@@ -141,7 +144,7 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
         """
         return self._proto.max
 
-    def set_max(self, max_value: float) -> 'SummaryStatistics':
+    def set_max(self, max_value: float) -> "SummaryStatistics":
         """
         Sets the max.
         :param max_value: Value to set.
@@ -158,7 +161,7 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
         """
         return self._proto.range
 
-    def set_range(self, range_value: float) -> 'SummaryStatistics':
+    def set_range(self, range_value: float) -> "SummaryStatistics":
         """
         Sets the range.
         :param range_value: Range to set.
@@ -169,7 +172,7 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
         self._proto.range = range_value
         return self
 
-    def update_from_values(self, values: np.ndarray) -> 'SummaryStatistics':
+    def update_from_values(self, values: np.ndarray) -> "SummaryStatistics":
         """
         Updates the statistics from the given values.
         :param values: Values to derive statistics from.
@@ -178,7 +181,9 @@ class SummaryStatistics(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.SummaryStatisti
         check_type(values, [np.ndarray])
 
         if none_or_empty(values):
-            raise errors.SummaryStatisticsError("No values supplied for updating statistics")
+            raise errors.SummaryStatisticsError(
+                "No values supplied for updating statistics"
+            )
 
         self._proto.count = len(values)
         self._proto.mean = values.mean()
@@ -203,18 +208,32 @@ def validate_summary_statistics(stats: SummaryStatistics) -> List[str]:
     return errors_list
 
 
-class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload,
-                                    redvox_api_m_pb2.RedvoxPacketM.DoubleSamplePayload]]):
+class SamplePayload(
+    ProtoBase[
+        Union[
+            redvox_api_m_pb2.RedvoxPacketM.SamplePayload,
+            redvox_api_m_pb2.RedvoxPacketM.DoubleSamplePayload,
+        ]
+    ]
+):
     """
     A class for managing sensor samples and the corresponding statistics.
     """
-    def __init__(self, proto: Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload,
-                                    redvox_api_m_pb2.RedvoxPacketM.DoubleSamplePayload]):
+
+    def __init__(
+        self,
+        proto: Union[
+            redvox_api_m_pb2.RedvoxPacketM.SamplePayload,
+            redvox_api_m_pb2.RedvoxPacketM.DoubleSamplePayload,
+        ],
+    ):
         super().__init__(proto)
-        self._summary_statistics: SummaryStatistics = SummaryStatistics(proto.value_statistics)
+        self._summary_statistics: SummaryStatistics = SummaryStatistics(
+            proto.value_statistics
+        )
 
     @staticmethod
-    def new() -> 'SamplePayload':
+    def new() -> "SamplePayload":
         """
         :return: A new, empty SamplePayload
         """
@@ -228,7 +247,7 @@ class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload
         # pylint: disable=E1101
         return Unit.from_proto(self._proto.unit)
 
-    def set_unit(self, unit: Unit) -> 'SamplePayload':
+    def set_unit(self, unit: Unit) -> "SamplePayload":
         """
         Sets the unit of this payload.
         :param unit: Unit to set.
@@ -251,7 +270,9 @@ class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload
         """
         return np.array(self._proto.values)
 
-    def set_values(self, values: np.ndarray, update_value_statistics: bool = False) -> 'SamplePayload':
+    def set_values(
+        self, values: np.ndarray, update_value_statistics: bool = False
+    ) -> "SamplePayload":
         """
         Set's the values of this payload and optionally updates the statistics.
         :param values: Values to set in this payload.
@@ -266,7 +287,9 @@ class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload
 
         return self
 
-    def append_value(self, value: float, update_value_statistics: bool = False) -> 'SamplePayload':
+    def append_value(
+        self, value: float, update_value_statistics: bool = False
+    ) -> "SamplePayload":
         """
         Appends a single value to the payload.
         :param value: Value to append to the payload.
@@ -281,7 +304,9 @@ class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload
 
         return self
 
-    def append_values(self, values: np.ndarray, update_value_statistics: bool = False) -> 'SamplePayload':
+    def append_values(
+        self, values: np.ndarray, update_value_statistics: bool = False
+    ) -> "SamplePayload":
         """
         Appends multiple values to this payload.
         :param values: Values to append.
@@ -296,7 +321,7 @@ class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload
 
         return self
 
-    def clear_values(self, update_value_statistics: bool = False) -> 'SamplePayload':
+    def clear_values(self, update_value_statistics: bool = False) -> "SamplePayload":
         """
         Clear the values in this payload.
         :param update_value_statistics: Whether the statistics should be updated.
@@ -315,7 +340,9 @@ class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload
         """
         return self._summary_statistics
 
-    def set_summary_statistics(self, summary_statistics: SummaryStatistics) -> 'SamplePayload':
+    def set_summary_statistics(
+        self, summary_statistics: SummaryStatistics
+    ) -> "SamplePayload":
         """
         Sets the summary statistics sub-message field.
         :param summary_statistics: SummaryStatistics to set.
@@ -327,8 +354,11 @@ class SamplePayload(ProtoBase[Union[redvox_api_m_pb2.RedvoxPacketM.SamplePayload
         return self
 
 
-def validate_sample_payload(sample_payload: SamplePayload, payload_name: Optional[str] = None,
-                            payload_unit: Optional[Unit] = None) -> List[str]:
+def validate_sample_payload(
+    sample_payload: SamplePayload,
+    payload_name: Optional[str] = None,
+    payload_unit: Optional[Unit] = None,
+) -> List[str]:
     """
     Validates the sample payload.
     :param sample_payload: Payload to valid.
@@ -339,12 +369,18 @@ def validate_sample_payload(sample_payload: SamplePayload, payload_name: Optiona
     errors_list = []
     if payload_unit is None:
         if sample_payload.get_unit() not in Unit.__members__.values():
-            errors_list.append(f"{payload_name if payload_name else 'Sample'} payload unit type is unknown")
+            errors_list.append(
+                f"{payload_name if payload_name else 'Sample'} payload unit type is unknown"
+            )
     else:
         if sample_payload.get_unit() != payload_unit:
-            errors_list.append(f"{payload_name if payload_name else 'Sample'} payload unit type is not {payload_unit}")
+            errors_list.append(
+                f"{payload_name if payload_name else 'Sample'} payload unit type is not {payload_unit}"
+            )
     if sample_payload.get_values_count() < 1:
-        errors_list.append(f"{payload_name if payload_name else 'Sample'} payload values are missing")
+        errors_list.append(
+            f"{payload_name if payload_name else 'Sample'} payload values are missing"
+        )
     return errors_list
 
 
@@ -361,8 +397,12 @@ def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:
     if len(sample_interval) < 2 or mean_sample_interval <= 0:
         return 0.0, 0.0
 
-    mean_sample_rate: float = 1.0 / dt_utils.microseconds_to_seconds(mean_sample_interval)
-    stdev_sample_rate: float = mean_sample_rate ** 2 * dt_utils.microseconds_to_seconds(stdev_sample_interval)
+    mean_sample_rate: float = 1.0 / dt_utils.microseconds_to_seconds(
+        mean_sample_interval
+    )
+    stdev_sample_rate: float = mean_sample_rate ** 2 * dt_utils.microseconds_to_seconds(
+        stdev_sample_interval
+    )
 
     return mean_sample_rate, stdev_sample_rate
 
@@ -371,18 +411,21 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
     """
     Manages collections of timestamps for unevenly sampled data.
     """
+
     def __init__(self, proto: redvox_api_m_pb2.RedvoxPacketM.TimingPayload):
         super().__init__(proto)
-        self._timestamp_statistics: SummaryStatistics = SummaryStatistics(proto.timestamp_statistics)
+        self._timestamp_statistics: SummaryStatistics = SummaryStatistics(
+            proto.timestamp_statistics
+        )
 
     @staticmethod
-    def new() -> 'TimingPayload':
+    def new() -> "TimingPayload":
         """
         :return: A new, empty TimingPayload
         """
         return TimingPayload(redvox_api_m_pb2.RedvoxPacketM.TimingPayload())
 
-    def set_default_unit(self) -> 'TimingPayload':
+    def set_default_unit(self) -> "TimingPayload":
         """
         Sets the default unit for this payload
         :return: A modified instance of self
@@ -390,7 +433,7 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         # noinspection PyTypeChecker
         return self.set_unit(Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
-    def update_timing_statistics_from_timestamps(self) -> 'TimingPayload':
+    def update_timing_statistics_from_timestamps(self) -> "TimingPayload":
         """
         Update the stored statistics from the current set of timestamps.
         :return: A modified instance of self.
@@ -413,7 +456,7 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         # pylint: disable=E1101
         return Unit.from_proto(self._proto.unit)
 
-    def set_unit(self, unit: Unit) -> 'TimingPayload':
+    def set_unit(self, unit: Unit) -> "TimingPayload":
         """
         Sets the timing unit.
         :param unit: Unit to set.
@@ -436,7 +479,9 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         """
         return np.array(self._proto.timestamps)
 
-    def set_timestamps(self, timestamps: np.ndarray, update_value_statistics: bool = False) -> 'TimingPayload':
+    def set_timestamps(
+        self, timestamps: np.ndarray, update_value_statistics: bool = False
+    ) -> "TimingPayload":
         """
         Set the timestamps.
         :param timestamps: Timestamps to set.
@@ -451,7 +496,9 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
 
         return self
 
-    def append_timestamp(self, timestamp: float, update_value_statistics: bool = False) -> 'TimingPayload':
+    def append_timestamp(
+        self, timestamp: float, update_value_statistics: bool = False
+    ) -> "TimingPayload":
         """
         Appends a single timestamp.
         :param timestamp: Timestamp to append.
@@ -466,7 +513,9 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
 
         return self
 
-    def append_timestamps(self, timestamps: np.ndarray, update_value_statistics: bool = False) -> 'TimingPayload':
+    def append_timestamps(
+        self, timestamps: np.ndarray, update_value_statistics: bool = False
+    ) -> "TimingPayload":
         """
         Append multiple timestamps.
         :param timestamps: Timestamps to append.
@@ -481,7 +530,9 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
 
         return self
 
-    def clear_timestamps(self, update_value_statistics: bool = False) -> 'TimingPayload':
+    def clear_timestamps(
+        self, update_value_statistics: bool = False
+    ) -> "TimingPayload":
         """
         Clears all timestamps.
         :param update_value_statistics: Should the stats be updated?
@@ -500,7 +551,9 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         """
         return self._timestamp_statistics
 
-    def set_timestamp_statistics(self, timestamp_statistics: SummaryStatistics) -> 'TimingPayload':
+    def set_timestamp_statistics(
+        self, timestamp_statistics: SummaryStatistics
+    ) -> "TimingPayload":
         """
         Sets the timestamp statistics.
         :param timestamp_statistics: TimestampStatistics to set.
@@ -508,7 +561,9 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         """
         check_type(timestamp_statistics, [SummaryStatistics])
         self.get_proto().timestamp_statistics.CopyFrom(timestamp_statistics.get_proto())
-        self._timestamp_statistics = SummaryStatistics(self.get_proto().timestamp_statistics)
+        self._timestamp_statistics = SummaryStatistics(
+            self.get_proto().timestamp_statistics
+        )
         return self
 
     def get_mean_sample_rate(self) -> float:
@@ -517,7 +572,7 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         """
         return self._proto.mean_sample_rate
 
-    def set_mean_sample_rate(self, mean_sample_rate: float) -> 'TimingPayload':
+    def set_mean_sample_rate(self, mean_sample_rate: float) -> "TimingPayload":
         """
         Sets the mean sample rate.
         :param mean_sample_rate: Rate to set.
@@ -536,7 +591,7 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         """
         return self._proto.stdev_sample_rate
 
-    def set_stdev_sample_rate(self, stdev_sample_rate: float) -> 'TimingPayload':
+    def set_stdev_sample_rate(self, stdev_sample_rate: float) -> "TimingPayload":
         """
         Sets the standard deviation of the sample rate.
         :param stdev_sample_rate: Rate to set.
@@ -560,7 +615,9 @@ def validate_timing_payload(timing_payload: TimingPayload) -> List[str]:
     # if not timing_payload.get_proto().HasField("unit"):
     #     errors_list.append("Timing payload unit type is missing")
     if timing_payload.get_unit() != Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
-        errors_list.append("Timing payload units are not in microseconds since unix epoch")
+        errors_list.append(
+            "Timing payload units are not in microseconds since unix epoch"
+        )
     # if timing_payload.get_proto().HasField("timestamps"):
     if timing_payload.get_timestamps_count() < 1:
         errors_list.append("Timing payload timestamps are missing")
@@ -568,5 +625,7 @@ def validate_timing_payload(timing_payload: TimingPayload) -> List[str]:
         # we have timestamps, but we have to confirm they always increase in value
         timestamps = timing_payload.get_timestamps()
         if any(timestamps[i] >= timestamps[i + 1] for i in range(len(timestamps) - 1)):
-            errors_list.append("Timing payload contains timestamps in non-ascending order")
+            errors_list.append(
+                "Timing payload contains timestamps in non-ascending order"
+            )
     return errors_list
