@@ -161,8 +161,8 @@ class IoTests(IoTestCase):
     def test_list_subdirs_some_valid(self):
         lvl1 = os.path.join(self.temp_dir_path, "foo")
         os.makedirs(lvl1, exist_ok=True)
-        os.makedirs(os.path.join(lvl1, "bar"))
-        os.makedirs(os.path.join(lvl1, "baz"))
+        os.makedirs(os.path.join(lvl1, "bar"), exist_ok=True)
+        os.makedirs(os.path.join(lvl1, "baz"), exist_ok=True)
 
         self.assertEqual(["baz"], io._list_subdirs(lvl1, {"baz"}))
 
