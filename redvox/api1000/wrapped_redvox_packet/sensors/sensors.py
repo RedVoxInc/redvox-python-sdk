@@ -274,13 +274,12 @@ class Sensors(redvox.api1000.common.generic.ProtoBase[redvox_api_m_pb2.RedvoxPac
         :return: True if no errors
         """
         return len(audio.validate_compress_audio(self._compressed_audio)) < 1
-        # and self._compressed_audio.get_values_count() > 0  # TODO: Compressed audio doesn't have this field
 
     def has_gravity(self) -> bool:
         """
         :return: If this packet contains this channel
         """
-        # noinspection PyTypeChecker
+        # noinspection PyTypeChecker,Mypy
         return self.get_proto().HasField(Sensors.__GRAVITY_FIELD_NAME)
 
     def get_gravity(self) -> Optional[xyz.Xyz]:
