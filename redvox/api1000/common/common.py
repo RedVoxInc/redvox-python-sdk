@@ -20,6 +20,7 @@ EMPTY_ARRAY: np.ndarray = np.array([])
 
 
 # noinspection Mypy
+# pylint: disable=E1101
 @wrap_enum(redvox_api_m_pb2.RedvoxPacketM.Unit)
 class Unit(enum.Enum):
     """
