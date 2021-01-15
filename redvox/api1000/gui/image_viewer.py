@@ -58,7 +58,7 @@ class ImageViewWidget(QLabel):
     This widget displays and scales the image
     """
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, _: Optional[QWidget] = None) -> None:
         super().__init__(parent=None)
         self.setAlignment(Qt.AlignCenter)
 
