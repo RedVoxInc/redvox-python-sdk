@@ -582,7 +582,7 @@ def index_structured_api_900(
             for day in _list_subdirs(
                 os.path.join(base_dir, year, month), __VALID_DATES
             ):
-                # Before scanning for *.rdvxm files, let's see if the current year, month, day, are in the
+                # Before scanning for *.rdvxz files, let's see if the current year, month, day, are in the
                 # filter's range. If not, we can short circuit and skip getting the *.rdvxz files.
                 if not read_filter.apply_dt(
                     datetime(int(year), int(month), int(day)), dt_fn=truncate_dt_ymd

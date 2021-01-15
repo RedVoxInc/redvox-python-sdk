@@ -210,7 +210,7 @@ def calc_evenly_sampled_timestamps(start: float, samples: int, rate_hz: float) -
     :param rate_hz: float, sample rate in hz
     :return: np.array with evenly spaced timestamps starting at start
     """
-    return start + dtu.seconds_to_microseconds(np.arange(0, samples) / rate_hz)
+    return start + (np.arange(0, samples) / dtu.seconds_to_microseconds(rate_hz))
 
 
 def load_apim_audio(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData]:
@@ -227,20 +227,118 @@ def load_apim_audio(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData
 
 
 def load_apim_audio_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Optional[SensorData]:
-    all_timestamps = np.array([])
-    all_data = np.array([])
+    all_timestamps = []
+    all_data = []
     if len(wrapped_packets) > 0:
         sample_rate_hz = wrapped_packets[0].get_sensors().get_audio().get_sample_rate()
         description = wrapped_packets[0].get_sensors().get_audio().get_sensor_description()
         for wrapped_packet in wrapped_packets:
             audio = wrapped_packet.get_sensors().get_audio()
             if audio and wrapped_packet.get_sensors().validate_audio():
-                all_timestamps = np.append(all_timestamps,
-                                           calc_evenly_sampled_timestamps(audio.get_first_sample_timestamp(),
-                                                                          audio.get_num_samples(), sample_rate_hz))
-                all_data = np.append(all_data, audio.get_samples().get_values())
+                all_timestamps.extend(calc_evenly_sampled_timestamps(audio.get_first_sample_timestamp(),
+                                                                     audio.get_num_samples(), sample_rate_hz))
+                all_data.extend(audio.get_samples().get_values())
         return SensorData(sensor_name=description, sensor_type=SensorType.AUDIO, sample_rate=sample_rate_hz,
                           sample_interval_s=1 / sample_rate_hz, sample_interval_std_s=0.0, is_sample_rate_fixed=True,
-                          sensor_data=pd.DataFrame(np.transpose([all_timestamps, all_data]),
+                          sensor_data=pd.DataFrame(np.transpose([np.array(all_timestamps), np.array(all_data)]),
                                                    columns=["timestamps", "microphone"]))
+    return None
+
+
+def load_apim_location(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData]:
+    loc = wrapped_packet.get_sensors().get_location()
+    if loc and wrapped_packet.get_sensors().validate_location():
+        if loc.is_only_best_values():
+            sample_interval = np.nan
+            sample_interval_std = np.nan
+            if loc.get_last_best_location():
+                best_loc = loc.get_last_best_location()
+            else:
+                best_loc = loc.get_overall_best_location()
+            data_for_df = [[best_loc.get_latitude_longitude_timestamp().get_mach(),
+                            best_loc.get_latitude(),
+                            best_loc.get_longitude(),
+                            best_loc.get_altitude(),
+                            best_loc.get_speed(),
+                            best_loc.get_bearing(),
+                            best_loc.get_horizontal_accuracy(),
+                            best_loc.get_vertical_accuracy(),
+                            best_loc.get_speed_accuracy(),
+                            best_loc.get_bearing_accuracy(),
+                            best_loc.get_location_provider()]]
+        else:
+            timestamps = loc.get_timestamps().get_timestamps()
+            if len(timestamps) > 1:
+                sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+                sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
+                data_for_df = np.transpose([timestamps,
+                                            loc.get_latitude_samples().get_values(),
+                                            loc.get_longitude_samples().get_values(),
+                                            loc.get_altitude_samples().get_values(),
+                                            loc.get_speed_samples().get_values(),
+                                            loc.get_bearing_samples().get_values(),
+                                            loc.get_horizontal_accuracy_samples().get_values(),
+                                            loc.get_vertical_accuracy_samples().get_values(),
+                                            loc.get_speed_samples().get_values(),
+                                            loc.get_bearing_accuracy_samples().get_values(),
+                                            loc.get_location_providers().get_values()])
+            else:
+                sample_interval = np.nan
+                sample_interval_std = np.nan
+                data_for_df = np.array([])
+        columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "bearing",
+                   "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy",
+                   "location_provider"]
+        return SensorData(loc.get_sensor_description(), SensorType.LOCATION,
+                          pd.DataFrame(data_for_df, columns=columns),
+                          1 / sample_interval, sample_interval, sample_interval_std, False)
+    return None
+
+
+def load_apim_location_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Optional[SensorData]:
+    all_data: np.array = []
+    if len(wrapped_packets) > 0:
+        description = wrapped_packets[0].get_sensors().get_location().get_sensor_description()
+        for wrapped_packet in wrapped_packets:
+            loc = wrapped_packet.get_sensors().get_location()
+            if loc and wrapped_packet.get_sensors().validate_location():
+                if loc.is_only_best_values():
+                    if loc.get_last_best_location():
+                        best_loc = loc.get_last_best_location()
+                    else:
+                        best_loc = loc.get_overall_best_location()
+                    all_data.extend([[best_loc.get_latitude_longitude_timestamp().get_mach()],
+                                     [best_loc.get_latitude()], [best_loc.get_longitude()],
+                                     [best_loc.get_altitude()], [best_loc.get_speed()],
+                                     [best_loc.get_bearing()], [best_loc.get_horizontal_accuracy()],
+                                     [best_loc.get_vertical_accuracy()], [best_loc.get_speed_accuracy()],
+                                     [best_loc.get_bearing_accuracy()], [best_loc.get_location_provider()]])
+                else:
+                    timestamps = loc.get_timestamps().get_timestamps()
+                    if len(timestamps) > 0:
+                        all_data.extend([timestamps,
+                                         loc.get_latitude_samples().get_values(),
+                                         loc.get_longitude_samples().get_values(),
+                                         loc.get_altitude_samples().get_values(),
+                                         loc.get_speed_samples().get_values(),
+                                         loc.get_bearing_samples().get_values(),
+                                         loc.get_horizontal_accuracy_samples().get_values(),
+                                         loc.get_vertical_accuracy_samples().get_values(),
+                                         loc.get_speed_samples().get_values(),
+                                         loc.get_bearing_accuracy_samples().get_values(),
+                                         loc.get_location_providers().get_values()])
+        columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "bearing",
+                   "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy",
+                   "location_provider"]
+        data_df = pd.DataFrame(np.transpose(np.array(all_data)), columns=columns)
+        if data_df["timestamps"].size > 1:
+            sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(data_df["timestamps"]))))
+            sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(data_df["timestamps"]))))
+            sample_rate = 1 / sample_interval
+        else:
+            sample_rate = 1.0
+            sample_interval = 0.0
+            sample_interval_std = 0.0
+        return SensorData(description, SensorType.LOCATION, data_df,
+                          sample_rate, sample_interval, sample_interval_std, False)
     return None
