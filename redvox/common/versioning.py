@@ -12,12 +12,13 @@ class ApiVersion(Enum):
     """
     Enumerates the API versions this SDK supports.
     """
+
     API_900: str = "API_900"
     API_1000: str = "API_1000"
     UNKNOWN: str = "UNKNOWN"
 
     # pylint: disable=W0143
-    def __lt__(self, other: 'ApiVersion') -> bool:
+    def __lt__(self, other: "ApiVersion") -> bool:
         return self.name < other.name
 
 
