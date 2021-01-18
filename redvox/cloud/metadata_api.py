@@ -250,6 +250,28 @@ class MetadataResp:
     metadata: List[PacketMetadataResult]
 
 
+@dataclass_json
+@dataclass
+class StationStatusReq:
+    secret_token: Optional[str]
+    auth_token: str
+    start_ts_s: float
+    end_ts_s: float
+    station_ids: List[str]
+
+
+@dataclass_json
+@dataclass
+class StationStatus:
+    api: str
+    sub_api: Optional[str]
+    recording_state: str
+    app_start_timestamp: float
+    timestamp: float
+    synch_enabled: bool
+    synch_latency: Optional[float]
+
+
 # pylint: disable=C0103
 T = TypeVar('T')
 
