@@ -287,12 +287,12 @@ class StationStatus:
     # Authentication status
     station_id: str
     station_uuid: str
-    authenticated_user: str
+    authenticated_user: Optional[str]
     private: bool
 
     # Audio status
     sampling_rate: float
-    bit_depth: float
+    bit_depth: Optional[float]
     sensor_name: str
     samples_per_packet: int
 
@@ -304,10 +304,10 @@ class StationStatus:
 
     # Location status
     location_provider: Optional[str]
-    latitude: float
-    longitude: float
-    altitude: float
-    speed: float
+    latitude: Optional[float]
+    longitude: Optional[float]
+    altitude: Optional[float]
+    speed: Optional[float]
 
     # Station info
     make: str
@@ -315,7 +315,7 @@ class StationStatus:
     os: str
     os_version: str
     client_version: str
-    # settings: str # TODO
+    settings: Optional[Dict]
 
     # Station metrics
     network_type: Optional[str]
@@ -326,7 +326,7 @@ class StationStatus:
     temperature: Optional[float]
     network_strength: Optional[float]
 
-    # diffs: #
+    diffs: Optional[List[Dict]]
 
 
 @dataclass_json
@@ -557,11 +557,11 @@ def request_station_statuses(
     station_status_req: StationStatusReq,
     session: Optional[requests.Session] = None,
     timeout: Optional[float] = None,
-) -> Optional[MetadataRespM]:
+) -> Optional[StationStatusResp]:
     # noinspection Mypy
     handle_resp: Callable[
         [requests.Response], StationStatusResp
-    ] = lambda resp: StationStatusResp.from_json(resp.json())
+    ] = lambda resp: StationStatusResp.from_dict(resp.json())
     return post_req(
         api_config,
         RoutesV1.STATION_STATUS_TIMELINE,
