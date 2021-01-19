@@ -409,6 +409,28 @@ class CloudClient:
             self.api_conf, report_data_req, session=self.__session, timeout=self.timeout
         )
 
+    def request_station_statuses(
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+    ) -> metadata_api.StationStatusResp:
+        if end_ts_s <= start_ts_s:
+            raise cloud_errors.CloudApiError("start_ts_s must be < end_ts_s")
+
+        station_status_req: metadata_api.StationStatusReq = (
+            metadata_api.StationStatusReq(
+                self.secret_token, self.auth_token, start_ts_s, end_ts_s, station_ids
+            )
+        )
+
+        return metadata_api.request_station_statuses(
+            self.api_conf,
+            station_status_req,
+            session=self.__session,
+            timeout=self.timeout,
+        )
+
     def request_data_range(
         self,
         start_ts_s: int,
