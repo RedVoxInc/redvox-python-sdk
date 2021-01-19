@@ -22,12 +22,12 @@ def find_between(start: str, end: str, contents: str) -> str:
     """
     s_idx = contents.find(start)
     e_idx = contents.find(end)
-    return contents[s_idx + len(start):e_idx]
+    return contents[s_idx + len(start) : e_idx]
 
 
-def get_file(url: str,
-             retries: int,
-             session: requests.Session = requests.Session()) -> Optional[bytes]:
+def get_file(
+    url: str, retries: int, session: requests.Session = requests.Session()
+) -> Optional[bytes]:
     """
     Attempts to download a file with a configurable amount of retries.
     :param url: The url to download.
@@ -42,10 +42,12 @@ def get_file(url: str,
         if resp.status_code == 200:
             return resp.content
         else:
-            log.error("Received error response when requesting data for url=%s: %d %s",
-                      url,
-                      resp.status_code,
-                      resp.text)
+            log.error(
+                "Received error response when requesting data for url=%s: %d %s",
+                url,
+                resp.status_code,
+                resp.text,
+            )
             if retries > 0:
                 log.info("Retrying with %d retries", retries)
                 return get_file(url, retries - 1, session)
@@ -61,10 +63,9 @@ def get_file(url: str,
         return None
 
 
-def download_file(url: str,
-                  session: requests.Session,
-                  out_dir: str,
-                  retries: int) -> Tuple[str, int]:
+def download_file(
+    url: str, session: requests.Session, out_dir: str, retries: int
+) -> Tuple[str, int]:
     """
     Attempts to download a file from S3.
     :param url: The URL to retrieve.

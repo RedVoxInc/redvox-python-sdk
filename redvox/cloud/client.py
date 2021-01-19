@@ -19,9 +19,9 @@ import redvox.cloud.data_api as data_api
 import redvox.cloud.metadata_api as metadata_api
 
 
-def chunk_time_range(start_ts: int,
-                     end_ts: int,
-                     max_chunk: int) -> List[Tuple[int, int]]:
+def chunk_time_range(
+    start_ts: int, end_ts: int, max_chunk: int
+) -> List[Tuple[int, int]]:
     """
     Chunks the given request window into smaller windows.
     :param start_ts: Start of the request window.
@@ -55,13 +55,15 @@ class CloudClient:
     The RedVox Cloud API client.
     """
 
-    def __init__(self,
-                 username: str,
-                 password: str,
-                 api_conf: api.ApiConfig = api.ApiConfig.default(),
-                 secret_token: Optional[str] = None,
-                 refresh_token_interval: float = 600.0,
-                 timeout: Optional[float] = 10.0):
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        api_conf: api.ApiConfig = api.ApiConfig.default(),
+        secret_token: Optional[str] = None,
+        refresh_token_interval: float = 600.0,
+        timeout: Optional[float] = 10.0,
+    ):
         """
         Instantiates this client.
         :param username: A RedVox username.
@@ -72,7 +74,9 @@ class CloudClient:
         """
 
         if refresh_token_interval <= 0:
-            raise cloud_errors.CloudApiError("refresh_token_interval must be strictly > 0")
+            raise cloud_errors.CloudApiError(
+                "refresh_token_interval must be strictly > 0"
+            )
 
         if timeout is not None and (timeout <= 0):
             raise cloud_errors.CloudApiError("timeout must be strictly > 0")
@@ -82,7 +86,9 @@ class CloudClient:
         self.refresh_token_interval: float = refresh_token_interval
         self.timeout: Optional[float] = timeout
 
-        self.__session = requests.Session()  # This must be initialized before the auth req!
+        self.__session = (
+            requests.Session()
+        )  # This must be initialized before the auth req!
         try:
             auth_resp: auth_api.AuthResp = self.authenticate_user(username, password)
         except cloud_errors.ApiConnectionError as ex:
@@ -90,13 +96,19 @@ class CloudClient:
             raise ex
 
         self.__refresh_timer = None
-        if auth_resp.status != 200 or auth_resp.auth_token is None or len(auth_resp.auth_token) == 0:
+        if (
+            auth_resp.status != 200
+            or auth_resp.auth_token is None
+            or len(auth_resp.auth_token) == 0
+        ):
             self.close()
             raise cloud_errors.AuthenticationError()
 
         self.auth_token: str = auth_resp.auth_token
 
-        self.__refresh_timer = threading.Timer(self.refresh_token_interval, self.__refresh_token)
+        self.__refresh_timer = threading.Timer(
+            self.refresh_token_interval, self.__refresh_token
+        )
         self.__refresh_timer.start()
 
     def __refresh_token(self):
@@ -107,7 +119,9 @@ class CloudClient:
         # noinspection PyBroadException
         try:
             self.auth_token = self.refresh_own_auth_token().auth_token
-            self.__refresh_timer = threading.Timer(self.refresh_token_interval, self.__refresh_token)
+            self.__refresh_timer = threading.Timer(
+                self.refresh_token_interval, self.__refresh_token
+            )
             self.__refresh_timer.start()
         except:
             self.close()
@@ -137,7 +151,9 @@ class CloudClient:
         An API call that returns True if the API Cloud server is up and running or False otherwise.
         :return: True if the API Cloud server is up and running or False otherwise.
         """
-        return api.health_check(self.api_conf, session=self.__session, timeout=self.timeout)
+        return api.health_check(
+            self.api_conf, session=self.__session, timeout=self.timeout
+        )
 
     def authenticate_user(self, username: str, password: str) -> auth_api.AuthResp:
         """
@@ -153,12 +169,13 @@ class CloudClient:
             raise cloud_errors.CloudApiError("Password must be provided")
 
         auth_req: auth_api.AuthReq = auth_api.AuthReq(username, password)
-        return auth_api.authenticate_user(self.api_conf,
-                                          auth_req,
-                                          session=self.__session,
-                                          timeout=self.timeout)
+        return auth_api.authenticate_user(
+            self.api_conf, auth_req, session=self.__session, timeout=self.timeout
+        )
 
-    def validate_auth_token(self, auth_token: str) -> Optional[auth_api.ValidateTokenResp]:
+    def validate_auth_token(
+        self, auth_token: str
+    ) -> Optional[auth_api.ValidateTokenResp]:
         """
         Validates the provided authentication token with the cloud API.
         :param auth_token: Authentication token to validate.
@@ -168,7 +185,9 @@ class CloudClient:
             raise cloud_errors.CloudApiError("auth_token must be provided")
 
         token_req: auth_api.ValidateTokenReq = auth_api.ValidateTokenReq(auth_token)
-        return auth_api.validate_token(self.api_conf, token_req, session=self.__session, timeout=self.timeout)
+        return auth_api.validate_token(
+            self.api_conf, token_req, session=self.__session, timeout=self.timeout
+        )
 
     def validate_own_auth_token(self) -> Optional[auth_api.ValidateTokenResp]:
         """
@@ -177,7 +196,9 @@ class CloudClient:
         """
         return self.validate_auth_token(self.auth_token)
 
-    def refresh_auth_token(self, auth_token: str) -> Optional[auth_api.RefreshTokenResp]:
+    def refresh_auth_token(
+        self, auth_token: str
+    ) -> Optional[auth_api.RefreshTokenResp]:
         """
         Retrieves a new authentication token from a given valid authentication token.
         :param auth_token: The authentication token to verify.
@@ -186,11 +207,15 @@ class CloudClient:
         if len(auth_token) == 0:
             raise cloud_errors.CloudApiError("auth_token must be provided")
 
-        refresh_token_req: auth_api.RefreshTokenReq = auth_api.RefreshTokenReq(auth_token)
-        return auth_api.refresh_token(self.api_conf,
-                                      refresh_token_req,
-                                      session=self.__session,
-                                      timeout=self.timeout)
+        refresh_token_req: auth_api.RefreshTokenReq = auth_api.RefreshTokenReq(
+            auth_token
+        )
+        return auth_api.refresh_token(
+            self.api_conf,
+            refresh_token_req,
+            session=self.__session,
+            timeout=self.timeout,
+        )
 
     def refresh_own_auth_token(self) -> Optional[auth_api.RefreshTokenResp]:
         """
@@ -199,12 +224,14 @@ class CloudClient:
         """
         return self.refresh_auth_token(self.auth_token)
 
-    def request_metadata(self,
-                         start_ts_s: int,
-                         end_ts_s: int,
-                         station_ids: List[str],
-                         metadata_to_include: List[str],
-                         chunk_by_seconds: int = constants.SECONDS_PER_DAY) -> Optional[metadata_api.MetadataResp]:
+    def request_metadata(
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        metadata_to_include: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_DAY,
+    ) -> Optional[metadata_api.MetadataResp]:
         """
         Requests RedVox packet metadata.
         :param start_ts_s: Start epoch of request window.
@@ -221,38 +248,50 @@ class CloudClient:
             raise cloud_errors.CloudApiError("At least one station_id must be included")
 
         if len(metadata_to_include) == 0:
-            raise cloud_errors.CloudApiError("At least one metadata field must be included")
+            raise cloud_errors.CloudApiError(
+                "At least one metadata field must be included"
+            )
 
         if chunk_by_seconds <= 0:
             raise cloud_errors.CloudApiError("chunk_by_seconds must be > 0")
 
-        time_chunks: List[Tuple[int, int]] = chunk_time_range(start_ts_s, end_ts_s, chunk_by_seconds)
+        time_chunks: List[Tuple[int, int]] = chunk_time_range(
+            start_ts_s, end_ts_s, chunk_by_seconds
+        )
         metadata_resp: metadata_api.MetadataResp = metadata_api.MetadataResp([])
 
         for start_ts, end_ts in time_chunks:
-            metadata_req: metadata_api.MetadataReq = metadata_api.MetadataReq(self.auth_token,
-                                                                              start_ts,
-                                                                              end_ts,
-                                                                              station_ids,
-                                                                              metadata_to_include,
-                                                                              self.secret_token)
+            metadata_req: metadata_api.MetadataReq = metadata_api.MetadataReq(
+                self.auth_token,
+                start_ts,
+                end_ts,
+                station_ids,
+                metadata_to_include,
+                self.secret_token,
+            )
 
-            chunked_resp: Optional[metadata_api.MetadataResp] = metadata_api.request_metadata(self.api_conf,
-                                                                                              metadata_req,
-                                                                                              session=self.__session,
-                                                                                              timeout=self.timeout)
+            chunked_resp: Optional[
+                metadata_api.MetadataResp
+            ] = metadata_api.request_metadata(
+                self.api_conf,
+                metadata_req,
+                session=self.__session,
+                timeout=self.timeout,
+            )
 
             if chunked_resp:
                 metadata_resp.metadata.extend(chunked_resp.metadata)
 
         return metadata_resp
 
-    def request_metadata_m(self,
-                           start_ts_s: int,
-                           end_ts_s: int,
-                           station_ids: List[str],
-                           metadata_to_include: List[str],
-                           chunk_by_seconds: int = constants.SECONDS_PER_DAY) -> Optional[metadata_api.MetadataRespM]:
+    def request_metadata_m(
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        metadata_to_include: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_DAY,
+    ) -> Optional[metadata_api.MetadataRespM]:
         """
         Requests RedVox packet metadata.
         :param start_ts_s: Start epoch of request window.
@@ -269,37 +308,49 @@ class CloudClient:
             raise cloud_errors.CloudApiError("At least one station_id must be included")
 
         if len(metadata_to_include) == 0:
-            raise cloud_errors.CloudApiError("At least one metadata field must be included")
+            raise cloud_errors.CloudApiError(
+                "At least one metadata field must be included"
+            )
 
         if chunk_by_seconds <= 0:
             raise cloud_errors.CloudApiError("chunk_by_seconds must be > 0")
 
-        time_chunks: List[Tuple[int, int]] = chunk_time_range(start_ts_s, end_ts_s, chunk_by_seconds)
+        time_chunks: List[Tuple[int, int]] = chunk_time_range(
+            start_ts_s, end_ts_s, chunk_by_seconds
+        )
         metadata_resp: metadata_api.MetadataRespM = metadata_api.MetadataRespM([])
 
         for start_ts, end_ts in time_chunks:
-            metadata_req: metadata_api.MetadataReq = metadata_api.MetadataReq(self.auth_token,
-                                                                              start_ts,
-                                                                              end_ts,
-                                                                              station_ids,
-                                                                              metadata_to_include,
-                                                                              self.secret_token)
+            metadata_req: metadata_api.MetadataReq = metadata_api.MetadataReq(
+                self.auth_token,
+                start_ts,
+                end_ts,
+                station_ids,
+                metadata_to_include,
+                self.secret_token,
+            )
 
-            chunked_resp: Optional[metadata_api.MetadataRespM] = metadata_api.request_metadata_m(self.api_conf,
-                                                                                                 metadata_req,
-                                                                                                 session=self.__session,
-                                                                                                 timeout=self.timeout)
+            chunked_resp: Optional[
+                metadata_api.MetadataRespM
+            ] = metadata_api.request_metadata_m(
+                self.api_conf,
+                metadata_req,
+                session=self.__session,
+                timeout=self.timeout,
+            )
 
             if chunked_resp:
                 metadata_resp.db_packets.extend(chunked_resp.db_packets)
 
         return metadata_resp
 
-    def request_timing_metadata(self,
-                                start_ts_s: int,
-                                end_ts_s: int,
-                                station_ids: List[str],
-                                chunk_by_seconds: int = constants.SECONDS_PER_DAY) -> metadata_api.TimingMetaResponse:
+    def request_timing_metadata(
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_DAY,
+    ) -> metadata_api.TimingMetaResponse:
         """
         Requests timing metadata from RedVox packets.
         :param start_ts_s: Start epoch of the request.
@@ -317,19 +368,25 @@ class CloudClient:
         if chunk_by_seconds <= 0:
             raise cloud_errors.CloudApiError("chunk_by_seconds must be > 0")
 
-        time_chunks: List[Tuple[int, int]] = chunk_time_range(start_ts_s, end_ts_s, chunk_by_seconds)
-        metadata_resp: metadata_api.TimingMetaResponse = metadata_api.TimingMetaResponse([])
+        time_chunks: List[Tuple[int, int]] = chunk_time_range(
+            start_ts_s, end_ts_s, chunk_by_seconds
+        )
+        metadata_resp: metadata_api.TimingMetaResponse = (
+            metadata_api.TimingMetaResponse([])
+        )
 
         for start_ts, end_ts in time_chunks:
-            timing_req: metadata_api.TimingMetaRequest = metadata_api.TimingMetaRequest(self.auth_token,
-                                                                                        start_ts,
-                                                                                        end_ts,
-                                                                                        station_ids,
-                                                                                        self.secret_token)
-            chunked_resp: metadata_api.TimingMetaResponse = metadata_api.request_timing_metadata(self.api_conf,
-                                                                                                 timing_req,
-                                                                                                 session=self.__session,
-                                                                                                 timeout=self.timeout)
+            timing_req: metadata_api.TimingMetaRequest = metadata_api.TimingMetaRequest(
+                self.auth_token, start_ts, end_ts, station_ids, self.secret_token
+            )
+            chunked_resp: metadata_api.TimingMetaResponse = (
+                metadata_api.request_timing_metadata(
+                    self.api_conf,
+                    timing_req,
+                    session=self.__session,
+                    timeout=self.timeout,
+                )
+            )
 
             if chunked_resp:
                 metadata_resp.items.extend(chunked_resp.items)
@@ -345,20 +402,20 @@ class CloudClient:
         if len(report_id) == 0:
             raise cloud_errors.CloudApiError("report_id must be included")
 
-        report_data_req: data_api.ReportDataReq = data_api.ReportDataReq(self.auth_token,
-                                                                         report_id,
-                                                                         self.secret_token)
-        return data_api.request_report_data(self.api_conf,
-                                            report_data_req,
-                                            session=self.__session,
-                                            timeout=self.timeout)
+        report_data_req: data_api.ReportDataReq = data_api.ReportDataReq(
+            self.auth_token, report_id, self.secret_token
+        )
+        return data_api.request_report_data(
+            self.api_conf, report_data_req, session=self.__session, timeout=self.timeout
+        )
 
-    def request_data_range(self,
-                           start_ts_s: int,
-                           end_ts_s: int,
-                           station_ids: List[str],
-                           req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900) \
-            -> data_api.DataRangeResp:
+    def request_data_range(
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900,
+    ) -> data_api.DataRangeResp:
         """
         Request signed URLs for RedVox packets.
         :param start_ts_s: The start epoch of the window.
@@ -373,25 +430,28 @@ class CloudClient:
         if len(station_ids) == 0:
             raise cloud_errors.CloudApiError("At least one station_id must be provided")
 
-        data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(self.auth_token,
-                                                                      start_ts_s,
-                                                                      end_ts_s,
-                                                                      station_ids,
-                                                                      self.secret_token)
+        data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(
+            self.auth_token, start_ts_s, end_ts_s, station_ids, self.secret_token
+        )
 
-        return data_api.request_range_data(self.api_conf, data_range_req,
-                                           session=self.__session,
-                                           timeout=self.timeout,
-                                           req_type=req_type)
+        return data_api.request_range_data(
+            self.api_conf,
+            data_range_req,
+            session=self.__session,
+            timeout=self.timeout,
+            req_type=req_type,
+        )
 
 
 @contextlib.contextmanager
-def cloud_client(username: str,
-                 password: str,
-                 api_conf: api.ApiConfig = api.ApiConfig.default(),
-                 secret_token: Optional[str] = None,
-                 refresh_token_interval: float = 600.0,
-                 timeout: float = 10.0):
+def cloud_client(
+    username: str,
+    password: str,
+    api_conf: api.ApiConfig = api.ApiConfig.default(),
+    secret_token: Optional[str] = None,
+    refresh_token_interval: float = 600.0,
+    timeout: float = 10.0,
+):
     """
     Function that can be used within a "with" block to automatically handle the closing of open resources.
     Creates and returns a CloudClient that will automatically be closed when exiting the with block or if an error
@@ -407,7 +467,9 @@ def cloud_client(username: str,
     :param timeout: An optional timeout.
     :return: A CloudClient.
     """
-    client: CloudClient = CloudClient(username, password, api_conf, secret_token, refresh_token_interval, timeout)
+    client: CloudClient = CloudClient(
+        username, password, api_conf, secret_token, refresh_token_interval, timeout
+    )
     try:
         yield client
     finally:
