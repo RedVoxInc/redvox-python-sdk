@@ -4,7 +4,7 @@ This module contains classes and enums for working with generic RedVox packet me
 
 from dataclasses import dataclass
 import json
-from typing import Callable, Dict, List, Optional, TypeVar
+from typing import Callable, Dict, List, Optional, TypeVar, Tuple
 
 from dataclasses_json import dataclass_json
 import requests
@@ -20,6 +20,7 @@ class AudioMetadata:
     """
     Metadata associated with audio sensors.
     """
+
     sensor_name: Optional[str] = None
     sample_rate: Optional[float] = None
     first_sample_ts: Optional[int] = None
@@ -36,6 +37,7 @@ class SingleMetadata:
     Metadata associated with sensors that only contain a single dimensional channel of data
         (barometer, light, proximity).
     """
+
     sensor_name: Optional[str] = None
     timestamps_microseconds_utc_count: Optional[int] = None
     payload_count: Optional[int] = None
@@ -54,6 +56,7 @@ class XyzMetadata:
     """
     Metadata for sensors that have 3-dimensions of data (accelerometer, gyroscope, magenetometer)
     """
+
     sensor_name: Optional[str] = None
     timestamps_microseconds_utc_count: Optional[int] = None
     payload_count: Optional[int] = None
@@ -78,6 +81,7 @@ class LocationMetadata:
     """
     Metadata associated with the location sensor.
     """
+
     sensor_name: Optional[str] = None
     timestamps_microseconds_utc_count: Optional[int] = None
     payload_count: Optional[int] = None
@@ -108,6 +112,7 @@ class PacketMetadataResult:
     """
     Metadata associated with RedVox API 900 packets.
     """
+
     api: Optional[int] = None
     station_id: Optional[str] = None
     station_uuid: Optional[str] = None
@@ -150,6 +155,7 @@ class AvailableMetadata:
     """
     Contains definitions for all available metadata that an be requested from the cloud api.
     """
+
     Api: str = "Api"
     StationId: str = "StationId"
     StationUuid: str = "StationUuid"
@@ -233,6 +239,7 @@ class MetadataReq:
     """
     The definition of a metadata request. Fields should include the definitions defined by AvailableMetadata.
     """
+
     auth_token: str
     start_ts_s: int
     end_ts_s: int
@@ -247,6 +254,7 @@ class MetadataResp:
     """
     Response of a metadata request.
     """
+
     metadata: List[PacketMetadataResult]
 
 
@@ -263,17 +271,84 @@ class StationStatusReq:
 @dataclass_json
 @dataclass
 class StationStatus:
+    # API status
     api: str
     sub_api: Optional[str]
+
+    # Recording status
     recording_state: str
+
+    # Timing status
     app_start_timestamp: float
     timestamp: float
     synch_enabled: bool
     synch_latency: Optional[float]
 
+    # Authentication status
+    station_id: str
+    station_uuid: str
+    authenticated_user: str
+    private: bool
+
+    # Audio status
+    sampling_rate: float
+    bit_depth: float
+    sensor_name: str
+    samples_per_packet: int
+
+    # Additional sensor status
+    additional_sensors: List[Tuple[str, str]]
+
+    # Movement status
+    movement_detected: Optional[bool]
+
+    # Location status
+    location_provider: Optional[str]
+    latitude: float
+    longitude: float
+    altitude: float
+    speed: float
+
+    # Station info
+    make: str
+    model: str
+    os: str
+    os_version: str
+    client_version: str
+    # settings: str # TODO
+
+    # Station metrics
+    network_type: Optional[str]
+    power_state: Optional[str]
+    screen_state: Optional[str]
+    cell_service_state: Optional[str]
+    battery: Optional[float]
+    temperature: Optional[float]
+    network_strength: Optional[float]
+
+    # diffs: #
+
+
+@dataclass_json
+@dataclass
+class DataAvailability:
+    station_id: str
+    station_uuid: str
+    start: int
+    end: int
+    total_packets: int
+    expected_packets: int
+
+
+@dataclass_json
+@dataclass
+class StationStatusResp:
+    station_statuses: List[StationStatus]
+    data_availabilities: List[DataAvailability]
+
 
 # pylint: disable=C0103
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def _get(key: str, json_dict: Dict, default: Optional[T] = None) -> Optional[T]:
@@ -288,10 +363,11 @@ class AdditionalMetadata:
     """
     Representation of additional metadata from database.
     """
+
     data_key: Optional[str]
 
     @staticmethod
-    def from_dict(json_dict: Optional[Dict]) -> Optional['AdditionalMetadata']:
+    def from_dict(json_dict: Optional[Dict]) -> Optional["AdditionalMetadata"]:
         """
         Converts JSON into additional metadata.
         :param json_dict: JSON to convert.
@@ -308,12 +384,13 @@ class DbPacket:
     """
     Representation of a packet loaded from the database.
     """
+
     _id: Optional[str]
     metadata: Optional[WrappedRedvoxPacketM]
     additional_metadata: Optional[AdditionalMetadata]
 
     @staticmethod
-    def from_dict(json_dict: Dict) -> 'DbPacket':
+    def from_dict(json_dict: Dict) -> "DbPacket":
         """
         Converts JSON to a DbPacket object.
         :param json_dict: JSON to convert.
@@ -322,7 +399,7 @@ class DbPacket:
         return DbPacket(
             _get("_id", json_dict),
             WrappedRedvoxPacketM.from_json(json.dumps(json_dict["metadata"])),
-            AdditionalMetadata.from_dict(_get("additional_metadata", json_dict))
+            AdditionalMetadata.from_dict(_get("additional_metadata", json_dict)),
         )
 
 
@@ -331,18 +408,17 @@ class MetadataRespM:
     """
     A metadata response for API M.
     """
+
     db_packets: List[DbPacket]
 
     @staticmethod
-    def from_json(json_dicts: Dict) -> 'MetadataRespM':
+    def from_json(json_dicts: Dict) -> "MetadataRespM":
         """
         Converts a JSON dictionary into a response.
         :param json_dicts: Dictionary to use for conversion.
         :return: The converted response.
         """
-        return MetadataRespM(
-            list(map(DbPacket.from_dict, json_dicts["db_packets"]))
-        )
+        return MetadataRespM(list(map(DbPacket.from_dict, json_dicts["db_packets"])))
 
 
 @dataclass_json
@@ -351,6 +427,7 @@ class TimingMetaRequest:
     """
     Request for timing metadata.
     """
+
     auth_token: str
     start_ts_s: int
     end_ts_s: int
@@ -364,6 +441,7 @@ class TimingMeta:
     """
     Timing metadata extracted from an individual packet.
     """
+
     station_id: str
     start_ts_os: float
     start_ts_mach: float
@@ -379,13 +457,16 @@ class TimingMetaResponse:
     """
     Response of obtaining timing metadta.
     """
+
     items: List[TimingMeta]
 
 
-def request_timing_metadata(api_config: ApiConfig,
-                            timing_req: TimingMetaRequest,
-                            session: Optional[requests.Session] = None,
-                            timeout: Optional[float] = None) -> TimingMetaResponse:
+def request_timing_metadata(
+    api_config: ApiConfig,
+    timing_req: TimingMetaRequest,
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = None,
+) -> TimingMetaResponse:
     """
     Retrieve timing metadata.
     :param api_config: An instance of the API configuration.
@@ -402,20 +483,24 @@ def request_timing_metadata(api_config: ApiConfig,
         items: List[TimingMeta] = list(map(TimingMeta.from_dict, json_content))
         return TimingMetaResponse(items)
 
-    res: Optional[TimingMetaResponse] = post_req(api_config,
-                                                 RoutesV1.TIMING_METADATA_REQ,
-                                                 timing_req,
-                                                 handle_resp,
-                                                 session,
-                                                 timeout)
+    res: Optional[TimingMetaResponse] = post_req(
+        api_config,
+        RoutesV1.TIMING_METADATA_REQ,
+        timing_req,
+        handle_resp,
+        session,
+        timeout,
+    )
 
     return res if res else TimingMetaResponse([])
 
 
-def request_metadata(api_config: ApiConfig,
-                     packet_metadata_req: MetadataReq,
-                     session: Optional[requests.Session] = None,
-                     timeout: Optional[float] = None) -> Optional[MetadataResp]:
+def request_metadata(
+    api_config: ApiConfig,
+    packet_metadata_req: MetadataReq,
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = None,
+) -> Optional[MetadataResp]:
     """
     Requests generic metadata from the cloud API.
     :param api_config: An instance of the API config.
@@ -426,19 +511,25 @@ def request_metadata(api_config: ApiConfig,
     """
     # noinspection Mypy
     # pylint: disable=E1101
-    handle_resp: Callable[[requests.Response], MetadataResp] = lambda resp: MetadataResp.from_dict(resp.json())
-    return post_req(api_config,
-                    RoutesV1.METADATA_REQ,
-                    packet_metadata_req,
-                    handle_resp,
-                    session,
-                    timeout)
+    handle_resp: Callable[
+        [requests.Response], MetadataResp
+    ] = lambda resp: MetadataResp.from_dict(resp.json())
+    return post_req(
+        api_config,
+        RoutesV1.METADATA_REQ,
+        packet_metadata_req,
+        handle_resp,
+        session,
+        timeout,
+    )
 
 
-def request_metadata_m(api_config: ApiConfig,
-                       packet_metadata_req: MetadataReq,
-                       session: Optional[requests.Session] = None,
-                       timeout: Optional[float] = None) -> Optional[MetadataRespM]:
+def request_metadata_m(
+    api_config: ApiConfig,
+    packet_metadata_req: MetadataReq,
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = None,
+) -> Optional[MetadataRespM]:
     """
     Requests generic metadata from the cloud API.
     :param api_config: An instance of the API config.
@@ -448,10 +539,34 @@ def request_metadata_m(api_config: ApiConfig,
     :return: A metadata response on successful call or None if there is an error.
     """
     # noinspection Mypy
-    handle_resp: Callable[[requests.Response], MetadataRespM] = lambda resp: MetadataRespM.from_json(resp.json())
-    return post_req(api_config,
-                    RoutesV1.METADATA_REQ_M,
-                    packet_metadata_req,
-                    handle_resp,
-                    session,
-                    timeout)
+    handle_resp: Callable[
+        [requests.Response], MetadataRespM
+    ] = lambda resp: MetadataRespM.from_json(resp.json())
+    return post_req(
+        api_config,
+        RoutesV1.METADATA_REQ_M,
+        packet_metadata_req,
+        handle_resp,
+        session,
+        timeout,
+    )
+
+
+def request_station_statuses(
+    api_config: ApiConfig,
+    station_status_req: StationStatusReq,
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = None,
+) -> Optional[MetadataRespM]:
+    # noinspection Mypy
+    handle_resp: Callable[
+        [requests.Response], StationStatusResp
+    ] = lambda resp: StationStatusResp.from_json(resp.json())
+    return post_req(
+        api_config,
+        RoutesV1.STATION_STATUS_TIMELINE,
+        station_status_req,
+        handle_resp,
+        session,
+        timeout,
+    )
