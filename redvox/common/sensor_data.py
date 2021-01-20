@@ -52,20 +52,26 @@ class SensorData:
         sample_interval_s: float, mean duration in seconds between samples, default np.nan, usually 1/sample_rate
         sample_interval_std_s: float, standard deviation in seconds between samples, default np.nan
         is_sample_rate_fixed: bool, True if sample rate is constant, default False
+        timestamps_altered: bool, True if timestamps in the sensor have been altered from their original values
+                            default False
     """
 
     def __init__(self, sensor_name: str, sensor_type: SensorType, sensor_data: pd.DataFrame,
                  sample_rate: float = np.nan, sample_interval_s: float = np.nan,
-                 sample_interval_std_s: float = np.nan, is_sample_rate_fixed: bool = False):
+                 sample_interval_std_s: float = np.nan, is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False):
         """
         initialize the sensor data with params
-        :param sensor_name: str, name of the sensor
-        :param sensor_type: SensorType, enumerated type of the sensor
-        :param sensor_data: dataframe with the timestamps and sensor data
-        :param sample_rate: float, sample rate in hz of the data
-        :param sample_interval_s: float, sample interval in seconds of the data
-        :param sample_interval_std_s: float, std dev of sample interval in seconds of the data
-        :param is_sample_rate_fixed: bool, if True, sample rate is constant for all data, default False
+        :param sensor_name: name of the sensor
+        :param sensor_type: enumerated type of the sensor
+        :param sensor_data: dataframe with the timestamps and sensor data; first column is always the timestamps,
+                            the other columns are the data channels in the sensor
+        :param sample_rate: sample rate in hz of the data
+        :param sample_interval_s: sample interval in seconds of the data
+        :param sample_interval_std_s: std dev of sample interval in seconds of the data
+        :param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
+        :param are_timestamps_altered: if True, timestamps in the sensor have been altered from their
+                                        original values, default False
         """
         if "timestamps" not in sensor_data.columns:
             raise AttributeError('SensorData requires the data frame to contain a column titled "timestamps"')
@@ -76,6 +82,7 @@ class SensorData:
         self.sample_interval_s: float = sample_interval_s
         self.sample_interval_std_s: float = sample_interval_std_s
         self.is_sample_rate_fixed: bool = is_sample_rate_fixed
+        self.timestamps_altered: bool = are_timestamps_altered
         self.sort_by_data_timestamps()
         # todo: store the non-consecutive timestamp indices (idk how to find those)
 
@@ -110,7 +117,7 @@ class SensorData:
         append the new data to the dataframe, update the sensor's stats on demand if it doesn't have a fixed
             sample rate, then return the updated SensorData object
         :param new_data: Dataframe containing data to add to the sensor's dataframe
-        :param recalculate_stats: bool, if True and the sensor does not have a fixed sample rate, sort the timestamps,
+        :param recalculate_stats: if True and the sensor does not have a fixed sample rate, sort the timestamps,
                                     recalculate the sample rate, interval, and interval std dev, default False
         :return: the updated SensorData object
         """
@@ -147,29 +154,25 @@ class SensorData:
 
     def data_timestamps(self) -> np.array:
         """
-        get the timestamps from the dataframe
         :return: the timestamps as a numpy array
         """
         return self.data_df["timestamps"].to_numpy(dtype=np.float)
 
     def first_data_timestamp(self) -> float:
         """
-        get the first timestamp of the data
         :return: timestamp of the first data point
         """
         return self.data_df["timestamps"].iloc[0]
 
     def last_data_timestamp(self) -> float:
         """
-        get the last timestamp of the data
         :return: timestamp of the last data point
         """
         return self.data_df["timestamps"].iloc[-1]
 
     def num_samples(self) -> int:
         """
-        get the number of samples in the sensor's dataframe
-        :return: the number of rows in the dataframe
+        :return: the number of rows (samples) in the dataframe
         """
         return self.data_df.shape[0]
 
@@ -184,8 +187,7 @@ class SensorData:
 
     def data_channels(self) -> List[str]:
         """
-        get the names of the data channels of the sensor
-        :return: a list of the names of the columns of the dataframe
+        :return: a list of the names of the columns (data channels) of the dataframe
         """
         return self.data_df.columns.to_list()
 
@@ -196,6 +198,7 @@ class SensorData:
         """
         new_timestamps = self.data_timestamps() + time_delta
         self.data_df["timestamps"] = new_timestamps
+        self.timestamps_altered = True
 
     def sort_by_data_timestamps(self, ascending: bool = True):
         """
@@ -280,7 +283,7 @@ def load_apim_audio(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData
         timestamps = calc_evenly_sampled_timestamps(audio.get_first_sample_timestamp(),
                                                     audio.get_num_samples(), sample_rate_hz)
         return SensorData(audio.get_sensor_description(), SensorType.AUDIO,
-                          pd.DataFrame(np.transpose([timestamps, data_for_df]), columns=["timestamps", "microphone"]),
+                          pd.DataFrame(np.transpose([timestamps, data_for_df]), columns=["timestamps", "microphone"]), 
                           sample_rate_hz, 1 / sample_rate_hz, 0.0, True)
     return None
 
@@ -296,6 +299,8 @@ def load_apim_audio_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
     description = None
     sample_rate_hz = None
     if len(wrapped_packets) > 0:
+        if len(wrapped_packets) == 1:
+            return load_apim_audio(wrapped_packets[0])
         for wrapped_packet in wrapped_packets:
             audio = wrapped_packet.get_sensors().get_audio()
             if audio and wrapped_packet.get_sensors().validate_audio():
@@ -342,6 +347,8 @@ def load_apim_compressed_audio_from_list(wrapped_packets: List[WrappedRedvoxPack
     description = None
     sample_rate_hz = None
     if len(wrapped_packets) > 0:
+        if len(wrapped_packets) == 1:
+            return load_apim_compressed_audio(wrapped_packets[0])
         for wrapped_packet in wrapped_packets:
             comp_audio = wrapped_packet.get_sensors().get_compressed_audio()
             if comp_audio and wrapped_packet.get_sensors().validate_compressed_audio():
@@ -353,7 +360,7 @@ def load_apim_compressed_audio_from_list(wrapped_packets: List[WrappedRedvoxPack
                 all_data[1].append(comp_audio.get_audio_bytes())
                 all_data[2].append(comp_audio.get_audio_codec())
         if len(all_data[0]) > 0:
-            data_df = pd.DataFrame(np.transpose(np.array(all_data)),
+            data_df = pd.DataFrame(np.transpose(all_data),
                                    columns=["timestamps", "compressed_audio", "audio_codec"])
             return SensorData(description, SensorType.COMPRESSED_AUDIO, data_df,
                               sample_rate_hz, 1 / sample_rate_hz, 0.0, True).organize_and_update_stats()
@@ -387,6 +394,8 @@ def load_apim_image_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
     all_data = [[], [], []]
     description = None
     if len(wrapped_packets) > 0:
+        if len(wrapped_packets) == 1:
+            return load_apim_image(wrapped_packets[0])
         for wrapped_packet in wrapped_packets:
             image = wrapped_packet.get_sensors().get_image()
             if image and wrapped_packet.get_sensors().validate_image():
@@ -459,51 +468,14 @@ def load_apim_location_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) ->
     :param wrapped_packets: packets with data to load
     :return: location sensor data if it exists, None otherwise
     """
-    all_data = [[], [], [], [], [], [], [], [], [], [], []]
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            loc = wrapped_packet.get_sensors().get_location()
-            if loc and wrapped_packet.get_sensors().validate_location():
-                if not description:
-                    description = loc.get_sensor_description()
-                if loc.is_only_best_values():
-                    if loc.get_last_best_location():
-                        best_loc = loc.get_last_best_location()
-                    else:
-                        best_loc = loc.get_overall_best_location()
-                    all_data[0].append(best_loc.get_latitude_longitude_timestamp().get_mach())
-                    all_data[1].append(best_loc.get_latitude())
-                    all_data[2].append(best_loc.get_longitude())
-                    all_data[3].append(best_loc.get_altitude())
-                    all_data[4].append(best_loc.get_speed())
-                    all_data[5].append(best_loc.get_bearing())
-                    all_data[6].append(best_loc.get_horizontal_accuracy())
-                    all_data[7].append(best_loc.get_vertical_accuracy())
-                    all_data[8].append(best_loc.get_speed_accuracy())
-                    all_data[9].append(best_loc.get_bearing_accuracy())
-                    all_data[10].append(best_loc.get_location_provider())
-                else:
-                    timestamps = loc.get_timestamps().get_timestamps()
-                    if len(timestamps) > 0:
-                        all_data[0].extend(timestamps)
-                        all_data[1].extend(loc.get_latitude_samples().get_values())
-                        all_data[2].extend(loc.get_longitude_samples().get_values())
-                        all_data[3].extend(loc.get_altitude_samples().get_values())
-                        all_data[4].extend(loc.get_speed_samples().get_values())
-                        all_data[5].extend(loc.get_bearing_samples().get_values())
-                        all_data[6].extend(loc.get_horizontal_accuracy_samples().get_values())
-                        all_data[7].extend(loc.get_vertical_accuracy_samples().get_values())
-                        all_data[8].extend(loc.get_speed_samples().get_values())
-                        all_data[9].extend(loc.get_bearing_accuracy_samples().get_values())
-                        all_data[10].extend(loc.get_location_providers().get_values())
-        if len(all_data[0]) > 0:
-            columns = ["timestamps", "latitude", "longitude", "altitude", "speed", "bearing",
-                       "horizontal_accuracy", "vertical_accuracy", "speed_accuracy", "bearing_accuracy",
-                       "location_provider"]
-            data_df = pd.DataFrame(np.transpose(np.array(all_data)), columns=columns)
-            return SensorData(description, SensorType.LOCATION, data_df,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_location(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_location(wrapped_packet)
+            result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -994,7 +966,7 @@ def load_apim_health_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> O
                 all_data[8].extend(metrics.get_available_disk().get_values())
                 all_data[9].extend(metrics.get_cell_service_state().get_values())
         if len(all_data[0]) > 0:
-            data_df = pd.DataFrame(np.transpose(all_data),
+            data_df = pd.DataFrame(all_data,
                                    columns=["timestamps", "battery_charge_remaining", "battery_current_strength",
                                             "internal_temp_c", "network_type", "network_strength",
                                             "power_state", "avail_ram", "avail_disk", "cell_service"])

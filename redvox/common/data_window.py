@@ -33,11 +33,11 @@ class DataWindow:
         input_directory: string, directory that contains the files to read data from.  REQUIRED
         structured_layout: bool, if True, the input_directory contains specially named and organized
                             directories of data.  Default True
-        station_ids: optional list of strings, representing the station ids to filter on.
+        station_ids: optional set of strings, representing the station ids to filter on.
                         If empty or None, get any ids found in the input directory.  Default None
-        extensions: optional list of strings, representing file extensions to filter on.
+        extensions: optional set of strings, representing file extensions to filter on.
                         If None, gets as much data as it can in the input directory.  Default None
-        api_versions: optional list of ApiVersions, representing api versions to filter on.
+        api_versions: optional set of ApiVersions, representing api versions to filter on.
                         If None, get as much data as it can in the input directory.  Default None
         start_datetime: optional datetime, start datetime of the window.
                         If None, uses the first timestamp of the filtered data.  Default None
@@ -75,11 +75,11 @@ class DataWindow:
                                 Default DEFAULT_END_BUFFER_TD
         :param gap_time_s: the minimum amount of seconds between data points that would indicate a gap.
                             Default DEFAULT_GAP_TIME_S
-        :param station_ids: optional list of station ids to filter on. If empty or None, get any ids found in the
+        :param station_ids: optional set of station ids to filter on. If empty or None, get any ids found in the
                             input directory.  Default None
-        :param extensions: optional list of file extensions to filter on.  If None, get all data in the input directory.
+        :param extensions: optional set of file extensions to filter on.  If None, get all data in the input directory.
                             Default None
-        :param api_versions: optional list of api versions to filter on.  If None, get all data in the input directory.
+        :param api_versions: optional set of api versions to filter on.  If None, get all data in the input directory.
                                 Default None
         :param apply_correction: if True, update the timestamps in the data based on best station offset.
                                     Default True
@@ -92,19 +92,11 @@ class DataWindow:
         self.start_buffer_td: timedelta = start_buffer_td
         self.end_buffer_td: timedelta = end_buffer_td
         self.gap_time_s: float = gap_time_s
-        self.station_ids: Optional[List[str]] = station_ids
-        self.extensions: Optional[List[str]] = extensions
-        self.api_versions: Optional[List[io.ApiVersion]] = api_versions
+        self.station_ids: Optional[Set[str]] = station_ids
+        self.extensions: Optional[Set[str]] = extensions
+        self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
         self.debug: bool = debug
-        read_result = ApiReader(self.input_directory, self.structured_layout, self.start_datetime, self.end_datetime,
-                                self.start_buffer_td, self.end_buffer_td, set(self.station_ids), set(self.extensions),
-                                set(self.api_versions), self.debug)
-        self.stations: Dict[str, Station] = {s.id: s for s in read_result.get_stations()}
-        if self.station_ids is None or len(self.station_ids) == 0:
-            self.station_ids = read_result.index_summary.station_ids()
-        else:
-            self.check_valid_ids()
         self.sensors: Dict[str, Dict[SensorType, SensorData]] = {}
         self.create_data_window()
 
@@ -115,28 +107,40 @@ class DataWindow:
         """
         return self.start_datetime is not None or self.end_datetime is not None
 
-    def get_station(self, station: str) -> Optional[Station]:
+    def get_sensor_from_station(self, sensor: SensorType, station: str) -> Optional[SensorData]:
         """
-        Returns a single station from the result, or None otherwise
+        Returns a single sensor from a single station, or None otherwise
+        :param sensor: the sensor type to get
         :param station: the station id to search for
-        :return: A single station based on the id given or None if the station doesn't exist
+        :return: A single sensor from the station specified, or None if station or sensor cannot be found
         """
-        if station in self.stations.keys:
-            return self.stations[station]
+        if station in self.sensors.keys():
+            if sensor in self.sensors[station].keys():
+                return self.sensors[station][sensor]
         return None
 
-    def get_all_stations(self) -> List[Station]:
+    def get_all_sensors_from_station(self, station: str) -> Optional[Dict[SensorType, SensorData]]:
         """
-        :return: A list of all stations in the object
+        Returns all sensors from a single station or None otherwise
+        :param station: the station id to search for
+        :return: All sensors from a station based on the id given or None if the station doesn't exist
         """
-        return list(self.stations.values())
+        if station in self.sensors.keys():
+            return self.sensors[station]
+        return None
+
+    def get_all_sensors_from_all_stations(self) -> Dict[str, Dict[SensorType, SensorData]]:
+        """
+        :return: A dictionary of all sensors in all stations
+        """
+        return self.sensors
 
     def check_valid_ids(self):
         """
         searches the data window station_ids for any ids not in the data collected
         """
         for ids in self.station_ids:
-            if ids not in self.stations.keys() and self.debug:
+            if ids not in self.sensors.keys() and self.debug:
                 print(f"WARNING: Requested {ids} but there is no data to read for that station")
 
     def create_window_in_sensors(self, station: Station, start_date_timestamp: float, end_date_timestamp: float):
@@ -150,7 +154,7 @@ class DataWindow:
         gap_time_micros = dtu.seconds_to_microseconds(self.gap_time_s)
         for sensor_type, sensor in station.get_all_sensors():
             if self.apply_correction:
-                sensor.data_df["timestamps"].add(station.timesync_analysis.get_best_offset())
+                sensor.update_data_timestamps(station.timesync_analysis.get_best_offset())
             # calculate the sensor's sample interval, std sample interval and sample rate of all data
             sensor.organize_and_update_stats()
             # get only the timestamps between the start and end timestamps
@@ -176,18 +180,24 @@ class DataWindow:
                                                    gap_time_micros, DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS)
                         sensor.data_df = pad_data(start_date_timestamp, end_date_timestamp, sensor.data_df,
                                                   sample_interval_micros)
-                self.sensors[station.id] = {sensor_type: sensor}
+                self.sensors[station.id][sensor_type] = sensor
             elif self.debug:
                 print(f"WARNING: Data window for {station.id} {sensor_type.name} sensor has no data points!")
 
-    # todo: keep this after transition to api_m format
     def create_data_window(self):
         """
         updates the data window to contain only the data within the window parameters
         stations without audio or any data outside the window are removed
         """
         ids_to_pop = []
-        for station in self.stations.values():
+        read_result = ApiReader(self.input_directory, self.structured_layout, self.start_datetime, self.end_datetime,
+                                self.start_buffer_td, self.end_buffer_td, self.station_ids, self.extensions,
+                                self.api_versions, self.debug)
+        stations: Dict[str, Station] = {s.id: s for s in read_result.get_stations()}
+        if self.station_ids is None or len(self.station_ids) == 0:
+            self.station_ids = read_result.index_summary.station_ids()
+        for station in stations.values():
+            self.sensors[station.id] = {}
             # set the window start and end if they were specified, otherwise use the bounds of the data
             if self.start_datetime:
                 start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
@@ -200,7 +210,8 @@ class DataWindow:
             # TRUNCATE!
             self.create_window_in_sensors(station, start_datetime, end_datetime)
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
-        # remove any stations that don't have audio data
+        # check for stations without data, then remove any stations that don't have audio data
+        self.check_valid_ids()
         for ids in ids_to_pop:
             self.station_ids.remove(ids)
 
@@ -330,62 +341,3 @@ def create_dataless_timestamps_df(start_timestamp: float, sample_interval_micros
         else:
             empty_df[column_index] = np.nan
     return empty_df
-
-
-    # def packet_gap_detector(self, gap_time_s: float):
-    #     """
-    #     Uses the station's packet and audio data to detect gaps at least gap_time_s seconds long.
-    #     updates the station's packet metadata if there are no gaps
-    #     :param gap_time_s: float, minimum gap time in seconds
-    #     """
-    #     for packet in range(len(self.packet_data) - 1):
-    #         data_start = self.packet_data[packet].data_start_timestamp
-    #         data_num_samples = self.packet_data[packet].num_audio_samples
-    #         next_packet_start_index = \
-    #             self.audio_sensor().data_df.query("timestamps >= @data_start").first_valid_index() + data_num_samples
-    #         data_end = self.audio_sensor().data_timestamps()[next_packet_start_index - 1]
-    #         next_packet_start = self.audio_sensor().data_timestamps()[next_packet_start_index]
-    #         if next_packet_start - data_end < dtu.seconds_to_microseconds(gap_time_s):
-    #             self.packet_data[packet].micros_to_next_packet = \
-    #                 (next_packet_start - data_start) / data_num_samples
-    #
-    # def update_timestamps(self):
-    #     """
-    #     updates the timestamps in all data packets using the station_best_offset of the station_timing
-    #     """
-    #     if self.timing_is_corrected:
-    #         print("WARNING: Timestamps already corrected!")
-    #     else:
-    #         delta = self.data.station_best_offset
-    #         for sensor in self.station_data.values():
-    #             sensor.update_data_timestamps(delta)
-    #         for packet in self.packet_data:
-    #             packet.data_start_timestamp += delta
-    #             packet.data_end_timestamp += delta
-    #             if packet.best_location:
-    #                 packet.best_location.update_timestamps(delta)
-    #         self.station_metadata.timing_data.station_first_data_timestamp += delta
-    #         self.station_metadata.location_data.update_timestamps(delta)
-    #     self.timing_is_corrected = True
-
-    # def revert_timestamps(self):
-    #     """
-    #     reverts the timestamps in all SensorData objects using the station_best_offset of the station_timing
-    #     """
-    #     if self.station_metadata.station_timing_is_corrected:
-    #         if not self.station_metadata.timing_data:
-    #             print("WARNING: Station does not have timing data, assuming existing values are the correct ones!")
-    #         else:
-    #             delta = self.station_metadata.timing_data.station_best_offset
-    #             for sensor in self.station_data.values():
-    #                 sensor.update_data_timestamps(-delta)
-    #             for packet in self.packet_data:
-    #                 packet.data_start_timestamp -= delta
-    #                 packet.data_end_timestamp -= delta
-    #                 if packet.best_location:
-    #                     packet.best_location.update_timestamps(-delta)
-    #             self.station_metadata.timing_data.station_first_data_timestamp -= delta
-    #             self.station_metadata.location_data.update_timestamps(-delta)
-    #             self.station_metadata.station_timing_is_corrected = False
-    #     else:
-    #         print("WARNING: Cannot revert timestamps that are not corrected!")

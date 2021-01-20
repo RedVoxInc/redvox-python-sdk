@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 
 from redvox.common import date_time_utils as dtu
-from redvox.common.sensor_data import SensorData
+from redvox.common.sensor_data import SensorData, SensorType
 
 
 class SensorDataTest(unittest.TestCase):
@@ -15,14 +15,16 @@ class SensorDataTest(unittest.TestCase):
         timestamps = [120, 60, 80, 100, 40, 140, 20, 160, 180]
         sensor_data = [-20, 15, 50, -5, 20, -15, 10, 74, 111]
         test_data = [75, 12, 86, 22, 200, 52, 99, 188, 121]
-        self.even_sensor = SensorData("test", pd.DataFrame(np.transpose([timestamps, sensor_data, test_data]),
-                                                           columns=["timestamps", "microphone", "test_data"]),
+        self.even_sensor = SensorData("test", SensorType.AUDIO,
+                                      pd.DataFrame(np.transpose([timestamps, sensor_data, test_data]),
+                                                   columns=["timestamps", "microphone", "test_data"]),
                                       1 / dtu.microseconds_to_seconds(20), dtu.microseconds_to_seconds(20), 0, True)
         timestamps = [14, 25, 31, 65, 74, 83, 97, 111, 120]
         sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
         sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
-        self.uneven_sensor = SensorData("test", pd.DataFrame(np.transpose([timestamps, sensor_data, test_data]),
-                                                             columns=["timestamps", "barometer", "test_data"]),
+        self.uneven_sensor = SensorData("test", SensorType.PRESSURE,
+                                        pd.DataFrame(np.transpose([timestamps, sensor_data, test_data]),
+                                                     columns=["timestamps", "barometer", "test_data"]),
                                         1 / sample_interval, sample_interval, sample_interval_std, False)
 
     def test_name(self):
@@ -132,8 +134,9 @@ class SensorDataTest(unittest.TestCase):
         test_data = [75, 12, 86, 22, 200, 52, 99, 188, 121]
         sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
         sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
-        uneven_sensor = SensorData("test", pd.DataFrame(np.transpose([timestamps, test_data]),
-                                                        columns=["timestamps", "test_data"]),
+        uneven_sensor = SensorData("test", SensorType.UNKNOWN_SENSOR,
+                                   pd.DataFrame(np.transpose([timestamps, test_data]),
+                                                columns=["timestamps", "test_data"]),
                                    1 / sample_interval, sample_interval, sample_interval_std, False)
         uneven_sensor.organize_and_update_stats()
         self.assertAlmostEqual(uneven_sensor.sample_interval_s, .000013, 6)

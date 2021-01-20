@@ -87,6 +87,8 @@ class ApiReader:
         :return: dictionary of id: list of WrappedRedvoxPacketM, converted from API 900 if necessary
         """
         result: Dict[str, List[WrappedRedvoxPacketM]] = {}
+        for station_id in self.index_summary.station_ids():
+            result[station_id] = []
         for path in self.files_index.entries:
             if path.extension == ".rdvxz":
                 data = api900_io.wrap(api900_io.read_file(path.full_path, True))
@@ -122,7 +124,7 @@ class ApiReader:
         :return: a list of all stations represented by the data packets
         """
         result = []
-        for station_id, packets in self.read_files():
+        for packets in self.read_files().values():
             result.append(Station(packets))
         return result
 
