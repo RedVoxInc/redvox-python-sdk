@@ -2,8 +2,10 @@
 tests for data window objects
 """
 import unittest
+
 import numpy as np
 import pandas as pd
+
 import redvox.tests as tests
 import redvox.common.date_time_utils as dt
 from redvox.common import data_window as dw
@@ -14,20 +16,20 @@ class DataWindowTest(unittest.TestCase):
         self.input_dir = tests.TEST_DATA_DIR
 
     def test_data_window(self):
-        datawindow = dw.DataWindow(input_dir=self.input_dir, station_ids={"1637650010", "0000000001"},
-                                   structured_layout=False)
-        self.assertEqual(len(datawindow.stations.station_id_uuid_to_stations), 2)
-        test_station = datawindow.stations.get_station("1637650010")
-        self.assertTrue(test_station.has_audio_sensor())
-        self.assertTrue(test_station.has_accelerometer_sensor())
-        self.assertTrue(test_station.has_magnetometer_sensor())
-        self.assertTrue(test_station.has_barometer_sensor())
-        self.assertTrue(test_station.has_location_sensor())
-        test_station = datawindow.stations.get_station("0000000001")
-        self.assertTrue(test_station.has_audio_sensor())
-        self.assertEqual(test_station.audio_sensor().num_samples(), 720000)
-        self.assertTrue(test_station.has_location_sensor())
-        self.assertEqual(test_station.location_sensor().num_samples(), 4)
+        datawindow = dw.DataWindow(input_dir=self.input_dir, structured_layout=False,
+                                   station_ids=["1637650010", "0000000001"])
+        self.assertEqual(len(datawindow.sensors), 2)
+        self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.AUDIO, "1637650010"))
+        self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.ACCELEROMETER, "1637650010"))
+        self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.MAGNETOMETER, "1637650010"))
+        self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.PRESSURE, "1637650010"))
+        self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.LOCATION, "1637650010"))
+        test_sensor = datawindow.get_sensor_from_station(dw.SensorType.AUDIO, "0000000001")
+        self.assertIsNotNone(test_sensor)
+        self.assertEqual(test_sensor.num_samples(), 720000)
+        test_sensor = datawindow.get_sensor_from_station(dw.SensorType.LOCATION, "0000000001")
+        self.assertIsNotNone(test_sensor)
+        self.assertEqual(test_sensor.num_samples(), 4)
 
     def test_dw_with_start_end(self):
         dw_with_start_end = dw.DataWindow(input_dir=self.input_dir, station_ids={"1637650010", "0000000001"},

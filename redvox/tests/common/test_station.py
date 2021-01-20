@@ -22,20 +22,21 @@ class StationTest(unittest.TestCase):
         reader = api_reader.ApiReader(os.path.join(tests.APIX_READER_TEST_DATA_DIR, "api1000"), True,
                                       station_ids={"1637610022"})
         cls.apim_station2 = reader.get_station_by_id("1637610022")
-        # cls.api900_station = load_sd.load_station_from_api900_file(os.path.join(tests.TEST_DATA_DIR,
-        #                                                                          "1637650010_1531343782220.rdvxz"))
-        # cls.apim_station = load_sd.load_station_from_apim_file(os.path.join(tests.TEST_DATA_DIR,
-        #                                                                      "0000000001_1597189452945991.rdvxm"))
+        reader = api_reader.ApiReader(tests.TEST_DATA_DIR, False, extensions={".rdvxz"},
+                                      station_ids={"1637650010"})
+        cls.api900_station = reader.get_station_by_id("1637650010")
         # cls.mseed_data = load_sd.load_from_mseed(os.path.join(tests.TEST_DATA_DIR, "out.mseed"))
 
     def test_api900_station(self):
-        self.assertEqual(len(self.api900_station.packet_data), 1)
-        self.assertEqual(len(self.api900_station.station_data), 6)
-        self.assertTrue(np.isnan(self.api900_station.packet_data[0].timesync.best_latency))
-        self.assertEqual(self.api900_station.station_metadata.timing_data.station_best_latency, 70278.0)
-        self.assertEqual(self.api900_station.audio_sensor().sample_rate, 80)
-        self.assertTrue(self.api900_station.audio_sensor().is_sample_rate_fixed)
-        self.assertEqual(self.api900_station.location_sensor().data_df.shape, (2, 11))
+        self.assertEqual(len(self.api900_station.data), 1)
+        self.assertEqual(self.api900_station.timesync_analysis.get_best_latency(), 70278.0)
+        self.assertTrue(self.api900_station.has_audio_sensor())
+        audio_sensor = self.api900_station.audio_sensor()
+        self.assertEqual(audio_sensor.sample_rate, 80)
+        self.assertTrue(audio_sensor.is_sample_rate_fixed)
+        self.assertTrue(self.api900_station.has_location_sensor())
+        loc_sensor = self.api900_station.location_sensor()
+        self.assertEqual(loc_sensor.data_df.shape, (2, 11))
 
     def test_apim_station(self):
         self.assertEqual(len(self.apim_station.data), 1)
@@ -96,7 +97,7 @@ class StationTest(unittest.TestCase):
 
     def test_mseed_read(self):
         self.assertTrue(self.mseed_data.check_for_id("UHMB3_00"))
-        mb3_station = self.mseed_data.get_station("UHMB3_00")
+        mb3_station = self.mseed_data.get_all_sensors_from_station("UHMB3_00")
         self.assertEqual(mb3_station.audio_sensor().num_samples(), 6001)
         self.assertEqual(mb3_station.station_metadata.station_network_name, "UH")
         self.assertEqual(mb3_station.station_metadata.station_name, "MB3")

@@ -157,7 +157,7 @@ class TimeSyncAnalysis:
         self.latency_stats = sh.StatsContainer("latency")
         self.offset_stats = sh.StatsContainer("offset")
         self.timesync_data: List[TimeSyncData] = []
-        if packets is not None:
+        if packets is not None and len(packets) > 0:
             for packet in packets:
                 self.timesync_data.append(
                     TimeSyncData(self.station_id, self.sample_rate_hz,
@@ -168,7 +168,7 @@ class TimeSyncAnalysis:
                                  packet.get_timing_information().get_synch_exchange_array(),
                                  packet.get_timing_information().get_best_latency(),
                                  packet.get_timing_information().get_best_offset()))
-        self.evaluate_and_validate_data()
+            self.evaluate_and_validate_data()
 
     def evaluate_and_validate_data(self):
         """
@@ -185,9 +185,6 @@ class TimeSyncAnalysis:
         """
         if len(self.timesync_data) < 1:
             raise ValueError("Nothing to calculate stats; length of timesync data is less than 1")
-        # reset the stats containers
-        self.latency_stats = sh.StatsContainer("latency")
-        self.offset_stats = sh.StatsContainer("offset")
         for index in range(len(self.timesync_data)):
             # add the stats of the latency
             self.latency_stats.add(self.timesync_data[index].mean_latency, self.timesync_data[index].latency_std,
