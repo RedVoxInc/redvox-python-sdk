@@ -2,6 +2,7 @@
 tests for station
 """
 import unittest
+import os.path
 import numpy as np
 import pandas as pd
 
@@ -18,6 +19,9 @@ class StationTest(unittest.TestCase):
         reader = api_reader.ApiReader(tests.APIX_READER_TEST_DATA_DIR, False, extensions={".rdvxm"},
                                       station_ids={"0000000001"})
         cls.apim_station = reader.get_station_by_id("0000000001")
+        reader = api_reader.ApiReader(os.path.join(tests.APIX_READER_TEST_DATA_DIR, "api1000"), True,
+                                      station_ids={"1637610022"})
+        cls.apim_station2 = reader.get_station_by_id("1637610022")
         # cls.api900_station = load_sd.load_station_from_api900_file(os.path.join(tests.TEST_DATA_DIR,
         #                                                                          "1637650010_1531343782220.rdvxz"))
         # cls.apim_station = load_sd.load_station_from_apim_file(os.path.join(tests.TEST_DATA_DIR,
@@ -44,6 +48,36 @@ class StationTest(unittest.TestCase):
         loc_sensor = self.apim_station.location_sensor()
         self.assertIsNotNone(loc_sensor)
         self.assertEqual(loc_sensor.data_df.shape, (1, 11))
+        accel_sensor = self.apim_station.accelerometer_sensor()
+        self.assertIsNone(accel_sensor)
+        gyro_sensor = self.apim_station.gyroscope_sensor()
+        self.assertIsNone(gyro_sensor)
+        mag_sensor = self.apim_station.magnetometer_sensor()
+        self.assertIsNone(mag_sensor)
+        pressure_sensor = self.apim_station.pressure_sensor()
+        self.assertIsNone(pressure_sensor)
+        image_sensor = self.apim_station.image_sensor()
+        self.assertIsNone(image_sensor)
+        amb_temp_sensor = self.apim_station.ambient_temperature_sensor()
+        self.assertIsNone(amb_temp_sensor)
+        health_sensor = self.apim_station.health_sensor()
+        self.assertIsNone(health_sensor)
+
+    def test_apim_station2(self):
+        loc_sensor = self.apim_station2.location_sensor()
+        self.assertIsNotNone(loc_sensor)
+        self.assertEqual(loc_sensor.data_df.shape, (3, 11))
+        self.assertEqual(len(self.apim_station2.data), 3)
+        pressure_sensor = self.apim_station2.pressure_sensor()
+        self.assertIsNotNone(pressure_sensor)
+        self.assertEqual(pressure_sensor.data_df.shape, (3072, 2))
+        self.assertAlmostEqual(pressure_sensor.get_data_channel("pressure")[0], 101.759, 3)
+        image_sensor = self.apim_station2.image_sensor()
+        self.assertIsNone(image_sensor)
+        health_sensor = self.apim_station2.health_sensor()
+        self.assertIsNotNone(health_sensor)
+        self.assertEqual(len(health_sensor.data_channels()), 10)
+        self.assertEqual(health_sensor.get_data_channel("battery_charge_remaining")[0], 100)
 
     def test_create_read_update_delete_audio_sensor(self):
         self.assertTrue(self.api900_station.has_audio_sensor())
@@ -53,8 +87,8 @@ class StationTest(unittest.TestCase):
         self.assertTrue(self.api900_station.has_audio_sensor())
         self.assertEqual(self.api900_station.audio_sensor().sample_rate, 1)
         self.assertEqual(self.api900_station.audio_sensor().num_samples(), 4)
-        self.assertIsInstance(self.api900_station.audio_sensor().get_channel("microphone"), np.ndarray)
-        self.assertRaises(ValueError, self.api900_station.audio_sensor().get_channel, "do_not_exist")
+        self.assertIsInstance(self.api900_station.audio_sensor().get_data_channel("microphone"), np.ndarray)
+        self.assertRaises(ValueError, self.api900_station.audio_sensor().get_data_channel, "do_not_exist")
         self.assertEqual(self.api900_station.audio_sensor().first_data_timestamp(), 10)
         self.assertEqual(self.api900_station.audio_sensor().last_data_timestamp(), 40)
         self.api900_station.set_audio_sensor(None)

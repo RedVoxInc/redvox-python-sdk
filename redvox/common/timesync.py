@@ -1,5 +1,6 @@
 """
-Modules for extracting time synchronization statistics for API 900 data.
+Modules for extracting time synchronization statistics for API 900 and 1000 data.
+Currently uses API M packets due to versatility of the packet.
 Also includes functions for correcting time arrays.
 ALL timestamps in microseconds unless otherwise stated
 """
@@ -10,9 +11,8 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common import stats_helper as sh, tri_message_stats as tms, date_time_utils as dt
-from redvox.common.station import Station
-from redvox.common.station_utils import DataPacket, StationMetadata
 
 
 class TimeSyncData:
@@ -23,10 +23,10 @@ class TimeSyncData:
         station_id: str, id of station, default empty string
         station_start_timestamp: float, timestamp of when the station was started, default np.nan
         sample_rate_hz: float, sample rate of audio sensor in Hz, default np.nan
-        packet_start_time: float, timestamp of when data started recording, default np.nan
-        packet_end_time: float, timestamp of when data stopped recording, default np.nan
+        packet_start_timestamp: float, timestamp of when data started recording, default np.nan
+        packet_end_timestamp: float, timestamp of when data stopped recording, default np.nan
         packet_duration: float, length of packet in microseconds, default 0.0
-        server_acquisition_time: float, timestamp of when packet arrived at server, default np.nan
+        server_acquisition_timestamp: float, timestamp of when packet arrived at server, default np.nan
         time_sync_exchanges_df: dataframe, timestamps that form the time synch exchanges, default empty dataframe
         latencies: np.ndarray, calculated latencies of the exchanges, default empty np.ndarray
         best_latency_index: int, index in latencies array that contains the best latency, default np.nan
@@ -41,63 +41,47 @@ class TimeSyncData:
         acquire_travel_time: float, calculated time it took packet to reach server, default np.nan
     """
 
-    def __init__(self, data_pack: Optional[DataPacket] = None,
-                 station_metadata: Optional[StationMetadata] = None):
+    def __init__(self, station_id: str = "", sample_rate_hz: float = np.nan, num_audio_samples: int = np.nan,
+                 station_start_timestamp: float = np.nan, server_acquisition_timestamp: float = np.nan,
+                 packet_start_timestamp: float = np.nan, packet_end_timestamp: float = np.nan,
+                 time_sync_exchanges_list: Optional[List[float]] = None,
+                 best_latency: float = np.nan, best_offset: float = 0.0):
         """
         Initialize properties
-        :param data_pack: data packet metadata
-        :param station_metadata: station metadata
+        :param station_id: id of station, default empty string
+        :param sample_rate_hz: sample rate in hz of the station's audio channel, default np.nan
+        :param num_audio_samples: number of audio samples in the data, default np.nan
+        :param station_start_timestamp: timestamp of when the station started recording, default np.nan
+        :param server_acquisition_timestamp: timestamp of when the data was received at the acquisition server,
+                                                default np.nan
+        :param packet_start_timestamp: timestamp of the start of the data packet, default np.nan
+        :param packet_end_timestamp: timestamp of the end of the data packet, default np.nan
+        :param time_sync_exchanges_list: the timesync exchanges of the packet, default None
+        :param best_latency: the best latency of the packet, default np.nan
+        :param best_offset: the best offset of the packet, default 0.0
         """
-        if station_metadata is not None and data_pack is not None:
-            self.get_timesync_data(data_pack, station_metadata)
+        self.station_id = station_id
+        self.sample_rate_hz = sample_rate_hz
+        self.num_audio_samples = num_audio_samples
+        self.station_start_timestamp = station_start_timestamp
+        self.server_acquisition_timestamp = server_acquisition_timestamp
+        self.packet_start_timestamp = packet_start_timestamp
+        self.packet_end_timestamp = packet_end_timestamp
+        if time_sync_exchanges_list is None:
+            time_sync_exchanges_list = []
         else:
-            self.best_latency: float = np.nan
-            self.best_offset: float = 0
-            if station_metadata is None:
-                self.station_id: str = ""
-                self.station_start_timestamp: float = np.nan
-            if data_pack is None:
-                self.sample_rate_hz: float = np.nan
-                self.packet_num_audio_samples: int = 0
-                self.server_acquisition_time: float = np.nan
-                self.packet_start_time: float = np.nan
-                self.packet_end_time: float = np.nan
-                self.packet_duration: float = 0.0
-                self.time_sync_exchanges_df = pd.DataFrame([], columns=["a1", "a2", "a3", "b1", "b2", "b3"])
-                self.best_tri_msg_index: int = np.nan
-                self.latencies: np.ndarray = np.ndarray((0, 0))
-                self.best_latency_index: int = np.nan
-                self.mean_latency: float = np.nan
-                self.latency_std: float = np.nan
-                self.offsets: np.ndarray = np.ndarray((0, 0))
-                self.mean_offset: float = 0.0
-                self.offset_std: float = 0.0
-                self.acquire_travel_time: float = np.nan
-                # self.num_packets: int = 0
-                # self.bad_packets: List[int] = []
+            time_sync_exchanges_list = [time_sync_exchanges_list[i:i + 6] for i in
+                                        range(0, len(time_sync_exchanges_list), 6)]
+        self.time_sync_exchanges_df = pd.DataFrame(time_sync_exchanges_list,
+                                                   columns=["a1", "a2", "a3", "b1", "b2", "b3"])
+        self.best_latency = best_latency
+        self.best_offset = best_offset
 
-    def get_timesync_data(self, data_pack: Optional[DataPacket] = None,
-                          station_metadata: Optional[StationMetadata] = None):
-        """
-        extracts the time sync data from the data_pack object
-        :param data_pack: data packet metadata
-        :param station_metadata: station metadata
-        """
-        self.station_id = station_metadata.station_id
-        self.sample_rate_hz = station_metadata.timing_data.audio_sample_rate_hz
-        self.packet_num_audio_samples = data_pack.num_audio_samples
-        self.station_start_timestamp = station_metadata.timing_data.station_start_timestamp
-        self.server_acquisition_time = data_pack.server_timestamp
-        self.packet_start_time = data_pack.data_start_timestamp
-        self.packet_end_time = data_pack.data_end_timestamp
-        self.time_sync_exchanges_df = data_pack.timesync.timesync_data
-        self.best_latency = data_pack.timesync.best_latency
-        self.best_offset = data_pack.timesync.best_offset
         self._compute_tri_message_stats()
         # set the packet duration
-        self.packet_duration = self.packet_end_time - self.packet_start_time
+        self.packet_duration = self.packet_end_timestamp - self.packet_start_timestamp
         # calculate travel time between corrected end of packet timestamp and server timestamp
-        self.acquire_travel_time = self.server_acquisition_time - (self.packet_end_time + self.best_offset)
+        self.acquire_travel_time = self.server_acquisition_timestamp - (self.packet_end_timestamp + self.best_offset)
 
     def _compute_tri_message_stats(self):
         """
@@ -119,7 +103,7 @@ class TimeSyncData:
             self.offsets = np.array((tse.offset1, tse.offset3))
             self.best_latency_index = tse.best_latency_index
             self.best_tri_msg_index = tse.best_latency_index
-            # if best_latency is None, set to best computed latency
+            # if best_latency is np.nan, set to best computed latency
             if np.isnan(self.best_latency):
                 self.best_latency = tse.best_latency
                 self.best_offset = tse.best_offset
@@ -127,7 +111,7 @@ class TimeSyncData:
             elif self.best_offset == 0:
                 self.best_offset = tse.best_offset
         else:
-            # If here, there are no exchanges to read.  writing default or empty values to the correct properties
+            # If here, there are no exchanges to read.  write default or empty values to the correct properties
             self.best_tri_msg_index = np.nan
             self.best_latency_index = np.nan
             self.best_latency = np.nan
@@ -157,24 +141,34 @@ class TimeSyncAnalysis:
         timesync_data: list of TimeSyncData, the TimeSyncData to analyze, default empty list
         station_start_timestamp: float, the timestamp of when the station became active, default np.nan
     """
-    def __init__(self, station: Optional[Station] = None):
+    def __init__(self, station_id: str = "", audio_sample_rate_hz: float = np.nan,
+                 station_start_timestamp: float = np.nan, packets: Optional[List[WrappedRedvoxPacketM]] = None):
         """
-        Initialize properties
-        :param station: the station to perform analysis on
+        Initialize the object
+        :param station_id: id of the station to analyze
+        :param audio_sample_rate_hz: audio sample rate in hz of the station
+        :param station_start_timestamp: timestamp of when station started recording
+        :param packets: the data packets of the station
         """
-        self.station_id: str = ""
+        self.station_id: str = station_id
+        self.sample_rate_hz: float = audio_sample_rate_hz
+        self.station_start_timestamp: float = station_start_timestamp
         self.best_latency_index: int = np.nan
         self.latency_stats = sh.StatsContainer("latency")
         self.offset_stats = sh.StatsContainer("offset")
-        self.sample_rate_hz: float = np.nan
         self.timesync_data: List[TimeSyncData] = []
-        self.station_start_timestamp: float = np.nan
-        if station is not None:
-            self.station_id = station.station_metadata.station_id
-            self.station_start_timestamp = station.station_metadata.timing_data.station_start_timestamp
-            self.sample_rate_hz = station.station_metadata.timing_data.audio_sample_rate_hz
-            self.timesync_data = get_time_sync_data_from_station(station)
-            self.evaluate_and_validate_data()
+        if packets is not None:
+            for packet in packets:
+                self.timesync_data.append(
+                    TimeSyncData(self.station_id, self.sample_rate_hz,
+                                 packet.get_sensors().get_audio().get_num_samples(), self.station_start_timestamp,
+                                 packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
+                                 packet.get_timing_information().get_packet_start_mach_timestamp(),
+                                 packet.get_timing_information().get_packet_end_mach_timestamp(),
+                                 packet.get_timing_information().get_synch_exchange_array(),
+                                 packet.get_timing_information().get_best_latency(),
+                                 packet.get_timing_information().get_best_offset()))
+        self.evaluate_and_validate_data()
 
     def evaluate_and_validate_data(self):
         """
@@ -182,10 +176,8 @@ class TimeSyncAnalysis:
         """
         self._calc_timesync_stats()
         self.evaluate_latencies()
-        if self.validate_start_timestamp():
-            self.station_start_timestamp = self.timesync_data[0].station_start_timestamp
-        if self.validate_sample_rate():
-            self.sample_rate_hz = self.timesync_data[0].sample_rate_hz
+        self.validate_start_timestamp()
+        self.validate_sample_rate()
 
     def _calc_timesync_stats(self):
         """
@@ -301,7 +293,7 @@ class TimeSyncAnalysis:
         """
         if np.isnan(self.best_latency_index):
             return np.nan
-        return self.timesync_data[self.best_latency_index].packet_start_time
+        return self.timesync_data[self.best_latency_index].packet_start_timestamp
 
     def get_start_times(self) -> np.array:
         """
@@ -310,7 +302,7 @@ class TimeSyncAnalysis:
         """
         start_times = []
         for ts_data in self.timesync_data:
-            start_times.append(ts_data.packet_start_time)
+            start_times.append(ts_data.packet_start_timestamp)
         return np.array(start_times)
 
     def get_bad_packets(self) -> List[int]:
@@ -396,25 +388,13 @@ class TimeSyncAnalysis:
                 print("Less than 2 timesync data objects to evaluate gaps with")
         for index in range(1, self.get_num_packets()):
             # compare last packet's end timestamp with current start timestamp
-            if dt.microseconds_to_seconds(self.timesync_data[index].packet_start_time
-                                          - self.timesync_data[index - 1].packet_end_time) > gap_duration_s:
+            if dt.microseconds_to_seconds(self.timesync_data[index].packet_start_timestamp
+                                          - self.timesync_data[index - 1].packet_end_timestamp) > gap_duration_s:
                 if debug:
                     print(f"Warning!  Gap detected at packet number: {index}")
                 return False
         # if here, no gaps
         return True
-
-
-def get_time_sync_data_from_station(station: Station) -> List[TimeSyncData]:
-    """
-    Returns the TimeSyncData associated with a station
-    :param station: the station to get data from
-    :return: a list of all TimeSyncData objects from the station
-    """
-    timesync_list = []
-    for packet in station.packet_data:
-        timesync_list.append(TimeSyncData(packet, station.station_metadata))
-    return timesync_list
 
 
 def validate_sensors(tsa_data: TimeSyncAnalysis) -> bool:
@@ -453,7 +433,7 @@ def update_evenly_sampled_time_array(ts_analysis: TimeSyncAnalysis, num_samples:
         # replace the time_start_array with values from tsd; convert tsd times to seconds
         time_start_array_s = np.array([])
         for tsd in ts_analysis.timesync_data:
-            time_start_array_s = np.append(time_start_array_s, tsd.packet_start_time / dt.MICROSECONDS_IN_SECOND)
+            time_start_array_s = np.append(time_start_array_s, tsd.packet_start_timestamp / dt.MICROSECONDS_IN_SECOND)
     num_files = len(ts_analysis.timesync_data)
     # the TimeSyncData must have the same number of packets as the number of elements in time_start_array
     if num_files != len(time_start_array_s):
@@ -463,7 +443,7 @@ def update_evenly_sampled_time_array(ts_analysis: TimeSyncAnalysis, num_samples:
 
     # use the number of audio samples in the first data packet
     if num_samples is None:
-        num_samples = ts_analysis.timesync_data[0].packet_num_audio_samples
+        num_samples = ts_analysis.timesync_data[0].num_audio_samples
     t_dt = 1.0 / ts_analysis.sample_rate_hz
 
     # Use TimeSyncData object to find best start index.
