@@ -36,7 +36,7 @@ class ApiReader:
                  end_dt: Optional[datetime] = None, start_dt_buf: Optional[timedelta] = None,
                  end_dt_buf: Optional[timedelta] = None, station_ids: Optional[Set[str]] = None,
                  extensions: Optional[Set[str]] = None, api_versions: Optional[Set[io.ApiVersion]] = None,
-                 gap_time_s: int = DEFAULT_GAP_TIME_S, apply_timing_correction: bool = True, debug: bool = False):
+                 debug: bool = False):
         """
         Initialize the ApiReader object
         :param base_dir: directory containing the files to read
@@ -53,10 +53,6 @@ class ApiReader:
                             Default None
         :param api_versions: optional set of api versions to filter on.  If None, get all data in base_dir.
                             Default None
-        :param gap_time_s: minimum number of seconds between data points to be considered a gap.
-                            Default defined as DEFAULT_GAP_TIME_S
-        :param apply_timing_correction: if True, adjust timestamps in the resulting WrappedRedvoxPacketM objects
-                                        based on the packets' data.  Default True
         :param debug: if True, output additional statements during function execution.  Default False.
         """
         self.filter = io.ReadFilter(start_dt=start_dt, end_dt=end_dt, station_ids=station_ids)
@@ -70,13 +66,11 @@ class ApiReader:
             self.filter = self.filter.with_api_versions(api_versions)
         self.base_dir = base_dir
         self.structured_dir = structured_dir
-        self.gap_time_s = gap_time_s
-        self.apply_correction = apply_timing_correction
         self.debug = debug
-        self.files_index = self.get_all_files()
+        self.files_index = self._get_all_files()
         self.index_summary = io.IndexSummary.from_index(self.files_index)
 
-    def get_all_files(self) -> io.Index:
+    def _get_all_files(self) -> io.Index:
         """
         get all files in the base dir of the ApiReader
         :return: index with all the files that match the filter
@@ -122,10 +116,20 @@ class ApiReader:
             return None
         return result
 
-    def get_station_by_id(self, get_id: str) -> Station:
+    def get_stations(self) -> List[Station]:
         """
-        get a station representation of the data with the requested id
+        get the station representation of the data
+        :return: a list of all stations represented by the data packets
+        """
+        result = []
+        for station_id, packets in self.read_files():
+            result.append(Station(packets))
+        return result
+
+    def get_station_by_id(self, get_id: str) -> Optional[Station]:
+        """
+        get a station representation of the data with the requested id, returns None if station id can't be found
         :param get_id: the id to filter on
-        :return: a station containing the data of the packets with the requested id
+        :return: a station containing the data of the packets with the requested id or None if id can't be found
         """
         return Station(self.read_files_by_id(get_id))

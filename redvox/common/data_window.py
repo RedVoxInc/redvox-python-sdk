@@ -4,22 +4,24 @@ todo: take the latest api_x_reader and convert all data to api_m format
 combine the data packets into a new data packet based on the user parameters
 todo: use the filters created in redvox.common.io as the config source
 """
-from typing import Optional, Set, List
+from typing import Optional, Set, List, Dict
+from datetime import timedelta
 
 import pandas as pd
 import numpy as np
 
 from redvox.common import date_time_utils as dtu
+from redvox.common import io
 from redvox.common.station import Station
-from redvox.common.station_reader_utils import ReadResult
-from redvox.common.station_reader_utils import read_all_in_dir
+from redvox.common.sensor_data import SensorType, SensorData
+from redvox.common.api_reader import ApiReader
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 
 
 DEFAULT_GAP_TIME_S: float = 0.25        # default length of a gap in seconds
-DEFAULT_START_PADDING_S: float = 120.   # default padding to start time of data in seconds
-DEFAULT_END_PADDING_S: float = 120.     # default padding to end time of data in seconds
+DEFAULT_START_BUFFER_TD: timedelta = timedelta(seconds=120)   # default padding to start time of data in seconds
+DEFAULT_END_BUFFER_TD: timedelta = timedelta(seconds=120)     # default padding to end time of data in seconds
 # default maximum number of points required to brute force calculate gap timestamps
 DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS: int = 5000
 
@@ -29,76 +31,81 @@ class DataWindow:
     Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values
     Properties:
         input_directory: string, directory that contains the files to read data from.  REQUIRED
-        station_ids: optional set of strings, list of station ids to filter on.
+        structured_layout: bool, if True, the input_directory contains specially named and organized
+                            directories of data.  Default True
+        station_ids: optional list of strings, representing the station ids to filter on.
                         If empty or None, get any ids found in the input directory.  Default None
+        extensions: optional list of strings, representing file extensions to filter on.
+                        If None, gets as much data as it can in the input directory.  Default None
+        api_versions: optional list of ApiVersions, representing api versions to filter on.
+                        If None, get as much data as it can in the input directory.  Default None
         start_datetime: optional datetime, start datetime of the window.
                         If None, uses the first timestamp of the filtered data.  Default None
         end_datetime: optional datetime, end datetime of the window.
                         If None, uses the last timestamp of the filtered data.  Default None
-        start_padding_s: float, the amount of seconds to include before the start_datetime
-                            when filtering data.  Default DEFAULT_START_PADDING_S
-        end_padding_s: float, the amount of seconds to include after the end_datetime
-                        when filtering data.  Default DEFAULT_END_PADDING_S
+        start_buffer_td: timedelta, the amount of time to include before the start_datetime when filtering data. 
+                            Default DEFAULT_START_BUFFER_TD
+        end_buffer_td: float, the amount of time to include after the end_datetime when filtering data. 
+                            Default DEFAULT_END_BUFFER_TD
         gap_time_s: float, the minimum amount of seconds between data points that would indicate a gap.
                     Default DEFAULT_GAP_TIME_S
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
-        structured_layout: bool, if True, the input_directory contains specially named and organized
-                            directories of data.  Default True
-        stations: optional ReadResult, the results of reading the data from input_directory
+        read_result: ApiReader representation of the files in input_directory that match the filter
+        stations: list of Stations, the results of reading the data from input_directory
         debug: bool, if True, outputs additional information during initialization. Default False
     """
-    def __init__(self, input_dir: str, station_ids: Optional[Set[str]] = None,
+    def __init__(self, input_dir: str, structured_layout: bool = True,
                  start_datetime: Optional[dtu.datetime] = None, end_datetime: Optional[dtu.datetime] = None,
-                 start_padding_s: float = DEFAULT_START_PADDING_S, end_padding_s: float = DEFAULT_END_PADDING_S,
-                 gap_time_s: float = DEFAULT_GAP_TIME_S, apply_correction: bool = True,
-                 structured_layout: bool = True, debug: bool = False):
+                 start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD, end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
+                 gap_time_s: float = DEFAULT_GAP_TIME_S, station_ids: Optional[List[str]] = None,
+                 extensions: Optional[List[str]] = None, api_versions: Optional[List[io.ApiVersion]] = None,
+                 apply_correction: bool = True, debug: bool = False):
         """
         initialize the data window with params
         :param input_dir: string, directory that contains the files to read data from
-        :param station_ids: optional set of strings, list of station ids to filter on.
-                            If empty or None, get any ids found in the input directory.  Default None
-        :param start_datetime: optional datetime, start datetime of the window.
-                                If None, uses the first timestamp of the filtered data.  Default None
-        :param end_datetime: optional datetime, end datetime of the window.
-                                If None, uses the last timestamp of the filtered data.  Default None
-        :param start_padding_s: float, the amount of seconds to include before the start_datetime
-                                when filtering data.  Default DEFAULT_START_PADDING_S
-        :param end_padding_s: float, the amount of seconds to include after the end_datetime
-                                when filtering data.  Default DEFAULT_END_PADDING_S
-        :param gap_time_s: float, the minimum amount of seconds between data points that would indicate a gap.
-                            Default DEFAULT_GAP_TIME_S
-        :param apply_correction: bool, if True, update the timestamps in the data based on best station offset.
-                                    Default True
         :param structured_layout: bool, if True, the input_directory contains specially named and organized
                                     directories of data.  Default True
+        :param start_datetime: optional start datetime of the window. If None, uses the first timestamp of the
+                                filtered data. Default None
+        :param end_datetime: optional end datetime of the window. If None, uses the last timestamp of the filtered
+                                data.  Default None
+        :param start_buffer_td: the amount of time to include before the start_datetime when filtering data.
+                                Default DEFAULT_START_BUFFER_TD
+        :param end_buffer_td: the amount of time to include after the end_datetime when filtering data.
+                                Default DEFAULT_END_BUFFER_TD
+        :param gap_time_s: the minimum amount of seconds between data points that would indicate a gap.
+                            Default DEFAULT_GAP_TIME_S
+        :param station_ids: optional list of station ids to filter on. If empty or None, get any ids found in the
+                            input directory.  Default None
+        :param extensions: optional list of file extensions to filter on.  If None, get all data in the input directory.
+                            Default None
+        :param api_versions: optional list of api versions to filter on.  If None, get all data in the input directory.
+                                Default None
+        :param apply_correction: if True, update the timestamps in the data based on best station offset.
+                                    Default True
         :param debug: bool, if True, outputs warnings and additional information, default False
         """
         self.input_directory: str = input_dir
-        self.station_ids: Optional[Set[str]] = station_ids
+        self.structured_layout: bool = structured_layout
         self.start_datetime: Optional[dtu.datetime] = start_datetime
         self.end_datetime: Optional[dtu.datetime] = end_datetime
-        self.start_padding_s: float = start_padding_s
-        self.end_padding_s: float = end_padding_s
+        self.start_buffer_td: timedelta = start_buffer_td
+        self.end_buffer_td: timedelta = end_buffer_td
         self.gap_time_s: float = gap_time_s
+        self.station_ids: Optional[List[str]] = station_ids
+        self.extensions: Optional[List[str]] = extensions
+        self.api_versions: Optional[List[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
-        self.structured_layout: bool = structured_layout
         self.debug: bool = debug
-        start_time = self._pad_start_datetime_s()
-        if np.isnan(start_time):
-            start_time = None
-        else:
-            start_time = int(start_time)
-        end_time = self._pad_end_datetime_s()
-        if np.isnan(end_time):
-            end_time = None
-        else:
-            end_time = int(end_time)
-        self.stations: ReadResult = read_all_in_dir(self.input_directory, start_time, end_time,
-                                                    self.station_ids, self.structured_layout)
+        read_result = ApiReader(self.input_directory, self.structured_layout, self.start_datetime, self.end_datetime,
+                                self.start_buffer_td, self.end_buffer_td, set(self.station_ids), set(self.extensions),
+                                set(self.api_versions), self.debug)
+        self.stations: Dict[str, Station] = {s.id: s for s in read_result.get_stations()}
         if self.station_ids is None or len(self.station_ids) == 0:
-            self.station_ids = self.stations.get_all_station_ids()
+            self.station_ids = read_result.index_summary.station_ids()
         else:
             self.check_valid_ids()
+        self.sensors: Dict[str, Dict[SensorType, SensorData]] = {}
         self.create_data_window()
 
     def _has_time_window(self) -> bool:
@@ -108,51 +115,28 @@ class DataWindow:
         """
         return self.start_datetime is not None or self.end_datetime is not None
 
-    def _pad_start_datetime_s(self) -> float:
-        """
-        apply padding to the start datetime
-        :return: padded start datetime as seconds since epoch UTC or np.nan if start datetime is undefined
-        """
-        if self.start_datetime is None:
-            return np.nan
-        return dtu.datetime_to_epoch_seconds_utc(self.start_datetime) - self.start_padding_s
-
-    def _pad_end_datetime_s(self) -> float:
-        """
-        apply padding to the end datetime
-        :return: padded end datetime as seconds since epoch UTC or np.nan if end datetime is undefined
-        """
-        if self.end_datetime is None:
-            return np.nan
-        return dtu.datetime_to_epoch_seconds_utc(self.end_datetime) + self.end_padding_s
-
     def get_station(self, station: str) -> Optional[Station]:
         """
+        Returns a single station from the result, or None otherwise
         :param station: the station id to search for
         :return: A single station based on the id given or None if the station doesn't exist
         """
-        return self.stations.get_station(station)
+        if station in self.stations.keys:
+            return self.stations[station]
+        return None
 
     def get_all_stations(self) -> List[Station]:
         """
         :return: A list of all stations in the object
         """
-        return self.stations.get_all_stations()
-
-    def correct_timestamps(self):
-        """
-        update the timestamps in all stations
-        """
-        if self.apply_correction:
-            for station in self.stations.station_id_uuid_to_stations.values():
-                station.update_timestamps()
+        return list(self.stations.values())
 
     def check_valid_ids(self):
         """
         searches the data window station_ids for any ids not in the data collected
         """
         for ids in self.station_ids:
-            if not self.stations.check_for_id(ids) and self.debug:
+            if ids not in self.stations.keys() and self.debug:
                 print(f"WARNING: Requested {ids} but there is no data to read for that station")
 
     def create_window_in_sensors(self, station: Station, start_date_timestamp: float, end_date_timestamp: float):
@@ -164,8 +148,9 @@ class DataWindow:
         :param end_date_timestamp: float, timestamp in microseconds since epoch UTC of end of window
         """
         gap_time_micros = dtu.seconds_to_microseconds(self.gap_time_s)
-        station_id = station.station_metadata.station_id
-        for sensor_type, sensor in station.station_data.items():
+        for sensor_type, sensor in station.get_all_sensors():
+            if self.apply_correction:
+                sensor.data_df["timestamps"].add(station.timesync_analysis.get_best_offset())
             # calculate the sensor's sample interval, std sample interval and sample rate of all data
             sensor.organize_and_update_stats()
             # get only the timestamps between the start and end timestamps
@@ -176,13 +161,13 @@ class DataWindow:
                 # check if all the samples have been cut off
                 if len(window_indices) < 1:
                     if self.debug:
-                        print(f"WARNING: Data window for {station_id} {sensor_type.name} "
+                        print(f"WARNING: Data window for {station.id} {sensor_type.name} "
                               f"sensor has truncated all data points")
                 else:
                     sensor.data_df = sensor.data_df.iloc[window_indices].reset_index(drop=True)
                     if sensor.is_sample_interval_invalid():
                         if self.debug:
-                            print(f"WARNING: Cannot fill gaps or pad {station_id} {sensor_type.name} "
+                            print(f"WARNING: Cannot fill gaps or pad {station.id} {sensor_type.name} "
                                   f"sensor; it has undefined sample interval and sample rate!")
                     else:  # GAP FILL and PAD DATA
                         sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
@@ -191,8 +176,9 @@ class DataWindow:
                                                    gap_time_micros, DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS)
                         sensor.data_df = pad_data(start_date_timestamp, end_date_timestamp, sensor.data_df,
                                                   sample_interval_micros)
+                self.sensors[station.id] = {sensor_type: sensor}
             elif self.debug:
-                print(f"WARNING: Data window for {station_id} {sensor_type.name} sensor has no data points!")
+                print(f"WARNING: Data window for {station.id} {sensor_type.name} sensor has no data points!")
 
     # todo: keep this after transition to api_m format
     def create_data_window(self):
@@ -201,11 +187,7 @@ class DataWindow:
         stations without audio or any data outside the window are removed
         """
         ids_to_pop = []
-        for station in self.stations.get_all_stations():
-            ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
-            # apply time correction
-            if self.apply_correction:
-                station.update_timestamps()
+        for station in self.stations.values():
             # set the window start and end if they were specified, otherwise use the bounds of the data
             if self.start_datetime:
                 start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
@@ -217,34 +199,10 @@ class DataWindow:
                 end_datetime = station.audio_sensor().last_data_timestamp()
             # TRUNCATE!
             self.create_window_in_sensors(station, start_datetime, end_datetime)
-            truncate_metadata(station, start_datetime, end_datetime)
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
         # remove any stations that don't have audio data
         for ids in ids_to_pop:
-            self.stations.pop_station(ids)
-
-
-def truncate_metadata(station: Station, start_date_timestamp: float, end_date_timestamp: float):
-    """
-    truncates and updates the metadata of the station to only be from start_date_timestamp to end_date_timestamp.
-    Returns nothing; updates metadata in place
-    :param station: station object to update
-    :param start_date_timestamp: float, timestamp in microseconds since epoch UTC of start of window
-    :param end_date_timestamp: float, timestamp in microseconds since epoch UTC of end of window
-    """
-    station.packet_data = [p for p in station.packet_data
-                           if p.data_end_timestamp > start_date_timestamp and
-                           p.data_start_timestamp < end_date_timestamp]
-    if station.has_location_data():
-        # anything with 0 altitude is likely a network provided location
-        station.location_sensor().data_df.loc[(station.location_sensor().data_df["altitude"] == 0),
-                                              "location_provider"] = LocationProvider.NETWORK
-    station.update_station_location_metadata(start_date_timestamp, end_date_timestamp)
-    station.station_metadata.timing_data.episode_start_timestamp_s = \
-        dtu.microseconds_to_seconds(start_date_timestamp)
-    station.station_metadata.timing_data.episode_end_timestamp_s = dtu.microseconds_to_seconds(end_date_timestamp)
-    station.station_metadata.timing_data.station_first_data_timestamp = \
-        station.audio_sensor().first_data_timestamp()
+            self.station_ids.remove(ids)
 
 
 def check_audio_data(station: Station, ids_to_remove: List[str], debug: bool = False) -> List[str]:
@@ -255,8 +213,8 @@ def check_audio_data(station: Station, ids_to_remove: List[str], debug: bool = F
     :param debug: bool, if True, output warning message, default False
     :return: an updated list of station ids to remove from the data window
     """
-    station_id = station.station_metadata.station_id
-    if not station.has_audio_data():
+    station_id = station.id
+    if not station.has_audio_sensor():
         if debug:
             print(f"WARNING: {station_id} doesn't have any audio data to read")
         ids_to_remove.append(station_id)
@@ -372,3 +330,62 @@ def create_dataless_timestamps_df(start_timestamp: float, sample_interval_micros
         else:
             empty_df[column_index] = np.nan
     return empty_df
+
+
+    # def packet_gap_detector(self, gap_time_s: float):
+    #     """
+    #     Uses the station's packet and audio data to detect gaps at least gap_time_s seconds long.
+    #     updates the station's packet metadata if there are no gaps
+    #     :param gap_time_s: float, minimum gap time in seconds
+    #     """
+    #     for packet in range(len(self.packet_data) - 1):
+    #         data_start = self.packet_data[packet].data_start_timestamp
+    #         data_num_samples = self.packet_data[packet].num_audio_samples
+    #         next_packet_start_index = \
+    #             self.audio_sensor().data_df.query("timestamps >= @data_start").first_valid_index() + data_num_samples
+    #         data_end = self.audio_sensor().data_timestamps()[next_packet_start_index - 1]
+    #         next_packet_start = self.audio_sensor().data_timestamps()[next_packet_start_index]
+    #         if next_packet_start - data_end < dtu.seconds_to_microseconds(gap_time_s):
+    #             self.packet_data[packet].micros_to_next_packet = \
+    #                 (next_packet_start - data_start) / data_num_samples
+    #
+    # def update_timestamps(self):
+    #     """
+    #     updates the timestamps in all data packets using the station_best_offset of the station_timing
+    #     """
+    #     if self.timing_is_corrected:
+    #         print("WARNING: Timestamps already corrected!")
+    #     else:
+    #         delta = self.data.station_best_offset
+    #         for sensor in self.station_data.values():
+    #             sensor.update_data_timestamps(delta)
+    #         for packet in self.packet_data:
+    #             packet.data_start_timestamp += delta
+    #             packet.data_end_timestamp += delta
+    #             if packet.best_location:
+    #                 packet.best_location.update_timestamps(delta)
+    #         self.station_metadata.timing_data.station_first_data_timestamp += delta
+    #         self.station_metadata.location_data.update_timestamps(delta)
+    #     self.timing_is_corrected = True
+
+    # def revert_timestamps(self):
+    #     """
+    #     reverts the timestamps in all SensorData objects using the station_best_offset of the station_timing
+    #     """
+    #     if self.station_metadata.station_timing_is_corrected:
+    #         if not self.station_metadata.timing_data:
+    #             print("WARNING: Station does not have timing data, assuming existing values are the correct ones!")
+    #         else:
+    #             delta = self.station_metadata.timing_data.station_best_offset
+    #             for sensor in self.station_data.values():
+    #                 sensor.update_data_timestamps(-delta)
+    #             for packet in self.packet_data:
+    #                 packet.data_start_timestamp -= delta
+    #                 packet.data_end_timestamp -= delta
+    #                 if packet.best_location:
+    #                     packet.best_location.update_timestamps(-delta)
+    #             self.station_metadata.timing_data.station_first_data_timestamp -= delta
+    #             self.station_metadata.location_data.update_timestamps(-delta)
+    #             self.station_metadata.station_timing_is_corrected = False
+    #     else:
+    #         print("WARNING: Cannot revert timestamps that are not corrected!")

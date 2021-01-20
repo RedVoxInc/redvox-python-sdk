@@ -4,14 +4,15 @@ tests for timesync
 import unittest
 import numpy as np
 import redvox.tests as tests
-from redvox.common import station_reader_utils as load_sd, timesync as ts
+from redvox.common import timesync as ts
+from redvox.common import api_reader
 
 
 class TimesyncTest(unittest.TestCase):
-    def setUp(self) -> None:
-        result = load_sd.load_file_range_from_api900(tests.TEST_DATA_DIR, structured_layout=False,
-                                                     redvox_ids=["1637680001"], concat_continuous_segments=False)
-        self.time_sync_analysis = ts.TimeSyncAnalysis(result.get_station("1637680001"))
+    @classmethod
+    def setUpClass(cls) -> None:
+        result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False, station_ids={"1637680001"})
+        cls.time_sync_analysis = ts.TimeSyncAnalysis(result.get_station_by_id("1637680001"))
 
     def test_validate_sensors(self):
         test_ts = ts.TimeSyncData()
@@ -54,7 +55,7 @@ class TimesyncTest(unittest.TestCase):
         self.assertAlmostEqual(self.time_sync_analysis.get_offset_stdev(), 91847.39, 2)
 
     def test_get_best_start_time(self):
-        self.assertEqual(self.time_sync_analysis.get_best_start_time(), 1532459197088000)
+        self.assertEqual(self.time_sync_analysis.get_best_start_time(), 1532459197088257)
 
     def test_update_time_array(self):
         times = np.array([1532459197, 1532460197, 1532461197])
@@ -72,22 +73,22 @@ class TimesyncTest(unittest.TestCase):
         """
         # the revised start times are in microseconds, but the corrected time is in seconds
         tsd_one = ts.TimeSyncData()
-        tsd_one.packet_start_time = 1000000
+        tsd_one.packet_start_timestamp = 1000000
         tsd_one.best_latency = 2
         tsd_one.sample_rate_hz = 2
         tsd_one.station_start_timestamp = 0
         tsd_two = ts.TimeSyncData()
-        tsd_two.packet_start_time = 4000000
+        tsd_two.packet_start_timestamp = 4000000
         tsd_two.best_latency = 1
         tsd_two.sample_rate_hz = 2
         tsd_two.station_start_timestamp = 0
         tsd_thr = ts.TimeSyncData()
-        tsd_thr.packet_start_time = 8000000
+        tsd_thr.packet_start_timestamp = 8000000
         tsd_thr.best_latency = 2
         tsd_thr.sample_rate_hz = 2
         tsd_thr.station_start_timestamp = 0
         tsd_for = ts.TimeSyncData()
-        tsd_for.packet_start_time = 13000000
+        tsd_for.packet_start_timestamp = 13000000
         tsd_for.best_latency = 2
         tsd_for.sample_rate_hz = 2
         tsd_for.station_start_timestamp = 0

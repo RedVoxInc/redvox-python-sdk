@@ -123,7 +123,7 @@ class ApiReaderTest(unittest.TestCase):
         self.assertEqual(len(result_by_id), 1)
         self.assertEqual(result_by_id[0].get_station_information().get_id(), "1637650010")
 
-    def test_read_all_in_structured_dir_io_raw(self):
+    def test_read_all_in_structured_dir(self):
         reader = api_reader.ApiReader(self.input_dir, True)
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 18)

@@ -138,7 +138,7 @@ class API900ReaderTest(unittest.TestCase):
     def test_read_api900_non_mic_sensor(self):
         self.assertEqual(self.non_mic_sensor.name, "test")
         self.assertEqual(len(self.non_mic_sensor.data_timestamps()), 9)
-        self.assertTrue(200 in self.non_mic_sensor.get_channel("test_data"))
+        self.assertTrue(200 in self.non_mic_sensor.get_data_channel("test_data"))
 
     def test_read_api900_wrapped_packet(self):
         wrapped_packet_dict = sr_utils.read_api900_wrapped_packet(self.api900_wrapped_packet)
@@ -206,14 +206,14 @@ class APIMReaderTest(unittest.TestCase):
         data = sr_utils.read_apim_xyz_sensor(self.accelerometer_sensor, "accelerometer")
         self.assertEqual(data.name, "test_accelerometer")
         self.assertFalse(data.is_sample_rate_fixed)
-        self.assertTrue(1.0 in data.get_channel("accelerometer_z"))
+        self.assertTrue(1.0 in data.get_data_channel("accelerometer_z"))
         self.assertRaises(AttributeError, sr_utils.read_apim_xyz_sensor, self.single_sensor, "None")
 
     def test_read_apim_single_sensor(self):
         data = sr_utils.read_apim_single_sensor(self.single_sensor, "barometer")
         self.assertEqual(data.name, "test_barometer")
         self.assertFalse(data.is_sample_rate_fixed)
-        self.assertTrue(52. in data.get_channel("barometer"))
+        self.assertTrue(52. in data.get_data_channel("barometer"))
         self.assertRaises(AttributeError, sr_utils.read_apim_single_sensor, self.accelerometer_sensor, "None")
 
     # this test will fail because the api_m_wrapped_packet is not being set properly by above

@@ -60,16 +60,16 @@ class SensorDataTest(unittest.TestCase):
     def test_append_data(self):
         self.even_sensor.append_data(pd.DataFrame([[0, np.nan, np.nan]],
                                                   columns=["timestamps", "microphone", "test_data"]))
-        self.assertEqual(len(self.even_sensor.get_channel("test_data")), 10)
-        self.assertEqual(len(self.even_sensor.get_valid_channel_values("test_data")), 9)
+        self.assertEqual(len(self.even_sensor.get_data_channel("test_data")), 10)
+        self.assertEqual(len(self.even_sensor.get_valid_data_channel_values("test_data")), 9)
         self.even_sensor.append_data(pd.DataFrame([[200, 10, 69]],
                                                   columns=["timestamps", "microphone", "test_data"]))
-        self.assertEqual(len(self.even_sensor.get_channel("test_data")), 11)
-        self.assertEqual(len(self.even_sensor.get_valid_channel_values("test_data")), 10)
+        self.assertEqual(len(self.even_sensor.get_data_channel("test_data")), 11)
+        self.assertEqual(len(self.even_sensor.get_valid_data_channel_values("test_data")), 10)
         self.uneven_sensor.append_data(pd.DataFrame([[151, 10, 69]],
                                                     columns=["timestamps", "microphone", "test_data"]), True)
-        self.assertEqual(len(self.uneven_sensor.get_channel("test_data")), 10)
-        self.assertEqual(len(self.uneven_sensor.get_valid_channel_values("test_data")), 10)
+        self.assertEqual(len(self.uneven_sensor.get_data_channel("test_data")), 10)
+        self.assertEqual(len(self.uneven_sensor.get_valid_data_channel_values("test_data")), 10)
         self.assertAlmostEqual(self.uneven_sensor.sample_interval_s, .000015, 6)
         self.assertAlmostEqual(self.uneven_sensor.sample_interval_std_s, .00001, 6)
 
@@ -77,8 +77,8 @@ class SensorDataTest(unittest.TestCase):
         self.assertFalse(self.even_sensor.is_sample_interval_invalid())
         self.even_sensor.append_data(pd.DataFrame([[0, np.nan, np.nan]],
                                                   columns=["timestamps", "microphone", "test_data"]))
-        self.assertEqual(len(self.even_sensor.get_channel("test_data")), 10)
-        self.assertEqual(len(self.even_sensor.get_valid_channel_values("test_data")), 9)
+        self.assertEqual(len(self.even_sensor.get_data_channel("test_data")), 10)
+        self.assertEqual(len(self.even_sensor.get_valid_data_channel_values("test_data")), 9)
 
     def test_samples(self):
         self.assertEqual(len(self.even_sensor.samples()), 2)
@@ -88,15 +88,15 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(self.even_sensor.num_samples(), 9)
 
     def test_get_channel(self):
-        self.assertEqual(len(self.even_sensor.get_channel("test_data")), 9)
-        self.assertRaises(ValueError, self.even_sensor.get_channel, "not_exist")
+        self.assertEqual(len(self.even_sensor.get_data_channel("test_data")), 9)
+        self.assertRaises(ValueError, self.even_sensor.get_data_channel, "not_exist")
         self.even_sensor.append_data(pd.DataFrame([[0, np.nan, np.nan]],
                                                   columns=["timestamps", "microphone", "test_data"]))
-        self.assertEqual(len(self.even_sensor.get_channel("test_data")), 10)
-        self.assertEqual(len(self.even_sensor.get_valid_channel_values("test_data")), 9)
+        self.assertEqual(len(self.even_sensor.get_data_channel("test_data")), 10)
+        self.assertEqual(len(self.even_sensor.get_valid_data_channel_values("test_data")), 9)
 
     def test_get_valid_channel_values(self):
-        self.assertRaises(ValueError, self.even_sensor.get_valid_channel_values, "not_exist")
+        self.assertRaises(ValueError, self.even_sensor.get_valid_data_channel_values, "not_exist")
 
     def test_data_timestamps(self):
         self.assertEqual(len(self.even_sensor.data_timestamps()), 9)
@@ -111,9 +111,9 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(self.even_sensor.data_duration_s(), .00016)
 
     def test_data_fields(self):
-        self.assertEqual(len(self.even_sensor.data_fields()), 3)
-        self.assertEqual(self.even_sensor.data_fields()[0], "timestamps")
-        self.assertEqual(self.even_sensor.data_fields()[1], "microphone")
+        self.assertEqual(len(self.even_sensor.data_channels()), 3)
+        self.assertEqual(self.even_sensor.data_channels()[0], "timestamps")
+        self.assertEqual(self.even_sensor.data_channels()[1], "microphone")
 
     def test_update_data_timestamps(self):
         self.even_sensor.update_data_timestamps(100)
