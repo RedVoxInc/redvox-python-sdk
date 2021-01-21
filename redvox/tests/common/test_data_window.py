@@ -17,7 +17,7 @@ class DataWindowTest(unittest.TestCase):
 
     def test_data_window(self):
         datawindow = dw.DataWindow(input_dir=self.input_dir, structured_layout=False,
-                                   station_ids=["1637650010", "0000000001"])
+                                   station_ids={"1637650010", "0000000001"})
         self.assertEqual(len(datawindow.sensors), 2)
         self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.AUDIO, "1637650010"))
         self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.ACCELEROMETER, "1637650010"))
@@ -26,26 +26,27 @@ class DataWindowTest(unittest.TestCase):
         self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.LOCATION, "1637650010"))
         test_sensor = datawindow.get_sensor_from_station(dw.SensorType.AUDIO, "0000000001")
         self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 720000)
+        self.assertEqual(test_sensor.num_samples(), 720001)
         test_sensor = datawindow.get_sensor_from_station(dw.SensorType.LOCATION, "0000000001")
         self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 4)
+        self.assertEqual(test_sensor.num_samples(), 5)
 
     def test_dw_with_start_end(self):
         dw_with_start_end = dw.DataWindow(input_dir=self.input_dir, station_ids={"1637650010", "0000000001"},
                                           start_datetime=dt.datetime_from_epoch_seconds_utc(1597189455),
                                           end_datetime=dt.datetime_from_epoch_seconds_utc(1597189465),
                                           structured_layout=False)
-        self.assertEqual(len(dw_with_start_end.stations.station_id_uuid_to_stations), 1)
-        test_station = dw_with_start_end.stations.get_station("0000000001")
-        self.assertTrue(test_station.has_audio_sensor())
-        self.assertEqual(test_station.audio_sensor().num_samples(), 479986)
-        self.assertTrue(test_station.has_location_sensor())
-        self.assertEqual(test_station.location_sensor().num_samples(), 4)
+        self.assertEqual(len(dw_with_start_end.sensors), 1)
+        audio_sensor = dw_with_start_end.get_sensor_from_station(dw.SensorType.AUDIO, "0000000001")
+        self.assertIsNotNone(audio_sensor)
+        self.assertEqual(audio_sensor.num_samples(), 479986)
+        loc_sensor = dw_with_start_end.get_sensor_from_station(dw.SensorType.LOCATION, "0000000001")
+        self.assertIsNotNone(loc_sensor)
+        self.assertEqual(loc_sensor.num_samples(), 4)
 
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(input_dir=self.input_dir, station_ids={"does_not_exist"}, structured_layout=False)
-        self.assertEqual(len(dw_invalid.stations.station_id_uuid_to_stations), 0)
+        self.assertIsNone(dw_invalid.get_all_sensors_from_station("does_not_exist"))
 
 
 class PadDataTest(unittest.TestCase):

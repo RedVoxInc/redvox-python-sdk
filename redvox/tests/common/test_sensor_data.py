@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 
 from redvox.common import date_time_utils as dtu
-from redvox.common.sensor_data import SensorData, SensorType
+from redvox.common.sensor_data import SensorData, SensorType, calc_evenly_sampled_timestamps
 
 
 class SensorDataTest(unittest.TestCase):
@@ -149,3 +149,23 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(self.even_sensor.data_timestamps()[1], 40)
         self.even_sensor.sort_by_data_timestamps(False)
         self.assertEqual(self.even_sensor.data_timestamps()[1], 160)
+
+    def test_create_read_update_audio_sensor(self):
+        audio_sensor = SensorData("test_audio", SensorType.AUDIO,
+                                  pd.DataFrame(np.transpose([[10, 20, 30, 40], [1, 2, 3, 4]]),
+                                               columns=["timestamps", "microphone"]), 1, True)
+        self.assertEqual(audio_sensor.sample_rate, 1)
+        self.assertEqual(audio_sensor.num_samples(), 4)
+        self.assertIsInstance(audio_sensor.get_data_channel("microphone"), np.ndarray)
+        self.assertRaises(ValueError, audio_sensor.get_data_channel, "do_not_exist")
+        self.assertEqual(audio_sensor.first_data_timestamp(), 10)
+        self.assertEqual(audio_sensor.last_data_timestamp(), 40)
+
+
+class CalcTimestampsTest(unittest.TestCase):
+    def test_calc_timestamps(self):
+        timestamps = calc_evenly_sampled_timestamps(1000, 100, 1000)
+        self.assertEqual(len(timestamps), 100)
+        self.assertEqual(timestamps[0], 1000)
+        self.assertEqual(timestamps[1], 2000)
+        self.assertEqual(timestamps[99], 100000)

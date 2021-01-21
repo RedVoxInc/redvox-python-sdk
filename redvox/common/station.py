@@ -150,7 +150,7 @@ class Station:
         check if audio sensor is in any of the packets
         :return: True if audio sensor exists in any of the packets
         """
-        return any(lambda: s.get_sensors().has_audio() for s in self.data)
+        return any(s.get_sensors().has_audio() and s.get_sensors().validate_audio() for s in self.data)
 
     def audio_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -164,7 +164,7 @@ class Station:
         check if location sensor is in any of the packets
         :return: True if location sensor exists
         """
-        return any(lambda: s.get_sensors().has_location() for s in self.data)
+        return any(s.get_sensors().has_location() and s.get_sensors().validate_location() for s in self.data)
 
     def location_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -178,7 +178,7 @@ class Station:
         check if accelerometer sensor is in any of the packets
         :return: True if accelerometer sensor exists
         """
-        return any(lambda: s.get_sensors().has_accelerometer() for s in self.data)
+        return any(s.get_sensors().has_accelerometer() and s.get_sensors().validate_accelerometer() for s in self.data)
 
     def accelerometer_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -192,7 +192,7 @@ class Station:
         check if magnetometer sensor is in any of the packets
         :return: True if magnetometer sensor exists
         """
-        return any(lambda: s.get_sensors().has_magnetometer() for s in self.data)
+        return any(s.get_sensors().has_magnetometer() and s.get_sensors().validate_magnetometer() for s in self.data)
 
     def magnetometer_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -206,7 +206,7 @@ class Station:
         check if gyroscope sensor is in any of the packets
         :return: True if gyroscope sensor exists
         """
-        return any(lambda: s.get_sensors().has_gyroscope() for s in self.data)
+        return any(s.get_sensors().has_gyroscope() and s.get_sensors().validate_gyroscope() for s in self.data)
 
     def gyroscope_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -220,21 +220,21 @@ class Station:
         check if barometer (aka pressure) sensor is in any of the packets
         :return: True if barometer sensor exists
         """
-        return any(lambda: s.get_sensors().has_pressure() for s in self.data)
+        return self.has_pressure_sensor()
 
     def barometer_sensor(self) -> Optional[sd.SensorData]:
         """
         return the barometer (aka pressure) sensor if it exists
         :return: barometer sensor if it exists, None otherwise
         """
-        return sd.load_apim_pressure_from_list(self.data)
+        return self.pressure_sensor()
 
     def has_pressure_sensor(self) -> bool:
         """
         check if pressure (aka barometer) sensor is in any of the packets
         :return: True if pressure sensor exists
         """
-        return any(lambda: s.get_sensors().has_pressure() for s in self.data)
+        return any(s.get_sensors().has_pressure() and s.get_sensors().validate_pressure() for s in self.data)
 
     def pressure_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -248,7 +248,7 @@ class Station:
         check if light sensor is in any of the packets
         :return: True if light sensor exists
         """
-        return any(lambda: s.get_sensors().has_light() for s in self.data)
+        return any(s.get_sensors().has_light() and s.get_sensors().validate_light() for s in self.data)
 
     def light_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -262,21 +262,21 @@ class Station:
         check if infrared (proximity) sensor is in any of the packets
         :return: True if infrared sensor exists
         """
-        return any(lambda: s.get_sensors().has_proximity() for s in self.data)
+        return self.has_proximity_sensor()
 
     def infrared_sensor(self) -> Optional[sd.SensorData]:
         """
         return the infrared (proximity) sensor if it exists
         :return: infrared sensor if it exists, None otherwise
         """
-        return sd.load_apim_proximity_from_list(self.data)
+        return self.proximity_sensor()
 
     def has_proximity_sensor(self) -> bool:
         """
         check if proximity (infrared) sensor is in any of the packets
         :return: True if proximity sensor exists
         """
-        return any(lambda: s.get_sensors().has_proximity() for s in self.data)
+        return any(s.get_sensors().has_proximity() and s.get_sensors().validate_proximity() for s in self.data)
 
     def proximity_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -290,7 +290,7 @@ class Station:
         check if image sensor is in any of the packets
         :return: True if image sensor exists
         """
-        return any(lambda: s.get_sensors().has_image() for s in self.data)
+        return any(s.get_sensors().has_image() and s.get_sensors().validate_image() for s in self.data)
 
     def image_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -304,7 +304,8 @@ class Station:
         check if ambient temperature sensor is in any of the packets
         :return: True if ambient temperature sensor exists
         """
-        return any(lambda: s.get_sensors().has_ambient_temperature() for s in self.data)
+        return any(s.get_sensors().has_ambient_temperature()
+                   and s.get_sensors().validate_ambient_temperature() for s in self.data)
 
     def ambient_temperature_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -318,7 +319,8 @@ class Station:
         check if relative humidity sensor is in any of the packets
         :return: True if linear relative humidity sensor exists
         """
-        return any(lambda: s.get_sensors().has_relative_humidity() for s in self.data)
+        return any(s.get_sensors().has_relative_humidity()
+                   and s.get_sensors().validate_relative_humidity() for s in self.data)
 
     def relative_humidity_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -332,7 +334,7 @@ class Station:
         check if gravity sensor is in any of the packets
         :return: True if gravity sensor exists
         """
-        return any(lambda: s.get_sensors().has_gravity() for s in self.data)
+        return any(s.get_sensors().has_gravity() and s.get_sensors().validate_gravity() for s in self.data)
 
     def gravity_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -346,7 +348,8 @@ class Station:
         check if linear acceleration sensor is in any of the packets
         :return: True if linear acceleration sensor exists
         """
-        return any(lambda: s.get_sensors().has_linear_acceleration() for s in self.data)
+        return any(s.get_sensors().has_linear_acceleration()
+                   and s.get_sensors().validate_linear_acceleration() for s in self.data)
 
     def linear_acceleration_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -360,7 +363,7 @@ class Station:
         check if orientation sensor is in any of the packets
         :return: True if orientation sensor exists
         """
-        return any(lambda: s.get_sensors().has_orientation() for s in self.data)
+        return any(s.get_sensors().has_orientation() and s.get_sensors().validate_orientation() for s in self.data)
 
     def orientation_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -374,7 +377,8 @@ class Station:
         check if rotation vector sensor is in any of the packets
         :return: True if rotation vector sensor exists
         """
-        return any(lambda: s.get_sensors().has_rotation_vector() for s in self.data)
+        return any(s.get_sensors().has_rotation_vector()
+                   and s.get_sensors().validate_rotation_vector() for s in self.data)
 
     def rotation_vector_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -388,7 +392,8 @@ class Station:
         check if compressed audio sensor is in any of the packets
         :return: True if compressed audio sensor exists
         """
-        return any(lambda: s.get_sensors().has_compressed_audio() for s in self.data)
+        return any(s.get_sensors().has_compressed_audio()
+                   and s.get_sensors().validate_compressed_audio() for s in self.data)
 
     def compressed_audio_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -396,6 +401,14 @@ class Station:
         :return: compressed audio sensor if it exists, None otherwise
         """
         return sd.load_apim_compressed_audio_from_list(self.data)
+
+    def has_health_sensor(self) -> bool:
+        """
+        check if health sensor (station metrics) is in any of the packets
+        :return: True if health sensor exists
+        """
+        return any(s.get_station_information().get_station_metrics().get_timestamps().get_timestamps_count() > 0
+                   for s in self.data)
 
     def health_sensor(self) -> Optional[sd.SensorData]:
         """
@@ -442,6 +455,6 @@ class Station:
             result[sd.SensorType.ORIENTATION] = self.orientation_sensor()
         if self.has_rotation_vector_sensor():
             result[sd.SensorType.ROTATION_VECTOR] = self.rotation_vector_sensor()
-        if self.health_sensor().num_samples() > 0:
+        if self.has_health_sensor():
             result[sd.SensorType.STATION_HEALTH] = self.health_sensor()
         return result
