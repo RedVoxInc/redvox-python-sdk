@@ -135,6 +135,12 @@ class DataWindow:
         """
         return self.sensors
 
+    def get_all_station_ids(self) -> List[str]:
+        """
+        :return: A list of all station ids with data
+        """
+        return list(self.sensors.keys())
+
     def check_valid_ids(self):
         """
         searches the data window station_ids for any ids not in the data collected
@@ -190,12 +196,12 @@ class DataWindow:
         stations without audio or any data outside the window are removed
         """
         ids_to_pop = []
-        read_result = ApiReader(self.input_directory, self.structured_layout, self.start_datetime, self.end_datetime,
-                                self.start_buffer_td, self.end_buffer_td, self.station_ids, self.extensions,
-                                self.api_versions, self.debug)
-        stations: Dict[str, Station] = {s.id: s for s in read_result.get_stations()}
+        stations: Dict[str, Station] = ApiReader(self.input_directory, self.structured_layout, self.start_datetime,
+                                                 self.end_datetime, self.start_buffer_td, self.end_buffer_td,
+                                                 self.station_ids, self.extensions, self.api_versions,
+                                                 self.debug).read_files_as_stations()
         if self.station_ids is None or len(self.station_ids) == 0:
-            self.station_ids = read_result.index_summary.station_ids()
+            self.station_ids = set(stations.keys())
         for station in stations.values():
             self.sensors[station.id] = {}
             # set the window start and end if they were specified, otherwise use the bounds of the data
