@@ -18,11 +18,14 @@ class DownloadResult:
     """
     The result of downloading a file.
     """
+
     data_key: str
     resp_len: int
 
 
-def download_process(input_queue: Queue, result_queue: Queue, out_dir: str, retries: int) -> None:
+def download_process(
+    input_queue: Queue, result_queue: Queue, out_dir: str, retries: int
+) -> None:
     """
     A function that runs in a separate process for downloading RedVox data.
     :param input_queue: A shared queue containing the list of items to be downloaded.
@@ -44,7 +47,9 @@ def download_process(input_queue: Queue, result_queue: Queue, out_dir: str, retr
         session.close()
 
 
-def download_files(urls: List[str], out_dir: str, retries: int, num_processes: int = cpu_count()) -> None:
+def download_files(
+    urls: List[str], out_dir: str, retries: int, num_processes: int = cpu_count()
+) -> None:
     """
     Downloads files in parallel from the provided URLs.
     :param urls: URLs to files to retrieve.
@@ -63,7 +68,9 @@ def download_files(urls: List[str], out_dir: str, retries: int, num_processes: i
 
     # Create the process pool
     for _ in range(num_processes):
-        process: Process = Process(target=download_process, args=(url_queue, result_queue, out_dir, retries))
+        process: Process = Process(
+            target=download_process, args=(url_queue, result_queue, out_dir, retries)
+        )
         processes.append(process)
         process.start()
 
@@ -79,9 +86,11 @@ def download_files(urls: List[str], out_dir: str, retries: int, num_processes: i
         remaining: float = ((100.0 / percentage) * time_range) - time_range
 
         total_bytes += res.resp_len
-        print(f"\r[{(i + 1):5} / {len(urls):5}] [{percentage:04.1f}%] "
-              f"[{total_bytes:10} bytes] [est time remaining {remaining:06.1f}s] {res.data_key:>55}",
-              end="")
+        print(
+            f"\r[{(i + 1):5} / {len(urls):5}] [{percentage:04.1f}%] "
+            f"[{total_bytes:10} bytes] [est time remaining {remaining:06.1f}s] {res.data_key:>55}",
+            end="",
+        )
         i += 1
 
     # Wait for all processes in pool to finish
