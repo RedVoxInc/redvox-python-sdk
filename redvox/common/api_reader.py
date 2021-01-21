@@ -55,6 +55,8 @@ class ApiReader:
                             Default None
         :param debug: if True, output additional statements during function execution.  Default False.
         """
+        if station_ids and len(station_ids) < 1:
+            station_ids = None
         self.filter = io.ReadFilter(start_dt=start_dt, end_dt=end_dt, station_ids=station_ids)
         if start_dt_buf:
             self.filter = self.filter.with_start_dt_buf(start_dt_buf)
@@ -86,16 +88,15 @@ class ApiReader:
         read the all files in the index
         :return: dictionary of id: list of WrappedRedvoxPacketM, converted from API 900 if necessary
         """
-        result: Dict[str, List[WrappedRedvoxPacketM]] = {}
-        for station_id in self.index_summary.station_ids():
-            result[station_id] = []
-        for path in self.files_index.entries:
-            if path.extension == ".rdvxz":
-                data = api900_io.wrap(api900_io.read_file(path.full_path, True))
-                result[data.redvox_id()].append(ac.convert_api_900_to_1000(data))
-            elif path.extension == ".rdvxm":
-                data = WrappedRedvoxPacketM.from_compressed_path(path.full_path)
-                result[data.get_station_information().get_id()].append(data)
+        result = {}
+        for s_id in self.index_summary.station_ids():
+            result[s_id] = []
+        files = self.files_index.read()
+        for file in files:
+            if isinstance(file, api900_io.WrappedRedvoxPacket):
+                result[file.redvox_id()].append(ac.convert_api_900_to_1000(file))
+            elif isinstance(file, WrappedRedvoxPacketM):
+                result[file.get_station_information().get_id()].append(file)
         return result
 
     def read_files_by_id(self, get_id: str) -> Optional[List[WrappedRedvoxPacketM]]:
@@ -106,14 +107,11 @@ class ApiReader:
         """
         result: List[WrappedRedvoxPacketM] = []
         for path in self.files_index.entries:
-            if path.extension == ".rdvxz":
-                data = api900_io.wrap(api900_io.read_file(path.full_path, True))
-                if data.redvox_id() == get_id:
-                    result.append(ac.convert_api_900_to_1000(data))
-            elif path.extension == ".rdvxm":
-                data = WrappedRedvoxPacketM.from_compressed_path(path.full_path)
-                if data.get_station_information().get_id() == get_id:
-                    result.append(data)
+            if path.station_id == get_id:
+                if path.extension == ".rdvxz":
+                    result.append(ac.convert_api_900_to_1000(api900_io.read_rdvxz_file(path.full_path)))
+                elif path.extension == ".rdvxm":
+                    result.append(WrappedRedvoxPacketM.from_compressed_path(path.full_path))
         if len(result) == 0:
             return None
         return result
@@ -126,6 +124,12 @@ class ApiReader:
         result = []
         for packets in self.read_files().values():
             result.append(Station(packets))
+        return result
+
+    def read_files_as_stations(self) -> Dict[str, Station]:
+        result = {}
+        for s_id, packets in self.read_files().items():
+            result[s_id] = Station(packets)
         return result
 
     def get_station_by_id(self, get_id: str) -> Optional[Station]:
