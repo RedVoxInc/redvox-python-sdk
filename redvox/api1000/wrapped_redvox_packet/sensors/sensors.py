@@ -250,7 +250,7 @@ class Sensors(
             and self._audio.get_samples().get_values_count() > 0
         )
 
-    def has_compress_audio(self) -> bool:
+    def has_compressed_audio(self) -> bool:
         """
         :return: If this packet contains this channel
         """
@@ -261,7 +261,7 @@ class Sensors(
         """
         :return: The this sensor if it exists otherwise None
         """
-        return self._compressed_audio if self.has_compress_audio() else None
+        return self._compressed_audio if self.has_compressed_audio() else None
 
     def new_compressed_audio(self) -> audio.CompressedAudio:
         """
@@ -306,7 +306,7 @@ class Sensors(
         Checks if there are no errors with the compressed audio sensor and it contains at least 1 data entry
         :return: True if no errors
         """
-        return len(audio.validate_compress_audio(self._compressed_audio)) < 1
+        return len(audio.validate_compressed_audio(self._compressed_audio)) < 1
 
     def has_gravity(self) -> bool:
         """
@@ -1066,14 +1066,14 @@ def validate_sensors(sensors_list: Sensors) -> List[str]:
     """
     # audio is the only sensor that every packet must have
     errors_list = []
-    if not sensors_list.has_audio() and not sensors_list.has_compress_audio():
+    if not sensors_list.has_audio() and not sensors_list.has_compressed_audio():
         errors_list.append("Sensors list missing audio sensor")
     else:
         if sensors_list.has_audio():
             errors_list.extend(audio.validate_audio(sensors_list.get_audio()))
-        if sensors_list.has_compress_audio():
+        if sensors_list.has_compressed_audio():
             errors_list.extend(
-                audio.validate_compress_audio(sensors_list.get_compressed_audio())
+                audio.validate_compressed_audio(sensors_list.get_compressed_audio())
             )
     if sensors_list.has_accelerometer():
         errors_list.extend(

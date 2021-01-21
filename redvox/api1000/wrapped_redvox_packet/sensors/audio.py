@@ -329,7 +329,7 @@ class CompressedAudio(
         return self
 
 
-def validate_compress_audio(compress_audio: CompressedAudio) -> List[str]:
+def validate_compressed_audio(compress_audio: CompressedAudio) -> List[str]:
     """
     Validates compressed audio.
     :param compress_audio: CompressedAudio to validate.

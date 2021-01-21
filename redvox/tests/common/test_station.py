@@ -2,14 +2,10 @@
 tests for station
 """
 import unittest
-import os.path
-import numpy as np
-import pandas as pd
 
 import redvox.tests as tests
 from redvox.common import api_reader
 from redvox.common.station import Station
-from redvox.common import sensor_data as sd
 
 
 class StationTest(unittest.TestCase):
@@ -19,13 +15,9 @@ class StationTest(unittest.TestCase):
         reader = api_reader.ApiReader(tests.APIX_READER_TEST_DATA_DIR, False, extensions={".rdvxm"},
                                       station_ids={"0000000001"})
         cls.apim_station = reader.get_station_by_id("0000000001")
-        reader = api_reader.ApiReader(os.path.join(tests.APIX_READER_TEST_DATA_DIR, "api1000"), True,
-                                      station_ids={"1637610022"})
-        cls.apim_station2 = reader.get_station_by_id("1637610022")
         reader = api_reader.ApiReader(tests.TEST_DATA_DIR, False, extensions={".rdvxz"},
                                       station_ids={"1637650010"})
         cls.api900_station = reader.get_station_by_id("1637650010")
-        # cls.mseed_data = load_sd.load_from_mseed(os.path.join(tests.TEST_DATA_DIR, "out.mseed"))
 
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station.data), 1)
@@ -40,8 +32,7 @@ class StationTest(unittest.TestCase):
 
     def test_apim_station(self):
         self.assertEqual(len(self.apim_station.data), 1)
-        # self.assertEqual(self.apim_station.data[0].timesync.best_latency, 1296.0)
-        # self.assertEqual(len(self.apim_station.station_data), 2)
+        self.assertEqual(self.apim_station.timesync_analysis.get_best_latency(), 1296.0)
         audio_sensor = self.apim_station.audio_sensor()
         self.assertIsNotNone(audio_sensor)
         self.assertEqual(audio_sensor.sample_rate, 48000.0)
@@ -63,42 +54,3 @@ class StationTest(unittest.TestCase):
         self.assertIsNone(amb_temp_sensor)
         health_sensor = self.apim_station.health_sensor()
         self.assertIsNone(health_sensor)
-
-    def test_apim_station2(self):
-        loc_sensor = self.apim_station2.location_sensor()
-        self.assertIsNotNone(loc_sensor)
-        self.assertEqual(loc_sensor.data_df.shape, (3, 11))
-        self.assertEqual(len(self.apim_station2.data), 3)
-        pressure_sensor = self.apim_station2.pressure_sensor()
-        self.assertIsNotNone(pressure_sensor)
-        self.assertEqual(pressure_sensor.data_df.shape, (3072, 2))
-        self.assertAlmostEqual(pressure_sensor.get_data_channel("pressure")[0], 101.759, 3)
-        image_sensor = self.apim_station2.image_sensor()
-        self.assertIsNone(image_sensor)
-        health_sensor = self.apim_station2.health_sensor()
-        self.assertIsNotNone(health_sensor)
-        self.assertEqual(len(health_sensor.data_channels()), 10)
-        self.assertEqual(health_sensor.get_data_channel("battery_charge_remaining")[0], 100)
-
-    def test_create_read_update_delete_audio_sensor(self):
-        self.assertTrue(self.api900_station.has_audio_sensor())
-        audio_sensor = sd.SensorData("test_audio", pd.DataFrame(np.transpose([[10, 20, 30, 40], [1, 2, 3, 4]]),
-                                                                columns=["timestamps", "microphone"]), 1, True)
-        self.api900_station.set_audio_sensor(audio_sensor)
-        self.assertTrue(self.api900_station.has_audio_sensor())
-        self.assertEqual(self.api900_station.audio_sensor().sample_rate, 1)
-        self.assertEqual(self.api900_station.audio_sensor().num_samples(), 4)
-        self.assertIsInstance(self.api900_station.audio_sensor().get_data_channel("microphone"), np.ndarray)
-        self.assertRaises(ValueError, self.api900_station.audio_sensor().get_data_channel, "do_not_exist")
-        self.assertEqual(self.api900_station.audio_sensor().first_data_timestamp(), 10)
-        self.assertEqual(self.api900_station.audio_sensor().last_data_timestamp(), 40)
-        self.api900_station.set_audio_sensor(None)
-        self.assertFalse(self.api900_station.has_audio_sensor())
-
-    def test_mseed_read(self):
-        self.assertTrue(self.mseed_data.check_for_id("UHMB3_00"))
-        mb3_station = self.mseed_data.get_all_sensors_from_station("UHMB3_00")
-        self.assertEqual(mb3_station.audio_sensor().num_samples(), 6001)
-        self.assertEqual(mb3_station.station_metadata.station_network_name, "UH")
-        self.assertEqual(mb3_station.station_metadata.station_name, "MB3")
-        self.assertEqual(mb3_station.station_metadata.station_channel_name, "BDF")

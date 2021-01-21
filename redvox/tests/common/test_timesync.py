@@ -12,7 +12,7 @@ class TimesyncTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False, station_ids={"1637680001"})
-        cls.time_sync_analysis = ts.TimeSyncAnalysis(result.get_station_by_id("1637680001"))
+        cls.time_sync_analysis = result.get_station_by_id("1637680001").timesync_analysis
 
     def test_validate_sensors(self):
         test_ts = ts.TimeSyncData()

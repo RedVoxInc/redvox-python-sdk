@@ -216,7 +216,7 @@ def calc_evenly_sampled_timestamps(start: float, samples: int, rate_hz: float) -
     :param rate_hz: float, sample rate in hz
     :return: np.array with evenly spaced timestamps starting at start
     """
-    return start + (np.arange(0, samples) / dtu.seconds_to_microseconds(rate_hz))
+    return start + (np.arange(0, samples) / rate_hz) * dtu.MICROSECONDS_IN_SECOND
 
 
 def get_sample_statistics(data_df: pd.DataFrame) -> Tuple[float, float, float]:
@@ -294,28 +294,15 @@ def load_apim_audio_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
     :param wrapped_packets: packets with data to load
     :return: audio sensor data if it exists, None otherwise
     """
-    all_timestamps = []
-    all_data = []
-    description = None
-    sample_rate_hz = None
     if len(wrapped_packets) > 0:
+        result = load_apim_audio(wrapped_packets[0])
         if len(wrapped_packets) == 1:
-            return load_apim_audio(wrapped_packets[0])
-        for wrapped_packet in wrapped_packets:
-            audio = wrapped_packet.get_sensors().get_audio()
-            if audio and wrapped_packet.get_sensors().validate_audio():
-                if not sample_rate_hz:
-                    sample_rate_hz = audio.get_sample_rate()
-                if not description:
-                    description = audio.get_sensor_description()
-                all_timestamps.extend(calc_evenly_sampled_timestamps(audio.get_first_sample_timestamp(),
-                                                                     audio.get_num_samples(), sample_rate_hz))
-                all_data.extend(audio.get_samples().get_values())
-        if 0 < len(all_data) == len(all_timestamps):
-            data_df = pd.DataFrame(np.transpose([np.array(all_timestamps), np.array(all_data)]),
-                                   columns=["timestamps", "microphone"])
-            return SensorData(description, SensorType.AUDIO, data_df,
-                              sample_rate_hz, 1 / sample_rate_hz, 0.0, True).organize_and_update_stats()
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_audio(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -343,27 +330,15 @@ def load_apim_compressed_audio_from_list(wrapped_packets: List[WrappedRedvoxPack
     :param wrapped_packets: packets with data to load
     :return: compressed audio sensor data if it exists, None otherwise
     """
-    all_data = [[], [], []]
-    description = None
-    sample_rate_hz = None
     if len(wrapped_packets) > 0:
+        result = load_apim_compressed_audio(wrapped_packets[0])
         if len(wrapped_packets) == 1:
-            return load_apim_compressed_audio(wrapped_packets[0])
-        for wrapped_packet in wrapped_packets:
-            comp_audio = wrapped_packet.get_sensors().get_compressed_audio()
-            if comp_audio and wrapped_packet.get_sensors().validate_compressed_audio():
-                if not sample_rate_hz:
-                    sample_rate_hz = comp_audio.get_sample_rate()
-                if not description:
-                    description = comp_audio.get_sensor_description()
-                all_data[0].append(comp_audio.get_first_sample_timestamp())
-                all_data[1].append(comp_audio.get_audio_bytes())
-                all_data[2].append(comp_audio.get_audio_codec())
-        if len(all_data[0]) > 0:
-            data_df = pd.DataFrame(np.transpose(all_data),
-                                   columns=["timestamps", "compressed_audio", "audio_codec"])
-            return SensorData(description, SensorType.COMPRESSED_AUDIO, data_df,
-                              sample_rate_hz, 1 / sample_rate_hz, 0.0, True).organize_and_update_stats()
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_compressed_audio(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -391,25 +366,15 @@ def load_apim_image_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
     :param wrapped_packets: packets with data to load
     :return: image sensor data if it exists, None otherwise
     """
-    all_data = [[], [], []]
-    description = None
     if len(wrapped_packets) > 0:
+        result = load_apim_image(wrapped_packets[0])
         if len(wrapped_packets) == 1:
-            return load_apim_image(wrapped_packets[0])
-        for wrapped_packet in wrapped_packets:
-            image = wrapped_packet.get_sensors().get_image()
-            if image and wrapped_packet.get_sensors().validate_image():
-                if not description:
-                    description = image.get_sensor_description()
-                timestamps = image.get_timestamps().get_timestamps()
-                codecs = np.full(len(timestamps), image.get_image_codec().value)
-                all_data[0].append(timestamps)
-                all_data[1].append(image.get_samples())
-                all_data[2].append(codecs)
-        if len(all_data[0]) > 0:
-            data_df = pd.DataFrame(np.transpose(np.array(all_data)), columns=["timestamps", "image", "image_codec"])
-            return SensorData(description, SensorType.IMAGE, data_df,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_image(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -439,20 +404,29 @@ def load_apim_location(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorD
                             best_loc.get_location_provider()]]
         else:
             timestamps = loc.get_timestamps().get_timestamps()
-            if len(timestamps) > 1:
-                data_for_df = np.transpose([timestamps,
-                                            loc.get_latitude_samples().get_values(),
-                                            loc.get_longitude_samples().get_values(),
-                                            loc.get_altitude_samples().get_values(),
-                                            loc.get_speed_samples().get_values(),
-                                            loc.get_bearing_samples().get_values(),
-                                            loc.get_horizontal_accuracy_samples().get_values(),
-                                            loc.get_vertical_accuracy_samples().get_values(),
-                                            loc.get_speed_samples().get_values(),
-                                            loc.get_bearing_accuracy_samples().get_values(),
-                                            loc.get_location_providers().get_values()])
-            else:
-                data_for_df = np.array([])
+            data_for_df = []
+            if len(timestamps) > 0:
+                lat_samples = loc.get_latitude_samples().get_values()
+                lon_samples = loc.get_longitude_samples().get_values()
+                alt_samples = loc.get_altitude_samples().get_values()
+                spd_samples = loc.get_speed_samples().get_values()
+                bear_samples = loc.get_bearing_samples().get_values()
+                hor_acc_samples = loc.get_horizontal_accuracy_samples().get_values()
+                vert_acc_samples = loc.get_vertical_accuracy_samples().get_values()
+                spd_acc_samples = loc.get_speed_accuracy_samples().get_values()
+                bear_acc_samples = loc.get_bearing_accuracy_samples().get_values()
+                loc_prov_samples = loc.get_location_providers().get_values()
+                for i in range(len(timestamps)):
+                    new_entry = [timestamps[i], lat_samples[i], lon_samples[i],
+                                 np.nan if len(alt_samples) < i + 1 else alt_samples[i],
+                                 np.nan if len(spd_samples) < i + 1 else spd_samples[i],
+                                 np.nan if len(bear_samples) < i + 1 else bear_samples[i],
+                                 np.nan if len(hor_acc_samples) < i + 1 else hor_acc_samples[i],
+                                 np.nan if len(vert_acc_samples) < i + 1 else vert_acc_samples[i],
+                                 np.nan if len(spd_acc_samples) < i + 1 else spd_acc_samples[i],
+                                 np.nan if len(bear_acc_samples) < i + 1 else bear_acc_samples[i],
+                                 np.nan if len(loc_prov_samples) < i + 1 else loc_prov_samples[i]]
+                    data_for_df.append(new_entry)
         data_df = pd.DataFrame(data_for_df, columns=["timestamps", "latitude", "longitude", "altitude", "speed",
                                                      "bearing", "horizontal_accuracy", "vertical_accuracy",
                                                      "speed_accuracy", "bearing_accuracy", "location_provider"])
@@ -474,7 +448,8 @@ def load_apim_location_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) ->
             return result
         for wrapped_packet in wrapped_packets[1:]:
             next_result = load_apim_location(wrapped_packet)
-            result.append_data(next_result.data_df)
+            if next_result:
+                result.append_data(next_result.data_df)
         return result.organize_and_update_stats()
     return None
 
@@ -499,19 +474,15 @@ def load_apim_pressure_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) ->
     :param wrapped_packets: packets with data to load
     :return: pressure sensor data if it exists, None otherwise
     """
-    all_data = pd.DataFrame()
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            pressure = wrapped_packet.get_sensors().get_pressure()
-            if pressure and wrapped_packet.get_sensors().validate_pressure():
-                if not description:
-                    description = pressure.get_sensor_description()
-                data_df = read_apim_single_sensor(pressure, "pressure")
-                all_data = all_data.append(data_df.copy(), ignore_index=True)
-        if all_data.size > 0:
-            return SensorData(description, SensorType.PRESSURE, all_data,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_pressure(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_pressure(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -535,19 +506,15 @@ def load_apim_light_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
     :param wrapped_packets: packets with data to load
     :return: light sensor data if it exists, None otherwise
     """
-    all_data = pd.DataFrame()
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            pressure = wrapped_packet.get_sensors().get_light()
-            if pressure and wrapped_packet.get_sensors().validate_light():
-                if not description:
-                    description = pressure.get_sensor_description()
-                data_df = read_apim_single_sensor(pressure, "light")
-                all_data = all_data.append(data_df.copy(), ignore_index=True)
-        if all_data.size > 0:
-            return SensorData(description, SensorType.LIGHT, all_data,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_light(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_light(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -571,19 +538,15 @@ def load_apim_proximity_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -
     :param wrapped_packets: packets with data to load
     :return: proximity sensor data if it exists, None otherwise
     """
-    all_data = pd.DataFrame()
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            proximity = wrapped_packet.get_sensors().get_proximity()
-            if proximity and wrapped_packet.get_sensors().validate_proximity():
-                if not description:
-                    description = proximity.get_sensor_description()
-                data_df = read_apim_single_sensor(proximity, "proximity")
-                all_data = all_data.append(data_df.copy(), ignore_index=True)
-        if all_data.size > 0:
-            return SensorData(description, SensorType.PROXIMITY, all_data,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_proximity(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_proximity(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -607,19 +570,15 @@ def load_apim_ambient_temp_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
     :param wrapped_packets: packets with data to load
     :return: ambient temperature sensor data if it exists, None otherwise
     """
-    all_data = pd.DataFrame()
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            ambient_temp = wrapped_packet.get_sensors().get_ambient_temperature()
-            if ambient_temp and wrapped_packet.get_sensors().validate_ambient_temperature():
-                if not description:
-                    description = ambient_temp.get_sensor_description()
-                data_df = read_apim_single_sensor(ambient_temp, "ambient_temp")
-                all_data = all_data.append(data_df.copy(), ignore_index=True)
-        if all_data.size > 0:
-            return SensorData(description, SensorType.AMBIENT_TEMPERATURE, all_data,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_ambient_temp(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_ambient_temp(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -643,19 +602,15 @@ def load_apim_rel_humidity_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
     :param wrapped_packets: packets with data to load
     :return: relative humidity sensor data if it exists, None otherwise
     """
-    all_data = pd.DataFrame()
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            rel_humidity = wrapped_packet.get_sensors().get_relative_humidity()
-            if rel_humidity and wrapped_packet.get_sensors().validate_relative_humidity():
-                if not description:
-                    description = rel_humidity.get_sensor_description()
-                data_df = read_apim_single_sensor(rel_humidity, "rel_humidity")
-                all_data = all_data.append(data_df.copy(), ignore_index=True)
-        if all_data.size > 0:
-            return SensorData(description, SensorType.RELATIVE_HUMIDITY, all_data,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_rel_humidity(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_rel_humidity(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -679,19 +634,15 @@ def load_apim_accelerometer_from_list(wrapped_packets: List[WrappedRedvoxPacketM
     :param wrapped_packets: packets with data to load
     :return: accelerometer sensor data if it exists, None otherwise
     """
-    all_data = pd.DataFrame()
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            accel = wrapped_packet.get_sensors().get_accelerometer()
-            if accel and wrapped_packet.get_sensors().validate_accelerometer():
-                if not description:
-                    description = accel.get_sensor_description()
-                data_df = read_apim_xyz_sensor(accel, "accelerometer")
-                all_data = all_data.append(data_df.copy(), ignore_index=True)
-        if all_data.size > 0:
-            return SensorData(description, SensorType.ACCELEROMETER, all_data,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_accelerometer(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_accelerometer(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -715,19 +666,15 @@ def load_apim_magnetometer_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
     :param wrapped_packets: packets with data to load
     :return: magnetometer sensor data if it exists, None otherwise
     """
-    all_data = pd.DataFrame()
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            mag = wrapped_packet.get_sensors().get_magnetometer()
-            if mag and wrapped_packet.get_sensors().validate_magnetometer():
-                if not description:
-                    description = mag.get_sensor_description()
-                data_df = read_apim_xyz_sensor(mag, "magnetometer")
-                all_data = all_data.append(data_df.copy(), ignore_index=True)
-        if all_data.size > 0:
-            return SensorData(description, SensorType.MAGNETOMETER, all_data,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_magnetometer(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_magnetometer(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -751,19 +698,15 @@ def load_apim_gyroscope_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -
     :param wrapped_packets: packets with data to load
     :return: gyroscope sensor data if it exists, None otherwise
     """
-    all_data = pd.DataFrame()
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            gyro = wrapped_packet.get_sensors().get_gyroscope()
-            if gyro and wrapped_packet.get_sensors().validate_gyroscope():
-                if not description:
-                    description = gyro.get_sensor_description()
-                data_df = read_apim_xyz_sensor(gyro, "gyroscope")
-                all_data = all_data.append(data_df.copy(), ignore_index=True)
-        if all_data.size > 0:
-            return SensorData(description, SensorType.GYROSCOPE, all_data,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_gyroscope(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_gyroscope(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -787,19 +730,15 @@ def load_apim_gravity_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> 
     :param wrapped_packets: packets with data to load
     :return: gravity sensor data if it exists, None otherwise
     """
-    all_data = pd.DataFrame()
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            gravity = wrapped_packet.get_sensors().get_gravity()
-            if gravity and wrapped_packet.get_sensors().validate_gravity():
-                if not description:
-                    description = gravity.get_sensor_description()
-                data_df = read_apim_xyz_sensor(gravity, "gravity")
-                all_data = all_data.append(data_df.copy(), ignore_index=True)
-        if all_data.size > 0:
-            return SensorData(description, SensorType.GRAVITY, all_data,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_gravity(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_gravity(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -823,19 +762,15 @@ def load_apim_orientation_from_list(wrapped_packets: List[WrappedRedvoxPacketM])
     :param wrapped_packets: packets with data to load
     :return: orientation sensor data if it exists, None otherwise
     """
-    all_data = pd.DataFrame()
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            orientation = wrapped_packet.get_sensors().get_orientation()
-            if orientation and wrapped_packet.get_sensors().validate_orientation():
-                if not description:
-                    description = orientation.get_sensor_description()
-                data_df = read_apim_xyz_sensor(orientation, "orientation")
-                all_data = all_data.append(data_df.copy(), ignore_index=True)
-        if all_data.size > 0:
-            return SensorData(description, SensorType.ORIENTATION, all_data,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_orientation(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_orientation(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -859,19 +794,15 @@ def load_apim_linear_accel_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
     :param wrapped_packets: packets with data to load
     :return: linear acceleration sensor data if it exists, None otherwise
     """
-    all_data = pd.DataFrame()
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            linear_accel = wrapped_packet.get_sensors().get_linear_acceleration()
-            if linear_accel and wrapped_packet.get_sensors().validate_linear_acceleration():
-                if not description:
-                    description = linear_accel.get_sensor_description()
-                data_df = read_apim_xyz_sensor(linear_accel, "linear_accel")
-                all_data = all_data.append(data_df.copy(), ignore_index=True)
-        if all_data.size > 0:
-            return SensorData(description, SensorType.LINEAR_ACCELERATION, all_data,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_linear_accel(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_linear_accel(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -895,19 +826,15 @@ def load_apim_rotation_vector_from_list(wrapped_packets: List[WrappedRedvoxPacke
     :param wrapped_packets: packets with data to load
     :return: rotation vector sensor data if it exists, None otherwise
     """
-    all_data = pd.DataFrame()
-    description = None
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            rotation = wrapped_packet.get_sensors().get_rotation_vector()
-            if rotation and wrapped_packet.get_sensors().validate_rotation_vector():
-                if not description:
-                    description = rotation.get_sensor_description()
-                data_df = read_apim_xyz_sensor(rotation, "rotation_vector")
-                all_data = all_data.append(data_df.copy(), ignore_index=True)
-        if all_data.size > 0:
-            return SensorData(description, SensorType.ROTATION_VECTOR, all_data,
-                              is_sample_rate_fixed=False).organize_and_update_stats()
+        result = load_apim_rotation_vector(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_rotation_vector(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None
 
 
@@ -919,21 +846,31 @@ def load_apim_health(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorDat
     """
     metrics = wrapped_packet.get_station_information().get_station_metrics()
     timestamps = metrics.get_timestamps().get_timestamps()
-    if len(timestamps) > 1:
-        data_for_df = np.transpose([timestamps,
-                                    metrics.get_battery().get_values(),
-                                    metrics.get_battery_current().get_values(),
-                                    metrics.get_temperature().get_values(),
-                                    metrics.get_network_type().get_values(),
-                                    metrics.get_network_strength().get_values(),
-                                    metrics.get_power_state().get_values(),
-                                    metrics.get_available_ram().get_values(),
-                                    metrics.get_available_disk().get_values(),
-                                    metrics.get_cell_service_state().get_values()])
-    else:
-        data_for_df = np.array([])
+    data_for_df = []
+    if len(timestamps) > 0:
+        bat_samples = metrics.get_battery().get_values()
+        bat_cur_samples = metrics.get_battery_current().get_values()
+        temp_samples = metrics.get_temperature().get_values()
+        net_samples = metrics.get_network_type().get_values()
+        net_str_samples = metrics.get_network_strength().get_values()
+        pow_samples = metrics.get_power_state().get_values()
+        avail_ram_samples = metrics.get_available_ram().get_values()
+        avail_disk_samples = metrics.get_available_disk().get_values()
+        cell_samples = metrics.get_cell_service_state().get_values()
+        for i in range(len(timestamps)):
+            new_entry = [timestamps[i],
+                         np.nan if len(bat_samples) < i + 1 else bat_samples[i],
+                         np.nan if len(bat_cur_samples) < i + 1 else bat_cur_samples[i],
+                         np.nan if len(temp_samples) < i + 1 else temp_samples[i],
+                         np.nan if len(net_samples) < i + 1 else net_samples[i],
+                         np.nan if len(net_str_samples) < i + 1 else net_str_samples[i],
+                         np.nan if len(pow_samples) < i + 1 else pow_samples[i],
+                         np.nan if len(avail_ram_samples) < i + 1 else avail_ram_samples[i],
+                         np.nan if len(avail_disk_samples) < i + 1 else avail_disk_samples[i],
+                         np.nan if len(cell_samples) < i + 1 else cell_samples[i]]
+            data_for_df.append(new_entry)
     if len(data_for_df) > 0:
-        data_df = pd.DataFrame(np.transpose(data_for_df),
+        data_df = pd.DataFrame(data_for_df,
                                columns=["timestamps", "battery_charge_remaining", "battery_current_strength",
                                         "internal_temp_c", "network_type", "network_strength",
                                         "power_state", "avail_ram", "avail_disk", "cell_service"])
@@ -949,28 +886,13 @@ def load_apim_health_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> O
     :param wrapped_packets: packets with data to load
     :return: station health sensor data if it exists, None otherwise
     """
-    all_data = [[], [], [], [], [], [], [], [], [], []]
     if len(wrapped_packets) > 0:
-        for wrapped_packet in wrapped_packets:
-            metrics = wrapped_packet.get_station_information().get_station_metrics()
-            timestamps = metrics.get_timestamps().get_timestamps()
-            if len(timestamps) > 0:
-                all_data[0].extend(timestamps)
-                all_data[1].extend(metrics.get_battery().get_values())
-                all_data[2].extend(metrics.get_battery_current().get_values())
-                all_data[3].extend(metrics.get_temperature().get_values())
-                all_data[4].extend(metrics.get_network_type().get_values())
-                all_data[5].extend(metrics.get_network_strength().get_values())
-                all_data[6].extend(metrics.get_power_state().get_values())
-                all_data[7].extend(metrics.get_available_ram().get_values())
-                all_data[8].extend(metrics.get_available_disk().get_values())
-                all_data[9].extend(metrics.get_cell_service_state().get_values())
-        if len(all_data[0]) > 0:
-            data_df = pd.DataFrame(all_data,
-                                   columns=["timestamps", "battery_charge_remaining", "battery_current_strength",
-                                            "internal_temp_c", "network_type", "network_strength",
-                                            "power_state", "avail_ram", "avail_disk", "cell_service"])
-            sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
-            return SensorData("station health", SensorType.STATION_HEALTH, data_df,
-                              sample_rate, sample_interval, sample_interval_std, False)
+        result = load_apim_health(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_health(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
     return None

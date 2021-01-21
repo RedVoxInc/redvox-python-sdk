@@ -57,8 +57,8 @@ class DataWindow:
     def __init__(self, input_dir: str, structured_layout: bool = True,
                  start_datetime: Optional[dtu.datetime] = None, end_datetime: Optional[dtu.datetime] = None,
                  start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD, end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
-                 gap_time_s: float = DEFAULT_GAP_TIME_S, station_ids: Optional[List[str]] = None,
-                 extensions: Optional[List[str]] = None, api_versions: Optional[List[io.ApiVersion]] = None,
+                 gap_time_s: float = DEFAULT_GAP_TIME_S, station_ids: Optional[Set[str]] = None,
+                 extensions: Optional[Set[str]] = None, api_versions: Optional[Set[io.ApiVersion]] = None,
                  apply_correction: bool = True, debug: bool = False):
         """
         initialize the data window with params
@@ -152,7 +152,7 @@ class DataWindow:
         :param end_date_timestamp: float, timestamp in microseconds since epoch UTC of end of window
         """
         gap_time_micros = dtu.seconds_to_microseconds(self.gap_time_s)
-        for sensor_type, sensor in station.get_all_sensors():
+        for sensor_type, sensor in station.get_all_sensors().items():
             if self.apply_correction:
                 sensor.update_data_timestamps(station.timesync_analysis.get_best_offset())
             # calculate the sensor's sample interval, std sample interval and sample rate of all data
