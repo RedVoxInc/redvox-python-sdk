@@ -15,6 +15,7 @@ class ApiConfig:
     """
     Provides a configuration for the base API URL.
     """
+
     protocol: str
     host: str
     port: int
@@ -28,19 +29,21 @@ class ApiConfig:
         return f"{self.protocol}://{self.host}:{self.port}{end_point}"
 
     @staticmethod
-    def default() -> 'ApiConfig':
+    def default() -> "ApiConfig":
         """
         :return: The default API configuration for communicating with RedVox cloud services.
         """
         return ApiConfig("https", "redvox.io", 8080)
 
 
-def post_req(api_config: ApiConfig,
-             route: str,
-             req: Any,
-             resp_transform: Callable[[requests.Response], Any],
-             session: Optional[requests.Session] = None,
-             timeout: Optional[float] = 10.0) -> Optional[Any]:
+def post_req(
+    api_config: ApiConfig,
+    route: str,
+    req: Any,
+    resp_transform: Callable[[requests.Response], Any],
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = 10.0,
+) -> Optional[Any]:
     """
     Performs an HTTP POST request.
     :param api_config: API endpoint configuration.
@@ -66,12 +69,16 @@ def post_req(api_config: ApiConfig,
         else:
             return None
     except requests.RequestException as ex:
-        raise cloud_errors.ApiConnectionError(f"Error making POST request to {url}: with body: {req_dict}: {ex}")
+        raise cloud_errors.ApiConnectionError(
+            f"Error making POST request to {url}: with body: {req_dict}: {ex}"
+        )
 
 
-def health_check(api_config: ApiConfig,
-                 session: Optional[requests.Session] = None,
-                 timeout: Optional[float] = 10.0) -> bool:
+def health_check(
+    api_config: ApiConfig,
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = 10.0,
+) -> bool:
     """
     Check that the Cloud API endpoint is up.
     :param api_config: The API config.

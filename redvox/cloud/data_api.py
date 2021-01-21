@@ -21,6 +21,7 @@ class ReportDataReq:
     """
     A request for a signed URL to a RedVox report distribution.
     """
+
     auth_token: str
     report_id: str
     secret_token: Optional[str] = None
@@ -32,6 +33,7 @@ class ReportDataResp:
     """
     Response for a report signed URL.
     """
+
     signed_url: str
 
     def download_buf(self, retries: int = 3) -> Optional[bytes]:
@@ -49,7 +51,9 @@ class ReportDataResp:
         :param retries: Number of times to retry the download on failure.
         :return: A tuple containing the file name and the number of bytes written.
         """
-        return data_io.download_file(self.signed_url, requests.Session(), out_dir, retries)
+        return data_io.download_file(
+            self.signed_url, requests.Session(), out_dir, retries
+        )
 
 
 @dataclass_json
@@ -58,6 +62,7 @@ class DataRangeReq:
     """
     Definition of data range request.
     """
+
     auth_token: str
     start_ts_s: int
     end_ts_s: int
@@ -71,6 +76,7 @@ class DataRangeResp:
     """
     Definition of a data range response.
     """
+
     signed_urls: List[str]
 
     def download_fs(self, out_dir: str, retries: int = 3) -> None:
@@ -81,7 +87,7 @@ class DataRangeResp:
         """
         data_client.download_files(self.signed_urls, out_dir, retries)
 
-    def append(self, other: 'DataRangeResp') -> 'DataRangeResp':
+    def append(self, other: "DataRangeResp") -> "DataRangeResp":
         """
         Combines multiple responses.
         :param other: The other response to combine results with.
@@ -91,10 +97,12 @@ class DataRangeResp:
         return self
 
 
-def request_report_data(api_config: ApiConfig,
-                        report_data_req: ReportDataReq,
-                        session: Optional[requests.Session] = None,
-                        timeout: Optional[float] = None) -> Optional[ReportDataResp]:
+def request_report_data(
+    api_config: ApiConfig,
+    report_data_req: ReportDataReq,
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = None,
+) -> Optional[ReportDataResp]:
     """
     Makes an API call to generate a signed URL of a RedVox report.
     :param api_config: An API config.
@@ -105,29 +113,36 @@ def request_report_data(api_config: ApiConfig,
     """
     # noinspection Mypy
     # pylint: disable=E1101
-    handle_resp: Callable[[requests.Response], ReportDataResp] = lambda resp: ReportDataResp.from_dict(resp.json())
-    return post_req(api_config,
-                    RoutesV1.DATA_REPORT_REQ,
-                    report_data_req,
-                    handle_resp,
-                    session,
-                    timeout)
+    handle_resp: Callable[
+        [requests.Response], ReportDataResp
+    ] = lambda resp: ReportDataResp.from_dict(resp.json())
+    return post_req(
+        api_config,
+        RoutesV1.DATA_REPORT_REQ,
+        report_data_req,
+        handle_resp,
+        session,
+        timeout,
+    )
 
 
 class DataRangeReqType(Enum):
     """
     Type of RedVox data to be requested.
     """
+
     API_900: str = "API_900"
     API_1000: str = "API_1000"
     API_900_1000: str = "API_900_1000"
 
 
-def request_range_data(api_config: ApiConfig,
-                       data_range_req: DataRangeReq,
-                       session: Optional[requests.Session] = None,
-                       timeout: Optional[float] = None,
-                       req_type: DataRangeReqType = DataRangeReqType.API_900) -> DataRangeResp:
+def request_range_data(
+    api_config: ApiConfig,
+    data_range_req: DataRangeReq,
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = None,
+    req_type: DataRangeReqType = DataRangeReqType.API_900,
+) -> DataRangeResp:
     """
     Requests signed URLs for a range of RedVox packets.
     :param api_config: An API config.
@@ -139,45 +154,57 @@ def request_range_data(api_config: ApiConfig,
     """
     # noinspection Mypy
     # pylint: disable=E1101
-    handle_resp: Callable[[requests.Response], DataRangeResp] = lambda resp: DataRangeResp.from_dict(resp.json())
+    handle_resp: Callable[
+        [requests.Response], DataRangeResp
+    ] = lambda resp: DataRangeResp.from_dict(resp.json())
 
     # API 900
     if req_type == DataRangeReqType.API_900:
-        res: Optional[DataRangeResp] = post_req(api_config,
-                                                RoutesV1.DATA_RANGE_REQ,
-                                                data_range_req,
-                                                handle_resp,
-                                                session,
-                                                timeout)
+        res: Optional[DataRangeResp] = post_req(
+            api_config,
+            RoutesV1.DATA_RANGE_REQ,
+            data_range_req,
+            handle_resp,
+            session,
+            timeout,
+        )
 
         return res if res else DataRangeResp([])
     # API 1000
     elif req_type == DataRangeReqType.API_1000:
-        res: Optional[DataRangeResp] = post_req(api_config,
-                                                RoutesV1.DATA_RANGE_REQ_M,
-                                                data_range_req,
-                                                handle_resp,
-                                                session,
-                                                timeout)
+        res: Optional[DataRangeResp] = post_req(
+            api_config,
+            RoutesV1.DATA_RANGE_REQ_M,
+            data_range_req,
+            handle_resp,
+            session,
+            timeout,
+        )
 
         return res if res else DataRangeResp([])
     # API 900 and 1000
     else:
-        res_900: Optional[DataRangeResp] = post_req(api_config,
-                                                    RoutesV1.DATA_RANGE_REQ,
-                                                    data_range_req,
-                                                    handle_resp,
-                                                    session,
-                                                    timeout)
+        res_900: Optional[DataRangeResp] = post_req(
+            api_config,
+            RoutesV1.DATA_RANGE_REQ,
+            data_range_req,
+            handle_resp,
+            session,
+            timeout,
+        )
 
-        res_1000: Optional[DataRangeResp] = post_req(api_config,
-                                                     RoutesV1.DATA_RANGE_REQ_M,
-                                                     data_range_req,
-                                                     handle_resp,
-                                                     session,
-                                                     timeout)
+        res_1000: Optional[DataRangeResp] = post_req(
+            api_config,
+            RoutesV1.DATA_RANGE_REQ_M,
+            data_range_req,
+            handle_resp,
+            session,
+            timeout,
+        )
 
         res_900_final: DataRangeResp = DataRangeResp([]) if res_900 is None else res_900
-        res_1000_final: DataRangeResp = DataRangeResp([]) if res_1000 is None else res_1000
+        res_1000_final: DataRangeResp = (
+            DataRangeResp([]) if res_1000 is None else res_1000
+        )
 
         return res_900_final.append(res_1000_final)
