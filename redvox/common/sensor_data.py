@@ -39,6 +39,48 @@ class SensorType(enum.Enum):
     # battery charge and current level, phone internal temperature, network source and strength,
     # available RAM of the system, cell service status, amount of hard disk space left, power charging state
 
+    @staticmethod
+    def type_from_str(type_str: str) -> 'SensorType':
+        """
+        converts a string to a sensor type
+        :param type_str: string to convert
+        :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
+        """
+        if type_str.lower() == "mic" or type_str.lower() == "audio":
+            return SensorType.AUDIO
+        elif type_str.lower() == "accelerometer" or type_str.lower() == "accel":
+            return SensorType.ACCELEROMETER
+        elif type_str.lower() == "ambient_temperature":
+            return SensorType.AMBIENT_TEMPERATURE
+        elif type_str.lower() == "compressed_audio":
+            return SensorType.COMPRESSED_AUDIO
+        elif type_str.lower() == "gravity":
+            return SensorType.GRAVITY
+        elif type_str.lower() == "gyroscope" or type_str.lower() == "gyro":
+            return SensorType.GYROSCOPE
+        elif type_str.lower() == "image":
+            return SensorType.IMAGE
+        elif type_str.lower() == "light":
+            return SensorType.LIGHT
+        elif type_str.lower() == "linear_acceleration" or type_str.lower() == "linear_accel":
+            return SensorType.LINEAR_ACCELERATION
+        elif type_str.lower() == "location" or type_str.lower() == "loc":
+            return SensorType.LOCATION
+        elif type_str.lower() == "magnetometer" or type_str.lower() == "mag":
+            return SensorType.MAGNETOMETER
+        elif type_str.lower() == "orientation":
+            return SensorType.ORIENTATION
+        elif type_str.lower() == "pressure" or type_str.lower() == "bar" or type_str.lower() == "barometer":
+            return SensorType.PRESSURE
+        elif type_str.lower() == "proximity" or type_str.lower() == "infrared":
+            return SensorType.PROXIMITY
+        elif type_str.lower() == "relative_humidity":
+            return SensorType.RELATIVE_HUMIDITY
+        elif type_str.lower() == "rotation_vector":
+            return SensorType.ROTATION_VECTOR
+        else:
+            return SensorType.UNKNOWN_SENSOR
+
 
 class SensorData:
     """
@@ -125,6 +167,13 @@ class SensorData:
         if recalculate_stats and not self.is_sample_rate_fixed:
             self.organize_and_update_stats()
         return self
+
+    def sensor_type_as_str(self) -> str:
+        """
+        gets the sensor type as a string
+        :return: sensor type of the sensor as a string
+        """
+        return self.type.name
 
     def samples(self) -> np.ndarray:
         """

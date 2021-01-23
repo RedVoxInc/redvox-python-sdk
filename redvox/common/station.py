@@ -9,7 +9,7 @@ import numpy as np
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common import sensor_data as sd
-from redvox.common.station_utils import StationKey
+from redvox.common.station_utils import StationKey, StationMetadata
 from redvox.common.timesync import TimeSyncAnalysis
 
 
@@ -41,12 +41,18 @@ class Station:
         Have the same start time
         Have the same audio sample rate
     Properties:
-        data: List of data packets associated with the station
+        data: dict of sensor type and sensor data associated with the station
+        metadata: list of StationMetadata that didn't go into the sensor data
         id: str id of the station, default None
         uuid: str uuid of the station, default None
         start_timestamp: float of microseconds since epoch UTC when the station started recording, default np.nan
         key: Tuple of str, str, float, a unique combination of three values defining the station, default None
-        audio_sample_rate_hz: float, sample rate of audio component in hz
+        first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan
+        last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan
+        app_name: str of the name of the app used to record the data, default empty string
+        audio_sample_rate_hz: float of sample rate of audio component in hz
+        is_audio_scrambled: bool, True if audio data is scrambled, default False
+        is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
         timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
     """
 
@@ -55,34 +61,49 @@ class Station:
         initialize Station
         :param data_packets: optional list of data packets representing the station, default None
         """
-        self.data = data_packets.copy()
-        if self.data and validate_station_data(self.data):
-            self._sort_data_packets()
-            self.id = self.data[0].get_station_information().get_id()
-            self.uuid = self.data[0].get_station_information().get_uuid()
-            self.start_timestamp = self.data[0].get_timing_information().get_app_start_mach_timestamp()
+        self.data = None
+        self.metadata = None
+        if data_packets and validate_station_data(data_packets):
+            self._set_all_sensors(data_packets)
+            self.id = data_packets[0].get_station_information().get_id()
+            self.uuid = data_packets[0].get_station_information().get_uuid()
+            self.start_timestamp = data_packets[0].get_timing_information().get_app_start_mach_timestamp()
             self.key = StationKey(self.id, self.uuid, self.start_timestamp)
-            if self.data[0].get_sensors().has_audio():
-                self.audio_sample_rate_hz = self.data[0].get_sensors().get_audio().get_sample_rate()
+            self._get_start_and_end_timestamps()
+            if self.has_audio_sensor():
+                self.audio_sample_rate_hz = self.audio_sensor().sample_rate
+                self.is_audio_scrambled = data_packets[0].get_sensors().get_audio().get_is_scrambled()
             else:
                 self.audio_sample_rate_hz = np.nan
+                self.is_audio_scrambled = False
         else:
             if data_packets:
                 print("Warning: Data given to create station is not consistent; check station_id, station_uuid "
                       "and app_start_time of the packets.")
-                self.data = None
             self.id = None
             self.uuid = None
             self.start_timestamp = np.nan
             self.key = None
+            self.first_data_timestamp = np.nan
+            self.last_data_timestamp = np.nan
             self.audio_sample_rate_hz = np.nan
-        self.timesync_analysis = TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp, self.data)
+            self.is_audio_scrambled = False
+        self.is_timestamps_updated = False
+        self.timesync_analysis = TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp,
+                                                  data_packets)
 
-    def _sort_data_packets(self):
+    def _sort_metadata_packets(self):
         """
-        orders the data packets by their starting timestamps.  Returns nothing, sorts the data in place
+        orders the metadata packets by their starting timestamps.  Returns nothing, sorts the data in place
         """
-        self.data.sort(key=lambda t: t.get_timing_information().get_packet_start_mach_timestamp())
+        self.metadata.sort(key=lambda t: t.timing_information.get_packet_start_mach_timestamp())
+
+    def _get_start_and_end_timestamps(self):
+        """
+        uses the sorted metadata packets to get the first and last timestamp of the station
+        """
+        self.first_data_timestamp = self.metadata[0].timing_information.get_packet_start_mach_timestamp()
+        self.last_data_timestamp = self.metadata[-1].timing_information.get_packet_end_mach_timestamp()
 
     def set_id(self, station_id: str) -> 'Station':
         """
@@ -126,94 +147,272 @@ class Station:
         :param new_station: Station to append to current station
         """
         if new_station.key == self.key:
-            self.data.extend(new_station.data)
-            self._sort_data_packets()
-        else:
-            print("Warning: Cannot append new station data if station keys do not match.")
+            self.append_station_data(new_station.data)
+            self.metadata.extend(new_station.metadata)
+            self._sort_metadata_packets()
 
-    def append_station_data(self, new_data: List[WrappedRedvoxPacketM]):
+    def append_station_data(self, new_station_data: Dict[sd.SensorType, sd.SensorData]):
         """
         append new station data to existing station data
-        :param new_data: the list of packets to add
+        :param new_station_data: the dictionary of data to add
         """
-        new_data_key = StationKey(new_data[0].get_station_information().get_id(),
-                                  new_data[0].get_station_information().get_uuid(),
-                                  new_data[0].get_timing_information().get_packet_start_mach_timestamp())
-        if new_data_key == self.key:
-            self.data.extend(new_data)
-            self._sort_data_packets()
+        for sensor_type, sensor_data in new_station_data.items():
+            self.append_sensor(sensor_type, sensor_data)
+
+    def append_sensor(self, sensor_type: sd.SensorType, sensor_data: sd.SensorData):
+        """
+        append sensor data to an existing sensor_type or add a new sensor to the dictionary
+        :param sensor_type: the sensor to append to
+        :param sensor_data: the data to append
+        """
+        if sensor_type in self.data.keys():
+            self.data[sensor_type] = self.data[sensor_type].append_data(sensor_data.data_df)
         else:
-            print("Warning: Cannot append new data packets if station keys do not match.")
+            self._add_sensor(sensor_type, sensor_data)
+
+    def _delete_sensor(self, sensor_type: sd.SensorType):
+        """
+        removes a sensor from the sensor data dictionary if it exists
+        :param sensor_type: the sensor to remove
+        """
+        if sensor_type in self.data.keys():
+            self.data.pop(sensor_type)
+
+    def _add_sensor(self, sensor_type: sd.SensorType, sensor: sd.SensorData):
+        """
+        adds a sensor to the sensor data dictionary
+        :param sensor_type: the type of sensor to add
+        :param sensor: the sensor data to add
+        """
+        if sensor_type in self.data.keys():
+            raise ValueError(f"Cannot add sensor type ({sensor_type.name}) that already exists in packet!")
+        else:
+            self.data[sensor_type] = sensor
+
+    def get_mean_packet_duration(self) -> float:
+        """
+        calculate the mean packet duration using the stations' packets
+        :return: mean duration of packets in microseconds
+        """
+        return np.mean([tsd.packet_duration for tsd in self.timesync_analysis.timesync_data])
+
+    def get_mean_packet_audio_samples(self) -> float:
+        """
+        calculate the mean number of audio samples per packet using the
+          number of audio sensor's data points and the number of packets
+        :return: mean number of audio samples per packet
+        """
+        return self.audio_sensor().num_samples() / len(self.metadata)
 
     def has_audio_sensor(self) -> bool:
         """
-        check if audio sensor is in any of the packets
-        :return: True if audio sensor exists in any of the packets
+        check if audio sensor is in the station's data
+        :return: True if audio sensor exists
         """
-        return any(s.get_sensors().has_audio() and s.get_sensors().validate_audio() for s in self.data)
+        return sd.SensorType.AUDIO in self.data.keys()
+
+    def has_audio_data(self) -> bool:
+        """
+        check if the audio sensor has any data
+        :return: True if audio sensor has any data
+        """
+        return self.has_audio_sensor() and self.audio_sensor().num_samples() > 0
 
     def audio_sensor(self) -> Optional[sd.SensorData]:
         """
         return the audio sensor if it exists
         :return: audio sensor if it exists, None otherwise
         """
-        return sd.load_apim_audio_from_list(self.data)
+        if self.has_audio_sensor():
+            return self.data[sd.SensorType.AUDIO]
+        return None
+
+    def set_audio_sensor(self, audio_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the audio sensor; can remove audio sensor by passing None
+        :param audio_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_audio_sensor():
+            self._delete_sensor(sd.SensorType.AUDIO)
+        if audio_sensor is not None:
+            self._add_sensor(sd.SensorType.AUDIO, audio_sensor)
+        return self
 
     def has_location_sensor(self) -> bool:
         """
-        check if location sensor is in any of the packets
+        check if location sensor is in the station's data
         :return: True if location sensor exists
         """
-        return any(s.get_sensors().has_location() and s.get_sensors().validate_location() for s in self.data)
+        return sd.SensorType.LOCATION in self.data.keys()
+
+    def has_location_data(self) -> bool:
+        """
+        check if the location sensor has any data
+        :return: True if location sensor has any data
+        """
+        return self.has_location_sensor() and self.location_sensor().num_samples() > 0
 
     def location_sensor(self) -> Optional[sd.SensorData]:
         """
         return the location sensor if it exists
         :return: location sensor if it exists, None otherwise
         """
-        return sd.load_apim_location_from_list(self.data)
+        if self.has_location_sensor():
+            return self.data[sd.SensorType.LOCATION]
+        return None
+
+    def set_location_sensor(self, loc_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the location sensor; can remove location sensor by passing None
+        :param loc_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_location_sensor():
+            self._delete_sensor(sd.SensorType.LOCATION)
+        if loc_sensor is not None:
+            self._add_sensor(sd.SensorType.LOCATION, loc_sensor)
+        return self
 
     def has_accelerometer_sensor(self) -> bool:
         """
-        check if accelerometer sensor is in any of the packets
+        check if accelerometer sensor is in the station's data
         :return: True if accelerometer sensor exists
         """
-        return any(s.get_sensors().has_accelerometer() and s.get_sensors().validate_accelerometer() for s in self.data)
+        return sd.SensorType.ACCELEROMETER in self.data.keys()
+
+    def has_accelerometer_data(self) -> bool:
+        """
+        check if the accelerometer sensor has any data
+        :return: True if accelerometer sensor has any data
+        """
+        return self.has_accelerometer_sensor() and self.accelerometer_sensor().num_samples() > 0
 
     def accelerometer_sensor(self) -> Optional[sd.SensorData]:
         """
         return the accelerometer sensor if it exists
         :return: accelerometer sensor if it exists, None otherwise
         """
-        return sd.load_apim_accelerometer_from_list(self.data)
+        if self.has_accelerometer_sensor():
+            return self.data[sd.SensorType.ACCELEROMETER]
+        return None
+
+    def set_accelerometer_sensor(self, acc_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the accelerometer sensor; can remove accelerometer sensor by passing None
+        :param acc_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_accelerometer_sensor():
+            self._delete_sensor(sd.SensorType.ACCELEROMETER)
+        if acc_sensor is not None:
+            self._add_sensor(sd.SensorType.ACCELEROMETER, acc_sensor)
+        return self
 
     def has_magnetometer_sensor(self) -> bool:
         """
-        check if magnetometer sensor is in any of the packets
+        check if magnetometer sensor is in the station's data
         :return: True if magnetometer sensor exists
         """
-        return any(s.get_sensors().has_magnetometer() and s.get_sensors().validate_magnetometer() for s in self.data)
+        return sd.SensorType.MAGNETOMETER in self.data.keys()
+
+    def has_magnetometer_data(self) -> bool:
+        """
+        check if the magnetometer sensor has any data
+        :return: True if magnetometer sensor has any data
+        """
+        return self.has_magnetometer_sensor() and self.magnetometer_sensor().num_samples() > 0
 
     def magnetometer_sensor(self) -> Optional[sd.SensorData]:
         """
         return the magnetometer sensor if it exists
         :return: magnetometer sensor if it exists, None otherwise
         """
-        return sd.load_apim_magnetometer_from_list(self.data)
+        if self.has_magnetometer_sensor():
+            return self.data[sd.SensorType.MAGNETOMETER]
+        return None
+
+    def set_magnetometer_sensor(self, mag_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the magnetometer sensor; can remove magnetometer sensor by passing None
+        :param mag_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_magnetometer_sensor():
+            self._delete_sensor(sd.SensorType.MAGNETOMETER)
+        if mag_sensor is not None:
+            self._add_sensor(sd.SensorType.MAGNETOMETER, mag_sensor)
+        return self
 
     def has_gyroscope_sensor(self) -> bool:
         """
-        check if gyroscope sensor is in any of the packets
+        check if gyroscope sensor is in the station's data
         :return: True if gyroscope sensor exists
         """
-        return any(s.get_sensors().has_gyroscope() and s.get_sensors().validate_gyroscope() for s in self.data)
+        return sd.SensorType.GYROSCOPE in self.data.keys()
+
+    def has_gyroscope_data(self) -> bool:
+        """
+        check if the gyroscope sensor has any data
+        :return: True if gyroscope sensor has any data
+        """
+        return self.has_gyroscope_sensor() and self.gyroscope_sensor().num_samples() > 0
 
     def gyroscope_sensor(self) -> Optional[sd.SensorData]:
         """
         return the gyroscope sensor if it exists
         :return: gyroscope sensor if it exists, None otherwise
         """
-        return sd.load_apim_gyroscope_from_list(self.data)
+        if self.has_gyroscope_sensor():
+            return self.data[sd.SensorType.GYROSCOPE]
+        return None
+
+    def set_gyroscope_sensor(self, gyro_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the gyroscope sensor; can remove gyroscope sensor by passing None
+        :param gyro_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_gyroscope_sensor():
+            self._delete_sensor(sd.SensorType.GYROSCOPE)
+        if gyro_sensor is not None:
+            self._add_sensor(sd.SensorType.GYROSCOPE, gyro_sensor)
+        return self
+
+    def has_pressure_sensor(self) -> bool:
+        """
+        check if pressure sensor is in the station's data
+        :return: True if pressure sensor exists
+        """
+        return sd.SensorType.PRESSURE in self.data.keys()
+
+    def has_pressure_data(self) -> bool:
+        """
+        check if the pressure sensor has any data
+        :return: True if pressure sensor has any data
+        """
+        return self.has_pressure_sensor() and self.pressure_sensor().num_samples() > 0
+
+    def pressure_sensor(self) -> Optional[sd.SensorData]:
+        """
+        return the pressure sensor if it exists
+        :return: pressure sensor if it exists, None otherwise
+        """
+        if self.has_pressure_sensor():
+            return self.data[sd.SensorType.PRESSURE]
+        return None
+
+    def set_pressure_sensor(self, pressure_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the pressure sensor; can remove pressure sensor by passing None
+        :param pressure_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_pressure_sensor():
+            self._delete_sensor(sd.SensorType.PRESSURE)
+        if pressure_sensor is not None:
+            self._add_sensor(sd.SensorType.PRESSURE, pressure_sensor)
+        return self
 
     def has_barometer_sensor(self) -> bool:
         """
@@ -222,6 +421,13 @@ class Station:
         """
         return self.has_pressure_sensor()
 
+    def has_barometer_data(self) -> bool:
+        """
+        check if the barometer (aka pressure)  sensor has any data
+        :return: True if barometer sensor has any data
+        """
+        return self.has_pressure_data()
+
     def barometer_sensor(self) -> Optional[sd.SensorData]:
         """
         return the barometer (aka pressure) sensor if it exists
@@ -229,33 +435,48 @@ class Station:
         """
         return self.pressure_sensor()
 
-    def has_pressure_sensor(self) -> bool:
+    def set_barometer_sensor(self, bar_sensor: Optional[sd.SensorData]) -> 'Station':
         """
-        check if pressure (aka barometer) sensor is in any of the packets
-        :return: True if pressure sensor exists
+        sets the barometer (pressure) sensor; can remove barometer sensor by passing None
+        :param bar_sensor: the SensorData to set or None
+        :return: the edited station
         """
-        return any(s.get_sensors().has_pressure() and s.get_sensors().validate_pressure() for s in self.data)
-
-    def pressure_sensor(self) -> Optional[sd.SensorData]:
-        """
-        return the pressure (aka barometer) sensor if it exists
-        :return: pressure sensor if it exists, None otherwise
-        """
-        return sd.load_apim_pressure_from_list(self.data)
+        return self.set_pressure_sensor(bar_sensor)
 
     def has_light_sensor(self) -> bool:
         """
-        check if light sensor is in any of the packets
+        check if light sensor is in the station's data
         :return: True if light sensor exists
         """
-        return any(s.get_sensors().has_light() and s.get_sensors().validate_light() for s in self.data)
+        return sd.SensorType.LIGHT in self.data.keys()
+
+    def has_light_data(self) -> bool:
+        """
+        check if the light sensor has any data
+        :return: True if light sensor has any data
+        """
+        return self.has_light_sensor() and self.light_sensor().num_samples() > 0
 
     def light_sensor(self) -> Optional[sd.SensorData]:
         """
         return the light sensor if it exists
         :return: light sensor if it exists, None otherwise
         """
-        return sd.load_apim_light_from_list(self.data)
+        if self.has_light_sensor():
+            return self.data[sd.SensorType.LIGHT]
+        return None
+
+    def set_light_sensor(self, light_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the light sensor; can remove light sensor by passing None
+        :param light_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_light_sensor():
+            self._delete_sensor(sd.SensorType.LIGHT)
+        if light_sensor is not None:
+            self._add_sensor(sd.SensorType.LIGHT, light_sensor)
+        return self
 
     def has_infrared_sensor(self) -> bool:
         """
@@ -264,6 +485,13 @@ class Station:
         """
         return self.has_proximity_sensor()
 
+    def has_infrared_data(self) -> bool:
+        """
+        check if infrared (proximity) sensor has any data
+        :return: True if infrared sensor has any data
+        """
+        return self.has_proximity_data()
+
     def infrared_sensor(self) -> Optional[sd.SensorData]:
         """
         return the infrared (proximity) sensor if it exists
@@ -271,190 +499,432 @@ class Station:
         """
         return self.proximity_sensor()
 
+    def set_infrared_sensor(self, infrd_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the infrared sensor; can remove infrared sensor by passing None
+        :param infrd_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        return self.set_proximity_sensor(infrd_sensor)
+
     def has_proximity_sensor(self) -> bool:
         """
-        check if proximity (infrared) sensor is in any of the packets
+        check if proximity sensor is in the station's data
         :return: True if proximity sensor exists
         """
-        return any(s.get_sensors().has_proximity() and s.get_sensors().validate_proximity() for s in self.data)
+        return sd.SensorType.PROXIMITY in self.data.keys()
+
+    def has_proximity_data(self) -> bool:
+        """
+        check if the proximity sensor has any data
+        :return: True if proximity sensor has any data
+        """
+        return self.has_proximity_sensor() and self.proximity_sensor().num_samples() > 0
 
     def proximity_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the proximity (infrared) sensor if it exists
+        return the proximity sensor if it exists
         :return: proximity sensor if it exists, None otherwise
         """
-        return sd.load_apim_proximity_from_list(self.data)
+        if self.has_proximity_sensor():
+            return self.data[sd.SensorType.PROXIMITY]
+        return None
+
+    def set_proximity_sensor(self, proximity_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the proximity sensor; can remove proximity sensor by passing None
+        :param proximity_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_proximity_sensor():
+            self._delete_sensor(sd.SensorType.PROXIMITY)
+        if proximity_sensor is not None:
+            self._add_sensor(sd.SensorType.PROXIMITY, proximity_sensor)
+        return self
 
     def has_image_sensor(self) -> bool:
         """
-        check if image sensor is in any of the packets
+        check if image sensor is in the station's data
         :return: True if image sensor exists
         """
-        return any(s.get_sensors().has_image() and s.get_sensors().validate_image() for s in self.data)
+        return sd.SensorType.IMAGE in self.data.keys()
+
+    def has_image_data(self) -> bool:
+        """
+        check if the image sensor has any data
+        :return: True if image sensor has any data
+        """
+        return self.has_image_sensor() and self.image_sensor().num_samples() > 0
 
     def image_sensor(self) -> Optional[sd.SensorData]:
         """
         return the image sensor if it exists
         :return: image sensor if it exists, None otherwise
         """
-        return sd.load_apim_image_from_list(self.data)
+        if self.has_image_sensor():
+            return self.data[sd.SensorType.IMAGE]
+        return None
+
+    def set_image_sensor(self, img_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the image sensor; can remove image sensor by passing None
+        :param img_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_image_sensor():
+            self._delete_sensor(sd.SensorType.IMAGE)
+        if img_sensor is not None:
+            self._add_sensor(sd.SensorType.IMAGE, img_sensor)
+        return self
 
     def has_ambient_temperature_sensor(self) -> bool:
         """
-        check if ambient temperature sensor is in any of the packets
+        check if ambient temperature sensor is in the station's data
         :return: True if ambient temperature sensor exists
         """
-        return any(s.get_sensors().has_ambient_temperature()
-                   and s.get_sensors().validate_ambient_temperature() for s in self.data)
+        return sd.SensorType.AMBIENT_TEMPERATURE in self.data.keys()
+
+    def has_ambient_temperature_data(self) -> bool:
+        """
+        check if the ambient temperature sensor has any data
+        :return: True if ambient temperature sensor has any data
+        """
+        return self.has_ambient_temperature_sensor() and self.ambient_temperature_sensor().num_samples() > 0
 
     def ambient_temperature_sensor(self) -> Optional[sd.SensorData]:
         """
         return the ambient temperature sensor if it exists
-        :return: image ambient temperature if it exists, None otherwise
+        :return: ambient temperature sensor if it exists, None otherwise
         """
-        return sd.load_apim_ambient_temp_from_list(self.data)
+        if self.has_ambient_temperature_sensor():
+            return self.data[sd.SensorType.AMBIENT_TEMPERATURE]
+        return None
+
+    def set_ambient_temperature_sensor(self, amb_temp_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the ambient temperature sensor; can remove ambient temperature sensor by passing None
+        :param amb_temp_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_ambient_temperature_sensor():
+            self._delete_sensor(sd.SensorType.AMBIENT_TEMPERATURE)
+        if amb_temp_sensor is not None:
+            self._add_sensor(sd.SensorType.AMBIENT_TEMPERATURE, amb_temp_sensor)
+        return self
 
     def has_relative_humidity_sensor(self) -> bool:
         """
-        check if relative humidity sensor is in any of the packets
-        :return: True if linear relative humidity sensor exists
+        check if relative humidity sensor is in the station's data
+        :return: True if relative humidity sensor exists
         """
-        return any(s.get_sensors().has_relative_humidity()
-                   and s.get_sensors().validate_relative_humidity() for s in self.data)
+        return sd.SensorType.RELATIVE_HUMIDITY in self.data.keys()
+
+    def has_relative_humidity_data(self) -> bool:
+        """
+        check if the relative humidity sensor has any data
+        :return: True if relative humidity sensor has any data
+        """
+        return self.has_relative_humidity_sensor() and self.relative_humidity_sensor().num_samples() > 0
 
     def relative_humidity_sensor(self) -> Optional[sd.SensorData]:
         """
         return the relative humidity sensor if it exists
         :return: relative humidity sensor if it exists, None otherwise
         """
-        return sd.load_apim_rel_humidity_from_list(self.data)
+        if self.has_relative_humidity_sensor():
+            return self.data[sd.SensorType.RELATIVE_HUMIDITY]
+        return None
+
+    def set_relative_humidity_sensor(self, rel_hum_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the relative humidity sensor; can remove relative humidity sensor by passing None
+        :param rel_hum_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_relative_humidity_sensor():
+            self._delete_sensor(sd.SensorType.RELATIVE_HUMIDITY)
+        if rel_hum_sensor is not None:
+            self._add_sensor(sd.SensorType.RELATIVE_HUMIDITY, rel_hum_sensor)
+        return self
 
     def has_gravity_sensor(self) -> bool:
         """
-        check if gravity sensor is in any of the packets
+        check if gravity sensor is in the station's data
         :return: True if gravity sensor exists
         """
-        return any(s.get_sensors().has_gravity() and s.get_sensors().validate_gravity() for s in self.data)
+        return sd.SensorType.GRAVITY in self.data.keys()
+
+    def has_gravity_data(self) -> bool:
+        """
+        check if the gravity sensor has any data
+        :return: True if gravity sensor has any data
+        """
+        return self.has_gravity_sensor() and self.gravity_sensor().num_samples() > 0
 
     def gravity_sensor(self) -> Optional[sd.SensorData]:
         """
         return the gravity sensor if it exists
         :return: gravity sensor if it exists, None otherwise
         """
-        return sd.load_apim_gravity_from_list(self.data)
+        if self.has_gravity_sensor():
+            return self.data[sd.SensorType.GRAVITY]
+        return None
+
+    def set_gravity_sensor(self, grav_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the gravity sensor; can remove gravity sensor by passing None
+        :param grav_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_gravity_sensor():
+            self._delete_sensor(sd.SensorType.GRAVITY)
+        if grav_sensor is not None:
+            self._add_sensor(sd.SensorType.GRAVITY, grav_sensor)
+        return self
 
     def has_linear_acceleration_sensor(self) -> bool:
         """
-        check if linear acceleration sensor is in any of the packets
+        check if linear acceleration sensor is in the station's data
         :return: True if linear acceleration sensor exists
         """
-        return any(s.get_sensors().has_linear_acceleration()
-                   and s.get_sensors().validate_linear_acceleration() for s in self.data)
+        return sd.SensorType.LINEAR_ACCELERATION in self.data.keys()
+
+    def has_linear_acceleration_data(self) -> bool:
+        """
+        check if the linear acceleration sensor has any data
+        :return: True if linear acceleration sensor has any data
+        """
+        return self.has_linear_acceleration_sensor() and self.linear_acceleration_sensor().num_samples() > 0
 
     def linear_acceleration_sensor(self) -> Optional[sd.SensorData]:
         """
         return the linear acceleration sensor if it exists
         :return: linear acceleration sensor if it exists, None otherwise
         """
-        return sd.load_apim_linear_accel_from_list(self.data)
+        if self.has_linear_acceleration_sensor():
+            return self.data[sd.SensorType.LINEAR_ACCELERATION]
+        return None
+
+    def set_linear_acceleration_sensor(self, lin_acc_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the linear acceleration sensor; can remove linear acceleration sensor by passing None
+        :param lin_acc_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_linear_acceleration_sensor():
+            self._delete_sensor(sd.SensorType.LINEAR_ACCELERATION)
+        if lin_acc_sensor is not None:
+            self._add_sensor(sd.SensorType.LINEAR_ACCELERATION, lin_acc_sensor)
+        return self
 
     def has_orientation_sensor(self) -> bool:
         """
-        check if orientation sensor is in any of the packets
+        check if orientation sensor is in the station's data
         :return: True if orientation sensor exists
         """
-        return any(s.get_sensors().has_orientation() and s.get_sensors().validate_orientation() for s in self.data)
+        return sd.SensorType.ORIENTATION in self.data.keys()
+
+    def has_orientation_data(self) -> bool:
+        """
+        check if the orientation sensor has any data
+        :return: True if orientation sensor has any data
+        """
+        return self.has_orientation_sensor() and self.orientation_sensor().num_samples() > 0
 
     def orientation_sensor(self) -> Optional[sd.SensorData]:
         """
         return the orientation sensor if it exists
         :return: orientation sensor if it exists, None otherwise
         """
-        return sd.load_apim_orientation_from_list(self.data)
+        if self.has_orientation_sensor():
+            return self.data[sd.SensorType.ORIENTATION]
+        return None
+
+    def set_orientation_sensor(self, orientation_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the orientation sensor; can remove orientation sensor by passing None
+        :param orientation_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_orientation_sensor():
+            self._delete_sensor(sd.SensorType.ORIENTATION)
+        if orientation_sensor is not None:
+            self._add_sensor(sd.SensorType.ORIENTATION, orientation_sensor)
+        return self
 
     def has_rotation_vector_sensor(self) -> bool:
         """
-        check if rotation vector sensor is in any of the packets
+        check if rotation vector sensor is in the station's data
         :return: True if rotation vector sensor exists
         """
-        return any(s.get_sensors().has_rotation_vector()
-                   and s.get_sensors().validate_rotation_vector() for s in self.data)
+        return sd.SensorType.ROTATION_VECTOR in self.data.keys()
+
+    def has_rotation_vector_data(self) -> bool:
+        """
+        check if the rotation vector sensor has any data
+        :return: True if rotation vector sensor has any data
+        """
+        return self.has_rotation_vector_sensor() and self.rotation_vector_sensor().num_samples() > 0
 
     def rotation_vector_sensor(self) -> Optional[sd.SensorData]:
         """
         return the rotation vector sensor if it exists
         :return: rotation vector sensor if it exists, None otherwise
         """
-        return sd.load_apim_rotation_vector_from_list(self.data)
+        if self.has_rotation_vector_sensor():
+            return self.data[sd.SensorType.ROTATION_VECTOR]
+        return None
+
+    def set_rotation_vector_sensor(self, rot_vec_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the rotation vector sensor; can remove rotation vector sensor by passing None
+        :param rot_vec_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_rotation_vector_sensor():
+            self._delete_sensor(sd.SensorType.ROTATION_VECTOR)
+        if rot_vec_sensor is not None:
+            self._add_sensor(sd.SensorType.ROTATION_VECTOR, rot_vec_sensor)
+        return self
 
     def has_compressed_audio_sensor(self) -> bool:
         """
-        check if compressed audio sensor is in any of the packets
+        check if compressed audio sensor is in the station's data
         :return: True if compressed audio sensor exists
         """
-        return any(s.get_sensors().has_compressed_audio()
-                   and s.get_sensors().validate_compressed_audio() for s in self.data)
+        return sd.SensorType.COMPRESSED_AUDIO in self.data.keys()
+
+    def has_compressed_audio_data(self) -> bool:
+        """
+        check if the compressed audio sensor has any data
+        :return: True if compressed audio sensor has any data
+        """
+        return self.has_compressed_audio_sensor() and self.compressed_audio_sensor().num_samples() > 0
 
     def compressed_audio_sensor(self) -> Optional[sd.SensorData]:
         """
         return the compressed audio sensor if it exists
         :return: compressed audio sensor if it exists, None otherwise
         """
-        return sd.load_apim_compressed_audio_from_list(self.data)
+        if self.has_compressed_audio_sensor():
+            return self.data[sd.SensorType.COMPRESSED_AUDIO]
+        return None
+
+    def set_compressed_audio_sensor(self, comp_audio_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the compressed audio sensor; can remove compressed audio sensor by passing None
+        :param comp_audio_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_compressed_audio_sensor():
+            self._delete_sensor(sd.SensorType.COMPRESSED_AUDIO)
+        if comp_audio_sensor is not None:
+            self._add_sensor(sd.SensorType.COMPRESSED_AUDIO, comp_audio_sensor)
+        return self
 
     def has_health_sensor(self) -> bool:
         """
         check if health sensor (station metrics) is in any of the packets
         :return: True if health sensor exists
         """
-        return any(s.get_station_information().get_station_metrics().get_timestamps().get_timestamps_count() > 0
-                   for s in self.data)
+        return sd.SensorType.STATION_HEALTH in self.data.keys()
+
+    def has_health_data(self) -> bool:
+        """
+        check if health sensor (station metrics) is in any of the packets
+        :return: True if health sensor exists
+        """
+        return self.has_health_sensor() and self.health_sensor().num_samples() > 0
 
     def health_sensor(self) -> Optional[sd.SensorData]:
         """
         return the station health sensor if it exists
         :return: station health sensor if it exists, None otherwise
         """
-        return sd.load_apim_health_from_list(self.data)
-
-    def get_all_sensors(self) -> Dict[sd.SensorType, sd.SensorData]:
-        """
-        return all sensors in the station object
-        :return: dict of sensor type and sensor data of all sensors in the station
-        """
-        result: Dict[sd.SensorType, sd.SensorData] = {}
-        if self.has_audio_sensor():
-            result[sd.SensorType.AUDIO] = self.audio_sensor()
-        if self.has_compressed_audio_sensor():
-            result[sd.SensorType.COMPRESSED_AUDIO] = self.compressed_audio_sensor()
-        if self.has_image_sensor():
-            result[sd.SensorType.IMAGE] = self.image_sensor()
-        if self.has_location_sensor():
-            result[sd.SensorType.LOCATION] = self.location_sensor()
-        if self.has_pressure_sensor():
-            result[sd.SensorType.PRESSURE] = self.pressure_sensor()
-        if self.has_light_sensor():
-            result[sd.SensorType.LIGHT] = self.light_sensor()
-        if self.has_ambient_temperature_sensor():
-            result[sd.SensorType.AMBIENT_TEMPERATURE] = self.ambient_temperature_sensor()
-        if self.has_relative_humidity_sensor():
-            result[sd.SensorType.RELATIVE_HUMIDITY] = self.relative_humidity_sensor()
-        if self.has_proximity_sensor():
-            result[sd.SensorType.PROXIMITY] = self.proximity_sensor()
-        if self.has_accelerometer_sensor():
-            result[sd.SensorType.ACCELEROMETER] = self.accelerometer_sensor()
-        if self.has_gyroscope_sensor():
-            result[sd.SensorType.GYROSCOPE] = self.gyroscope_sensor()
-        if self.has_magnetometer_sensor():
-            result[sd.SensorType.MAGNETOMETER] = self.magnetometer_sensor()
-        if self.has_gravity_sensor():
-            result[sd.SensorType.GRAVITY] = self.gravity_sensor()
-        if self.has_linear_acceleration_sensor():
-            result[sd.SensorType.LINEAR_ACCELERATION] = self.linear_acceleration_sensor()
-        if self.has_orientation_sensor():
-            result[sd.SensorType.ORIENTATION] = self.orientation_sensor()
-        if self.has_rotation_vector_sensor():
-            result[sd.SensorType.ROTATION_VECTOR] = self.rotation_vector_sensor()
         if self.has_health_sensor():
-            result[sd.SensorType.STATION_HEALTH] = self.health_sensor()
-        return result
+            return self.data[sd.SensorType.STATION_HEALTH]
+        return None
+
+    def set_health_sensor(self, health_sensor: Optional[sd.SensorData]) -> 'Station':
+        """
+        sets the health sensor; can remove health sensor by passing None
+        :param health_sensor: the SensorData to set or None
+        :return: the edited DataPacket
+        """
+        if self.has_health_sensor():
+            self._delete_sensor(sd.SensorType.STATION_HEALTH)
+        if health_sensor is not None:
+            self._add_sensor(sd.SensorType.STATION_HEALTH, health_sensor)
+        return self
+
+    def _set_all_sensors(self, packets: List[WrappedRedvoxPacketM]):
+        """
+        set all sensors from the packets, as well as misc. metadata, and put it in the station
+        :param packets: the packets to read data from
+        """
+        self.data = {}
+        self.metadata: List[StationMetadata] = []
+        for packet in packets:
+            self.metadata.append(StationMetadata(packet.get_api(), packet.get_sub_api(),
+                                                 packet.get_station_information(), "Redvox",
+                                                 packet.get_timing_information()))
+        if any(s.get_sensors().has_audio() and s.get_sensors().validate_audio() for s in packets):
+            self.data[sd.SensorType.AUDIO] = sd.load_apim_audio_from_list(packets)
+        if any(s.get_sensors().has_compressed_audio() and s.get_sensors().validate_compressed_audio() for s in packets):
+            self.data[sd.SensorType.COMPRESSED_AUDIO] = sd.load_apim_compressed_audio_from_list(packets)
+        if any(s.get_sensors().has_image() and s.get_sensors().validate_image() for s in packets):
+            self.data[sd.SensorType.IMAGE] = sd.load_apim_image_from_list(packets)
+        if any(s.get_sensors().has_location() and s.get_sensors().validate_location() for s in packets):
+            self.data[sd.SensorType.LOCATION] = sd.load_apim_location_from_list(packets)
+        if any(s.get_sensors().has_pressure() and s.get_sensors().validate_pressure() for s in packets):
+            self.data[sd.SensorType.PRESSURE] = sd.load_apim_pressure_from_list(packets)
+        if any(s.get_sensors().has_light() and s.get_sensors().validate_light() for s in packets):
+            self.data[sd.SensorType.LIGHT] = sd.load_apim_light_from_list(packets)
+        if any(s.get_sensors().has_ambient_temperature()
+               and s.get_sensors().validate_ambient_temperature() for s in packets):
+            self.data[sd.SensorType.AMBIENT_TEMPERATURE] = sd.load_apim_ambient_temp_from_list(packets)
+        if any(s.get_sensors().has_relative_humidity()
+               and s.get_sensors().validate_relative_humidity() for s in packets):
+            self.data[sd.SensorType.RELATIVE_HUMIDITY] = sd.load_apim_rel_humidity_from_list(packets)
+        if any(s.get_sensors().has_proximity() and s.get_sensors().validate_proximity() for s in packets):
+            self.data[sd.SensorType.PROXIMITY] = sd.load_apim_proximity_from_list(packets)
+        if any(s.get_sensors().has_accelerometer() and s.get_sensors().validate_accelerometer() for s in packets):
+            self.data[sd.SensorType.ACCELEROMETER] = sd.load_apim_accelerometer_from_list(packets)
+        if any(s.get_sensors().has_gyroscope() and s.get_sensors().validate_gyroscope() for s in packets):
+            self.data[sd.SensorType.GYROSCOPE] = sd.load_apim_gyroscope_from_list(packets)
+        if any(s.get_sensors().has_magnetometer() and s.get_sensors().validate_magnetometer() for s in packets):
+            self.data[sd.SensorType.MAGNETOMETER] = sd.load_apim_magnetometer_from_list(packets)
+        if any(s.get_sensors().has_gravity() and s.get_sensors().validate_gravity() for s in packets):
+            self.data[sd.SensorType.GRAVITY] = sd.load_apim_gravity_from_list(packets)
+        if any(s.get_sensors().has_linear_acceleration()
+               and s.get_sensors().validate_linear_acceleration() for s in packets):
+            self.data[sd.SensorType.LINEAR_ACCELERATION] = sd.load_apim_linear_accel_from_list(packets)
+        if any(s.get_sensors().has_orientation() and s.get_sensors().validate_orientation() for s in packets):
+            self.data[sd.SensorType.ORIENTATION] = sd.load_apim_orientation_from_list(packets)
+        if any(s.get_sensors().has_rotation_vector() and s.get_sensors().validate_rotation_vector() for s in packets):
+            self.data[sd.SensorType.ROTATION_VECTOR] = sd.load_apim_rotation_vector_from_list(packets)
+        if any(s.get_station_information().get_station_metrics().get_timestamps().get_timestamps_count() > 0
+               for s in packets):
+            self.data[sd.SensorType.STATION_HEALTH] = sd.load_apim_health_from_list(packets)
+
+    def update_timestamps(self, delta: Optional[float] = None):
+        """
+        updates the timestamps in the station by adding delta microseconds
+            negative delta values move timestamps backwards in time.
+        :param delta: optional microseconds to add, default None (adds the station's best offset)
+        """
+        if self.is_timestamps_updated:
+            print("WARNING: Timestamps already corrected!")
+        else:
+            if not delta:
+                if np.isnan(self.timesync_analysis.get_best_offset()):
+                    print("WARNING: Station does not have timing data, assuming existing values are the correct ones!")
+                else:
+                    delta = self.timesync_analysis.get_best_offset()
+            if delta:
+                for sensor in self.data.values():
+                    sensor.update_data_timestamps(delta)
+                for packet in self.metadata:
+                    packet.update_timestamps(delta)
+                self.timesync_analysis.update_timestamps(delta)
+                self.is_timestamps_updated = True

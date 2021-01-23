@@ -4,7 +4,7 @@ todo: take the latest api_x_reader and convert all data to api_m format
 combine the data packets into a new data packet based on the user parameters
 todo: use the filters created in redvox.common.io as the config source
 """
-from typing import Optional, Set, List, Dict
+from typing import Optional, Set, List, Dict, Union
 from datetime import timedelta
 
 import pandas as pd
@@ -97,7 +97,7 @@ class DataWindow:
         self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
         self.debug: bool = debug
-        self.sensors: Dict[str, Dict[SensorType, SensorData]] = {}
+        self.stations: Dict[str, Station] = {}
         self.create_data_window()
 
     def _has_time_window(self) -> bool:
@@ -107,16 +107,18 @@ class DataWindow:
         """
         return self.start_datetime is not None or self.end_datetime is not None
 
-    def get_sensor_from_station(self, sensor: SensorType, station: str) -> Optional[SensorData]:
+    def get_sensor_from_station(self, sensor: Union[str, SensorType], station: str) -> Optional[SensorData]:
         """
         Returns a single sensor from a single station, or None otherwise
-        :param sensor: the sensor type to get
+        :param sensor: the sensor type or string identifier to get
         :param station: the station id to search for
         :return: A single sensor from the station specified, or None if station or sensor cannot be found
         """
-        if station in self.sensors.keys():
-            if sensor in self.sensors[station].keys():
-                return self.sensors[station][sensor]
+        if station in self.stations.keys():
+            if isinstance(sensor, str):
+                sensor = SensorType.type_from_str(sensor)
+            if sensor in self.stations[station].data.keys():
+                return self.stations[station].data[sensor]
         return None
 
     def get_all_sensors_from_station(self, station: str) -> Optional[Dict[SensorType, SensorData]]:
@@ -125,28 +127,22 @@ class DataWindow:
         :param station: the station id to search for
         :return: All sensors from a station based on the id given or None if the station doesn't exist
         """
-        if station in self.sensors.keys():
-            return self.sensors[station]
+        if station in self.stations.keys():
+            return self.stations[station].data
         return None
-
-    def get_all_sensors_from_all_stations(self) -> Dict[str, Dict[SensorType, SensorData]]:
-        """
-        :return: A dictionary of all sensors in all stations
-        """
-        return self.sensors
 
     def get_all_station_ids(self) -> List[str]:
         """
         :return: A list of all station ids with data
         """
-        return list(self.sensors.keys())
+        return list(self.stations.keys())
 
     def check_valid_ids(self):
         """
         searches the data window station_ids for any ids not in the data collected
         """
         for ids in self.station_ids:
-            if ids not in self.sensors.keys() and self.debug:
+            if ids not in self.stations.keys() and self.debug:
                 print(f"WARNING: Requested {ids} but there is no data to read for that station")
 
     def create_window_in_sensors(self, station: Station, start_date_timestamp: float, end_date_timestamp: float):
@@ -158,9 +154,7 @@ class DataWindow:
         :param end_date_timestamp: float, timestamp in microseconds since epoch UTC of end of window
         """
         gap_time_micros = dtu.seconds_to_microseconds(self.gap_time_s)
-        for sensor_type, sensor in station.get_all_sensors().items():
-            if self.apply_correction:
-                sensor.update_data_timestamps(station.timesync_analysis.get_best_offset())
+        for sensor_type, sensor in station.data.items():
             # calculate the sensor's sample interval, std sample interval and sample rate of all data
             sensor.organize_and_update_stats()
             # get only the timestamps between the start and end timestamps
@@ -186,7 +180,6 @@ class DataWindow:
                                                    gap_time_micros, DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS)
                         sensor.data_df = pad_data(start_date_timestamp, end_date_timestamp, sensor.data_df,
                                                   sample_interval_micros)
-                self.sensors[station.id][sensor_type] = sensor
             elif self.debug:
                 print(f"WARNING: Data window for {station.id} {sensor_type.name} sensor has no data points!")
 
@@ -196,23 +189,23 @@ class DataWindow:
         stations without audio or any data outside the window are removed
         """
         ids_to_pop = []
-        stations: Dict[str, Station] = ApiReader(self.input_directory, self.structured_layout, self.start_datetime,
-                                                 self.end_datetime, self.start_buffer_td, self.end_buffer_td,
-                                                 self.station_ids, self.extensions, self.api_versions,
-                                                 self.debug).read_files_as_stations()
+        self.stations = ApiReader(self.input_directory, self.structured_layout, self.start_datetime,
+                                  self.end_datetime, self.start_buffer_td, self.end_buffer_td, self.station_ids,
+                                  self.extensions, self.api_versions, self.debug).read_files_as_stations()
         if self.station_ids is None or len(self.station_ids) == 0:
-            self.station_ids = set(stations.keys())
-        for station in stations.values():
-            self.sensors[station.id] = {}
+            self.station_ids = set(self.stations.keys())
+        for station in self.stations.values():
+            if self.apply_correction:
+                station.update_timestamps()
             # set the window start and end if they were specified, otherwise use the bounds of the data
             if self.start_datetime:
                 start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
             else:
-                start_datetime = station.audio_sensor().first_data_timestamp()
+                start_datetime = station.first_data_timestamp
             if self.end_datetime:
                 end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
             else:
-                end_datetime = station.audio_sensor().last_data_timestamp()
+                end_datetime = station.last_data_timestamp
             # TRUNCATE!
             self.create_window_in_sensors(station, start_datetime, end_datetime)
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)

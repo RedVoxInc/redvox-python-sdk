@@ -11,6 +11,18 @@ import redvox.common.date_time_utils as dt
 from redvox.common import data_window as dw
 
 
+class MeBigTest(unittest.TestCase):
+    def test_me_good(self):
+        my_dw = dw.DataWindow(input_dir="/Users/tyler/Documents/pipeline_tests/api900",
+                              structured_layout=True,  # station_ids={"1637681001"})
+                              start_datetime=dt.datetime(2020, 2, 22, 20, 19, 0),
+                              end_datetime=dt.datetime(2020, 2, 22, 20, 25, 0))
+        stations = my_dw.get_all_station_ids()
+        test_sensor = my_dw.get_sensor_from_station(dw.SensorType.AUDIO, stations[0])
+        print(stations[0], test_sensor.num_samples())
+        self.assertEqual(1, 1)
+
+
 class DataWindowTest(unittest.TestCase):
     def setUp(self):
         self.input_dir = tests.TEST_DATA_DIR
@@ -18,15 +30,15 @@ class DataWindowTest(unittest.TestCase):
     def test_data_window(self):
         datawindow = dw.DataWindow(input_dir=self.input_dir, structured_layout=False,
                                    station_ids={"1637650010", "0000000001"})
-        self.assertEqual(len(datawindow.sensors), 2)
-        self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.AUDIO, "1637650010"))
-        self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.ACCELEROMETER, "1637650010"))
-        self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.MAGNETOMETER, "1637650010"))
-        self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.PRESSURE, "1637650010"))
-        self.assertIsNotNone(datawindow.get_sensor_from_station(dw.SensorType.LOCATION, "1637650010"))
+        self.assertEqual(len(datawindow.stations), 2)
+        self.assertIsNotNone(datawindow.get_sensor_from_station("AUDIO", "1637650010"))
+        self.assertIsNotNone(datawindow.get_sensor_from_station("accel", "1637650010"))
+        self.assertIsNotNone(datawindow.get_sensor_from_station("Magnetometer", "1637650010"))
+        self.assertIsNotNone(datawindow.get_sensor_from_station("PrESsuRe", "1637650010"))
+        self.assertIsNotNone(datawindow.get_sensor_from_station("location", "1637650010"))
         test_sensor = datawindow.get_sensor_from_station(dw.SensorType.AUDIO, "0000000001")
         self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 720001)
+        self.assertEqual(test_sensor.num_samples(), 720002)
         test_sensor = datawindow.get_sensor_from_station(dw.SensorType.LOCATION, "0000000001")
         self.assertIsNotNone(test_sensor)
         self.assertEqual(test_sensor.num_samples(), 5)
@@ -36,7 +48,7 @@ class DataWindowTest(unittest.TestCase):
                                           start_datetime=dt.datetime_from_epoch_seconds_utc(1597189455),
                                           end_datetime=dt.datetime_from_epoch_seconds_utc(1597189465),
                                           structured_layout=False)
-        self.assertEqual(len(dw_with_start_end.sensors), 1)
+        self.assertEqual(len(dw_with_start_end.stations), 1)
         audio_sensor = dw_with_start_end.get_sensor_from_station(dw.SensorType.AUDIO, "0000000001")
         self.assertIsNotNone(audio_sensor)
         self.assertEqual(audio_sensor.num_samples(), 479986)
