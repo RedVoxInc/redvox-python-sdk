@@ -128,6 +128,18 @@ class TimeSyncData:
         """
         return self.time_sync_exchanges_df.shape[0]
 
+    def update_timestamps(self, delta: Optional[float] = None):
+        """
+        update the timestamps by delta microseconds, or by the best offset if no delta is given
+            use negative delta to go backwards in time
+        :param delta: microseconds to add to applicable timestamps.  If None, use best offset. default None
+        """
+        if not delta:
+            delta = self.best_offset
+        self.station_start_timestamp += delta
+        self.packet_start_timestamp += delta
+        self.packet_end_timestamp += delta
+
 
 class TimeSyncAnalysis:
     """
@@ -392,6 +404,18 @@ class TimeSyncAnalysis:
                 return False
         # if here, no gaps
         return True
+
+    def update_timestamps(self, delta: Optional[float] = None):
+        """
+        update timestamps by adding delta microseconds.  if delta not supplied, uses the best offset
+            use negative delta to go backwards in time
+        :param delta: microseconds to add to timestamps, default None
+        """
+        if not delta:
+            delta = self.get_best_offset()
+        self.station_start_timestamp += delta
+        for tsd in self.timesync_data:
+            tsd.update_timestamps(delta)
 
 
 def validate_sensors(tsa_data: TimeSyncAnalysis) -> bool:

@@ -55,7 +55,7 @@ class ApiReader:
                             Default None
         :param debug: if True, output additional statements during function execution.  Default False.
         """
-        if station_ids and len(station_ids) < 1:
+        if not station_ids or len(station_ids) < 1:
             station_ids = None
         self.filter = io.ReadFilter(start_dt=start_dt, end_dt=end_dt, station_ids=station_ids)
         if start_dt_buf:
