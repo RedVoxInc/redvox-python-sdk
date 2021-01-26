@@ -99,7 +99,7 @@ class ApiReader:
         read the all files in the index
         :return: dictionary of id: list of WrappedRedvoxPacketM, converted from API 900 if necessary
         """
-        result = {s_id: [] for s_id in self.index_summary.station_ids()}
+        result: Dict[str, List[WrappedRedvoxPacketM]] = {s_id: [] for s_id in self.index_summary.station_ids()}
         files = self.files_index.read()
         for file in files:
             if isinstance(file, api900_io.WrappedRedvoxPacket):
