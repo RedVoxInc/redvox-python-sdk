@@ -29,14 +29,16 @@ class TriMessageStats:
         num_messages: number of tri-message exchanges
     """
 
-    def __init__(self,
-                 packet_id: Union[str, int],
-                 a1: np.ndarray,
-                 a2: np.ndarray,
-                 a3: np.ndarray,
-                 b1: np.ndarray,
-                 b2: np.ndarray,
-                 b3: np.ndarray):
+    def __init__(
+        self,
+        packet_id: Union[str, int],
+        a1: np.ndarray,
+        a2: np.ndarray,
+        a3: np.ndarray,
+        b1: np.ndarray,
+        b2: np.ndarray,
+        b3: np.ndarray,
+    ):
         """
         Calculate latency, offset, and their qualities.
         :param packet_id: an identifier for reporting purposes
@@ -50,7 +52,9 @@ class TriMessageStats:
         self.packet_id: Union[str, int] = packet_id
         self.num_messages: int = len(a1)
         # compute latencies and offsets
-        latencies_tuple: Tuple[np.ndarray, np.ndarray] = latencies(a1, a2, a3, b1, b2, b3)
+        latencies_tuple: Tuple[np.ndarray, np.ndarray] = latencies(
+            a1, a2, a3, b1, b2, b3
+        )
         self.latency1: np.ndarray = latencies_tuple[0]
         self.latency3: np.ndarray = latencies_tuple[1]
         offsets_tuple: Tuple[np.ndarray, np.ndarray] = offsets(a1, a2, a3, b1, b2, b3)
@@ -103,13 +107,15 @@ class TriMessageStats:
         else:
             self.best_offset = 0.0
 
-    def set_latency(self,
-                    a1_coeffs: np.ndarray,
-                    a2_coeffs: np.ndarray,
-                    a3_coeffs: np.ndarray,
-                    b1_coeffs: np.ndarray,
-                    b2_coeffs: np.ndarray,
-                    b3_coeffs: np.ndarray) -> None:
+    def set_latency(
+        self,
+        a1_coeffs: np.ndarray,
+        a2_coeffs: np.ndarray,
+        a3_coeffs: np.ndarray,
+        b1_coeffs: np.ndarray,
+        b2_coeffs: np.ndarray,
+        b3_coeffs: np.ndarray,
+    ) -> None:
         """
         set the latency and find the best
         :param a1_coeffs: server timestamp 1
@@ -120,16 +126,20 @@ class TriMessageStats:
         :param b3_coeffs: device timestamp 3
         """
         # compute latencies
-        self.latency1, self.latency3 = latencies(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+        self.latency1, self.latency3 = latencies(
+            a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
+        )
         self.find_best_latency()
 
-    def set_offset(self,
-                   a1_coeffs: np.ndarray,
-                   a2_coeffs: np.ndarray,
-                   a3_coeffs: np.ndarray,
-                   b1_coeffs: np.ndarray,
-                   b2_coeffs: np.ndarray,
-                   b3_coeffs: np.ndarray) -> None:
+    def set_offset(
+        self,
+        a1_coeffs: np.ndarray,
+        a2_coeffs: np.ndarray,
+        a3_coeffs: np.ndarray,
+        b1_coeffs: np.ndarray,
+        b2_coeffs: np.ndarray,
+        b3_coeffs: np.ndarray,
+    ) -> None:
         """
         set the offset and find the best
         :param a1_coeffs: server timestamp 1
@@ -141,18 +151,24 @@ class TriMessageStats:
         """
         # latency calculations are required:
         if self.best_latency is None:
-            self.set_latency(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+            self.set_latency(
+                a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
+            )
         # compute offsets
-        self.offset1, self.offset3 = offsets(a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+        self.offset1, self.offset3 = offsets(
+            a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
+        )
         self.find_best_offset()
 
 
-def latencies(a1_coeffs: np.ndarray,
-              a2_coeffs: np.ndarray,
-              a3_coeffs: np.ndarray,
-              b1_coeffs: np.ndarray,
-              b2_coeffs: np.ndarray,
-              b3_coeffs: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def latencies(
+    a1_coeffs: np.ndarray,
+    a2_coeffs: np.ndarray,
+    a3_coeffs: np.ndarray,
+    b1_coeffs: np.ndarray,
+    b2_coeffs: np.ndarray,
+    b3_coeffs: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Compute latencies in microseconds based on message exchange timestamps.
 
@@ -176,12 +192,14 @@ def latencies(a1_coeffs: np.ndarray,
     return d1_coeffs, d3_coeffs
 
 
-def offsets(a1_coeffs: np.ndarray,
-            a2_coeffs: np.ndarray,
-            a3_coeffs: np.ndarray,
-            b1_coeffs: np.ndarray,
-            b2_coeffs: np.ndarray,
-            b3_coeffs: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def offsets(
+    a1_coeffs: np.ndarray,
+    a2_coeffs: np.ndarray,
+    a3_coeffs: np.ndarray,
+    b1_coeffs: np.ndarray,
+    b2_coeffs: np.ndarray,
+    b3_coeffs: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Compute offsets in microseconds based on message exchange timestamps.
 
@@ -203,12 +221,9 @@ def offsets(a1_coeffs: np.ndarray,
     # o1_coeffs = (a1_coeffs - b1_coeffs + a2_coeffs - b2_coeffs) / 2.
     # o3_coeffs = (a3_coeffs - b3_coeffs + a2_coeffs - b2_coeffs) / 2.
     # get latencies
-    latencies_tuple: Tuple[np.ndarray, np.ndarray] = latencies(a1_coeffs,
-                                                               a2_coeffs,
-                                                               a3_coeffs,
-                                                               b1_coeffs,
-                                                               b2_coeffs,
-                                                               b3_coeffs)
+    latencies_tuple: Tuple[np.ndarray, np.ndarray] = latencies(
+        a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
+    )
     d1_coeffs: np.ndarray = latencies_tuple[0]
     d3_coeffs: np.ndarray = latencies_tuple[1]
     # use latency to compute offset in microseconds
@@ -218,9 +233,14 @@ def offsets(a1_coeffs: np.ndarray,
     return o1_coeffs, o3_coeffs
 
 
-def validate_timestamps(a1_coeffs: np.ndarray, a2_coeffs: np.ndarray, a3_coeffs: np.ndarray,
-                        b1_coeffs: np.ndarray, b2_coeffs: np.ndarray, b3_coeffs: np.ndarray) -> \
-        Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def validate_timestamps(
+    a1_coeffs: np.ndarray,
+    a2_coeffs: np.ndarray,
+    a3_coeffs: np.ndarray,
+    b1_coeffs: np.ndarray,
+    b2_coeffs: np.ndarray,
+    b3_coeffs: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     it's possible some of the tri-message values are duplicated; the duplicates and other invalid times
     must be removed.
@@ -253,47 +273,72 @@ def validate_timestamps(a1_coeffs: np.ndarray, a2_coeffs: np.ndarray, a3_coeffs:
                 valid_times[data_index][time] = time_index
     for index in valid_times[0].values():
         # if it's not in the first one, it's not valid.  if it doesn't show up in all others, it's not valid
-        if index in valid_times[1].values() and index in valid_times[2].values() and \
-                index in valid_times[3].values() and index in valid_times[4].values() and \
-                index in valid_times[5].values():
+        if (
+            index in valid_times[1].values()
+            and index in valid_times[2].values()
+            and index in valid_times[3].values()
+            and index in valid_times[4].values()
+            and index in valid_times[5].values()
+        ):
             valid_indices.append(index)
-    return a1_coeffs[valid_indices], a2_coeffs[valid_indices], a3_coeffs[valid_indices], \
-        b1_coeffs[valid_indices], b2_coeffs[valid_indices], b3_coeffs[valid_indices]
+    return (
+        a1_coeffs[valid_indices],
+        a2_coeffs[valid_indices],
+        a3_coeffs[valid_indices],
+        b1_coeffs[valid_indices],
+        b2_coeffs[valid_indices],
+        b3_coeffs[valid_indices],
+    )
 
 
-def transmit_receive_timestamps_microsec(coeffs: np.ndarray) -> Tuple[
-        np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def transmit_receive_timestamps_microsec(
+    coeffs: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
-       Recover Tri-Message timestamp coefficients. Uses concept of
-       Tri-Message to synchronize a device with a reference server:
+    Recover Tri-Message timestamp coefficients. Uses concept of
+    Tri-Message to synchronize a device with a reference server:
 
-           First, server A transmits a message to device B with timestamp a1_coeffs. B receives the message at timestamp
-            b1_coeffs. B then transmits a message back to A with timestamp b2_coeffs. A receives this message at
-            timestamp a2_coeffs. A transmits a second message to B at timestamp a3_coeffs. B receives the message at
-            timestamp b3_coeffs.
+        First, server A transmits a message to device B with timestamp a1_coeffs. B receives the message at timestamp
+         b1_coeffs. B then transmits a message back to A with timestamp b2_coeffs. A receives this message at
+         timestamp a2_coeffs. A transmits a second message to B at timestamp a3_coeffs. B receives the message at
+         timestamp b3_coeffs.
 
-       Parameters
-       ----------
-       coeffs: array of tri-message coefficients (a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
+    Parameters
+    ----------
+    coeffs: array of tri-message coefficients (a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs)
 
-       Returns
-       -------
-       a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs: arrays of message exchange timestamps
+    Returns
+    -------
+    a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs: arrays of message exchange timestamps
     """
 
     if len(coeffs) % 6 != 0:
-        raise Exception("Tri-Message contains partial exchange, unsafe to use it for computations.")
+        raise Exception(
+            "Tri-Message contains partial exchange, unsafe to use it for computations."
+        )
 
     # Timing coefficients
     step: int = 6  # each tri-message exchange contains 6 timestamps, 3 from server and 3 from device
     stop: int = int(len(coeffs) / 6) * step
 
-    a1_coeffs: np.ndarray = coeffs[0: stop: step]  # server first transmit timestamps in epoch microseconds
-    a2_coeffs: np.ndarray = coeffs[1: stop: step]  # server first receive timestamps in epoch microseconds
-    a3_coeffs: np.ndarray = coeffs[2: stop: step]  # server second transmit timestamps in epoch microseconds
-    b1_coeffs: np.ndarray = coeffs[3: stop: step]  # device first receive timestamps in mach microseconds
-    b2_coeffs: np.ndarray = coeffs[4: stop: step]  # device first transmit timestamps in mach microseconds
-    b3_coeffs: np.ndarray = coeffs[5: stop: step]  # device second receive timestamps in mach microseconds
+    a1_coeffs: np.ndarray = coeffs[
+        0:stop:step
+    ]  # server first transmit timestamps in epoch microseconds
+    a2_coeffs: np.ndarray = coeffs[
+        1:stop:step
+    ]  # server first receive timestamps in epoch microseconds
+    a3_coeffs: np.ndarray = coeffs[
+        2:stop:step
+    ]  # server second transmit timestamps in epoch microseconds
+    b1_coeffs: np.ndarray = coeffs[
+        3:stop:step
+    ]  # device first receive timestamps in mach microseconds
+    b2_coeffs: np.ndarray = coeffs[
+        4:stop:step
+    ]  # device first transmit timestamps in mach microseconds
+    b3_coeffs: np.ndarray = coeffs[
+        5:stop:step
+    ]  # device second receive timestamps in mach microseconds
 
     # make sure each tri-message exchange contains 6 timestamps (done with modulo check above)
     # assert len(a1_coeffs) == len(a2_coeffs) == len(a3_coeffs) == len(b1_coeffs) == len(b2_coeffs) == len(b3_coeffs)

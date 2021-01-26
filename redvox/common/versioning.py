@@ -21,6 +21,18 @@ class ApiVersion(Enum):
     def __lt__(self, other: "ApiVersion") -> bool:
         return self.name < other.name
 
+    @staticmethod
+    def from_str(version: str) -> "ApiVersion":
+        """
+        :param version: version as string
+        :return: enumerated value represented by string version
+        """
+        if version == "API_900":
+            return ApiVersion.API_900
+        elif version == "API_1000":
+            return ApiVersion.API_1000
+        return ApiVersion.UNKNOWN
+
 
 # noinspection PyTypeChecker
 def check_version_buf(buf: bytes) -> ApiVersion:

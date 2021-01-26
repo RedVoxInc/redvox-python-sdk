@@ -1,0 +1,6 @@
+# Test config file for data window
+
+input_directory = "../test_data"
+structured_layout = false
+station_ids = ["1637650010", "0000000001"]
+debug = false

@@ -43,7 +43,9 @@ class StatsContainer:
         if np.sum(counts) == 0:
             return np.nan
         # weight each mean by the number of elements in it
-        total_means: np.ndarray = np.prod([np.nan_to_num(self.mean_array), counts], axis=0)
+        total_means: np.ndarray = np.prod(
+            [np.nan_to_num(self.mean_array), counts], axis=0
+        )
         # if sum(counts) is 0, change sum(counts) to 1 to avoid divide by 0 errors
         return np.sum(total_means) / np.sum(counts)
 
@@ -71,7 +73,9 @@ class StatsContainer:
         if np.sum(counts) == 0:
             return np.nan
         # get the difference of individual means and total mean
-        mean_vars: np.ndarray = np.subtract(np.nan_to_num(self.mean_array), self.mean_of_means())
+        mean_vars: np.ndarray = np.subtract(
+            np.nan_to_num(self.mean_array), self.mean_of_means()
+        )
         # square the differences then weight them by number of elements
         total: np.ndarray = np.prod([mean_vars, mean_vars, counts], axis=0)
         # if sum(counts) is 0, change sum(counts) to 1 to avoid divide by 0 errors
@@ -92,7 +96,12 @@ class StatsContainer:
         """
         return np.sqrt(self.total_variance())  # std dev is square root of variance
 
-    def add(self, mean: Union[float, int], std_dev: Union[float, int], count: Union[float, int]) -> None:
+    def add(
+        self,
+        mean: Union[float, int],
+        std_dev: Union[float, int],
+        count: Union[float, int],
+    ) -> None:
         """
         Put an element into the arrays
         :param mean: a mean

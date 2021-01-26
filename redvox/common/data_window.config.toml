@@ -1,0 +1,28 @@
+# Config file for data window
+# The only required field is input_directory.  Do not delete this field.
+# Remove any field if you are not setting a value for it
+
+input_directory = "."           # input directory where all the files are.  REQUIRED
+structured_layout = true        # if true, there are organized api900 and/or api1000 directories in input_directory
+station_ids = ["1234567890"]    # specific station ids to process; write ids as strings i.e. "1234567890"
+# specific file extensions to get; acceptable values: ".rdvxm", ".rdvxz"
+extensions = [".rdvxm", ".rdvxz"]
+# specific api versions to get; acceptable values: "API_900", "API_1000", "UNKNOWN"
+api_versions = ["API_900", "API_1000"]
+start_year = 2021               # year of start date
+start_month = 1                 # month of start year
+start_day = 1                   # day of start month
+start_hour = 0                  # hour of start day
+start_minute = 0                # minute of start hour
+start_second = 0                # second of start minute
+end_year = 2021                 # year of end date
+end_month = 1                   # month of end year
+end_day = 1                     # day of end month
+end_hour = 0                    # hour of end day
+end_minute = 0                  # minute of end hour
+end_second = 0                  # second of end minute
+start_padding_seconds = 120     # padding to include before start datetime when searching for data
+end_padding_seconds = 120       # padding to include after start datetime when searching for data
+gap_time_seconds = 0.25         # minimum number of seconds between timestamps that indicates a gap in data
+apply_correction = true         # if true, timestamps will be adjusted before processing the data window
+debug = false                   # if true, output extra information when processing the data window
