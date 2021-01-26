@@ -12,7 +12,11 @@ import numpy as np
 import pandas as pd
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-from redvox.common import stats_helper as sh, tri_message_stats as tms, date_time_utils as dt
+from redvox.common import (
+    stats_helper as sh,
+    tri_message_stats as tms,
+    date_time_utils as dt,
+)
 
 
 class TimeSyncData:
@@ -41,11 +45,19 @@ class TimeSyncData:
         acquire_travel_time: float, calculated time it took packet to reach server, default np.nan
     """
 
-    def __init__(self, station_id: str = "", sample_rate_hz: float = np.nan, num_audio_samples: int = np.nan,
-                 station_start_timestamp: float = np.nan, server_acquisition_timestamp: float = np.nan,
-                 packet_start_timestamp: float = np.nan, packet_end_timestamp: float = np.nan,
-                 time_sync_exchanges_list: Optional[List[float]] = None,
-                 best_latency: float = np.nan, best_offset: float = 0.0):
+    def __init__(
+        self,
+        station_id: str = "",
+        sample_rate_hz: float = np.nan,
+        num_audio_samples: int = np.nan,
+        station_start_timestamp: float = np.nan,
+        server_acquisition_timestamp: float = np.nan,
+        packet_start_timestamp: float = np.nan,
+        packet_end_timestamp: float = np.nan,
+        time_sync_exchanges_list: Optional[List[float]] = None,
+        best_latency: float = np.nan,
+        best_offset: float = 0.0,
+    ):
         """
         Initialize properties
         :param station_id: id of station, default empty string
@@ -70,10 +82,13 @@ class TimeSyncData:
         if time_sync_exchanges_list is None:
             time_sync_exchanges_list = []
         else:
-            time_sync_exchanges_list = [time_sync_exchanges_list[i:i + 6] for i in
-                                        range(0, len(time_sync_exchanges_list), 6)]
-        self.time_sync_exchanges_df = pd.DataFrame(time_sync_exchanges_list,
-                                                   columns=["a1", "a2", "a3", "b1", "b2", "b3"])
+            time_sync_exchanges_list = [
+                time_sync_exchanges_list[i : i + 6]
+                for i in range(0, len(time_sync_exchanges_list), 6)
+            ]
+        self.time_sync_exchanges_df = pd.DataFrame(
+            time_sync_exchanges_list, columns=["a1", "a2", "a3", "b1", "b2", "b3"]
+        )
         self.best_latency = best_latency
         self.best_offset = best_offset
 
@@ -81,7 +96,9 @@ class TimeSyncData:
         # set the packet duration
         self.packet_duration = self.packet_end_timestamp - self.packet_start_timestamp
         # calculate travel time between corrected end of packet timestamp and server timestamp
-        self.acquire_travel_time = self.server_acquisition_timestamp - (self.packet_end_timestamp + self.best_offset)
+        self.acquire_travel_time = self.server_acquisition_timestamp - (
+            self.packet_end_timestamp + self.best_offset
+        )
 
     def _compute_tri_message_stats(self):
         """
@@ -89,11 +106,15 @@ class TimeSyncData:
         """
         if self.num_tri_messages() > 0:
             # compute tri message data from time sync exchanges
-            tse = tms.TriMessageStats(self.station_id,
-                                      self.time_sync_exchanges_df["a1"], self.time_sync_exchanges_df["a2"],
-                                      self.time_sync_exchanges_df["a3"],
-                                      self.time_sync_exchanges_df["b1"], self.time_sync_exchanges_df["b2"],
-                                      self.time_sync_exchanges_df["b3"])
+            tse = tms.TriMessageStats(
+                self.station_id,
+                self.time_sync_exchanges_df["a1"],
+                self.time_sync_exchanges_df["a2"],
+                self.time_sync_exchanges_df["a3"],
+                self.time_sync_exchanges_df["b1"],
+                self.time_sync_exchanges_df["b2"],
+                self.time_sync_exchanges_df["b3"],
+            )
             # Compute the statistics for latency and offset
             self.mean_latency = np.mean([*tse.latency1, *tse.latency3])
             self.latency_std = np.std([*tse.latency1, *tse.latency3])
@@ -153,8 +174,14 @@ class TimeSyncAnalysis:
         timesync_data: list of TimeSyncData, the TimeSyncData to analyze, default empty list
         station_start_timestamp: float, the timestamp of when the station became active, default np.nan
     """
-    def __init__(self, station_id: str = "", audio_sample_rate_hz: float = np.nan,
-                 station_start_timestamp: float = np.nan, packets: Optional[List[WrappedRedvoxPacketM]] = None):
+
+    def __init__(
+        self,
+        station_id: str = "",
+        audio_sample_rate_hz: float = np.nan,
+        station_start_timestamp: float = np.nan,
+        packets: Optional[List[WrappedRedvoxPacketM]] = None,
+    ):
         """
         Initialize the object
         :param station_id: id of the station to analyze
@@ -172,14 +199,19 @@ class TimeSyncAnalysis:
         if packets is not None and len(packets) > 0:
             for packet in packets:
                 self.timesync_data.append(
-                    TimeSyncData(self.station_id, self.sample_rate_hz,
-                                 packet.get_sensors().get_audio().get_num_samples(), self.station_start_timestamp,
-                                 packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
-                                 packet.get_timing_information().get_packet_start_mach_timestamp(),
-                                 packet.get_timing_information().get_packet_end_mach_timestamp(),
-                                 packet.get_timing_information().get_synch_exchange_array(),
-                                 packet.get_timing_information().get_best_latency(),
-                                 packet.get_timing_information().get_best_offset()))
+                    TimeSyncData(
+                        self.station_id,
+                        self.sample_rate_hz,
+                        packet.get_sensors().get_audio().get_num_samples(),
+                        self.station_start_timestamp,
+                        packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
+                        packet.get_timing_information().get_packet_start_mach_timestamp(),
+                        packet.get_timing_information().get_packet_end_mach_timestamp(),
+                        packet.get_timing_information().get_synch_exchange_array(),
+                        packet.get_timing_information().get_best_latency(),
+                        packet.get_timing_information().get_best_offset(),
+                    )
+                )
             self.evaluate_and_validate_data()
 
     def evaluate_and_validate_data(self):
@@ -196,14 +228,22 @@ class TimeSyncAnalysis:
         calculates the mean and std deviation for latencies and offsets
         """
         if len(self.timesync_data) < 1:
-            raise ValueError("Nothing to calculate stats; length of timesync data is less than 1")
+            raise ValueError(
+                "Nothing to calculate stats; length of timesync data is less than 1"
+            )
         for index in range(len(self.timesync_data)):
             # add the stats of the latency
-            self.latency_stats.add(self.timesync_data[index].mean_latency, self.timesync_data[index].latency_std,
-                                   self.timesync_data[index].num_tri_messages() * 2)
+            self.latency_stats.add(
+                self.timesync_data[index].mean_latency,
+                self.timesync_data[index].latency_std,
+                self.timesync_data[index].num_tri_messages() * 2,
+            )
             # add the stats of the offset
-            self.offset_stats.add(self.timesync_data[index].mean_offset, self.timesync_data[index].offset_std,
-                                  self.timesync_data[index].num_tri_messages() * 2)
+            self.offset_stats.add(
+                self.timesync_data[index].mean_offset,
+                self.timesync_data[index].offset_std,
+                self.timesync_data[index].num_tri_messages() * 2,
+            )
 
     def add_timesync_data(self, timesync_data: TimeSyncData):
         """
@@ -320,7 +360,9 @@ class TimeSyncAnalysis:
         :return: list of all packets that contains invalid data
         """
         bad_packets = []
-        for idx in range(self.get_num_packets()):  # mark bad indices (they have a 0 or less value)
+        for idx in range(
+            self.get_num_packets()
+        ):  # mark bad indices (they have a 0 or less value)
             if self.get_latencies()[idx] <= 0 or np.isnan(self.get_latencies()[idx]):
                 bad_packets.append(idx)
         return bad_packets
@@ -331,15 +373,18 @@ class TimeSyncAnalysis:
         outputs warnings if a change in timestamps is detected
         """
         if self.get_num_packets() < 1:
-            raise ValueError("Nothing to evaluate; length of timesync data is less than 1")
+            raise ValueError(
+                "Nothing to evaluate; length of timesync data is less than 1"
+            )
         self.best_latency_index = 0
         # assume the first element has the best timesync values for now, then compare with the others
         for index in range(1, self.get_num_packets()):
             # find the best latency; in this case, the minimum
             # if new value is not None and if the current best is None or new value is better than current best, update
-            if not np.isnan(self.timesync_data[index].best_latency) \
-                    and (np.isnan(self.get_best_latency())
-                         or self.timesync_data[index].best_latency < self.get_best_latency()):
+            if not np.isnan(self.timesync_data[index].best_latency) and (
+                np.isnan(self.get_best_latency())
+                or self.timesync_data[index].best_latency < self.get_best_latency()
+            ):
                 self.best_latency_index = index
 
     def validate_start_timestamp(self, debug: bool = False) -> bool:
@@ -351,14 +396,21 @@ class TimeSyncAnalysis:
         """
         if self.get_num_packets() < 1:
             if debug:
-                print("Less than 1 timesync data object to evaluate start timestamps with")
+                print(
+                    "Less than 1 timesync data object to evaluate start timestamps with"
+                )
         for index in range(0, self.get_num_packets()):
             # compare station start timestamps; notify when they are different
-            if self.timesync_data[index].station_start_timestamp != self.station_start_timestamp:
+            if (
+                self.timesync_data[index].station_start_timestamp
+                != self.station_start_timestamp
+            ):
                 if debug:
-                    print(f"Warning!  Change in station start timestamp detected!  "
-                          f"Expected: {self.station_start_timestamp}, read: "
-                          f"{self.timesync_data[index].station_start_timestamp}")
+                    print(
+                        f"Warning!  Change in station start timestamp detected!  "
+                        f"Expected: {self.station_start_timestamp}, read: "
+                        f"{self.timesync_data[index].station_start_timestamp}"
+                    )
                 return False
         # if here, all the sample timestamps are the same
         return True
@@ -375,11 +427,15 @@ class TimeSyncAnalysis:
                 print("Less than 1 timesync data object to evaluate sample rate with")
         for index in range(0, self.get_num_packets()):
             # compare station start timestamps; notify when they are different
-            if np.isnan(self.timesync_data[index].sample_rate_hz) \
-                    or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz:
+            if (
+                np.isnan(self.timesync_data[index].sample_rate_hz)
+                or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz
+            ):
                 if debug:
-                    print(f"Warning!  Change in station sample rate detected!  "
-                          f"Expected: {self.sample_rate_hz}, read: {self.timesync_data[index].sample_rate_hz}")
+                    print(
+                        f"Warning!  Change in station sample rate detected!  "
+                        f"Expected: {self.sample_rate_hz}, read: {self.timesync_data[index].sample_rate_hz}"
+                    )
                 return False
         # if here, all the sample rates are the same
         return True
@@ -397,8 +453,13 @@ class TimeSyncAnalysis:
                 print("Less than 2 timesync data objects to evaluate gaps with")
         for index in range(1, self.get_num_packets()):
             # compare last packet's end timestamp with current start timestamp
-            if dt.microseconds_to_seconds(self.timesync_data[index].packet_start_timestamp
-                                          - self.timesync_data[index - 1].packet_end_timestamp) > gap_duration_s:
+            if (
+                dt.microseconds_to_seconds(
+                    self.timesync_data[index].packet_start_timestamp
+                    - self.timesync_data[index - 1].packet_end_timestamp
+                )
+                > gap_duration_s
+            ):
                 if debug:
                     print(f"Warning!  Gap detected at packet number: {index}")
                 return False
@@ -435,8 +496,11 @@ def validate_sensors(tsa_data: TimeSyncAnalysis) -> bool:
     return True
 
 
-def update_evenly_sampled_time_array(ts_analysis: TimeSyncAnalysis, num_samples: float = None,
-                                     time_start_array_s: np.array = None) -> np.ndarray:
+def update_evenly_sampled_time_array(
+    ts_analysis: TimeSyncAnalysis,
+    num_samples: float = None,
+    time_start_array_s: np.array = None,
+) -> np.ndarray:
     """
     Correct evenly sampled times using updated time_start_array values as the focal point.
     Expects tsd to have the same number of packets as elements in time_start_array.
@@ -449,18 +513,25 @@ def update_evenly_sampled_time_array(ts_analysis: TimeSyncAnalysis, num_samples:
     :return: Revised time array in epoch seconds
     """
     if not validate_sensors(ts_analysis):
-        raise AttributeError("ERROR: Change in Station Start Time or Sample Rate detected!")
+        raise AttributeError(
+            "ERROR: Change in Station Start Time or Sample Rate detected!"
+        )
     if time_start_array_s is None:
         # replace the time_start_array with values from tsd; convert tsd times to seconds
         time_start_array_s = np.array([])
         for tsd in ts_analysis.timesync_data:
-            time_start_array_s = np.append(time_start_array_s, tsd.packet_start_timestamp / dt.MICROSECONDS_IN_SECOND)
+            time_start_array_s = np.append(
+                time_start_array_s,
+                tsd.packet_start_timestamp / dt.MICROSECONDS_IN_SECOND,
+            )
     num_files = len(ts_analysis.timesync_data)
     # the TimeSyncData must have the same number of packets as the number of elements in time_start_array
     if num_files != len(time_start_array_s):
         # alert the user, then quit
-        raise Exception("ERROR: Attempted to update a time array that doesn't contain "
-                        "the same number of elements as the TimeSyncAnalysis!")
+        raise Exception(
+            "ERROR: Attempted to update a time array that doesn't contain "
+            "the same number of elements as the TimeSyncAnalysis!"
+        )
 
     # use the number of audio samples in the first data packet
     if num_samples is None:
@@ -478,9 +549,15 @@ def update_evenly_sampled_time_array(ts_analysis: TimeSyncAnalysis, num_samples:
 
     # build the time arrays separately in epoch seconds, then join into one
     # add 1 to include the actual a0 sample, then add 1 again to skip the a0 sample; this avoids repetition
-    timesec_before = np.vectorize(lambda t: best_start_sec - t * t_dt)(list(range(int(samples_before + 1))))
-    timesec_before = timesec_before[::-1]  # reverse 'before' times so they increase from earliest start time
-    timesec_after = np.vectorize(lambda t: best_start_sec + t * t_dt)(list(range(1, int(samples_after + 1))))
+    timesec_before = np.vectorize(lambda t: best_start_sec - t * t_dt)(
+        list(range(int(samples_before + 1)))
+    )
+    timesec_before = timesec_before[
+        ::-1
+    ]  # reverse 'before' times so they increase from earliest start time
+    timesec_after = np.vectorize(lambda t: best_start_sec + t * t_dt)(
+        list(range(1, int(samples_after + 1)))
+    )
     timesec_rev = np.concatenate([timesec_before, timesec_after])
 
     return update_time_array_from_analysis(ts_analysis, timesec_rev)
@@ -496,7 +573,9 @@ def update_time_array(ts_data: TimeSyncData, time_array_s: np.array) -> np.ndarr
     return time_array_s + (ts_data.best_offset / dt.MICROSECONDS_IN_SECOND)
 
 
-def update_time_array_from_analysis(ts_analysis: TimeSyncAnalysis, time_array_s: np.array) -> np.ndarray:
+def update_time_array_from_analysis(
+    ts_analysis: TimeSyncAnalysis, time_array_s: np.array
+) -> np.ndarray:
     """
     Correct timestamps in time_array using information from TimeSyncAnalysis
     :param ts_analysis: TimeSyncAnalysis object that contains the information needed to update the time array

@@ -2,6 +2,7 @@
 tests for data window objects
 """
 import unittest
+import os.path
 
 import numpy as np
 import pandas as pd
@@ -9,18 +10,20 @@ import pandas as pd
 import redvox.tests as tests
 import redvox.common.date_time_utils as dt
 from redvox.common import data_window as dw
+from redvox.common import data_window_configuration as dwc
 
 
-class MeBigTest(unittest.TestCase):
-    def test_me_good(self):
-        my_dw = dw.DataWindow(input_dir="/Users/tyler/Documents/pipeline_tests/api900",
-                              structured_layout=True,  # station_ids={"1637681001"})
-                              start_datetime=dt.datetime(2020, 2, 22, 20, 19, 0),
-                              end_datetime=dt.datetime(2020, 2, 22, 20, 25, 0))
-        stations = my_dw.get_all_station_ids()
-        test_sensor = my_dw.get_sensor_from_station(dw.SensorType.AUDIO, stations[0])
-        print(stations[0], test_sensor.num_samples())
-        self.assertEqual(1, 1)
+class ConfigTest(unittest.TestCase):
+    def test_config(self):
+        config_file = os.path.join(tests.TEST_DATA_DIR, "dw_test.config.toml")
+        dw_config = dwc.DataWindowConfig.from_path(config_file)
+        self.assertFalse(dw_config.structured_layout)
+        self.assertIsNone(dw_config.extensions)
+        datawindow = dw.DataWindow.from_config(dw_config)
+        self.assertEqual(len(datawindow.stations), 2)
+        test_sensor = datawindow.get_sensor_from_station(dw.SensorType.AUDIO, "0000000001")
+        self.assertIsNotNone(test_sensor)
+        self.assertEqual(test_sensor.num_samples(), 720002)
 
 
 class DataWindowTest(unittest.TestCase):

@@ -13,7 +13,7 @@ from redvox.common import io
 from redvox.common.station import Station
 
 
-DEFAULT_GAP_TIME_S: float = 0.25        # default length of a gap in seconds
+DEFAULT_GAP_TIME_S: float = 0.25  # default length of a gap in seconds
 
 
 class ApiReader:
@@ -32,11 +32,20 @@ class ApiReader:
         apply_correction: bool, if True, apply timing correction values based on the data in the packets.  Default True
         debug: bool, if True, output additional information during function execution.  Default False.
     """
-    def __init__(self, base_dir: str, structured_dir: bool = False, start_dt: Optional[datetime] = None,
-                 end_dt: Optional[datetime] = None, start_dt_buf: Optional[timedelta] = None,
-                 end_dt_buf: Optional[timedelta] = None, station_ids: Optional[Set[str]] = None,
-                 extensions: Optional[Set[str]] = None, api_versions: Optional[Set[io.ApiVersion]] = None,
-                 debug: bool = False):
+
+    def __init__(
+        self,
+        base_dir: str,
+        structured_dir: bool = False,
+        start_dt: Optional[datetime] = None,
+        end_dt: Optional[datetime] = None,
+        start_dt_buf: Optional[timedelta] = None,
+        end_dt_buf: Optional[timedelta] = None,
+        station_ids: Optional[Set[str]] = None,
+        extensions: Optional[Set[str]] = None,
+        api_versions: Optional[Set[io.ApiVersion]] = None,
+        debug: bool = False,
+    ):
         """
         Initialize the ApiReader object
         :param base_dir: directory containing the files to read
@@ -57,7 +66,9 @@ class ApiReader:
         """
         if not station_ids or len(station_ids) < 1:
             station_ids = None
-        self.filter = io.ReadFilter(start_dt=start_dt, end_dt=end_dt, station_ids=station_ids)
+        self.filter = io.ReadFilter(
+            start_dt=start_dt, end_dt=end_dt, station_ids=station_ids
+        )
         if start_dt_buf:
             self.filter = self.filter.with_start_dt_buf(start_dt_buf)
         if end_dt_buf:
@@ -88,9 +99,7 @@ class ApiReader:
         read the all files in the index
         :return: dictionary of id: list of WrappedRedvoxPacketM, converted from API 900 if necessary
         """
-        result = {}
-        for s_id in self.index_summary.station_ids():
-            result[s_id] = []
+        result = {s_id: [] for s_id in self.index_summary.station_ids()}
         files = self.files_index.read()
         for file in files:
             if isinstance(file, api900_io.WrappedRedvoxPacket):
@@ -101,40 +110,40 @@ class ApiReader:
 
     def read_files_by_id(self, get_id: str) -> Optional[List[WrappedRedvoxPacketM]]:
         """
-        return the files that have the id requested
         :param get_id: the id to filter on
-        :return: the list of data with the requested id, or None if the id can't be found
+        :return: the list of packets with the requested id, or None if the id can't be found
         """
         result: List[WrappedRedvoxPacketM] = []
         for path in self.files_index.entries:
             if path.station_id == get_id:
                 if path.extension == ".rdvxz":
-                    result.append(ac.convert_api_900_to_1000(api900_io.read_rdvxz_file(path.full_path)))
+                    result.append(
+                        ac.convert_api_900_to_1000(
+                            api900_io.read_rdvxz_file(path.full_path)
+                        )
+                    )
                 elif path.extension == ".rdvxm":
-                    result.append(WrappedRedvoxPacketM.from_compressed_path(path.full_path))
+                    result.append(
+                        WrappedRedvoxPacketM.from_compressed_path(path.full_path)
+                    )
         if len(result) == 0:
             return None
         return result
 
     def get_stations(self) -> List[Station]:
         """
-        get the station representation of the data
         :return: a list of all stations represented by the data packets
         """
-        result = []
-        for packets in self.read_files().values():
-            result.append(Station(packets))
-        return result
+        return [Station(packets) for packets in self.read_files().values()]
 
     def read_files_as_stations(self) -> Dict[str, Station]:
-        result = {}
-        for s_id, packets in self.read_files().items():
-            result[s_id] = Station(packets)
-        return result
+        """
+        :return: a dictionary of all station_id to station pairs represented by the data packets
+        """
+        return {s_id: Station(packets) for s_id, packets in self.read_files().items()}
 
     def get_station_by_id(self, get_id: str) -> Optional[Station]:
         """
-        get a station representation of the data with the requested id, returns None if station id can't be found
         :param get_id: the id to filter on
         :return: a station containing the data of the packets with the requested id or None if id can't be found
         """

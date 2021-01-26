@@ -681,7 +681,7 @@ def sort_unstructured_redvox_data(
     input_dir: str,
     output_dir: Optional[str] = None,
     read_filter: ReadFilter = ReadFilter(),
-    copy: bool = True
+    copy: bool = True,
 ) -> bool:
     """
     takes all redvox files in input_dir and sorts them into appropriate sub-directories

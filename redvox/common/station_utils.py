@@ -3,11 +3,13 @@ Defines generic station metadata for API-independent analysis
 all timestamps are floats in microseconds unless otherwise stated
 """
 from dataclasses import dataclass
-from typing import Tuple, List
+from typing import Tuple
 
-from redvox.api1000.wrapped_redvox_packet import station_information as si, \
-    timing_information as ti, \
-    event_streams as es
+from redvox.api1000.wrapped_redvox_packet import (
+    station_information as si,
+    timing_information as ti,
+    # event_streams as es,
+)
 
 
 @dataclass
@@ -19,6 +21,7 @@ class StationKey:
         uuid: str, uuid of the station
         start_timestamp_micros: float, starting time of the station in microseconds since epoch UTC
     """
+
     id: str
     uuid: str
     start_timestamp_micros: float
@@ -45,8 +48,15 @@ class StationMetadata:
         service_urls: ServiceUrls
         timing_information: TimingInformation
     """
-    def __init__(self, api: float, sub_api: float, station_info: si.StationInformation, app: str,
-                 timing_info: ti.TimingInformation):
+
+    def __init__(
+        self,
+        api: float,
+        sub_api: float,
+        station_info: si.StationInformation,
+        app: str,
+        timing_info: ti.TimingInformation,
+    ):
         """
         initialize the metadata
         :param api: api version
@@ -75,8 +85,11 @@ class StationMetadata:
         :param delta: optional microseconds to add
         """
         self.timing_information.set_packet_start_mach_timestamp(
-            self.timing_information.get_packet_start_mach_timestamp() + delta)
+            self.timing_information.get_packet_start_mach_timestamp() + delta
+        )
         self.timing_information.set_packet_end_mach_timestamp(
-            self.timing_information.get_packet_end_mach_timestamp() + delta)
+            self.timing_information.get_packet_end_mach_timestamp() + delta
+        )
         self.timing_information.set_app_start_mach_timestamp(
-            self.timing_information.get_app_start_mach_timestamp() + delta)
+            self.timing_information.get_app_start_mach_timestamp() + delta
+        )

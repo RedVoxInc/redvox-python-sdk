@@ -15,17 +15,17 @@ class SensorDataTest(unittest.TestCase):
         timestamps = [120, 60, 80, 100, 40, 140, 20, 160, 180]
         sensor_data = [-20, 15, 50, -5, 20, -15, 10, 74, 111]
         test_data = [75, 12, 86, 22, 200, 52, 99, 188, 121]
-        self.even_sensor = SensorData("test", SensorType.AUDIO,
-                                      pd.DataFrame(np.transpose([timestamps, sensor_data, test_data]),
-                                                   columns=["timestamps", "microphone", "test_data"]),
-                                      1 / dtu.microseconds_to_seconds(20), dtu.microseconds_to_seconds(20), 0, True)
+        self.even_sensor = SensorData("test", pd.DataFrame(np.transpose([timestamps, sensor_data, test_data]),
+                                                           columns=["timestamps", "microphone", "test_data"]),
+                                      SensorType.AUDIO, 1 / dtu.microseconds_to_seconds(20),
+                                      dtu.microseconds_to_seconds(20), 0, True)
         timestamps = [14, 25, 31, 65, 74, 83, 97, 111, 120]
         sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
         sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
-        self.uneven_sensor = SensorData("test", SensorType.PRESSURE,
-                                        pd.DataFrame(np.transpose([timestamps, sensor_data, test_data]),
-                                                     columns=["timestamps", "barometer", "test_data"]),
-                                        1 / sample_interval, sample_interval, sample_interval_std, False)
+        self.uneven_sensor = SensorData("test", pd.DataFrame(np.transpose([timestamps, sensor_data, test_data]),
+                                                             columns=["timestamps", "barometer", "test_data"]),
+                                        SensorType.PRESSURE, 1 / sample_interval, sample_interval,
+                                        sample_interval_std, False)
 
     def test_name(self):
         self.assertEqual(self.even_sensor.name, "test")
@@ -134,10 +134,10 @@ class SensorDataTest(unittest.TestCase):
         test_data = [75, 12, 86, 22, 200, 52, 99, 188, 121]
         sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
         sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
-        uneven_sensor = SensorData("test", SensorType.UNKNOWN_SENSOR,
-                                   pd.DataFrame(np.transpose([timestamps, test_data]),
-                                                columns=["timestamps", "test_data"]),
-                                   1 / sample_interval, sample_interval, sample_interval_std, False)
+        uneven_sensor = SensorData("test", pd.DataFrame(np.transpose([timestamps, test_data]),
+                                                        columns=["timestamps", "test_data"]),
+                                   SensorType.UNKNOWN_SENSOR, 1 / sample_interval, sample_interval,
+                                   sample_interval_std, False)
         uneven_sensor.organize_and_update_stats()
         self.assertAlmostEqual(uneven_sensor.sample_interval_s, .000013, 6)
         self.assertAlmostEqual(uneven_sensor.sample_interval_std_s, .000008, 6)
@@ -151,9 +151,9 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(self.even_sensor.data_timestamps()[1], 160)
 
     def test_create_read_update_audio_sensor(self):
-        audio_sensor = SensorData("test_audio", SensorType.AUDIO,
-                                  pd.DataFrame(np.transpose([[10, 20, 30, 40], [1, 2, 3, 4]]),
-                                               columns=["timestamps", "microphone"]), 1, True)
+        audio_sensor = SensorData("test_audio", pd.DataFrame(np.transpose([[10, 20, 30, 40], [1, 2, 3, 4]]),
+                                                             columns=["timestamps", "microphone"]),
+                                  SensorType.AUDIO, 1, True)
         self.assertEqual(audio_sensor.sample_rate, 1)
         self.assertEqual(audio_sensor.num_samples(), 4)
         self.assertIsInstance(audio_sensor.get_data_channel("microphone"), np.ndarray)
