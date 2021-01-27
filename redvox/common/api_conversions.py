@@ -249,21 +249,26 @@ def convert_api_900_to_1000(
         location_m.get_timestamps().set_timestamps(
             location_sensor_900.timestamps_microseconds_utc(), True
         )
-        location_m.get_latitude_samples().set_values(
-            location_sensor_900.payload_values_latitude(), True
-        )
-        location_m.get_longitude_samples().set_values(
-            location_sensor_900.payload_values_longitude(), True
-        )
-        location_m.get_altitude_samples().set_values(
-            location_sensor_900.payload_values_altitude(), True
-        )
-        location_m.get_speed_samples().set_values(
-            location_sensor_900.payload_values_speed(), True
-        )
-        location_m.get_horizontal_accuracy_samples().set_values(
-            location_sensor_900.payload_values_accuracy(), True
-        )
+        if location_sensor_900.check_for_preset_lat_lon():
+            lat_lon = location_sensor_900.get_payload_lat_lon()
+            location_m.get_latitude_samples().set_values(lat_lon[0])
+            location_m.get_longitude_samples().set_values(lat_lon[1])
+        else:
+            location_m.get_latitude_samples().set_values(
+                location_sensor_900.payload_values_latitude(), True
+            )
+            location_m.get_longitude_samples().set_values(
+                location_sensor_900.payload_values_longitude(), True
+            )
+            location_m.get_altitude_samples().set_values(
+                location_sensor_900.payload_values_altitude(), True
+            )
+            location_m.get_speed_samples().set_values(
+                location_sensor_900.payload_values_speed(), True
+            )
+            location_m.get_horizontal_accuracy_samples().set_values(
+                location_sensor_900.payload_values_accuracy(), True
+            )
 
         def _extract_meta_bool(metad: Dict[str, str], key: str) -> bool:
             if key not in metad:
