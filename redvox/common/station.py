@@ -199,7 +199,15 @@ class Station:
             self.metadata.extend(new_station.metadata)
             self._sort_metadata_packets()
             self._get_start_and_end_timestamps()
-            self.timesync_analysis = TimeSyncAnalysis()
+            new_timesync_analysis = TimeSyncAnalysis(
+                self.id, self.audio_sample_rate_hz, self.start_timestamp
+            )
+            new_timesync_analysis.timesync_data = (
+                self.timesync_analysis.timesync_data
+                + new_station.timesync_analysis.timesync_data
+            )
+            new_timesync_analysis.evaluate_and_validate_data()
+            self.timesync_analysis = new_timesync_analysis
 
     def append_station_data(self, new_station_data: Dict[sd.SensorType, sd.SensorData]):
         """
