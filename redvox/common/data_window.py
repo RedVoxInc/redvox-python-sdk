@@ -171,6 +171,12 @@ class DataWindow:
         """
         return self.start_datetime is not None or self.end_datetime is not None
 
+    def get_all_stations(self) -> List[Station]:
+        """
+        :return: all stations in the data window as a list
+        """
+        return list(self.stations.values())
+
     def get_sensor_from_station(
         self, sensor: Union[str, SensorType], station: str
     ) -> Optional[SensorData]:

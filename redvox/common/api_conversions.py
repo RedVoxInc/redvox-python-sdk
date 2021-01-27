@@ -251,8 +251,8 @@ def convert_api_900_to_1000(
         )
         if location_sensor_900.check_for_preset_lat_lon():
             lat_lon = location_sensor_900.get_payload_lat_lon()
-            location_m.get_latitude_samples().set_values(lat_lon[0])
-            location_m.get_longitude_samples().set_values(lat_lon[1])
+            location_m.get_latitude_samples().set_values(np.array([lat_lon[0]]))
+            location_m.get_longitude_samples().set_values(np.array([lat_lon[1]]))
         else:
             location_m.get_latitude_samples().set_values(
                 location_sensor_900.payload_values_latitude(), True
