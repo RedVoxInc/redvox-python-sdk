@@ -113,12 +113,8 @@ class Station:
         """
         uses the sorted metadata packets to get the first and last timestamp of the station
         """
-        self.first_data_timestamp = self.metadata[
-            0
-        ].timing_information.get_packet_start_mach_timestamp()
-        self.last_data_timestamp = self.metadata[
-            -1
-        ].timing_information.get_packet_end_mach_timestamp()
+        self.first_data_timestamp = self.metadata[0].timing_information.get_packet_start_mach_timestamp()
+        self.last_data_timestamp = self.metadata[-1].timing_information.get_packet_end_mach_timestamp()
 
     def set_id(self, station_id: str) -> "Station":
         """
@@ -1138,4 +1134,6 @@ class Station:
                 for packet in self.metadata:
                     packet.update_timestamps(delta)
                 self.timesync_analysis.update_timestamps(delta)
+                self.first_data_timestamp += delta
+                self.last_data_timestamp += delta
                 self.is_timestamps_updated = True

@@ -276,9 +276,14 @@ class DataWindow:
                             sample_interval_micros,
                         )
             elif self.debug:
-                print(
-                    f"WARNING: Data window for {station.id} {sensor_type.name} sensor has no data points!"
-                )
+                print(f"WARNING: Data window for {station.id} {sensor_type.name} sensor has no data points!")
+        # recalculate metadata
+        new_meta = [meta for meta in station.metadata
+                    if meta.timing_information.get_packet_start_mach_timestamp() < end_date_timestamp and
+                    meta.timing_information.get_packet_end_mach_timestamp() > start_date_timestamp]
+        station.metadata = new_meta
+        station.first_data_timestamp = station.metadata[0].timing_information.get_packet_start_mach_timestamp()
+        station.last_data_timestamp = station.metadata[-1].timing_information.get_packet_end_mach_timestamp()
 
     def create_data_window(self):
         """
@@ -305,9 +310,7 @@ class DataWindow:
                 station.update_timestamps()
             # set the window start and end if they were specified, otherwise use the bounds of the data
             if self.start_datetime:
-                start_datetime = dtu.datetime_to_epoch_microseconds_utc(
-                    self.start_datetime
-                )
+                start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
             else:
                 start_datetime = station.first_data_timestamp
             if self.end_datetime:
