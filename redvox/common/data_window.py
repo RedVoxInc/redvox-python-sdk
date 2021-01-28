@@ -282,8 +282,8 @@ class DataWindow:
                     if meta.timing_information.get_packet_start_mach_timestamp() < end_date_timestamp and
                     meta.timing_information.get_packet_end_mach_timestamp() > start_date_timestamp]
         station.metadata = new_meta
-        station.first_data_timestamp = station.metadata[0].timing_information.get_packet_start_mach_timestamp()
-        station.last_data_timestamp = station.metadata[-1].timing_information.get_packet_end_mach_timestamp()
+        station.first_data_timestamp = start_date_timestamp
+        station.last_data_timestamp = end_date_timestamp
 
     def create_data_window(self):
         """
