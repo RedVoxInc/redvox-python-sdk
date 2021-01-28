@@ -29,8 +29,6 @@ from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc a
 # noinspection Mypy
 import redvox.common.io as io
 
-# noinspection Mypy
-from redvox.common.constants import NAN
 
 SAMPLE_RATE_HZ: np.ndarray = np.array(
     [80, 800, 8000, 16000]
@@ -180,6 +178,7 @@ class StationStat:
             timedelta(seconds=packet.duration_s()),
         )
 
+    # noinspection Mypy
     @staticmethod
     def from_api_1000(packet: "WrappedRedvoxPacketM") -> "StationStat":
         """
