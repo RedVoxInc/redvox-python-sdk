@@ -29,6 +29,9 @@ from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc a
 # noinspection Mypy
 import redvox.common.io as io
 
+# noinspection Mypy
+from redvox.common.constants import NAN
+
 SAMPLE_RATE_HZ: np.ndarray = np.array(
     [80, 800, 8000, 16000]
 )  # list of accepted sample rates in Hz
@@ -199,7 +202,7 @@ class StationStat:
             for i, ts in enumerate(location_sensor.get_timestamps().get_timestamps()):
                 # A GPS timestamp isn't always present in the location sensor. We can handle that here.
                 gps_ts: Optional[datetime] = (
-                    us2dt(_gps_timestamps[i]) if i < _gps_timestamps_len else None
+                    us2dt(_gps_timestamps[i]) if (i < _gps_timestamps_len and _gps_timestamps[i] != NAN) else None
                 )
                 gps_timestamps.append(GpsTimestamp(us2dt(ts), gps_ts))
 
