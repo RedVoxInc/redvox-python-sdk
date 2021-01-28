@@ -202,7 +202,9 @@ class StationStat:
             for i, ts in enumerate(location_sensor.get_timestamps().get_timestamps()):
                 # A GPS timestamp isn't always present in the location sensor. We can handle that here.
                 gps_ts: Optional[datetime] = (
-                    us2dt(_gps_timestamps[i]) if (i < _gps_timestamps_len and _gps_timestamps[i] != NAN) else None
+                    us2dt(_gps_timestamps[i])
+                    if (i < _gps_timestamps_len and not np.isnan(_gps_timestamps[i]))
+                    else None
                 )
                 gps_timestamps.append(GpsTimestamp(us2dt(ts), gps_ts))
 
@@ -271,4 +273,3 @@ def extract_stats(
         return extract_stats_parallel(index)
     else:
         return extract_stats_serial(index)
-
