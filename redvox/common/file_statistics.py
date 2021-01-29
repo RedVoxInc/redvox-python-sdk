@@ -135,8 +135,8 @@ class GpsTimestamp:
     Represents timestamp pairings in API 1000 data.
     """
 
-    mach_ts: datetime
-    gps_ts: Optional[datetime]
+    mach_dt: datetime
+    gps_dt: Optional[datetime]
 
 
 @dataclass
@@ -148,9 +148,9 @@ class StationStat:
 
     station_id: str
     station_uuid: str
-    app_start: Optional[datetime]
-    packet_start_ts: datetime
-    server_recv_ts: datetime
+    app_start_dt: Optional[datetime]
+    packet_start_dt: datetime
+    server_recv_dt: Optional[datetime]
     gps_timestamps: Optional[List[GpsTimestamp]]
     latency: Optional[float]
     offset: Optional[float]
