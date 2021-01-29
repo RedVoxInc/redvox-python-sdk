@@ -1134,6 +1134,7 @@ class Station:
                 for packet in self.metadata:
                     packet.update_timestamps(delta)
                 self.timesync_analysis.update_timestamps(delta)
+                self.start_timestamp += delta
                 self.first_data_timestamp += delta
                 self.last_data_timestamp += delta
                 self.is_timestamps_updated = True

@@ -61,6 +61,7 @@ def _migrate_synch_exchanges_900_to_1000(
     return exchanges
 
 
+# todo: can set default return to np.nan?
 def _find_mach_time_zero(packet: reader_900.WrappedRedvoxPacket) -> int:
     if "machTimeZero" in packet.metadata_as_dict():
         return int(packet.metadata_as_dict()["machTimeZero"])
