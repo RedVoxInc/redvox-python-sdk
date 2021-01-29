@@ -32,6 +32,7 @@ class RedVoxConfig:
     """
     Configuration options specific for accessing the cloud services.
     """
+
     username: str
     password: str
     protocol: str = "https"
