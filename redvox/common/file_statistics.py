@@ -151,7 +151,7 @@ class StationStat:
     app_start_dt: Optional[datetime]
     packet_start_dt: datetime
     server_recv_dt: Optional[datetime]
-    gps_timestamps: Optional[List[GpsTimestamp]]
+    gps_dts: Optional[List[GpsTimestamp]]
     latency: Optional[float]
     offset: Optional[float]
     sample_rate_hz: Optional[float]
