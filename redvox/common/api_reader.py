@@ -96,12 +96,7 @@ class ApiReader:
             index = io.index_unstructured(self.base_dir, self.filter)
         file_stats = fs.extract_stats(index)
         # todo: file_stats has all the stuff we need to do the thing
-        file_ids = {}
-        for file in file_stats:
-            if file.station_id in file_ids.keys():
-                file_ids[file.station_id].append(file)
-            else:
-                file_ids[file.station_id] = [file]
+
         return index
 
     def read_files(self) -> Dict[str, List[WrappedRedvoxPacketM]]:
