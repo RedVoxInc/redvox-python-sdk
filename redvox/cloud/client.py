@@ -13,6 +13,7 @@ import requests
 
 import redvox.cloud.api as api
 import redvox.cloud.auth_api as auth_api
+from redvox.cloud.config import RedVoxConfig
 import redvox.cloud.errors as cloud_errors
 import redvox.common.constants as constants
 import redvox.cloud.data_api as data_api
@@ -57,21 +58,21 @@ class CloudClient:
 
     def __init__(
         self,
-        username: str,
-        password: str,
-        api_conf: api.ApiConfig = api.ApiConfig.default(),
-        secret_token: Optional[str] = None,
+        redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
         refresh_token_interval: float = 600.0,
         timeout: Optional[float] = 10.0,
     ):
         """
         Instantiates this client.
-        :param username: A RedVox username.
-        :param password: A RedVox password.
-        :param api_conf: An optional API endpoint configuration.
-        :param secret_token: An optional shared secret that may be required by the API server.
+        :param redvox_config: The Redvox endpoint configuration.
         :param refresh_token_interval: An optional interval in seconds that the auth token should be refreshed.
+        :param timeout: An optional timeout
         """
+
+        if redvox_config is None:
+            raise cloud_errors.CloudApiError(
+                "A RedVoxConfig was not found in the environment and one wasn't provided"
+            )
 
         if refresh_token_interval <= 0:
             raise cloud_errors.CloudApiError(
@@ -81,8 +82,7 @@ class CloudClient:
         if timeout is not None and (timeout <= 0):
             raise cloud_errors.CloudApiError("timeout must be strictly > 0")
 
-        self.api_conf: api.ApiConfig = api_conf
-        self.secret_token: Optional[str] = secret_token
+        self.redvox_config: RedVoxConfig = redvox_config
         self.refresh_token_interval: float = refresh_token_interval
         self.timeout: Optional[float] = timeout
 
@@ -90,7 +90,7 @@ class CloudClient:
             requests.Session()
         )  # This must be initialized before the auth req!
         try:
-            auth_resp: auth_api.AuthResp = self.authenticate_user(username, password)
+            auth_resp: auth_api.AuthResp = self.authenticate_user(redvox_config.username, redvox_config.password)
         except cloud_errors.ApiConnectionError as ex:
             self.close()
             raise ex
@@ -152,7 +152,7 @@ class CloudClient:
         :return: True if the API Cloud server is up and running or False otherwise.
         """
         return api.health_check(
-            self.api_conf, session=self.__session, timeout=self.timeout
+            self.redvox_config, session=self.__session, timeout=self.timeout
         )
 
     def authenticate_user(self, username: str, password: str) -> auth_api.AuthResp:
@@ -170,7 +170,7 @@ class CloudClient:
 
         auth_req: auth_api.AuthReq = auth_api.AuthReq(username, password)
         return auth_api.authenticate_user(
-            self.api_conf, auth_req, session=self.__session, timeout=self.timeout
+            self.redvox_config, auth_req, session=self.__session, timeout=self.timeout
         )
 
     def validate_auth_token(
@@ -186,7 +186,7 @@ class CloudClient:
 
         token_req: auth_api.ValidateTokenReq = auth_api.ValidateTokenReq(auth_token)
         return auth_api.validate_token(
-            self.api_conf, token_req, session=self.__session, timeout=self.timeout
+            self.redvox_config, token_req, session=self.__session, timeout=self.timeout
         )
 
     def validate_own_auth_token(self) -> Optional[auth_api.ValidateTokenResp]:
@@ -211,7 +211,7 @@ class CloudClient:
             auth_token
         )
         return auth_api.refresh_token(
-            self.api_conf,
+            self.redvox_config,
             refresh_token_req,
             session=self.__session,
             timeout=self.timeout,
@@ -267,13 +267,13 @@ class CloudClient:
                 end_ts,
                 station_ids,
                 metadata_to_include,
-                self.secret_token,
+                self.redvox_config.secret_token,
             )
 
             chunked_resp: Optional[
                 metadata_api.MetadataResp
             ] = metadata_api.request_metadata(
-                self.api_conf,
+                self.redvox_config,
                 metadata_req,
                 session=self.__session,
                 timeout=self.timeout,
@@ -327,13 +327,13 @@ class CloudClient:
                 end_ts,
                 station_ids,
                 metadata_to_include,
-                self.secret_token,
+                self.redvox_config.secret_token,
             )
 
             chunked_resp: Optional[
                 metadata_api.MetadataRespM
             ] = metadata_api.request_metadata_m(
-                self.api_conf,
+                self.redvox_config,
                 metadata_req,
                 session=self.__session,
                 timeout=self.timeout,
@@ -377,11 +377,11 @@ class CloudClient:
 
         for start_ts, end_ts in time_chunks:
             timing_req: metadata_api.TimingMetaRequest = metadata_api.TimingMetaRequest(
-                self.auth_token, start_ts, end_ts, station_ids, self.secret_token
+                self.auth_token, start_ts, end_ts, station_ids, self.redvox_config.secret_token
             )
             chunked_resp: metadata_api.TimingMetaResponse = (
                 metadata_api.request_timing_metadata(
-                    self.api_conf,
+                    self.redvox_config,
                     timing_req,
                     session=self.__session,
                     timeout=self.timeout,
@@ -403,10 +403,13 @@ class CloudClient:
             raise cloud_errors.CloudApiError("report_id must be included")
 
         report_data_req: data_api.ReportDataReq = data_api.ReportDataReq(
-            self.auth_token, report_id, self.secret_token
+            self.auth_token, report_id, self.redvox_config.secret_token
         )
         return data_api.request_report_data(
-            self.api_conf, report_data_req, session=self.__session, timeout=self.timeout
+            self.redvox_config,
+            report_data_req,
+            session=self.__session,
+            timeout=self.timeout,
         )
 
     def request_station_statuses(
@@ -420,12 +423,12 @@ class CloudClient:
 
         station_status_req: metadata_api.StationStatusReq = (
             metadata_api.StationStatusReq(
-                self.secret_token, self.auth_token, start_ts_s, end_ts_s, station_ids
+                self.redvox_config.secret_token, self.auth_token, start_ts_s, end_ts_s, station_ids
             )
         )
 
         return metadata_api.request_station_statuses(
-            self.api_conf,
+            self.redvox_config,
             station_status_req,
             session=self.__session,
             timeout=self.timeout,
@@ -453,11 +456,11 @@ class CloudClient:
             raise cloud_errors.CloudApiError("At least one station_id must be provided")
 
         data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(
-            self.auth_token, start_ts_s, end_ts_s, station_ids, self.secret_token
+            self.auth_token, start_ts_s, end_ts_s, station_ids, self.redvox_config.secret_token
         )
 
         return data_api.request_range_data(
-            self.api_conf,
+            self.redvox_config,
             data_range_req,
             session=self.__session,
             timeout=self.timeout,
@@ -467,10 +470,7 @@ class CloudClient:
 
 @contextlib.contextmanager
 def cloud_client(
-    username: str,
-    password: str,
-    api_conf: api.ApiConfig = api.ApiConfig.default(),
-    secret_token: Optional[str] = None,
+    redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
     refresh_token_interval: float = 600.0,
     timeout: float = 10.0,
 ):
@@ -481,17 +481,17 @@ def cloud_client(
 
     See https://docs.python.org/3/library/contextlib.html for more info.
 
-    :param username: The Cloud API username.
-    :param password: The Cloud API password.
-    :param api_conf: The Cloud API endpoint configuration.
-    :param secret_token: An optional secret token.
+    :param redvox_config: The Redvox endpoint configuration.
     :param refresh_token_interval: An optional token refresh interval
     :param timeout: An optional timeout.
     :return: A CloudClient.
     """
-    client: CloudClient = CloudClient(
-        username, password, api_conf, secret_token, refresh_token_interval, timeout
-    )
+    if redvox_config is None:
+        raise cloud_errors.CloudApiError(
+            "A RedVoxConfig was not found in the environment and one wasn't provided"
+        )
+
+    client: CloudClient = CloudClient(redvox_config, refresh_token_interval, timeout)
     try:
         yield client
     finally:

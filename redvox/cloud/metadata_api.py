@@ -10,7 +10,8 @@ from dataclasses_json import dataclass_json
 import requests
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
-from redvox.cloud.api import ApiConfig, post_req
+from redvox.cloud.api import post_req
+from redvox.cloud.config import RedVoxConfig
 from redvox.cloud.routes import RoutesV1
 
 
@@ -462,14 +463,14 @@ class TimingMetaResponse:
 
 
 def request_timing_metadata(
-    api_config: ApiConfig,
+    redvox_config: RedVoxConfig,
     timing_req: TimingMetaRequest,
     session: Optional[requests.Session] = None,
     timeout: Optional[float] = None,
 ) -> TimingMetaResponse:
     """
     Retrieve timing metadata.
-    :param api_config: An instance of the API configuration.
+    :param redvox_config: An instance of the API configuration.
     :param timing_req: An instance of a timing request.
     :param session: An (optional) session for re-using an HTTP client.
     :param timeout: An (optional) timeout.
@@ -484,7 +485,7 @@ def request_timing_metadata(
         return TimingMetaResponse(items)
 
     res: Optional[TimingMetaResponse] = post_req(
-        api_config,
+        redvox_config,
         RoutesV1.TIMING_METADATA_REQ,
         timing_req,
         handle_resp,
@@ -496,14 +497,14 @@ def request_timing_metadata(
 
 
 def request_metadata(
-    api_config: ApiConfig,
+    redvox_config: RedVoxConfig,
     packet_metadata_req: MetadataReq,
     session: Optional[requests.Session] = None,
     timeout: Optional[float] = None,
 ) -> Optional[MetadataResp]:
     """
     Requests generic metadata from the cloud API.
-    :param api_config: An instance of the API config.
+    :param redvox_config: An instance of the API config.
     :param packet_metadata_req: An instance of a metadata request.
     :param session: An (optional) session for re-using an HTTP client.
     :param timeout: An (optional) timeout.
@@ -515,7 +516,7 @@ def request_metadata(
         [requests.Response], MetadataResp
     ] = lambda resp: MetadataResp.from_dict(resp.json())
     return post_req(
-        api_config,
+        redvox_config,
         RoutesV1.METADATA_REQ,
         packet_metadata_req,
         handle_resp,
@@ -525,14 +526,14 @@ def request_metadata(
 
 
 def request_metadata_m(
-    api_config: ApiConfig,
+    redvox_config: RedVoxConfig,
     packet_metadata_req: MetadataReq,
     session: Optional[requests.Session] = None,
     timeout: Optional[float] = None,
 ) -> Optional[MetadataRespM]:
     """
     Requests generic metadata from the cloud API.
-    :param api_config: An instance of the API config.
+    :param redvox_config: An instance of the API config.
     :param packet_metadata_req: An instance of a metadata request.
     :param session: An (optional) session for re-using an HTTP client.
     :param timeout: An (optional) timeout.
@@ -543,7 +544,7 @@ def request_metadata_m(
         [requests.Response], MetadataRespM
     ] = lambda resp: MetadataRespM.from_json(resp.json())
     return post_req(
-        api_config,
+        redvox_config,
         RoutesV1.METADATA_REQ_M,
         packet_metadata_req,
         handle_resp,
@@ -553,7 +554,7 @@ def request_metadata_m(
 
 
 def request_station_statuses(
-    api_config: ApiConfig,
+    redvox_config: RedVoxConfig,
     station_status_req: StationStatusReq,
     session: Optional[requests.Session] = None,
     timeout: Optional[float] = None,
@@ -563,7 +564,7 @@ def request_station_statuses(
         [requests.Response], StationStatusResp
     ] = lambda resp: StationStatusResp.from_dict(resp.json())
     return post_req(
-        api_config,
+        redvox_config,
         RoutesV1.STATION_STATUS_TIMELINE,
         station_status_req,
         handle_resp,
