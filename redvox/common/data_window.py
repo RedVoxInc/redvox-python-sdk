@@ -20,10 +20,10 @@ from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 
 DEFAULT_GAP_TIME_S: float = 0.25  # default length of a gap in seconds
 DEFAULT_START_BUFFER_TD: timedelta = timedelta(
-    seconds=120
+    seconds=0
 )  # default padding to start time of data in seconds
 DEFAULT_END_BUFFER_TD: timedelta = timedelta(
-    seconds=120
+    seconds=0
 )  # default padding to end time of data in seconds
 # default maximum number of points required to brute force calculate gap timestamps
 DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS: int = 5000
