@@ -130,7 +130,7 @@ def _partition_list(lst: List[Any], chunks: int) -> List[Any]:
 
 
 @dataclass
-class GpsTimestamp:
+class GpsDateTime:
     """
     Represents timestamp pairings in API 1000 data.
     """
@@ -151,7 +151,7 @@ class StationStat:
     app_start_dt: Optional[datetime]
     packet_start_dt: datetime
     server_recv_dt: Optional[datetime]
-    gps_dts: Optional[List[GpsTimestamp]]
+    gps_dts: Optional[List[GpsDateTime]]
     latency: Optional[float]
     offset: Optional[float]
     sample_rate_hz: Optional[float]
@@ -208,7 +208,7 @@ class StationStat:
         audio_sensor: Optional["Audio"] = sensors.get_audio()
 
         # Optionally extract the GPS timestamps if the location sensor is available
-        gps_timestamps: Optional[List[GpsTimestamp]] = None
+        gps_timestamps: Optional[List[GpsDateTime]] = None
         if location_sensor is not None:
             gps_timestamps = []
             _gps_timestamps = location_sensor.get_timestamps_gps().get_timestamps()
@@ -220,7 +220,7 @@ class StationStat:
                     if (i < _gps_timestamps_len and not np.isnan(_gps_timestamps[i]))
                     else None
                 )
-                gps_timestamps.append(GpsTimestamp(us2dt(ts), gps_ts))
+                gps_timestamps.append(GpsDateTime(us2dt(ts), gps_ts))
 
         best_offset = timing_info.get_best_offset()
         best_latency = timing_info.get_best_latency()
