@@ -8,7 +8,6 @@ import typing
 
 import redvox.api900.concat
 import redvox.common.date_time_utils as date_time_utils
-import redvox.api900.deprecation as deprecation
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.migrations as migrations
 import redvox.api900.reader_utils as reader_utils
@@ -24,6 +23,19 @@ import redvox.api900.sensors.microphone_sensor as _microphone_sensor
 import redvox.api900.sensors.time_synchronization_sensor as _time_synchronization_sensor
 from redvox.api900.sensors.evenly_sampled_channel import EvenlySampledChannel
 from redvox.api900.sensors.unevenly_sampled_channel import UnevenlySampledChannel
+
+
+def read_buffer(buf: bytes, is_compressed: bool = True) -> api900_pb2.RedvoxPacket:
+    """
+    Deserializes a serialized protobuf RedvoxPacket buffer.
+    :param buf: Buffer to deserialize.
+    :param is_compressed: Whether or not the buffer is compressed or decompressed.
+    :return: Deserialized protobuf redvox packet.
+    """
+    buffer = reader_utils.lz4_decompress(buf) if is_compressed else buf
+    redvox_packet = api900_pb2.RedvoxPacket()
+    redvox_packet.ParseFromString(buffer)
+    return redvox_packet
 
 
 # pylint: disable=R0904
@@ -344,7 +356,7 @@ class WrappedRedvoxPacket:
         Returns a clone of this WrappedRedvoxPacket.
         :return: A clone of this WrappedRedvoxPacket.
         """
-        return redvox.api900.reader.read_rdvxz_buffer(self.compressed_buffer())
+        return WrappedRedvoxPacket(read_buffer(self.compressed_buffer(), True))
 
     def concat(self, wrapped_redvox_packets: typing.List['WrappedRedvoxPacket']) -> typing.List['WrappedRedvoxPacket']:
         """
