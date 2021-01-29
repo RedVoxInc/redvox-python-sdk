@@ -6,7 +6,7 @@ import argparse
 import logging
 import os.path
 import sys
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Callable
 
 from redvox.api1000.gui.image_viewer import start_gui
 from redvox.api1000.wrapped_redvox_packet.sensors.image import Image, ImageCodec
@@ -25,10 +25,10 @@ import redvox.common.io as io
 log = logging.getLogger(__name__)
 
 
-def map_or_default(val: Any, default: Any) -> Any:
+def map_or_default(val: Any, apply: Callable[[Any], Any], default: Any) -> Any:
     if val is None:
         return default
-    return val
+    return apply(val)
 
 
 def check_path(
@@ -219,51 +219,54 @@ def data_req_args(args) -> None:
 
     api_type: DataRangeReqType = DataRangeReqType[args.api_type]
 
+    # Rebuild RedVox config from potentially optional passed in args
+    if args.email is None:
+        log.error(
+            f"The argument 'email' is required, but was not found in the environment or provided."
+        )
+        determine_exit(False)
+
+    if args.password is None:
+        log.error(
+            f"The argument 'password' is required, but was not found in the environment or provided."
+        )
+        determine_exit(False)
+
+    redvox_config: RedVoxConfig = RedVoxConfig(
+        args.email,
+        args.password,
+        args.protocol,
+        args.host,
+        args.port,
+        args.secret_token,
+    )
+
     determine_exit(
         data_req.make_data_req(
             args.out_dir,
-            args.protocol,
-            args.host,
-            args.port,
-            args.email,
-            args.password,
+            redvox_config,
             args.req_start_s,
             args.req_end_s,
             args.station_ids,
             api_type,
             args.retries,
-            args.secret_token,
         )
     )
 
 
 def data_req_report(
-    protocol: str,
-    host: str,
-    port: int,
-    email: str,
-    password: str,
+    redvox_config: RedVoxConfig,
     report_id: str,
     out_dir: str,
     retries: int,
-    secret_token: Optional[str] = None,
 ) -> bool:
     """
     Uses the built-in cloud based HTTP API to generate a signed URL for report data and then downloads the report data.
-    :param protocol: Either http or https.
-    :param host: The data service host.
-    :param port: The data service port.
-    :param email: The email of the RedVox user.
-    :param password: The password of the RedVox user.
     :param report_id: The full RedVox report id.
     :param out_dir: The output directory to play the report distribution.
     :param retries: Number of times to attempt to retry the download on failed attempts.
-    :param secret_token: The shared secret if utilized by the API server.
     """
-    api_config: cloud_api.ApiConfig = cloud_api.ApiConfig(protocol, host, port)
-    client = cloud_client.CloudClient(
-        email, password, api_conf=api_config, secret_token=secret_token
-    )
+    client = cloud_client.CloudClient(redvox_config)
     resp: Optional[data_api.ReportDataResp] = client.request_report_data(report_id)
     client.close()
 
@@ -283,17 +286,34 @@ def data_req_report_args(args) -> None:
     if not check_out_dir(args.out_dir):
         determine_exit(False)
 
+    # Rebuild RedVox config from potentially optional passed in args
+    if args.email is None:
+        log.error(
+            f"The argument 'email' is required, but was not found in the environment or provided."
+        )
+        determine_exit(False)
+
+    if args.password is None:
+        log.error(
+            f"The argument 'password' is required, but was not found in the environment or provided."
+        )
+        determine_exit(False)
+
+    redvox_config: RedVoxConfig = RedVoxConfig(
+        args.email,
+        args.password,
+        args.protocol,
+        args.host,
+        args.port,
+        args.secret_token,
+    )
+
     determine_exit(
         data_req_report(
-            args.protocol,
-            args.host,
-            args.port,
-            args.email,
-            args.password,
+            redvox_config,
             args.report_id,
             args.out_dir,
             args.retries,
-            args.secret_token,
         )
     )
 
@@ -336,7 +356,9 @@ def gallery_args(args) -> None:
     determine_exit(gallery(args.rdvxm_paths))
 
 
-def sort_unstructured(input_dir: str, out_dir: Optional[str] = None, copy: bool = True) -> bool:
+def sort_unstructured(
+    input_dir: str, out_dir: Optional[str] = None, copy: bool = True
+) -> bool:
     out_dir = out_dir if out_dir is not None else "."
     io.sort_unstructured_redvox_data(input_dir, out_dir, copy=copy)
     return True
@@ -493,7 +515,7 @@ def main():
     sort_unstructured_parser.add_argument(
         "--mv",
         help="When set, file contents will be moved to the structured layout rather than copied.",
-        action="store_true"
+        action="store_true",
     )
     sort_unstructured_parser.set_defaults(func=sort_unstructured_args)
 
@@ -529,6 +551,16 @@ def main():
         "data-req", help="Request bulk RedVox data from RedVox servers"
     )
     data_req_parser.add_argument(
+        "--email",
+        help="redvox.io account email",
+        default=map_or_default(redvox_config, lambda config: config.username, None),
+    )
+    data_req_parser.add_argument(
+        "--password",
+        help="redvox.io account password",
+        default=map_or_default(redvox_config, lambda config: config.password, None),
+    )
+    data_req_parser.add_argument(
         "--out-dir",
         help="The output directory that RedVox files will be written to (default=.)",
         default=".",
@@ -542,21 +574,27 @@ def main():
         type=int,
     )
     data_req_parser.add_argument(
-        "--host", help="Data server host (default=redvox.io)", default="redvox.io"
+        "--host",
+        help="Data server host",
+        default=map_or_default(redvox_config, lambda config: config.host, "redvox.io"),
     )
     data_req_parser.add_argument(
-        "--port", type=int, help="Data server port (default=8080)", default=8080
+        "--port",
+        type=int,
+        help="Data server port",
+        default=map_or_default(redvox_config, lambda config: config.port, 8080),
     )
     data_req_parser.add_argument(
         "--protocol",
-        help="One of either http or https (default https)",
+        help="One of either http or https",
         choices=["https", "http"],
-        default="https",
+        default=map_or_default(redvox_config, lambda config: config.protocol, "https"),
     )
     data_req_parser.add_argument(
         "--secret-token",
         help="A shared secret token provided by RedVox required for accessing the data "
         "request service",
+        default=map_or_default(redvox_config, lambda config: config.secret_token, None),
     )
     data_req_parser.add_argument(
         "--api-type",
@@ -564,8 +602,6 @@ def main():
         choices=["API_900", "API_1000", "API_900_1000"],
         default="API_900_1000",
     )
-    data_req_parser.add_argument("email", help="redvox.io account email")
-    data_req_parser.add_argument("password", help="redvox.io account password")
     data_req_parser.add_argument(
         "req_start_s",
         type=int,
@@ -587,13 +623,21 @@ def main():
     )
     data_req_report_parser.add_argument(
         "--out-dir",
-        "-o",
         help="The output directory that RedVox files will be written to (default=.)",
         default=".",
     )
     data_req_report_parser.add_argument(
+        "--email",
+        help="redvox.io account email",
+        default=map_or_default(redvox_config, lambda config: config.username, None),
+    )
+    data_req_report_parser.add_argument(
+        "--password",
+        help="redvox.io account password",
+        default=map_or_default(redvox_config, lambda config: config.password, None),
+    )
+    data_req_report_parser.add_argument(
         "--retries",
-        "-r",
         help="The number of times the client should retry getting a file on failure "
         "(default=1)",
         default=1,
@@ -601,24 +645,28 @@ def main():
         type=int,
     )
     data_req_report_parser.add_argument(
-        "--host", "-H", help="Data server host (default=redvox.io)", default="redvox.io"
+        "--host",
+        help="Data server host",
+        default=map_or_default(redvox_config, lambda config: config.host, "redvox.io"),
     )
     data_req_report_parser.add_argument(
-        "--port", "-p", type=int, help="Data server port (default=8080)", default=8080
+        "--port",
+        type=int,
+        help="Data server port",
+        default=map_or_default(redvox_config, lambda config: config.port, 8080),
     )
     data_req_report_parser.add_argument(
         "--protocol",
         help="One of either http or https (default https)",
         choices=["https", "http"],
-        default="https",
+        default=map_or_default(redvox_config, lambda config: config.protocol, "https"),
     )
     data_req_report_parser.add_argument(
         "--secret-token",
         help="A shared secret token provided by RedVox required for accessing the data "
         "request service",
+        default=map_or_default(redvox_config, lambda config: config.secret_token, None),
     )
-    data_req_report_parser.add_argument("email", help="redvox.io account email")
-    data_req_report_parser.add_argument("password", help="redvox.io account password")
     data_req_report_parser.add_argument(
         "report_id",
         type=str,
