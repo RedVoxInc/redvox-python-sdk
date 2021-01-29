@@ -11,7 +11,6 @@ import redvox.common.date_time_utils as date_time_utils
 import redvox.api900.deprecation as deprecation
 import redvox.api900.lib.api900_pb2 as api900_pb2
 import redvox.api900.migrations as migrations
-import redvox.api900.reader
 import redvox.api900.reader_utils as reader_utils
 import redvox.api900.sensors.accelerometer_sensor as _accelerometer_sensor
 import redvox.api900.sensors.barometer_sensor as _barometer_sensor
