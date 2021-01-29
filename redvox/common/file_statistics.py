@@ -169,7 +169,7 @@ class StationStat:
         best_offset = packet.best_offset()
         best_latency = packet.best_latency()
 
-        if not best_offset or not best_latency:
+        if (not best_offset or not best_latency) and packet.has_time_synchronization_sensor():
             tsd = TimeSyncData(packet.redvox_id(),
                                time_sync_exchanges_list=packet.time_synchronization_sensor().payload_values(),
                                packet_start_timestamp=packet.app_file_start_timestamp_machine(),
@@ -189,8 +189,8 @@ class StationStat:
             None,
             best_latency,
             best_offset,
-            packet.microphone_sensor().sample_rate_hz(),
-            timedelta(seconds=packet.duration_s()),
+            packet.microphone_sensor().sample_rate_hz() if packet.has_microphone_sensor() else np.nan,
+            timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else np.nan,
         )
 
     # noinspection Mypy
@@ -225,9 +225,9 @@ class StationStat:
         best_offset = timing_info.get_best_offset()
         best_latency = timing_info.get_best_latency()
 
-        if np.isnan(best_offset) or np.isnan(best_latency):
+        if (np.isnan(best_offset) or np.isnan(best_latency)) and len(timing_info.get_synch_exchange_array()) > 0:
             tsd = TimeSyncData(station_info.get_id(),
-                               time_sync_exchanges_list=timing_info.get_synch_exchanges().get_values(),
+                               time_sync_exchanges_list=timing_info.get_synch_exchange_array(),
                                packet_start_timestamp=timing_info.get_packet_start_mach_timestamp(),
                                packet_end_timestamp=timing_info.get_packet_end_mach_timestamp(),
                                server_acquisition_timestamp=timing_info.get_server_acquisition_arrival_timestamp(),
