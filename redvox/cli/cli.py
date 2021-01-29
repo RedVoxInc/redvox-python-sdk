@@ -13,7 +13,6 @@ from redvox.api1000.wrapped_redvox_packet.sensors.image import Image, ImageCodec
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.cloud.data_api import DataRangeReqType
 
-import redvox.cloud.api as cloud_api
 import redvox.cloud.client as cloud_client
 from redvox.cloud.config import RedVoxConfig
 import redvox.cloud.data_api as data_api
