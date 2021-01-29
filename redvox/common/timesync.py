@@ -5,13 +5,14 @@ Also includes functions for correcting time arrays.
 ALL timestamps in microseconds unless otherwise stated
 """
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 # noinspection Mypy
 import numpy as np
 import pandas as pd
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 from redvox.common import (
     stats_helper as sh,
     tri_message_stats as tms,
@@ -181,14 +182,14 @@ class TimeSyncAnalysis:
         station_id: str = "",
         audio_sample_rate_hz: float = np.nan,
         station_start_timestamp: float = np.nan,
-        packets: Optional[List[WrappedRedvoxPacketM]] = None,
+        time_sync_data: Optional[List[TimeSyncData]] = None,
     ):
         """
         Initialize the object
-        :param station_id: id of the station to analyze
-        :param audio_sample_rate_hz: audio sample rate in hz of the station
-        :param station_start_timestamp: timestamp of when station started recording
-        :param packets: the data packets of the station
+        :param station_id: id of the station to analyze, default empty string
+        :param audio_sample_rate_hz: audio sample rate in hz of the station, default np.nan
+        :param station_start_timestamp: timestamp of when station started recording, default np.nan
+        :param time_sync_data: the TimeSyncData objects created from the packets of the station, default None
         """
         self.station_id: str = station_id
         self.sample_rate_hz: float = audio_sample_rate_hz
@@ -196,24 +197,11 @@ class TimeSyncAnalysis:
         self.best_latency_index: int = np.nan
         self.latency_stats = sh.StatsContainer("latency")
         self.offset_stats = sh.StatsContainer("offset")
-        self.timesync_data: List[TimeSyncData] = []
-        if packets is not None and len(packets) > 0:
-            for packet in packets:
-                self.timesync_data.append(
-                    TimeSyncData(
-                        self.station_id,
-                        self.sample_rate_hz,
-                        packet.get_sensors().get_audio().get_num_samples(),
-                        self.station_start_timestamp,
-                        packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
-                        packet.get_timing_information().get_packet_start_mach_timestamp(),
-                        packet.get_timing_information().get_packet_end_mach_timestamp(),
-                        packet.get_timing_information().get_synch_exchange_array(),
-                        packet.get_timing_information().get_best_latency(),
-                        packet.get_timing_information().get_best_offset(),
-                    )
-                )
+        if time_sync_data:
+            self.timesync_data: List[TimeSyncData] = time_sync_data
             self.evaluate_and_validate_data()
+        else:
+            self.timesync_data = []
 
     def evaluate_and_validate_data(self):
         """
@@ -245,6 +233,40 @@ class TimeSyncAnalysis:
                 self.timesync_data[index].offset_std,
                 self.timesync_data[index].num_tri_messages() * 2,
             )
+
+    def from_packets(self, packets: List[Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]]) -> 'TimeSyncAnalysis':
+        """
+        converts packets into TimeSyncData objects, then performs analysis
+        :param packets: list of WrappedRedvoxPacketM to convert
+        :return: modified version of self
+        """
+        self.timesync_data = [TimeSyncData(self.station_id,
+                                           self.sample_rate_hz,
+                                           packet.get_sensors().get_audio().get_num_samples(),
+                                           self.station_start_timestamp,
+                                           packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
+                                           packet.get_timing_information().get_packet_start_mach_timestamp(),
+                                           packet.get_timing_information().get_packet_end_mach_timestamp(),
+                                           packet.get_timing_information().get_synch_exchange_array(),
+                                           packet.get_timing_information().get_best_latency(),
+                                           packet.get_timing_information().get_best_offset(),
+                                           )
+                              if isinstance(packet, WrappedRedvoxPacketM) else
+                              TimeSyncData(self.station_id,
+                                           self.sample_rate_hz,
+                                           packet.microphone_sensor().payload_values().size,
+                                           self.station_start_timestamp,
+                                           packet.server_timestamp_epoch_microseconds_utc(),
+                                           packet.start_timestamp_us_utc(),
+                                           packet.end_timestamp_us_utc(),
+                                           packet.time_synchronization_sensor().payload_values(),
+                                           packet.best_latency(),
+                                           packet.best_offset(),
+                                           )
+                              for packet in packets]
+        if len(self.timesync_data) > 0:
+            self.evaluate_and_validate_data()
+        return self
 
     def add_timesync_data(self, timesync_data: TimeSyncData):
         """
