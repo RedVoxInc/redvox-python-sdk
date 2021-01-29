@@ -6,7 +6,7 @@ import argparse
 import logging
 import os.path
 import sys
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 from redvox.api1000.gui.image_viewer import start_gui
 from redvox.api1000.wrapped_redvox_packet.sensors.image import Image, ImageCodec
@@ -15,6 +15,7 @@ from redvox.cloud.data_api import DataRangeReqType
 
 import redvox.cloud.api as cloud_api
 import redvox.cloud.client as cloud_client
+from redvox.cloud.config import RedVoxConfig
 import redvox.cloud.data_api as data_api
 import redvox.cli.conversions as conversions
 import redvox.cli.data_req as data_req
@@ -22,6 +23,12 @@ import redvox.common.io as io
 
 # pylint: disable=C0103
 log = logging.getLogger(__name__)
+
+
+def map_or_default(val: Any, default: Any) -> Any:
+    if val is None:
+        return default
+    return val
 
 
 def check_path(
@@ -349,6 +356,8 @@ def main():
     """
     Entry point into the CLI.
     """
+    redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find()
+
     parser: argparse.ArgumentParser = argparse.ArgumentParser(
         "redvox-cli",
         description="Command line tools for viewing, converting,"
@@ -517,17 +526,15 @@ def main():
 
     # data_req
     data_req_parser = sub_parser.add_parser(
-        "data-req", help="Request bulk RedVox data from the RedVox servers"
+        "data-req", help="Request bulk RedVox data from RedVox servers"
     )
     data_req_parser.add_argument(
         "--out-dir",
-        "-o",
         help="The output directory that RedVox files will be written to (default=.)",
         default=".",
     )
     data_req_parser.add_argument(
         "--retries",
-        "-r",
         help="The number of times the client should retry getting a file on failure "
         "(default=1)",
         default=1,
@@ -535,10 +542,10 @@ def main():
         type=int,
     )
     data_req_parser.add_argument(
-        "--host", "-H", help="Data server host (default=redvox.io)", default="redvox.io"
+        "--host", help="Data server host (default=redvox.io)", default="redvox.io"
     )
     data_req_parser.add_argument(
-        "--port", "-p", type=int, help="Data server port (default=8080)", default=8080
+        "--port", type=int, help="Data server port (default=8080)", default=8080
     )
     data_req_parser.add_argument(
         "--protocol",
