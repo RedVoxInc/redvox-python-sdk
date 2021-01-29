@@ -97,9 +97,8 @@ class Station:
             self.audio_sample_rate_hz = np.nan
             self.is_audio_scrambled = False
         self.is_timestamps_updated = False
-        self.timesync_analysis = TimeSyncAnalysis(
-            self.id, self.audio_sample_rate_hz, self.start_timestamp, data_packets
-        )
+        self.timesync_analysis = \
+            TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp).from_packets(data_packets)
 
     def _sort_metadata_packets(self):
         """
