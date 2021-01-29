@@ -9,7 +9,8 @@ from typing import Callable, List, Optional, Tuple
 from dataclasses_json import dataclass_json
 import requests
 
-from redvox.cloud.api import ApiConfig, post_req
+from redvox.cloud.api import post_req
+from redvox.cloud.config import RedVoxConfig
 import redvox.cloud.data_io as data_io
 import redvox.cloud.data_client as data_client
 from redvox.cloud.routes import RoutesV1
@@ -98,14 +99,14 @@ class DataRangeResp:
 
 
 def request_report_data(
-    api_config: ApiConfig,
+    redvox_config: RedVoxConfig,
     report_data_req: ReportDataReq,
     session: Optional[requests.Session] = None,
     timeout: Optional[float] = None,
 ) -> Optional[ReportDataResp]:
     """
     Makes an API call to generate a signed URL of a RedVox report.
-    :param api_config: An API config.
+    :param redvox_config: An API config.
     :param report_data_req: The request.
     :param session: An (optional) session for re-using an HTTP client.
     :param timeout: An (optional) timeout.
@@ -117,7 +118,7 @@ def request_report_data(
         [requests.Response], ReportDataResp
     ] = lambda resp: ReportDataResp.from_dict(resp.json())
     return post_req(
-        api_config,
+        redvox_config,
         RoutesV1.DATA_REPORT_REQ,
         report_data_req,
         handle_resp,
@@ -137,7 +138,7 @@ class DataRangeReqType(Enum):
 
 
 def request_range_data(
-    api_config: ApiConfig,
+    redvox_config: RedVoxConfig,
     data_range_req: DataRangeReq,
     session: Optional[requests.Session] = None,
     timeout: Optional[float] = None,
@@ -145,7 +146,7 @@ def request_range_data(
 ) -> DataRangeResp:
     """
     Requests signed URLs for a range of RedVox packets.
-    :param api_config: An API config.
+    :param redvox_config: An API config.
     :param data_range_req: The request.
     :param session: An (optional) session for re-using an HTTP client.
     :param timeout: An (optional) timeout.
@@ -161,7 +162,7 @@ def request_range_data(
     # API 900
     if req_type == DataRangeReqType.API_900:
         res: Optional[DataRangeResp] = post_req(
-            api_config,
+            redvox_config,
             RoutesV1.DATA_RANGE_REQ,
             data_range_req,
             handle_resp,
@@ -172,8 +173,8 @@ def request_range_data(
         return res if res else DataRangeResp([])
     # API 1000
     elif req_type == DataRangeReqType.API_1000:
-        res: Optional[DataRangeResp] = post_req(
-            api_config,
+        res = post_req(
+            redvox_config,
             RoutesV1.DATA_RANGE_REQ_M,
             data_range_req,
             handle_resp,
@@ -185,7 +186,7 @@ def request_range_data(
     # API 900 and 1000
     else:
         res_900: Optional[DataRangeResp] = post_req(
-            api_config,
+            redvox_config,
             RoutesV1.DATA_RANGE_REQ,
             data_range_req,
             handle_resp,
@@ -194,7 +195,7 @@ def request_range_data(
         )
 
         res_1000: Optional[DataRangeResp] = post_req(
-            api_config,
+            redvox_config,
             RoutesV1.DATA_RANGE_REQ_M,
             data_range_req,
             handle_resp,

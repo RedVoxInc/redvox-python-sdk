@@ -153,3 +153,11 @@ class RedVoxConfig:
         credentials_path: Path = home_path.joinpath(REDVOX_CONFIG_FILE_NAME)
         self.save_to_file(credentials_path)
         return credentials_path
+
+    def url(self, end_point: str) -> str:
+        """
+        Formats the API URL.
+        :param end_point: Endpoint to use.
+        :return: The formatted API URL.
+        """
+        return f"{self.protocol}://{self.host}:{self.port}{end_point}"

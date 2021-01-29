@@ -55,7 +55,7 @@ class ClientTests(unittest.TestCase):
             with cloud_client("foo",
                               "bar",
                               secret_token="gucci",
-                              api_conf=ApiConfig(
+                              redvox_conf=ApiConfig(
                                   "http",
                                   "redvox.io",
                                   8080
@@ -64,7 +64,7 @@ class ClientTests(unittest.TestCase):
 
     def test_bad_host(self):
         with self.assertRaises(cloud_errors.ApiConnectionError) as context:
-            with cloud_client("foo", "bar", secret_token="gucci", api_conf=ApiConfig(
+            with cloud_client("foo", "bar", secret_token="gucci", redvox_conf=ApiConfig(
                     "https",
                     "redsox.io",
                     8080
@@ -76,7 +76,7 @@ class ClientTests(unittest.TestCase):
 
     def test_bad_port(self):
         with self.assertRaises(cloud_errors.ApiConnectionError) as context:
-            with cloud_client("foo", "bar", secret_token="gucci", api_conf=ApiConfig(
+            with cloud_client("foo", "bar", secret_token="gucci", redvox_conf=ApiConfig(
                     "https",
                     "redvox.io",
                     8081
@@ -92,7 +92,7 @@ class ClientTests(unittest.TestCase):
                               "bar",
                               secret_token="gucci",
                               refresh_token_interval=0,
-                              api_conf=ApiConfig(
+                              redvox_conf=ApiConfig(
                                   "https",
                                   "redvox.io",
                                   8080,
@@ -108,7 +108,7 @@ class ClientTests(unittest.TestCase):
             with cloud_client("foo",
                               "bar",
                               secret_token="gucci",
-                              api_conf=ApiConfig(
+                              redvox_conf=ApiConfig(
                                   "https",
                                   "redvox.io",
                                   8080,

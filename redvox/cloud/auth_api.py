@@ -8,7 +8,8 @@ from typing import Callable, Optional
 from dataclasses_json import dataclass_json
 import requests
 
-from redvox.cloud.api import ApiConfig, post_req
+from redvox.cloud.api import post_req
+from redvox.cloud.config import RedVoxConfig
 from redvox.cloud.routes import RoutesV1
 
 
@@ -93,14 +94,14 @@ class RefreshTokenResp:
 
 
 def authenticate_user(
-    api_config: ApiConfig,
+    redvox_config: RedVoxConfig,
     authentication_request: AuthReq,
     session: Optional[requests.Session] = None,
     timeout: Optional[float] = None,
 ) -> AuthResp:
     """
     Attempts to authenticate a RedVox user.
-    :param api_config: Api configuration.
+    :param redvox_config: Api configuration.
     :param authentication_request: An instance of an authentication request.
     :param session: An (optional) session for re-using an HTTP client.
     :param timeout: An (optional) timeout.
@@ -112,7 +113,7 @@ def authenticate_user(
         [requests.Response], AuthResp
     ] = lambda resp: AuthResp.from_dict(resp.json())
     res: Optional[AuthResp] = post_req(
-        api_config,
+        redvox_config,
         RoutesV1.AUTH_USER,
         authentication_request,
         handle_resp,
@@ -124,14 +125,14 @@ def authenticate_user(
 
 
 def validate_token(
-    api_config: ApiConfig,
+    redvox_config: RedVoxConfig,
     validate_token_req: ValidateTokenReq,
     session: Optional[requests.Session] = None,
     timeout: Optional[float] = None,
 ) -> Optional[ValidateTokenResp]:
     """
     Attempt to validate the provided auth token.
-    :param api_config: The Api config.
+    :param redvox_config: The Api config.
     :param validate_token_req: A validation token req.
     :param session: An (optional) session for re-using an HTTP client.
     :param timeout: An (optional) timeout.
@@ -143,7 +144,7 @@ def validate_token(
         [requests.Response], ValidateTokenResp
     ] = lambda resp: ValidateTokenResp.from_dict(resp.json())
     return post_req(
-        api_config,
+        redvox_config,
         RoutesV1.VALIDATE_TOKEN,
         validate_token_req,
         handle_resp,
@@ -153,14 +154,14 @@ def validate_token(
 
 
 def refresh_token(
-    api_config: ApiConfig,
+    redvox_config: RedVoxConfig,
     refresh_token_req: RefreshTokenReq,
     session: Optional[requests.Session] = None,
     timeout: Optional[float] = None,
 ) -> Optional[RefreshTokenResp]:
     """
-    Attemp to refresh the given authentication token.
-    :param api_config: The Api config.
+    Attempt to refresh the given authentication token.
+    :param redvox_config: The Api config.
     :param refresh_token_req: The request.
     :param session: An (optional) session for re-using an HTTP client.
     :param timeout: An (optional) timeout.
@@ -172,7 +173,7 @@ def refresh_token(
         [requests.Response], RefreshTokenResp
     ] = lambda resp: RefreshTokenResp.from_dict(resp.json())
     return post_req(
-        api_config,
+        redvox_config,
         RoutesV1.REFRESH_TOKEN,
         refresh_token_req,
         handle_resp,
