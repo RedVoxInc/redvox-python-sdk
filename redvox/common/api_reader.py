@@ -96,7 +96,7 @@ class ApiReader:
             index = io.index_unstructured(self.base_dir, self.filter)
         file_stats = fs.extract_stats(index)
         # todo: file_stats has all the stuff we need to do the thing
-
+        # todo: consider adding offset and packet length to the start time to get the partial first packet
         return index
 
     def read_files(self) -> Dict[str, List[WrappedRedvoxPacketM]]:

@@ -22,7 +22,7 @@ import redvox.api900.sensors.light_sensor as _light_sensor
 import redvox.api900.sensors.infrared_sensor as _infrared_sensor
 import redvox.api900.sensors.image_sensor as _image_sensor
 import redvox.api900.sensors.time_synchronization_sensor as _time_synchronization_sensor
-from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+# from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
 # pylint: disable=C0103
 RedvoxSensor = typing.Union[
@@ -212,7 +212,7 @@ def _concat_lists(sensors: RedvoxSensors,
     return list(itertools.chain(*metadata_list))
 
 
-def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPacket]) -> WrappedRedvoxPacket:
+def _concat_continuous_data(wrapped_redvox_packets: list):
     """
     Given a set of continuous wrapped redvox packets, concatenate the packets together by concatting the timestamps,
     payload values, and metadata.
@@ -223,19 +223,22 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
 
     # Concat channels
     if first_packet.has_microphone_sensor():
-        sensors = list(map(WrappedRedvoxPacket.microphone_sensor, wrapped_redvox_packets))
+        # sensors = list(map(WrappedRedvoxPacket.microphone_sensor, wrapped_redvox_packets))
+        sensors = [packet.microphone_sensor() for packet in wrapped_redvox_packets]
         sensors[0].set_payload_values(_concat_numpy(sensors, _microphone_sensor.MicrophoneSensor.payload_values)) \
             .set_metadata(_concat_lists(sensors, _microphone_sensor.MicrophoneSensor.metadata))
 
     if first_packet.has_barometer_sensor():
-        sensors = list(map(WrappedRedvoxPacket.barometer_sensor, wrapped_redvox_packets))
+        # sensors = list(map(WrappedRedvoxPacket.barometer_sensor, wrapped_redvox_packets))
+        sensors = [packet.barometer_sensor() for packet in wrapped_redvox_packets]
         sensors[0].set_payload_values(_concat_numpy(sensors, _barometer_sensor.BarometerSensor.payload_values)) \
             .set_timestamps_microseconds_utc(
                 _concat_numpy(sensors, _barometer_sensor.BarometerSensor.timestamps_microseconds_utc)) \
             .set_metadata(_concat_lists(sensors, _barometer_sensor.BarometerSensor.metadata))
 
     if first_packet.has_location_sensor():
-        sensors = list(map(WrappedRedvoxPacket.location_sensor, wrapped_redvox_packets))
+        # sensors = list(map(WrappedRedvoxPacket.location_sensor, wrapped_redvox_packets))
+        sensors = [packet.location_sensor() for packet in wrapped_redvox_packets]
         sensors[0].set_payload_values(
             _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_latitude),
             _concat_numpy(sensors, _location_sensor.LocationSensor.payload_values_longitude),
@@ -248,14 +251,16 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
             .set_metadata(_concat_lists(sensors, _location_sensor.LocationSensor.metadata))
 
     if first_packet.has_time_synchronization_sensor():
-        sensors = list(map(WrappedRedvoxPacket.time_synchronization_sensor, wrapped_redvox_packets))
+        # sensors = list(map(WrappedRedvoxPacket.time_synchronization_sensor, wrapped_redvox_packets))
+        sensors = [packet.time_synchronization_sensor() for packet in wrapped_redvox_packets]
         sensors[0].set_payload_values(_concat_numpy(
             sensors,
             _time_synchronization_sensor.TimeSynchronizationSensor.payload_values)) \
             .set_metadata(_concat_lists(sensors, _time_synchronization_sensor.TimeSynchronizationSensor.metadata))
 
     if first_packet.has_magnetometer_sensor():
-        sensors = list(map(WrappedRedvoxPacket.magnetometer_sensor, wrapped_redvox_packets))
+        # sensors = list(map(WrappedRedvoxPacket.magnetometer_sensor, wrapped_redvox_packets))
+        sensors = [packet.magnetometer_sensor() for packet in wrapped_redvox_packets]
         sensors[0].set_payload_values(
             _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.payload_values_x),
             _concat_numpy(sensors, _magnetometer_sensor.MagnetometerSensor.payload_values_y),
@@ -266,7 +271,8 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
             .set_metadata(_concat_lists(sensors, _magnetometer_sensor.MagnetometerSensor.metadata))
 
     if first_packet.has_accelerometer_sensor():
-        sensors = list(map(WrappedRedvoxPacket.accelerometer_sensor, wrapped_redvox_packets))
+        # sensors = list(map(WrappedRedvoxPacket.accelerometer_sensor, wrapped_redvox_packets))
+        sensors = [packet.accelerometer_sensor() for packet in wrapped_redvox_packets]
         sensors[0].set_payload_values(
             _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.payload_values_x),
             _concat_numpy(sensors, _accelerometer_sensor.AccelerometerSensor.payload_values_y),
@@ -277,7 +283,8 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
             .set_metadata(_concat_lists(sensors, _accelerometer_sensor.AccelerometerSensor.metadata))
 
     if first_packet.has_gyroscope_sensor():
-        sensors = list(map(WrappedRedvoxPacket.gyroscope_sensor, wrapped_redvox_packets))
+        # sensors = list(map(WrappedRedvoxPacket.gyroscope_sensor, wrapped_redvox_packets))
+        sensors = [packet.gyroscope_sensor() for packet in wrapped_redvox_packets]
         sensors[0].set_payload_values(
             _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.payload_values_x),
             _concat_numpy(sensors, _gyroscope_sensor.GyroscopeSensor.payload_values_y),
@@ -288,28 +295,30 @@ def _concat_continuous_data(wrapped_redvox_packets: typing.List[WrappedRedvoxPac
             .set_metadata(_concat_lists(sensors, _gyroscope_sensor.GyroscopeSensor.metadata))
 
     if first_packet.has_light_sensor():
-        sensors = list(map(WrappedRedvoxPacket.light_sensor, wrapped_redvox_packets))
+        # sensors = list(map(WrappedRedvoxPacket.light_sensor, wrapped_redvox_packets))
+        sensors = [packet.light_sensor() for packet in wrapped_redvox_packets]
         sensors[0].set_payload_values(_concat_numpy(sensors, _light_sensor.LightSensor.payload_values)) \
             .set_timestamps_microseconds_utc(
                 _concat_numpy(sensors, _light_sensor.LightSensor.timestamps_microseconds_utc)) \
             .set_metadata(_concat_lists(sensors, _light_sensor.LightSensor.metadata))
 
     if first_packet.has_infrared_sensor():
-        sensors = list(map(WrappedRedvoxPacket.infrared_sensor, wrapped_redvox_packets))
+        # sensors = list(map(WrappedRedvoxPacket.infrared_sensor, wrapped_redvox_packets))
+        sensors = [packet.infrared_sensor() for packet in wrapped_redvox_packets]
         sensors[0].set_payload_values(_concat_numpy(sensors, _infrared_sensor.InfraredSensor.payload_values)) \
             .set_timestamps_microseconds_utc(
                 _concat_numpy(sensors, _infrared_sensor.InfraredSensor.timestamps_microseconds_utc)) \
             .set_metadata(_concat_lists(sensors, _infrared_sensor.InfraredSensor.metadata))
 
     # Concat metadata
-    all_metadata = list(map(WrappedRedvoxPacket.metadata, wrapped_redvox_packets))
+    # all_metadata = list(map(WrappedRedvoxPacket.metadata, wrapped_redvox_packets))
+    all_metadata = [packet.metadata() for packet in wrapped_redvox_packets]
     first_packet.set_metadata(list(itertools.chain(*all_metadata)))
 
     return first_packet
 
 
-def concat_wrapped_redvox_packets(wrapped_redvox_packets: typing.List[WrappedRedvoxPacket]) \
-        -> typing.List[WrappedRedvoxPacket]:
+def concat_wrapped_redvox_packets(wrapped_redvox_packets: list) -> list:
     """
     Concatenates multiple WrappedRedvoxPackets together by combining sensor timestamps, values, and metadata.
     :param wrapped_redvox_packets: Packets to concatenate.
