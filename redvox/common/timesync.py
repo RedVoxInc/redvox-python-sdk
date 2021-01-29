@@ -83,7 +83,7 @@ class TimeSyncData:
             time_sync_exchanges_list = []
         else:
             time_sync_exchanges_list = [
-                time_sync_exchanges_list[i : i + 6]
+                time_sync_exchanges_list[i: i + 6]
                 for i in range(0, len(time_sync_exchanges_list), 6)
             ]
         self.time_sync_exchanges_df = pd.DataFrame(
@@ -162,6 +162,7 @@ class TimeSyncData:
         self.packet_end_timestamp += delta
 
 
+# todo: make this out of a list of TimeSyncData objects instead of whatever the init currently is
 class TimeSyncAnalysis:
     """
     Used for multiple TimeSyncData objects from a station

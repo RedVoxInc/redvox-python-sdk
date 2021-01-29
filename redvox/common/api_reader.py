@@ -10,6 +10,7 @@ from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPac
 from redvox.api900 import reader as api900_io
 from redvox.common import api_conversions as ac
 from redvox.common import io
+from redvox.common import file_statistics as fs
 from redvox.common.station import Station
 
 
@@ -27,6 +28,7 @@ class ApiReader:
         structured_dir: bool, if True, the base_dir contains a specific directory structure used by the
                         respective api formats.  If False, base_dir only has the data files.  Default False.
         files_index: io.Index of the files that match the filter that are in base_dir
+        files_stats: list of Fs.StationStat for the stations in the filter
         index_summary: io.IndexSummary of the filtered data
         gap_time_s: int, minimum amount of seconds between data points to be considered a gap.  Default GAP_TIME_S
         apply_correction: bool, if True, apply timing correction values based on the data in the packets.  Default True
@@ -92,6 +94,14 @@ class ApiReader:
             index = io.index_structured(self.base_dir, self.filter)
         else:
             index = io.index_unstructured(self.base_dir, self.filter)
+        file_stats = fs.extract_stats(index)
+        # todo: file_stats has all the stuff we need to do the thing
+        file_ids = {}
+        for file in file_stats:
+            if file.station_id in file_ids.keys():
+                file_ids[file.station_id].append(file)
+            else:
+                file_ids[file.station_id] = [file]
         return index
 
     def read_files(self) -> Dict[str, List[WrappedRedvoxPacketM]]:

@@ -13,6 +13,7 @@ from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPac
 from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
 
 
+# todo: add original timestamps to the dataframes
 class SensorType(enum.Enum):
     """
     Enumeration of possible types of sensors to read data from
