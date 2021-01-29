@@ -68,7 +68,7 @@ class TimeSyncData:
                                                 default np.nan
         :param packet_start_timestamp: timestamp of the start of the data packet, default np.nan
         :param packet_end_timestamp: timestamp of the end of the data packet, default np.nan
-        :param time_sync_exchanges_list: the timesync exchanges of the packet, default None
+        :param time_sync_exchanges_list: the timesync exchanges of the packet as a flat list, default None
         :param best_latency: the best latency of the packet, default np.nan
         :param best_offset: the best offset of the packet, default 0.0
         """
