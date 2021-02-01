@@ -19,3 +19,4 @@ class RoutesV1:
     DATA_RANGE_REQ: str = "/api/v1/data/range"
     DATA_RANGE_REQ_M: str = "/api/v1/data/range/m"
     DATA_REPORT_REQ: str = "/api/v1/data/report"
+    STATION_STATS: str = "/api/v1/metadata/stats"

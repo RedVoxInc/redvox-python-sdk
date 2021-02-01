@@ -31,7 +31,6 @@ from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc a
 # noinspection Mypy
 import redvox.common.io as io
 
-
 SAMPLE_RATE_HZ: np.ndarray = np.array(
     [80, 800, 8000, 16000]
 )  # list of accepted sample rates in Hz
@@ -99,7 +98,7 @@ def get_duration_seconds_from_sample_rate(sample_rate: Union[float, int]) -> flo
 
 
 def _map_opt(
-    opt: Optional[Any], apply: Callable[[Optional[Any]], Optional[Any]]
+        opt: Optional[Any], apply: Callable[[Optional[Any]], Optional[Any]]
 ) -> Optional[Any]:
     """
     Maps an optional with the given function. If the optional is None, None is returned.
@@ -124,7 +123,7 @@ def _partition_list(lst: List[Any], chunks: int) -> List[Any]:
     n: int = len(lst)
     k: int = chunks
     return [
-        lst[i * (n // k) + min(i, n % k) : (i + 1) * (n // k) + min(i + 1, n % k)]
+        lst[i * (n // k) + min(i, n % k): (i + 1) * (n // k) + min(i + 1, n % k)]
         for i in range(k)
     ]
 
@@ -155,7 +154,7 @@ class StationStat:
     latency: Optional[float]
     offset: Optional[float]
     sample_rate_hz: Optional[float]
-    packet_duration: timedelta
+    packet_duration: Optional[timedelta]
 
     @staticmethod
     def from_api_900(packet: "WrappedRedvoxPacket") -> "StationStat":
@@ -287,7 +286,7 @@ def extract_stats_parallel(index: io.Index) -> List[StationStat]:
 
 
 def extract_stats(
-    index: io.Index, min_len_for_parallel: int = 128
+        index: io.Index, min_len_for_parallel: int = 128
 ) -> List[StationStat]:
     """
     Extracts StationStat information from packets stored in the provided index.
@@ -300,4 +299,3 @@ def extract_stats(
         return extract_stats_parallel(index)
     else:
         return extract_stats_serial(index)
-
