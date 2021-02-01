@@ -425,6 +425,13 @@ class CloudClient:
         end_ts_s: int,
         station_ids: List[str],
     ) -> Optional[metadata_api.StationStatusResp]:
+        """
+        Requests station timing information from the cloud services.
+        :param start_ts_s: The start of the request data window.
+        :param end_ts_s: The end of the request data window.
+        :param station_ids: A list of station IDs.
+        :return: A StationStatsResp.
+        """
         if end_ts_s <= start_ts_s:
             raise cloud_errors.CloudApiError("start_ts_s must be < end_ts_s")
 
