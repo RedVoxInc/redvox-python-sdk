@@ -18,6 +18,7 @@ import redvox.cloud.errors as cloud_errors
 import redvox.common.constants as constants
 import redvox.cloud.data_api as data_api
 import redvox.cloud.metadata_api as metadata_api
+import redvox.cloud.station_stats as station_stats_api
 
 
 def chunk_time_range(
@@ -90,7 +91,9 @@ class CloudClient:
             requests.Session()
         )  # This must be initialized before the auth req!
         try:
-            auth_resp: auth_api.AuthResp = self.authenticate_user(redvox_config.username, redvox_config.password)
+            auth_resp: auth_api.AuthResp = self.authenticate_user(
+                redvox_config.username, redvox_config.password
+            )
         except cloud_errors.ApiConnectionError as ex:
             self.close()
             raise ex
@@ -377,7 +380,11 @@ class CloudClient:
 
         for start_ts, end_ts in time_chunks:
             timing_req: metadata_api.TimingMetaRequest = metadata_api.TimingMetaRequest(
-                self.auth_token, start_ts, end_ts, station_ids, self.redvox_config.secret_token
+                self.auth_token,
+                start_ts,
+                end_ts,
+                station_ids,
+                self.redvox_config.secret_token,
             )
             chunked_resp: metadata_api.TimingMetaResponse = (
                 metadata_api.request_timing_metadata(
@@ -417,13 +424,17 @@ class CloudClient:
         start_ts_s: int,
         end_ts_s: int,
         station_ids: List[str],
-    ) -> metadata_api.StationStatusResp:
+    ) -> Optional[metadata_api.StationStatusResp]:
         if end_ts_s <= start_ts_s:
             raise cloud_errors.CloudApiError("start_ts_s must be < end_ts_s")
 
         station_status_req: metadata_api.StationStatusReq = (
             metadata_api.StationStatusReq(
-                self.redvox_config.secret_token, self.auth_token, start_ts_s, end_ts_s, station_ids
+                self.redvox_config.secret_token,
+                self.auth_token,
+                start_ts_s,
+                end_ts_s,
+                station_ids,
             )
         )
 
@@ -456,7 +467,11 @@ class CloudClient:
             raise cloud_errors.CloudApiError("At least one station_id must be provided")
 
         data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(
-            self.auth_token, start_ts_s, end_ts_s, station_ids, self.redvox_config.secret_token
+            self.auth_token,
+            start_ts_s,
+            end_ts_s,
+            station_ids,
+            self.redvox_config.secret_token,
         )
 
         return data_api.request_range_data(
@@ -465,6 +480,39 @@ class CloudClient:
             session=self.__session,
             timeout=self.timeout,
             req_type=req_type,
+        )
+
+    def request_station_stats(
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+    ) -> Optional[station_stats_api.StationStatsResp]:
+        """
+        Request signed URLs for RedVox packets.
+        :param start_ts_s: The start epoch of the window.
+        :param end_ts_s:  The end epoch of the window.
+        :param station_ids: A list of station ids.
+        :return: A response containing a list of signed URLs for the RedVox packets.
+        """
+        if end_ts_s <= start_ts_s:
+            raise cloud_errors.CloudApiError("start_ts_s must be < end_ts_s")
+
+        if len(station_ids) == 0:
+            raise cloud_errors.CloudApiError("At least one station_id must be provided")
+
+        station_stats_req: station_stats_api.StationStatReq = (
+            station_stats_api.StationStatReq(
+                self.auth_token,
+                start_ts_s,
+                end_ts_s,
+                station_ids,
+                self.redvox_config.secret_token,
+            )
+        )
+
+        return station_stats_api.request_station_stats(
+            self.redvox_config, station_stats_req, self.__session, self.timeout
         )
 
 

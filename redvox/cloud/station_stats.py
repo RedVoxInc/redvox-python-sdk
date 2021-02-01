@@ -62,11 +62,13 @@ class StationStat:
             _map_opt(self.app_start_dt, us2dt),
             us2dt(self.packet_start_dt),
             _map_opt(self.server_recv_dt, us2dt),
-            _map_opt(self.gps_dts, lambda dts: list(map(GpsDateTime.into_file_stat, dts))),
+            _map_opt(
+                self.gps_dts, lambda dts: list(map(GpsDateTime.into_file_stat, dts))
+            ),
             self.latency,
             self.offset,
             self.sample_rate_hz,
-            _map_opt(self.packet_duration, lambda dur: timedelta(microseconds=dur))
+            _map_opt(self.packet_duration, lambda dur: timedelta(microseconds=dur)),
         )
 
 
@@ -77,24 +79,35 @@ class StationStatReq:
     start_ts_s: int
     end_ts_s: int
     station_ids: List[str]
+    secret_token: Optional[str] = None
+
+
+@dataclass
+class StationStatsResp:
+    station_stats: List[file_stats.StationStat]
 
 
 @dataclass_json
 @dataclass
 class StationStatResp:
-    station_stats: List["StationStat"]
+    station_stats: List[StationStat]
+
+    def into_station_stats_resp(self) -> StationStatsResp:
+        return StationStatsResp(
+            list(map(StationStat.into_file_stat, self.station_stats))
+        )
 
 
 def request_station_stats(
-        redvox_config: RedVoxConfig,
-        station_stat_req: StationStatReq,
-        session: Optional[requests.Session] = None,
-        timeout: Optional[float] = None,
-) -> Optional[StationStatResp]:
+    redvox_config: RedVoxConfig,
+    station_stat_req: StationStatReq,
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = None,
+) -> Optional[StationStatsResp]:
     # noinspection Mypy
     handle_resp: Callable[
         [requests.Response], StationStatResp
-    ] = lambda resp: StationStatResp.from_dict(resp.json())
+    ] = lambda resp: StationStatResp.from_dict(resp.json()).into_station_stats_resp()
     return post_req(
         redvox_config,
         RoutesV1.STATION_STATS,
