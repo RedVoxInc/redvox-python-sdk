@@ -3,9 +3,23 @@
 This repository contains code for reading and working with the RedVox API 900 and API 1000 (M) data formats.
 
 * [Examples](https://redvoxinc.github.io/redvox-sdk/examples/api_m/)
-* [API Documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/index.html)
+* [API Documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b0/api_docs/redvox/index.html)
 
 ## Changelog
+
+### 3.0.0b0 (2021-2-1)
+
+* First beta release of version 3
+* Combined API 900 and API 1000 file reading
+* Updated file reading interface
+* Timing correction
+* Cleanup cloud APIs
+* Access to new RedVox Cloud APIs (station status, timing stats)
+* Persistent RedVox cloud configuration files
+* Cleanup cyclic dependency issues
+* Fix bugs with nan handling
+* Add ability to sort unstructured RedVox files into structured RedVox files
+
 
 ### 3.0.0a23 (2021-1-7)
 
