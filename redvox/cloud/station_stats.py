@@ -1,3 +1,7 @@
+"""
+This module provides access to the timing station statistics through the RedVox Cloud API.
+"""
+
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 from typing import Callable, List, Optional, TypeVar
@@ -16,6 +20,12 @@ R = TypeVar("R")
 
 
 def _map_opt(opt: Optional[T], f: Callable[[T], R]) -> Optional[R]:
+    """
+    Maps an optional with the given function.
+    :param opt: The optional top map.
+    :param f: The mapping function.
+    :return: The mapped value or None.
+    """
     if opt is not None:
         return f(opt)
     return None
@@ -32,6 +42,9 @@ class GpsDateTime:
     gps_dt: Optional[float]
 
     def into_file_stat(self) -> file_stats.GpsDateTime:
+        """
+        :return: Converts this into the file_statistics module representationion.
+        """
         gps_dt: Optional[datetime] = _map_opt(self.gps_dt, us2dt)
         return file_stats.GpsDateTime(us2dt(self.mach_dt), gps_dt)
 
@@ -56,6 +69,9 @@ class StationStat:
     packet_duration: Optional[float]
 
     def into_file_stat(self) -> file_stats.StationStat:
+        """
+        :return: Converts this into the file_statistics module representation.
+        """
         return file_stats.StationStat(
             self.station_id,
             self.station_uuid,
@@ -75,6 +91,9 @@ class StationStat:
 @dataclass_json
 @dataclass
 class StationStatReq:
+    """
+    A StationStatReq container.
+    """
     auth_token: str
     start_ts_s: int
     end_ts_s: int
@@ -84,12 +103,18 @@ class StationStatReq:
 
 @dataclass
 class StationStatsResp:
+    """
+    A response type converted into the file_statistics module representation.
+    """
     station_stats: List[file_stats.StationStat]
 
 
 @dataclass_json
 @dataclass
 class StationStatResp:
+    """
+    A response contain StationStat instances.
+    """
     station_stats: List[StationStat]
 
     def into_station_stats_resp(self) -> StationStatsResp:
@@ -104,6 +129,14 @@ def request_station_stats(
     session: Optional[requests.Session] = None,
     timeout: Optional[float] = None,
 ) -> Optional[StationStatsResp]:
+    """
+    Requests timing statistics with the given parameters.
+    :param redvox_config: The cloud configuration.
+    :param station_stat_req: The request.
+    :param session: The optional session.
+    :param timeout: The optional timeout.
+    :return: A StationStatsResp.
+    """
     # noinspection Mypy
     handle_resp: Callable[
         [requests.Response], StationStatResp
