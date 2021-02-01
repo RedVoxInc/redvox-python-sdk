@@ -1,7 +1,6 @@
 import os
 from typing import Optional, Callable, TypeVar, Union
 
-from redvox.cloud.api import ApiConfig
 from redvox.cloud.client import CloudClient
 
 T = TypeVar('T')
