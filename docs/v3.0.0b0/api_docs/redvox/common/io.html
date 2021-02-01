@@ -1,0 +1,2484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>redvox.common.io API documentation</title>
+<meta name="description" content="This module provides IO primitives for working with cross-API RedVox data." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.common.io</code></h1>
+</header>
+<section id="section-intro">
+<p>This module provides IO primitives for working with cross-API RedVox data.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+This module provides IO primitives for working with cross-API RedVox data.
+&#34;&#34;&#34;
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from glob import glob
+import os.path
+from pathlib import Path, PurePath
+from shutil import copy2, move
+from typing import (
+    Any,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Set,
+    Union,
+    TYPE_CHECKING,
+    Callable,
+)
+
+from redvox.api900.reader import read_rdvxz_file
+from redvox.api1000.common.common import check_type
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.common.versioning import check_version, ApiVersion
+from redvox.common.date_time_utils import (
+    datetime_from_epoch_microseconds_utc as dt_us,
+    datetime_from_epoch_milliseconds_utc as dt_ms,
+    truncate_dt_ymd,
+    truncate_dt_ymdh,
+)
+
+if TYPE_CHECKING:
+    from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+
+
+def _is_int(value: str) -&gt; Optional[int]:
+    &#34;&#34;&#34;
+    Tests if a given str is a valid integer. If it is, the integer is returned, if it is not, None is returned.
+    :param value: The string to test.
+    :return: The integer value if it is valid, or None if it is not valid.
+    &#34;&#34;&#34;
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
+
+def _not_none(value: Any) -&gt; bool:
+    &#34;&#34;&#34;
+    Tests that the given value is not None.
+    :param value: The value to test.
+    :return: True if the value is not None, False if it is None.
+    &#34;&#34;&#34;
+    return value is not None
+
+
+@dataclass
+class IndexEntry:
+    &#34;&#34;&#34;
+    This class represents a single index entry. It extracts and encapsulated API agnostic fields that represent the
+    information stored in standard RedVox file names.
+    &#34;&#34;&#34;
+
+    full_path: str
+    station_id: str
+    date_time: datetime
+    extension: str
+    api_version: ApiVersion
+
+    @staticmethod
+    def from_path(path_str: str, strict: bool = True) -&gt; Optional[&#34;IndexEntry&#34;]:
+        &#34;&#34;&#34;
+        Attempts to parse a file path into an IndexEntry. If a given path is not recognized as a valid RedVox file,
+        None will be returned instead.
+        :param path_str: The file system path to attempt to parse.
+        :param strict: When set, None is returned if the referenced file DNE.
+        :return: Either an IndexEntry or successful parse or None.
+        &#34;&#34;&#34;
+        api_version: ApiVersion = check_version(path_str)
+        path: Path = Path(path_str)
+        name: str = path.stem
+        ext: str = path.suffix
+
+        # Attempt to parse file name parts
+        split_name = name.split(&#34;_&#34;)
+        if len(split_name) != 2:
+            return None
+
+        station_id: str = split_name[0]
+        ts_str: str = split_name[1]
+
+        # If you have a filename with a dot, but not an extension, i.e. &#34;0000000001_0.&#34;, we need to remove the dot
+        # from the end and make in the extension
+        if len(ts_str) &gt; 0 and ts_str[-1] == &#34;.&#34;:
+            ts_str = ts_str[:-1]
+            ext = &#34;.&#34;
+
+        timestamp: Optional[int] = _is_int(ts_str)
+
+        # Ensure that both the station ID and timestamp can be represented as ints
+        if _is_int(station_id) is None or timestamp is None:
+            return None
+
+        # Parse the datetime per the specified API version
+        date_time: datetime
+        if api_version == ApiVersion.API_1000:
+            date_time = dt_us(timestamp)
+        else:
+            date_time = dt_ms(timestamp)
+
+        full_path: str
+        try:
+            full_path = str(path.resolve(strict=True))
+        except FileNotFoundError:
+            if strict:
+                return None
+            full_path = path_str
+
+        return IndexEntry(full_path, station_id, date_time, ext, api_version)
+
+    def read(self) -&gt; Optional[Union[WrappedRedvoxPacketM, &#34;WrappedRedvoxPacket&#34;]]:
+        &#34;&#34;&#34;
+        Reads, decompresses, deserializes, and wraps the RedVox file pointed to by this entry.
+        :return: One of WrappedRedvoxPacket, WrappedRedvoxPacketM, or None.
+        &#34;&#34;&#34;
+        if self.api_version == ApiVersion.API_900:
+            return read_rdvxz_file(self.full_path)
+        elif self.api_version == ApiVersion.API_1000:
+            return WrappedRedvoxPacketM.from_compressed_path(self.full_path)
+        else:
+            return None
+
+    # def __lt__(self, other: &#39;IndexEntry&#39;) -&gt; bool:
+    #     &#34;&#34;&#34;
+    #     Tests if this value is less than another value.
+    #
+    #     This along with __eq__ are used to fulfill the total ordering contract. Compares this entry&#39;s full path to
+    #     another entries full path.
+    #     :param other: Other IndexEntry to compare against.
+    #     :return: True if this full path is less than the other full path.
+    #     &#34;&#34;&#34;
+    #     return self.full_path.__lt__(other.full_path)
+
+    def __eq__(self, other: object) -&gt; bool:
+        &#34;&#34;&#34;
+        Tests if this value is equal to another value.
+
+        This along with __lt__ are used to fulfill the total ordering contract. Compares this entry&#39;s full path to
+        another entries full path.
+        :param other: Other IndexEntry to compare against.
+        :return: True if this full path is less than the other full path.
+        &#34;&#34;&#34;
+        if isinstance(other, IndexEntry):
+            return self.full_path == other.full_path
+
+        return False
+
+
+# noinspection DuplicatedCode
+@dataclass
+class ReadFilter:
+    &#34;&#34;&#34;
+    Filter RedVox files from the file system.
+    &#34;&#34;&#34;
+
+    start_dt: Optional[datetime] = None
+    end_dt: Optional[datetime] = None
+    station_ids: Optional[Set[str]] = None
+    extensions: Optional[Set[str]] = field(default_factory=lambda: {&#34;.rdvxm&#34;, &#34;.rdvxz&#34;})
+    start_dt_buf: Optional[timedelta] = timedelta(minutes=2.0)
+    end_dt_buf: Optional[timedelta] = timedelta(minutes=2.0)
+    api_versions: Optional[Set[ApiVersion]] = field(
+        default_factory=lambda: {ApiVersion.API_900, ApiVersion.API_1000}
+    )
+
+    @staticmethod
+    def empty() -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        :return: A ReadFilter with ALL filters set to None. This is opposed to the default
+                 which sets sane defaults for extensions, APIs, and window buffers.
+        &#34;&#34;&#34;
+        return ReadFilter(None, None, None, None, None, None, None)
+
+    def with_start_dt(self, start_dt: Optional[datetime]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Adds a start datetime filter.
+        :param start_dt: Start datetime that files should come after.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
+        check_type(start_dt, [datetime, None])
+        self.start_dt = start_dt
+        return self
+
+    def with_start_ts(self, start_ts: Optional[float]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Adds a start time filter.
+        :param start_ts: Start timestamp (microseconds)
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
+        check_type(start_ts, [int, float, None])
+        if start_ts is None:
+            return self.with_start_dt(None)
+
+        return self.with_start_dt(dt_us(start_ts))
+
+    def with_end_dt(self, end_dt: Optional[datetime]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Adds an end datetime filter.
+        :param end_dt: Filter for which packets should come before.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
+        check_type(end_dt, [datetime, None])
+        self.end_dt = end_dt
+        return self
+
+    def with_end_ts(self, end_ts: Optional[float]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Like with_end_dt, but uses a microsecond timestamp.
+        :param end_ts: Timestamp microseconds.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
+        check_type(end_ts, [int, float, None])
+        if end_ts is None:
+            return self.with_end_dt(None)
+
+        return self.with_end_dt(dt_us(end_ts))
+
+    def with_station_ids(self, station_ids: Optional[Set[str]]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Add a station id filter. Filters against provided station ids.
+        :param station_ids: Station ids to filter against.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
+        check_type(station_ids, [set, None])
+        self.station_ids = station_ids
+        return self
+
+    def with_extensions(self, extensions: Optional[Set[str]]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Filters against known file extensions.
+        :param extensions: One or more extensions to filter against
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
+        check_type(extensions, [set, None])
+        self.extensions = extensions
+        return self
+
+    def with_start_dt_buf(self, start_dt_buf: Optional[timedelta]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Modifies the time buffer prepended to the start time.
+        :param start_dt_buf: Amount of time to buffer before start time.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(start_dt_buf, [timedelta, None])
+        self.start_dt_buf = start_dt_buf
+        return self
+
+    def with_end_dt_buf(self, end_dt_buf: Optional[timedelta]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Modifies the time buffer appended to the end time.
+        :param end_dt_buf: Amount of time to buffer after end time.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(end_dt_buf, [timedelta, None])
+        self.end_dt_buf = end_dt_buf
+        return self
+
+    def with_api_versions(
+        self, api_versions: Optional[Set[ApiVersion]]
+    ) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Filters for specified API versions.
+        :param api_versions: A set containing valid ApiVersion enums that should be included.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(api_versions, [set, None])
+        self.api_versions = api_versions
+        return self
+
+    def apply_dt(
+        self, date_time: datetime, dt_fn: Callable[[datetime], datetime] = lambda dt: dt
+    ) -&gt; bool:
+        &#34;&#34;&#34;
+        Tests if a given datetime passes this filter.
+        :param date_time: Datetime to test
+        :param dt_fn: An (optional) function that will transform one datetime into another.
+        :return: True if the datetime is included, False otherwise
+        &#34;&#34;&#34;
+        check_type(date_time, [datetime])
+        start_buf: timedelta = (
+            timedelta(seconds=0) if self.start_dt_buf is None else self.start_dt_buf
+        )
+        if self.start_dt is not None and date_time &lt; (dt_fn(self.start_dt) - start_buf):
+            return False
+
+        end_buf: timedelta = (
+            timedelta(seconds=0) if self.end_dt_buf is None else self.end_dt_buf
+        )
+        if self.end_dt is not None and date_time &gt; (dt_fn(self.end_dt) + end_buf):
+            return False
+
+        return True
+
+    def apply(self, entry: IndexEntry) -&gt; bool:
+        &#34;&#34;&#34;
+        Applies this filter to the given IndexEntry.
+        :param entry: The entry to test.
+        :return: True if the entry is accepted by the filter, False otherwise.
+        &#34;&#34;&#34;
+        check_type(entry, [IndexEntry])
+
+        if not self.apply_dt(entry.date_time):
+            return False
+
+        if self.station_ids is not None and entry.station_id not in self.station_ids:
+            return False
+
+        if self.extensions is not None and entry.extension not in self.extensions:
+            return False
+
+        if self.api_versions is not None and entry.api_version not in self.api_versions:
+            return False
+
+        return True
+
+
+@dataclass
+class IndexStationSummary:
+    &#34;&#34;&#34;
+    Summary of a single station in the index.
+    &#34;&#34;&#34;
+
+    station_id: str
+    api_version: ApiVersion
+    total_packets: int
+    first_packet: datetime
+    last_packet: datetime
+
+    @staticmethod
+    def from_entry(entry: IndexEntry) -&gt; &#34;IndexStationSummary&#34;:
+        &#34;&#34;&#34;
+        Instantiates a new summary from a given IndexEntry.
+        :param entry: Entry to copy information from.
+        :return: An instance of IndexStationSummary.
+        &#34;&#34;&#34;
+        return IndexStationSummary(
+            entry.station_id,
+            entry.api_version,
+            1,
+            first_packet=entry.date_time,
+            last_packet=entry.date_time,
+        )
+
+    def update(self, entry: IndexEntry) -&gt; None:
+        &#34;&#34;&#34;
+        Updates this summary given a new index entry.
+        :param entry: Entry to update this summary from.
+        &#34;&#34;&#34;
+        self.total_packets += 1
+        if entry.date_time &lt; self.first_packet:
+            self.first_packet = entry.date_time
+
+        if entry.date_time &gt; self.last_packet:
+            self.last_packet = entry.date_time
+
+
+@dataclass
+class IndexSummary:
+    &#34;&#34;&#34;
+    Summarizes the contents of the index.
+    &#34;&#34;&#34;
+
+    station_summaries: Dict[ApiVersion, Dict[str, IndexStationSummary]]
+
+    def station_ids(self, api_version: ApiVersion = None) -&gt; List[str]:
+        &#34;&#34;&#34;
+        Returns the station IDs referenced by this index.
+        :param api_version: An (optional) filter to only return packets for a specified RedVox API version.
+                            None will collect station IDs from all API versions.
+        :return: The station IDs referenced by this index.
+        &#34;&#34;&#34;
+        if api_version is not None:
+            return list(
+                set(
+                    map(
+                        lambda summary: summary.station_id,
+                        self.station_summaries[api_version].values(),
+                    )
+                )
+            )
+        else:
+            # noinspection PyTypeChecker
+            return list(
+                set(
+                    map(
+                        lambda summary: summary.station_id,
+                        self.station_summaries[ApiVersion.API_900].values(),
+                    )
+                )
+            ) + list(
+                set(
+                    map(
+                        lambda summary: summary.station_id,
+                        self.station_summaries[ApiVersion.API_1000].values(),
+                    )
+                )
+            )
+
+    def total_packets(self, api_version: ApiVersion = None) -&gt; int:
+        &#34;&#34;&#34;
+        Returns the total number of packets referenced by this index.
+        :param api_version: An (optional) filter to only return packets for a specified RedVox API version.
+                            None will count packets from all API versions.
+        :return: The total number of packets referenced by this index.
+        &#34;&#34;&#34;
+        if api_version is not None:
+            return sum(
+                map(
+                    lambda summary: summary.total_packets,
+                    self.station_summaries[api_version].values(),
+                )
+            )
+        else:
+            # noinspection PyTypeChecker
+            return sum(
+                map(
+                    lambda summary: summary.total_packets,
+                    self.station_summaries[ApiVersion.API_900].values(),
+                )
+            ) + sum(
+                map(
+                    lambda summary: summary.total_packets,
+                    self.station_summaries[ApiVersion.API_1000].values(),
+                )
+            )
+
+    @staticmethod
+    def from_index(index: &#34;Index&#34;) -&gt; &#34;IndexSummary&#34;:
+        &#34;&#34;&#34;
+        Builds an IndexSummary from a given index.
+        :param index: Index to build summary from.
+        :return: An instance of IndexSummary.
+        &#34;&#34;&#34;
+        station_summaries: Dict[
+            ApiVersion, Dict[str, IndexStationSummary]
+        ] = defaultdict(dict)
+
+        entry: IndexEntry
+        for entry in index.entries:
+            sub_entry: Dict[str, IndexStationSummary] = station_summaries[
+                entry.api_version
+            ]
+            if entry.station_id in sub_entry:
+                # Update existing station summary
+                sub_entry[entry.station_id].update(entry)
+            else:
+                # Create new station summary
+                sub_entry[entry.station_id] = IndexStationSummary.from_entry(entry)
+
+        return IndexSummary(station_summaries)
+
+
+@dataclass
+class Index:
+    &#34;&#34;&#34;
+    An index of available RedVox files from the file system.
+    &#34;&#34;&#34;
+
+    entries: List[IndexEntry] = field(default_factory=lambda: [])
+
+    def sort(self) -&gt; None:
+        &#34;&#34;&#34;
+        Sorts the entries stored in this index.
+        &#34;&#34;&#34;
+        self.entries = sorted(
+            self.entries,
+            key=lambda entry: (entry.api_version, entry.station_id, entry.date_time),
+        )
+
+    def append(self, entries: Iterator[IndexEntry]) -&gt; None:
+        &#34;&#34;&#34;
+        Appends new entries to this index.
+        :param entries: Entries to append.
+        &#34;&#34;&#34;
+        self.entries.extend(entries)
+
+    def summarize(self) -&gt; IndexSummary:
+        &#34;&#34;&#34;
+        :return: A summary of the contents of this index.
+        &#34;&#34;&#34;
+        return IndexSummary.from_index(self)
+
+    def stream(
+        self, read_filter: ReadFilter = ReadFilter()
+    ) -&gt; Iterator[Union[&#34;WrappedRedvoxPacket&#34;, WrappedRedvoxPacketM]]:
+        &#34;&#34;&#34;
+        Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
+        :param read_filter: Additional filtering to specify which data should be streamed.
+        :return: An iterator over WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
+        &#34;&#34;&#34;
+        filtered: Iterator[IndexEntry] = filter(read_filter.apply, self.entries)
+        # noinspection Mypy
+        return map(IndexEntry.read, filtered)
+
+    def read(
+        self, read_filter: ReadFilter = ReadFilter()
+    ) -&gt; List[Union[&#34;WrappedRedvoxPacket&#34;, WrappedRedvoxPacketM]]:
+        &#34;&#34;&#34;
+        Read, decompress, deserialize, and wrap RedVox data pointed to by this index.
+        :param read_filter: Additional filtering to specify which data should be read.
+        :return: An list of WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
+        &#34;&#34;&#34;
+        return list(self.stream(read_filter))
+
+
+# The following constants are used for identifying valid RedVox API 900 and API 1000 structured directory layouts.
+__VALID_YEARS: Set[str] = {f&#34;{i:04}&#34; for i in range(2015, 2031)}
+__VALID_MONTHS: Set[str] = {f&#34;{i:02}&#34; for i in range(1, 13)}
+__VALID_DATES: Set[str] = {f&#34;{i:02}&#34; for i in range(1, 32)}
+__VALID_HOURS: Set[str] = {f&#34;{i:02}&#34; for i in range(0, 24)}
+
+
+def _list_subdirs(base_dir: str, valid_choices: Set[str]) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Lists sub-directors in a given base directory that match the provided choices.
+    :param base_dir: Base dir to find sub dirs in.
+    :param valid_choices: A list of valid directory names.
+    :return: A list of valid subdirs.
+    &#34;&#34;&#34;
+    subdirs: Iterator[str] = map(
+        lambda p: PurePath(p).name, glob(os.path.join(base_dir, &#34;*&#34;, &#34;&#34;))
+    )
+    return sorted(list(filter(valid_choices.__contains__, subdirs)))
+
+
+def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&gt; Index:
+    &#34;&#34;&#34;
+    Returns the list of file paths that match the given filter for unstructured data.
+    :param base_dir: Directory containing unstructured data.
+    :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
+    :return: An iterator of valid paths.
+    &#34;&#34;&#34;
+    check_type(base_dir, [str])
+    check_type(read_filter, [ReadFilter])
+
+    index: Index = Index()
+
+    extensions: Set[str] = (
+        read_filter.extensions if read_filter.extensions is not None else {&#34;&#34;}
+    )
+
+    extension: str
+    for extension in extensions:
+        pattern: str = str(PurePath(base_dir).joinpath(f&#34;*{extension}&#34;))
+        paths: List[str] = glob(os.path.join(base_dir, pattern))
+        # noinspection Mypy
+        entries: Iterator[IndexEntry] = filter(
+            read_filter.apply, filter(_not_none, map(IndexEntry.from_path, paths))
+        )
+        index.append(entries)
+
+    index.sort()
+    return index
+
+
+def index_structured_api_900(
+    base_dir: str, read_filter: ReadFilter = ReadFilter()
+) -&gt; Index:
+    &#34;&#34;&#34;
+    This parses a structured API 900 directory structure and identifies files that match the provided filter.
+    :param base_dir: Base directory (should be named api900)
+    :param read_filter: Filter to filter files with
+    :return: A list of wrapped packets on an empty list if none match the filter or none are found
+    &#34;&#34;&#34;
+    index: Index = Index()
+
+    for year in _list_subdirs(base_dir, __VALID_YEARS):
+        for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
+            for day in _list_subdirs(
+                os.path.join(base_dir, year, month), __VALID_DATES
+            ):
+                # Before scanning for *.rdvxz files, let&#39;s see if the current year, month, day, are in the
+                # filter&#39;s range. If not, we can short circuit and skip getting the *.rdvxz files.
+                if not read_filter.apply_dt(
+                    datetime(int(year), int(month), int(day)), dt_fn=truncate_dt_ymd
+                ):
+                    continue
+
+                data_dir: str = os.path.join(base_dir, year, month, day)
+                entries: Iterator[IndexEntry] = iter(
+                    index_unstructured(data_dir, read_filter).entries
+                )
+                index.append(entries)
+
+    index.sort()
+    return index
+
+
+def index_structured_api_1000(
+    base_dir: str, read_filter: ReadFilter = ReadFilter()
+) -&gt; Index:
+    &#34;&#34;&#34;
+    This parses a structured API M directory structure and identifies files that match the provided filter.
+    :param base_dir: Base directory (should be named api1000)
+    :param read_filter: Filter to filter files with
+    :return: A list of wrapped packets on an empty list if none match the filter or none are found
+    &#34;&#34;&#34;
+    index: Index = Index()
+
+    for year in _list_subdirs(base_dir, __VALID_YEARS):
+        for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
+            for day in _list_subdirs(
+                os.path.join(base_dir, year, month), __VALID_DATES
+            ):
+                for hour in _list_subdirs(
+                    os.path.join(base_dir, year, month, day), __VALID_HOURS
+                ):
+                    # Before scanning for *.rdvxm files, let&#39;s see if the current year, month, day, hour are in the
+                    # filter&#39;s range. If not, we can short circuit and skip getting the *.rdvxm files.
+                    if not read_filter.apply_dt(
+                        datetime(int(year), int(month), int(day), int(hour)),
+                        dt_fn=truncate_dt_ymdh,
+                    ):
+                        continue
+
+                    data_dir: str = os.path.join(base_dir, year, month, day, hour)
+                    entries: Iterator[IndexEntry] = iter(
+                        index_unstructured(data_dir, read_filter).entries
+                    )
+                    index.append(entries)
+
+    index.sort()
+    return index
+
+
+def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&gt; Index:
+    &#34;&#34;&#34;
+    &#34;Indexes both API 900 and API 1000 structured directory layouts.
+    :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
+                     API 900 and API 1000.
+    :param read_filter: Filter to further filter results.
+    :return: An Index of RedVox files.
+    &#34;&#34;&#34;
+    base_path: PurePath = PurePath(base_dir)
+
+    # API 900
+    if base_path.name == &#34;api900&#34;:
+        return index_structured_api_900(base_dir, read_filter)
+    # API 1000
+    elif base_path.name == &#34;api1000&#34;:
+        return index_structured_api_1000(base_dir, read_filter)
+    # Maybe parent to one or both?
+    else:
+        index: Index = Index()
+        subdirs: List[str] = _list_subdirs(base_dir, {&#34;api900&#34;, &#34;api1000&#34;})
+        if &#34;api900&#34; in subdirs:
+            index.append(
+                iter(
+                    index_structured_api_900(
+                        str(base_path.joinpath(&#34;api900&#34;)), read_filter
+                    ).entries
+                )
+            )
+
+        if &#34;api1000&#34; in subdirs:
+            index.append(
+                iter(
+                    index_structured_api_1000(
+                        str(base_path.joinpath(&#34;api1000&#34;)), read_filter
+                    ).entries
+                )
+            )
+
+        index.sort()
+        return index
+
+
+def sort_unstructured_redvox_data(
+    input_dir: str,
+    output_dir: Optional[str] = None,
+    read_filter: ReadFilter = ReadFilter(),
+    copy: bool = True,
+) -&gt; bool:
+    &#34;&#34;&#34;
+    takes all redvox files in input_dir and sorts them into appropriate sub-directories
+    :param input_dir: directory containing all the files to sort
+    :param output_dir: optional directory to put the results in; if this is None, uses the input_dir, default None.
+    :param read_filter: optional ReadFilter to limit which files to sort, default empty filter (sort everything)
+    :param copy: optional value that when set ensures the file contents are copied into the new structure. When this
+                 is set to False, the files will instead by moved.
+
+    :return: True if success, False if failure
+    &#34;&#34;&#34;
+    if output_dir is None:
+        output_dir = input_dir
+    check_type(input_dir, [str])
+    check_type(output_dir, [str])
+    check_type(read_filter, [ReadFilter])
+
+    if not os.path.exists(input_dir):
+        print(
+            f&#34;Directory with files to sort: {input_dir} does not exist.  Stopping program.&#34;
+        )
+        return False
+
+    if not os.path.exists(output_dir):
+        print(
+            f&#34;Base directory for creation: {output_dir} does not exist.  Please create it.  Stopping program.&#34;
+        )
+        return False
+
+    index: Index = Index()
+    extension: str
+    for extension in read_filter.extensions:
+        pattern: str = str(PurePath(input_dir).joinpath(f&#34;*{extension}&#34;))
+        paths: List[str] = glob(os.path.join(input_dir, pattern))
+        entries: Iterator[IndexEntry] = filter(
+            read_filter.apply, filter(_not_none, map(IndexEntry.from_path, paths))
+        )
+        index.append(entries)
+
+    if len(index.entries) &lt; 1:
+        print(
+            f&#34;Directory with files to sort: {input_dir} does not contain Redvox data to read.  Stopping program.&#34;
+        )
+        return False
+
+    for value in index.entries:
+        api_version = value.api_version
+        if api_version == ApiVersion.API_1000:
+            file_out_dir = str(
+                PurePath(output_dir).joinpath(
+                    &#34;api1000&#34;,
+                    f&#34;{value.date_time.year:04}&#34;,
+                    f&#34;{value.date_time.month:02}&#34;,
+                    f&#34;{value.date_time.day:02}&#34;,
+                    f&#34;{value.date_time.hour:02}&#34;,
+                )
+            )
+        elif api_version == ApiVersion.API_900:
+            file_out_dir = str(
+                PurePath(output_dir).joinpath(
+                    &#34;api900&#34;,
+                    f&#34;{value.date_time.year:04}&#34;,
+                    f&#34;{value.date_time.month:02}&#34;,
+                    f&#34;{value.date_time.day:02}&#34;,
+                )
+            )
+        else:
+            print(
+                f&#34;Unknown API version {api_version} found in data.  Stopping program.&#34;
+            )
+            return False
+        os.makedirs(file_out_dir, exist_ok=True)
+
+        if copy:
+            copy2(value.full_path, file_out_dir)
+        else:
+            move(value.full_path, file_out_dir)
+
+    return True</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.common.io.index_structured"><code class="name flex">
+<span>def <span class="ident">index_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>"Indexes both API 900 and API 1000 structured directory layouts.
+:param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
+API 900 and API 1000.
+:param read_filter: Filter to further filter results.
+:return: An Index of RedVox files.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&gt; Index:
+    &#34;&#34;&#34;
+    &#34;Indexes both API 900 and API 1000 structured directory layouts.
+    :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
+                     API 900 and API 1000.
+    :param read_filter: Filter to further filter results.
+    :return: An Index of RedVox files.
+    &#34;&#34;&#34;
+    base_path: PurePath = PurePath(base_dir)
+
+    # API 900
+    if base_path.name == &#34;api900&#34;:
+        return index_structured_api_900(base_dir, read_filter)
+    # API 1000
+    elif base_path.name == &#34;api1000&#34;:
+        return index_structured_api_1000(base_dir, read_filter)
+    # Maybe parent to one or both?
+    else:
+        index: Index = Index()
+        subdirs: List[str] = _list_subdirs(base_dir, {&#34;api900&#34;, &#34;api1000&#34;})
+        if &#34;api900&#34; in subdirs:
+            index.append(
+                iter(
+                    index_structured_api_900(
+                        str(base_path.joinpath(&#34;api900&#34;)), read_filter
+                    ).entries
+                )
+            )
+
+        if &#34;api1000&#34; in subdirs:
+            index.append(
+                iter(
+                    index_structured_api_1000(
+                        str(base_path.joinpath(&#34;api1000&#34;)), read_filter
+                    ).entries
+                )
+            )
+
+        index.sort()
+        return index</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.index_structured_api_1000"><code class="name flex">
+<span>def <span class="ident">index_structured_api_1000</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>This parses a structured API M directory structure and identifies files that match the provided filter.
+:param base_dir: Base directory (should be named api1000)
+:param read_filter: Filter to filter files with
+:return: A list of wrapped packets on an empty list if none match the filter or none are found</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def index_structured_api_1000(
+    base_dir: str, read_filter: ReadFilter = ReadFilter()
+) -&gt; Index:
+    &#34;&#34;&#34;
+    This parses a structured API M directory structure and identifies files that match the provided filter.
+    :param base_dir: Base directory (should be named api1000)
+    :param read_filter: Filter to filter files with
+    :return: A list of wrapped packets on an empty list if none match the filter or none are found
+    &#34;&#34;&#34;
+    index: Index = Index()
+
+    for year in _list_subdirs(base_dir, __VALID_YEARS):
+        for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
+            for day in _list_subdirs(
+                os.path.join(base_dir, year, month), __VALID_DATES
+            ):
+                for hour in _list_subdirs(
+                    os.path.join(base_dir, year, month, day), __VALID_HOURS
+                ):
+                    # Before scanning for *.rdvxm files, let&#39;s see if the current year, month, day, hour are in the
+                    # filter&#39;s range. If not, we can short circuit and skip getting the *.rdvxm files.
+                    if not read_filter.apply_dt(
+                        datetime(int(year), int(month), int(day), int(hour)),
+                        dt_fn=truncate_dt_ymdh,
+                    ):
+                        continue
+
+                    data_dir: str = os.path.join(base_dir, year, month, day, hour)
+                    entries: Iterator[IndexEntry] = iter(
+                        index_unstructured(data_dir, read_filter).entries
+                    )
+                    index.append(entries)
+
+    index.sort()
+    return index</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.index_structured_api_900"><code class="name flex">
+<span>def <span class="ident">index_structured_api_900</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>This parses a structured API 900 directory structure and identifies files that match the provided filter.
+:param base_dir: Base directory (should be named api900)
+:param read_filter: Filter to filter files with
+:return: A list of wrapped packets on an empty list if none match the filter or none are found</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def index_structured_api_900(
+    base_dir: str, read_filter: ReadFilter = ReadFilter()
+) -&gt; Index:
+    &#34;&#34;&#34;
+    This parses a structured API 900 directory structure and identifies files that match the provided filter.
+    :param base_dir: Base directory (should be named api900)
+    :param read_filter: Filter to filter files with
+    :return: A list of wrapped packets on an empty list if none match the filter or none are found
+    &#34;&#34;&#34;
+    index: Index = Index()
+
+    for year in _list_subdirs(base_dir, __VALID_YEARS):
+        for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
+            for day in _list_subdirs(
+                os.path.join(base_dir, year, month), __VALID_DATES
+            ):
+                # Before scanning for *.rdvxz files, let&#39;s see if the current year, month, day, are in the
+                # filter&#39;s range. If not, we can short circuit and skip getting the *.rdvxz files.
+                if not read_filter.apply_dt(
+                    datetime(int(year), int(month), int(day)), dt_fn=truncate_dt_ymd
+                ):
+                    continue
+
+                data_dir: str = os.path.join(base_dir, year, month, day)
+                entries: Iterator[IndexEntry] = iter(
+                    index_unstructured(data_dir, read_filter).entries
+                )
+                index.append(entries)
+
+    index.sort()
+    return index</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.index_unstructured"><code class="name flex">
+<span>def <span class="ident">index_unstructured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the list of file paths that match the given filter for unstructured data.
+:param base_dir: Directory containing unstructured data.
+:param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
+:return: An iterator of valid paths.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&gt; Index:
+    &#34;&#34;&#34;
+    Returns the list of file paths that match the given filter for unstructured data.
+    :param base_dir: Directory containing unstructured data.
+    :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
+    :return: An iterator of valid paths.
+    &#34;&#34;&#34;
+    check_type(base_dir, [str])
+    check_type(read_filter, [ReadFilter])
+
+    index: Index = Index()
+
+    extensions: Set[str] = (
+        read_filter.extensions if read_filter.extensions is not None else {&#34;&#34;}
+    )
+
+    extension: str
+    for extension in extensions:
+        pattern: str = str(PurePath(base_dir).joinpath(f&#34;*{extension}&#34;))
+        paths: List[str] = glob(os.path.join(base_dir, pattern))
+        # noinspection Mypy
+        entries: Iterator[IndexEntry] = filter(
+            read_filter.apply, filter(_not_none, map(IndexEntry.from_path, paths))
+        )
+        index.append(entries)
+
+    index.sort()
+    return index</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.sort_unstructured_redvox_data"><code class="name flex">
+<span>def <span class="ident">sort_unstructured_redvox_data</span></span>(<span>input_dir: str, output_dir: typing.Optional[str] = None, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), copy: bool = True) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>takes all redvox files in input_dir and sorts them into appropriate sub-directories
+:param input_dir: directory containing all the files to sort
+:param output_dir: optional directory to put the results in; if this is None, uses the input_dir, default None.
+:param read_filter: optional ReadFilter to limit which files to sort, default empty filter (sort everything)
+:param copy: optional value that when set ensures the file contents are copied into the new structure. When this
+is set to False, the files will instead by moved.</p>
+<p>:return: True if success, False if failure</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sort_unstructured_redvox_data(
+    input_dir: str,
+    output_dir: Optional[str] = None,
+    read_filter: ReadFilter = ReadFilter(),
+    copy: bool = True,
+) -&gt; bool:
+    &#34;&#34;&#34;
+    takes all redvox files in input_dir and sorts them into appropriate sub-directories
+    :param input_dir: directory containing all the files to sort
+    :param output_dir: optional directory to put the results in; if this is None, uses the input_dir, default None.
+    :param read_filter: optional ReadFilter to limit which files to sort, default empty filter (sort everything)
+    :param copy: optional value that when set ensures the file contents are copied into the new structure. When this
+                 is set to False, the files will instead by moved.
+
+    :return: True if success, False if failure
+    &#34;&#34;&#34;
+    if output_dir is None:
+        output_dir = input_dir
+    check_type(input_dir, [str])
+    check_type(output_dir, [str])
+    check_type(read_filter, [ReadFilter])
+
+    if not os.path.exists(input_dir):
+        print(
+            f&#34;Directory with files to sort: {input_dir} does not exist.  Stopping program.&#34;
+        )
+        return False
+
+    if not os.path.exists(output_dir):
+        print(
+            f&#34;Base directory for creation: {output_dir} does not exist.  Please create it.  Stopping program.&#34;
+        )
+        return False
+
+    index: Index = Index()
+    extension: str
+    for extension in read_filter.extensions:
+        pattern: str = str(PurePath(input_dir).joinpath(f&#34;*{extension}&#34;))
+        paths: List[str] = glob(os.path.join(input_dir, pattern))
+        entries: Iterator[IndexEntry] = filter(
+            read_filter.apply, filter(_not_none, map(IndexEntry.from_path, paths))
+        )
+        index.append(entries)
+
+    if len(index.entries) &lt; 1:
+        print(
+            f&#34;Directory with files to sort: {input_dir} does not contain Redvox data to read.  Stopping program.&#34;
+        )
+        return False
+
+    for value in index.entries:
+        api_version = value.api_version
+        if api_version == ApiVersion.API_1000:
+            file_out_dir = str(
+                PurePath(output_dir).joinpath(
+                    &#34;api1000&#34;,
+                    f&#34;{value.date_time.year:04}&#34;,
+                    f&#34;{value.date_time.month:02}&#34;,
+                    f&#34;{value.date_time.day:02}&#34;,
+                    f&#34;{value.date_time.hour:02}&#34;,
+                )
+            )
+        elif api_version == ApiVersion.API_900:
+            file_out_dir = str(
+                PurePath(output_dir).joinpath(
+                    &#34;api900&#34;,
+                    f&#34;{value.date_time.year:04}&#34;,
+                    f&#34;{value.date_time.month:02}&#34;,
+                    f&#34;{value.date_time.day:02}&#34;,
+                )
+            )
+        else:
+            print(
+                f&#34;Unknown API version {api_version} found in data.  Stopping program.&#34;
+            )
+            return False
+        os.makedirs(file_out_dir, exist_ok=True)
+
+        if copy:
+            copy2(value.full_path, file_out_dir)
+        else:
+            move(value.full_path, file_out_dir)
+
+    return True</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.common.io.Index"><code class="flex name class">
+<span>class <span class="ident">Index</span></span>
+<span>(</span><span>entries: typing.List[<a title="redvox.common.io.IndexEntry" href="#redvox.common.io.IndexEntry">IndexEntry</a>] = &lt;factory&gt;)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An index of available RedVox files from the file system.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class Index:
+    &#34;&#34;&#34;
+    An index of available RedVox files from the file system.
+    &#34;&#34;&#34;
+
+    entries: List[IndexEntry] = field(default_factory=lambda: [])
+
+    def sort(self) -&gt; None:
+        &#34;&#34;&#34;
+        Sorts the entries stored in this index.
+        &#34;&#34;&#34;
+        self.entries = sorted(
+            self.entries,
+            key=lambda entry: (entry.api_version, entry.station_id, entry.date_time),
+        )
+
+    def append(self, entries: Iterator[IndexEntry]) -&gt; None:
+        &#34;&#34;&#34;
+        Appends new entries to this index.
+        :param entries: Entries to append.
+        &#34;&#34;&#34;
+        self.entries.extend(entries)
+
+    def summarize(self) -&gt; IndexSummary:
+        &#34;&#34;&#34;
+        :return: A summary of the contents of this index.
+        &#34;&#34;&#34;
+        return IndexSummary.from_index(self)
+
+    def stream(
+        self, read_filter: ReadFilter = ReadFilter()
+    ) -&gt; Iterator[Union[&#34;WrappedRedvoxPacket&#34;, WrappedRedvoxPacketM]]:
+        &#34;&#34;&#34;
+        Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
+        :param read_filter: Additional filtering to specify which data should be streamed.
+        :return: An iterator over WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
+        &#34;&#34;&#34;
+        filtered: Iterator[IndexEntry] = filter(read_filter.apply, self.entries)
+        # noinspection Mypy
+        return map(IndexEntry.read, filtered)
+
+    def read(
+        self, read_filter: ReadFilter = ReadFilter()
+    ) -&gt; List[Union[&#34;WrappedRedvoxPacket&#34;, WrappedRedvoxPacketM]]:
+        &#34;&#34;&#34;
+        Read, decompress, deserialize, and wrap RedVox data pointed to by this index.
+        :param read_filter: Additional filtering to specify which data should be read.
+        :return: An list of WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
+        &#34;&#34;&#34;
+        return list(self.stream(read_filter))</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.io.Index.entries"><code class="name">var <span class="ident">entries</span> : typing.List[<a title="redvox.common.io.IndexEntry" href="#redvox.common.io.IndexEntry">IndexEntry</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.io.Index.append"><code class="name flex">
+<span>def <span class="ident">append</span></span>(<span>self, entries: typing.Iterator[<a title="redvox.common.io.IndexEntry" href="#redvox.common.io.IndexEntry">IndexEntry</a>]) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Appends new entries to this index.
+:param entries: Entries to append.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append(self, entries: Iterator[IndexEntry]) -&gt; None:
+    &#34;&#34;&#34;
+    Appends new entries to this index.
+    :param entries: Entries to append.
+    &#34;&#34;&#34;
+    self.entries.extend(entries)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.Index.read"><code class="name flex">
+<span>def <span class="ident">read</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> typing.List[typing.Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read, decompress, deserialize, and wrap RedVox data pointed to by this index.
+:param read_filter: Additional filtering to specify which data should be read.
+:return: An list of WrappedRedvoxPacket and WrappedRedvoxPacketM instances.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read(
+    self, read_filter: ReadFilter = ReadFilter()
+) -&gt; List[Union[&#34;WrappedRedvoxPacket&#34;, WrappedRedvoxPacketM]]:
+    &#34;&#34;&#34;
+    Read, decompress, deserialize, and wrap RedVox data pointed to by this index.
+    :param read_filter: Additional filtering to specify which data should be read.
+    :return: An list of WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
+    &#34;&#34;&#34;
+    return list(self.stream(read_filter))</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.Index.sort"><code class="name flex">
+<span>def <span class="ident">sort</span></span>(<span>self) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sorts the entries stored in this index.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sort(self) -&gt; None:
+    &#34;&#34;&#34;
+    Sorts the entries stored in this index.
+    &#34;&#34;&#34;
+    self.entries = sorted(
+        self.entries,
+        key=lambda entry: (entry.api_version, entry.station_id, entry.date_time),
+    )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.Index.stream"><code class="name flex">
+<span>def <span class="ident">stream</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> typing.Iterator[typing.Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
+:param read_filter: Additional filtering to specify which data should be streamed.
+:return: An iterator over WrappedRedvoxPacket and WrappedRedvoxPacketM instances.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stream(
+    self, read_filter: ReadFilter = ReadFilter()
+) -&gt; Iterator[Union[&#34;WrappedRedvoxPacket&#34;, WrappedRedvoxPacketM]]:
+    &#34;&#34;&#34;
+    Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
+    :param read_filter: Additional filtering to specify which data should be streamed.
+    :return: An iterator over WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
+    &#34;&#34;&#34;
+    filtered: Iterator[IndexEntry] = filter(read_filter.apply, self.entries)
+    # noinspection Mypy
+    return map(IndexEntry.read, filtered)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.Index.summarize"><code class="name flex">
+<span>def <span class="ident">summarize</span></span>(<span>self) ‑> <a title="redvox.common.io.IndexSummary" href="#redvox.common.io.IndexSummary">IndexSummary</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: A summary of the contents of this index.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def summarize(self) -&gt; IndexSummary:
+    &#34;&#34;&#34;
+    :return: A summary of the contents of this index.
+    &#34;&#34;&#34;
+    return IndexSummary.from_index(self)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.common.io.IndexEntry"><code class="flex name class">
+<span>class <span class="ident">IndexEntry</span></span>
+<span>(</span><span>full_path: str, station_id: str, date_time: datetime.datetime, extension: str, api_version: <a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class represents a single index entry. It extracts and encapsulated API agnostic fields that represent the
+information stored in standard RedVox file names.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class IndexEntry:
+    &#34;&#34;&#34;
+    This class represents a single index entry. It extracts and encapsulated API agnostic fields that represent the
+    information stored in standard RedVox file names.
+    &#34;&#34;&#34;
+
+    full_path: str
+    station_id: str
+    date_time: datetime
+    extension: str
+    api_version: ApiVersion
+
+    @staticmethod
+    def from_path(path_str: str, strict: bool = True) -&gt; Optional[&#34;IndexEntry&#34;]:
+        &#34;&#34;&#34;
+        Attempts to parse a file path into an IndexEntry. If a given path is not recognized as a valid RedVox file,
+        None will be returned instead.
+        :param path_str: The file system path to attempt to parse.
+        :param strict: When set, None is returned if the referenced file DNE.
+        :return: Either an IndexEntry or successful parse or None.
+        &#34;&#34;&#34;
+        api_version: ApiVersion = check_version(path_str)
+        path: Path = Path(path_str)
+        name: str = path.stem
+        ext: str = path.suffix
+
+        # Attempt to parse file name parts
+        split_name = name.split(&#34;_&#34;)
+        if len(split_name) != 2:
+            return None
+
+        station_id: str = split_name[0]
+        ts_str: str = split_name[1]
+
+        # If you have a filename with a dot, but not an extension, i.e. &#34;0000000001_0.&#34;, we need to remove the dot
+        # from the end and make in the extension
+        if len(ts_str) &gt; 0 and ts_str[-1] == &#34;.&#34;:
+            ts_str = ts_str[:-1]
+            ext = &#34;.&#34;
+
+        timestamp: Optional[int] = _is_int(ts_str)
+
+        # Ensure that both the station ID and timestamp can be represented as ints
+        if _is_int(station_id) is None or timestamp is None:
+            return None
+
+        # Parse the datetime per the specified API version
+        date_time: datetime
+        if api_version == ApiVersion.API_1000:
+            date_time = dt_us(timestamp)
+        else:
+            date_time = dt_ms(timestamp)
+
+        full_path: str
+        try:
+            full_path = str(path.resolve(strict=True))
+        except FileNotFoundError:
+            if strict:
+                return None
+            full_path = path_str
+
+        return IndexEntry(full_path, station_id, date_time, ext, api_version)
+
+    def read(self) -&gt; Optional[Union[WrappedRedvoxPacketM, &#34;WrappedRedvoxPacket&#34;]]:
+        &#34;&#34;&#34;
+        Reads, decompresses, deserializes, and wraps the RedVox file pointed to by this entry.
+        :return: One of WrappedRedvoxPacket, WrappedRedvoxPacketM, or None.
+        &#34;&#34;&#34;
+        if self.api_version == ApiVersion.API_900:
+            return read_rdvxz_file(self.full_path)
+        elif self.api_version == ApiVersion.API_1000:
+            return WrappedRedvoxPacketM.from_compressed_path(self.full_path)
+        else:
+            return None
+
+    # def __lt__(self, other: &#39;IndexEntry&#39;) -&gt; bool:
+    #     &#34;&#34;&#34;
+    #     Tests if this value is less than another value.
+    #
+    #     This along with __eq__ are used to fulfill the total ordering contract. Compares this entry&#39;s full path to
+    #     another entries full path.
+    #     :param other: Other IndexEntry to compare against.
+    #     :return: True if this full path is less than the other full path.
+    #     &#34;&#34;&#34;
+    #     return self.full_path.__lt__(other.full_path)
+
+    def __eq__(self, other: object) -&gt; bool:
+        &#34;&#34;&#34;
+        Tests if this value is equal to another value.
+
+        This along with __lt__ are used to fulfill the total ordering contract. Compares this entry&#39;s full path to
+        another entries full path.
+        :param other: Other IndexEntry to compare against.
+        :return: True if this full path is less than the other full path.
+        &#34;&#34;&#34;
+        if isinstance(other, IndexEntry):
+            return self.full_path == other.full_path
+
+        return False</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.io.IndexEntry.api_version"><code class="name">var <span class="ident">api_version</span> : <a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.IndexEntry.date_time"><code class="name">var <span class="ident">date_time</span> : datetime.datetime</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.IndexEntry.extension"><code class="name">var <span class="ident">extension</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.IndexEntry.full_path"><code class="name">var <span class="ident">full_path</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.IndexEntry.station_id"><code class="name">var <span class="ident">station_id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.io.IndexEntry.from_path"><code class="name flex">
+<span>def <span class="ident">from_path</span></span>(<span>path_str: str, strict: bool = True) ‑> typing.Optional[<a title="redvox.common.io.IndexEntry" href="#redvox.common.io.IndexEntry">IndexEntry</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Attempts to parse a file path into an IndexEntry. If a given path is not recognized as a valid RedVox file,
+None will be returned instead.
+:param path_str: The file system path to attempt to parse.
+:param strict: When set, None is returned if the referenced file DNE.
+:return: Either an IndexEntry or successful parse or None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_path(path_str: str, strict: bool = True) -&gt; Optional[&#34;IndexEntry&#34;]:
+    &#34;&#34;&#34;
+    Attempts to parse a file path into an IndexEntry. If a given path is not recognized as a valid RedVox file,
+    None will be returned instead.
+    :param path_str: The file system path to attempt to parse.
+    :param strict: When set, None is returned if the referenced file DNE.
+    :return: Either an IndexEntry or successful parse or None.
+    &#34;&#34;&#34;
+    api_version: ApiVersion = check_version(path_str)
+    path: Path = Path(path_str)
+    name: str = path.stem
+    ext: str = path.suffix
+
+    # Attempt to parse file name parts
+    split_name = name.split(&#34;_&#34;)
+    if len(split_name) != 2:
+        return None
+
+    station_id: str = split_name[0]
+    ts_str: str = split_name[1]
+
+    # If you have a filename with a dot, but not an extension, i.e. &#34;0000000001_0.&#34;, we need to remove the dot
+    # from the end and make in the extension
+    if len(ts_str) &gt; 0 and ts_str[-1] == &#34;.&#34;:
+        ts_str = ts_str[:-1]
+        ext = &#34;.&#34;
+
+    timestamp: Optional[int] = _is_int(ts_str)
+
+    # Ensure that both the station ID and timestamp can be represented as ints
+    if _is_int(station_id) is None or timestamp is None:
+        return None
+
+    # Parse the datetime per the specified API version
+    date_time: datetime
+    if api_version == ApiVersion.API_1000:
+        date_time = dt_us(timestamp)
+    else:
+        date_time = dt_ms(timestamp)
+
+    full_path: str
+    try:
+        full_path = str(path.resolve(strict=True))
+    except FileNotFoundError:
+        if strict:
+            return None
+        full_path = path_str
+
+    return IndexEntry(full_path, station_id, date_time, ext, api_version)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.io.IndexEntry.read"><code class="name flex">
+<span>def <span class="ident">read</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, WrappedRedvoxPacket, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reads, decompresses, deserializes, and wraps the RedVox file pointed to by this entry.
+:return: One of WrappedRedvoxPacket, WrappedRedvoxPacketM, or None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read(self) -&gt; Optional[Union[WrappedRedvoxPacketM, &#34;WrappedRedvoxPacket&#34;]]:
+    &#34;&#34;&#34;
+    Reads, decompresses, deserializes, and wraps the RedVox file pointed to by this entry.
+    :return: One of WrappedRedvoxPacket, WrappedRedvoxPacketM, or None.
+    &#34;&#34;&#34;
+    if self.api_version == ApiVersion.API_900:
+        return read_rdvxz_file(self.full_path)
+    elif self.api_version == ApiVersion.API_1000:
+        return WrappedRedvoxPacketM.from_compressed_path(self.full_path)
+    else:
+        return None</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.common.io.IndexStationSummary"><code class="flex name class">
+<span>class <span class="ident">IndexStationSummary</span></span>
+<span>(</span><span>station_id: str, api_version: <a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>, total_packets: int, first_packet: datetime.datetime, last_packet: datetime.datetime)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Summary of a single station in the index.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class IndexStationSummary:
+    &#34;&#34;&#34;
+    Summary of a single station in the index.
+    &#34;&#34;&#34;
+
+    station_id: str
+    api_version: ApiVersion
+    total_packets: int
+    first_packet: datetime
+    last_packet: datetime
+
+    @staticmethod
+    def from_entry(entry: IndexEntry) -&gt; &#34;IndexStationSummary&#34;:
+        &#34;&#34;&#34;
+        Instantiates a new summary from a given IndexEntry.
+        :param entry: Entry to copy information from.
+        :return: An instance of IndexStationSummary.
+        &#34;&#34;&#34;
+        return IndexStationSummary(
+            entry.station_id,
+            entry.api_version,
+            1,
+            first_packet=entry.date_time,
+            last_packet=entry.date_time,
+        )
+
+    def update(self, entry: IndexEntry) -&gt; None:
+        &#34;&#34;&#34;
+        Updates this summary given a new index entry.
+        :param entry: Entry to update this summary from.
+        &#34;&#34;&#34;
+        self.total_packets += 1
+        if entry.date_time &lt; self.first_packet:
+            self.first_packet = entry.date_time
+
+        if entry.date_time &gt; self.last_packet:
+            self.last_packet = entry.date_time</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.io.IndexStationSummary.api_version"><code class="name">var <span class="ident">api_version</span> : <a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.IndexStationSummary.first_packet"><code class="name">var <span class="ident">first_packet</span> : datetime.datetime</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.IndexStationSummary.last_packet"><code class="name">var <span class="ident">last_packet</span> : datetime.datetime</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.IndexStationSummary.station_id"><code class="name">var <span class="ident">station_id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.IndexStationSummary.total_packets"><code class="name">var <span class="ident">total_packets</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.io.IndexStationSummary.from_entry"><code class="name flex">
+<span>def <span class="ident">from_entry</span></span>(<span>entry: <a title="redvox.common.io.IndexEntry" href="#redvox.common.io.IndexEntry">IndexEntry</a>) ‑> <a title="redvox.common.io.IndexStationSummary" href="#redvox.common.io.IndexStationSummary">IndexStationSummary</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Instantiates a new summary from a given IndexEntry.
+:param entry: Entry to copy information from.
+:return: An instance of IndexStationSummary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_entry(entry: IndexEntry) -&gt; &#34;IndexStationSummary&#34;:
+    &#34;&#34;&#34;
+    Instantiates a new summary from a given IndexEntry.
+    :param entry: Entry to copy information from.
+    :return: An instance of IndexStationSummary.
+    &#34;&#34;&#34;
+    return IndexStationSummary(
+        entry.station_id,
+        entry.api_version,
+        1,
+        first_packet=entry.date_time,
+        last_packet=entry.date_time,
+    )</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.io.IndexStationSummary.update"><code class="name flex">
+<span>def <span class="ident">update</span></span>(<span>self, entry: <a title="redvox.common.io.IndexEntry" href="#redvox.common.io.IndexEntry">IndexEntry</a>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates this summary given a new index entry.
+:param entry: Entry to update this summary from.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update(self, entry: IndexEntry) -&gt; None:
+    &#34;&#34;&#34;
+    Updates this summary given a new index entry.
+    :param entry: Entry to update this summary from.
+    &#34;&#34;&#34;
+    self.total_packets += 1
+    if entry.date_time &lt; self.first_packet:
+        self.first_packet = entry.date_time
+
+    if entry.date_time &gt; self.last_packet:
+        self.last_packet = entry.date_time</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.common.io.IndexSummary"><code class="flex name class">
+<span>class <span class="ident">IndexSummary</span></span>
+<span>(</span><span>station_summaries: typing.Dict[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>, typing.Dict[str, <a title="redvox.common.io.IndexStationSummary" href="#redvox.common.io.IndexStationSummary">IndexStationSummary</a>]])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Summarizes the contents of the index.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class IndexSummary:
+    &#34;&#34;&#34;
+    Summarizes the contents of the index.
+    &#34;&#34;&#34;
+
+    station_summaries: Dict[ApiVersion, Dict[str, IndexStationSummary]]
+
+    def station_ids(self, api_version: ApiVersion = None) -&gt; List[str]:
+        &#34;&#34;&#34;
+        Returns the station IDs referenced by this index.
+        :param api_version: An (optional) filter to only return packets for a specified RedVox API version.
+                            None will collect station IDs from all API versions.
+        :return: The station IDs referenced by this index.
+        &#34;&#34;&#34;
+        if api_version is not None:
+            return list(
+                set(
+                    map(
+                        lambda summary: summary.station_id,
+                        self.station_summaries[api_version].values(),
+                    )
+                )
+            )
+        else:
+            # noinspection PyTypeChecker
+            return list(
+                set(
+                    map(
+                        lambda summary: summary.station_id,
+                        self.station_summaries[ApiVersion.API_900].values(),
+                    )
+                )
+            ) + list(
+                set(
+                    map(
+                        lambda summary: summary.station_id,
+                        self.station_summaries[ApiVersion.API_1000].values(),
+                    )
+                )
+            )
+
+    def total_packets(self, api_version: ApiVersion = None) -&gt; int:
+        &#34;&#34;&#34;
+        Returns the total number of packets referenced by this index.
+        :param api_version: An (optional) filter to only return packets for a specified RedVox API version.
+                            None will count packets from all API versions.
+        :return: The total number of packets referenced by this index.
+        &#34;&#34;&#34;
+        if api_version is not None:
+            return sum(
+                map(
+                    lambda summary: summary.total_packets,
+                    self.station_summaries[api_version].values(),
+                )
+            )
+        else:
+            # noinspection PyTypeChecker
+            return sum(
+                map(
+                    lambda summary: summary.total_packets,
+                    self.station_summaries[ApiVersion.API_900].values(),
+                )
+            ) + sum(
+                map(
+                    lambda summary: summary.total_packets,
+                    self.station_summaries[ApiVersion.API_1000].values(),
+                )
+            )
+
+    @staticmethod
+    def from_index(index: &#34;Index&#34;) -&gt; &#34;IndexSummary&#34;:
+        &#34;&#34;&#34;
+        Builds an IndexSummary from a given index.
+        :param index: Index to build summary from.
+        :return: An instance of IndexSummary.
+        &#34;&#34;&#34;
+        station_summaries: Dict[
+            ApiVersion, Dict[str, IndexStationSummary]
+        ] = defaultdict(dict)
+
+        entry: IndexEntry
+        for entry in index.entries:
+            sub_entry: Dict[str, IndexStationSummary] = station_summaries[
+                entry.api_version
+            ]
+            if entry.station_id in sub_entry:
+                # Update existing station summary
+                sub_entry[entry.station_id].update(entry)
+            else:
+                # Create new station summary
+                sub_entry[entry.station_id] = IndexStationSummary.from_entry(entry)
+
+        return IndexSummary(station_summaries)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.io.IndexSummary.station_summaries"><code class="name">var <span class="ident">station_summaries</span> : typing.Dict[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>, typing.Dict[str, <a title="redvox.common.io.IndexStationSummary" href="#redvox.common.io.IndexStationSummary">IndexStationSummary</a>]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.io.IndexSummary.from_index"><code class="name flex">
+<span>def <span class="ident">from_index</span></span>(<span>index: <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a>) ‑> <a title="redvox.common.io.IndexSummary" href="#redvox.common.io.IndexSummary">IndexSummary</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds an IndexSummary from a given index.
+:param index: Index to build summary from.
+:return: An instance of IndexSummary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_index(index: &#34;Index&#34;) -&gt; &#34;IndexSummary&#34;:
+    &#34;&#34;&#34;
+    Builds an IndexSummary from a given index.
+    :param index: Index to build summary from.
+    :return: An instance of IndexSummary.
+    &#34;&#34;&#34;
+    station_summaries: Dict[
+        ApiVersion, Dict[str, IndexStationSummary]
+    ] = defaultdict(dict)
+
+    entry: IndexEntry
+    for entry in index.entries:
+        sub_entry: Dict[str, IndexStationSummary] = station_summaries[
+            entry.api_version
+        ]
+        if entry.station_id in sub_entry:
+            # Update existing station summary
+            sub_entry[entry.station_id].update(entry)
+        else:
+            # Create new station summary
+            sub_entry[entry.station_id] = IndexStationSummary.from_entry(entry)
+
+    return IndexSummary(station_summaries)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.io.IndexSummary.station_ids"><code class="name flex">
+<span>def <span class="ident">station_ids</span></span>(<span>self, api_version: <a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a> = None) ‑> typing.List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the station IDs referenced by this index.
+:param api_version: An (optional) filter to only return packets for a specified RedVox API version.
+None will collect station IDs from all API versions.
+:return: The station IDs referenced by this index.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def station_ids(self, api_version: ApiVersion = None) -&gt; List[str]:
+    &#34;&#34;&#34;
+    Returns the station IDs referenced by this index.
+    :param api_version: An (optional) filter to only return packets for a specified RedVox API version.
+                        None will collect station IDs from all API versions.
+    :return: The station IDs referenced by this index.
+    &#34;&#34;&#34;
+    if api_version is not None:
+        return list(
+            set(
+                map(
+                    lambda summary: summary.station_id,
+                    self.station_summaries[api_version].values(),
+                )
+            )
+        )
+    else:
+        # noinspection PyTypeChecker
+        return list(
+            set(
+                map(
+                    lambda summary: summary.station_id,
+                    self.station_summaries[ApiVersion.API_900].values(),
+                )
+            )
+        ) + list(
+            set(
+                map(
+                    lambda summary: summary.station_id,
+                    self.station_summaries[ApiVersion.API_1000].values(),
+                )
+            )
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.IndexSummary.total_packets"><code class="name flex">
+<span>def <span class="ident">total_packets</span></span>(<span>self, api_version: <a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a> = None) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the total number of packets referenced by this index.
+:param api_version: An (optional) filter to only return packets for a specified RedVox API version.
+None will count packets from all API versions.
+:return: The total number of packets referenced by this index.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def total_packets(self, api_version: ApiVersion = None) -&gt; int:
+    &#34;&#34;&#34;
+    Returns the total number of packets referenced by this index.
+    :param api_version: An (optional) filter to only return packets for a specified RedVox API version.
+                        None will count packets from all API versions.
+    :return: The total number of packets referenced by this index.
+    &#34;&#34;&#34;
+    if api_version is not None:
+        return sum(
+            map(
+                lambda summary: summary.total_packets,
+                self.station_summaries[api_version].values(),
+            )
+        )
+    else:
+        # noinspection PyTypeChecker
+        return sum(
+            map(
+                lambda summary: summary.total_packets,
+                self.station_summaries[ApiVersion.API_900].values(),
+            )
+        ) + sum(
+            map(
+                lambda summary: summary.total_packets,
+                self.station_summaries[ApiVersion.API_1000].values(),
+            )
+        )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.common.io.ReadFilter"><code class="flex name class">
+<span>class <span class="ident">ReadFilter</span></span>
+<span>(</span><span>start_dt: typing.Optional[datetime.datetime] = None, end_dt: typing.Optional[datetime.datetime] = None, station_ids: typing.Optional[typing.Set[str]] = None, extensions: typing.Optional[typing.Set[str]] = &lt;factory&gt;, start_dt_buf: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=120), end_dt_buf: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=120), api_versions: typing.Optional[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]] = &lt;factory&gt;)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Filter RedVox files from the file system.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class ReadFilter:
+    &#34;&#34;&#34;
+    Filter RedVox files from the file system.
+    &#34;&#34;&#34;
+
+    start_dt: Optional[datetime] = None
+    end_dt: Optional[datetime] = None
+    station_ids: Optional[Set[str]] = None
+    extensions: Optional[Set[str]] = field(default_factory=lambda: {&#34;.rdvxm&#34;, &#34;.rdvxz&#34;})
+    start_dt_buf: Optional[timedelta] = timedelta(minutes=2.0)
+    end_dt_buf: Optional[timedelta] = timedelta(minutes=2.0)
+    api_versions: Optional[Set[ApiVersion]] = field(
+        default_factory=lambda: {ApiVersion.API_900, ApiVersion.API_1000}
+    )
+
+    @staticmethod
+    def empty() -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        :return: A ReadFilter with ALL filters set to None. This is opposed to the default
+                 which sets sane defaults for extensions, APIs, and window buffers.
+        &#34;&#34;&#34;
+        return ReadFilter(None, None, None, None, None, None, None)
+
+    def with_start_dt(self, start_dt: Optional[datetime]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Adds a start datetime filter.
+        :param start_dt: Start datetime that files should come after.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
+        check_type(start_dt, [datetime, None])
+        self.start_dt = start_dt
+        return self
+
+    def with_start_ts(self, start_ts: Optional[float]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Adds a start time filter.
+        :param start_ts: Start timestamp (microseconds)
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
+        check_type(start_ts, [int, float, None])
+        if start_ts is None:
+            return self.with_start_dt(None)
+
+        return self.with_start_dt(dt_us(start_ts))
+
+    def with_end_dt(self, end_dt: Optional[datetime]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Adds an end datetime filter.
+        :param end_dt: Filter for which packets should come before.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
+        check_type(end_dt, [datetime, None])
+        self.end_dt = end_dt
+        return self
+
+    def with_end_ts(self, end_ts: Optional[float]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Like with_end_dt, but uses a microsecond timestamp.
+        :param end_ts: Timestamp microseconds.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
+        check_type(end_ts, [int, float, None])
+        if end_ts is None:
+            return self.with_end_dt(None)
+
+        return self.with_end_dt(dt_us(end_ts))
+
+    def with_station_ids(self, station_ids: Optional[Set[str]]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Add a station id filter. Filters against provided station ids.
+        :param station_ids: Station ids to filter against.
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
+        check_type(station_ids, [set, None])
+        self.station_ids = station_ids
+        return self
+
+    def with_extensions(self, extensions: Optional[Set[str]]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Filters against known file extensions.
+        :param extensions: One or more extensions to filter against
+        :return: A modified instance of this filter
+        &#34;&#34;&#34;
+        check_type(extensions, [set, None])
+        self.extensions = extensions
+        return self
+
+    def with_start_dt_buf(self, start_dt_buf: Optional[timedelta]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Modifies the time buffer prepended to the start time.
+        :param start_dt_buf: Amount of time to buffer before start time.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(start_dt_buf, [timedelta, None])
+        self.start_dt_buf = start_dt_buf
+        return self
+
+    def with_end_dt_buf(self, end_dt_buf: Optional[timedelta]) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Modifies the time buffer appended to the end time.
+        :param end_dt_buf: Amount of time to buffer after end time.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(end_dt_buf, [timedelta, None])
+        self.end_dt_buf = end_dt_buf
+        return self
+
+    def with_api_versions(
+        self, api_versions: Optional[Set[ApiVersion]]
+    ) -&gt; &#34;ReadFilter&#34;:
+        &#34;&#34;&#34;
+        Filters for specified API versions.
+        :param api_versions: A set containing valid ApiVersion enums that should be included.
+        :return: A modified instance of self.
+        &#34;&#34;&#34;
+        check_type(api_versions, [set, None])
+        self.api_versions = api_versions
+        return self
+
+    def apply_dt(
+        self, date_time: datetime, dt_fn: Callable[[datetime], datetime] = lambda dt: dt
+    ) -&gt; bool:
+        &#34;&#34;&#34;
+        Tests if a given datetime passes this filter.
+        :param date_time: Datetime to test
+        :param dt_fn: An (optional) function that will transform one datetime into another.
+        :return: True if the datetime is included, False otherwise
+        &#34;&#34;&#34;
+        check_type(date_time, [datetime])
+        start_buf: timedelta = (
+            timedelta(seconds=0) if self.start_dt_buf is None else self.start_dt_buf
+        )
+        if self.start_dt is not None and date_time &lt; (dt_fn(self.start_dt) - start_buf):
+            return False
+
+        end_buf: timedelta = (
+            timedelta(seconds=0) if self.end_dt_buf is None else self.end_dt_buf
+        )
+        if self.end_dt is not None and date_time &gt; (dt_fn(self.end_dt) + end_buf):
+            return False
+
+        return True
+
+    def apply(self, entry: IndexEntry) -&gt; bool:
+        &#34;&#34;&#34;
+        Applies this filter to the given IndexEntry.
+        :param entry: The entry to test.
+        :return: True if the entry is accepted by the filter, False otherwise.
+        &#34;&#34;&#34;
+        check_type(entry, [IndexEntry])
+
+        if not self.apply_dt(entry.date_time):
+            return False
+
+        if self.station_ids is not None and entry.station_id not in self.station_ids:
+            return False
+
+        if self.extensions is not None and entry.extension not in self.extensions:
+            return False
+
+        if self.api_versions is not None and entry.api_version not in self.api_versions:
+            return False
+
+        return True</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.io.ReadFilter.api_versions"><code class="name">var <span class="ident">api_versions</span> : typing.Optional[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.ReadFilter.end_dt"><code class="name">var <span class="ident">end_dt</span> : typing.Optional[datetime.datetime]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.ReadFilter.end_dt_buf"><code class="name">var <span class="ident">end_dt_buf</span> : typing.Optional[datetime.timedelta]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.ReadFilter.extensions"><code class="name">var <span class="ident">extensions</span> : typing.Optional[typing.Set[str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.ReadFilter.start_dt"><code class="name">var <span class="ident">start_dt</span> : typing.Optional[datetime.datetime]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.ReadFilter.start_dt_buf"><code class="name">var <span class="ident">start_dt_buf</span> : typing.Optional[datetime.timedelta]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.ReadFilter.station_ids"><code class="name">var <span class="ident">station_ids</span> : typing.Optional[typing.Set[str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.io.ReadFilter.empty"><code class="name flex">
+<span>def <span class="ident">empty</span></span>(<span>) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: A ReadFilter with ALL filters set to None. This is opposed to the default
+which sets sane defaults for extensions, APIs, and window buffers.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def empty() -&gt; &#34;ReadFilter&#34;:
+    &#34;&#34;&#34;
+    :return: A ReadFilter with ALL filters set to None. This is opposed to the default
+             which sets sane defaults for extensions, APIs, and window buffers.
+    &#34;&#34;&#34;
+    return ReadFilter(None, None, None, None, None, None, None)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.io.ReadFilter.apply"><code class="name flex">
+<span>def <span class="ident">apply</span></span>(<span>self, entry: <a title="redvox.common.io.IndexEntry" href="#redvox.common.io.IndexEntry">IndexEntry</a>) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Applies this filter to the given IndexEntry.
+:param entry: The entry to test.
+:return: True if the entry is accepted by the filter, False otherwise.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def apply(self, entry: IndexEntry) -&gt; bool:
+    &#34;&#34;&#34;
+    Applies this filter to the given IndexEntry.
+    :param entry: The entry to test.
+    :return: True if the entry is accepted by the filter, False otherwise.
+    &#34;&#34;&#34;
+    check_type(entry, [IndexEntry])
+
+    if not self.apply_dt(entry.date_time):
+        return False
+
+    if self.station_ids is not None and entry.station_id not in self.station_ids:
+        return False
+
+    if self.extensions is not None and entry.extension not in self.extensions:
+        return False
+
+    if self.api_versions is not None and entry.api_version not in self.api_versions:
+        return False
+
+    return True</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.ReadFilter.apply_dt"><code class="name flex">
+<span>def <span class="ident">apply_dt</span></span>(<span>self, date_time: datetime.datetime, dt_fn: typing.Callable[[datetime.datetime], datetime.datetime] = &lt;function ReadFilter.&lt;lambda&gt;&gt;) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tests if a given datetime passes this filter.
+:param date_time: Datetime to test
+:param dt_fn: An (optional) function that will transform one datetime into another.
+:return: True if the datetime is included, False otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def apply_dt(
+    self, date_time: datetime, dt_fn: Callable[[datetime], datetime] = lambda dt: dt
+) -&gt; bool:
+    &#34;&#34;&#34;
+    Tests if a given datetime passes this filter.
+    :param date_time: Datetime to test
+    :param dt_fn: An (optional) function that will transform one datetime into another.
+    :return: True if the datetime is included, False otherwise
+    &#34;&#34;&#34;
+    check_type(date_time, [datetime])
+    start_buf: timedelta = (
+        timedelta(seconds=0) if self.start_dt_buf is None else self.start_dt_buf
+    )
+    if self.start_dt is not None and date_time &lt; (dt_fn(self.start_dt) - start_buf):
+        return False
+
+    end_buf: timedelta = (
+        timedelta(seconds=0) if self.end_dt_buf is None else self.end_dt_buf
+    )
+    if self.end_dt is not None and date_time &gt; (dt_fn(self.end_dt) + end_buf):
+        return False
+
+    return True</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.ReadFilter.with_api_versions"><code class="name flex">
+<span>def <span class="ident">with_api_versions</span></span>(<span>self, api_versions: typing.Optional[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Filters for specified API versions.
+:param api_versions: A set containing valid ApiVersion enums that should be included.
+:return: A modified instance of self.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_api_versions(
+    self, api_versions: Optional[Set[ApiVersion]]
+) -&gt; &#34;ReadFilter&#34;:
+    &#34;&#34;&#34;
+    Filters for specified API versions.
+    :param api_versions: A set containing valid ApiVersion enums that should be included.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
+    check_type(api_versions, [set, None])
+    self.api_versions = api_versions
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.ReadFilter.with_end_dt"><code class="name flex">
+<span>def <span class="ident">with_end_dt</span></span>(<span>self, end_dt: typing.Optional[datetime.datetime]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds an end datetime filter.
+:param end_dt: Filter for which packets should come before.
+:return: A modified instance of this filter</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_end_dt(self, end_dt: Optional[datetime]) -&gt; &#34;ReadFilter&#34;:
+    &#34;&#34;&#34;
+    Adds an end datetime filter.
+    :param end_dt: Filter for which packets should come before.
+    :return: A modified instance of this filter
+    &#34;&#34;&#34;
+    check_type(end_dt, [datetime, None])
+    self.end_dt = end_dt
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.ReadFilter.with_end_dt_buf"><code class="name flex">
+<span>def <span class="ident">with_end_dt_buf</span></span>(<span>self, end_dt_buf: typing.Optional[datetime.timedelta]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Modifies the time buffer appended to the end time.
+:param end_dt_buf: Amount of time to buffer after end time.
+:return: A modified instance of self.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_end_dt_buf(self, end_dt_buf: Optional[timedelta]) -&gt; &#34;ReadFilter&#34;:
+    &#34;&#34;&#34;
+    Modifies the time buffer appended to the end time.
+    :param end_dt_buf: Amount of time to buffer after end time.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
+    check_type(end_dt_buf, [timedelta, None])
+    self.end_dt_buf = end_dt_buf
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.ReadFilter.with_end_ts"><code class="name flex">
+<span>def <span class="ident">with_end_ts</span></span>(<span>self, end_ts: typing.Optional[float]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Like with_end_dt, but uses a microsecond timestamp.
+:param end_ts: Timestamp microseconds.
+:return: A modified instance of this filter</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_end_ts(self, end_ts: Optional[float]) -&gt; &#34;ReadFilter&#34;:
+    &#34;&#34;&#34;
+    Like with_end_dt, but uses a microsecond timestamp.
+    :param end_ts: Timestamp microseconds.
+    :return: A modified instance of this filter
+    &#34;&#34;&#34;
+    check_type(end_ts, [int, float, None])
+    if end_ts is None:
+        return self.with_end_dt(None)
+
+    return self.with_end_dt(dt_us(end_ts))</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.ReadFilter.with_extensions"><code class="name flex">
+<span>def <span class="ident">with_extensions</span></span>(<span>self, extensions: typing.Optional[typing.Set[str]]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Filters against known file extensions.
+:param extensions: One or more extensions to filter against
+:return: A modified instance of this filter</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_extensions(self, extensions: Optional[Set[str]]) -&gt; &#34;ReadFilter&#34;:
+    &#34;&#34;&#34;
+    Filters against known file extensions.
+    :param extensions: One or more extensions to filter against
+    :return: A modified instance of this filter
+    &#34;&#34;&#34;
+    check_type(extensions, [set, None])
+    self.extensions = extensions
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.ReadFilter.with_start_dt"><code class="name flex">
+<span>def <span class="ident">with_start_dt</span></span>(<span>self, start_dt: typing.Optional[datetime.datetime]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds a start datetime filter.
+:param start_dt: Start datetime that files should come after.
+:return: A modified instance of this filter</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_start_dt(self, start_dt: Optional[datetime]) -&gt; &#34;ReadFilter&#34;:
+    &#34;&#34;&#34;
+    Adds a start datetime filter.
+    :param start_dt: Start datetime that files should come after.
+    :return: A modified instance of this filter
+    &#34;&#34;&#34;
+    check_type(start_dt, [datetime, None])
+    self.start_dt = start_dt
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.ReadFilter.with_start_dt_buf"><code class="name flex">
+<span>def <span class="ident">with_start_dt_buf</span></span>(<span>self, start_dt_buf: typing.Optional[datetime.timedelta]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Modifies the time buffer prepended to the start time.
+:param start_dt_buf: Amount of time to buffer before start time.
+:return: A modified instance of self.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_start_dt_buf(self, start_dt_buf: Optional[timedelta]) -&gt; &#34;ReadFilter&#34;:
+    &#34;&#34;&#34;
+    Modifies the time buffer prepended to the start time.
+    :param start_dt_buf: Amount of time to buffer before start time.
+    :return: A modified instance of self.
+    &#34;&#34;&#34;
+    check_type(start_dt_buf, [timedelta, None])
+    self.start_dt_buf = start_dt_buf
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.ReadFilter.with_start_ts"><code class="name flex">
+<span>def <span class="ident">with_start_ts</span></span>(<span>self, start_ts: typing.Optional[float]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds a start time filter.
+:param start_ts: Start timestamp (microseconds)
+:return: A modified instance of this filter</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_start_ts(self, start_ts: Optional[float]) -&gt; &#34;ReadFilter&#34;:
+    &#34;&#34;&#34;
+    Adds a start time filter.
+    :param start_ts: Start timestamp (microseconds)
+    :return: A modified instance of this filter
+    &#34;&#34;&#34;
+    check_type(start_ts, [int, float, None])
+    if start_ts is None:
+        return self.with_start_dt(None)
+
+    return self.with_start_dt(dt_us(start_ts))</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.ReadFilter.with_station_ids"><code class="name flex">
+<span>def <span class="ident">with_station_ids</span></span>(<span>self, station_ids: typing.Optional[typing.Set[str]]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a station id filter. Filters against provided station ids.
+:param station_ids: Station ids to filter against.
+:return: A modified instance of this filter</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_station_ids(self, station_ids: Optional[Set[str]]) -&gt; &#34;ReadFilter&#34;:
+    &#34;&#34;&#34;
+    Add a station id filter. Filters against provided station ids.
+    :param station_ids: Station ids to filter against.
+    :return: A modified instance of this filter
+    &#34;&#34;&#34;
+    check_type(station_ids, [set, None])
+    self.station_ids = station_ids
+    return self</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.common" href="index.html">redvox.common</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.common.io.index_structured" href="#redvox.common.io.index_structured">index_structured</a></code></li>
+<li><code><a title="redvox.common.io.index_structured_api_1000" href="#redvox.common.io.index_structured_api_1000">index_structured_api_1000</a></code></li>
+<li><code><a title="redvox.common.io.index_structured_api_900" href="#redvox.common.io.index_structured_api_900">index_structured_api_900</a></code></li>
+<li><code><a title="redvox.common.io.index_unstructured" href="#redvox.common.io.index_unstructured">index_unstructured</a></code></li>
+<li><code><a title="redvox.common.io.sort_unstructured_redvox_data" href="#redvox.common.io.sort_unstructured_redvox_data">sort_unstructured_redvox_data</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.common.io.Index.append" href="#redvox.common.io.Index.append">append</a></code></li>
+<li><code><a title="redvox.common.io.Index.entries" href="#redvox.common.io.Index.entries">entries</a></code></li>
+<li><code><a title="redvox.common.io.Index.read" href="#redvox.common.io.Index.read">read</a></code></li>
+<li><code><a title="redvox.common.io.Index.sort" href="#redvox.common.io.Index.sort">sort</a></code></li>
+<li><code><a title="redvox.common.io.Index.stream" href="#redvox.common.io.Index.stream">stream</a></code></li>
+<li><code><a title="redvox.common.io.Index.summarize" href="#redvox.common.io.Index.summarize">summarize</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.common.io.IndexEntry" href="#redvox.common.io.IndexEntry">IndexEntry</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.common.io.IndexEntry.api_version" href="#redvox.common.io.IndexEntry.api_version">api_version</a></code></li>
+<li><code><a title="redvox.common.io.IndexEntry.date_time" href="#redvox.common.io.IndexEntry.date_time">date_time</a></code></li>
+<li><code><a title="redvox.common.io.IndexEntry.extension" href="#redvox.common.io.IndexEntry.extension">extension</a></code></li>
+<li><code><a title="redvox.common.io.IndexEntry.from_path" href="#redvox.common.io.IndexEntry.from_path">from_path</a></code></li>
+<li><code><a title="redvox.common.io.IndexEntry.full_path" href="#redvox.common.io.IndexEntry.full_path">full_path</a></code></li>
+<li><code><a title="redvox.common.io.IndexEntry.read" href="#redvox.common.io.IndexEntry.read">read</a></code></li>
+<li><code><a title="redvox.common.io.IndexEntry.station_id" href="#redvox.common.io.IndexEntry.station_id">station_id</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.common.io.IndexStationSummary" href="#redvox.common.io.IndexStationSummary">IndexStationSummary</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.common.io.IndexStationSummary.api_version" href="#redvox.common.io.IndexStationSummary.api_version">api_version</a></code></li>
+<li><code><a title="redvox.common.io.IndexStationSummary.first_packet" href="#redvox.common.io.IndexStationSummary.first_packet">first_packet</a></code></li>
+<li><code><a title="redvox.common.io.IndexStationSummary.from_entry" href="#redvox.common.io.IndexStationSummary.from_entry">from_entry</a></code></li>
+<li><code><a title="redvox.common.io.IndexStationSummary.last_packet" href="#redvox.common.io.IndexStationSummary.last_packet">last_packet</a></code></li>
+<li><code><a title="redvox.common.io.IndexStationSummary.station_id" href="#redvox.common.io.IndexStationSummary.station_id">station_id</a></code></li>
+<li><code><a title="redvox.common.io.IndexStationSummary.total_packets" href="#redvox.common.io.IndexStationSummary.total_packets">total_packets</a></code></li>
+<li><code><a title="redvox.common.io.IndexStationSummary.update" href="#redvox.common.io.IndexStationSummary.update">update</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.common.io.IndexSummary" href="#redvox.common.io.IndexSummary">IndexSummary</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.io.IndexSummary.from_index" href="#redvox.common.io.IndexSummary.from_index">from_index</a></code></li>
+<li><code><a title="redvox.common.io.IndexSummary.station_ids" href="#redvox.common.io.IndexSummary.station_ids">station_ids</a></code></li>
+<li><code><a title="redvox.common.io.IndexSummary.station_summaries" href="#redvox.common.io.IndexSummary.station_summaries">station_summaries</a></code></li>
+<li><code><a title="redvox.common.io.IndexSummary.total_packets" href="#redvox.common.io.IndexSummary.total_packets">total_packets</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.common.io.ReadFilter.api_versions" href="#redvox.common.io.ReadFilter.api_versions">api_versions</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.apply" href="#redvox.common.io.ReadFilter.apply">apply</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.apply_dt" href="#redvox.common.io.ReadFilter.apply_dt">apply_dt</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.empty" href="#redvox.common.io.ReadFilter.empty">empty</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.end_dt" href="#redvox.common.io.ReadFilter.end_dt">end_dt</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.end_dt_buf" href="#redvox.common.io.ReadFilter.end_dt_buf">end_dt_buf</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.extensions" href="#redvox.common.io.ReadFilter.extensions">extensions</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.start_dt" href="#redvox.common.io.ReadFilter.start_dt">start_dt</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.start_dt_buf" href="#redvox.common.io.ReadFilter.start_dt_buf">start_dt_buf</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.station_ids" href="#redvox.common.io.ReadFilter.station_ids">station_ids</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.with_api_versions" href="#redvox.common.io.ReadFilter.with_api_versions">with_api_versions</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.with_end_dt" href="#redvox.common.io.ReadFilter.with_end_dt">with_end_dt</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.with_end_dt_buf" href="#redvox.common.io.ReadFilter.with_end_dt_buf">with_end_dt_buf</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.with_end_ts" href="#redvox.common.io.ReadFilter.with_end_ts">with_end_ts</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.with_extensions" href="#redvox.common.io.ReadFilter.with_extensions">with_extensions</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.with_start_dt" href="#redvox.common.io.ReadFilter.with_start_dt">with_start_dt</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.with_start_dt_buf" href="#redvox.common.io.ReadFilter.with_start_dt_buf">with_start_dt_buf</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.with_start_ts" href="#redvox.common.io.ReadFilter.with_start_ts">with_start_ts</a></code></li>
+<li><code><a title="redvox.common.io.ReadFilter.with_station_ids" href="#redvox.common.io.ReadFilter.with_station_ids">with_station_ids</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>

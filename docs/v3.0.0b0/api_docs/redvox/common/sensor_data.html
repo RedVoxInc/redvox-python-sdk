@@ -1,0 +1,3590 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>redvox.common.sensor_data API documentation</title>
+<meta name="description" content="Defines generic sensor data and metadata for API-independent analysis
+all timestamps are integers in microseconds unless otherwise stated" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.common.sensor_data</code></h1>
+</header>
+<section id="section-intro">
+<p>Defines generic sensor data and metadata for API-independent analysis
+all timestamps are integers in microseconds unless otherwise stated</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Defines generic sensor data and metadata for API-independent analysis
+all timestamps are integers in microseconds unless otherwise stated
+&#34;&#34;&#34;
+import enum
+from typing import List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
+
+import redvox.common.date_time_utils as dtu
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
+
+
+# todo: add original timestamps to the dataframes
+class SensorType(enum.Enum):
+    &#34;&#34;&#34;
+    Enumeration of possible types of sensors to read data from
+    &#34;&#34;&#34;
+
+    UNKNOWN_SENSOR = 0  # unknown sensor
+    ACCELEROMETER = 1  # meters/second^2
+    AMBIENT_TEMPERATURE = 2  # degrees Celsius
+    AUDIO = 3  # normalized counts
+    COMPRESSED_AUDIO = 4  # bytes (codec specific)
+    GRAVITY = 5  # meters/second^2
+    GYROSCOPE = 6  # radians/second
+    IMAGE = 7  # bytes (codec specific)
+    LIGHT = 8  # lux
+    LINEAR_ACCELERATION = 9  # meters/second^2
+    LOCATION = 10  # See standard
+    MAGNETOMETER = 11  # microtesla
+    ORIENTATION = 12  # radians
+    PRESSURE = 13  # kilopascal
+    PROXIMITY = 14  # on, off, cm
+    RELATIVE_HUMIDITY = 15  # percentage
+    ROTATION_VECTOR = 16  # Unitless
+    INFRARED = 17  # this is proximity
+    STATION_HEALTH = 18
+    # battery charge and current level, phone internal temperature, network source and strength,
+    # available RAM of the system, cell service status, amount of hard disk space left, power charging state
+
+    @staticmethod
+    def type_from_str(type_str: str) -&gt; &#34;SensorType&#34;:
+        &#34;&#34;&#34;
+        converts a string to a sensor type
+        :param type_str: string to convert
+        :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
+        &#34;&#34;&#34;
+        if type_str.lower() == &#34;mic&#34; or type_str.lower() == &#34;audio&#34;:
+            return SensorType.AUDIO
+        elif type_str.lower() == &#34;accelerometer&#34; or type_str.lower() == &#34;accel&#34;:
+            return SensorType.ACCELEROMETER
+        elif type_str.lower() == &#34;ambient_temperature&#34;:
+            return SensorType.AMBIENT_TEMPERATURE
+        elif type_str.lower() == &#34;compressed_audio&#34;:
+            return SensorType.COMPRESSED_AUDIO
+        elif type_str.lower() == &#34;gravity&#34;:
+            return SensorType.GRAVITY
+        elif type_str.lower() == &#34;gyroscope&#34; or type_str.lower() == &#34;gyro&#34;:
+            return SensorType.GYROSCOPE
+        elif type_str.lower() == &#34;image&#34;:
+            return SensorType.IMAGE
+        elif type_str.lower() == &#34;light&#34;:
+            return SensorType.LIGHT
+        elif (
+            type_str.lower() == &#34;linear_acceleration&#34;
+            or type_str.lower() == &#34;linear_accel&#34;
+        ):
+            return SensorType.LINEAR_ACCELERATION
+        elif type_str.lower() == &#34;location&#34; or type_str.lower() == &#34;loc&#34;:
+            return SensorType.LOCATION
+        elif type_str.lower() == &#34;magnetometer&#34; or type_str.lower() == &#34;mag&#34;:
+            return SensorType.MAGNETOMETER
+        elif type_str.lower() == &#34;orientation&#34;:
+            return SensorType.ORIENTATION
+        elif (
+            type_str.lower() == &#34;pressure&#34;
+            or type_str.lower() == &#34;bar&#34;
+            or type_str.lower() == &#34;barometer&#34;
+        ):
+            return SensorType.PRESSURE
+        elif type_str.lower() == &#34;proximity&#34; or type_str.lower() == &#34;infrared&#34;:
+            return SensorType.PROXIMITY
+        elif type_str.lower() == &#34;relative_humidity&#34;:
+            return SensorType.RELATIVE_HUMIDITY
+        elif type_str.lower() == &#34;rotation_vector&#34;:
+            return SensorType.ROTATION_VECTOR
+        else:
+            return SensorType.UNKNOWN_SENSOR
+
+
+class SensorData:
+    &#34;&#34;&#34;
+    Generic SensorData class for API-independent analysis
+    Properties:
+        name: string, name of sensor
+        type: SensorType, enumerated type of sensor
+        data_df: dataframe of the sensor data; always has timestamps as the first column,
+                    the other columns are the data fields
+        sample_rate: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
+        sample_interval_s: float, mean duration in seconds between samples, default np.nan, usually 1/sample_rate
+        sample_interval_std_s: float, standard deviation in seconds between samples, default np.nan
+        is_sample_rate_fixed: bool, True if sample rate is constant, default False
+        timestamps_altered: bool, True if timestamps in the sensor have been altered from their original values
+                            default False
+    &#34;&#34;&#34;
+
+    def __init__(
+        self,
+        sensor_name: str,
+        sensor_data: pd.DataFrame,
+        sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
+        sample_rate: float = np.nan,
+        sample_interval_s: float = np.nan,
+        sample_interval_std_s: float = np.nan,
+        is_sample_rate_fixed: bool = False,
+        are_timestamps_altered: bool = False,
+    ):
+        &#34;&#34;&#34;
+        initialize the sensor data with params
+        :param sensor_name: name of the sensor
+        :param sensor_type: enumerated type of the sensor, default SensorType.UNKNOWN_SENSOR
+        :param sensor_data: dataframe with the timestamps and sensor data; first column is always the timestamps,
+                            the other columns are the data channels in the sensor
+        :param sample_rate: sample rate in hz of the data
+        :param sample_interval_s: sample interval in seconds of the data
+        :param sample_interval_std_s: std dev of sample interval in seconds of the data
+        :param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
+        :param are_timestamps_altered: if True, timestamps in the sensor have been altered from their
+                                        original values, default False
+        &#34;&#34;&#34;
+        if &#34;timestamps&#34; not in sensor_data.columns:
+            raise AttributeError(
+                &#39;SensorData requires the data frame to contain a column titled &#34;timestamps&#34;&#39;
+            )
+        self.name: str = sensor_name
+        self.type: SensorType = sensor_type
+        self.data_df: pd.DataFrame = sensor_data
+        self.sample_rate: float = sample_rate
+        self.sample_interval_s: float = sample_interval_s
+        self.sample_interval_std_s: float = sample_interval_std_s
+        self.is_sample_rate_fixed: bool = is_sample_rate_fixed
+        self.timestamps_altered: bool = are_timestamps_altered
+        self.sort_by_data_timestamps()
+        # todo: store the non-consecutive timestamp indices (idk how to find those)
+
+    def is_sample_interval_invalid(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: True if sample interval is np.nan or equal to 0.0
+        &#34;&#34;&#34;
+        return np.isnan(self.sample_interval_s) or self.sample_interval_s == 0.0
+
+    def organize_and_update_stats(self) -&gt; &#34;SensorData&#34;:
+        &#34;&#34;&#34;
+        sorts the data by timestamps, then if the sample rate is not fixed, recalculates the sample rate, interval,
+            and interval std dev.  If there is only one value, sets the sample rate, interval, and interval std dev
+            to np.nan.  Updates the SensorData object with the new values
+        :return: updated version of self
+        &#34;&#34;&#34;
+        self.sort_by_data_timestamps()
+        if not self.is_sample_rate_fixed:
+            if self.num_samples() &gt; 1:
+                timestamp_diffs = np.diff(self.data_timestamps())
+                self.sample_interval_s = dtu.microseconds_to_seconds(
+                    float(np.mean(timestamp_diffs))
+                )
+                self.sample_interval_std_s = dtu.microseconds_to_seconds(
+                    float(np.std(timestamp_diffs))
+                )
+                self.sample_rate = (
+                    np.nan
+                    if self.is_sample_interval_invalid()
+                    else 1 / self.sample_interval_s
+                )
+            else:
+                self.sample_interval_s = np.nan
+                self.sample_interval_std_s = np.nan
+                self.sample_rate = np.nan
+        return self
+
+    def append_data(
+        self, new_data: pd.DataFrame, recalculate_stats: bool = False
+    ) -&gt; &#34;SensorData&#34;:
+        &#34;&#34;&#34;
+        append the new data to the dataframe, update the sensor&#39;s stats on demand if it doesn&#39;t have a fixed
+            sample rate, then return the updated SensorData object
+        :param new_data: Dataframe containing data to add to the sensor&#39;s dataframe
+        :param recalculate_stats: if True and the sensor does not have a fixed sample rate, sort the timestamps,
+                                    recalculate the sample rate, interval, and interval std dev, default False
+        :return: the updated SensorData object
+        &#34;&#34;&#34;
+        self.data_df = self.data_df.append(new_data, ignore_index=True)
+        if recalculate_stats and not self.is_sample_rate_fixed:
+            self.organize_and_update_stats()
+        return self
+
+    def sensor_type_as_str(self) -&gt; str:
+        &#34;&#34;&#34;
+        gets the sensor type as a string
+        :return: sensor type of the sensor as a string
+        &#34;&#34;&#34;
+        return self.type.name
+
+    def samples(self) -&gt; np.ndarray:
+        &#34;&#34;&#34;
+        gets the samples of dataframe
+        :return: the data values of the dataframe as a numpy ndarray
+        &#34;&#34;&#34;
+        return self.data_df.iloc[:, 1:].T.to_numpy()
+
+    def get_data_channel(self, channel_name: str) -&gt; np.array:
+        &#34;&#34;&#34;
+        gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
+        :param channel_name: the name of the channel to get data for
+        :return: the data values of the channel as a numpy array or a list of strings if the channel is enumerated
+        &#34;&#34;&#34;
+        if channel_name not in self.data_df.columns:
+            raise ValueError(
+                f&#34;WARNING: {channel_name} does not exist; try one of {self.data_channels()}&#34;
+            )
+        return self.data_df[channel_name].to_numpy()
+
+    def get_valid_data_channel_values(self, channel_name: str) -&gt; np.array:
+        &#34;&#34;&#34;
+        gets all non-nan values from the channel specified
+        :param channel_name: the name of the channel to get data for
+        :return: non-nan values of the channel as a numpy array
+        &#34;&#34;&#34;
+        channel_data = self.get_data_channel(channel_name)
+        return channel_data[~np.isnan(channel_data)]
+
+    def data_timestamps(self) -&gt; np.array:
+        &#34;&#34;&#34;
+        :return: the timestamps as a numpy array
+        &#34;&#34;&#34;
+        return self.data_df[&#34;timestamps&#34;].to_numpy(dtype=np.float)
+
+    def first_data_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: timestamp of the first data point
+        &#34;&#34;&#34;
+        return self.data_df[&#34;timestamps&#34;].iloc[0]
+
+    def last_data_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: timestamp of the last data point
+        &#34;&#34;&#34;
+        return self.data_df[&#34;timestamps&#34;].iloc[-1]
+
+    def num_samples(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: the number of rows (samples) in the dataframe
+        &#34;&#34;&#34;
+        return self.data_df.shape[0]
+
+    def data_duration_s(self) -&gt; float:
+        &#34;&#34;&#34;
+        calculate the duration in seconds of the dataframe: last - first timestamp if enough data, otherwise np.nan
+        :return: duration in seconds of the dataframe
+        &#34;&#34;&#34;
+        if self.num_samples() &gt; 1:
+            return dtu.microseconds_to_seconds(
+                self.last_data_timestamp() - self.first_data_timestamp()
+            )
+        return np.nan
+
+    def data_channels(self) -&gt; List[str]:
+        &#34;&#34;&#34;
+        :return: a list of the names of the columns (data channels) of the dataframe
+        &#34;&#34;&#34;
+        return self.data_df.columns.to_list()
+
+    def update_data_timestamps(self, time_delta: float):
+        &#34;&#34;&#34;
+        adds the time_delta to the sensor&#39;s timestamps; use negative values to go backwards in time
+        :param time_delta: time to add to sensor&#39;s timestamps
+        &#34;&#34;&#34;
+        new_timestamps = self.data_timestamps() + time_delta
+        self.data_df[&#34;timestamps&#34;] = new_timestamps
+        self.timestamps_altered = True
+
+    def sort_by_data_timestamps(self, ascending: bool = True):
+        &#34;&#34;&#34;
+        sorts the data based on timestamps
+        :param ascending: if True, timestamps are sorted in ascending order
+        &#34;&#34;&#34;
+        self.data_df = self.data_df.sort_values(&#34;timestamps&#34;, ascending=ascending)
+
+
+def get_empty_sensor_data(
+    name: str, sensor_type: SensorType = SensorType.UNKNOWN_SENSOR
+) -&gt; SensorData:
+    &#34;&#34;&#34;
+    create a sensor data object with no data
+    :param name: name of the sensor
+    :param sensor_type: type of the sensor to create, default SensorType.UNKNOWN_SENSOR
+    :return: empty sensor
+    &#34;&#34;&#34;
+    return SensorData(name, pd.DataFrame([], columns=[&#34;timestamps&#34;]), sensor_type)
+
+
+def calc_evenly_sampled_timestamps(
+    start: float, samples: int, rate_hz: float
+) -&gt; np.array:
+    &#34;&#34;&#34;
+    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+    :param start: float, start timestamp in microseconds
+    :param samples: int, number of samples
+    :param rate_hz: float, sample rate in hz
+    :return: np.array with evenly spaced timestamps starting at start
+    &#34;&#34;&#34;
+    return start + (np.arange(0, samples) / rate_hz) * dtu.MICROSECONDS_IN_SECOND
+
+
+def get_sample_statistics(data_df: pd.DataFrame) -&gt; Tuple[float, float, float]:
+    &#34;&#34;&#34;
+    calculate the sample rate, interval and interval std dev using the timestamps in the dataframe
+    :param data_df: the dataframe containing timestamps to calculate statistics from
+    :return: a Tuple containing the sample rate, interval and interval std dev
+    &#34;&#34;&#34;
+    if data_df[&#34;timestamps&#34;].size &gt; 1:
+        sample_interval = dtu.microseconds_to_seconds(
+            float(np.mean(np.diff(data_df[&#34;timestamps&#34;])))
+        )
+        sample_interval_std = dtu.microseconds_to_seconds(
+            float(np.std(np.diff(data_df[&#34;timestamps&#34;])))
+        )
+    else:
+        sample_interval = np.nan
+        sample_interval_std = np.nan
+    return 1 / sample_interval, sample_interval, sample_interval_std
+
+
+def read_apim_xyz_sensor(sensor: xyz.Xyz, column_id: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    read a sensor that has xyz data channels from an api M data packet
+    raises Attribute Error if sensor does not contain xyz channels
+    :param sensor: the xyz api M sensor to read
+    :param column_id: string, used to name the columns
+    :return: Dataframe representing the data in the sensor
+    &#34;&#34;&#34;
+    timestamps = sensor.get_timestamps().get_timestamps()
+    try:
+        columns = [&#34;timestamps&#34;, f&#34;{column_id}_x&#34;, f&#34;{column_id}_y&#34;, f&#34;{column_id}_z&#34;]
+        return pd.DataFrame(
+            np.transpose(
+                [
+                    timestamps,
+                    sensor.get_x_samples().get_values(),
+                    sensor.get_y_samples().get_values(),
+                    sensor.get_z_samples().get_values(),
+                ]
+            ),
+            columns=columns,
+        )
+    except AttributeError:
+        raise
+
+
+def read_apim_single_sensor(sensor: single.Single, column_id: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    read a sensor that has a single data channel from an api M data packet
+    raises Attribute Error if sensor does not contain exactly one data channel
+    :param sensor: the single channel api M sensor to read
+    :param column_id: string, used to name the columns
+    :return: Dataframe representing the data in the sensor
+    &#34;&#34;&#34;
+    timestamps = sensor.get_timestamps().get_timestamps()
+    try:
+        columns = [&#34;timestamps&#34;, column_id]
+        return pd.DataFrame(
+            np.transpose([timestamps, sensor.get_samples().get_values()]),
+            columns=columns,
+        )
+    except AttributeError:
+        raise
+
+
+def load_apim_audio(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load audio data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: audio sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    audio = wrapped_packet.get_sensors().get_audio()
+    if audio and wrapped_packet.get_sensors().validate_audio():
+        sample_rate_hz = audio.get_sample_rate()
+        data_for_df = audio.get_samples().get_values()
+        timestamps = calc_evenly_sampled_timestamps(
+            audio.get_first_sample_timestamp(), audio.get_num_samples(), sample_rate_hz
+        )
+        return SensorData(
+            audio.get_sensor_description(),
+            pd.DataFrame(
+                np.transpose([timestamps, data_for_df]),
+                columns=[&#34;timestamps&#34;, &#34;microphone&#34;],
+            ),
+            SensorType.AUDIO,
+            sample_rate_hz,
+            1 / sample_rate_hz,
+            0.0,
+            True,
+        )
+    return None
+
+
+def load_apim_audio_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load audio data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: audio sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_audio(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_audio(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_compressed_audio(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load compressed audio data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: compressed audio sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    comp_audio = wrapped_packet.get_sensors().get_compressed_audio()
+    if comp_audio and wrapped_packet.get_sensors().validate_compressed_audio():
+        sample_rate_hz = comp_audio.get_sample_rate()
+        return SensorData(
+            comp_audio.get_sensor_description(),
+            pd.DataFrame(
+                np.transpose(
+                    [
+                        comp_audio.get_first_sample_timestamp(),
+                        comp_audio.get_audio_bytes(),
+                        comp_audio.get_audio_codec(),
+                    ]
+                ),
+                columns=[&#34;timestamps&#34;, &#34;compressed_audio&#34;, &#34;audio_codec&#34;],
+            ),
+            SensorType.COMPRESSED_AUDIO,
+            sample_rate_hz,
+            1 / sample_rate_hz,
+            0.0,
+            True,
+        )
+    return None
+
+
+def load_apim_compressed_audio_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load compressed audio data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: compressed audio sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_compressed_audio(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_compressed_audio(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_image(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load image data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: image sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    image = wrapped_packet.get_sensors().get_image()
+    if image and wrapped_packet.get_sensors().validate_image():
+        timestamps = image.get_timestamps().get_timestamps()
+        codecs = np.full(len(timestamps), image.get_image_codec().value)
+        data_df = pd.DataFrame(
+            np.transpose([timestamps, image.get_samples(), codecs]),
+            columns=[&#34;timestamps&#34;, &#34;image&#34;, &#34;image_codec&#34;],
+        )
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            image.get_sensor_description(),
+            data_df,
+            SensorType.IMAGE,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+    return None
+
+
+def load_apim_image_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load image data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: image sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_image(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_image(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_location(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load location data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: location sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    loc = wrapped_packet.get_sensors().get_location()
+    if loc and wrapped_packet.get_sensors().validate_location():
+        if loc.is_only_best_values():
+            if loc.get_last_best_location():
+                best_loc = loc.get_last_best_location()
+            else:
+                best_loc = loc.get_overall_best_location()
+            data_for_df = [
+                [
+                    best_loc.get_latitude_longitude_timestamp().get_mach(),
+                    best_loc.get_latitude(),
+                    best_loc.get_longitude(),
+                    best_loc.get_altitude(),
+                    best_loc.get_speed(),
+                    best_loc.get_bearing(),
+                    best_loc.get_horizontal_accuracy(),
+                    best_loc.get_vertical_accuracy(),
+                    best_loc.get_speed_accuracy(),
+                    best_loc.get_bearing_accuracy(),
+                    best_loc.get_location_provider(),
+                ]
+            ]
+        else:
+            timestamps = loc.get_timestamps().get_timestamps()
+            data_for_df = []
+            if len(timestamps) &gt; 0:
+                lat_samples = loc.get_latitude_samples().get_values()
+                lon_samples = loc.get_longitude_samples().get_values()
+                alt_samples = loc.get_altitude_samples().get_values()
+                spd_samples = loc.get_speed_samples().get_values()
+                bear_samples = loc.get_bearing_samples().get_values()
+                hor_acc_samples = loc.get_horizontal_accuracy_samples().get_values()
+                vert_acc_samples = loc.get_vertical_accuracy_samples().get_values()
+                spd_acc_samples = loc.get_speed_accuracy_samples().get_values()
+                bear_acc_samples = loc.get_bearing_accuracy_samples().get_values()
+                loc_prov_samples = loc.get_location_providers().get_values()
+                for i in range(len(timestamps)):
+                    new_entry = [
+                        timestamps[i],
+                        lat_samples[i],
+                        lon_samples[i],
+                        np.nan if len(alt_samples) &lt; i + 1 else alt_samples[i],
+                        np.nan if len(spd_samples) &lt; i + 1 else spd_samples[i],
+                        np.nan if len(bear_samples) &lt; i + 1 else bear_samples[i],
+                        np.nan if len(hor_acc_samples) &lt; i + 1 else hor_acc_samples[i],
+                        np.nan
+                        if len(vert_acc_samples) &lt; i + 1
+                        else vert_acc_samples[i],
+                        np.nan if len(spd_acc_samples) &lt; i + 1 else spd_acc_samples[i],
+                        np.nan
+                        if len(bear_acc_samples) &lt; i + 1
+                        else bear_acc_samples[i],
+                        np.nan
+                        if len(loc_prov_samples) &lt; i + 1
+                        else loc_prov_samples[i],
+                    ]
+                    data_for_df.append(new_entry)
+        data_df = pd.DataFrame(
+            data_for_df,
+            columns=[
+                &#34;timestamps&#34;,
+                &#34;latitude&#34;,
+                &#34;longitude&#34;,
+                &#34;altitude&#34;,
+                &#34;speed&#34;,
+                &#34;bearing&#34;,
+                &#34;horizontal_accuracy&#34;,
+                &#34;vertical_accuracy&#34;,
+                &#34;speed_accuracy&#34;,
+                &#34;bearing_accuracy&#34;,
+                &#34;location_provider&#34;,
+            ],
+        )
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            loc.get_sensor_description(),
+            data_df,
+            SensorType.LOCATION,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+    return None
+
+
+def load_apim_location_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load location data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: location sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_location(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_location(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_pressure(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load pressure data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: pressure sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    pressure = wrapped_packet.get_sensors().get_pressure()
+    if pressure and wrapped_packet.get_sensors().validate_pressure():
+        data_df = read_apim_single_sensor(pressure, &#34;pressure&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            pressure.get_sensor_description(),
+            data_df,
+            SensorType.PRESSURE,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+
+
+def load_apim_pressure_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load pressure data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: pressure sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_pressure(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_pressure(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_light(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load light data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: light sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    light = wrapped_packet.get_sensors().get_light()
+    if light and wrapped_packet.get_sensors().validate_light():
+        data_df = read_apim_single_sensor(light, &#34;light&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            light.get_sensor_description(),
+            data_df,
+            SensorType.LIGHT,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+
+
+def load_apim_light_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load light data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: light sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_light(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_light(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_proximity(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load proximity data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: proximity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    proximity = wrapped_packet.get_sensors().get_proximity()
+    if proximity and wrapped_packet.get_sensors().validate_proximity():
+        data_df = read_apim_single_sensor(proximity, &#34;proximity&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            proximity.get_sensor_description(),
+            data_df,
+            SensorType.PROXIMITY,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+
+
+def load_apim_proximity_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load proximity data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: proximity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_proximity(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_proximity(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_ambient_temp(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load ambient temperature data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: ambient temperature sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    ambient_temp = wrapped_packet.get_sensors().get_ambient_temperature()
+    if ambient_temp and wrapped_packet.get_sensors().validate_ambient_temperature():
+        data_df = read_apim_single_sensor(ambient_temp, &#34;ambient_temp&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            ambient_temp.get_sensor_description(),
+            data_df,
+            SensorType.AMBIENT_TEMPERATURE,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+
+
+def load_apim_ambient_temp_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load ambient temperature data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: ambient temperature sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_ambient_temp(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_ambient_temp(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_rel_humidity(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load relative humidity data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: relative humidity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    rel_humidity = wrapped_packet.get_sensors().get_relative_humidity()
+    if rel_humidity and wrapped_packet.get_sensors().validate_relative_humidity():
+        data_df = read_apim_single_sensor(rel_humidity, &#34;rel_humidity&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            rel_humidity.get_sensor_description(),
+            data_df,
+            SensorType.RELATIVE_HUMIDITY,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+
+
+def load_apim_rel_humidity_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load relative humidity data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: relative humidity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_rel_humidity(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_rel_humidity(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_accelerometer(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load accelerometer data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: accelerometer sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    accel = wrapped_packet.get_sensors().get_accelerometer()
+    if accel and wrapped_packet.get_sensors().validate_accelerometer():
+        data_df = read_apim_xyz_sensor(accel, &#34;accelerometer&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            accel.get_sensor_description(),
+            data_df,
+            SensorType.ACCELEROMETER,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+
+
+def load_apim_accelerometer_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load accelerometer data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: accelerometer sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_accelerometer(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_accelerometer(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_magnetometer(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load magnetometer data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: magnetometer sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    mag = wrapped_packet.get_sensors().get_magnetometer()
+    if mag and wrapped_packet.get_sensors().validate_magnetometer():
+        data_df = read_apim_xyz_sensor(mag, &#34;magnetometer&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            mag.get_sensor_description(),
+            data_df,
+            SensorType.MAGNETOMETER,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+
+
+def load_apim_magnetometer_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load magnetometer data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: magnetometer sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_magnetometer(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_magnetometer(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_gyroscope(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load gyroscope data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: gyroscope sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    gyro = wrapped_packet.get_sensors().get_gyroscope()
+    if gyro and wrapped_packet.get_sensors().validate_gyroscope():
+        data_df = read_apim_xyz_sensor(gyro, &#34;gyroscope&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            gyro.get_sensor_description(),
+            data_df,
+            SensorType.GYROSCOPE,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+
+
+def load_apim_gyroscope_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load gyroscope data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: gyroscope sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_gyroscope(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_gyroscope(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_gravity(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load gravity data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: gravity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    gravity = wrapped_packet.get_sensors().get_gravity()
+    if gravity and wrapped_packet.get_sensors().validate_gravity():
+        data_df = read_apim_xyz_sensor(gravity, &#34;gravity&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            gravity.get_sensor_description(),
+            data_df,
+            SensorType.GRAVITY,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+
+
+def load_apim_gravity_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load gravity data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: gravity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_gravity(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_gravity(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_orientation(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load orientation data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: orientation sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    orientation = wrapped_packet.get_sensors().get_orientation()
+    if orientation and wrapped_packet.get_sensors().validate_orientation():
+        data_df = read_apim_xyz_sensor(orientation, &#34;orientation&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            orientation.get_sensor_description(),
+            data_df,
+            SensorType.ORIENTATION,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+
+
+def load_apim_orientation_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load orientation data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: orientation sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_orientation(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_orientation(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_linear_accel(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load linear acceleration data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: linear acceleration sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    linear_accel = wrapped_packet.get_sensors().get_linear_acceleration()
+    if linear_accel and wrapped_packet.get_sensors().validate_linear_acceleration():
+        data_df = read_apim_xyz_sensor(linear_accel, &#34;linear_accel&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            linear_accel.get_sensor_description(),
+            data_df,
+            SensorType.LINEAR_ACCELERATION,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+
+
+def load_apim_linear_accel_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load linear acceleration data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: linear acceleration sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_linear_accel(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_linear_accel(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_rotation_vector(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load rotation vector data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: rotation vector sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    rotation = wrapped_packet.get_sensors().get_rotation_vector()
+    if rotation and wrapped_packet.get_sensors().validate_rotation_vector():
+        data_df = read_apim_xyz_sensor(rotation, &#34;rotation_vector&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            rotation.get_sensor_description(),
+            data_df,
+            SensorType.ROTATION_VECTOR,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+
+
+def load_apim_rotation_vector_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load rotation vector data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: rotation vector sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_rotation_vector(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_rotation_vector(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None
+
+
+def load_apim_health(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load station health data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: station health data if it exists, None otherwise
+    &#34;&#34;&#34;
+    metrics = wrapped_packet.get_station_information().get_station_metrics()
+    timestamps = metrics.get_timestamps().get_timestamps()
+    data_for_df = []
+    if len(timestamps) &gt; 0:
+        bat_samples = metrics.get_battery().get_values()
+        bat_cur_samples = metrics.get_battery_current().get_values()
+        temp_samples = metrics.get_temperature().get_values()
+        net_samples = metrics.get_network_type().get_values()
+        net_str_samples = metrics.get_network_strength().get_values()
+        pow_samples = metrics.get_power_state().get_values()
+        avail_ram_samples = metrics.get_available_ram().get_values()
+        avail_disk_samples = metrics.get_available_disk().get_values()
+        cell_samples = metrics.get_cell_service_state().get_values()
+        for i in range(len(timestamps)):
+            new_entry = [
+                timestamps[i],
+                np.nan if len(bat_samples) &lt; i + 1 else bat_samples[i],
+                np.nan if len(bat_cur_samples) &lt; i + 1 else bat_cur_samples[i],
+                np.nan if len(temp_samples) &lt; i + 1 else temp_samples[i],
+                np.nan if len(net_samples) &lt; i + 1 else net_samples[i],
+                np.nan if len(net_str_samples) &lt; i + 1 else net_str_samples[i],
+                np.nan if len(pow_samples) &lt; i + 1 else pow_samples[i],
+                np.nan if len(avail_ram_samples) &lt; i + 1 else avail_ram_samples[i],
+                np.nan if len(avail_disk_samples) &lt; i + 1 else avail_disk_samples[i],
+                np.nan if len(cell_samples) &lt; i + 1 else cell_samples[i],
+            ]
+            data_for_df.append(new_entry)
+    if len(data_for_df) &gt; 0:
+        data_df = pd.DataFrame(
+            data_for_df,
+            columns=[
+                &#34;timestamps&#34;,
+                &#34;battery_charge_remaining&#34;,
+                &#34;battery_current_strength&#34;,
+                &#34;internal_temp_c&#34;,
+                &#34;network_type&#34;,
+                &#34;network_strength&#34;,
+                &#34;power_state&#34;,
+                &#34;avail_ram&#34;,
+                &#34;avail_disk&#34;,
+                &#34;cell_service&#34;,
+            ],
+        )
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            &#34;station health&#34;,
+            data_df,
+            SensorType.STATION_HEALTH,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+    return None
+
+
+def load_apim_health_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load station health data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: station health sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_health(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_health(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.common.sensor_data.calc_evenly_sampled_timestamps"><code class="name flex">
+<span>def <span class="ident">calc_evenly_sampled_timestamps</span></span>(<span>start: float, samples: int, rate_hz: float) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+:param start: float, start timestamp in microseconds
+:param samples: int, number of samples
+:param rate_hz: float, sample rate in hz
+:return: np.array with evenly spaced timestamps starting at start</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calc_evenly_sampled_timestamps(
+    start: float, samples: int, rate_hz: float
+) -&gt; np.array:
+    &#34;&#34;&#34;
+    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+    :param start: float, start timestamp in microseconds
+    :param samples: int, number of samples
+    :param rate_hz: float, sample rate in hz
+    :return: np.array with evenly spaced timestamps starting at start
+    &#34;&#34;&#34;
+    return start + (np.arange(0, samples) / rate_hz) * dtu.MICROSECONDS_IN_SECOND</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.get_empty_sensor_data"><code class="name flex">
+<span>def <span class="ident">get_empty_sensor_data</span></span>(<span>name: str, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="#redvox.common.sensor_data.SensorType">SensorType</a> = SensorType.UNKNOWN_SENSOR) ‑> <a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>create a sensor data object with no data
+:param name: name of the sensor
+:param sensor_type: type of the sensor to create, default SensorType.UNKNOWN_SENSOR
+:return: empty sensor</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_empty_sensor_data(
+    name: str, sensor_type: SensorType = SensorType.UNKNOWN_SENSOR
+) -&gt; SensorData:
+    &#34;&#34;&#34;
+    create a sensor data object with no data
+    :param name: name of the sensor
+    :param sensor_type: type of the sensor to create, default SensorType.UNKNOWN_SENSOR
+    :return: empty sensor
+    &#34;&#34;&#34;
+    return SensorData(name, pd.DataFrame([], columns=[&#34;timestamps&#34;]), sensor_type)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.get_sample_statistics"><code class="name flex">
+<span>def <span class="ident">get_sample_statistics</span></span>(<span>data_df: pandas.core.frame.DataFrame) ‑> typing.Tuple[float, float, float]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>calculate the sample rate, interval and interval std dev using the timestamps in the dataframe
+:param data_df: the dataframe containing timestamps to calculate statistics from
+:return: a Tuple containing the sample rate, interval and interval std dev</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_sample_statistics(data_df: pd.DataFrame) -&gt; Tuple[float, float, float]:
+    &#34;&#34;&#34;
+    calculate the sample rate, interval and interval std dev using the timestamps in the dataframe
+    :param data_df: the dataframe containing timestamps to calculate statistics from
+    :return: a Tuple containing the sample rate, interval and interval std dev
+    &#34;&#34;&#34;
+    if data_df[&#34;timestamps&#34;].size &gt; 1:
+        sample_interval = dtu.microseconds_to_seconds(
+            float(np.mean(np.diff(data_df[&#34;timestamps&#34;])))
+        )
+        sample_interval_std = dtu.microseconds_to_seconds(
+            float(np.std(np.diff(data_df[&#34;timestamps&#34;])))
+        )
+    else:
+        sample_interval = np.nan
+        sample_interval_std = np.nan
+    return 1 / sample_interval, sample_interval, sample_interval_std</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_accelerometer"><code class="name flex">
+<span>def <span class="ident">load_apim_accelerometer</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load accelerometer data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: accelerometer sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_accelerometer(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load accelerometer data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: accelerometer sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    accel = wrapped_packet.get_sensors().get_accelerometer()
+    if accel and wrapped_packet.get_sensors().validate_accelerometer():
+        data_df = read_apim_xyz_sensor(accel, &#34;accelerometer&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            accel.get_sensor_description(),
+            data_df,
+            SensorType.ACCELEROMETER,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_accelerometer_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_accelerometer_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load accelerometer data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: accelerometer sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_accelerometer_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load accelerometer data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: accelerometer sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_accelerometer(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_accelerometer(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_ambient_temp"><code class="name flex">
+<span>def <span class="ident">load_apim_ambient_temp</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load ambient temperature data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: ambient temperature sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_ambient_temp(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load ambient temperature data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: ambient temperature sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    ambient_temp = wrapped_packet.get_sensors().get_ambient_temperature()
+    if ambient_temp and wrapped_packet.get_sensors().validate_ambient_temperature():
+        data_df = read_apim_single_sensor(ambient_temp, &#34;ambient_temp&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            ambient_temp.get_sensor_description(),
+            data_df,
+            SensorType.AMBIENT_TEMPERATURE,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_ambient_temp_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_ambient_temp_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load ambient temperature data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: ambient temperature sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_ambient_temp_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load ambient temperature data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: ambient temperature sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_ambient_temp(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_ambient_temp(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_audio"><code class="name flex">
+<span>def <span class="ident">load_apim_audio</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load audio data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: audio sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_audio(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load audio data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: audio sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    audio = wrapped_packet.get_sensors().get_audio()
+    if audio and wrapped_packet.get_sensors().validate_audio():
+        sample_rate_hz = audio.get_sample_rate()
+        data_for_df = audio.get_samples().get_values()
+        timestamps = calc_evenly_sampled_timestamps(
+            audio.get_first_sample_timestamp(), audio.get_num_samples(), sample_rate_hz
+        )
+        return SensorData(
+            audio.get_sensor_description(),
+            pd.DataFrame(
+                np.transpose([timestamps, data_for_df]),
+                columns=[&#34;timestamps&#34;, &#34;microphone&#34;],
+            ),
+            SensorType.AUDIO,
+            sample_rate_hz,
+            1 / sample_rate_hz,
+            0.0,
+            True,
+        )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_audio_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_audio_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load audio data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: audio sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_audio_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load audio data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: audio sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_audio(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_audio(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_compressed_audio"><code class="name flex">
+<span>def <span class="ident">load_apim_compressed_audio</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load compressed audio data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: compressed audio sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_compressed_audio(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load compressed audio data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: compressed audio sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    comp_audio = wrapped_packet.get_sensors().get_compressed_audio()
+    if comp_audio and wrapped_packet.get_sensors().validate_compressed_audio():
+        sample_rate_hz = comp_audio.get_sample_rate()
+        return SensorData(
+            comp_audio.get_sensor_description(),
+            pd.DataFrame(
+                np.transpose(
+                    [
+                        comp_audio.get_first_sample_timestamp(),
+                        comp_audio.get_audio_bytes(),
+                        comp_audio.get_audio_codec(),
+                    ]
+                ),
+                columns=[&#34;timestamps&#34;, &#34;compressed_audio&#34;, &#34;audio_codec&#34;],
+            ),
+            SensorType.COMPRESSED_AUDIO,
+            sample_rate_hz,
+            1 / sample_rate_hz,
+            0.0,
+            True,
+        )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_compressed_audio_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_compressed_audio_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load compressed audio data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: compressed audio sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_compressed_audio_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load compressed audio data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: compressed audio sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_compressed_audio(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_compressed_audio(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_gravity"><code class="name flex">
+<span>def <span class="ident">load_apim_gravity</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load gravity data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: gravity sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_gravity(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load gravity data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: gravity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    gravity = wrapped_packet.get_sensors().get_gravity()
+    if gravity and wrapped_packet.get_sensors().validate_gravity():
+        data_df = read_apim_xyz_sensor(gravity, &#34;gravity&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            gravity.get_sensor_description(),
+            data_df,
+            SensorType.GRAVITY,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_gravity_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_gravity_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load gravity data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: gravity sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_gravity_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load gravity data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: gravity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_gravity(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_gravity(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_gyroscope"><code class="name flex">
+<span>def <span class="ident">load_apim_gyroscope</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load gyroscope data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: gyroscope sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_gyroscope(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load gyroscope data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: gyroscope sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    gyro = wrapped_packet.get_sensors().get_gyroscope()
+    if gyro and wrapped_packet.get_sensors().validate_gyroscope():
+        data_df = read_apim_xyz_sensor(gyro, &#34;gyroscope&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            gyro.get_sensor_description(),
+            data_df,
+            SensorType.GYROSCOPE,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_gyroscope_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_gyroscope_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load gyroscope data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: gyroscope sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_gyroscope_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load gyroscope data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: gyroscope sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_gyroscope(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_gyroscope(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_health"><code class="name flex">
+<span>def <span class="ident">load_apim_health</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load station health data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: station health data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_health(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load station health data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: station health data if it exists, None otherwise
+    &#34;&#34;&#34;
+    metrics = wrapped_packet.get_station_information().get_station_metrics()
+    timestamps = metrics.get_timestamps().get_timestamps()
+    data_for_df = []
+    if len(timestamps) &gt; 0:
+        bat_samples = metrics.get_battery().get_values()
+        bat_cur_samples = metrics.get_battery_current().get_values()
+        temp_samples = metrics.get_temperature().get_values()
+        net_samples = metrics.get_network_type().get_values()
+        net_str_samples = metrics.get_network_strength().get_values()
+        pow_samples = metrics.get_power_state().get_values()
+        avail_ram_samples = metrics.get_available_ram().get_values()
+        avail_disk_samples = metrics.get_available_disk().get_values()
+        cell_samples = metrics.get_cell_service_state().get_values()
+        for i in range(len(timestamps)):
+            new_entry = [
+                timestamps[i],
+                np.nan if len(bat_samples) &lt; i + 1 else bat_samples[i],
+                np.nan if len(bat_cur_samples) &lt; i + 1 else bat_cur_samples[i],
+                np.nan if len(temp_samples) &lt; i + 1 else temp_samples[i],
+                np.nan if len(net_samples) &lt; i + 1 else net_samples[i],
+                np.nan if len(net_str_samples) &lt; i + 1 else net_str_samples[i],
+                np.nan if len(pow_samples) &lt; i + 1 else pow_samples[i],
+                np.nan if len(avail_ram_samples) &lt; i + 1 else avail_ram_samples[i],
+                np.nan if len(avail_disk_samples) &lt; i + 1 else avail_disk_samples[i],
+                np.nan if len(cell_samples) &lt; i + 1 else cell_samples[i],
+            ]
+            data_for_df.append(new_entry)
+    if len(data_for_df) &gt; 0:
+        data_df = pd.DataFrame(
+            data_for_df,
+            columns=[
+                &#34;timestamps&#34;,
+                &#34;battery_charge_remaining&#34;,
+                &#34;battery_current_strength&#34;,
+                &#34;internal_temp_c&#34;,
+                &#34;network_type&#34;,
+                &#34;network_strength&#34;,
+                &#34;power_state&#34;,
+                &#34;avail_ram&#34;,
+                &#34;avail_disk&#34;,
+                &#34;cell_service&#34;,
+            ],
+        )
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            &#34;station health&#34;,
+            data_df,
+            SensorType.STATION_HEALTH,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_health_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_health_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load station health data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: station health sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_health_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load station health data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: station health sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_health(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_health(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_image"><code class="name flex">
+<span>def <span class="ident">load_apim_image</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load image data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: image sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_image(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load image data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: image sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    image = wrapped_packet.get_sensors().get_image()
+    if image and wrapped_packet.get_sensors().validate_image():
+        timestamps = image.get_timestamps().get_timestamps()
+        codecs = np.full(len(timestamps), image.get_image_codec().value)
+        data_df = pd.DataFrame(
+            np.transpose([timestamps, image.get_samples(), codecs]),
+            columns=[&#34;timestamps&#34;, &#34;image&#34;, &#34;image_codec&#34;],
+        )
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            image.get_sensor_description(),
+            data_df,
+            SensorType.IMAGE,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_image_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_image_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load image data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: image sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_image_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load image data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: image sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_image(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_image(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_light"><code class="name flex">
+<span>def <span class="ident">load_apim_light</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load light data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: light sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_light(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load light data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: light sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    light = wrapped_packet.get_sensors().get_light()
+    if light and wrapped_packet.get_sensors().validate_light():
+        data_df = read_apim_single_sensor(light, &#34;light&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            light.get_sensor_description(),
+            data_df,
+            SensorType.LIGHT,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_light_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_light_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load light data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: light sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_light_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load light data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: light sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_light(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_light(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_linear_accel"><code class="name flex">
+<span>def <span class="ident">load_apim_linear_accel</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load linear acceleration data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: linear acceleration sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_linear_accel(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load linear acceleration data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: linear acceleration sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    linear_accel = wrapped_packet.get_sensors().get_linear_acceleration()
+    if linear_accel and wrapped_packet.get_sensors().validate_linear_acceleration():
+        data_df = read_apim_xyz_sensor(linear_accel, &#34;linear_accel&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            linear_accel.get_sensor_description(),
+            data_df,
+            SensorType.LINEAR_ACCELERATION,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_linear_accel_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_linear_accel_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load linear acceleration data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: linear acceleration sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_linear_accel_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load linear acceleration data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: linear acceleration sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_linear_accel(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_linear_accel(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_location"><code class="name flex">
+<span>def <span class="ident">load_apim_location</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load location data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: location sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_location(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load location data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: location sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    loc = wrapped_packet.get_sensors().get_location()
+    if loc and wrapped_packet.get_sensors().validate_location():
+        if loc.is_only_best_values():
+            if loc.get_last_best_location():
+                best_loc = loc.get_last_best_location()
+            else:
+                best_loc = loc.get_overall_best_location()
+            data_for_df = [
+                [
+                    best_loc.get_latitude_longitude_timestamp().get_mach(),
+                    best_loc.get_latitude(),
+                    best_loc.get_longitude(),
+                    best_loc.get_altitude(),
+                    best_loc.get_speed(),
+                    best_loc.get_bearing(),
+                    best_loc.get_horizontal_accuracy(),
+                    best_loc.get_vertical_accuracy(),
+                    best_loc.get_speed_accuracy(),
+                    best_loc.get_bearing_accuracy(),
+                    best_loc.get_location_provider(),
+                ]
+            ]
+        else:
+            timestamps = loc.get_timestamps().get_timestamps()
+            data_for_df = []
+            if len(timestamps) &gt; 0:
+                lat_samples = loc.get_latitude_samples().get_values()
+                lon_samples = loc.get_longitude_samples().get_values()
+                alt_samples = loc.get_altitude_samples().get_values()
+                spd_samples = loc.get_speed_samples().get_values()
+                bear_samples = loc.get_bearing_samples().get_values()
+                hor_acc_samples = loc.get_horizontal_accuracy_samples().get_values()
+                vert_acc_samples = loc.get_vertical_accuracy_samples().get_values()
+                spd_acc_samples = loc.get_speed_accuracy_samples().get_values()
+                bear_acc_samples = loc.get_bearing_accuracy_samples().get_values()
+                loc_prov_samples = loc.get_location_providers().get_values()
+                for i in range(len(timestamps)):
+                    new_entry = [
+                        timestamps[i],
+                        lat_samples[i],
+                        lon_samples[i],
+                        np.nan if len(alt_samples) &lt; i + 1 else alt_samples[i],
+                        np.nan if len(spd_samples) &lt; i + 1 else spd_samples[i],
+                        np.nan if len(bear_samples) &lt; i + 1 else bear_samples[i],
+                        np.nan if len(hor_acc_samples) &lt; i + 1 else hor_acc_samples[i],
+                        np.nan
+                        if len(vert_acc_samples) &lt; i + 1
+                        else vert_acc_samples[i],
+                        np.nan if len(spd_acc_samples) &lt; i + 1 else spd_acc_samples[i],
+                        np.nan
+                        if len(bear_acc_samples) &lt; i + 1
+                        else bear_acc_samples[i],
+                        np.nan
+                        if len(loc_prov_samples) &lt; i + 1
+                        else loc_prov_samples[i],
+                    ]
+                    data_for_df.append(new_entry)
+        data_df = pd.DataFrame(
+            data_for_df,
+            columns=[
+                &#34;timestamps&#34;,
+                &#34;latitude&#34;,
+                &#34;longitude&#34;,
+                &#34;altitude&#34;,
+                &#34;speed&#34;,
+                &#34;bearing&#34;,
+                &#34;horizontal_accuracy&#34;,
+                &#34;vertical_accuracy&#34;,
+                &#34;speed_accuracy&#34;,
+                &#34;bearing_accuracy&#34;,
+                &#34;location_provider&#34;,
+            ],
+        )
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            loc.get_sensor_description(),
+            data_df,
+            SensorType.LOCATION,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_location_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_location_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load location data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: location sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_location_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load location data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: location sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_location(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_location(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_magnetometer"><code class="name flex">
+<span>def <span class="ident">load_apim_magnetometer</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load magnetometer data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: magnetometer sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_magnetometer(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load magnetometer data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: magnetometer sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    mag = wrapped_packet.get_sensors().get_magnetometer()
+    if mag and wrapped_packet.get_sensors().validate_magnetometer():
+        data_df = read_apim_xyz_sensor(mag, &#34;magnetometer&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            mag.get_sensor_description(),
+            data_df,
+            SensorType.MAGNETOMETER,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_magnetometer_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_magnetometer_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load magnetometer data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: magnetometer sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_magnetometer_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load magnetometer data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: magnetometer sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_magnetometer(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_magnetometer(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_orientation"><code class="name flex">
+<span>def <span class="ident">load_apim_orientation</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load orientation data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: orientation sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_orientation(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load orientation data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: orientation sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    orientation = wrapped_packet.get_sensors().get_orientation()
+    if orientation and wrapped_packet.get_sensors().validate_orientation():
+        data_df = read_apim_xyz_sensor(orientation, &#34;orientation&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            orientation.get_sensor_description(),
+            data_df,
+            SensorType.ORIENTATION,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_orientation_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_orientation_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load orientation data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: orientation sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_orientation_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load orientation data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: orientation sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_orientation(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_orientation(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_pressure"><code class="name flex">
+<span>def <span class="ident">load_apim_pressure</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load pressure data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: pressure sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_pressure(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load pressure data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: pressure sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    pressure = wrapped_packet.get_sensors().get_pressure()
+    if pressure and wrapped_packet.get_sensors().validate_pressure():
+        data_df = read_apim_single_sensor(pressure, &#34;pressure&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            pressure.get_sensor_description(),
+            data_df,
+            SensorType.PRESSURE,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_pressure_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_pressure_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load pressure data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: pressure sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_pressure_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load pressure data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: pressure sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_pressure(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_pressure(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_proximity"><code class="name flex">
+<span>def <span class="ident">load_apim_proximity</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load proximity data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: proximity sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_proximity(wrapped_packet: WrappedRedvoxPacketM) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load proximity data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: proximity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    proximity = wrapped_packet.get_sensors().get_proximity()
+    if proximity and wrapped_packet.get_sensors().validate_proximity():
+        data_df = read_apim_single_sensor(proximity, &#34;proximity&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            proximity.get_sensor_description(),
+            data_df,
+            SensorType.PROXIMITY,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_proximity_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_proximity_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load proximity data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: proximity sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_proximity_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load proximity data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: proximity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_proximity(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_proximity(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_rel_humidity"><code class="name flex">
+<span>def <span class="ident">load_apim_rel_humidity</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load relative humidity data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: relative humidity sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_rel_humidity(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load relative humidity data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: relative humidity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    rel_humidity = wrapped_packet.get_sensors().get_relative_humidity()
+    if rel_humidity and wrapped_packet.get_sensors().validate_relative_humidity():
+        data_df = read_apim_single_sensor(rel_humidity, &#34;rel_humidity&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            rel_humidity.get_sensor_description(),
+            data_df,
+            SensorType.RELATIVE_HUMIDITY,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_rel_humidity_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_rel_humidity_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load relative humidity data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: relative humidity sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_rel_humidity_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load relative humidity data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: relative humidity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_rel_humidity(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_rel_humidity(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_rotation_vector"><code class="name flex">
+<span>def <span class="ident">load_apim_rotation_vector</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load rotation vector data from a single wrapped packet
+:param wrapped_packet: packet with data to load
+:return: rotation vector sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_rotation_vector(
+    wrapped_packet: WrappedRedvoxPacketM,
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load rotation vector data from a single wrapped packet
+    :param wrapped_packet: packet with data to load
+    :return: rotation vector sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    rotation = wrapped_packet.get_sensors().get_rotation_vector()
+    if rotation and wrapped_packet.get_sensors().validate_rotation_vector():
+        data_df = read_apim_xyz_sensor(rotation, &#34;rotation_vector&#34;)
+        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+            data_df
+        )
+        return SensorData(
+            rotation.get_sensor_description(),
+            data_df,
+            SensorType.ROTATION_VECTOR,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+            False,
+        )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.load_apim_rotation_vector_from_list"><code class="name flex">
+<span>def <span class="ident">load_apim_rotation_vector_from_list</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load rotation vector data from a list of wrapped packets
+:param wrapped_packets: packets with data to load
+:return: rotation vector sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_rotation_vector_from_list(
+    wrapped_packets: List[WrappedRedvoxPacketM],
+) -&gt; Optional[SensorData]:
+    &#34;&#34;&#34;
+    load rotation vector data from a list of wrapped packets
+    :param wrapped_packets: packets with data to load
+    :return: rotation vector sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if len(wrapped_packets) &gt; 0:
+        result = load_apim_rotation_vector(wrapped_packets[0])
+        if len(wrapped_packets) == 1:
+            return result
+        for wrapped_packet in wrapped_packets[1:]:
+            next_result = load_apim_rotation_vector(wrapped_packet)
+            if next_result:
+                result.append_data(next_result.data_df)
+        return result.organize_and_update_stats()
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.read_apim_single_sensor"><code class="name flex">
+<span>def <span class="ident">read_apim_single_sensor</span></span>(<span>sensor: <a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="../api1000/wrapped_redvox_packet/sensors/single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a>, column_id: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>read a sensor that has a single data channel from an api M data packet
+raises Attribute Error if sensor does not contain exactly one data channel
+:param sensor: the single channel api M sensor to read
+:param column_id: string, used to name the columns
+:return: Dataframe representing the data in the sensor</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_apim_single_sensor(sensor: single.Single, column_id: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    read a sensor that has a single data channel from an api M data packet
+    raises Attribute Error if sensor does not contain exactly one data channel
+    :param sensor: the single channel api M sensor to read
+    :param column_id: string, used to name the columns
+    :return: Dataframe representing the data in the sensor
+    &#34;&#34;&#34;
+    timestamps = sensor.get_timestamps().get_timestamps()
+    try:
+        columns = [&#34;timestamps&#34;, column_id]
+        return pd.DataFrame(
+            np.transpose([timestamps, sensor.get_samples().get_values()]),
+            columns=columns,
+        )
+    except AttributeError:
+        raise</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.read_apim_xyz_sensor"><code class="name flex">
+<span>def <span class="ident">read_apim_xyz_sensor</span></span>(<span>sensor: <a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="../api1000/wrapped_redvox_packet/sensors/xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, column_id: str) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>read a sensor that has xyz data channels from an api M data packet
+raises Attribute Error if sensor does not contain xyz channels
+:param sensor: the xyz api M sensor to read
+:param column_id: string, used to name the columns
+:return: Dataframe representing the data in the sensor</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_apim_xyz_sensor(sensor: xyz.Xyz, column_id: str) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    read a sensor that has xyz data channels from an api M data packet
+    raises Attribute Error if sensor does not contain xyz channels
+    :param sensor: the xyz api M sensor to read
+    :param column_id: string, used to name the columns
+    :return: Dataframe representing the data in the sensor
+    &#34;&#34;&#34;
+    timestamps = sensor.get_timestamps().get_timestamps()
+    try:
+        columns = [&#34;timestamps&#34;, f&#34;{column_id}_x&#34;, f&#34;{column_id}_y&#34;, f&#34;{column_id}_z&#34;]
+        return pd.DataFrame(
+            np.transpose(
+                [
+                    timestamps,
+                    sensor.get_x_samples().get_values(),
+                    sensor.get_y_samples().get_values(),
+                    sensor.get_z_samples().get_values(),
+                ]
+            ),
+            columns=columns,
+        )
+    except AttributeError:
+        raise</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.common.sensor_data.SensorData"><code class="flex name class">
+<span>class <span class="ident">SensorData</span></span>
+<span>(</span><span>sensor_name: str, sensor_data: pandas.core.frame.DataFrame, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="#redvox.common.sensor_data.SensorType">SensorType</a> = SensorType.UNKNOWN_SENSOR, sample_rate: float = nan, sample_interval_s: float = nan, sample_interval_std_s: float = nan, is_sample_rate_fixed: bool = False, are_timestamps_altered: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generic SensorData class for API-independent analysis</p>
+<h2 id="properties">Properties</h2>
+<p>name: string, name of sensor
+type: SensorType, enumerated type of sensor
+data_df: dataframe of the sensor data; always has timestamps as the first column,
+the other columns are the data fields
+sample_rate: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
+sample_interval_s: float, mean duration in seconds between samples, default np.nan, usually 1/sample_rate
+sample_interval_std_s: float, standard deviation in seconds between samples, default np.nan
+is_sample_rate_fixed: bool, True if sample rate is constant, default False
+timestamps_altered: bool, True if timestamps in the sensor have been altered from their original values
+default False</p>
+<p>initialize the sensor data with params
+:param sensor_name: name of the sensor
+:param sensor_type: enumerated type of the sensor, default SensorType.UNKNOWN_SENSOR
+:param sensor_data: dataframe with the timestamps and sensor data; first column is always the timestamps,
+the other columns are the data channels in the sensor
+:param sample_rate: sample rate in hz of the data
+:param sample_interval_s: sample interval in seconds of the data
+:param sample_interval_std_s: std dev of sample interval in seconds of the data
+:param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
+:param are_timestamps_altered: if True, timestamps in the sensor have been altered from their
+original values, default False</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SensorData:
+    &#34;&#34;&#34;
+    Generic SensorData class for API-independent analysis
+    Properties:
+        name: string, name of sensor
+        type: SensorType, enumerated type of sensor
+        data_df: dataframe of the sensor data; always has timestamps as the first column,
+                    the other columns are the data fields
+        sample_rate: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
+        sample_interval_s: float, mean duration in seconds between samples, default np.nan, usually 1/sample_rate
+        sample_interval_std_s: float, standard deviation in seconds between samples, default np.nan
+        is_sample_rate_fixed: bool, True if sample rate is constant, default False
+        timestamps_altered: bool, True if timestamps in the sensor have been altered from their original values
+                            default False
+    &#34;&#34;&#34;
+
+    def __init__(
+        self,
+        sensor_name: str,
+        sensor_data: pd.DataFrame,
+        sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
+        sample_rate: float = np.nan,
+        sample_interval_s: float = np.nan,
+        sample_interval_std_s: float = np.nan,
+        is_sample_rate_fixed: bool = False,
+        are_timestamps_altered: bool = False,
+    ):
+        &#34;&#34;&#34;
+        initialize the sensor data with params
+        :param sensor_name: name of the sensor
+        :param sensor_type: enumerated type of the sensor, default SensorType.UNKNOWN_SENSOR
+        :param sensor_data: dataframe with the timestamps and sensor data; first column is always the timestamps,
+                            the other columns are the data channels in the sensor
+        :param sample_rate: sample rate in hz of the data
+        :param sample_interval_s: sample interval in seconds of the data
+        :param sample_interval_std_s: std dev of sample interval in seconds of the data
+        :param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
+        :param are_timestamps_altered: if True, timestamps in the sensor have been altered from their
+                                        original values, default False
+        &#34;&#34;&#34;
+        if &#34;timestamps&#34; not in sensor_data.columns:
+            raise AttributeError(
+                &#39;SensorData requires the data frame to contain a column titled &#34;timestamps&#34;&#39;
+            )
+        self.name: str = sensor_name
+        self.type: SensorType = sensor_type
+        self.data_df: pd.DataFrame = sensor_data
+        self.sample_rate: float = sample_rate
+        self.sample_interval_s: float = sample_interval_s
+        self.sample_interval_std_s: float = sample_interval_std_s
+        self.is_sample_rate_fixed: bool = is_sample_rate_fixed
+        self.timestamps_altered: bool = are_timestamps_altered
+        self.sort_by_data_timestamps()
+        # todo: store the non-consecutive timestamp indices (idk how to find those)
+
+    def is_sample_interval_invalid(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: True if sample interval is np.nan or equal to 0.0
+        &#34;&#34;&#34;
+        return np.isnan(self.sample_interval_s) or self.sample_interval_s == 0.0
+
+    def organize_and_update_stats(self) -&gt; &#34;SensorData&#34;:
+        &#34;&#34;&#34;
+        sorts the data by timestamps, then if the sample rate is not fixed, recalculates the sample rate, interval,
+            and interval std dev.  If there is only one value, sets the sample rate, interval, and interval std dev
+            to np.nan.  Updates the SensorData object with the new values
+        :return: updated version of self
+        &#34;&#34;&#34;
+        self.sort_by_data_timestamps()
+        if not self.is_sample_rate_fixed:
+            if self.num_samples() &gt; 1:
+                timestamp_diffs = np.diff(self.data_timestamps())
+                self.sample_interval_s = dtu.microseconds_to_seconds(
+                    float(np.mean(timestamp_diffs))
+                )
+                self.sample_interval_std_s = dtu.microseconds_to_seconds(
+                    float(np.std(timestamp_diffs))
+                )
+                self.sample_rate = (
+                    np.nan
+                    if self.is_sample_interval_invalid()
+                    else 1 / self.sample_interval_s
+                )
+            else:
+                self.sample_interval_s = np.nan
+                self.sample_interval_std_s = np.nan
+                self.sample_rate = np.nan
+        return self
+
+    def append_data(
+        self, new_data: pd.DataFrame, recalculate_stats: bool = False
+    ) -&gt; &#34;SensorData&#34;:
+        &#34;&#34;&#34;
+        append the new data to the dataframe, update the sensor&#39;s stats on demand if it doesn&#39;t have a fixed
+            sample rate, then return the updated SensorData object
+        :param new_data: Dataframe containing data to add to the sensor&#39;s dataframe
+        :param recalculate_stats: if True and the sensor does not have a fixed sample rate, sort the timestamps,
+                                    recalculate the sample rate, interval, and interval std dev, default False
+        :return: the updated SensorData object
+        &#34;&#34;&#34;
+        self.data_df = self.data_df.append(new_data, ignore_index=True)
+        if recalculate_stats and not self.is_sample_rate_fixed:
+            self.organize_and_update_stats()
+        return self
+
+    def sensor_type_as_str(self) -&gt; str:
+        &#34;&#34;&#34;
+        gets the sensor type as a string
+        :return: sensor type of the sensor as a string
+        &#34;&#34;&#34;
+        return self.type.name
+
+    def samples(self) -&gt; np.ndarray:
+        &#34;&#34;&#34;
+        gets the samples of dataframe
+        :return: the data values of the dataframe as a numpy ndarray
+        &#34;&#34;&#34;
+        return self.data_df.iloc[:, 1:].T.to_numpy()
+
+    def get_data_channel(self, channel_name: str) -&gt; np.array:
+        &#34;&#34;&#34;
+        gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
+        :param channel_name: the name of the channel to get data for
+        :return: the data values of the channel as a numpy array or a list of strings if the channel is enumerated
+        &#34;&#34;&#34;
+        if channel_name not in self.data_df.columns:
+            raise ValueError(
+                f&#34;WARNING: {channel_name} does not exist; try one of {self.data_channels()}&#34;
+            )
+        return self.data_df[channel_name].to_numpy()
+
+    def get_valid_data_channel_values(self, channel_name: str) -&gt; np.array:
+        &#34;&#34;&#34;
+        gets all non-nan values from the channel specified
+        :param channel_name: the name of the channel to get data for
+        :return: non-nan values of the channel as a numpy array
+        &#34;&#34;&#34;
+        channel_data = self.get_data_channel(channel_name)
+        return channel_data[~np.isnan(channel_data)]
+
+    def data_timestamps(self) -&gt; np.array:
+        &#34;&#34;&#34;
+        :return: the timestamps as a numpy array
+        &#34;&#34;&#34;
+        return self.data_df[&#34;timestamps&#34;].to_numpy(dtype=np.float)
+
+    def first_data_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: timestamp of the first data point
+        &#34;&#34;&#34;
+        return self.data_df[&#34;timestamps&#34;].iloc[0]
+
+    def last_data_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: timestamp of the last data point
+        &#34;&#34;&#34;
+        return self.data_df[&#34;timestamps&#34;].iloc[-1]
+
+    def num_samples(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: the number of rows (samples) in the dataframe
+        &#34;&#34;&#34;
+        return self.data_df.shape[0]
+
+    def data_duration_s(self) -&gt; float:
+        &#34;&#34;&#34;
+        calculate the duration in seconds of the dataframe: last - first timestamp if enough data, otherwise np.nan
+        :return: duration in seconds of the dataframe
+        &#34;&#34;&#34;
+        if self.num_samples() &gt; 1:
+            return dtu.microseconds_to_seconds(
+                self.last_data_timestamp() - self.first_data_timestamp()
+            )
+        return np.nan
+
+    def data_channels(self) -&gt; List[str]:
+        &#34;&#34;&#34;
+        :return: a list of the names of the columns (data channels) of the dataframe
+        &#34;&#34;&#34;
+        return self.data_df.columns.to_list()
+
+    def update_data_timestamps(self, time_delta: float):
+        &#34;&#34;&#34;
+        adds the time_delta to the sensor&#39;s timestamps; use negative values to go backwards in time
+        :param time_delta: time to add to sensor&#39;s timestamps
+        &#34;&#34;&#34;
+        new_timestamps = self.data_timestamps() + time_delta
+        self.data_df[&#34;timestamps&#34;] = new_timestamps
+        self.timestamps_altered = True
+
+    def sort_by_data_timestamps(self, ascending: bool = True):
+        &#34;&#34;&#34;
+        sorts the data based on timestamps
+        :param ascending: if True, timestamps are sorted in ascending order
+        &#34;&#34;&#34;
+        self.data_df = self.data_df.sort_values(&#34;timestamps&#34;, ascending=ascending)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.sensor_data.SensorData.append_data"><code class="name flex">
+<span>def <span class="ident">append_data</span></span>(<span>self, new_data: pandas.core.frame.DataFrame, recalculate_stats: bool = False) ‑> <a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>append the new data to the dataframe, update the sensor's stats on demand if it doesn't have a fixed
+sample rate, then return the updated SensorData object
+:param new_data: Dataframe containing data to add to the sensor's dataframe
+:param recalculate_stats: if True and the sensor does not have a fixed sample rate, sort the timestamps,
+recalculate the sample rate, interval, and interval std dev, default False
+:return: the updated SensorData object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append_data(
+    self, new_data: pd.DataFrame, recalculate_stats: bool = False
+) -&gt; &#34;SensorData&#34;:
+    &#34;&#34;&#34;
+    append the new data to the dataframe, update the sensor&#39;s stats on demand if it doesn&#39;t have a fixed
+        sample rate, then return the updated SensorData object
+    :param new_data: Dataframe containing data to add to the sensor&#39;s dataframe
+    :param recalculate_stats: if True and the sensor does not have a fixed sample rate, sort the timestamps,
+                                recalculate the sample rate, interval, and interval std dev, default False
+    :return: the updated SensorData object
+    &#34;&#34;&#34;
+    self.data_df = self.data_df.append(new_data, ignore_index=True)
+    if recalculate_stats and not self.is_sample_rate_fixed:
+        self.organize_and_update_stats()
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.data_channels"><code class="name flex">
+<span>def <span class="ident">data_channels</span></span>(<span>self) ‑> typing.List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: a list of the names of the columns (data channels) of the dataframe</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def data_channels(self) -&gt; List[str]:
+    &#34;&#34;&#34;
+    :return: a list of the names of the columns (data channels) of the dataframe
+    &#34;&#34;&#34;
+    return self.data_df.columns.to_list()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.data_duration_s"><code class="name flex">
+<span>def <span class="ident">data_duration_s</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>calculate the duration in seconds of the dataframe: last - first timestamp if enough data, otherwise np.nan
+:return: duration in seconds of the dataframe</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def data_duration_s(self) -&gt; float:
+    &#34;&#34;&#34;
+    calculate the duration in seconds of the dataframe: last - first timestamp if enough data, otherwise np.nan
+    :return: duration in seconds of the dataframe
+    &#34;&#34;&#34;
+    if self.num_samples() &gt; 1:
+        return dtu.microseconds_to_seconds(
+            self.last_data_timestamp() - self.first_data_timestamp()
+        )
+    return np.nan</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.data_timestamps"><code class="name flex">
+<span>def <span class="ident">data_timestamps</span></span>(<span>self) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: the timestamps as a numpy array</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def data_timestamps(self) -&gt; np.array:
+    &#34;&#34;&#34;
+    :return: the timestamps as a numpy array
+    &#34;&#34;&#34;
+    return self.data_df[&#34;timestamps&#34;].to_numpy(dtype=np.float)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.first_data_timestamp"><code class="name flex">
+<span>def <span class="ident">first_data_timestamp</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: timestamp of the first data point</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def first_data_timestamp(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: timestamp of the first data point
+    &#34;&#34;&#34;
+    return self.data_df[&#34;timestamps&#34;].iloc[0]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.get_data_channel"><code class="name flex">
+<span>def <span class="ident">get_data_channel</span></span>(<span>self, channel_name: str) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
+:param channel_name: the name of the channel to get data for
+:return: the data values of the channel as a numpy array or a list of strings if the channel is enumerated</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_data_channel(self, channel_name: str) -&gt; np.array:
+    &#34;&#34;&#34;
+    gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
+    :param channel_name: the name of the channel to get data for
+    :return: the data values of the channel as a numpy array or a list of strings if the channel is enumerated
+    &#34;&#34;&#34;
+    if channel_name not in self.data_df.columns:
+        raise ValueError(
+            f&#34;WARNING: {channel_name} does not exist; try one of {self.data_channels()}&#34;
+        )
+    return self.data_df[channel_name].to_numpy()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.get_valid_data_channel_values"><code class="name flex">
+<span>def <span class="ident">get_valid_data_channel_values</span></span>(<span>self, channel_name: str) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>gets all non-nan values from the channel specified
+:param channel_name: the name of the channel to get data for
+:return: non-nan values of the channel as a numpy array</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_valid_data_channel_values(self, channel_name: str) -&gt; np.array:
+    &#34;&#34;&#34;
+    gets all non-nan values from the channel specified
+    :param channel_name: the name of the channel to get data for
+    :return: non-nan values of the channel as a numpy array
+    &#34;&#34;&#34;
+    channel_data = self.get_data_channel(channel_name)
+    return channel_data[~np.isnan(channel_data)]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.is_sample_interval_invalid"><code class="name flex">
+<span>def <span class="ident">is_sample_interval_invalid</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: True if sample interval is np.nan or equal to 0.0</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_sample_interval_invalid(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: True if sample interval is np.nan or equal to 0.0
+    &#34;&#34;&#34;
+    return np.isnan(self.sample_interval_s) or self.sample_interval_s == 0.0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.last_data_timestamp"><code class="name flex">
+<span>def <span class="ident">last_data_timestamp</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: timestamp of the last data point</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def last_data_timestamp(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: timestamp of the last data point
+    &#34;&#34;&#34;
+    return self.data_df[&#34;timestamps&#34;].iloc[-1]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.num_samples"><code class="name flex">
+<span>def <span class="ident">num_samples</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: the number of rows (samples) in the dataframe</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def num_samples(self) -&gt; int:
+    &#34;&#34;&#34;
+    :return: the number of rows (samples) in the dataframe
+    &#34;&#34;&#34;
+    return self.data_df.shape[0]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.organize_and_update_stats"><code class="name flex">
+<span>def <span class="ident">organize_and_update_stats</span></span>(<span>self) ‑> <a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>sorts the data by timestamps, then if the sample rate is not fixed, recalculates the sample rate, interval,
+and interval std dev.
+If there is only one value, sets the sample rate, interval, and interval std dev
+to np.nan.
+Updates the SensorData object with the new values
+:return: updated version of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def organize_and_update_stats(self) -&gt; &#34;SensorData&#34;:
+    &#34;&#34;&#34;
+    sorts the data by timestamps, then if the sample rate is not fixed, recalculates the sample rate, interval,
+        and interval std dev.  If there is only one value, sets the sample rate, interval, and interval std dev
+        to np.nan.  Updates the SensorData object with the new values
+    :return: updated version of self
+    &#34;&#34;&#34;
+    self.sort_by_data_timestamps()
+    if not self.is_sample_rate_fixed:
+        if self.num_samples() &gt; 1:
+            timestamp_diffs = np.diff(self.data_timestamps())
+            self.sample_interval_s = dtu.microseconds_to_seconds(
+                float(np.mean(timestamp_diffs))
+            )
+            self.sample_interval_std_s = dtu.microseconds_to_seconds(
+                float(np.std(timestamp_diffs))
+            )
+            self.sample_rate = (
+                np.nan
+                if self.is_sample_interval_invalid()
+                else 1 / self.sample_interval_s
+            )
+        else:
+            self.sample_interval_s = np.nan
+            self.sample_interval_std_s = np.nan
+            self.sample_rate = np.nan
+    return self</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.samples"><code class="name flex">
+<span>def <span class="ident">samples</span></span>(<span>self) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>gets the samples of dataframe
+:return: the data values of the dataframe as a numpy ndarray</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def samples(self) -&gt; np.ndarray:
+    &#34;&#34;&#34;
+    gets the samples of dataframe
+    :return: the data values of the dataframe as a numpy ndarray
+    &#34;&#34;&#34;
+    return self.data_df.iloc[:, 1:].T.to_numpy()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.sensor_type_as_str"><code class="name flex">
+<span>def <span class="ident">sensor_type_as_str</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>gets the sensor type as a string
+:return: sensor type of the sensor as a string</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sensor_type_as_str(self) -&gt; str:
+    &#34;&#34;&#34;
+    gets the sensor type as a string
+    :return: sensor type of the sensor as a string
+    &#34;&#34;&#34;
+    return self.type.name</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.sort_by_data_timestamps"><code class="name flex">
+<span>def <span class="ident">sort_by_data_timestamps</span></span>(<span>self, ascending: bool = True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>sorts the data based on timestamps
+:param ascending: if True, timestamps are sorted in ascending order</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sort_by_data_timestamps(self, ascending: bool = True):
+    &#34;&#34;&#34;
+    sorts the data based on timestamps
+    :param ascending: if True, timestamps are sorted in ascending order
+    &#34;&#34;&#34;
+    self.data_df = self.data_df.sort_values(&#34;timestamps&#34;, ascending=ascending)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.update_data_timestamps"><code class="name flex">
+<span>def <span class="ident">update_data_timestamps</span></span>(<span>self, time_delta: float)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>adds the time_delta to the sensor's timestamps; use negative values to go backwards in time
+:param time_delta: time to add to sensor's timestamps</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_data_timestamps(self, time_delta: float):
+    &#34;&#34;&#34;
+    adds the time_delta to the sensor&#39;s timestamps; use negative values to go backwards in time
+    :param time_delta: time to add to sensor&#39;s timestamps
+    &#34;&#34;&#34;
+    new_timestamps = self.data_timestamps() + time_delta
+    self.data_df[&#34;timestamps&#34;] = new_timestamps
+    self.timestamps_altered = True</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType"><code class="flex name class">
+<span>class <span class="ident">SensorType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Enumeration of possible types of sensors to read data from</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SensorType(enum.Enum):
+    &#34;&#34;&#34;
+    Enumeration of possible types of sensors to read data from
+    &#34;&#34;&#34;
+
+    UNKNOWN_SENSOR = 0  # unknown sensor
+    ACCELEROMETER = 1  # meters/second^2
+    AMBIENT_TEMPERATURE = 2  # degrees Celsius
+    AUDIO = 3  # normalized counts
+    COMPRESSED_AUDIO = 4  # bytes (codec specific)
+    GRAVITY = 5  # meters/second^2
+    GYROSCOPE = 6  # radians/second
+    IMAGE = 7  # bytes (codec specific)
+    LIGHT = 8  # lux
+    LINEAR_ACCELERATION = 9  # meters/second^2
+    LOCATION = 10  # See standard
+    MAGNETOMETER = 11  # microtesla
+    ORIENTATION = 12  # radians
+    PRESSURE = 13  # kilopascal
+    PROXIMITY = 14  # on, off, cm
+    RELATIVE_HUMIDITY = 15  # percentage
+    ROTATION_VECTOR = 16  # Unitless
+    INFRARED = 17  # this is proximity
+    STATION_HEALTH = 18
+    # battery charge and current level, phone internal temperature, network source and strength,
+    # available RAM of the system, cell service status, amount of hard disk space left, power charging state
+
+    @staticmethod
+    def type_from_str(type_str: str) -&gt; &#34;SensorType&#34;:
+        &#34;&#34;&#34;
+        converts a string to a sensor type
+        :param type_str: string to convert
+        :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
+        &#34;&#34;&#34;
+        if type_str.lower() == &#34;mic&#34; or type_str.lower() == &#34;audio&#34;:
+            return SensorType.AUDIO
+        elif type_str.lower() == &#34;accelerometer&#34; or type_str.lower() == &#34;accel&#34;:
+            return SensorType.ACCELEROMETER
+        elif type_str.lower() == &#34;ambient_temperature&#34;:
+            return SensorType.AMBIENT_TEMPERATURE
+        elif type_str.lower() == &#34;compressed_audio&#34;:
+            return SensorType.COMPRESSED_AUDIO
+        elif type_str.lower() == &#34;gravity&#34;:
+            return SensorType.GRAVITY
+        elif type_str.lower() == &#34;gyroscope&#34; or type_str.lower() == &#34;gyro&#34;:
+            return SensorType.GYROSCOPE
+        elif type_str.lower() == &#34;image&#34;:
+            return SensorType.IMAGE
+        elif type_str.lower() == &#34;light&#34;:
+            return SensorType.LIGHT
+        elif (
+            type_str.lower() == &#34;linear_acceleration&#34;
+            or type_str.lower() == &#34;linear_accel&#34;
+        ):
+            return SensorType.LINEAR_ACCELERATION
+        elif type_str.lower() == &#34;location&#34; or type_str.lower() == &#34;loc&#34;:
+            return SensorType.LOCATION
+        elif type_str.lower() == &#34;magnetometer&#34; or type_str.lower() == &#34;mag&#34;:
+            return SensorType.MAGNETOMETER
+        elif type_str.lower() == &#34;orientation&#34;:
+            return SensorType.ORIENTATION
+        elif (
+            type_str.lower() == &#34;pressure&#34;
+            or type_str.lower() == &#34;bar&#34;
+            or type_str.lower() == &#34;barometer&#34;
+        ):
+            return SensorType.PRESSURE
+        elif type_str.lower() == &#34;proximity&#34; or type_str.lower() == &#34;infrared&#34;:
+            return SensorType.PROXIMITY
+        elif type_str.lower() == &#34;relative_humidity&#34;:
+            return SensorType.RELATIVE_HUMIDITY
+        elif type_str.lower() == &#34;rotation_vector&#34;:
+            return SensorType.ROTATION_VECTOR
+        else:
+            return SensorType.UNKNOWN_SENSOR</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.sensor_data.SensorType.ACCELEROMETER"><code class="name">var <span class="ident">ACCELEROMETER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.AMBIENT_TEMPERATURE"><code class="name">var <span class="ident">AMBIENT_TEMPERATURE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.AUDIO"><code class="name">var <span class="ident">AUDIO</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.COMPRESSED_AUDIO"><code class="name">var <span class="ident">COMPRESSED_AUDIO</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.GRAVITY"><code class="name">var <span class="ident">GRAVITY</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.GYROSCOPE"><code class="name">var <span class="ident">GYROSCOPE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.IMAGE"><code class="name">var <span class="ident">IMAGE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.INFRARED"><code class="name">var <span class="ident">INFRARED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.LIGHT"><code class="name">var <span class="ident">LIGHT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.LINEAR_ACCELERATION"><code class="name">var <span class="ident">LINEAR_ACCELERATION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.LOCATION"><code class="name">var <span class="ident">LOCATION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.MAGNETOMETER"><code class="name">var <span class="ident">MAGNETOMETER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.ORIENTATION"><code class="name">var <span class="ident">ORIENTATION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.PRESSURE"><code class="name">var <span class="ident">PRESSURE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.PROXIMITY"><code class="name">var <span class="ident">PROXIMITY</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.RELATIVE_HUMIDITY"><code class="name">var <span class="ident">RELATIVE_HUMIDITY</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.ROTATION_VECTOR"><code class="name">var <span class="ident">ROTATION_VECTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.STATION_HEALTH"><code class="name">var <span class="ident">STATION_HEALTH</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.sensor_data.SensorType.UNKNOWN_SENSOR"><code class="name">var <span class="ident">UNKNOWN_SENSOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.sensor_data.SensorType.type_from_str"><code class="name flex">
+<span>def <span class="ident">type_from_str</span></span>(<span>type_str: str) ‑> <a title="redvox.common.sensor_data.SensorType" href="#redvox.common.sensor_data.SensorType">SensorType</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>converts a string to a sensor type
+:param type_str: string to convert
+:return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def type_from_str(type_str: str) -&gt; &#34;SensorType&#34;:
+    &#34;&#34;&#34;
+    converts a string to a sensor type
+    :param type_str: string to convert
+    :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
+    &#34;&#34;&#34;
+    if type_str.lower() == &#34;mic&#34; or type_str.lower() == &#34;audio&#34;:
+        return SensorType.AUDIO
+    elif type_str.lower() == &#34;accelerometer&#34; or type_str.lower() == &#34;accel&#34;:
+        return SensorType.ACCELEROMETER
+    elif type_str.lower() == &#34;ambient_temperature&#34;:
+        return SensorType.AMBIENT_TEMPERATURE
+    elif type_str.lower() == &#34;compressed_audio&#34;:
+        return SensorType.COMPRESSED_AUDIO
+    elif type_str.lower() == &#34;gravity&#34;:
+        return SensorType.GRAVITY
+    elif type_str.lower() == &#34;gyroscope&#34; or type_str.lower() == &#34;gyro&#34;:
+        return SensorType.GYROSCOPE
+    elif type_str.lower() == &#34;image&#34;:
+        return SensorType.IMAGE
+    elif type_str.lower() == &#34;light&#34;:
+        return SensorType.LIGHT
+    elif (
+        type_str.lower() == &#34;linear_acceleration&#34;
+        or type_str.lower() == &#34;linear_accel&#34;
+    ):
+        return SensorType.LINEAR_ACCELERATION
+    elif type_str.lower() == &#34;location&#34; or type_str.lower() == &#34;loc&#34;:
+        return SensorType.LOCATION
+    elif type_str.lower() == &#34;magnetometer&#34; or type_str.lower() == &#34;mag&#34;:
+        return SensorType.MAGNETOMETER
+    elif type_str.lower() == &#34;orientation&#34;:
+        return SensorType.ORIENTATION
+    elif (
+        type_str.lower() == &#34;pressure&#34;
+        or type_str.lower() == &#34;bar&#34;
+        or type_str.lower() == &#34;barometer&#34;
+    ):
+        return SensorType.PRESSURE
+    elif type_str.lower() == &#34;proximity&#34; or type_str.lower() == &#34;infrared&#34;:
+        return SensorType.PROXIMITY
+    elif type_str.lower() == &#34;relative_humidity&#34;:
+        return SensorType.RELATIVE_HUMIDITY
+    elif type_str.lower() == &#34;rotation_vector&#34;:
+        return SensorType.ROTATION_VECTOR
+    else:
+        return SensorType.UNKNOWN_SENSOR</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.common" href="index.html">redvox.common</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.common.sensor_data.calc_evenly_sampled_timestamps" href="#redvox.common.sensor_data.calc_evenly_sampled_timestamps">calc_evenly_sampled_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.get_empty_sensor_data" href="#redvox.common.sensor_data.get_empty_sensor_data">get_empty_sensor_data</a></code></li>
+<li><code><a title="redvox.common.sensor_data.get_sample_statistics" href="#redvox.common.sensor_data.get_sample_statistics">get_sample_statistics</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_accelerometer" href="#redvox.common.sensor_data.load_apim_accelerometer">load_apim_accelerometer</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_accelerometer_from_list" href="#redvox.common.sensor_data.load_apim_accelerometer_from_list">load_apim_accelerometer_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_ambient_temp" href="#redvox.common.sensor_data.load_apim_ambient_temp">load_apim_ambient_temp</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_ambient_temp_from_list" href="#redvox.common.sensor_data.load_apim_ambient_temp_from_list">load_apim_ambient_temp_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_audio" href="#redvox.common.sensor_data.load_apim_audio">load_apim_audio</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_audio_from_list" href="#redvox.common.sensor_data.load_apim_audio_from_list">load_apim_audio_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_compressed_audio" href="#redvox.common.sensor_data.load_apim_compressed_audio">load_apim_compressed_audio</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_compressed_audio_from_list" href="#redvox.common.sensor_data.load_apim_compressed_audio_from_list">load_apim_compressed_audio_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_gravity" href="#redvox.common.sensor_data.load_apim_gravity">load_apim_gravity</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_gravity_from_list" href="#redvox.common.sensor_data.load_apim_gravity_from_list">load_apim_gravity_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_gyroscope" href="#redvox.common.sensor_data.load_apim_gyroscope">load_apim_gyroscope</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_gyroscope_from_list" href="#redvox.common.sensor_data.load_apim_gyroscope_from_list">load_apim_gyroscope_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_health" href="#redvox.common.sensor_data.load_apim_health">load_apim_health</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_health_from_list" href="#redvox.common.sensor_data.load_apim_health_from_list">load_apim_health_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_image" href="#redvox.common.sensor_data.load_apim_image">load_apim_image</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_image_from_list" href="#redvox.common.sensor_data.load_apim_image_from_list">load_apim_image_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_light" href="#redvox.common.sensor_data.load_apim_light">load_apim_light</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_light_from_list" href="#redvox.common.sensor_data.load_apim_light_from_list">load_apim_light_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_linear_accel" href="#redvox.common.sensor_data.load_apim_linear_accel">load_apim_linear_accel</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_linear_accel_from_list" href="#redvox.common.sensor_data.load_apim_linear_accel_from_list">load_apim_linear_accel_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_location" href="#redvox.common.sensor_data.load_apim_location">load_apim_location</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_location_from_list" href="#redvox.common.sensor_data.load_apim_location_from_list">load_apim_location_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_magnetometer" href="#redvox.common.sensor_data.load_apim_magnetometer">load_apim_magnetometer</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_magnetometer_from_list" href="#redvox.common.sensor_data.load_apim_magnetometer_from_list">load_apim_magnetometer_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_orientation" href="#redvox.common.sensor_data.load_apim_orientation">load_apim_orientation</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_orientation_from_list" href="#redvox.common.sensor_data.load_apim_orientation_from_list">load_apim_orientation_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_pressure" href="#redvox.common.sensor_data.load_apim_pressure">load_apim_pressure</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_pressure_from_list" href="#redvox.common.sensor_data.load_apim_pressure_from_list">load_apim_pressure_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_proximity" href="#redvox.common.sensor_data.load_apim_proximity">load_apim_proximity</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_proximity_from_list" href="#redvox.common.sensor_data.load_apim_proximity_from_list">load_apim_proximity_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_rel_humidity" href="#redvox.common.sensor_data.load_apim_rel_humidity">load_apim_rel_humidity</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_rel_humidity_from_list" href="#redvox.common.sensor_data.load_apim_rel_humidity_from_list">load_apim_rel_humidity_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_rotation_vector" href="#redvox.common.sensor_data.load_apim_rotation_vector">load_apim_rotation_vector</a></code></li>
+<li><code><a title="redvox.common.sensor_data.load_apim_rotation_vector_from_list" href="#redvox.common.sensor_data.load_apim_rotation_vector_from_list">load_apim_rotation_vector_from_list</a></code></li>
+<li><code><a title="redvox.common.sensor_data.read_apim_single_sensor" href="#redvox.common.sensor_data.read_apim_single_sensor">read_apim_single_sensor</a></code></li>
+<li><code><a title="redvox.common.sensor_data.read_apim_xyz_sensor" href="#redvox.common.sensor_data.read_apim_xyz_sensor">read_apim_xyz_sensor</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.sensor_data.SensorData.append_data" href="#redvox.common.sensor_data.SensorData.append_data">append_data</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.data_duration_s" href="#redvox.common.sensor_data.SensorData.data_duration_s">data_duration_s</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.first_data_timestamp" href="#redvox.common.sensor_data.SensorData.first_data_timestamp">first_data_timestamp</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.get_data_channel" href="#redvox.common.sensor_data.SensorData.get_data_channel">get_data_channel</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.get_valid_data_channel_values" href="#redvox.common.sensor_data.SensorData.get_valid_data_channel_values">get_valid_data_channel_values</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.is_sample_interval_invalid" href="#redvox.common.sensor_data.SensorData.is_sample_interval_invalid">is_sample_interval_invalid</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.samples" href="#redvox.common.sensor_data.SensorData.samples">samples</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.sensor_type_as_str" href="#redvox.common.sensor_data.SensorData.sensor_type_as_str">sensor_type_as_str</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.update_data_timestamps" href="#redvox.common.sensor_data.SensorData.update_data_timestamps">update_data_timestamps</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.common.sensor_data.SensorType" href="#redvox.common.sensor_data.SensorType">SensorType</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.common.sensor_data.SensorType.ACCELEROMETER" href="#redvox.common.sensor_data.SensorType.ACCELEROMETER">ACCELEROMETER</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.AMBIENT_TEMPERATURE" href="#redvox.common.sensor_data.SensorType.AMBIENT_TEMPERATURE">AMBIENT_TEMPERATURE</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.AUDIO" href="#redvox.common.sensor_data.SensorType.AUDIO">AUDIO</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.COMPRESSED_AUDIO" href="#redvox.common.sensor_data.SensorType.COMPRESSED_AUDIO">COMPRESSED_AUDIO</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.GRAVITY" href="#redvox.common.sensor_data.SensorType.GRAVITY">GRAVITY</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.GYROSCOPE" href="#redvox.common.sensor_data.SensorType.GYROSCOPE">GYROSCOPE</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.IMAGE" href="#redvox.common.sensor_data.SensorType.IMAGE">IMAGE</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.INFRARED" href="#redvox.common.sensor_data.SensorType.INFRARED">INFRARED</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.LIGHT" href="#redvox.common.sensor_data.SensorType.LIGHT">LIGHT</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.LINEAR_ACCELERATION" href="#redvox.common.sensor_data.SensorType.LINEAR_ACCELERATION">LINEAR_ACCELERATION</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.LOCATION" href="#redvox.common.sensor_data.SensorType.LOCATION">LOCATION</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.MAGNETOMETER" href="#redvox.common.sensor_data.SensorType.MAGNETOMETER">MAGNETOMETER</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.ORIENTATION" href="#redvox.common.sensor_data.SensorType.ORIENTATION">ORIENTATION</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.PRESSURE" href="#redvox.common.sensor_data.SensorType.PRESSURE">PRESSURE</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.PROXIMITY" href="#redvox.common.sensor_data.SensorType.PROXIMITY">PROXIMITY</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.RELATIVE_HUMIDITY" href="#redvox.common.sensor_data.SensorType.RELATIVE_HUMIDITY">RELATIVE_HUMIDITY</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.ROTATION_VECTOR" href="#redvox.common.sensor_data.SensorType.ROTATION_VECTOR">ROTATION_VECTOR</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.STATION_HEALTH" href="#redvox.common.sensor_data.SensorType.STATION_HEALTH">STATION_HEALTH</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.UNKNOWN_SENSOR" href="#redvox.common.sensor_data.SensorType.UNKNOWN_SENSOR">UNKNOWN_SENSOR</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorType.type_from_str" href="#redvox.common.sensor_data.SensorType.type_from_str">type_from_str</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
