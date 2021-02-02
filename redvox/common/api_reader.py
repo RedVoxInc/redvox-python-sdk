@@ -6,6 +6,8 @@ The ReadResult object converts api900 data into api 1000 format
 from typing import List, Optional, Set, Dict
 from datetime import datetime, timedelta
 
+import numpy as np
+
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api900 import reader as api900_io
 from redvox.common import api_conversions as ac
@@ -90,13 +92,81 @@ class ApiReader:
         get all files in the base dir of the ApiReader
         :return: index with all the files that match the filter
         """
-        if self.structured_dir:
-            index = io.index_structured(self.base_dir, self.filter)
-        else:
-            index = io.index_unstructured(self.base_dir, self.filter)
-        file_stats = fs.extract_stats(index)
+        # values required:
+        # best latency and offset per packet
+        # we need the offset for the first and last packet
+        # actual time = packet_time + offset
+        # real_offset = drift * time_from_start_rec + offset_of_start_rec
+        # default offset is 0
+        # for confidence: get backfill metric: server_rec_dt - packet_start_dt.  api900 is 2 minutes for backfill
+        # database values: id, drift value, offset_station_start
+        # check for historic model of known offset slope for each device; create if doesn't exist
+        # reference historic model when calculating offset; if device doesn't have values, use the model
+        # timing calibration on app set up/background process
+        # phone can store its own drift model; send the critical values to the server
+        # model confidence metric
+        index = self._apply_filter()
+        result_index = io.Index()
+        for station_id in self.filter.station_ids:
+            checked_index = self._check_station_stats(index.get_station_id(station_id))
+            result_index.append(checked_index.entries)
         # todo: file_stats has all the stuff we need to do the thing
         # todo: consider adding offset and packet length to the start time to get the partial first packet
+        return result_index
+
+    def _check_station_stats(self, index: io.Index) -> io.Index:
+        """
+        recursively check the index's values against the request filter; if index has enough information in it,
+        return it, otherwise search for more data.
+        :param index: index to check
+        :return: Index that includes as much information as possible that fits the request
+        """
+        stats = fs.extract_stats(index)
+        station_id = stats[0].station_id
+        # get the model and calculate the revised start and end offsets
+        # model = create_model_function
+        avg_offset = timedelta(microseconds=np.min([st.offset for st in stats if st.offset is not None]))
+        # revise packet's times to real times and compare to requested values
+        revised_start = stats[0].packet_start_dt + avg_offset  # model.revised_start_offset
+        revised_end = stats[-1].packet_start_dt + stats[-1].packet_duration + avg_offset  # model.revised_end_offset
+        # if our filtered files encompass the request even when the packet times are updated, return the index
+        if revised_start <= self.filter.start_dt and revised_end >= self.filter.end_dt:
+            return index
+        # we have to update our filter to get more information
+        new_filter = io.ReadFilter(station_ids={station_id}, extensions=self.filter.extensions,
+                                   api_versions=self.filter.api_versions)
+        # add an extra packet to the start value to ensure we don't miss any data
+        revised_start -= stats[0].packet_duration
+        # reduce the revised start value until it's less than the requested start value
+        while revised_start >= self.filter.start_dt:
+            revised_start -= stats[0].packet_duration
+        while revised_end <= self.filter.end_dt:
+            revised_end += stats[-1].packet_duration
+        # remove the offset so that you have the correct packet times to search for
+        new_filter = new_filter.with_start_dt(revised_start - avg_offset)\
+            .with_start_dt_buf(stats[0].packet_duration)\
+            .with_end_dt(revised_end - avg_offset)
+        # get information
+        new_index = self._apply_filter(new_filter)
+        new_stats = fs.extract_stats(new_index)
+        # compare start and end time of station vs start and end time of stats; if they match, return new result
+        if stats[0].packet_start_dt == new_stats[0].packet_start_dt \
+                and stats[-1].packet_start_dt == new_stats[-1].packet_start_dt:
+            return new_index
+        return self._check_station_stats(new_index)
+
+    def _apply_filter(self, reader_filter: Optional[io.ReadFilter] = None) -> io.Index:
+        """
+        apply the filter of the reader, or another filter if specified
+        :param reader_filter: optional filter; if None, use the reader's filter, default None
+        :return: index of the filtered files
+        """
+        if not reader_filter:
+            reader_filter = self.filter
+        if self.structured_dir:
+            index = io.index_structured(self.base_dir, reader_filter)
+        else:
+            index = io.index_unstructured(self.base_dir, reader_filter)
         return index
 
     def read_files(self) -> Dict[str, List[WrappedRedvoxPacketM]]:
