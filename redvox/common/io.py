@@ -492,6 +492,13 @@ class Index:
         """
         return IndexSummary.from_index(self)
 
+    def get_station_id(self, station_id: str) -> "Index":
+        """
+        :param station_id: id to get entries for
+        :return: Index containing only the entries for the station requested
+        """
+        return Index([en for en in self.entries if en.station_id == station_id])
+
     def stream(
         self, read_filter: ReadFilter = ReadFilter()
     ) -> Iterator[Union["WrappedRedvoxPacket", WrappedRedvoxPacketM]]:
