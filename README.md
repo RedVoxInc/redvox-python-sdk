@@ -2,7 +2,7 @@
 
 This repository contains code for reading and working with the RedVox API 900 and API 1000 (M) data formats.
 
-* [Examples](https://redvoxinc.github.io/redvox-sdk/examples/api_m/)
+* [User Documentation]("/docs/python_sdk")
 * [API Documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b0/api_docs/redvox/index.html)
 
 ## Changelog
