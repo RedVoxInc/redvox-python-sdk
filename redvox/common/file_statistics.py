@@ -189,7 +189,7 @@ class StationStat:
             best_latency,
             best_offset,
             packet.microphone_sensor().sample_rate_hz() if packet.has_microphone_sensor() else np.nan,
-            timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else np.nan,
+            timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else 0.0,
         )
 
     # noinspection Mypy
