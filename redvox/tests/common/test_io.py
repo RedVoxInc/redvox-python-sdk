@@ -437,7 +437,6 @@ class IndexTests(IoTestCase):
     def test_empty_index(self):
         index: io.Index = io.Index()
         self.assertEqual(0, len(index.entries))
-        index.sort()
         self.assertEqual(0, len(index.entries))
         summary: io.IndexSummary = index.summarize()
         self.assertEqual(0, len(summary.station_summaries))
@@ -466,7 +465,6 @@ class IndexTests(IoTestCase):
         ]
 
         index = io.Index(entries)
-        index.sort()
         self.assertEqual([
             entries[11],
             entries[10],
@@ -900,7 +898,6 @@ class IndexSummaryTests(IoTestCase):
             io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "3_0.rdvxm")),
             io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "4_0.rdvxm")),
         ])
-        index.sort()
         summary = index.summarize()
         self.assertEqual(4, summary.total_packets())
         self.assertEqual(2, summary.total_packets(io.ApiVersion.API_900))

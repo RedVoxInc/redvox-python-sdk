@@ -132,17 +132,6 @@ class IndexEntry:
         else:
             return None
 
-    # def __lt__(self, other: 'IndexEntry') -> bool:
-    #     """
-    #     Tests if this value is less than another value.
-    #
-    #     This along with __eq__ are used to fulfill the total ordering contract. Compares this entry's full path to
-    #     another entries full path.
-    #     :param other: Other IndexEntry to compare against.
-    #     :return: True if this full path is less than the other full path.
-    #     """
-    #     return self.full_path.__lt__(other.full_path)
-
     def __eq__(self, other: object) -> bool:
         """
         Tests if this value is equal to another value.
@@ -188,13 +177,15 @@ class ReadFilter:
         :return: a copy of the calling ReadFilter
         """
         return_filter = ReadFilter()
-        return return_filter.with_start_dt(self.start_dt)\
-            .with_end_dt(self.end_dt)\
-            .with_station_ids(self.station_ids)\
-            .with_extensions(self.extensions)\
-            .with_start_dt_buf(self.start_dt_buf)\
-            .with_end_dt_buf(self.end_dt_buf)\
+        return (
+            return_filter.with_start_dt(self.start_dt)
+            .with_end_dt(self.end_dt)
+            .with_station_ids(self.station_ids)
+            .with_extensions(self.extensions)
+            .with_start_dt_buf(self.start_dt_buf)
+            .with_end_dt_buf(self.end_dt_buf)
             .with_api_versions(self.api_versions)
+        )
 
     def with_start_dt(self, start_dt: Optional[datetime]) -> "ReadFilter":
         """
@@ -555,11 +546,12 @@ def _list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
     return sorted(list(filter(valid_choices.__contains__, subdirs)))
 
 
-def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
+def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter(), sort: bool = True) -> Index:
     """
     Returns the list of file paths that match the given filter for unstructured data.
     :param base_dir: Directory containing unstructured data.
     :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
+    :param sort: When True, the resulting Index will be sorted before being returned (default=True).
     :return: An iterator of valid paths.
     """
     check_type(base_dir, [str])
@@ -581,7 +573,8 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
         )
         index.append(entries)
 
-    index.sort()
+    if sort:
+        index.sort()
     return index
 
 
@@ -610,7 +603,7 @@ def index_structured_api_900(
 
                 data_dir: str = os.path.join(base_dir, year, month, day)
                 entries: Iterator[IndexEntry] = iter(
-                    index_unstructured(data_dir, read_filter).entries
+                    index_unstructured(data_dir, read_filter, sort=False).entries
                 )
                 index.append(entries)
 
@@ -647,7 +640,7 @@ def index_structured_api_1000(
 
                     data_dir: str = os.path.join(base_dir, year, month, day, hour)
                     entries: Iterator[IndexEntry] = iter(
-                        index_unstructured(data_dir, read_filter).entries
+                        index_unstructured(data_dir, read_filter, sort=False).entries
                     )
                     index.append(entries)
 

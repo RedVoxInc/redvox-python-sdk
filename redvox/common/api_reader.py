@@ -142,7 +142,6 @@ class ApiReader:
         index = self._apply_filter(request_filter)
         if len(index.entries) < 1:
             return index
-        index.sort()
         stats = fs.extract_stats(index)
         if stats[0].packet_duration == 0.0 or not stats[0].packet_duration:
             return index
