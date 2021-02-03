@@ -7,6 +7,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0b2 (2021-2-3)
+
+* Updated filter inputs to accept lists
+* Fixed bug when pickle-ing station objects
+
 ### 3.0.0b1 (2021-2-1)
 
 * Added functionality to automatically correct query times to gather all of user's requested data

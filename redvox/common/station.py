@@ -105,7 +105,7 @@ class Station:
         orders the metadata packets by their starting timestamps.  Returns nothing, sorts the data in place
         """
         self.metadata.sort(
-            key=lambda t: t.timing_information.get_packet_start_mach_timestamp()
+            key=lambda t: t.packet_start_mach_timestamp
         )
 
     def _get_start_and_end_timestamps(self):

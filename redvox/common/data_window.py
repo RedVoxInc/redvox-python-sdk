@@ -2,7 +2,7 @@
 This module creates specific time-bounded segments of data for users
 combine the data packets into a new data packet based on the user parameters
 """
-from typing import Optional, Set, List, Dict, Union
+from typing import Optional, Set, List, Dict, Union, Iterable
 from datetime import timedelta
 
 import pandas as pd
@@ -67,7 +67,7 @@ class DataWindow:
         start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
         end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
         gap_time_s: float = DEFAULT_GAP_TIME_S,
-        station_ids: Optional[Set[str]] = None,
+        station_ids: Optional[Iterable[str]] = None,
         extensions: Optional[Set[str]] = None,
         api_versions: Optional[Set[io.ApiVersion]] = None,
         apply_correction: bool = True,
@@ -88,7 +88,7 @@ class DataWindow:
                                 Default DEFAULT_END_BUFFER_TD
         :param gap_time_s: the minimum amount of seconds between data points that would indicate a gap.
                             Default DEFAULT_GAP_TIME_S
-        :param station_ids: optional set of station ids to filter on. If empty or None, get any ids found in the
+        :param station_ids: optional iterable of station ids to filter on. If empty or None, get any ids found in the
                             input directory.  Default None
         :param extensions: optional set of file extensions to filter on.  If None, get all data in the input directory.
                             Default None
@@ -98,6 +98,7 @@ class DataWindow:
                                     Default True
         :param debug: bool, if True, outputs warnings and additional information, default False
         """
+
         self.input_directory: str = input_dir
         self.structured_layout: bool = structured_layout
         self.start_datetime: Optional[dtu.datetime] = start_datetime
@@ -105,11 +106,12 @@ class DataWindow:
         self.start_buffer_td: timedelta = start_buffer_td
         self.end_buffer_td: timedelta = end_buffer_td
         self.gap_time_s: float = gap_time_s
+        self.station_ids: Optional[Set[str]]
         if station_ids:
             self.station_ids = set(station_ids)
         else:
             self.station_ids = None
-        self.station_ids: Optional[Set[str]] = station_ids
+        # self.station_ids: Optional[Set[str]] = station_ids
         self.extensions: Optional[Set[str]] = extensions
         self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
