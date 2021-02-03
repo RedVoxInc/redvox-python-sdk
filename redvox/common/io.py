@@ -132,17 +132,6 @@ class IndexEntry:
         else:
             return None
 
-    # def __lt__(self, other: 'IndexEntry') -> bool:
-    #     """
-    #     Tests if this value is less than another value.
-    #
-    #     This along with __eq__ are used to fulfill the total ordering contract. Compares this entry's full path to
-    #     another entries full path.
-    #     :param other: Other IndexEntry to compare against.
-    #     :return: True if this full path is less than the other full path.
-    #     """
-    #     return self.full_path.__lt__(other.full_path)
-
     def __eq__(self, other: object) -> bool:
         """
         Tests if this value is equal to another value.
@@ -188,13 +177,15 @@ class ReadFilter:
         :return: a copy of the calling ReadFilter
         """
         return_filter = ReadFilter()
-        return return_filter.with_start_dt(self.start_dt)\
-            .with_end_dt(self.end_dt)\
-            .with_station_ids(self.station_ids)\
-            .with_extensions(self.extensions)\
-            .with_start_dt_buf(self.start_dt_buf)\
-            .with_end_dt_buf(self.end_dt_buf)\
+        return (
+            return_filter.with_start_dt(self.start_dt)
+            .with_end_dt(self.end_dt)
+            .with_station_ids(self.station_ids)
+            .with_extensions(self.extensions)
+            .with_start_dt_buf(self.start_dt_buf)
+            .with_end_dt_buf(self.end_dt_buf)
             .with_api_versions(self.api_versions)
+        )
 
     def with_start_dt(self, start_dt: Optional[datetime]) -> "ReadFilter":
         """
