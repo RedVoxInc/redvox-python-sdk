@@ -546,11 +546,12 @@ def _list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
     return sorted(list(filter(valid_choices.__contains__, subdirs)))
 
 
-def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
+def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter(), sort: bool = True) -> Index:
     """
     Returns the list of file paths that match the given filter for unstructured data.
     :param base_dir: Directory containing unstructured data.
     :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
+    :param sort: When True, the resulting Index will be sorted before being returned (default=True).
     :return: An iterator of valid paths.
     """
     check_type(base_dir, [str])
@@ -572,7 +573,8 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter()) ->
         )
         index.append(entries)
 
-    index.sort()
+    if sort:
+        index.sort()
     return index
 
 
@@ -601,7 +603,7 @@ def index_structured_api_900(
 
                 data_dir: str = os.path.join(base_dir, year, month, day)
                 entries: Iterator[IndexEntry] = iter(
-                    index_unstructured(data_dir, read_filter).entries
+                    index_unstructured(data_dir, read_filter, sort=False).entries
                 )
                 index.append(entries)
 
@@ -638,7 +640,7 @@ def index_structured_api_1000(
 
                     data_dir: str = os.path.join(base_dir, year, month, day, hour)
                     entries: Iterator[IndexEntry] = iter(
-                        index_unstructured(data_dir, read_filter).entries
+                        index_unstructured(data_dir, read_filter, sort=False).entries
                     )
                     index.append(entries)
 
