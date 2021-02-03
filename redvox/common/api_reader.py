@@ -144,22 +144,31 @@ class ApiReader:
             return index
         # get the model and calculate the revised start and end offsets
         # model = create_model_function
-        latencies = [st.latency for st in stats if st.latency is not None and not np.isnan(st.latency)]
+        latencies = [
+            st.latency
+            for st in stats
+            if st.latency is not None and not np.isnan(st.latency)
+        ]
         # no latencies means no correction means we're done
         if len(latencies) < 1:
             return index
         i = np.argwhere([st.latency for st in stats] == np.min(latencies))[0][0]
         avg_offset = timedelta(microseconds=stats[i].offset)
         # revise packet's times to real times and compare to requested values
-        revised_start = stats[0].packet_start_dt + avg_offset  # model.revised_start_offset
-        revised_end = stats[-1].packet_start_dt + stats[-1].packet_duration + avg_offset  # model.revised_end_offset
+        revised_start = (
+            stats[0].packet_start_dt + avg_offset
+        )  # model.revised_start_offset
+        revised_end = (
+            stats[-1].packet_start_dt + stats[-1].packet_duration + avg_offset
+        )  # model.revised_end_offset
         if not request_filter.start_dt:
             request_filter = request_filter.with_start_dt(revised_start)
         if not request_filter.end_dt:
             request_filter = request_filter.with_end_dt(revised_end)
         # if our filtered files encompass the request even when the packet times are updated, return the index
-        if (not self.filter.start_dt or revised_start <= self.filter.start_dt) \
-                and (not self.filter.end_dt or revised_end >= self.filter.end_dt):
+        if (not self.filter.start_dt or revised_start <= self.filter.start_dt) and (
+            not self.filter.end_dt or revised_end >= self.filter.end_dt
+        ):
             return index
         # we have to update our filter to get more information
         new_filter = request_filter.clone()
@@ -167,13 +176,20 @@ class ApiReader:
         revised_start = request_filter.start_dt - stats[0].packet_duration
         revised_end = request_filter.end_dt + stats[-1].packet_duration
         # remove the offset so that you have the correct packet times to search for
-        new_filter = new_filter.with_start_dt(revised_start - avg_offset) \
-            .with_start_dt_buf(stats[0].packet_duration) \
+        new_filter = (
+            new_filter.with_start_dt(revised_start - avg_offset)
+            .with_start_dt_buf(stats[0].packet_duration)
             .with_end_dt(revised_end - avg_offset)
+        )
         idx = self._apply_filter(new_filter)
         sts = fs.extract_stats(idx)
-        if (revised_start <= self.filter.start_dt or sts[0].packet_start_dt == stats[0].packet_start_dt)\
-                and (revised_end >= self.filter.end_dt or sts[-1].packet_start_dt == stats[0].packet_start_dt):
+        if (
+            revised_start <= self.filter.start_dt
+            or sts[0].packet_start_dt == stats[0].packet_start_dt
+        ) and (
+            revised_end >= self.filter.end_dt
+            or sts[-1].packet_start_dt == stats[0].packet_start_dt
+        ):
             return idx
         return self._check_station_stats(new_filter)
 
@@ -193,26 +209,37 @@ class ApiReader:
                 result[file.get_station_information().get_id()].append(file)
         return result
 
+    # noinspection PyTypeChecker
     def read_files_by_id(self, get_id: str) -> Optional[List[WrappedRedvoxPacketM]]:
         """
         :param get_id: the id to filter on
         :return: the list of packets with the requested id, or None if the id can't be found
         """
+
         result: List[WrappedRedvoxPacketM] = []
-        for path in self.files_index.entries:
-            if path.station_id == get_id:
-                if path.extension == ".rdvxz":
-                    result.append(
-                        ac.convert_api_900_to_1000(
-                            api900_io.read_rdvxz_file(path.full_path)
-                        )
-                    )
-                elif path.extension == ".rdvxm":
-                    result.append(
-                        WrappedRedvoxPacketM.from_compressed_path(path.full_path)
-                    )
+
+        # Iterate over the API 900 packets in a memory efficient way
+        # and convert to API 1000
+        for packet_900 in self.files_index.stream(
+            io.ReadFilter.empty()
+            .with_api_versions({io.ApiVersion.API_900})
+            .with_station_ids({get_id})
+        ):
+            # noinspection Mypy
+            result.append(ac.convert_api_900_to_1000(packet_900))
+
+        # Grab the API 1000 packets
+        for packet in self.files_index.stream(
+            io.ReadFilter.empty()
+            .with_api_versions({io.ApiVersion.API_1000})
+            .with_station_ids({get_id})
+        ):
+            # noinspection Mypy
+            result.append(packet)
+
         if len(result) == 0:
             return None
+
         return result
 
     def get_stations(self) -> List[Station]:
