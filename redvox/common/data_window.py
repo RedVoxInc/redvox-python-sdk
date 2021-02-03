@@ -2,6 +2,7 @@
 This module creates specific time-bounded segments of data for users
 combine the data packets into a new data packet based on the user parameters
 """
+from timeit import default_timer
 from typing import Optional, Set, List, Dict, Union
 from datetime import timedelta
 
@@ -105,6 +106,10 @@ class DataWindow:
         self.start_buffer_td: timedelta = start_buffer_td
         self.end_buffer_td: timedelta = end_buffer_td
         self.gap_time_s: float = gap_time_s
+        if station_ids:
+            self.station_ids = set(station_ids)
+        else:
+            self.station_ids = None
         self.station_ids: Optional[Set[str]] = station_ids
         self.extensions: Optional[Set[str]] = extensions
         self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
@@ -279,8 +284,8 @@ class DataWindow:
                 print(f"WARNING: Data window for {station.id} {sensor_type.name} sensor has no data points!")
         # recalculate metadata
         new_meta = [meta for meta in station.metadata
-                    if meta.timing_information.get_packet_start_mach_timestamp() < end_date_timestamp and
-                    meta.timing_information.get_packet_end_mach_timestamp() > start_date_timestamp]
+                    if meta.packet_start_mach_timestamp < end_date_timestamp and
+                    meta.packet_end_mach_timestamp > start_date_timestamp]
         station.metadata = new_meta
         station.first_data_timestamp = start_date_timestamp
         station.last_data_timestamp = end_date_timestamp
@@ -291,7 +296,7 @@ class DataWindow:
         stations without audio or any data outside the window are removed
         """
         ids_to_pop = []
-        self.stations = ApiReader(
+        r = ApiReader(
             self.input_directory,
             self.structured_layout,
             self.start_datetime,
@@ -302,9 +307,14 @@ class DataWindow:
             self.extensions,
             self.api_versions,
             self.debug,
-        ).read_files_as_stations()
+        )
+        station_start = default_timer()
+        self.stations = r.read_files_as_stations()
+        station_end = default_timer()
+        print("make da stations: ", station_end - station_start)
         if self.station_ids is None or len(self.station_ids) == 0:
             self.station_ids = set(self.stations.keys())
+        wm_start = default_timer()
         for station in self.stations.values():
             if self.apply_correction:
                 station.update_timestamps()
@@ -320,6 +330,8 @@ class DataWindow:
             # TRUNCATE!
             self.create_window_in_sensors(station, start_datetime, end_datetime)
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
+        wm_end = default_timer()
+        print("window making: ", wm_end - wm_start)
         # check for stations without data, then remove any stations that don't have audio data
         self.check_valid_ids()
         for ids in ids_to_pop:

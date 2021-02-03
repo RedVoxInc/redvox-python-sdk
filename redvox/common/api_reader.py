@@ -3,6 +3,7 @@ Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 """
+from timeit import default_timer
 from typing import List, Optional, Set, Dict
 from datetime import datetime, timedelta
 
@@ -84,7 +85,10 @@ class ApiReader:
         self.base_dir = base_dir
         self.structured_dir = structured_dir
         self.debug = debug
+        files_start = default_timer()
         self.files_index = self._get_all_files()
+        files_end = default_timer()
+        print("file computation: ", files_end - files_start)
         self.index_summary = io.IndexSummary.from_index(self.files_index)
 
     def _get_all_files(self) -> io.Index:
@@ -187,11 +191,14 @@ class ApiReader:
             s_id: [] for s_id in self.index_summary.station_ids()
         }
         files = self.files_index.read()
+        start = default_timer()
         for file in files:
             if isinstance(file, api900_io.WrappedRedvoxPacket):
                 result[file.redvox_id()].append(ac.convert_api_900_to_1000(file))
             elif isinstance(file, WrappedRedvoxPacketM):
                 result[file.get_station_information().get_id()].append(file)
+        end = default_timer()
+        print("read and convert files: ", end - start)
         return result
 
     def read_files_by_id(self, get_id: str) -> Optional[List[WrappedRedvoxPacketM]]:
