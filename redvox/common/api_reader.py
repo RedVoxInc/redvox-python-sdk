@@ -3,7 +3,7 @@ Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 """
-from typing import List, Optional, Set, Dict
+from typing import List, Optional, Set, Dict, Iterable
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -45,7 +45,7 @@ class ApiReader:
         end_dt: Optional[datetime] = None,
         start_dt_buf: Optional[timedelta] = None,
         end_dt_buf: Optional[timedelta] = None,
-        station_ids: Optional[Set[str]] = None,
+        station_ids: Optional[Iterable[str]] = None,
         extensions: Optional[Set[str]] = None,
         api_versions: Optional[Set[io.ApiVersion]] = None,
         debug: bool = False,
@@ -61,14 +61,17 @@ class ApiReader:
                                 If None, use the default in io.ReadFilter.  Default None
         :param end_dt_buf: optional timedelta buffer to combine with end_dt.
                             If None, use the default in io.ReadFilter.  Default None
-        :param station_ids: optional set of station_ids to filter on.  If None, get all data in base_dir.  Default None
+        :param station_ids: optional iterable of station_ids to filter on.  If None, get all data in base_dir.
+                            Default None
         :param extensions: optional set of file extensions to filter on.  If None, get all data in base_dir.
                             Default None
         :param api_versions: optional set of api versions to filter on.  If None, get all data in base_dir.
                             Default None
         :param debug: if True, output additional statements during function execution.  Default False.
         """
-        if not station_ids or len(station_ids) < 1:
+        if station_ids:
+            station_ids = set(station_ids)
+        else:
             station_ids = None
         self.filter = io.ReadFilter(
             start_dt=start_dt, end_dt=end_dt, station_ids=station_ids
