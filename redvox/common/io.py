@@ -183,6 +183,19 @@ class ReadFilter:
         """
         return ReadFilter(None, None, None, None, None, None, None)
 
+    def clone(self) -> "ReadFilter":
+        """
+        :return: a copy of the calling ReadFilter
+        """
+        return_filter = ReadFilter()
+        return return_filter.with_start_dt(self.start_dt)\
+            .with_end_dt(self.end_dt)\
+            .with_station_ids(self.station_ids)\
+            .with_extensions(self.extensions)\
+            .with_start_dt_buf(self.start_dt_buf)\
+            .with_end_dt_buf(self.end_dt_buf)\
+            .with_api_versions(self.api_versions)
+
     def with_start_dt(self, start_dt: Optional[datetime]) -> "ReadFilter":
         """
         Adds a start datetime filter.
@@ -492,7 +505,7 @@ class Index:
         """
         return IndexSummary.from_index(self)
 
-    def get_station_id(self, station_id: str) -> "Index":
+    def get_index_for_station_id(self, station_id: str) -> "Index":
         """
         :param station_id: id to get entries for
         :return: Index containing only the entries for the station requested
