@@ -3,6 +3,7 @@ Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
 """
+from timeit import default_timer
 from typing import List, Optional, Dict
 
 import numpy as np
@@ -67,10 +68,11 @@ class Station:
         """
         self.data = {}
         self.metadata = []
+        make_start = default_timer()
         if data_packets and validate_station_data(data_packets):
-            self._set_all_sensors(data_packets)
             self.id = data_packets[0].get_station_information().get_id()
             self.uuid = data_packets[0].get_station_information().get_uuid()
+            self._set_all_sensors(data_packets)
             self.start_timestamp = (
                 data_packets[0].get_timing_information().get_app_start_mach_timestamp()
             )
@@ -99,6 +101,8 @@ class Station:
         self.is_timestamps_updated = False
         self.timesync_analysis = \
             TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp).from_packets(data_packets)
+        make_end = default_timer()
+        print(f"{self.id} created in: {make_end - make_start}")
 
     def _sort_metadata_packets(self):
         """
@@ -112,8 +116,8 @@ class Station:
         """
         uses the sorted metadata packets to get the first and last timestamp of the station
         """
-        self.first_data_timestamp = self.metadata[0].timing_information.get_packet_start_mach_timestamp()
-        self.last_data_timestamp = self.metadata[-1].timing_information.get_packet_end_mach_timestamp()
+        self.first_data_timestamp = self.metadata[0].packet_start_mach_timestamp
+        self.last_data_timestamp = self.metadata[-1].packet_end_mach_timestamp
 
     def set_id(self, station_id: str) -> "Station":
         """
@@ -992,11 +996,14 @@ class Station:
                     packet.get_timing_information(),
                 )
             )
+        audio_start = default_timer()
         if any(
             s.get_sensors().has_audio() and s.get_sensors().validate_audio()
             for s in packets
         ):
             self.data[sd.SensorType.AUDIO] = sd.load_apim_audio_from_list(packets)
+        audio_end = default_timer()
+        print(f"{self.id} audio sensor make: {audio_end - audio_start}")
         if any(
             s.get_sensors().has_compressed_audio()
             and s.get_sensors().validate_compressed_audio()

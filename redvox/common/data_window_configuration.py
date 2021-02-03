@@ -42,9 +42,9 @@ class DataWindowConfig:
         end_hour: optional int representing the hour of the data window end time.  Default None
         end_minute: optional int representing the minute of the data window end time.  Default None
         end_second: optional int representing the second of the data window end time.  Default None
-        end_padding_seconds: int representing the amount of seconds to include before the start datetime
+        end_padding_seconds: float representing the amount of seconds to include before the start datetime
                                 when filtering data.  Default DEFAULT_START_PADDING_S
-        end_padding_seconds: int representing the amount of seconds to include after the end datetime
+        end_padding_seconds: float representing the amount of seconds to include after the end datetime
                                 when filtering data.  Default DEFAULT_END_PADDING_S
         gap_time_s: float representing the minimum amount of seconds between data points that would indicate a gap.
                     Default DEFAULT_GAP_TIME_S
@@ -69,8 +69,8 @@ class DataWindowConfig:
     end_hour: Optional[int] = None
     end_minute: Optional[int] = None
     end_second: Optional[int] = None
-    start_padding_seconds: int = DEFAULT_START_PADDING_S
-    end_padding_seconds: int = DEFAULT_END_PADDING_S
+    start_padding_seconds: float = DEFAULT_START_PADDING_S
+    end_padding_seconds: float = DEFAULT_END_PADDING_S
     gap_time_seconds: float = DEFAULT_GAP_TIME_S
     apply_correction: bool = True
     debug: bool = False
