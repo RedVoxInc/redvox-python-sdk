@@ -207,9 +207,7 @@ def convert_api_900_to_1000(
         reader_900.MicrophoneSensor
     ] = wrapped_packet_900.microphone_sensor()
     if mic_sensor_900 is not None:
-        normalized_audio: List[float] = list(
-            map(_normalize_audio_count, mic_sensor_900.payload_values())
-        )
+        normalized_audio: np.ndarray = mic_sensor_900.payload_values() / _NORMALIZATION_CONSTANT
         audio_sensor_m = sensors_m.new_audio()
         audio_sensor_m.set_first_sample_timestamp(
             mic_sensor_900.first_sample_timestamp_epoch_microseconds_utc()
@@ -218,7 +216,7 @@ def convert_api_900_to_1000(
         ).set_sensor_description(
             mic_sensor_900.sensor_name()
         ).get_samples().set_values(
-            np.array(normalized_audio), update_value_statistics=True
+            normalized_audio, update_value_statistics=True
         )
         audio_sensor_m.get_metadata().set_metadata(mic_sensor_900.metadata_as_dict())
 
