@@ -42,8 +42,6 @@ def check_version_buf(buf: bytes) -> ApiVersion:
     :param buf: Buffer of RedVox data.
     :return: An enum that represents the API version of the file.
     """
-    if len(buf) < 4:
-        return ApiVersion.UNKNOWN
     if buf[:4] == LZ4_MAGIC:
         return ApiVersion.API_1000
     return ApiVersion.API_900
