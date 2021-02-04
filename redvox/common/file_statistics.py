@@ -248,7 +248,7 @@ class StationStat:
         )
 
 
-# noinspection PyTypeChecker
+# noinspection PyTypeChecker,DuplicatedCode
 def extract_stats_serial(index: io.Index) -> List[StationStat]:
     """
     Extracts StationStat information from packets stored in the provided index.

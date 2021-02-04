@@ -112,6 +112,7 @@ def _migrate_os_type_1000_to_900(os: OsType) -> str:
         return os.name
 
 
+# noinspection DuplicatedCode
 def convert_api_900_to_1000(
     wrapped_packet_900: reader_900.WrappedRedvoxPacket,
 ) -> WrappedRedvoxPacketM:
@@ -124,7 +125,7 @@ def convert_api_900_to_1000(
 
     # Top-level metadata
     wrapped_packet_m.set_api(1000.0)
-    # noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences,Mypy
     wrapped_packet_m.set_sub_api(redvox_api_m_pb2.SUB_API)
 
     # Station information
@@ -153,16 +154,17 @@ def convert_api_900_to_1000(
 
     # API 900 does not maintain a copy of its settings. So we will not set anything in AppSettings
 
-    # StationMetrics - We know a couple
+    # StationMetrics - We know a couple. We take a slightly more cumbersome approach using the raw protobuf
+    # to avoid some conversions between lists and np arrays.
     station_metrics: StationMetrics = station_information.get_station_metrics()
     station_metrics.get_timestamps().append_timestamp(
         wrapped_packet_900.app_file_start_timestamp_machine()
     )
-    station_metrics.get_temperature().append_value(
-        wrapped_packet_900.device_temperature_c()
+    station_metrics.get_temperature().set_values(
+        np.array([wrapped_packet_900.device_temperature_c()]), True
     )
-    station_metrics.get_battery().append_value(
-        wrapped_packet_900.battery_level_percent()
+    station_metrics.get_battery().set_values(
+        np.array([wrapped_packet_900.battery_level_percent()]), True
     )
 
     # Timing information
@@ -196,7 +198,7 @@ def convert_api_900_to_1000(
 
     time_sensor = wrapped_packet_900.time_synchronization_sensor()
     if time_sensor is not None:
-        wrapped_packet_m.get_timing_information().get_synch_exchanges().append_values(
+        wrapped_packet_m.get_timing_information().get_synch_exchanges().set_values(
             _migrate_synch_exchanges_900_to_1000(time_sensor.payload_values())
         )
 
@@ -249,9 +251,9 @@ def convert_api_900_to_1000(
             location_sensor_900.timestamps_microseconds_utc(), True
         )
         if location_sensor_900.check_for_preset_lat_lon():
-            lat_lon = location_sensor_900.get_payload_lat_lon()
-            location_m.get_latitude_samples().set_values(np.array([lat_lon[0]]))
-            location_m.get_longitude_samples().set_values(np.array([lat_lon[1]]))
+            lat_lon: np.ndarray = location_sensor_900.get_payload_lat_lon()
+            location_m.get_latitude_samples().set_values(lat_lon[:1], True)
+            location_m.get_longitude_samples().set_values(lat_lon[1:], True)
         else:
             location_m.get_latitude_samples().set_values(
                 location_sensor_900.payload_values_latitude(), True
@@ -423,7 +425,7 @@ def convert_api_1000_to_900(
     wrapped_packet_900.set_api(900)
     wrapped_packet_900.set_uuid(station_information_m.get_uuid())
     wrapped_packet_900.set_redvox_id(station_information_m.get_id())
-    wrapped_packet_900.set_authenticated_email(station_information_m.get_auth_email())
+    wrapped_packet_900.set_authenticated_email(station_information_m.get_auth_id())
     wrapped_packet_900.set_authentication_token(
         "n/a"
     )  # Different auth protocols are used, can't convert between
