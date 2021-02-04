@@ -8,6 +8,7 @@ import numpy as np
 
 import redvox.tests as tests
 from redvox.common import api_reader
+from redvox.common.io import ReadFilter
 from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType, get_empty_sensor_data
 
@@ -18,15 +19,13 @@ class StationTest(unittest.TestCase):
         reader = api_reader.ApiReader(
             tests.TEST_DATA_DIR,
             False,
-            extensions={".rdvxm"},
-            station_ids={"0000000001"},
+            ReadFilter(extensions={".rdvxm"}, station_ids=["0000000001"]),
         )
         cls.apim_station = reader.get_station_by_id("0000000001")
         reader = api_reader.ApiReader(
             tests.TEST_DATA_DIR,
             False,
-            extensions={".rdvxz"},
-            station_ids={"1637650010"},
+            ReadFilter(extensions={".rdvxz"}, station_ids=["1637650010"]),
         )
         cls.api900_station = reader.get_station_by_id("1637650010")
 
