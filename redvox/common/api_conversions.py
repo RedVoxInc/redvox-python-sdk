@@ -251,9 +251,9 @@ def convert_api_900_to_1000(
             location_sensor_900.timestamps_microseconds_utc(), True
         )
         if location_sensor_900.check_for_preset_lat_lon():
-            lat_lon = location_sensor_900.get_payload_lat_lon()
-            location_m.get_latitude_samples().set_values(np.array([lat_lon[0]]), True)
-            location_m.get_longitude_samples().set_values(np.array([lat_lon[1]]), True)
+            lat_lon: np.ndarray = location_sensor_900.get_payload_lat_lon()
+            location_m.get_latitude_samples().set_values(lat_lon[:1], True)
+            location_m.get_longitude_samples().set_values(lat_lon[1:], True)
         else:
             location_m.get_latitude_samples().set_values(
                 location_sensor_900.payload_values_latitude(), True
@@ -425,7 +425,7 @@ def convert_api_1000_to_900(
     wrapped_packet_900.set_api(900)
     wrapped_packet_900.set_uuid(station_information_m.get_uuid())
     wrapped_packet_900.set_redvox_id(station_information_m.get_id())
-    wrapped_packet_900.set_authenticated_email(station_information_m.get_auth_email())
+    wrapped_packet_900.set_authenticated_email(station_information_m.get_auth_id())
     wrapped_packet_900.set_authentication_token(
         "n/a"
     )  # Different auth protocols are used, can't convert between
