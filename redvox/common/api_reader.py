@@ -134,7 +134,7 @@ class ApiReader:
         avg_offset = timedelta(microseconds=stats[i].offset)
         # revise packet's times to real times and compare to requested values
         revised_start = (
-            stats[0].packet_start_dt + avg_offset
+            stats[0].packet_start_dt + avg_offset - 2 * stats[0].packet_duration
         )  # model.revised_start_offset
         revised_end = (
             stats[-1].packet_start_dt + stats[-1].packet_duration + avg_offset

@@ -265,6 +265,10 @@ class DataWindow:
                                 f"sensor; it has undefined sample interval and sample rate!"
                             )
                     else:  # GAP FILL and PAD DATA
+                        # if non-loc and non-mic, interpolate point on edge of valid mic data
+                        # if location, use best value if necessary
+                        # if mic, use sample interval to interpolate missing points
+                        # do not pad points that would = or beyond request time
                         sample_interval_micros = dtu.seconds_to_microseconds(
                             sensor.sample_interval_s
                         )
