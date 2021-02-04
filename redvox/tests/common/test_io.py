@@ -148,7 +148,7 @@ class IoTests(IoTestCase):
         self.assertFalse(io._not_none(None))
 
     def test_list_subdirs_no_valid(self):
-        self.assertEqual([], io._list_subdirs(self.template_dir, set()))
+        self.assertEqual([], list(io._list_subdirs(self.template_dir, set())))
 
     def test_list_subdirs_all_valid(self):
         lvl1 = os.path.join(self.temp_dir_path, "foo")
@@ -156,7 +156,7 @@ class IoTests(IoTestCase):
         os.makedirs(os.path.join(lvl1, "bar"))
         os.makedirs(os.path.join(lvl1, "baz"))
 
-        self.assertEqual(["bar", "baz"], io._list_subdirs(lvl1, {"bar", "baz"}))
+        self.assertEqual({"bar", "baz"}, set(io._list_subdirs(lvl1, {"bar", "baz"})))
 
     def test_list_subdirs_some_valid(self):
         lvl1 = os.path.join(self.temp_dir_path, "foo")
@@ -164,7 +164,7 @@ class IoTests(IoTestCase):
         os.makedirs(os.path.join(lvl1, "bar"), exist_ok=True)
         os.makedirs(os.path.join(lvl1, "baz"), exist_ok=True)
 
-        self.assertEqual(["baz"], io._list_subdirs(lvl1, {"baz"}))
+        self.assertEqual(["baz"], list(io._list_subdirs(lvl1, {"baz"})))
 
     def test_index_unstructured_all(self):
         copy_exact(self.template_900_path, self.unstructured_900_1000_dir, "900_1546300800000.rdvxz")
