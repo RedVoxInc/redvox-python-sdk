@@ -437,12 +437,11 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         # noinspection PyTypeChecker
         return self.set_unit(Unit.MICROSECONDS_SINCE_UNIX_EPOCH)
 
-    def update_timing_statistics_from_timestamps(self) -> "TimingPayload":
+    def update_timing_statistics_from_timestamps(self, timestamps: np.ndarray) -> "TimingPayload":
         """
         Update the stored statistics from the current set of timestamps.
         :return: A modified instance of self.
         """
-        timestamps: np.ndarray = self.get_timestamps()
         self._timestamp_statistics.update_from_values(timestamps)
         sampling_tuple: Tuple[float, float] = sampling_rate_statistics(timestamps)
         mean_sampling_rate: float = sampling_tuple[0]
@@ -496,7 +495,7 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         self._proto.timestamps[:] = list(timestamps)
 
         if update_value_statistics:
-            self.update_timing_statistics_from_timestamps()
+            self.update_timing_statistics_from_timestamps(timestamps)
 
         return self
 
@@ -513,7 +512,7 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         self._proto.timestamps.append(timestamp)
 
         if update_value_statistics:
-            self.update_timing_statistics_from_timestamps()
+            self.update_timing_statistics_from_timestamps(self.get_timestamps())
 
         return self
 
@@ -530,7 +529,7 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         self._proto.timestamps.extend(list(timestamps))
 
         if update_value_statistics:
-            self.update_timing_statistics_from_timestamps()
+            self.update_timing_statistics_from_timestamps(self.get_timestamps())
 
         return self
 
@@ -545,7 +544,7 @@ class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
         self._proto.timestamps[:] = []
 
         if update_value_statistics:
-            self.update_timing_statistics_from_timestamps()
+            self.update_timing_statistics_from_timestamps(np.array([]))
 
         return self
 
