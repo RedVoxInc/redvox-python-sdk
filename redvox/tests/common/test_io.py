@@ -464,7 +464,10 @@ class IndexTests(IoTestCase):
             io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_-1")),
         ]
 
+
+
         index = io.Index(entries)
+        index.sort()
         self.assertEqual([
             entries[11],
             entries[10],
