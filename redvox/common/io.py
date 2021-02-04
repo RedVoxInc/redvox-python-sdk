@@ -18,6 +18,7 @@ from typing import (
     Union,
     TYPE_CHECKING,
     Callable,
+    Iterable,
 )
 
 from redvox.api900.reader import read_rdvxz_file
@@ -156,7 +157,7 @@ class ReadFilter:
 
     start_dt: Optional[datetime] = None
     end_dt: Optional[datetime] = None
-    station_ids: Optional[Set[str]] = None
+    station_ids: Optional[Iterable[str]] = None
     extensions: Optional[Set[str]] = field(default_factory=lambda: {".rdvxm", ".rdvxz"})
     start_dt_buf: Optional[timedelta] = timedelta(minutes=2.0)
     end_dt_buf: Optional[timedelta] = timedelta(minutes=2.0)

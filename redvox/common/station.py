@@ -68,9 +68,9 @@ class Station:
         self.data = {}
         self.metadata = []
         if data_packets and validate_station_data(data_packets):
-            self._set_all_sensors(data_packets)
             self.id = data_packets[0].get_station_information().get_id()
             self.uuid = data_packets[0].get_station_information().get_uuid()
+            self._set_all_sensors(data_packets)
             self.start_timestamp = (
                 data_packets[0].get_timing_information().get_app_start_mach_timestamp()
             )
@@ -105,15 +105,15 @@ class Station:
         orders the metadata packets by their starting timestamps.  Returns nothing, sorts the data in place
         """
         self.metadata.sort(
-            key=lambda t: t.timing_information.get_packet_start_mach_timestamp()
+            key=lambda t: t.packet_start_mach_timestamp
         )
 
     def _get_start_and_end_timestamps(self):
         """
         uses the sorted metadata packets to get the first and last timestamp of the station
         """
-        self.first_data_timestamp = self.metadata[0].timing_information.get_packet_start_mach_timestamp()
-        self.last_data_timestamp = self.metadata[-1].timing_information.get_packet_end_mach_timestamp()
+        self.first_data_timestamp = self.metadata[0].packet_start_mach_timestamp
+        self.last_data_timestamp = self.metadata[-1].packet_end_mach_timestamp
 
     def set_id(self, station_id: str) -> "Station":
         """

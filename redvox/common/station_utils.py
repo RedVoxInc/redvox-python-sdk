@@ -44,9 +44,11 @@ class StationMetadata:
         app: str, station app
         app_version: str, station app version
         is_private: bool, is station data private
-        app_settings: AppSettings
-        service_urls: ServiceUrls
-        timing_information: TimingInformation
+        packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
+        packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
+        packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
+        packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+        timing_info_score: float, quality of timing information
     """
 
     def __init__(
@@ -74,9 +76,11 @@ class StationMetadata:
         self.app = app
         self.app_version = station_info.get_app_version()
         self.is_private = station_info.get_is_private()
-        self.app_settings = station_info.get_app_settings()
-        self.service_urls = station_info.get_service_urls()
-        self.timing_information = timing_info
+        self.packet_start_mach_timestamp = timing_info.get_packet_start_mach_timestamp()
+        self.packet_end_mach_timestamp = timing_info.get_packet_end_mach_timestamp()
+        self.packet_start_os_timestamp = timing_info.get_packet_start_os_timestamp()
+        self.packet_end_os_timestamp = timing_info.get_packet_end_os_timestamp()
+        self.timing_info_score = timing_info.get_score()
 
     def update_timestamps(self, delta: float):
         """
@@ -84,12 +88,7 @@ class StationMetadata:
             negative delta values move timestamps backwards in time.
         :param delta: optional microseconds to add
         """
-        self.timing_information.set_packet_start_mach_timestamp(
-            self.timing_information.get_packet_start_mach_timestamp() + delta
-        )
-        self.timing_information.set_packet_end_mach_timestamp(
-            self.timing_information.get_packet_end_mach_timestamp() + delta
-        )
-        self.timing_information.set_app_start_mach_timestamp(
-            self.timing_information.get_app_start_mach_timestamp() + delta
-        )
+        self.packet_start_mach_timestamp += delta
+        self.packet_end_mach_timestamp += delta
+        self.packet_start_os_timestamp += delta
+        self.packet_end_os_timestamp += delta

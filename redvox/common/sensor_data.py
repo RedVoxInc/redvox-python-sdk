@@ -1,5 +1,5 @@
 """
-Defines generic sensor data and metadata for API-independent analysis
+Defines generic sensor data and data for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 """
 import enum
