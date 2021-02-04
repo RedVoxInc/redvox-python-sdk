@@ -18,7 +18,6 @@ from typing import (
     Union,
     TYPE_CHECKING,
     Callable,
-    Iterable,
 )
 
 from redvox.api900.reader import read_rdvxz_file
@@ -534,7 +533,7 @@ __VALID_DATES: Set[str] = {f"{i:02}" for i in range(1, 32)}
 __VALID_HOURS: Set[str] = {f"{i:02}" for i in range(0, 24)}
 
 
-def _list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
+def _list_subdirs(base_dir: str, valid_choices: Set[str]) -> Iterator[str]:
     """
     Lists sub-directors in a given base directory that match the provided choices.
     :param base_dir: Base dir to find sub dirs in.
@@ -544,7 +543,7 @@ def _list_subdirs(base_dir: str, valid_choices: Set[str]) -> List[str]:
     subdirs: Iterator[str] = map(
         lambda p: PurePath(p).name, glob(os.path.join(base_dir, "*", ""))
     )
-    return sorted(list(filter(valid_choices.__contains__, subdirs)))
+    return filter(valid_choices.__contains__, subdirs)
 
 
 def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter(), sort: bool = True) -> Index:
@@ -668,7 +667,7 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
     # Maybe parent to one or both?
     else:
         index: Index = Index()
-        subdirs: List[str] = _list_subdirs(base_dir, {"api900", "api1000"})
+        subdirs: List[str] = list(_list_subdirs(base_dir, {"api900", "api1000"}))
         if "api900" in subdirs:
             index.append(
                 iter(
