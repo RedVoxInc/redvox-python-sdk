@@ -20,7 +20,7 @@ class DataWindowTest(unittest.TestCase):
         datawindow = dw.DataWindow(
             input_dir=self.input_dir,
             structured_layout=False,
-            station_ids={"1637650010", "0000000001"},
+            station_ids=["1637650010", "0000000001"],
         )
         self.assertEqual(len(datawindow.stations), 2)
         self.assertIsNotNone(datawindow.get_sensor_from_station("AUDIO", "1637650010"))
@@ -48,7 +48,7 @@ class DataWindowTest(unittest.TestCase):
     def test_dw_with_start_end(self):
         dw_with_start_end = dw.DataWindow(
             input_dir=self.input_dir,
-            station_ids={"1637650010", "0000000001"},
+            station_ids=["1637650010", "0000000001"],
             start_datetime=dt.datetime_from_epoch_seconds_utc(1597189455),
             end_datetime=dt.datetime_from_epoch_seconds_utc(1597189465),
             structured_layout=False,
@@ -68,7 +68,7 @@ class DataWindowTest(unittest.TestCase):
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(
             input_dir=self.input_dir,
-            station_ids={"does_not_exist"},
+            station_ids=["does_not_exist"],
             structured_layout=False,
         )
         self.assertIsNone(dw_invalid.get_all_sensors_from_station("does_not_exist"))

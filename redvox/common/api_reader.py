@@ -3,8 +3,8 @@ Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 """
-from typing import List, Optional, Set, Dict
-from datetime import datetime, timedelta
+from typing import List, Optional, Dict
+from datetime import timedelta
 
 import numpy as np
 
@@ -41,13 +41,7 @@ class ApiReader:
         self,
         base_dir: str,
         structured_dir: bool = False,
-        start_dt: Optional[datetime] = None,
-        end_dt: Optional[datetime] = None,
-        start_dt_buf: Optional[timedelta] = None,
-        end_dt_buf: Optional[timedelta] = None,
-        station_ids: Optional[Set[str]] = None,
-        extensions: Optional[Set[str]] = None,
-        api_versions: Optional[Set[io.ApiVersion]] = None,
+        read_filter: io.ReadFilter = None,
         debug: bool = False,
     ):
         """
@@ -55,32 +49,15 @@ class ApiReader:
         :param base_dir: directory containing the files to read
         :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
                                 api formats.  If False, base_dir only has the data files.  Default False.
-        :param start_dt: optional starting datetime to filter from.  If None, get all data in base_dir.  Default None
-        :param end_dt: optional ending datetime to filter from.  If None, get all data in base_dir.  Default None
-        :param start_dt_buf: optional timedelta buffer to combine with start_dt.
-                                If None, use the default in io.ReadFilter.  Default None
-        :param end_dt_buf: optional timedelta buffer to combine with end_dt.
-                            If None, use the default in io.ReadFilter.  Default None
-        :param station_ids: optional set of station_ids to filter on.  If None, get all data in base_dir.  Default None
-        :param extensions: optional set of file extensions to filter on.  If None, get all data in base_dir.
-                            Default None
-        :param api_versions: optional set of api versions to filter on.  If None, get all data in base_dir.
-                            Default None
+        :param read_filter: ReadFilter for the data files, if None, get everything.  Default None
         :param debug: if True, output additional statements during function execution.  Default False.
         """
-        if not station_ids or len(station_ids) < 1:
-            station_ids = None
-        self.filter = io.ReadFilter(
-            start_dt=start_dt, end_dt=end_dt, station_ids=station_ids
-        )
-        if start_dt_buf:
-            self.filter = self.filter.with_start_dt_buf(start_dt_buf)
-        if end_dt_buf:
-            self.filter = self.filter.with_end_dt_buf(end_dt_buf)
-        if extensions:
-            self.filter = self.filter.with_extensions(extensions)
-        if api_versions:
-            self.filter = self.filter.with_api_versions(api_versions)
+        if read_filter:
+            self.filter = read_filter
+            if self.filter.station_ids:
+                self.filter.station_ids = set(self.filter.station_ids)
+        else:
+            self.filter = io.ReadFilter()
         self.base_dir = base_dir
         self.structured_dir = structured_dir
         self.debug = debug

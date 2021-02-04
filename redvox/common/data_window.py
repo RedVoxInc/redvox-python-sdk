@@ -2,7 +2,7 @@
 This module creates specific time-bounded segments of data for users
 combine the data packets into a new data packet based on the user parameters
 """
-from typing import Optional, Set, List, Dict, Union
+from typing import Optional, Set, List, Dict, Union, Iterable
 from datetime import timedelta
 
 import pandas as pd
@@ -67,7 +67,7 @@ class DataWindow:
         start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
         end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
         gap_time_s: float = DEFAULT_GAP_TIME_S,
-        station_ids: Optional[Set[str]] = None,
+        station_ids: Optional[Iterable[str]] = None,
         extensions: Optional[Set[str]] = None,
         api_versions: Optional[Set[io.ApiVersion]] = None,
         apply_correction: bool = True,
@@ -88,7 +88,7 @@ class DataWindow:
                                 Default DEFAULT_END_BUFFER_TD
         :param gap_time_s: the minimum amount of seconds between data points that would indicate a gap.
                             Default DEFAULT_GAP_TIME_S
-        :param station_ids: optional set of station ids to filter on. If empty or None, get any ids found in the
+        :param station_ids: optional iterable of station ids to filter on. If empty or None, get any ids found in the
                             input directory.  Default None
         :param extensions: optional set of file extensions to filter on.  If None, get all data in the input directory.
                             Default None
@@ -98,6 +98,7 @@ class DataWindow:
                                     Default True
         :param debug: bool, if True, outputs warnings and additional information, default False
         """
+
         self.input_directory: str = input_dir
         self.structured_layout: bool = structured_layout
         self.start_datetime: Optional[dtu.datetime] = start_datetime
@@ -105,7 +106,12 @@ class DataWindow:
         self.start_buffer_td: timedelta = start_buffer_td
         self.end_buffer_td: timedelta = end_buffer_td
         self.gap_time_s: float = gap_time_s
-        self.station_ids: Optional[Set[str]] = station_ids
+        self.station_ids: Optional[Set[str]]
+        if station_ids:
+            self.station_ids = set(station_ids)
+        else:
+            self.station_ids = None
+        # self.station_ids: Optional[Set[str]] = station_ids
         self.extensions: Optional[Set[str]] = extensions
         self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
@@ -279,8 +285,8 @@ class DataWindow:
                 print(f"WARNING: Data window for {station.id} {sensor_type.name} sensor has no data points!")
         # recalculate metadata
         new_meta = [meta for meta in station.metadata
-                    if meta.timing_information.get_packet_start_mach_timestamp() < end_date_timestamp and
-                    meta.timing_information.get_packet_end_mach_timestamp() > start_date_timestamp]
+                    if meta.packet_start_mach_timestamp < end_date_timestamp and
+                    meta.packet_end_mach_timestamp > start_date_timestamp]
         station.metadata = new_meta
         station.first_data_timestamp = start_date_timestamp
         station.last_data_timestamp = end_date_timestamp
@@ -291,16 +297,25 @@ class DataWindow:
         stations without audio or any data outside the window are removed
         """
         ids_to_pop = []
+        r_f = io.ReadFilter()
+        if self.start_datetime:
+            r_f.with_start_dt(self.start_datetime)
+        if self.end_datetime:
+            r_f.with_end_dt(self.end_datetime)
+        if self.station_ids:
+            r_f.with_station_ids(self.station_ids)
+        if self.extensions:
+            r_f.with_extensions(self.extensions)
+        if self.start_buffer_td:
+            r_f.with_start_dt_buf(self.start_buffer_td)
+        if self.end_buffer_td:
+            r_f.with_end_dt_buf(self.end_buffer_td)
+        if self.api_versions:
+            r_f.with_api_versions(self.api_versions)
         self.stations = ApiReader(
             self.input_directory,
             self.structured_layout,
-            self.start_datetime,
-            self.end_datetime,
-            self.start_buffer_td,
-            self.end_buffer_td,
-            self.station_ids,
-            self.extensions,
-            self.api_versions,
+            r_f,
             self.debug,
         ).read_files_as_stations()
         if self.station_ids is None or len(self.station_ids) == 0:
