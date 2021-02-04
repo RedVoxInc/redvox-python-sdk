@@ -3,6 +3,7 @@ Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 """
+from collections import defaultdict
 from typing import List, Optional, Dict
 from datetime import timedelta
 
@@ -175,15 +176,27 @@ class ApiReader:
         read the all files in the index
         :return: dictionary of id: list of WrappedRedvoxPacketM, converted from API 900 if necessary
         """
-        result: Dict[str, List[WrappedRedvoxPacketM]] = {
-            s_id: [] for s_id in self.index_summary.station_ids()
-        }
-        files = self.files_index.read()
-        for file in files:
-            if isinstance(file, api900_io.WrappedRedvoxPacket):
-                result[file.redvox_id()].append(ac.convert_api_900_to_1000(file))
-            elif isinstance(file, WrappedRedvoxPacketM):
-                result[file.get_station_information().get_id()].append(file)
+        result: Dict[str, List[WrappedRedvoxPacketM]] = defaultdict(list)
+
+        # Iterate over the API 900 packets in a memory efficient way
+        # and convert to API 1000
+        # noinspection PyTypeChecker
+        for packet_900 in self.files_index.stream(
+            io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_900})
+        ):
+            # noinspection Mypy
+            result[packet_900.redvox_id()].append(
+                ac.convert_api_900_to_1000(packet_900)
+            )
+
+        # Grab the API 1000 packets
+        # noinspection PyTypeChecker
+        for packet in self.files_index.stream(
+            io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_1000})
+        ):
+            # noinspection Mypy
+            result[packet.get_station_information().get_id()].append(packet)
+
         return result
 
     # noinspection PyTypeChecker
