@@ -590,11 +590,6 @@ def index_unstructured(
         pattern: str = str(PurePath(base_dir).joinpath(f"*{extension}"))
         paths: List[str] = glob(os.path.join(base_dir, pattern))
         all_paths.extend(paths)
-        # noinspection Mypy
-        # entries: Iterator[IndexEntry] = filter(
-        #     read_filter.apply, filter(_not_none, map(IndexEntry.from_path, paths))
-        # )
-        # index.append(entries)
 
     all_entries: Iterator[Optional[IndexEntry]]
 
