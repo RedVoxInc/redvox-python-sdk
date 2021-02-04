@@ -160,11 +160,11 @@ def convert_api_900_to_1000(
     station_metrics.get_timestamps().append_timestamp(
         wrapped_packet_900.app_file_start_timestamp_machine()
     )
-    station_metrics.get_temperature().append_value(
-        wrapped_packet_900.device_temperature_c()
+    station_metrics.get_temperature().set_values(
+        np.array([wrapped_packet_900.device_temperature_c()]), True
     )
-    station_metrics.get_battery().append_value(
-        wrapped_packet_900.battery_level_percent()
+    station_metrics.get_battery().set_values(
+        np.array([wrapped_packet_900.battery_level_percent()]), True
     )
 
     # Timing information
@@ -198,7 +198,7 @@ def convert_api_900_to_1000(
 
     time_sensor = wrapped_packet_900.time_synchronization_sensor()
     if time_sensor is not None:
-        wrapped_packet_m.get_timing_information().get_synch_exchanges().append_values(
+        wrapped_packet_m.get_timing_information().get_synch_exchanges().set_values(
             _migrate_synch_exchanges_900_to_1000(time_sensor.payload_values())
         )
 
@@ -252,8 +252,8 @@ def convert_api_900_to_1000(
         )
         if location_sensor_900.check_for_preset_lat_lon():
             lat_lon = location_sensor_900.get_payload_lat_lon()
-            location_m.get_latitude_samples().set_values(np.array([lat_lon[0]]))
-            location_m.get_longitude_samples().set_values(np.array([lat_lon[1]]))
+            location_m.get_latitude_samples().set_values(np.array([lat_lon[0]]), True)
+            location_m.get_longitude_samples().set_values(np.array([lat_lon[1]]), True)
         else:
             location_m.get_latitude_samples().set_values(
                 location_sensor_900.payload_values_latitude(), True
