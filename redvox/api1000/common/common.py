@@ -411,6 +411,7 @@ def sampling_rate_statistics(timestamps: np.ndarray) -> Tuple[float, float]:
     return mean_sample_rate, stdev_sample_rate
 
 
+# noinspection DuplicatedCode
 class TimingPayload(ProtoBase[redvox_api_m_pb2.RedvoxPacketM.TimingPayload]):
     """
     Manages collections of timestamps for unevenly sampled data.
