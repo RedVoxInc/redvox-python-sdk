@@ -112,6 +112,7 @@ def _migrate_os_type_1000_to_900(os: OsType) -> str:
         return os.name
 
 
+# noinspection DuplicatedCode
 def convert_api_900_to_1000(
     wrapped_packet_900: reader_900.WrappedRedvoxPacket,
 ) -> WrappedRedvoxPacketM:
@@ -124,7 +125,7 @@ def convert_api_900_to_1000(
 
     # Top-level metadata
     wrapped_packet_m.set_api(1000.0)
-    # noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences,Mypy
     wrapped_packet_m.set_sub_api(redvox_api_m_pb2.SUB_API)
 
     # Station information
@@ -153,7 +154,8 @@ def convert_api_900_to_1000(
 
     # API 900 does not maintain a copy of its settings. So we will not set anything in AppSettings
 
-    # StationMetrics - We know a couple
+    # StationMetrics - We know a couple. We take a slightly more cumbersome approach using the raw protobuf
+    # to avoid some conversions between lists and np arrays.
     station_metrics: StationMetrics = station_information.get_station_metrics()
     station_metrics.get_timestamps().append_timestamp(
         wrapped_packet_900.app_file_start_timestamp_machine()
