@@ -297,19 +297,27 @@ class DataWindow:
         stations without audio or any data outside the window are removed
         """
         ids_to_pop = []
-        r = ApiReader(
+        r_f = io.ReadFilter()
+        if self.start_datetime:
+            r_f.with_start_dt(self.start_datetime)
+        if self.end_datetime:
+            r_f.with_end_dt(self.end_datetime)
+        if self.station_ids:
+            r_f.with_station_ids(self.station_ids)
+        if self.extensions:
+            r_f.with_extensions(self.extensions)
+        if self.start_buffer_td:
+            r_f.with_start_dt_buf(self.start_buffer_td)
+        if self.end_buffer_td:
+            r_f.with_end_dt_buf(self.end_buffer_td)
+        if self.api_versions:
+            r_f.with_api_versions(self.api_versions)
+        self.stations = ApiReader(
             self.input_directory,
             self.structured_layout,
-            self.start_datetime,
-            self.end_datetime,
-            self.start_buffer_td,
-            self.end_buffer_td,
-            self.station_ids,
-            self.extensions,
-            self.api_versions,
+            r_f,
             self.debug,
-        )
-        self.stations = r.read_files_as_stations()
+        ).read_files_as_stations()
         if self.station_ids is None or len(self.station_ids) == 0:
             self.station_ids = set(self.stations.keys())
         for station in self.stations.values():
