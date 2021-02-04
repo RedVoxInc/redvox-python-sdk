@@ -283,7 +283,7 @@ class SamplePayload(
         self._proto.values[:] = list(values)
 
         if update_value_statistics:
-            self._summary_statistics.update_from_values(self.get_values())
+            self._summary_statistics.update_from_values(values)
 
         return self
 
