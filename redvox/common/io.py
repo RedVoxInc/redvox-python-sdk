@@ -579,7 +579,7 @@ def index_unstructured(base_dir: str, read_filter: ReadFilter = ReadFilter(), so
 
 
 def index_structured_api_900(
-    base_dir: str, read_filter: ReadFilter = ReadFilter()
+    base_dir: str, read_filter: ReadFilter = ReadFilter(), sort: bool = True
 ) -> Index:
     """
     This parses a structured API 900 directory structure and identifies files that match the provided filter.
@@ -607,12 +607,13 @@ def index_structured_api_900(
                 )
                 index.append(entries)
 
-    index.sort()
+    if sort:
+        index.sort()
     return index
 
 
 def index_structured_api_1000(
-    base_dir: str, read_filter: ReadFilter = ReadFilter()
+    base_dir: str, read_filter: ReadFilter = ReadFilter(), sort: bool = True
 ) -> Index:
     """
     This parses a structured API M directory structure and identifies files that match the provided filter.
@@ -644,7 +645,8 @@ def index_structured_api_1000(
                     )
                     index.append(entries)
 
-    index.sort()
+    if sort:
+        index.sort()
     return index
 
 
@@ -672,7 +674,7 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
             index.append(
                 iter(
                     index_structured_api_900(
-                        str(base_path.joinpath("api900")), read_filter
+                        str(base_path.joinpath("api900")), read_filter, sort=False
                     ).entries
                 )
             )
@@ -681,7 +683,7 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
             index.append(
                 iter(
                     index_structured_api_1000(
-                        str(base_path.joinpath("api1000")), read_filter
+                        str(base_path.joinpath("api1000")), read_filter, sort=False
                     ).entries
                 )
             )
