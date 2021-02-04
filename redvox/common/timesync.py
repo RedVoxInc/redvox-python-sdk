@@ -163,7 +163,6 @@ class TimeSyncData:
         self.packet_end_timestamp += delta
 
 
-# todo: make this out of a list of TimeSyncData objects instead of whatever the init currently is
 class TimeSyncAnalysis:
     """
     Used for multiple TimeSyncData objects from a station

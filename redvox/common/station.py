@@ -10,7 +10,7 @@ import numpy as np
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common import sensor_data as sd
 from redvox.common.station_utils import StationKey, StationMetadata
-from redvox.common.timesync import TimeSyncAnalysis
+from redvox.common.timesync import TimeSyncAnalysis, TimeSyncData
 
 
 def validate_station_data(data_packets: List[WrappedRedvoxPacketM]) -> bool:
@@ -68,9 +68,9 @@ class Station:
         self.data = {}
         self.metadata = []
         if data_packets and validate_station_data(data_packets):
+            self._set_all_sensors(data_packets)
             self.id = data_packets[0].get_station_information().get_id()
             self.uuid = data_packets[0].get_station_information().get_uuid()
-            self._set_all_sensors(data_packets)
             self.start_timestamp = (
                 data_packets[0].get_timing_information().get_app_start_mach_timestamp()
             )
@@ -992,124 +992,40 @@ class Station:
                     packet.get_timing_information(),
                 )
             )
-        if any(
-            s.get_sensors().has_audio() and s.get_sensors().validate_audio()
-            for s in packets
-        ):
-            self.data[sd.SensorType.AUDIO] = sd.load_apim_audio_from_list(packets)
-        if any(
-            s.get_sensors().has_compressed_audio()
-            and s.get_sensors().validate_compressed_audio()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.COMPRESSED_AUDIO
-            ] = sd.load_apim_compressed_audio_from_list(packets)
-        if any(
-            s.get_sensors().has_image() and s.get_sensors().validate_image()
-            for s in packets
-        ):
-            self.data[sd.SensorType.IMAGE] = sd.load_apim_image_from_list(packets)
-        if any(
-            s.get_sensors().has_location() and s.get_sensors().validate_location()
-            for s in packets
-        ):
-            self.data[sd.SensorType.LOCATION] = sd.load_apim_location_from_list(packets)
-        if any(
-            s.get_sensors().has_pressure() and s.get_sensors().validate_pressure()
-            for s in packets
-        ):
-            self.data[sd.SensorType.PRESSURE] = sd.load_apim_pressure_from_list(packets)
-        if any(
-            s.get_sensors().has_light() and s.get_sensors().validate_light()
-            for s in packets
-        ):
-            self.data[sd.SensorType.LIGHT] = sd.load_apim_light_from_list(packets)
-        if any(
-            s.get_sensors().has_ambient_temperature()
-            and s.get_sensors().validate_ambient_temperature()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.AMBIENT_TEMPERATURE
-            ] = sd.load_apim_ambient_temp_from_list(packets)
-        if any(
-            s.get_sensors().has_relative_humidity()
-            and s.get_sensors().validate_relative_humidity()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.RELATIVE_HUMIDITY
-            ] = sd.load_apim_rel_humidity_from_list(packets)
-        if any(
-            s.get_sensors().has_proximity() and s.get_sensors().validate_proximity()
-            for s in packets
-        ):
-            self.data[sd.SensorType.PROXIMITY] = sd.load_apim_proximity_from_list(
-                packets
-            )
-        if any(
-            s.get_sensors().has_accelerometer()
-            and s.get_sensors().validate_accelerometer()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.ACCELEROMETER
-            ] = sd.load_apim_accelerometer_from_list(packets)
-        if any(
-            s.get_sensors().has_gyroscope() and s.get_sensors().validate_gyroscope()
-            for s in packets
-        ):
-            self.data[sd.SensorType.GYROSCOPE] = sd.load_apim_gyroscope_from_list(
-                packets
-            )
-        if any(
-            s.get_sensors().has_magnetometer()
-            and s.get_sensors().validate_magnetometer()
-            for s in packets
-        ):
-            self.data[sd.SensorType.MAGNETOMETER] = sd.load_apim_magnetometer_from_list(
-                packets
-            )
-        if any(
-            s.get_sensors().has_gravity() and s.get_sensors().validate_gravity()
-            for s in packets
-        ):
-            self.data[sd.SensorType.GRAVITY] = sd.load_apim_gravity_from_list(packets)
-        if any(
-            s.get_sensors().has_linear_acceleration()
-            and s.get_sensors().validate_linear_acceleration()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.LINEAR_ACCELERATION
-            ] = sd.load_apim_linear_accel_from_list(packets)
-        if any(
-            s.get_sensors().has_orientation() and s.get_sensors().validate_orientation()
-            for s in packets
-        ):
-            self.data[sd.SensorType.ORIENTATION] = sd.load_apim_orientation_from_list(
-                packets
-            )
-        if any(
-            s.get_sensors().has_rotation_vector()
-            and s.get_sensors().validate_rotation_vector()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.ROTATION_VECTOR
-            ] = sd.load_apim_rotation_vector_from_list(packets)
-        if any(
-            s.get_station_information()
-            .get_station_metrics()
-            .get_timestamps()
-            .get_timestamps_count()
-            > 0
-            for s in packets
-        ):
-            self.data[sd.SensorType.STATION_HEALTH] = sd.load_apim_health_from_list(
-                packets
-            )
+            if packet.get_sensors().has_audio() and packet.get_sensors().validate_audio():
+                self.append_sensor(sd.load_apim_audio(packet))
+            if packet.get_sensors().has_compressed_audio() and packet.get_sensors().validate_compressed_audio():
+                self.append_sensor(sd.load_apim_compressed_audio(packet))
+            if packet.get_sensors().has_image() and packet.get_sensors().validate_image():
+                self.append_sensor(sd.load_apim_image(packet))
+            if packet.get_sensors().has_location() and packet.get_sensors().validate_location():
+                self.append_sensor(sd.load_apim_location(packet))
+            if packet.get_sensors().has_pressure() and packet.get_sensors().validate_pressure():
+                self.append_sensor(sd.load_apim_pressure(packet))
+            if packet.get_sensors().has_light() and packet.get_sensors().validate_light():
+                self.append_sensor(sd.load_apim_light(packet))
+            if packet.get_sensors().has_ambient_temperature() and packet.get_sensors().validate_ambient_temperature():
+                self.append_sensor(sd.load_apim_ambient_temp(packet))
+            if packet.get_sensors().has_relative_humidity() and packet.get_sensors().validate_relative_humidity():
+                self.append_sensor(sd.load_apim_rel_humidity(packet))
+            if packet.get_sensors().has_proximity() and packet.get_sensors().validate_proximity():
+                self.append_sensor(sd.load_apim_proximity(packet))
+            if packet.get_sensors().has_accelerometer() and packet.get_sensors().validate_accelerometer():
+                self.append_sensor(sd.load_apim_accelerometer(packet))
+            if packet.get_sensors().has_gyroscope() and packet.get_sensors().validate_gyroscope():
+                self.append_sensor(sd.load_apim_gyroscope(packet))
+            if packet.get_sensors().has_magnetometer() and packet.get_sensors().validate_magnetometer():
+                self.append_sensor(sd.load_apim_magnetometer(packet))
+            if packet.get_sensors().has_gravity() and packet.get_sensors().validate_gravity():
+                self.append_sensor(sd.load_apim_gravity(packet))
+            if packet.get_sensors().has_linear_acceleration() and packet.get_sensors().validate_linear_acceleration():
+                self.append_sensor(sd.load_apim_linear_accel(packet))
+            if packet.get_sensors().has_orientation() and packet.get_sensors().validate_orientation():
+                self.append_sensor(sd.load_apim_orientation(packet))
+            if packet.get_sensors().has_rotation_vector() and packet.get_sensors().validate_rotation_vector():
+                self.append_sensor(sd.load_apim_rotation_vector(packet))
+            if packet.get_station_information().get_station_metrics().get_timestamps().get_timestamps_count() > 0:
+                self.append_sensor(sd.load_apim_health(packet))
 
     def update_timestamps(self, delta: Optional[float] = None):
         """
