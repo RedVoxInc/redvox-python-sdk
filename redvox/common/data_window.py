@@ -19,12 +19,8 @@ from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 
 
 DEFAULT_GAP_TIME_S: float = 0.25  # default length of a gap in seconds
-DEFAULT_START_BUFFER_TD: timedelta = timedelta(
-    seconds=0
-)  # default padding to start time of data in seconds
-DEFAULT_END_BUFFER_TD: timedelta = timedelta(
-    seconds=0
-)  # default padding to end time of data in seconds
+DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to start time of data
+DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)    # default padding to end time of data
 # default maximum number of points required to brute force calculate gap timestamps
 DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS: int = 5000
 
@@ -247,9 +243,55 @@ class DataWindow:
                     (start_date_timestamp <= df_timestamps)
                     & (df_timestamps <= end_date_timestamp)
                 )[0]
+                if sensor_type == SensorType.STATION_HEALTH:
+                    if any(df_timestamps < start_date_timestamp):
+                        last_before_start = np.argwhere(df_timestamps < start_date_timestamp)[-1][0]
+                    else:
+                        last_before_start = None
+                    if any(df_timestamps > end_date_timestamp):
+                        first_after_end = np.argwhere(df_timestamps > end_date_timestamp)[0][0]
+                    else:
+                        first_after_end = None
+                    if len(window_indices) < 1:
+                        if last_before_start is not None and first_after_end is None:
+                            sensor.data_df = sensor.data_df.iloc[last_before_start]
+                            sensor.data_df["timestamps"] = start_date_timestamp
+                        elif last_before_start is None and first_after_end is not None:
+                            sensor.data_df = sensor.data_df.iloc[first_after_end]
+                            sensor.data_df["timestamps"] = end_date_timestamp
+                        elif last_before_start is not None and first_after_end is not None:
+                            sensor.data_df = \
+                                sensor.interpolate(last_before_start, first_after_end, start_date_timestamp)
+                    else:
+                        if last_before_start is not None:
+                            sensor.data_df.iloc[last_before_start] = \
+                                sensor.interpolate(last_before_start,
+                                                   np.argwhere(df_timestamps >= start_date_timestamp)[0][0],
+                                                   start_date_timestamp)
+                        if first_after_end is not None:
+                            sensor.data_df.iloc[first_after_end] = \
+                                sensor.interpolate(first_after_end,
+                                                   np.argwhere(df_timestamps <= end_date_timestamp)[-1][0],
+                                                   end_date_timestamp)
                 # check if all the samples have been cut off
                 if len(window_indices) < 1:
-                    if self.debug:
+                    if any(df_timestamps < start_date_timestamp):
+                        last_before_start = np.argwhere(df_timestamps < start_date_timestamp)[-1][0]
+                    else:
+                        last_before_start = None
+                    if any(df_timestamps > end_date_timestamp):
+                        first_after_end = np.argwhere(df_timestamps > end_date_timestamp)[0][0]
+                    else:
+                        first_after_end = None
+                    if last_before_start is not None and first_after_end is None:
+                        sensor.data_df = sensor.data_df.iloc[last_before_start]
+                        sensor.data_df["timestamps"] = start_date_timestamp
+                    elif last_before_start is None and first_after_end is not None:
+                        sensor.data_df = sensor.data_df.iloc[first_after_end]
+                        sensor.data_df["timestamps"] = end_date_timestamp
+                    elif last_before_start is not None and first_after_end is not None:
+                        sensor.data_df = sensor.data_df.iloc[last_before_start:first_after_end].mean()
+                    elif self.debug:
                         print(
                             f"WARNING: Data window for {station.id} {sensor_type.name} "
                             f"sensor has truncated all data points"
@@ -264,14 +306,12 @@ class DataWindow:
                                 f"WARNING: Cannot fill gaps or pad {station.id} {sensor_type.name} "
                                 f"sensor; it has undefined sample interval and sample rate!"
                             )
-                    else:  # GAP FILL and PAD DATA
+                    elif sensor_type == SensorType.AUDIO:  # GAP FILL and PAD DATA
                         # if non-loc and non-mic, interpolate point on edge of valid mic data
                         # if location, use best value if necessary
                         # if mic, use sample interval to interpolate missing points
                         # do not pad points that would = or beyond request time
-                        sample_interval_micros = dtu.seconds_to_microseconds(
-                            sensor.sample_interval_s
-                        )
+                        sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
                         sensor.data_df = fill_gaps(
                             sensor.data_df,
                             sample_interval_micros
@@ -279,12 +319,13 @@ class DataWindow:
                             gap_time_micros,
                             DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
                         )
-                        sensor.data_df = pad_data(
-                            start_date_timestamp,
-                            end_date_timestamp,
-                            sensor.data_df,
-                            sample_interval_micros,
-                        )
+                        # padding turned off while edge cases are reviewed
+                        # sensor.data_df = pad_data(
+                        #     start_date_timestamp,
+                        #     end_date_timestamp,
+                        #     sensor.data_df,
+                        #     sample_interval_micros,
+                        # )
             elif self.debug:
                 print(f"WARNING: Data window for {station.id} {sensor_type.name} sensor has no data points!")
         # recalculate metadata
