@@ -38,12 +38,12 @@ class DataWindowTest(unittest.TestCase):
             dw.SensorType.AUDIO, "0000000001"
         )
         self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 720001)
+        self.assertEqual(test_sensor.num_samples(), 720000)
         test_sensor = datawindow.get_sensor_from_station(
             dw.SensorType.LOCATION, "0000000001"
         )
         self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 4)
+        self.assertEqual(test_sensor.num_samples(), 3)
 
     def test_dw_with_start_end(self):
         dw_with_start_end = dw.DataWindow(
@@ -58,12 +58,12 @@ class DataWindowTest(unittest.TestCase):
             dw.SensorType.AUDIO, "0000000001"
         )
         self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 479986)
+        self.assertEqual(audio_sensor.num_samples(), 479984)
         loc_sensor = dw_with_start_end.get_sensor_from_station(
             dw.SensorType.LOCATION, "0000000001"
         )
         self.assertIsNotNone(loc_sensor)
-        self.assertEqual(loc_sensor.num_samples(), 4)
+        self.assertEqual(loc_sensor.num_samples(), 2)
 
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(

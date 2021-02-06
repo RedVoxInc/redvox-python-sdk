@@ -288,6 +288,27 @@ class SensorData:
         """
         self.data_df = self.data_df.sort_values("timestamps", ascending=ascending)
 
+    def interpolate(self, first_point: int, second_point: int, interpolate_timestamp: float) -> pd.Series:
+        """
+        interpolates two points at the intercept value
+        :param first_point: index of first point
+        :param second_point: index of second point
+        :param interpolate_timestamp: timestamp to be interpolate other values
+        :return: pd.Series of interpolated points
+        """
+        numeric_series = self.data_df.select_dtypes(include=[np.number])
+        numeric_diff = numeric_series.iloc[second_point] - numeric_series.iloc[first_point]
+        numeric_diff = (numeric_diff / numeric_diff["timestamps"]) \
+            * (interpolate_timestamp - numeric_series["timestamps"][first_point]) \
+            + numeric_series.iloc[first_point]
+        non_numeric_series = self.data_df.select_dtypes(exclude=[np.number])
+        if np.abs(self.data_df.iloc[first_point]["timestamps"] - interpolate_timestamp) \
+                <= np.abs(self.data_df.iloc[second_point]["timestamps"] - interpolate_timestamp):
+            non_numeric_diff = non_numeric_series.iloc[first_point]
+        else:
+            non_numeric_diff = non_numeric_series.iloc[second_point]
+        return pd.concat([numeric_diff, non_numeric_diff])
+
 
 def get_empty_sensor_data(
     name: str, sensor_type: SensorType = SensorType.UNKNOWN_SENSOR

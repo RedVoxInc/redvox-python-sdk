@@ -84,11 +84,11 @@ class ApiReader:
         # phone can store its own drift model; send the critical values to the server
         # model confidence metric
         index = io.Index()
+        # this guarantees that all ids we search for are valid
         all_index = self._apply_filter()
         for station_id in all_index.summarize().station_ids():
             station_filter = self.filter.clone()
-            station_filter = station_filter.with_station_ids({station_id})
-            checked_index = self._check_station_stats(station_filter)
+            checked_index = self._check_station_stats(station_filter.with_station_ids({station_id}))
             index.append(checked_index.entries)
         return index
 
@@ -115,10 +115,18 @@ class ApiReader:
         :return: Index that includes as much information as possible that fits the request
         """
         index = self._apply_filter(request_filter)
-        if len(index.entries) < 1:
+        # if there are no restrictions on time or we found nothing, return the index
+        if (not self.filter.start_dt and not self.filter.end_dt) or \
+                (not request_filter.start_dt and not request_filter.end_dt) or len(index.entries) < 1:
             return index
+        # if nothing was found and we have a start or end time, try removing those limits and searching again.
+        # if len(index.entries) < 0 and (request_filter.start_dt or request_filter.end_dt):
+        #     new_filter = request_filter.clone()
+        #     new_filter.with_start_dt(None).with_end_dt(None)
+        #     self._check_station_stats(new_filter)
         stats = fs.extract_stats(index)
-        if stats[0].packet_duration == 0.0 or not stats[0].packet_duration:
+        # punt if duration or other important values are invalid
+        if any(st.packet_duration == 0.0 or not st.packet_duration for st in stats):
             return index
         # get the model and calculate the revised start and end offsets
         # model = create_model_function
@@ -133,47 +141,50 @@ class ApiReader:
         i = np.argwhere([st.latency for st in stats] == np.min(latencies))[0][0]
         avg_offset = timedelta(microseconds=stats[i].offset)
         # revise packet's times to real times and compare to requested values
-        revised_start = (
-            stats[0].packet_start_dt + avg_offset - 2 * stats[0].packet_duration
-        )  # model.revised_start_offset
-        revised_end = (
-            stats[-1].packet_start_dt + stats[-1].packet_duration + avg_offset
-        )  # model.revised_end_offset
-        if not request_filter.start_dt:
-            request_filter = request_filter.with_start_dt(revised_start)
-        if not request_filter.end_dt:
-            request_filter = request_filter.with_end_dt(revised_end)
+        revised_start = stats[0].packet_start_dt + avg_offset
+        revised_end = stats[-1].packet_start_dt + stats[-1].packet_duration + avg_offset
         # if our filtered files encompass the request even when the packet times are updated, return the index
-        if (not self.filter.start_dt or revised_start <= self.filter.start_dt) and (
-            not self.filter.end_dt or revised_end >= self.filter.end_dt
-        ):
+        if (not self.filter.start_dt or revised_start <= self.filter.start_dt) \
+                and (not self.filter.end_dt or revised_end >= self.filter.end_dt):
             return index
         # we have to update our filter to get more information
         new_filter = request_filter.clone()
-        # add an extra packet to the filter times value to ensure we don't miss any data
-        revised_start = request_filter.start_dt - stats[0].packet_duration
-        revised_end = request_filter.end_dt + stats[-1].packet_duration
-        # remove the offset so that you have the correct packet times to search for
-        new_filter = (
-            new_filter.with_start_dt(revised_start - avg_offset)
-            .with_start_dt_buf(stats[0].packet_duration)
-            .with_end_dt(revised_end - avg_offset)
-        )
-        idx = self._apply_filter(new_filter)
-        sts = fs.extract_stats(idx)
-        if (
-            revised_start <= self.filter.start_dt
-            or sts[0].packet_start_dt == stats[0].packet_start_dt
-        ) and (
-            revised_end >= self.filter.end_dt
-            or sts[-1].packet_start_dt == stats[0].packet_start_dt
-        ):
-            return idx
+        no_more_start = False
+        no_more_end = False
+        # check if there is a packet just beyond the request times
+        if self.filter.start_dt and revised_start > self.filter.start_dt:
+            beyond_start = self.filter.start_dt - np.abs(avg_offset) - stats[0].packet_duration
+            start_filter = request_filter.clone().with_start_dt(beyond_start).with_end_dt(stats[0].packet_start_dt) \
+                .with_end_dt_buf(timedelta(seconds=0))
+            start_index = self._apply_filter(start_filter)
+            # if there is a packet, then update filter, otherwise flag result as no more data to obtain
+            if len(start_index.entries) > 0:
+                new_filter.with_start_dt(beyond_start)
+            else:
+                no_more_start = True
+        else:
+            no_more_start = True
+        if self.filter.end_dt and revised_end < self.filter.end_dt:
+            beyond_end = self.filter.end_dt + np.abs(avg_offset)
+            end_filter = request_filter.clone().with_start_dt(stats[-1].packet_start_dt + stats[-1].packet_duration)\
+                .with_end_dt(beyond_end).with_start_dt_buf(timedelta(seconds=0))
+            end_index = self._apply_filter(end_filter)
+            # if there is a packet, then update filter, otherwise flag result as no more data to obtain
+            if len(end_index.entries) > 0:
+                new_filter.with_end_dt(beyond_end)
+            else:
+                no_more_end = True
+        else:
+            no_more_end = True
+        # if there is no more data to obtain from either end, return the original index
+        if no_more_start and no_more_end:
+            return index
+        # check the updated index
         return self._check_station_stats(new_filter)
 
     def read_files(self) -> Dict[str, List[WrappedRedvoxPacketM]]:
         """
-        read the all files in the index
+        read all the files in the index
         :return: dictionary of id: list of WrappedRedvoxPacketM, converted from API 900 if necessary
         """
         result: Dict[str, List[WrappedRedvoxPacketM]] = defaultdict(list)
