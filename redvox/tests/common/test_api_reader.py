@@ -59,7 +59,7 @@ class ApiReaderTest(unittest.TestCase):
 
     def test_read_all_station_ids_no_match(self):
         api1000_dir = os.path.join(self.input_dir, "api1000")
-        reader = api_reader.ApiReader(api1000_dir, True, ReadFilter(station_ids=["1000000900"]))
+        reader = api_reader.ApiReader(api1000_dir, True, ReadFilter(station_ids={"1000000900"}))
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 0)
         result_by_id = reader.read_files_by_id("1000000900")
@@ -67,7 +67,7 @@ class ApiReaderTest(unittest.TestCase):
 
     def test_read_all_station_ids(self):
         reader = api_reader.ApiReader(
-            self.input_dir, True, ReadFilter(station_ids=["1000001000", "2000001000"])
+            self.input_dir, True, ReadFilter(station_ids={"1000001000", "2000001000"})
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -159,7 +159,7 @@ class ApiReaderTest(unittest.TestCase):
         filter_ids = ["1000000900", "1000001000", "2000000900"]
         final_result = 0
         for f_id in filter_ids:
-            reader = api_reader.ApiReader(self.input_dir, True, ReadFilter(station_ids=[f_id]))
+            reader = api_reader.ApiReader(self.input_dir, True, ReadFilter(station_ids={f_id}))
             result = reader.index_summary.total_packets()
             if result == 0:
                 self.assertTrue("2000000900" in reader.filter.station_ids)

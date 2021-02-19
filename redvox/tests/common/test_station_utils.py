@@ -1,9 +1,33 @@
 # todo: scrap if not needed
-# import unittest
-# import numpy as np
-# import pandas as pd
-#
-# from redvox.common import station_utils
+import unittest
+import numpy as np
+import pandas as pd
+
+import redvox.tests as tests
+from redvox.common.io import ReadFilter
+from redvox.common.api_reader import ApiReader
+from redvox.common import station_utils as su
+
+
+class StationMetadataTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.input_dir = tests.TEST_DATA_DIR
+        cls.station_filter = ReadFilter(station_ids={"0000000001"})
+
+    def test_station_metadata(self):
+        reader = ApiReader(self.input_dir, read_filter=self.station_filter)
+        files = reader.read_files_by_id("0000000001")
+        metadata = [su.StationMetadata(p.get_api(),
+                                       p.get_sub_api(),
+                                       p.get_station_information(),
+                                       "Redvox",
+                                       p.get_timing_information(),) for p in files]
+        self.assertEqual(len(metadata), 3)
+        self.assertEqual(metadata[2].os_version, "Fedora 32")
+        self.assertEqual(metadata[1].app_version, "0.2.0")
+        self.assertEqual(metadata[0].packet_start_mach_timestamp, 1597189452945991.0)
+
 # from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 #
 #

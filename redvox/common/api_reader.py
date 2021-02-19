@@ -10,6 +10,8 @@ from datetime import timedelta
 import numpy as np
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.common import date_time_utils as dtu
+from redvox.common import offset_model
 from redvox.api900 import reader as api900_io
 from redvox.common import api_conversions as ac
 from redvox.common import io
@@ -132,17 +134,29 @@ class ApiReader:
         # model = create_model_function
         latencies = [
             st.latency
+            if st.latency is not None and not np.isnan(st.latency) else np.nan
             for st in stats
-            if st.latency is not None and not np.isnan(st.latency)
         ]
         # no latencies means no correction means we're done
         if len(latencies) < 1:
             return index
-        i = np.argwhere([st.latency for st in stats] == np.min(latencies))[0][0]
-        avg_offset = timedelta(microseconds=stats[i].offset)
+        offsets = [st.offset if st.offset is not None and not np.isnan(st.offset) else np.nan for st in stats]
+        times = [dtu.datetime_to_epoch_microseconds_utc(st.packet_start_dt) for st in stats]
+        packet_duration = np.mean([dtu.seconds_to_microseconds(st.packet_duration.total_seconds()) for st in stats])
+        start_time = times[0]
+        mean_times = times + 0.5 * packet_duration
+        slope, intercept = offset_model.get_offset_function(np.array(latencies), np.array(offsets),
+                                                            mean_times, 5, 3, start_time)
+        # i = np.argwhere([st.latency for st in stats] == np.min(latencies))[0][0]
+        # avg_offset = timedelta(microseconds=stats[i].offset)
         # revise packet's times to real times and compare to requested values
-        revised_start = stats[0].packet_start_dt + avg_offset
-        revised_end = stats[-1].packet_start_dt + stats[-1].packet_duration + avg_offset
+        start_offset = timedelta(microseconds=offset_model.get_offset_at_new_time(
+            dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt), slope, intercept, start_time))
+        revised_start = stats[0].packet_start_dt + start_offset
+        end = stats[-1].packet_start_dt + stats[-1].packet_duration
+        end_offset = timedelta(microseconds=offset_model.get_offset_at_new_time(
+            dtu.datetime_to_epoch_microseconds_utc(end), slope, intercept, start_time))
+        revised_end = end + end_offset
         # if our filtered files encompass the request even when the packet times are updated, return the index
         if (not self.filter.start_dt or revised_start <= self.filter.start_dt) \
                 and (not self.filter.end_dt or revised_end >= self.filter.end_dt):
@@ -153,7 +167,7 @@ class ApiReader:
         no_more_end = False
         # check if there is a packet just beyond the request times
         if self.filter.start_dt and revised_start > self.filter.start_dt:
-            beyond_start = self.filter.start_dt - np.abs(avg_offset) - stats[0].packet_duration
+            beyond_start = self.filter.start_dt - np.abs(start_offset) - stats[0].packet_duration
             start_filter = request_filter.clone().with_start_dt(beyond_start).with_end_dt(stats[0].packet_start_dt) \
                 .with_end_dt_buf(timedelta(seconds=0))
             start_index = self._apply_filter(start_filter)
@@ -165,7 +179,7 @@ class ApiReader:
         else:
             no_more_start = True
         if self.filter.end_dt and revised_end < self.filter.end_dt:
-            beyond_end = self.filter.end_dt + np.abs(avg_offset)
+            beyond_end = self.filter.end_dt + np.abs(end_offset)
             end_filter = request_filter.clone().with_start_dt(stats[-1].packet_start_dt + stats[-1].packet_duration)\
                 .with_end_dt(beyond_end).with_start_dt_buf(timedelta(seconds=0))
             end_index = self._apply_filter(end_filter)
