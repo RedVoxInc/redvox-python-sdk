@@ -19,13 +19,13 @@ class StationTest(unittest.TestCase):
         reader = api_reader.ApiReader(
             tests.TEST_DATA_DIR,
             False,
-            ReadFilter(extensions={".rdvxm"}, station_ids=["0000000001"]),
+            ReadFilter(extensions={".rdvxm"}, station_ids={"0000000001"}),
         )
         cls.apim_station = reader.get_station_by_id("0000000001")
         reader = api_reader.ApiReader(
             tests.TEST_DATA_DIR,
             False,
-            ReadFilter(extensions={".rdvxz"}, station_ids=["1637650010"]),
+            ReadFilter(extensions={".rdvxz"}, station_ids={"1637650010"}),
         )
         cls.api900_station = reader.get_station_by_id("1637650010")
 

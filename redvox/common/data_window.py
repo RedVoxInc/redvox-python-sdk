@@ -238,51 +238,21 @@ class DataWindow:
             sensor.organize_and_update_stats()
             # get only the timestamps between the start and end timestamps
             df_timestamps = sensor.data_timestamps()
+            if any(df_timestamps < start_date_timestamp):
+                last_before_start = np.argwhere(df_timestamps < start_date_timestamp)[-1][0]
+            else:
+                last_before_start = None
+            if any(df_timestamps > end_date_timestamp):
+                first_after_end = np.argwhere(df_timestamps > end_date_timestamp)[0][0]
+            else:
+                first_after_end = None
             if len(df_timestamps) > 0:
                 window_indices = np.where(
                     (start_date_timestamp <= df_timestamps)
                     & (df_timestamps <= end_date_timestamp)
                 )[0]
-                if sensor_type == SensorType.STATION_HEALTH:
-                    if any(df_timestamps < start_date_timestamp):
-                        last_before_start = np.argwhere(df_timestamps < start_date_timestamp)[-1][0]
-                    else:
-                        last_before_start = None
-                    if any(df_timestamps > end_date_timestamp):
-                        first_after_end = np.argwhere(df_timestamps > end_date_timestamp)[0][0]
-                    else:
-                        first_after_end = None
-                    if len(window_indices) < 1:
-                        if last_before_start is not None and first_after_end is None:
-                            sensor.data_df = sensor.data_df.iloc[last_before_start]
-                            sensor.data_df["timestamps"] = start_date_timestamp
-                        elif last_before_start is None and first_after_end is not None:
-                            sensor.data_df = sensor.data_df.iloc[first_after_end]
-                            sensor.data_df["timestamps"] = end_date_timestamp
-                        elif last_before_start is not None and first_after_end is not None:
-                            sensor.data_df = \
-                                sensor.interpolate(last_before_start, first_after_end, start_date_timestamp)
-                    else:
-                        if last_before_start is not None:
-                            sensor.data_df.iloc[last_before_start] = \
-                                sensor.interpolate(last_before_start,
-                                                   np.argwhere(df_timestamps >= start_date_timestamp)[0][0],
-                                                   start_date_timestamp)
-                        if first_after_end is not None:
-                            sensor.data_df.iloc[first_after_end] = \
-                                sensor.interpolate(first_after_end,
-                                                   np.argwhere(df_timestamps <= end_date_timestamp)[-1][0],
-                                                   end_date_timestamp)
                 # check if all the samples have been cut off
                 if len(window_indices) < 1:
-                    if any(df_timestamps < start_date_timestamp):
-                        last_before_start = np.argwhere(df_timestamps < start_date_timestamp)[-1][0]
-                    else:
-                        last_before_start = None
-                    if any(df_timestamps > end_date_timestamp):
-                        first_after_end = np.argwhere(df_timestamps > end_date_timestamp)[0][0]
-                    else:
-                        first_after_end = None
                     if last_before_start is not None and first_after_end is None:
                         sensor.data_df = sensor.data_df.iloc[last_before_start]
                         sensor.data_df["timestamps"] = start_date_timestamp
@@ -290,12 +260,23 @@ class DataWindow:
                         sensor.data_df = sensor.data_df.iloc[first_after_end]
                         sensor.data_df["timestamps"] = end_date_timestamp
                     elif last_before_start is not None and first_after_end is not None:
-                        sensor.data_df = sensor.data_df.iloc[last_before_start:first_after_end].mean()
+                        sensor.data_df = sensor.interpolate(last_before_start, first_after_end, start_date_timestamp)
                     elif self.debug:
                         print(
                             f"WARNING: Data window for {station.id} {sensor_type.name} "
                             f"sensor has truncated all data points"
                         )
+                # elif sensor_type == SensorType.STATION_HEALTH:
+                #     if last_before_start is not None:
+                #         sensor.data_df.iloc[last_before_start] = \
+                #             sensor.interpolate(last_before_start,
+                #                                np.argwhere(df_timestamps >= start_date_timestamp)[0][0],
+                #                                start_date_timestamp)
+                #     if first_after_end is not None:
+                #         sensor.data_df.iloc[first_after_end] = \
+                #             sensor.interpolate(first_after_end,
+                #                                np.argwhere(df_timestamps <= end_date_timestamp)[-1][0],
+                #                                end_date_timestamp)
                 else:
                     sensor.data_df = sensor.data_df.iloc[window_indices].reset_index(
                         drop=True
@@ -307,9 +288,7 @@ class DataWindow:
                                 f"sensor; it has undefined sample interval and sample rate!"
                             )
                     elif sensor_type == SensorType.AUDIO:  # GAP FILL and PAD DATA
-                        # if non-loc and non-mic, interpolate point on edge of valid mic data
-                        # if location, use best value if necessary
-                        # if mic, use sample interval to interpolate missing points
+                        # pad/fill only if sample rate is fixed
                         # do not pad points that would = or beyond request time
                         sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
                         sensor.data_df = fill_gaps(
@@ -319,7 +298,6 @@ class DataWindow:
                             gap_time_micros,
                             DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
                         )
-                        # padding turned off while edge cases are reviewed
                         # sensor.data_df = pad_data(
                         #     start_date_timestamp,
                         #     end_date_timestamp,
