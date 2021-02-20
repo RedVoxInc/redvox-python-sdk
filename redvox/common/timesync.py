@@ -125,6 +125,7 @@ class TimeSyncData:
             self.offsets = np.array((tse.offset1, tse.offset3))
             self.best_latency_index = tse.best_latency_index
             self.best_tri_msg_index = tse.best_latency_index
+            self.best_msg_timestamp_index = tse.best_latency_array_index
             # if best_latency is np.nan, set to best computed latency
             if np.isnan(self.best_latency):
                 self.best_latency = tse.best_latency
@@ -142,6 +143,7 @@ class TimeSyncData:
             self.best_offset = 0
             self.mean_offset = 0
             self.offset_std = 0
+            self.best_msg_timestamp_index = np.nan
 
     def num_tri_messages(self) -> int:
         """
@@ -161,6 +163,14 @@ class TimeSyncData:
         self.station_start_timestamp += delta
         self.packet_start_timestamp += delta
         self.packet_end_timestamp += delta
+
+    def get_best_latency_timestamp(self):
+        if self.best_msg_timestamp_index == 1:
+            return self.time_sync_exchanges_df["b1"].iloc[self.best_latency_index]
+        elif self.best_msg_timestamp_index == 3:
+            return self.time_sync_exchanges_df["b3"].iloc[self.best_latency_index]
+        else:
+            return self.packet_start_timestamp
 
 
 class TimeSyncAnalysis:

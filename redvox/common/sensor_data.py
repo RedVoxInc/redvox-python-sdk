@@ -267,6 +267,7 @@ class SensorData:
         calculate the duration in seconds of the dataframe: last - first timestamp if enough data, otherwise np.nan
         :return: duration in seconds of the dataframe
         """
+        # todo +1 sample interval?
         if self.num_samples() > 1:
             return dtu.microseconds_to_seconds(
                 self.last_data_timestamp() - self.first_data_timestamp()
@@ -281,18 +282,12 @@ class SensorData:
 
     def update_data_timestamps_2eb(self, offset_model: om.OffsetModel):
         if self.is_sample_rate_fixed:
-            start = self.first_data_timestamp()
-            new_start = start + offset_model.get_offset_at_new_time(start)
+            new_start = self.first_data_timestamp() + offset_model.get_offset_at_new_time(self.first_data_timestamp())
             self.data_df["timestamps"] = calc_evenly_sampled_timestamps(new_start, self.num_samples(), self.sample_rate)
         else:
-            oldies = self.data_df["timestamps"].copy().to_numpy()
-            self.data_df["timestamps"] = [tim + offset_model.get_offset_at_new_time(tim)
-                                          for tim in self.data_timestamps()]
-            newies = self.data_df["timestamps"].copy().to_numpy()
-            print(self.sensor_type_as_str())
-            print("diff: ", newies - oldies)
-            print("oldies duration: ", oldies[-1] - oldies[0])
-            print("newies duration: ", newies[-1] - newies[0])
+            # self.data_df["timestamps"] = [tim + offset_model.get_offset_at_new_time(tim)
+            #                               for tim in self.data_timestamps()]
+            newies = np.array([tim + offset_model.get_offset_at_new_time(tim) for tim in self.data_timestamps()])
         self.timestamps_altered = True
 
     def update_data_timestamps(self, time_delta: float):
