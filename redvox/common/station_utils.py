@@ -5,6 +5,7 @@ all timestamps are floats in microseconds unless otherwise stated
 from dataclasses import dataclass
 from typing import Tuple
 
+from redvox.common.offset_model import OffsetModel
 from redvox.api1000.wrapped_redvox_packet import (
     station_information as si,
     timing_information as ti,
@@ -25,6 +26,9 @@ class StationKey:
     id: str
     uuid: str
     start_timestamp_micros: float
+
+    def __repr__(self):
+        return f"StationKey:\nid:{self.id}, uuid:{self.uuid}, start_timestamp:{self.start_timestamp_micros}"
 
     def get_key(self) -> Tuple[str, str, float]:
         return self.id, self.uuid, self.start_timestamp_micros
@@ -82,13 +86,14 @@ class StationMetadata:
         self.packet_end_os_timestamp = timing_info.get_packet_end_os_timestamp()
         self.timing_info_score = timing_info.get_score()
 
-    def update_timestamps(self, delta: float):
+    def update_timestamps(self, om: OffsetModel):  # delta: float):
         """
         updates the timestamps in the metadata by adding delta microseconds
             negative delta values move timestamps backwards in time.
-        :param delta: optional microseconds to add
+        :param om: OffsetModel to apply to data
+        # :param delta: optional microseconds to add
         """
-        self.packet_start_mach_timestamp += delta
-        self.packet_end_mach_timestamp += delta
-        self.packet_start_os_timestamp += delta
-        self.packet_end_os_timestamp += delta
+        self.packet_start_mach_timestamp += om.get_offset_at_new_time(self.packet_start_mach_timestamp)
+        self.packet_end_mach_timestamp += om.get_offset_at_new_time(self.packet_end_mach_timestamp)
+        self.packet_start_os_timestamp += om.get_offset_at_new_time(self.packet_start_os_timestamp)
+        self.packet_end_os_timestamp += om.get_offset_at_new_time(self.packet_end_os_timestamp)

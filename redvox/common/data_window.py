@@ -49,7 +49,6 @@ class DataWindow:
         gap_time_s: float, the minimum amount of seconds between data points that would indicate a gap.
                     Default DEFAULT_GAP_TIME_S
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
-        read_result: ApiReader representation of the files in input_directory that match the filter
         stations: list of Stations, the results of reading the data from input_directory
         debug: bool, if True, outputs additional information during initialization. Default False
     """
@@ -107,7 +106,6 @@ class DataWindow:
             self.station_ids = set(station_ids)
         else:
             self.station_ids = None
-        # self.station_ids: Optional[Set[str]] = station_ids
         self.extensions: Optional[Set[str]] = extensions
         self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
@@ -115,8 +113,21 @@ class DataWindow:
         self.stations: Dict[str, Station] = {}
         self.create_data_window()
 
+    def from_config_file(self, file: str) -> "DataWindow":
+        """
+        Loads a configuration file to create the DataWindow
+        :param file: full path to config file
+        :return: a data window
+        """
+        return self.from_config(DataWindowConfig.from_path(file))
+
     @staticmethod
     def from_config(config: DataWindowConfig) -> "DataWindow":
+        """
+        Loads a configuration to create the DataWindow
+        :param config: DataWindow configuration object
+        :return: a data window
+        """
         if config.start_year:
             start_time = dtu.datetime(
                 year=config.start_year,
@@ -173,37 +184,23 @@ class DataWindow:
         """
         return self.start_datetime is not None or self.end_datetime is not None
 
+    def get_station(self, station_id: str) -> Optional[Station]:
+        """
+        Get a single station from the data window
+        :param station_id: the id of the station to get
+        :return: A single station or None if the station cannot be found
+        """
+        if station_id in self.stations.keys():
+            return self.stations[station_id]
+        if self.debug:
+            print(f"Warning: Attempted to get station {station_id}, but that station is not in this data window!")
+        return None
+
     def get_all_stations(self) -> List[Station]:
         """
         :return: all stations in the data window as a list
         """
         return list(self.stations.values())
-
-    def get_sensor_from_station(
-        self, sensor: Union[str, SensorType], station: str
-    ) -> Optional[SensorData]:
-        """
-        :param sensor: the sensor type or string identifier to get
-        :param station: the station id to search for
-        :return: A single sensor from the station specified, or None if station or sensor cannot be found
-        """
-        if station in self.stations.keys():
-            if isinstance(sensor, str):
-                sensor = SensorType.type_from_str(sensor)
-            if sensor in self.stations[station].data.keys():
-                return self.stations[station].data[sensor]
-        return None
-
-    def get_all_sensors_from_station(
-        self, station: str
-    ) -> Optional[Dict[SensorType, SensorData]]:
-        """
-        :param station: the station id to search for
-        :return: All sensors from a station based on the id given or None if the station or its sensors doesn't exist
-        """
-        if station in self.stations.keys():
-            return self.stations[station].data
-        return None
 
     def get_all_station_ids(self) -> List[str]:
         """

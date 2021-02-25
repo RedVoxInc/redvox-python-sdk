@@ -11,6 +11,7 @@ from typing import List, Optional, Union
 import numpy as np
 import pandas as pd
 
+from redvox.common.offset_model import OffsetModel
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 from redvox.common import (
@@ -152,17 +153,23 @@ class TimeSyncData:
         """
         return self.time_sync_exchanges_df.shape[0]
 
-    def update_timestamps(self, delta: Optional[float] = None):
+    def update_timestamps(self, om: Optional[OffsetModel]):  # delta: Optional[float] = None):
         """
-        update the timestamps by delta microseconds, or by the best offset if no delta is given
-            use negative delta to go backwards in time
-        :param delta: microseconds to add to applicable timestamps.  If None, use best offset. default None
+        update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
+            uses negative values to go backwards in time
+        :param om: OffsetModel to calculate offsets, default None
+        # :param delta: microseconds to add to timestamps, default None
         """
-        if not delta:
+        if not om:
             delta = self.best_offset
-        self.station_start_timestamp += delta
-        self.packet_start_timestamp += delta
-        self.packet_end_timestamp += delta
+            self.station_start_timestamp += delta
+            self.packet_start_timestamp += delta
+            self.packet_end_timestamp += delta
+        else:
+            self.station_start_timestamp += om.get_offset_at_new_time(self.station_start_timestamp)
+            self.packet_start_timestamp += om.get_offset_at_new_time(self.packet_start_timestamp)
+            self.packet_end_timestamp += om.get_offset_at_new_time(self.packet_end_timestamp)
+
 
     def get_best_latency_timestamp(self):
         if self.best_msg_timestamp_index == 1:
@@ -498,17 +505,21 @@ class TimeSyncAnalysis:
         # if here, no gaps
         return True
 
-    def update_timestamps(self, delta: Optional[float] = None):
+    def update_timestamps(self, om: Optional[OffsetModel]):  # delta: Optional[float] = None):
         """
-        update timestamps by adding delta microseconds.  if delta not supplied, uses the best offset
-            use negative delta to go backwards in time
-        :param delta: microseconds to add to timestamps, default None
+        update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
+            uses negative values to go backwards in time
+        :param om: OffsetModel to calculate offsets, default None
+        # :param delta: microseconds to add to timestamps, default None
         """
-        if not delta:
+        if not om:
             delta = self.get_best_offset()
-        self.station_start_timestamp += delta
-        for tsd in self.timesync_data:
-            tsd.update_timestamps(delta)
+            for tsd in self.timesync_data:
+                tsd.update_timestamps(delta)
+        else:
+            self.station_start_timestamp += om.get_offset_at_new_time(self.station_start_timestamp)
+            for tsd in self.timesync_data:
+                tsd.update_timestamps(om)
 
 
 def validate_sensors(tsa_data: TimeSyncAnalysis) -> bool:

@@ -87,6 +87,14 @@ class Station:
             else:
                 self.audio_sample_rate_hz = np.nan
                 self.is_audio_scrambled = False
+            self.timesync_analysis = \
+                TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp).from_packets(data_packets)
+            if data_packets and validate_station_data(data_packets):
+                self.offset_model = om.OffsetModel(self.timesync_analysis.get_latencies(),
+                                                   self.timesync_analysis.get_offsets(),
+                                                   self.timesync_analysis.get_start_times() +
+                                                   0.5*self.get_mean_packet_duration(),
+                                                   5, 3, self.first_data_timestamp, self.last_data_timestamp)
         else:
             if data_packets:
                 print(
@@ -101,19 +109,6 @@ class Station:
             self.audio_sample_rate_hz = np.nan
             self.is_audio_scrambled = False
         self.is_timestamps_updated = False
-        self.timesync_analysis = \
-            TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp).from_packets(data_packets)
-        if data_packets and validate_station_data(data_packets):
-            self.offset_model = om.OffsetModel(self.timesync_analysis.get_latencies(),
-                                               self.timesync_analysis.get_offsets(),
-                                               self.timesync_analysis.get_start_times() +
-                                               0.5*self.get_mean_packet_duration(),
-                                               5, 3, self.first_data_timestamp)
-            self.other_offset_model = om.OffsetModel(self.timesync_analysis.get_latencies(),
-                                                     self.timesync_analysis.get_offsets(),
-                                                     np.array([tsd.get_best_latency_timestamp()
-                                                               for tsd in self.timesync_analysis.timesync_data]),
-                                                     5, 3, self.first_data_timestamp)
 
     def _sort_metadata_packets(self):
         """
@@ -128,7 +123,7 @@ class Station:
         uses the sorted metadata packets to get the first and last timestamp of the station
         """
         self.first_data_timestamp = self.metadata[0].packet_start_mach_timestamp
-        self.last_data_timestamp = self.metadata[-1].packet_end_mach_timestamp
+        self.last_data_timestamp = self.audio_sensor().last_data_timestamp()
 
     def set_id(self, station_id: str) -> "Station":
         """
@@ -201,10 +196,10 @@ class Station:
 
     def append_station(self, new_station: "Station"):
         """
-        append a new station to the current station
+        append a new station to the current station; does nothing if keys do not match
         :param new_station: Station to append to current station
         """
-        if new_station.get_key() == self.get_key():
+        if self.get_key() is not None and new_station.get_key() == self.get_key():
             self.append_station_data(new_station.data)
             self.metadata.extend(new_station.metadata)
             self._sort_metadata_packets()
@@ -1066,7 +1061,7 @@ class Station:
         # for t in self.data.values():
         #     t.organize_and_update_stats()
 
-    def update_timestamps(self, delta: Optional[float] = None):
+    def update_timestamps(self):
         """
         updates the timestamps in the station by adding delta microseconds
             negative delta values move timestamps backwards in time.
@@ -1075,40 +1070,40 @@ class Station:
         if self.is_timestamps_updated:
             print("WARNING: Timestamps already corrected!")
         else:
-            print("\n*******************************")
-            print("id: ", self.id)
-            timestamp_dur = self.last_data_timestamp - self.first_data_timestamp
-            calc_dur = len(self.metadata) * self.get_mean_packet_duration()
-            print("uncorrected duration: ", timestamp_dur)
-            print("expected duration: ", calc_dur)
-            print("expected - uncorrected: ", calc_dur - timestamp_dur)
             if not np.isnan(self.offset_model.slope):
-                print("-----------------")
-                print("model slope: ", self.offset_model.slope)
-                print("offset at start: ", self.offset_model.get_offset_at_new_time(self.first_data_timestamp))
-                print("offset at end: ", self.offset_model.get_offset_at_new_time(self.last_data_timestamp))
-                print("offset drift at 1/4: ", -(self.offset_model.get_offset_at_new_time(self.first_data_timestamp) -
-                      self.offset_model.get_offset_at_new_time(self.first_data_timestamp + timestamp_dur * .265)))
-                print("offset drift: ", self.offset_model.get_offset_at_new_time(self.last_data_timestamp) -
-                      self.offset_model.get_offset_at_new_time(self.first_data_timestamp))
                 for sensor in self.data.values():
                     sensor.update_data_timestamps_2eb(self.offset_model)
-            if not np.isnan(self.other_offset_model.slope):
-                print("-----------------")
-                print("model slope: ", self.other_offset_model.slope)
-                print("offset at start: ", self.other_offset_model.get_offset_at_new_time(self.first_data_timestamp))
-                print("offset at end: ", self.other_offset_model.get_offset_at_new_time(self.last_data_timestamp))
-                print("offset drift: ", self.other_offset_model.get_offset_at_new_time(self.last_data_timestamp) -
-                      self.other_offset_model.get_offset_at_new_time(self.first_data_timestamp))
-                for sensor in self.data.values():
-                    sensor.update_data_timestamps_2eb(self.other_offset_model)
-                # for packet in self.metadata:
-                #     packet.update_timestamps()
-                # self.timesync_analysis.update_timestamps()
-                # self.start_timestamp += self.offset_model.get_offset_at_new_time(self.start_timestamp)
-                # self.first_data_timestamp += self.offset_model.get_offset_at_new_time(self.first_data_timestamp)
-                # self.last_data_timestamp += self.offset_model.get_offset_at_new_time(self.last_data_timestamp)
-                # self.is_timestamps_updated = True
+                for packet in self.metadata:
+                    packet.update_timestamps(self.offset_model)
+                self.timesync_analysis.update_timestamps(self.offset_model)
+                self.start_timestamp += self.offset_model.get_offset_at_new_time(self.start_timestamp)
+                self.first_data_timestamp += self.offset_model.get_offset_at_new_time(self.first_data_timestamp)
+                self.last_data_timestamp += self.offset_model.get_offset_at_new_time(
+                    self.metadata[-1].packet_start_mach_timestamp + self.get_mean_packet_duration())
+                self.is_timestamps_updated = True
+            # if not np.isnan(self.other_offset_model.slope):
+            #     print("-----------------")
+            #     print("using latency timestamps")
+            #     print("model slope: ", self.other_offset_model.slope)
+            #     print("offset at start: ", self.other_offset_model.get_offset_at_new_time(self.first_data_timestamp))
+            #     print("offset at end: ", self.other_offset_model.get_offset_at_new_time(self.last_data_timestamp))
+            #     print("offset drift: ", self.other_offset_model.get_offset_at_new_time(self.last_data_timestamp) -
+            #           self.other_offset_model.get_offset_at_new_time(self.first_data_timestamp))
+            #     new_dur = \
+            #         self.other_offset_model.update_time(self.last_data_timestamp) - \
+            #         self.other_offset_model.update_time(self.first_data_timestamp)
+            #     print("new duration: ", new_dur)
+            #     print("expected - new: ", calc_dur - new_dur)
+            #     print("uncorrected - new: ", timestamp_dur - new_dur)
+            #     for sensor in self.data.values():
+            #         sensor.update_data_timestamps_2eb(self.other_offset_model)
+            #     for packet in self.metadata:
+            #         packet.update_timestamps()
+            #     self.timesync_analysis.update_timestamps()
+            #     self.start_timestamp += self.offset_model.get_offset_at_new_time(self.start_timestamp)
+            #     self.first_data_timestamp += self.offset_model.get_offset_at_new_time(self.first_data_timestamp)
+            #     self.last_data_timestamp += self.offset_model.get_offset_at_new_time(self.last_data_timestamp)
+            #     self.is_timestamps_updated = True
             # if not delta:
             #     if np.isnan(self.timesync_analysis.get_best_offset()):
             #         print(

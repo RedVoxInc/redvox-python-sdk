@@ -146,7 +146,7 @@ class ApiReader:
         start_time = times[0]
         mean_times = times + 0.5 * packet_duration
         slope, intercept = offset_model.get_offset_function(np.array(latencies), np.array(offsets),
-                                                            mean_times, 5, 3, start_time)
+                                                            mean_times, 5, 3, start_time, times[-1] + packet_duration)
         # i = np.argwhere([st.latency for st in stats] == np.min(latencies))[0][0]
         # avg_offset = timedelta(microseconds=stats[i].offset)
         # revise packet's times to real times and compare to requested values
