@@ -285,9 +285,7 @@ class SensorData:
             new_start = self.first_data_timestamp() + offset_model.get_offset_at_new_time(self.first_data_timestamp())
             self.data_df["timestamps"] = calc_evenly_sampled_timestamps(new_start, self.num_samples(), self.sample_rate)
         else:
-            # self.data_df["timestamps"] = [tim + offset_model.get_offset_at_new_time(tim)
-            #                               for tim in self.data_timestamps()]
-            newies = np.array([tim + offset_model.get_offset_at_new_time(tim) for tim in self.data_timestamps()])
+            self.data_df["timestamps"] = [offset_model.update_time(tim) for tim in self.data_timestamps()]
         self.timestamps_altered = True
 
     def update_data_timestamps(self, time_delta: float):
