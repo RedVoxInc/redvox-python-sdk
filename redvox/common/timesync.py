@@ -153,7 +153,7 @@ class TimeSyncData:
         """
         return self.time_sync_exchanges_df.shape[0]
 
-    def update_timestamps(self, om: Optional[OffsetModel]):  # delta: Optional[float] = None):
+    def update_timestamps(self, om: Optional[OffsetModel]):
         """
         update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
             uses negative values to go backwards in time
@@ -166,9 +166,9 @@ class TimeSyncData:
             self.packet_start_timestamp += delta
             self.packet_end_timestamp += delta
         else:
-            self.station_start_timestamp += om.get_offset_at_new_time(self.station_start_timestamp)
-            self.packet_start_timestamp += om.get_offset_at_new_time(self.packet_start_timestamp)
-            self.packet_end_timestamp += om.get_offset_at_new_time(self.packet_end_timestamp)
+            self.station_start_timestamp = om.update_time(self.station_start_timestamp)
+            self.packet_start_timestamp = om.update_time(self.packet_start_timestamp)
+            self.packet_end_timestamp = om.update_time(self.packet_end_timestamp)
 
     def get_best_latency_timestamp(self):
         if self.best_msg_timestamp_index == 1:
@@ -504,21 +504,17 @@ class TimeSyncAnalysis:
         # if here, no gaps
         return True
 
-    def update_timestamps(self, om: Optional[OffsetModel]):  # delta: Optional[float] = None):
+    def update_timestamps(self, om: Optional[OffsetModel]):
         """
         update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
             uses negative values to go backwards in time
         :param om: OffsetModel to calculate offsets, default None
         # :param delta: microseconds to add to timestamps, default None
         """
-        if not om:
-            delta = self.get_best_offset()
-            for tsd in self.timesync_data:
-                tsd.update_timestamps(delta)
-        else:
+        if om:
             self.station_start_timestamp += om.get_offset_at_new_time(self.station_start_timestamp)
-            for tsd in self.timesync_data:
-                tsd.update_timestamps(om)
+        for tsd in self.timesync_data:
+            tsd.update_timestamps(om)
 
 
 def validate_sensors(tsa_data: TimeSyncAnalysis) -> bool:

@@ -1023,11 +1023,11 @@ class Station:
         else:
             if not np.isnan(self.offset_model.slope):
                 for sensor in self.data.values():
-                    sensor.update_data_timestamps_2eb(self.offset_model)
+                    sensor.update_data_timestamps(self.offset_model)
                 for packet in self.metadata:
                     packet.update_timestamps(self.offset_model)
                 self.timesync_analysis.update_timestamps(self.offset_model)
-                self.start_timestamp += self.offset_model.get_offset_at_new_time(self.start_timestamp)
-                self.first_data_timestamp += self.offset_model.get_offset_at_new_time(self.first_data_timestamp)
-                self.last_data_timestamp += self.offset_model.get_offset_at_new_time(self.last_data_timestamp)
+                self.start_timestamp = self.offset_model.update_time(self.start_timestamp)
+                self.first_data_timestamp = self.offset_model.update_time(self.first_data_timestamp)
+                self.last_data_timestamp = self.offset_model.update_time(self.last_data_timestamp)
                 self.is_timestamps_updated = True

@@ -7,6 +7,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0b3 (2021-2-26)
+* Updated timing correction using offset model predictions
+* Added timing correction to file searching functionality
+
 ### 3.0.0b2 (2021-2-3)
 
 * Updated filter inputs to accept lists

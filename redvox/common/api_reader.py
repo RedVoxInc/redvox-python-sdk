@@ -12,7 +12,6 @@ import numpy as np
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common import date_time_utils as dtu
 from redvox.common import offset_model
-from redvox.api900 import reader as api900_io
 from redvox.common import api_conversions as ac
 from redvox.common import io
 from redvox.common import file_statistics as fs
@@ -72,19 +71,6 @@ class ApiReader:
         get all files in the base dir of the ApiReader
         :return: index with all the files that match the filter
         """
-        # values required:
-        # best latency and offset per packet
-        # we need the offset for the first and last packet
-        # actual time = packet_time + offset
-        # real_offset = drift * time_from_start_rec + offset_of_start_rec
-        # default offset is 0
-        # for confidence: get backfill metric: server_rec_dt - packet_start_dt.  api900 is 2 minutes for backfill
-        # database values: id, drift value, offset_station_start
-        # check for historic model of known offset slope for each device; create if doesn't exist
-        # reference historic model when calculating offset; if device doesn't have values, use the model
-        # timing calibration on app set up/background process
-        # phone can store its own drift model; send the critical values to the server
-        # model confidence metric
         index = io.Index()
         # this guarantees that all ids we search for are valid
         all_index = self._apply_filter()
@@ -121,17 +107,10 @@ class ApiReader:
         if (not self.filter.start_dt and not self.filter.end_dt) or \
                 (not request_filter.start_dt and not request_filter.end_dt) or len(index.entries) < 1:
             return index
-        # if nothing was found and we have a start or end time, try removing those limits and searching again.
-        # if len(index.entries) < 0 and (request_filter.start_dt or request_filter.end_dt):
-        #     new_filter = request_filter.clone()
-        #     new_filter.with_start_dt(None).with_end_dt(None)
-        #     self._check_station_stats(new_filter)
         stats = fs.extract_stats(index)
         # punt if duration or other important values are invalid
         if any(st.packet_duration == 0.0 or not st.packet_duration for st in stats):
             return index
-        # get the model and calculate the revised start and end offsets
-        # model = create_model_function
         latencies = [
             st.latency
             if st.latency is not None and not np.isnan(st.latency) else np.nan
@@ -140,22 +119,21 @@ class ApiReader:
         # no latencies means no correction means we're done
         if len(latencies) < 1:
             return index
+        # get the model and calculate the revised start and end offsets
+        # best fit would be to use the machine timestamps that correspond to the best latencies,
+        #   but for now we use the packet start times + 1/2 the packet duration
         offsets = [st.offset if st.offset is not None and not np.isnan(st.offset) else np.nan for st in stats]
         times = [dtu.datetime_to_epoch_microseconds_utc(st.packet_start_dt) for st in stats]
         packet_duration = np.mean([dtu.seconds_to_microseconds(st.packet_duration.total_seconds()) for st in stats])
-        start_time = times[0]
-        mean_times = times + 0.5 * packet_duration
-        slope, intercept = offset_model.get_offset_function(np.array(latencies), np.array(offsets),
-                                                            mean_times, 5, 3, start_time, times[-1] + packet_duration)
-        # i = np.argwhere([st.latency for st in stats] == np.min(latencies))[0][0]
-        # avg_offset = timedelta(microseconds=stats[i].offset)
+        model = offset_model.OffsetModel(np.array(latencies), np.array(offsets),
+                                         times + 0.5 * packet_duration, 5, 3, times[0],
+                                         times[-1] + packet_duration)
         # revise packet's times to real times and compare to requested values
-        start_offset = timedelta(microseconds=offset_model.get_offset_at_new_time(
-            dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt), slope, intercept, start_time))
+        start_offset = timedelta(microseconds=model.get_offset_at_new_time(
+            dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)))
         revised_start = stats[0].packet_start_dt + start_offset
         end = stats[-1].packet_start_dt + stats[-1].packet_duration
-        end_offset = timedelta(microseconds=offset_model.get_offset_at_new_time(
-            dtu.datetime_to_epoch_microseconds_utc(end), slope, intercept, start_time))
+        end_offset = timedelta(microseconds=model.get_offset_at_new_time(dtu.datetime_to_epoch_microseconds_utc(end)))
         revised_end = end + end_offset
         # if our filtered files encompass the request even when the packet times are updated, return the index
         if (not self.filter.start_dt or revised_start <= self.filter.start_dt) \
@@ -163,8 +141,8 @@ class ApiReader:
             return index
         # we have to update our filter to get more information
         new_filter = request_filter.clone()
-        no_more_start = False
-        no_more_end = False
+        no_more_start = True
+        no_more_end = True
         # check if there is a packet just beyond the request times
         if self.filter.start_dt and revised_start > self.filter.start_dt:
             beyond_start = self.filter.start_dt - np.abs(start_offset) - stats[0].packet_duration
@@ -174,10 +152,7 @@ class ApiReader:
             # if there is a packet, then update filter, otherwise flag result as no more data to obtain
             if len(start_index.entries) > 0:
                 new_filter.with_start_dt(beyond_start)
-            else:
-                no_more_start = True
-        else:
-            no_more_start = True
+                no_more_start = False
         if self.filter.end_dt and revised_end < self.filter.end_dt:
             beyond_end = self.filter.end_dt + np.abs(end_offset)
             end_filter = request_filter.clone().with_start_dt(stats[-1].packet_start_dt + stats[-1].packet_duration)\
@@ -186,10 +161,7 @@ class ApiReader:
             # if there is a packet, then update filter, otherwise flag result as no more data to obtain
             if len(end_index.entries) > 0:
                 new_filter.with_end_dt(beyond_end)
-            else:
-                no_more_end = True
-        else:
-            no_more_end = True
+                no_more_end = False
         # if there is no more data to obtain from either end, return the original index
         if no_more_start and no_more_end:
             return index
