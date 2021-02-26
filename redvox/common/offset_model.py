@@ -13,8 +13,9 @@ class OffsetModel:
         self.end_time = end_time
         self.k_bins = k_bins
         self.n_samples = n_samples
+        self.best_latency = np.min(latencies)
+        self.best_offset = offsets[np.argwhere(latencies == np.min(self.best_latency))[0][0]]
 
-    # Function to correct the intercept value
     def get_offset_at_new_time(self, new_time: float) -> float:
         """
         Get's offset at new_time time based on the offset model.
@@ -27,7 +28,7 @@ class OffsetModel:
         """
         update new_time time based on the offset model.
         :param new_time: The time to update
-        :return: udpated new_time
+        :return: updated new_time
         """
         return new_time + self.get_offset_at_new_time(new_time)
 

@@ -262,29 +262,13 @@ class SensorData:
         """
         return self.data_df.shape[0]
 
-    # def data_duration_s(self) -> float:
-    #     """
-    #     calculate the duration in seconds of the dataframe: last - first timestamp if enough data, otherwise np.nan
-    #     :return: duration in seconds of the dataframe
-    #     """
-    #     # todo +1 sample interval?
-    #     if self.num_samples() > 1:
-    #         return dtu.microseconds_to_seconds(
-    #             self.last_data_timestamp() - self.first_data_timestamp()
-    #         )
-    #     return np.nan
-
     def data_channels(self) -> List[str]:
         """
         :return: a list of the names of the columns (data channels) of the dataframe
         """
         return self.data_df.columns.to_list()
 
-    def update_data_timestamps_2eb(self, offset_model: om.OffsetModel):
-        # if self.is_sample_rate_fixed:
-        #     new_start = self.first_data_timestamp() + offset_model.get_offset_at_new_time(self.first_data_timestamp())
-        #   self.data_df["timestamps"] = calc_evenly_sampled_timestamps(new_start, self.num_samples(), self.sample_rate)
-        # else:
+    def update_data_timestamps(self, offset_model: om.OffsetModel):
         self.data_df["timestamps"] = [offset_model.update_time(tim) for tim in self.data_timestamps()]
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
@@ -294,7 +278,7 @@ class SensorData:
                 self.sample_rate = 1 / self.sample_interval_s
             self.timestamps_altered = True
 
-    def update_data_timestamps(self, time_delta: float):
+    def update_data_timestamps_delta(self, time_delta: float):
         """
         adds the time_delta to the sensor's timestamps; use negative values to go backwards in time
         :param time_delta: time to add to sensor's timestamps

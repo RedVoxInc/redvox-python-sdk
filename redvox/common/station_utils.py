@@ -86,14 +86,14 @@ class StationMetadata:
         self.packet_end_os_timestamp = timing_info.get_packet_end_os_timestamp()
         self.timing_info_score = timing_info.get_score()
 
-    def update_timestamps(self, om: OffsetModel):  # delta: float):
+    def update_timestamps(self, om: OffsetModel):
         """
         updates the timestamps in the metadata by adding delta microseconds
             negative delta values move timestamps backwards in time.
         :param om: OffsetModel to apply to data
         # :param delta: optional microseconds to add
         """
-        self.packet_start_mach_timestamp += om.get_offset_at_new_time(self.packet_start_mach_timestamp)
-        self.packet_end_mach_timestamp += om.get_offset_at_new_time(self.packet_end_mach_timestamp)
-        self.packet_start_os_timestamp += om.get_offset_at_new_time(self.packet_start_os_timestamp)
-        self.packet_end_os_timestamp += om.get_offset_at_new_time(self.packet_end_os_timestamp)
+        self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp)
+        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
+        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
+        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)
