@@ -2,7 +2,7 @@
 This module creates specific time-bounded segments of data for users
 combine the data packets into a new data packet based on the user parameters
 """
-from typing import Optional, Set, List, Dict, Union, Iterable
+from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
 
 import pandas as pd
@@ -219,6 +219,67 @@ class DataWindow:
                     f"WARNING: Requested {ids} but there is no data to read for that station"
                 )
 
+    def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
+                       end_date_timestamp: float):
+        # calculate the sensor's sample interval, std sample interval and sample rate of all data
+        sensor.organize_and_update_stats()
+        # get only the timestamps between the start and end timestamps
+        df_timestamps = sensor.data_timestamps()
+        if len(df_timestamps) > 0:
+            window_indices = np.where(
+                (start_date_timestamp <= df_timestamps)
+                & (df_timestamps <= end_date_timestamp)
+            )[0]
+            # check if all the samples have been cut off
+            if len(window_indices) < 1:
+                if any(df_timestamps < start_date_timestamp):
+                    last_before_start = np.argwhere(df_timestamps < start_date_timestamp)[-1][0]
+                else:
+                    last_before_start = None
+                if any(df_timestamps > end_date_timestamp):
+                    first_after_end = np.argwhere(df_timestamps > end_date_timestamp)[0][0]
+                else:
+                    first_after_end = None
+                if last_before_start is not None and first_after_end is None:
+                    sensor.data_df = sensor.data_df.iloc[last_before_start]
+                    sensor.data_df["timestamps"] = start_date_timestamp
+                elif last_before_start is None and first_after_end is not None:
+                    sensor.data_df = sensor.data_df.iloc[first_after_end]
+                    sensor.data_df["timestamps"] = end_date_timestamp
+                elif last_before_start is not None and first_after_end is not None:
+                    sensor.data_df = sensor.interpolate(last_before_start, first_after_end, start_date_timestamp)
+                elif self.debug:
+                    print(
+                        f"WARNING: Data window for {station_id} {sensor.type.name} "
+                        f"sensor has truncated all data points"
+                    )
+            else:
+                sensor.data_df = sensor.data_df.iloc[window_indices].reset_index(
+                    drop=True
+                )
+                if sensor.is_sample_interval_invalid():
+                    if self.debug:
+                        print(
+                            f"WARNING: Cannot fill gaps or pad {station_id} {sensor.type.name} "
+                            f"sensor; it has undefined sample interval and sample rate!"
+                        )
+                else:  # GAP FILL and PAD DATA
+                    sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    sensor.data_df = fill_gaps(
+                        sensor.data_df,
+                        sample_interval_micros + dtu.seconds_to_microseconds(sensor.sample_interval_std_s),
+                        dtu.seconds_to_microseconds(self.gap_time_s),
+                        DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
+                        )
+                    sensor.data_df = pad_data(
+                        start_date_timestamp,
+                        end_date_timestamp,
+                        sensor.data_df,
+                        sample_interval_micros,
+                    )
+        elif self.debug:
+            print(f"WARNING: Data window for {station_id} {sensor.type.name} sensor has no data points!")
+
     def create_window_in_sensors(
         self, station: Station, start_date_timestamp: float, end_date_timestamp: float
     ):
@@ -229,80 +290,11 @@ class DataWindow:
         :param start_date_timestamp: timestamp in microseconds since epoch UTC of start of window
         :param end_date_timestamp: timestamp in microseconds since epoch UTC of end of window
         """
-        gap_time_micros = dtu.seconds_to_microseconds(self.gap_time_s)
+        self.process_sensor(station.audio_sensor(), station.id, start_date_timestamp, end_date_timestamp)
         for sensor_type, sensor in station.data.items():
-            # calculate the sensor's sample interval, std sample interval and sample rate of all data
-            sensor.organize_and_update_stats()
-            # get only the timestamps between the start and end timestamps
-            df_timestamps = sensor.data_timestamps()
-            if any(df_timestamps < start_date_timestamp):
-                last_before_start = np.argwhere(df_timestamps < start_date_timestamp)[-1][0]
-            else:
-                last_before_start = None
-            if any(df_timestamps > end_date_timestamp):
-                first_after_end = np.argwhere(df_timestamps > end_date_timestamp)[0][0]
-            else:
-                first_after_end = None
-            if len(df_timestamps) > 0:
-                window_indices = np.where(
-                    (start_date_timestamp <= df_timestamps)
-                    & (df_timestamps <= end_date_timestamp)
-                )[0]
-                # check if all the samples have been cut off
-                if len(window_indices) < 1:
-                    if last_before_start is not None and first_after_end is None:
-                        sensor.data_df = sensor.data_df.iloc[last_before_start]
-                        sensor.data_df["timestamps"] = start_date_timestamp
-                    elif last_before_start is None and first_after_end is not None:
-                        sensor.data_df = sensor.data_df.iloc[first_after_end]
-                        sensor.data_df["timestamps"] = end_date_timestamp
-                    elif last_before_start is not None and first_after_end is not None:
-                        sensor.data_df = sensor.interpolate(last_before_start, first_after_end, start_date_timestamp)
-                    elif self.debug:
-                        print(
-                            f"WARNING: Data window for {station.id} {sensor_type.name} "
-                            f"sensor has truncated all data points"
-                        )
-                # elif sensor_type == SensorType.STATION_HEALTH:
-                #     if last_before_start is not None:
-                #         sensor.data_df.iloc[last_before_start] = \
-                #             sensor.interpolate(last_before_start,
-                #                                np.argwhere(df_timestamps >= start_date_timestamp)[0][0],
-                #                                start_date_timestamp)
-                #     if first_after_end is not None:
-                #         sensor.data_df.iloc[first_after_end] = \
-                #             sensor.interpolate(first_after_end,
-                #                                np.argwhere(df_timestamps <= end_date_timestamp)[-1][0],
-                #                                end_date_timestamp)
-                else:
-                    sensor.data_df = sensor.data_df.iloc[window_indices].reset_index(
-                        drop=True
-                    )
-                    if sensor.is_sample_interval_invalid():
-                        if self.debug:
-                            print(
-                                f"WARNING: Cannot fill gaps or pad {station.id} {sensor_type.name} "
-                                f"sensor; it has undefined sample interval and sample rate!"
-                            )
-                    elif sensor_type == SensorType.AUDIO:  # GAP FILL and PAD DATA
-                        # pad/fill only if sample rate is fixed
-                        # do not pad points that would = or beyond request time
-                        sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
-                        sensor.data_df = fill_gaps(
-                            sensor.data_df,
-                            sample_interval_micros
-                            + dtu.seconds_to_microseconds(sensor.sample_interval_std_s),
-                            gap_time_micros,
-                            DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
-                        )
-                        # sensor.data_df = pad_data(
-                        #     start_date_timestamp,
-                        #     end_date_timestamp,
-                        #     sensor.data_df,
-                        #     sample_interval_micros,
-                        # )
-            elif self.debug:
-                print(f"WARNING: Data window for {station.id} {sensor_type.name} sensor has no data points!")
+            if sensor_type != SensorType.AUDIO:
+                self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
+                                    station.audio_sensor().last_data_timestamp())
         # recalculate metadata
         new_meta = [meta for meta in station.metadata
                     if meta.packet_start_mach_timestamp < end_date_timestamp and
@@ -401,31 +393,33 @@ def pad_data(
     # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
     if expected_start < first_data_timestamp:
         start_diff = first_data_timestamp - expected_start
-        num_missing_samples = np.ceil(start_diff / sample_interval_micros)
-        # add the gap data to the result dataframe
-        result_df = result_df.append(
-            create_dataless_timestamps_df(
-                expected_start - sample_interval_micros,
-                sample_interval_micros,
-                data_df.columns,
-                num_missing_samples,
-            ),
-            ignore_index=True,
-        )
+        num_missing_samples = np.floor(start_diff / sample_interval_micros)
+        if num_missing_samples > 0:
+            # add the gap data to the result dataframe
+            result_df = result_df.append(
+                create_dataless_timestamps_df(
+                    first_data_timestamp,
+                    sample_interval_micros,
+                    data_df.columns,
+                    num_missing_samples,
+                    True
+                ),
+                ignore_index=True,
+            )
     if expected_end > last_data_timestamp:
         last_diff = expected_end - last_data_timestamp
-        num_missing_samples = np.ceil(last_diff / sample_interval_micros)
-        # add the gap data to the result dataframe
-        result_df = result_df.append(
-            create_dataless_timestamps_df(
-                expected_end + sample_interval_micros,
-                sample_interval_micros,
-                data_df.columns,
-                num_missing_samples,
-                True,
-            ),
-            ignore_index=True,
-        )
+        num_missing_samples = np.floor(last_diff / sample_interval_micros)
+        if num_missing_samples > 0:
+            # add the gap data to the result dataframe
+            result_df = result_df.append(
+                create_dataless_timestamps_df(
+                    last_data_timestamp,
+                    sample_interval_micros,
+                    data_df.columns,
+                    num_missing_samples,
+                ),
+                ignore_index=True,
+            )
     return result_df.sort_values("timestamps", ignore_index=True)
 
 
@@ -517,19 +511,20 @@ def create_dataless_timestamps_df(
     :param add_to_start: if True, subtracts sample_interval_s from start_timestamp, default False
     :return: dataframe with timestamps and no data
     """
-    if add_to_start:
-        sample_interval_micros = -sample_interval_micros
-    new_timestamps = (
-        start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
-    )
     empty_df = pd.DataFrame([], columns=columns)
-    for column_index in columns:
-        if column_index == "timestamps":
-            empty_df[column_index] = new_timestamps
-        elif column_index == "location_provider":
-            empty_df[column_index] = LocationProvider.UNKNOWN
-        elif column_index == "image_codec":
-            empty_df[column_index] = ImageCodec.UNKNOWN
-        else:
-            empty_df[column_index] = np.nan
+    if num_samples_to_add > 0:
+        if add_to_start:
+            sample_interval_micros = -sample_interval_micros
+        new_timestamps = (
+            start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+        )
+        for column_index in columns:
+            if column_index == "timestamps":
+                empty_df[column_index] = new_timestamps
+            elif column_index == "location_provider":
+                empty_df[column_index] = LocationProvider.UNKNOWN
+            elif column_index == "image_codec":
+                empty_df[column_index] = ImageCodec.UNKNOWN
+            else:
+                empty_df[column_index] = np.nan
     return empty_df

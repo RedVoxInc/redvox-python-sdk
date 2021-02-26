@@ -8,12 +8,11 @@ from itertools import repeat
 from types import FunctionType
 
 import numpy as np
-import pandas as pd
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common import sensor_data as sd
 from redvox.common.station_utils import StationKey, StationMetadata
-from redvox.common.timesync import TimeSyncAnalysis, TimeSyncData
+from redvox.common.timesync import TimeSyncAnalysis
 from redvox.common import offset_model as om
 
 
@@ -108,6 +107,7 @@ class Station:
             self.last_data_timestamp = np.nan
             self.audio_sample_rate_hz = np.nan
             self.is_audio_scrambled = False
+            self.timesync_analysis = TimeSyncAnalysis()
         self.is_timestamps_updated = False
 
     def _sort_metadata_packets(self):
@@ -122,7 +122,7 @@ class Station:
         """
         uses the sorted metadata packets to get the first and last timestamp of the station
         """
-        self.first_data_timestamp = self.metadata[0].packet_start_mach_timestamp
+        self.first_data_timestamp = self.audio_sensor().first_data_timestamp()
         self.last_data_timestamp = self.audio_sensor().last_data_timestamp()
 
     def set_id(self, station_id: str) -> "Station":
@@ -991,7 +991,6 @@ class Station:
                 "Redvox",
                 packet.get_timing_information(),
             ) for packet in packets]
-        # packets that can be processed at one time
         funcs = [sd.load_apim_audio_from_list,
                  sd.load_apim_compressed_audio_from_list,
                  sd.load_apim_image_from_list,
@@ -1014,58 +1013,10 @@ class Station:
         for sensor in sensors:
             if sensor:
                 self.append_sensor(sensor)
-        # for packet in packets:
-        #     self.metadata.append(
-        #         StationMetadata(
-        #             packet.get_api(),
-        #             packet.get_sub_api(),
-        #             packet.get_station_information(),
-        #             "Redvox",
-        #             packet.get_timing_information(),
-        #         )
-        #     )
-        #     if packet.get_sensors().has_audio() and packet.get_sensors().validate_audio():
-        #         self.append_sensor(sd.load_apim_audio(packet))
-        #     if packet.get_sensors().has_compressed_audio() and packet.get_sensors().validate_compressed_audio():
-        #         self.append_sensor(sd.load_apim_compressed_audio(packet))
-        #     if packet.get_sensors().has_image() and packet.get_sensors().validate_image():
-        #         self.append_sensor(sd.load_apim_image(packet))
-        #     if packet.get_sensors().has_location() and packet.get_sensors().validate_location():
-        #         self.append_sensor(sd.load_apim_location(packet))
-        #     if packet.get_sensors().has_pressure() and packet.get_sensors().validate_pressure():
-        #         self.append_sensor(sd.load_apim_pressure(packet))
-        #     if packet.get_sensors().has_light() and packet.get_sensors().validate_light():
-        #         self.append_sensor(sd.load_apim_light(packet))
-        #     if packet.get_sensors().has_ambient_temperature() and packet.get_sensors().validate_ambient_temperature():
-        #         self.append_sensor(sd.load_apim_ambient_temp(packet))
-        #     if packet.get_sensors().has_relative_humidity() and packet.get_sensors().validate_relative_humidity():
-        #         self.append_sensor(sd.load_apim_rel_humidity(packet))
-        #     if packet.get_sensors().has_proximity() and packet.get_sensors().validate_proximity():
-        #         self.append_sensor(sd.load_apim_proximity(packet))
-        #     if packet.get_sensors().has_accelerometer() and packet.get_sensors().validate_accelerometer():
-        #         self.append_sensor(sd.load_apim_accelerometer(packet))
-        #     if packet.get_sensors().has_gyroscope() and packet.get_sensors().validate_gyroscope():
-        #         self.append_sensor(sd.load_apim_gyroscope(packet))
-        #     if packet.get_sensors().has_magnetometer() and packet.get_sensors().validate_magnetometer():
-        #         self.append_sensor(sd.load_apim_magnetometer(packet))
-        #     if packet.get_sensors().has_gravity() and packet.get_sensors().validate_gravity():
-        #         self.append_sensor(sd.load_apim_gravity(packet))
-        #     if packet.get_sensors().has_linear_acceleration() and packet.get_sensors().validate_linear_acceleration():
-        #         self.append_sensor(sd.load_apim_linear_accel(packet))
-        #     if packet.get_sensors().has_orientation() and packet.get_sensors().validate_orientation():
-        #         self.append_sensor(sd.load_apim_orientation(packet))
-        #     if packet.get_sensors().has_rotation_vector() and packet.get_sensors().validate_rotation_vector():
-        #         self.append_sensor(sd.load_apim_rotation_vector(packet))
-        #     if packet.get_station_information().get_station_metrics().get_timestamps().get_timestamps_count() > 0:
-        #         self.append_sensor(sd.load_apim_health(packet))
-        # for t in self.data.values():
-        #     t.organize_and_update_stats()
 
     def update_timestamps(self):
         """
-        updates the timestamps in the station by adding delta microseconds
-            negative delta values move timestamps backwards in time.
-        :param delta: optional microseconds to add, default None (adds the station's best offset)
+        updates the timestamps in the station using the offset model
         """
         if self.is_timestamps_updated:
             print("WARNING: Timestamps already corrected!")
@@ -1078,46 +1029,5 @@ class Station:
                 self.timesync_analysis.update_timestamps(self.offset_model)
                 self.start_timestamp += self.offset_model.get_offset_at_new_time(self.start_timestamp)
                 self.first_data_timestamp += self.offset_model.get_offset_at_new_time(self.first_data_timestamp)
-                self.last_data_timestamp += self.offset_model.get_offset_at_new_time(
-                    self.metadata[-1].packet_start_mach_timestamp + self.get_mean_packet_duration())
+                self.last_data_timestamp += self.offset_model.get_offset_at_new_time(self.last_data_timestamp)
                 self.is_timestamps_updated = True
-            # if not np.isnan(self.other_offset_model.slope):
-            #     print("-----------------")
-            #     print("using latency timestamps")
-            #     print("model slope: ", self.other_offset_model.slope)
-            #     print("offset at start: ", self.other_offset_model.get_offset_at_new_time(self.first_data_timestamp))
-            #     print("offset at end: ", self.other_offset_model.get_offset_at_new_time(self.last_data_timestamp))
-            #     print("offset drift: ", self.other_offset_model.get_offset_at_new_time(self.last_data_timestamp) -
-            #           self.other_offset_model.get_offset_at_new_time(self.first_data_timestamp))
-            #     new_dur = \
-            #         self.other_offset_model.update_time(self.last_data_timestamp) - \
-            #         self.other_offset_model.update_time(self.first_data_timestamp)
-            #     print("new duration: ", new_dur)
-            #     print("expected - new: ", calc_dur - new_dur)
-            #     print("uncorrected - new: ", timestamp_dur - new_dur)
-            #     for sensor in self.data.values():
-            #         sensor.update_data_timestamps_2eb(self.other_offset_model)
-            #     for packet in self.metadata:
-            #         packet.update_timestamps()
-            #     self.timesync_analysis.update_timestamps()
-            #     self.start_timestamp += self.offset_model.get_offset_at_new_time(self.start_timestamp)
-            #     self.first_data_timestamp += self.offset_model.get_offset_at_new_time(self.first_data_timestamp)
-            #     self.last_data_timestamp += self.offset_model.get_offset_at_new_time(self.last_data_timestamp)
-            #     self.is_timestamps_updated = True
-            # if not delta:
-            #     if np.isnan(self.timesync_analysis.get_best_offset()):
-            #         print(
-            #             "WARNING: Station does not have timing data, assuming existing values are the correct ones!"
-            #         )
-            #     else:
-            #         delta = self.timesync_analysis.get_best_offset()
-            # if delta:
-            #     for sensor in self.data.values():
-            #         sensor.update_data_timestamps(delta)
-            #     for packet in self.metadata:
-            #         packet.update_timestamps(delta)
-            #     self.timesync_analysis.update_timestamps(delta)
-            #     self.start_timestamp += delta
-            #     self.first_data_timestamp += delta
-            #     self.last_data_timestamp += delta
-            #     self.is_timestamps_updated = True

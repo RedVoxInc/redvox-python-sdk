@@ -170,7 +170,6 @@ class TimeSyncData:
             self.packet_start_timestamp += om.get_offset_at_new_time(self.packet_start_timestamp)
             self.packet_end_timestamp += om.get_offset_at_new_time(self.packet_end_timestamp)
 
-
     def get_best_latency_timestamp(self):
         if self.best_msg_timestamp_index == 1:
             return self.time_sync_exchanges_df["b1"].iloc[self.best_latency_index]
