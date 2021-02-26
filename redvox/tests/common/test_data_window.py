@@ -24,7 +24,8 @@ class DataWindowTest(unittest.TestCase):
         )
         self.assertEqual(len(datawindow.stations), 2)
         self.assertIsNotNone(datawindow.get_station("1637650010").audio_sensor())
-        self.assertIsNotNone(datawindow.get_station("1637650010").accelerometer_sensor())
+        test_sensor = datawindow.get_station("1637650010").accelerometer_sensor()
+        self.assertEqual(test_sensor.num_samples(), 641)
         test_sensor = datawindow.get_station("0000000001").audio_sensor()
         self.assertIsNotNone(test_sensor)
         self.assertEqual(test_sensor.num_samples(), 720000)
@@ -43,7 +44,7 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(dw_with_start_end.stations), 1)
         audio_sensor = dw_with_start_end.get_station("0000000001").audio_sensor()
         self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 480000)
+        self.assertEqual(audio_sensor.num_samples(), 479984)
         loc_sensor = dw_with_start_end.get_station("0000000001").location_sensor()
         self.assertIsNotNone(loc_sensor)
         self.assertEqual(loc_sensor.num_samples(), 2)
@@ -91,18 +92,18 @@ class PadDataTest(unittest.TestCase):
             self.dataframe,
             dt.seconds_to_microseconds(12),
         )
-        self.assertEqual(filled_dataframe.shape, (10, 2))
+        self.assertEqual(filled_dataframe.shape, (8, 2))
         self.assertEqual(
-            filled_dataframe.loc[1, "timestamps"], dt.seconds_to_microseconds(22)
+            filled_dataframe.loc[1, "timestamps"], dt.seconds_to_microseconds(28)
         )
         self.assertEqual(
-            filled_dataframe.loc[2, "timestamps"], dt.seconds_to_microseconds(34)
+            filled_dataframe.loc[2, "timestamps"], dt.seconds_to_microseconds(40)
         )
         self.assertEqual(
-            filled_dataframe.loc[6, "timestamps"], dt.seconds_to_microseconds(64)
+            filled_dataframe.loc[6, "timestamps"], dt.seconds_to_microseconds(84)
         )
         self.assertEqual(
-            filled_dataframe.loc[9, "timestamps"], dt.seconds_to_microseconds(100)
+            filled_dataframe.loc[7, "timestamps"], dt.seconds_to_microseconds(96)
         )
 
 

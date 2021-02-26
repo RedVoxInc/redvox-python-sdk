@@ -2,35 +2,35 @@
 
 The RedVox Python SDK contains routines for reading, creating, and writing RedVox API 900 and RedVox API 1000 data files. The SDK is open-source.
 
-DataWindow is a python class designed to fetch data from a source.  It provides many filter options to the user, and will always attempt to get as much information as the user requests.
+DataWindow is a Python class designed to fetch data from a source.  It provides many filter options to the user, and will always attempt to get as much information as the user requests.
+It is capable of reading and exporting to various formats.
 
 ## Table of Contents
 
-* [1 Data Window](#TODO BOYS)
-  * [1.1 Data Window Parameters](#TODO BOYS)
-    * [1.1.1 Required Data Window Parameter](#TODO BOYS)
-    * [1.1.2 Optional Data Window Parameters](#TODO BOYS)
-  * [1.2 Creating Data Windows](#TODO BOYS)
-  * [1.3 Using Data Window](#TODO BOYS)
-  * [1.4 Data Window Functions](#TODO BOYS)
-  * [1.9 Troubleshooting](#TODO BOYS)
-* [2 Station](#TODO BOYS)
-  * [2.1 Station Properties](#TODO BOYS)
-  * [2.2 Station Functions](#TODO BOYS)
-  * [2.2 Using Station](#TODO BOYS)
-* [3 Sensor Data](#TODO BOYS)
-  * [3.1 Sensor Data Properties](#TODO BOYS)
-  * [3.2 Sensor Data Functions](#TODO BOYS)
+* [1 Data Window](#1-data-window)
+  * [1.1 Data Window Parameters](#11-data-window-parameters)
+    * [1.1.1 Required Data Window Parameter](#111-required-data-window-parameter)
+    * [1.1.2 Optional Data Window Parameters](#112-optional-data-window-parameters)
+  * [1.2 Creating Data Windows](#12-creating-data-windows)
+  * [1.3 Using Data Window](#13-using-the-data-window-results)
+  * [1.4 Data Window Functions](#14-data-window-functions)
+* [2 Station](#2-station)
+  * [2.1 Station Properties](#21-station-properties)
+  * [2.2 Station Functions](#22-station-functions)
+  * [2.3 Using Station](#23-using-station)
+* [3 Sensor Data](#3-sensor-data)
+  * [3.1 Sensor Data Properties](#31-sensor-data-properties)
+  * [3.2 Sensor Data Functions](#32-sensor-data-functions)
+  * [3.3 Sensor Data Dataframe Access](#33-sensor-data-dataframe-access)
+  * [2.3 Using Sensor Data](#34-using-sensor-data)
     
 ## 1 Data Window
 
-DataWindow is a module designed to search for data within a specified start and end time.  It contains automatic processes to provide the most complete set of data to the user.
+DataWindow is a module designed to search for data within a specified start and end time.  It will provide the most complete set of data it can find to the user.
 
 Depending on the request, DataWindow may take some time to complete.  Please have patience when requesting large or lengthy data sets.
 
-DataWindow is accessible through the Redvox SDK.
-
-The source for the latest development version of the SDK capable of reading API M data resides in the [api-m branch of the GitHub repository](https://github.com/RedVoxInc/redvox-python-sdk/tree/api-m). Here, you'll also find links to the API documentation and several sets of examples created from Jupyter notebooks.
+DataWindow is accessible through the Redvox SDK. The source for the latest development version of the SDK capable of reading API M data resides in the [api-m branch of the GitHub repository](https://github.com/RedVoxInc/redvox-python-sdk/tree/api-m). Here, you'll also find links to the API documentation and several sets of examples created from Jupyter notebooks.
 
 We recommend installing the SDK through pip. Select the latest version available on [PyPi](https://pypi.org/project/redvox/#history) and follow the "pip install" instructions.
 
@@ -45,15 +45,15 @@ _[Table of Contents](#table-of-contents)_
 #### 1.1.1 Required Data Window Parameter
 This field is required for DataWindow to run.
 
-`input_dir` is a string representing the path to the data that will be read into the DataWindow.  Absolute paths are preferred.
+_input_dir:_ a string representing the path to the data that will be read into the DataWindow.  Absolute paths are preferred.
 
-_linux/mac examples_:
+_Linux/Mac examples_:
 ```
 input_dir="/absolute/path/to/config.file.toml"
 input_dir="relative/path/to/config.file.toml"
 ```
 
-_windows examples_:
+_Windows examples_:
 ```
 input_dir=\absolute\path\to\config.file.toml"
 input_dir="C:\absolute\path\to\config.file.toml"
@@ -65,17 +65,13 @@ _[Table of Contents](#table-of-contents)_
 #### 1.1.2 Optional Data Window Parameters
 These fields do not have to be specified when creating a DataWindow.  Default values for each will be given.
 
-_structured_layout_
-
 Your data must be stored in one of two ways:
 1. `Unstructured`: All files exist in the `input_dir`.
 2. `Structured`: Files are organized by date and time as specified in the [API-M repo](https://github.com/RedVoxInc/redvox-api-1000/blob/master/docs/standards/filenames_and_directory_structures.md#standard-directory-structure).
 
-`structured_layout` is a boolean value representing the structure of the input directory.  If `True`, the data is stored in the Structured format.  The default value is `True`.
+_structured_layout:_ a boolean value representing the structure of the input directory.  If `True`, the data is stored in the Structured format.  The default value is `True`.
 
-_start_datetime_
-
-`start_datetime` is a datetime object representing the start of the request time for the DataWindow.  All data timestamps*** in the DataWindow will be equal to or greater than this time.  If `None` or not given, uses the earliest timestamp it finds that matches the other filter criteria.  The default value is `None`.
+_start_datetime:_ a datetime object representing the start of the request time for the DataWindow.  All data timestamps*** in the DataWindow will be equal to or greater than this time.  If `None` or not given, uses the earliest timestamp it finds that matches the other filter criteria.  The default value is `None`.
 
 _Examples:_
 
@@ -84,9 +80,7 @@ start_datetime=datetime.datetime(2021, 1, 1, 0, 0, 0)
 start_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 0, 0)
 ```
 
-_end_datetime_
-
-`end_datetime` is a datetime object representing the end of the request time for the DataWindow.  All data timestamps*** in the DataWindow will be equal to or less than this time.  If `None` or not given, uses the latest timestamp it finds that matches the other filter criteria.  The default value is `None`.
+_end_datetime:_ a datetime object representing the end of the request time for the DataWindow.  All data timestamps*** in the DataWindow will be equal to or less than this time.  If `None` or not given, uses the latest timestamp it finds that matches the other filter criteria.  The default value is `None`.
 
 _Examples:_
 
@@ -97,9 +91,7 @@ end_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 0, 0)
 
 *** There may be some location timestamps which are outside the requested range.  These indicate the best position of the station, and the station has not moved since the timestamp of the best location.
 
-_station_ids_
-
-`station_ids` is a list, set, or tuple of station IDs as strings to filter on.  If `None` or not given, will return all IDs that match the other filter criteria.  The default value is `None`.
+_station_ids:_ a list, set, or tuple of station IDs as strings to filter on.  If `None` or not given, will return all IDs that match the other filter criteria.  The default value is `None`.
 
 _Examples:_
 
@@ -109,20 +101,14 @@ station_ids={"1234567890", "9876543210", "1122334455"}  # set
 station_ids=("1234567890", "9876543210", "1122334455")  # tuple
 ```
 
-_apply_correction_
+_apply_correction:_ a boolean value representing the option to automatically adjust the timestamps of retrieved data.  If `True`, each Station in the returned data will apply a correction to all of its timestamps.  The default value is `True`.
 
-`apply_correction` is a boolean value representing the option to automatically adjust the timestamps of retrieved data.  If `True`, each Station in the returned data will apply a correction to all of its timestamps.  The default value is `True`.
-
-_debug_
-
-`debug` is a boolean value that controls the output level of DataWindow.  If `True`, DataWindow will output more information when an error occurs.  The default value is `False`.
+_debug:_ a boolean value that controls the output level of DataWindow.  If `True`, DataWindow will output more information when an error occurs.  The default value is `False`.
 
 #### Advanced Optional Data Window Parameters
 It is not recommended to alter the following parameters from the defaults.
 
-_start_buffer_td_
-
-`start_buffer_td` is a timedelta object representing how much additional time before the start_datetime to add when looking for data.  If `None` or not given, 120 seconds is added.  The default value is `None`.
+_start_buffer_td:_ a timedelta object representing how much additional time before the start_datetime to add when looking for data.  If `None` or not given, 120 seconds is added.  The default value is `None`.
 
 _Examples:_
 
@@ -131,9 +117,7 @@ start_buffer_td=datetime.timedelta(seconds=120)
 start_buffer_td=redvox.common.date_time_utils.timedelta(minutes=2)
 ```
 
-_end_buffer_td_
-
-`end_buffer_td` is a timedelta object representing how much additional time after the end_datetime to add when looking for data.  If `None` or not given, 120 seconds is added.  The default value is `None`.
+_end_buffer_td:_ a timedelta object representing how much additional time after the end_datetime to add when looking for data.  If `None` or not given, 120 seconds is added.  The default value is `None`.
 
 _Examples:_
 
@@ -142,21 +126,23 @@ end_buffer_td=datetime.timedelta(seconds=120)
 end_buffer_td=redvox.common.date_time_utils.timedelta(minutes=2)
 ```
 
-_gap_time_s_
-
-`gap_time_s` is a float value representing the minimum number of seconds between data timestamps that indicates a gap in the data.  The default is `0.25` seconds.
+_gap_time_s:_ a float value representing the minimum number of seconds between data timestamps that indicates a gap in the data.  The default is `0.25` seconds.
 
 _Example:_
 
 `gap_time_s=0.25`
 
-_extensions_
+_extensions:_ a set of strings representing the file extensions to filter on.  If `None` or not given, will return all files with extensions that match the other filter criteria.  The default value is `None`.
 
-`extensions` is a set of strings representing the file extensions to filter on.  If `None` or not given, will return all files with extensions that match the other filter criteria.  The default value is `None`.
+_Example:_
 
-_api_versions_
+`extensions={".rdvxm", ".rdvxz"}`
 
-`api_versions` is a set of ApiVersion values representing the file types to filter on.  If `None` or not given, will return all file types that match the other filter criteria.  The default value is `None`.
+_api_versions:_ a set of ApiVersion values representing the file types to filter on.  If `None` or not given, will return all file types that match the other filter criteria.  The default value is `None`.
+
+_Example:_
+
+`api_versions={ApiVersion.API_900, ApiVersion.API_1000}`
 
 _[Table of Contents](#table-of-contents)_
 
@@ -179,6 +165,17 @@ datawindow = DataWindow(input_dir=input_dir_str),
                         debug=True_or_False)
 ```
 
+You may prefer a simpler version of the code above that uses the defaults for more complex parameters:
+
+```
+datawindow = DataWindow(input_dir=input_dir_str),
+                        structured_layout=True_or_False,
+                        start_datetime=requested_start_datetime,
+                        end_datetime=requested_end_datetime,
+                        station_ids=list_or_set_of_station_ids,
+                        apply_correction=True_or_False)
+```
+
 The second is via a config file.
 
 [_Example Config File_](data_window.config.toml)
@@ -191,7 +188,7 @@ _[Table of Contents](#table-of-contents)_
 
 ### 1.3 Using the Data Window Results
 
-DataWindow stores all the data gathered in the stations property, which is a dictionary of station IDs to Station data objects.  There are various methods of accessing the Stations:
+DataWindow stores all the data gathered in its stations property, which is a dictionary of station IDs to Station data objects.  There are various methods of accessing the Stations:
 
 ```
 stations_dict = datawindow.stations            # All id:station entries
@@ -202,9 +199,9 @@ station = datawindow.get_station(station_id)   # The station identified by stati
 
 We recommend using the get_all_stations() and get_station(station_id) methods to get the Station objects.
 
-Refer to the [Station](#2-station) section for more information about how to use Station objects.
-
 Each Station contains SensorData objects, as well as some metadata about the Station.
+
+Refer to the [Station](#2-station) section for more information about how to use Station objects.
 
 Refer to the [SensorData](#3-sensor-data) section for more information about how to use SensorData objects.
 
@@ -233,6 +230,7 @@ Audio sensors will typically have two data channels, timestamps and microphone. 
 
 Now that we have access to our data, the possibilities are limitless.  Here is a short pyplot example showing the audio data:
 ```
+import matplotlib.pyplot as plt
 plt.plot(audio_sensor.data_timestamps() - audio_sensor.first_data_timestamp(), samples)
 plt.title(f"{station.id} - audio data")
 plt.xlabel(f"microseconds from {requested_start_datetime}")
@@ -277,22 +275,6 @@ station_ids = datawindow.get_all_station_ids()
 for id in station_ids:
     print(id)
 ```
-
-_[Table of Contents](#table-of-contents)_
-
-### 1.9 Troubleshooting
-
-DataWindow is fairly robust and should not fail except in extreme circumstances.  Error messages will usually only appear if the debug level is set to `True`.
-If a message does appear, it is likely warning you that a parameter may require tuning.
-
-This section will explain messages you may encounter regardless of debug level.
-
-Message: `Requested STATION_ID but there is no data to read for that station`,
-where STATION_ID is the ID of a single station
-
-Cause: There is no file in the input directory that matches that station's ID.
-
-Actions: Remove the station ID from the search criteria or ensure there is data for the station in the input directory
 
 _[Table of Contents](#table-of-contents)_
 
@@ -351,13 +333,11 @@ Stations may hold data from many sensors attached to the Station.  Access to eac
 
 The table below shows the sensor name and the function call required to get to the sensor.
 
-|Sensor name         |Accessor Function               |
+|Sensor Name         |Accessor Function               |
 |--------------------|--------------------------------|
 |audio               |audio_sensor()                  |
-|microphone          |audio_sensor()                  |
 |compressed audio    |compressed_audio_sensor()       |
 |image               |image_sensor()                  |
-|barometer           |barometer_sensor()              |
 |pressure            |pressure_sensor()               |
 |light               |light_sensor()                  |
 |proximity           |proximity_sensor()              |
@@ -426,10 +406,8 @@ The table below shows which columns can be accessed by each sensor
 |Sensor name         |Dataframe columns              |
 |--------------------|-------------------------------|
 |audio               |microphone                     |
-|microphone          |microphone                     |
 |compressed audio    |compressed_audio, audio_codec  |
 |image               |image, image_codec             |
-|barometer           |pressure                       |
 |pressure            |pressure                       |
 |light               |light                          |
 |proximity           |proximity                      |
@@ -445,7 +423,7 @@ The table below shows which columns can be accessed by each sensor
 |location            |latitude, longitude, altitude, speed, bearing, horizontal_accuracy, vertical_accuracy, speed_accuracy, bearing_accuracy, location_provider|
 |station health      |battery_charge_remaining, battery_current_strength, internal_temp_c, network_type, network_strength, power_state, avail_ram, avail_disk, cell_service|
 
-_List of sensors and their data's units_
+The table below lists the sensors and their data's units
 
 |Sensor name             |Column Name             |units of data|
 |------------------------|------------------------|-------------|
@@ -453,7 +431,6 @@ _List of sensors and their data's units_
 |accelerometer           |                        |meters/second^2|
 |ambient temperature     |                        |degrees Celsius|
 |audio                   |                        |lsb plus/minus counts|
-|microphone              |                        |lsb plus/minus counts|
 |compressed audio        |                        |bytes (codec specific)|
 |gravity                 |                        |meters/second^2|
 |gyroscope               |                        |radians/second|
@@ -470,7 +447,7 @@ _List of sensors and their data's units_
 |                        |altitude, horizontal accuracy, vertical accuracy|meters|
 |                        |speed, speed_accuracy   |meters per second|
 |                        |location_provider       |enumeration of LocationProvider|
-|health                  |battery_charge_remaining|percentage|
+|station health          |battery_charge_remaining|percentage|
 |                        |battery_current_strength|microamperes|
 |                        |internal_temp_c         |degrees Celsius|
 |                        |network_type            |enumeration of NetworkType|
@@ -488,6 +465,34 @@ Copy the following lines as needed:
 ```
 from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
+```
+
+_[Table of Contents](#table-of-contents)_
+
+### 3.4 Using Sensor Data
+
+Assuming you have retrieved a Station object, you may access SensorData using the _sensor() functions of the Station.
+
+_Examples:_
+```
+station.audio_sensor()     # microphone/audio sensor
+station.location_sensor()  # location/gps sensor
+station.pressure_sensor()  # barometer/pressure sensor
+```
+
+Refer to the tables above for specific column names and functions to access the data.
+
+_Examples:_
+
+```
+# get audio data and timestamps:
+station.audio_sensor().get_data_channel("microphone")
+station.audio_sensor().data_timestamps()
+
+# get accelerometer x channel data, sample rate in hz, and sample interval in seconds
+station.accelerometer_sensor().get_data_channel("accelerometer_x")
+station.accelerometer_sensor().sample_rate
+station.accelerometer_sensor().sample_interval_s
 ```
 
 _[Table of Contents](#table-of-contents)_
