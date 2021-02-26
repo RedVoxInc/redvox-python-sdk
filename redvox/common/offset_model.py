@@ -13,8 +13,8 @@ class OffsetModel:
         self.end_time = end_time
         self.k_bins = k_bins
         self.n_samples = n_samples
-        self.best_latency = np.min(latencies)
-        self.best_offset = offsets[np.argwhere(latencies == np.min(self.best_latency))[0][0]]
+        self.best_latency = np.nanmin(latencies)
+        self.best_offset = offsets[np.argwhere(latencies == self.best_latency)[0][0]]
 
     def get_offset_at_new_time(self, new_time: float) -> float:
         """
