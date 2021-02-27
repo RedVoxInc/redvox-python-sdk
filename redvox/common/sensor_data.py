@@ -459,9 +459,9 @@ def load_apim_audio_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
                 timestamps = np.array(
                     [calc_evenly_sampled_timestamps(p.get_sensors().get_audio().get_first_sample_timestamp(),
                                                     p.get_sensors().get_audio().get_num_samples(), sample_rate_hz)
-                     for p in wrapped_packets], dtype=object).flatten()
+                     for p in wrapped_packets]).flatten()
                 data_vals = np.array([p.get_sensors().get_audio().get_samples().get_values()
-                                      for p in wrapped_packets], dtype=object).flatten()
+                                      for p in wrapped_packets]).flatten()
                 return SensorData(
                     wrapped_packets[0].get_sensors().get_audio().get_sensor_description(),
                     pd.DataFrame(np.transpose([timestamps, data_vals]), columns=["timestamps", "microphone"]),
