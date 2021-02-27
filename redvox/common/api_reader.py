@@ -149,8 +149,9 @@ class ApiReader:
             start_filter = request_filter.clone().with_start_dt(beyond_start).with_end_dt(stats[0].packet_start_dt) \
                 .with_end_dt_buf(timedelta(seconds=0))
             start_index = self._apply_filter(start_filter)
-            # if there is a packet, then update filter, otherwise flag result as no more data to obtain
-            if len(start_index.entries) > 0:
+            # if the beyond check produces an earlier start date time,
+            #  then update filter, otherwise flag result as no more data to obtain
+            if len(start_index.entries) > 0 and start_index.entries[0].date_time < index.entries[0].date_time:
                 new_filter.with_start_dt(beyond_start)
                 no_more_start = False
         if self.filter.end_dt and revised_end < self.filter.end_dt:
@@ -158,8 +159,9 @@ class ApiReader:
             end_filter = request_filter.clone().with_start_dt(stats[-1].packet_start_dt + stats[-1].packet_duration)\
                 .with_end_dt(beyond_end).with_start_dt_buf(timedelta(seconds=0))
             end_index = self._apply_filter(end_filter)
-            # if there is a packet, then update filter, otherwise flag result as no more data to obtain
-            if len(end_index.entries) > 0:
+            # if the beyond check produces a later end date time,
+            #  then update filter, otherwise flag result as no more data to obtain
+            if len(end_index.entries) > 0 and end_index.entries[-1].date_time > index.entries[-1].date_time:
                 new_filter.with_end_dt(beyond_end)
                 no_more_end = False
         # if there is no more data to obtain from either end, return the original index

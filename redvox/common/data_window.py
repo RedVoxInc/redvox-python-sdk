@@ -241,13 +241,14 @@ class DataWindow:
                 else:
                     first_after_end = None
                 if last_before_start is not None and first_after_end is None:
-                    sensor.data_df = sensor.data_df.iloc[last_before_start]
+                    sensor.data_df = sensor.data_df.iloc[last_before_start].to_frame().T
                     sensor.data_df["timestamps"] = start_date_timestamp
                 elif last_before_start is None and first_after_end is not None:
-                    sensor.data_df = sensor.data_df.iloc[first_after_end]
+                    sensor.data_df = sensor.data_df.iloc[first_after_end].to_frame().T
                     sensor.data_df["timestamps"] = end_date_timestamp
                 elif last_before_start is not None and first_after_end is not None:
-                    sensor.data_df = sensor.interpolate(last_before_start, first_after_end, start_date_timestamp)
+                    sensor.data_df = sensor.interpolate(last_before_start, first_after_end,
+                                                        start_date_timestamp).to_frame().T
                 elif self.debug:
                     print(
                         f"WARNING: Data window for {station_id} {sensor.type.name} "

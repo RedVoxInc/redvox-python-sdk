@@ -13,8 +13,12 @@ class OffsetModel:
         self.end_time = end_time
         self.k_bins = k_bins
         self.n_samples = n_samples
-        self.best_latency = np.nanmin(latencies)
-        self.best_offset = offsets[np.argwhere(latencies == self.best_latency)[0][0]]
+        if all(latencies == 0.0) or all(np.isnan(latencies)):
+            self.best_latency = np.nan
+            self.best_offset = 0.0
+        else:
+            self.best_latency = np.nanmin(latencies[np.nonzero(latencies)])
+            self.best_offset = offsets[np.argwhere(latencies == self.best_latency)[0][0]]
 
     def get_offset_at_new_time(self, new_time: float) -> float:
         """
@@ -44,6 +48,9 @@ def offset_weighted_linear_regression(latencies: np.ndarray, offsets: np.ndarray
     :param times: array of device times corresponding to the best latencies per packet
     :return:  slope, intercept
     """
+
+    if all(np.isnan(latencies)):
+        return 0, 0
 
     # Compute the weights for the linear regression by the latencies
     base_weight = latencies.min() - 0.2
