@@ -337,7 +337,7 @@ class DataWindow:
             self.station_ids = set(self.stations.keys())
 
         stations: List[Station] = list(self.stations.values())
-        pool = Pool(processes=min(len(stations), cpu_count()))
+        pool = Pool(processes=min(max(1, len(stations)), cpu_count()))
         # Apply timing correction in parallel by station
         if self.apply_correction:
             pool.map(Station.update_timestamps, stations)

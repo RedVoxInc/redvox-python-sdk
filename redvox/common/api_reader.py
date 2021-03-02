@@ -237,7 +237,7 @@ class ApiReader:
         :return: a list of all stations represented by the data packets
         """
         station_ids: List[str] = self.index_summary.station_ids()
-        pool = Pool(processes=min(len(station_ids), cpu_count()))
+        pool = Pool(processes=min(max(1, len(station_ids)), cpu_count()))
 
         stations_opt: List[Optional[Station]] = pool.map(self.get_station_by_id, station_ids)
         # noinspection Mypy
