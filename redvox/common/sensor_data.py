@@ -269,13 +269,18 @@ class SensorData:
         return self.data_df.columns.to_list()
 
     def update_data_timestamps(self, offset_model: om.OffsetModel):
-        self.data_df["timestamps"] = [offset_model.update_time(tim) for tim in self.data_timestamps()]
+        if self.is_sample_rate_fixed:
+            self.data_df["timestamps"] = [offset_model.start_time + offset_model.intercept +
+                                          tim * (1 + offset_model.slope)
+                                          for tim in np.insert(np.cumsum(np.diff(self.data_timestamps())), 0, [0])]
+        else:
+            self.data_df["timestamps"] = [offset_model.update_time(tim) for tim in self.data_timestamps()]
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
-            self.sample_interval_s = dtu.microseconds_to_seconds(np.mean(time_diffs))
+            self.sample_interval_s += offset_model.slope
             if self.sample_interval_s > 0:
-                self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
                 self.sample_rate = 1 / self.sample_interval_s
+                self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
             self.timestamps_altered = True
 
     def update_data_timestamps_delta(self, time_delta: float):
