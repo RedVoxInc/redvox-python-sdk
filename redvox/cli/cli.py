@@ -249,6 +249,7 @@ def data_req_args(args) -> None:
             args.station_ids,
             api_type,
             args.retries,
+            args.timeout
         )
     )
 
@@ -600,6 +601,12 @@ def main():
         help="Data API to be retrieved",
         choices=["API_900", "API_1000", "API_900_1000"],
         default="API_900_1000",
+    )
+    data_req_parser.add_argument(
+        "--timeout",
+        help="Read timeout in seconds (default=10 seconds)",
+        type=int,
+        default=10
     )
     data_req_parser.add_argument(
         "req_start_s",

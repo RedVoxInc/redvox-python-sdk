@@ -25,6 +25,7 @@ def make_data_req(
     redvox_ids: List[str],
     api_type: "DataRangeReqType",
     retries: int,
+    timeout: int,
 ) -> bool:
     """
     Makes a data request to the RedVox data_server.
@@ -37,7 +38,7 @@ def make_data_req(
     :param retries: The number of retries to perform on failed downloads.
     :return: True if this succeeds, False otherwise.
     """
-    client: cloud_client.CloudClient = cloud_client.CloudClient(redvox_config)
+    client: cloud_client.CloudClient = cloud_client.CloudClient(redvox_config, timeout=timeout)
     data_resp: data_api.DataRangeResp = client.request_data_range(
         req_start_s, req_end_s, redvox_ids, api_type
     )
