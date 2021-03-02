@@ -221,14 +221,16 @@ def offsets(
     # o1_coeffs = (a1_coeffs - b1_coeffs + a2_coeffs - b2_coeffs) / 2.
     # o3_coeffs = (a3_coeffs - b3_coeffs + a2_coeffs - b2_coeffs) / 2.
     # get latencies
-    latencies_tuple: Tuple[np.ndarray, np.ndarray] = latencies(
-        a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
-    )
-    d1_coeffs: np.ndarray = latencies_tuple[0]
-    d3_coeffs: np.ndarray = latencies_tuple[1]
+    # latencies_tuple: Tuple[np.ndarray, np.ndarray] = latencies(
+    #    a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
+    # )
+    # d1_coeffs: np.ndarray = latencies_tuple[0]
+    # d3_coeffs: np.ndarray = latencies_tuple[1]
     # use latency to compute offset in microseconds
-    o1_coeffs: np.ndarray = a1_coeffs - b1_coeffs + d1_coeffs
-    o3_coeffs: np.ndarray = a3_coeffs - b3_coeffs + d3_coeffs
+    # o1_coeffs: np.ndarray = a1_coeffs - b1_coeffs + d1_coeffs
+    o1_coeffs: np.ndarray = (a1_coeffs - b1_coeffs + a2_coeffs - b2_coeffs) / 2
+    o3_coeffs: np.ndarray = (a3_coeffs - b3_coeffs + a2_coeffs - b2_coeffs) / 2
+    # o3_coeffs: np.ndarray = a3_coeffs - b3_coeffs + d3_coeffs
 
     return o1_coeffs, o3_coeffs
 
