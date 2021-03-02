@@ -237,7 +237,7 @@ class ApiReader:
         :return: a list of all stations represented by the data packets
         """
         pool = Pool()
-        station_ids: List[str] = self.files_index.summarize().station_ids()
+        station_ids: List[str] = self.index_summary.station_ids()
         stations_opt: List[Optional[Station]] = pool.map(self.get_station_by_id, station_ids)
         # noinspection Mypy
         return list(filter(lambda station: station is not None, stations_opt))
