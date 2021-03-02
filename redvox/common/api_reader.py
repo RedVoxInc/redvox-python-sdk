@@ -4,6 +4,7 @@ Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 """
 from collections import defaultdict
+from multiprocessing import Pool
 from typing import List, Optional, Dict
 from datetime import timedelta
 
@@ -235,13 +236,18 @@ class ApiReader:
         """
         :return: a list of all stations represented by the data packets
         """
-        return [Station(packets) for packets in self.read_files().values()]
+        pool = Pool()
+        station_ids: List[str] = self.files_index.summarize().station_ids()
+        stations_opt: List[Optional[Station]] = pool.map(self.get_station_by_id, station_ids)
+        # noinspection Mypy
+        return list(filter(lambda station: station is not None, stations_opt))
 
     def read_files_as_stations(self) -> Dict[str, Station]:
         """
         :return: a dictionary of all station_id to station pairs represented by the data packets
         """
-        return {s_id: Station(packets) for s_id, packets in self.read_files().items()}
+        stations: List[Station] = self.get_stations()
+        return {station.id: station for station in stations}
 
     def get_station_by_id(self, get_id: str) -> Optional[Station]:
         """
