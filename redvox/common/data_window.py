@@ -2,6 +2,7 @@
 This module creates specific time-bounded segments of data for users
 combine the data packets into a new data packet based on the user parameters
 """
+from multiprocessing import Pool, cpu_count
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
 
@@ -309,6 +310,7 @@ class DataWindow:
         updates the data window to contain only the data within the window parameters
         stations without audio or any data outside the window are removed
         """
+
         ids_to_pop = []
         r_f = io.ReadFilter()
         if self.start_datetime:
@@ -333,9 +335,17 @@ class DataWindow:
         ).read_files_as_stations()
         if self.station_ids is None or len(self.station_ids) == 0:
             self.station_ids = set(self.stations.keys())
-        for station in self.stations.values():
-            if self.apply_correction:
-                station.update_timestamps()
+
+        stations: List[Station] = list(self.stations.values())
+        pool = Pool(processes=min(max(1, len(stations)), cpu_count()))
+        # Apply timing correction in parallel by station
+        if self.apply_correction:
+            pool.map(Station.update_timestamps, stations)
+
+        for station in stations:
+            # if self.apply_correction:
+            #     station.update_timestamps()
+
             # set the window start and end if they were specified, otherwise use the bounds of the data
             if self.start_datetime:
                 start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
