@@ -7,6 +7,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0b4
+
+* Performance improvements when creating data window, stations and other classes/data structures
+
 ### 3.0.0b3 (2021-3-1)
 * Updated timing correction using offset model predictions
 * Added timing correction to file searching functionality
