@@ -141,7 +141,7 @@ class SensorData:
             )
         self.name: str = sensor_name
         self.type: SensorType = sensor_type
-        self.data_df: pd.DataFrame = sensor_data
+        self.data_df: pd.DataFrame = sensor_data.infer_objects()
         self.sample_rate: float = sample_rate
         self.sample_interval_s: float = sample_interval_s
         self.sample_interval_std_s: float = sample_interval_std_s
