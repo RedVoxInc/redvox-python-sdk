@@ -34,7 +34,7 @@ DataWindow is accessible through the Redvox SDK. The source for the latest devel
 
 We recommend installing the SDK through pip. Select the latest version available on [PyPi](https://pypi.org/project/redvox/#history) and follow the "pip install" instructions.
 
-You may find the DataWindow specific API documentation [here](https://redvoxinc.github.io/redvox-sdk/v3.0.0b3/api_docs/redvox/common/data_window.html)
+You may find the DataWindow specific API documentation [here](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/data_window.html)
 
 _[Table of Contents](#table-of-contents)_
 
@@ -91,7 +91,7 @@ end_datetime=datetime.datetime(2021, 1, 1, 0, 0, 0)
 end_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 0, 0)
 ```
 
-*** There may be some location timestamps which are outside the requested range.  These indicate the best position of the station, and the station has not moved since the timestamp of the best location.
+*** There may be some location timestamps which are outside the requested range.  This is normal.  They indicate the best position of the station, and the station has not moved since the timestamp of the best location.
 
 _station_ids:_ a list, set, or tuple of station IDs as strings to filter on.  If `None` or not given, will return all IDs that match the other filter criteria.  The default value is `None`.
 
@@ -186,7 +186,7 @@ Once the config file is created, you must create the DataWindow using this funct
 
 `datawindow = DataWindow.from_config_file(path/to/config.file.toml)`
 
-The DataWindowConfiguration specific API documentation is available [here](https://redvoxinc.github.io/redvox-sdk/v3.0.0b3/api_docs/redvox/common/data_window_configuration.html)
+The DataWindowConfiguration specific API documentation is available [here](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/data_window_configuration.html)
 
 _[Table of Contents](#table-of-contents)_
 
@@ -205,25 +205,24 @@ We recommend using the get_all_stations() and get_station(station_id) methods to
 
 Each Station contains SensorData objects, as well as some metadata about the Station.
 
-Refer to the [Station](#2-station) section or the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b3/api_docs/redvox/common/station.html) for more information about how to use Station objects.
+Refer to the [Station](#2-station) section or the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/station.html) for more information about how to use Station objects.
 
-Refer to the [SensorData](#3-sensor-data) section or the [SensorData API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b3/api_docs/redvox/common/station_data.html) for more information about how to use SensorData objects.
+Refer to the [SensorData](#3-sensor-data) section or the [SensorData API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/station_data.html) for more information about how to use SensorData objects.
 
 We will look at the audio sensor in this example:
 
 ```
 audio_sensor = station.audio_sensor()
-print(audio_sensor.sample_rate)
-print(audio_sensor.is_sample_rate_fixed)
-print(audio_sensor.sample_interval_s)
-print(audio_sensor.sample_interval_std_s)
-print(audio_sensor.data_timestamps())
-print(audio_sensor.first_data_timestamp())
-print(audio_sensor.last_data_timestamp())
-print(audio_sensor.samples())
-print(audio_sensor.num_samples())
-print(audio_sensor.data_duration_s())
-print(audio_sensor.data_channels())
+print(audio_sensor.sample_rate)             # sample rate in hz
+print(audio_sensor.is_sample_rate_fixed)    # is sample rate constant
+print(audio_sensor.sample_interval_s)       # sample interval in seconds
+print(audio_sensor.sample_interval_std_s)   # sample interval std dev
+print(audio_sensor.data_timestamps())       # data timestamps as numpy array
+print(audio_sensor.first_data_timestamp())  # first data timestamp
+print(audio_sensor.last_data_timestamp())   # last data timestamp
+print(audio_sensor.samples())               # the data as an ndarray
+print(audio_sensor.num_samples())           # the number of data samples
+print(audio_sensor.data_channels())         # the names of the dataframe columns
 ```
 
 Each line outputs information about the audio sensor.  The data_channels() function tells us the dataframe column names we can use to access the audio sensor's data.
@@ -280,7 +279,7 @@ for id in station_ids:
     print(id)
 ```
 
-Refer to the [DataWindow API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b3/api_docs/redvox/common/data_window.html) as needed.
+Refer to the [DataWindow API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/data_window.html) as needed.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -288,13 +287,13 @@ _[Table of Contents](#table-of-contents)_
 
 Station is a module designed to hold format-agnostic data of various sensors that combine to form a single unit.  The data can be gathered from and turned into various other formats as needed.
 
+Station represents real world combinations of various recording devices.  Stations may contain several types of devices, such as audio, accelerometer, and pressure sensors.  Stations will not contain more than one of the same type of sensor; this is to allow unambiguous and easy comparison between stations.
+
 Station objects are comprised of a station key, the sensor data, data packet metadata, and other station specific metadata.
 
 Each Station has a unique key.  Keys are comprised of the Station's id, uuid and start timestamp since epoch UTC.  Stations with the same key can be combined into one Station.
 
-Station represents real world combinations of various recording devices.  Stations may contain several types of devices, such as audio, accelerometer, and pressure sensors.  Stations will not contain more than one of the same type of sensor; this is to allow unambiguous and easy comparison between stations.
-
-Refer to the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b3/api_docs/redvox/common/station.html) as needed.
+Refer to the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/station.html) as needed.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -372,11 +371,11 @@ _[Table of Contents](#table-of-contents)_
 
 SensorData is a format-agnostic representation of the data.  This data can be gathered from or converted to another format as needed.
 
-Each SensorData object is a Pandas DataFrame with some additional metadata.
-
 SensorData represents a single real world recording device like a microphone or accelerometer.
 
-Refer to the [SensorData API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b3/api_docs/redvox/common/station_data.html) as needed.
+Each SensorData object is a Pandas DataFrame with some additional metadata.
+
+Refer to the [SensorData API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/station_data.html) as needed.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -400,12 +399,14 @@ _[Table of Contents](#table-of-contents)_
 These are the functions of the SensorData class:
 
 1. `data_channels()`: Returns a list of the valid channel names (columns of the dataframe)
-2. `get_data_channel(channel_name)`: Returns a numpy.array of the dataframe column with the channel_name, or an error and a list of valid channel names if channel_name does not exist.
+2. `get_data_channel(channel_name)`: Returns a numpy.array** of the dataframe column with the channel_name, or an error and a list of valid channel names if channel_name does not exist.
 3. `num_samples()`: Returns the number of data points (rows in the dataframe) in the sensor
 4. `data_timestamps()`: Returns a numpy.array of the timestamps in the dataframe
 5. `first_data_timestamp()`: Returns the first timestamp in the dataframe
 6. `last_data_timestamp()`: Returns the last timestamp in the dataframe
 7. `data_duration_s()`: Returns the duration of the data in seconds
+
+** Reading enumerated types from this function requires additional imports.  Refer to [the footnote on enumerated types](#a-note-on-enumerated-types) for more information
 
 _[Table of Contents](#table-of-contents)_
 
@@ -432,6 +433,8 @@ The table below shows which columns can be accessed by each sensor
 |gravity             |gravity_x, gravity_y, gravity_z|
 |location            |latitude, longitude, altitude, speed, bearing, horizontal_accuracy, vertical_accuracy, speed_accuracy, bearing_accuracy, location_provider|
 |station health      |battery_charge_remaining, battery_current_strength, internal_temp_c, network_type, network_strength, power_state, avail_ram, avail_disk, cell_service|
+
+Please note that entering an invalid channel name for a sensor will raise an error and print the list of allowed names.
 
 The table below lists the sensors and their data's units
 
@@ -469,6 +472,7 @@ The table below lists the sensors and their data's units
 If Column Name is blank, then all non-timestamp columns in the dataframe have the unit specified.
 Refer to the previous table for specific column names for each sensor.
 
+#### A note on enumerated types
 Please note that enumerations require you to import them from the [Redvox SDK](https://pypi.org/project/redvox/#history) before you can properly read their values.
 
 Copy the following lines as needed:
@@ -481,7 +485,7 @@ _[Table of Contents](#table-of-contents)_
 
 ### 3.4 Using Sensor Data
 
-Assuming you have retrieved a Station object, you may access SensorData using the _sensor() functions of the Station.
+Assuming you have retrieved a Station object, you may access SensorData using the *_sensor() functions of the Station.
 
 _Examples:_
 ```
