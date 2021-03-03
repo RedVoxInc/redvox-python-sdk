@@ -2,7 +2,6 @@
 This module creates specific time-bounded segments of data for users
 combine the data packets into a new data packet based on the user parameters
 """
-from multiprocessing import Pool, cpu_count
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
 
@@ -15,6 +14,7 @@ from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.api_reader import ApiReader
 from redvox.common.data_window_configuration import DataWindowConfig
+import redvox.common.parallel_utils as parallel
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 
@@ -337,15 +337,12 @@ class DataWindow:
             self.station_ids = set(self.stations.keys())
 
         stations: List[Station] = list(self.stations.values())
-        pool = Pool(processes=min(max(1, len(stations)), cpu_count()))
+        pool = parallel.pool()
         # Apply timing correction in parallel by station
         if self.apply_correction:
             pool.map(Station.update_timestamps, stations)
 
         for station in stations:
-            # if self.apply_correction:
-            #     station.update_timestamps()
-
             # set the window start and end if they were specified, otherwise use the bounds of the data
             if self.start_datetime:
                 start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
