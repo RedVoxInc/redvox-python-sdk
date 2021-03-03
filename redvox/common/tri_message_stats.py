@@ -73,10 +73,15 @@ class TriMessageStats:
         """
         Finds the best latency among the latencies
         """
-        try:
-            # find value and index of minimum latency of nonzero latencies
-            d1_min: float = np.min(self.latency1[self.latency1 != 0])
-            d3_min: float = np.min(self.latency3[self.latency3 != 0])
+        if all(np.nan_to_num(self.latency1) == 0.0) or all(np.nan_to_num(self.latency3) == 0.0):
+            # all latencies for one of the arrays is zero, the data is untrustworthy.  set the defaults
+            self.best_latency = np.nan
+            self.best_latency_array_index = None
+            self.best_latency_index = None
+        else:
+            # find value and index of minimum latency of nonzero, non-nan latencies
+            d1_min: float = np.min(self.latency1[np.nonzero(np.nan_to_num(self.latency1))])
+            d3_min: float = np.min(self.latency3[np.nonzero(np.nan_to_num(self.latency3))])
 
             if d3_min > d1_min:
                 self.best_latency = d1_min  # server round trip is shorter
@@ -86,11 +91,6 @@ class TriMessageStats:
                 self.best_latency = d3_min
                 self.best_latency_array_index = 3
                 self.best_latency_index = np.where(self.latency3 == d3_min)[0][0]
-        except ValueError:
-            # all latencies for one of the arrays is zero; the data is untrustworthy.  set the defaults
-            self.best_latency = None
-            self.best_latency_array_index = None
-            self.best_latency_index = None
 
     def find_best_offset(self) -> None:
         """
@@ -149,11 +149,6 @@ class TriMessageStats:
         :param b2_coeffs: device timestamp 2
         :param b3_coeffs: device timestamp 3
         """
-        # latency calculations are required:
-        if self.best_latency is None:
-            self.set_latency(
-                a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
-            )
         # compute offsets
         self.offset1, self.offset3 = offsets(
             a1_coeffs, a2_coeffs, a3_coeffs, b1_coeffs, b2_coeffs, b3_coeffs
@@ -185,9 +180,9 @@ def latencies(
     d1_coeffs: np.ndarray = 0.5 * ((a2_coeffs - a1_coeffs) - (b2_coeffs - b1_coeffs))
     d3_coeffs: np.ndarray = 0.5 * ((b3_coeffs - b2_coeffs) - (a3_coeffs - a2_coeffs))
 
-    # convert negative latencies to 0.  negative latencies should not exist naturally
-    d1_coeffs[d1_coeffs < 0] = 0
-    d3_coeffs[d3_coeffs < 0] = 0
+    # convert negative latencies to nan.  negative latencies should not exist naturally
+    d1_coeffs[d1_coeffs < 0] = np.nan
+    d3_coeffs[d3_coeffs < 0] = np.nan
 
     return d1_coeffs, d3_coeffs
 
