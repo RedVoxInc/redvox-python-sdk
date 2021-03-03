@@ -10,6 +10,7 @@ import multiprocessing
 import numpy as np
 
 from redvox.common.timesync import TimeSyncData
+import redvox.common.parallel_utils as parallel
 
 # noinspection Mypy
 if TYPE_CHECKING:
@@ -280,7 +281,7 @@ def extract_stats_parallel(index: io.Index) -> List[StationStat]:
     indices: List[io.Index] = list(map(lambda entries: io.Index(entries), partitioned))
 
     # Run da buggahs in parallel
-    pool = multiprocessing.Pool(processes=num_cores)
+    pool = parallel.pool()
     nested: List[List[StationStat]] = pool.map(extract_stats_serial, indices)
     return [item for sublist in nested for item in sublist]
 
