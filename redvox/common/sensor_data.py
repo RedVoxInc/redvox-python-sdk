@@ -269,12 +269,8 @@ class SensorData:
         return self.data_df.columns.to_list()
 
     def update_data_timestamps(self, offset_model: om.OffsetModel):
-        if self.is_sample_rate_fixed:
-            self.data_df["timestamps"] = [offset_model.start_time + offset_model.intercept +
-                                          tim * (1 + offset_model.slope)
-                                          for tim in np.insert(np.cumsum(np.diff(self.data_timestamps())), 0, [0])]
-        else:
-            self.data_df["timestamps"] = [offset_model.update_time(tim) for tim in self.data_timestamps()]
+        self.data_df["timestamps"] = [offset_model.start_time + offset_model.intercept + t * (1 + offset_model.slope)
+                                      for t in self.data_timestamps()]
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
             self.sample_interval_s += offset_model.slope

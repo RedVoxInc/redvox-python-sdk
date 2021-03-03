@@ -110,12 +110,12 @@ class TimeSyncData:
             # compute tri message data from time sync exchanges
             tse = tms.TriMessageStats(
                 self.station_id,
-                self.time_sync_exchanges_df["a1"],
-                self.time_sync_exchanges_df["a2"],
-                self.time_sync_exchanges_df["a3"],
-                self.time_sync_exchanges_df["b1"],
-                self.time_sync_exchanges_df["b2"],
-                self.time_sync_exchanges_df["b3"],
+                self.time_sync_exchanges_df["a1"].to_numpy(),
+                self.time_sync_exchanges_df["a2"].to_numpy(),
+                self.time_sync_exchanges_df["a3"].to_numpy(),
+                self.time_sync_exchanges_df["b1"].to_numpy(),
+                self.time_sync_exchanges_df["b2"].to_numpy(),
+                self.time_sync_exchanges_df["b3"].to_numpy(),
             )
             # Compute the statistics for latency and offset
             self.mean_latency = np.mean([*tse.latency1, *tse.latency3])
@@ -515,6 +515,37 @@ class TimeSyncAnalysis:
             self.station_start_timestamp += om.get_offset_at_new_time(self.station_start_timestamp)
         for tsd in self.timesync_data:
             tsd.update_timestamps(om)
+
+
+def timesync_data_from_packet(packet: Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]) -> TimeSyncData:
+    """
+    converts a packet into TimeSyncData
+    :param packet: packet to read
+    :return: modified version of self
+    """
+    if isinstance(packet, WrappedRedvoxPacketM):
+        return TimeSyncData(packet.get_station_information().get_id(),
+                            packet.get_sensors().get_audio().get_sample_rate(),
+                            packet.get_sensors().get_audio().get_num_samples(),
+                            packet.get_timing_information().get_app_start_mach_timestamp(),
+                            packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
+                            packet.get_timing_information().get_packet_start_mach_timestamp(),
+                            packet.get_timing_information().get_packet_end_mach_timestamp(),
+                            packet.get_timing_information().get_synch_exchange_array(),
+                            packet.get_timing_information().get_best_latency(),
+                            packet.get_timing_information().get_best_offset(),
+                            )
+    return TimeSyncData(packet.redvox_id(),
+                        packet.microphone_sensor().sample_rate_hz(),
+                        packet.microphone_sensor().payload_values().size,
+                        packet.start_timestamp_us_utc(),
+                        packet.server_timestamp_epoch_microseconds_utc(),
+                        packet.start_timestamp_us_utc(),
+                        packet.end_timestamp_us_utc(),
+                        packet.time_synchronization_sensor().payload_values(),
+                        packet.best_latency(),
+                        packet.best_offset(),
+                        )
 
 
 def validate_sensors(tsa_data: TimeSyncAnalysis) -> bool:

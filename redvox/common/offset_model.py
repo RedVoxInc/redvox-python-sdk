@@ -13,7 +13,7 @@ class OffsetModel:
         self.end_time = end_time
         self.k_bins = k_bins
         self.n_samples = n_samples
-        if all(latencies == 0.0) or all(np.isnan(latencies)):
+        if all(np.nan_to_num(latencies) == 0.0):
             self.best_latency = np.nan
             self.best_offset = 0.0
         else:
