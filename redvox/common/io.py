@@ -558,7 +558,7 @@ def pmap(
     f: Callable[[T], R],
     coll: Iterator[T],
 ) -> Iterator[R]:
-    return parallel.pool().imap(f, coll, chunksize=8)
+    return parallel.pool().imap(f, coll, chunksize=64)
 
 
 def index_unstructured(
