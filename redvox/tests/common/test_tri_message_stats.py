@@ -40,12 +40,12 @@ class TriMessageStatTests(unittest.TestCase):
         # specifically testing for latency arrays that are filled with bad values
         bad_values = np.zeros([5])
         self.tri_ms.set_latency(bad_values, bad_values, bad_values, bad_values, bad_values, bad_values)
-        self.assertEqual(None, self.tri_ms.best_latency)
+        self.assertTrue(np.isnan(self.tri_ms.best_latency))
         self.assertEqual(None, self.tri_ms.best_latency_array_index)
         self.assertEqual(None, self.tri_ms.best_latency_index)
         bad_values = np.zeros([0])
         self.tri_ms.set_latency(bad_values, bad_values, bad_values, bad_values, bad_values, bad_values)
-        self.assertEqual(None, self.tri_ms.best_latency)
+        self.assertTrue(np.isnan(self.tri_ms.best_latency))
         self.assertEqual(None, self.tri_ms.best_latency_array_index)
         self.assertEqual(None, self.tri_ms.best_latency_index)
 
