@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>redvox.common.api_conversions API documentation</title>
 <meta name="description" content="Provides functionality for converting between API versions." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -141,6 +141,7 @@ def _migrate_os_type_1000_to_900(os: OsType) -&gt; str:
         return os.name
 
 
+# noinspection DuplicatedCode
 def convert_api_900_to_1000(
     wrapped_packet_900: reader_900.WrappedRedvoxPacket,
 ) -&gt; WrappedRedvoxPacketM:
@@ -153,7 +154,7 @@ def convert_api_900_to_1000(
 
     # Top-level metadata
     wrapped_packet_m.set_api(1000.0)
-    # noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences,Mypy
     wrapped_packet_m.set_sub_api(redvox_api_m_pb2.SUB_API)
 
     # Station information
@@ -182,16 +183,17 @@ def convert_api_900_to_1000(
 
     # API 900 does not maintain a copy of its settings. So we will not set anything in AppSettings
 
-    # StationMetrics - We know a couple
+    # StationMetrics - We know a couple. We take a slightly more cumbersome approach using the raw protobuf
+    # to avoid some conversions between lists and np arrays.
     station_metrics: StationMetrics = station_information.get_station_metrics()
     station_metrics.get_timestamps().append_timestamp(
         wrapped_packet_900.app_file_start_timestamp_machine()
     )
-    station_metrics.get_temperature().append_value(
-        wrapped_packet_900.device_temperature_c()
+    station_metrics.get_temperature().set_values(
+        np.array([wrapped_packet_900.device_temperature_c()]), True
     )
-    station_metrics.get_battery().append_value(
-        wrapped_packet_900.battery_level_percent()
+    station_metrics.get_battery().set_values(
+        np.array([wrapped_packet_900.battery_level_percent()]), True
     )
 
     # Timing information
@@ -225,7 +227,7 @@ def convert_api_900_to_1000(
 
     time_sensor = wrapped_packet_900.time_synchronization_sensor()
     if time_sensor is not None:
-        wrapped_packet_m.get_timing_information().get_synch_exchanges().append_values(
+        wrapped_packet_m.get_timing_information().get_synch_exchanges().set_values(
             _migrate_synch_exchanges_900_to_1000(time_sensor.payload_values())
         )
 
@@ -236,9 +238,7 @@ def convert_api_900_to_1000(
         reader_900.MicrophoneSensor
     ] = wrapped_packet_900.microphone_sensor()
     if mic_sensor_900 is not None:
-        normalized_audio: List[float] = list(
-            map(_normalize_audio_count, mic_sensor_900.payload_values())
-        )
+        normalized_audio: np.ndarray = mic_sensor_900.payload_values() / _NORMALIZATION_CONSTANT
         audio_sensor_m = sensors_m.new_audio()
         audio_sensor_m.set_first_sample_timestamp(
             mic_sensor_900.first_sample_timestamp_epoch_microseconds_utc()
@@ -247,7 +247,7 @@ def convert_api_900_to_1000(
         ).set_sensor_description(
             mic_sensor_900.sensor_name()
         ).get_samples().set_values(
-            np.array(normalized_audio), update_value_statistics=True
+            normalized_audio, update_value_statistics=True
         )
         audio_sensor_m.get_metadata().set_metadata(mic_sensor_900.metadata_as_dict())
 
@@ -280,9 +280,9 @@ def convert_api_900_to_1000(
             location_sensor_900.timestamps_microseconds_utc(), True
         )
         if location_sensor_900.check_for_preset_lat_lon():
-            lat_lon = location_sensor_900.get_payload_lat_lon()
-            location_m.get_latitude_samples().set_values(np.array([lat_lon[0]]))
-            location_m.get_longitude_samples().set_values(np.array([lat_lon[1]]))
+            lat_lon: np.ndarray = location_sensor_900.get_payload_lat_lon()
+            location_m.get_latitude_samples().set_values(lat_lon[:1], True)
+            location_m.get_longitude_samples().set_values(lat_lon[1:], True)
         else:
             location_m.get_latitude_samples().set_values(
                 location_sensor_900.payload_values_latitude(), True
@@ -454,7 +454,7 @@ def convert_api_1000_to_900(
     wrapped_packet_900.set_api(900)
     wrapped_packet_900.set_uuid(station_information_m.get_uuid())
     wrapped_packet_900.set_redvox_id(station_information_m.get_id())
-    wrapped_packet_900.set_authenticated_email(station_information_m.get_auth_email())
+    wrapped_packet_900.set_authenticated_email(station_information_m.get_auth_id())
     wrapped_packet_900.set_authentication_token(
         &#34;n/a&#34;
     )  # Different auth protocols are used, can&#39;t convert between
@@ -702,7 +702,7 @@ def convert_api_1000_to_900(
     wrapped_packet_900.set_api(900)
     wrapped_packet_900.set_uuid(station_information_m.get_uuid())
     wrapped_packet_900.set_redvox_id(station_information_m.get_id())
-    wrapped_packet_900.set_authenticated_email(station_information_m.get_auth_email())
+    wrapped_packet_900.set_authenticated_email(station_information_m.get_auth_id())
     wrapped_packet_900.set_authentication_token(
         &#34;n/a&#34;
     )  # Different auth protocols are used, can&#39;t convert between
@@ -935,7 +935,7 @@ def convert_api_1000_to_900(
 
     # Top-level metadata
     wrapped_packet_m.set_api(1000.0)
-    # noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences,Mypy
     wrapped_packet_m.set_sub_api(redvox_api_m_pb2.SUB_API)
 
     # Station information
@@ -964,16 +964,17 @@ def convert_api_1000_to_900(
 
     # API 900 does not maintain a copy of its settings. So we will not set anything in AppSettings
 
-    # StationMetrics - We know a couple
+    # StationMetrics - We know a couple. We take a slightly more cumbersome approach using the raw protobuf
+    # to avoid some conversions between lists and np arrays.
     station_metrics: StationMetrics = station_information.get_station_metrics()
     station_metrics.get_timestamps().append_timestamp(
         wrapped_packet_900.app_file_start_timestamp_machine()
     )
-    station_metrics.get_temperature().append_value(
-        wrapped_packet_900.device_temperature_c()
+    station_metrics.get_temperature().set_values(
+        np.array([wrapped_packet_900.device_temperature_c()]), True
     )
-    station_metrics.get_battery().append_value(
-        wrapped_packet_900.battery_level_percent()
+    station_metrics.get_battery().set_values(
+        np.array([wrapped_packet_900.battery_level_percent()]), True
     )
 
     # Timing information
@@ -1007,7 +1008,7 @@ def convert_api_1000_to_900(
 
     time_sensor = wrapped_packet_900.time_synchronization_sensor()
     if time_sensor is not None:
-        wrapped_packet_m.get_timing_information().get_synch_exchanges().append_values(
+        wrapped_packet_m.get_timing_information().get_synch_exchanges().set_values(
             _migrate_synch_exchanges_900_to_1000(time_sensor.payload_values())
         )
 
@@ -1018,9 +1019,7 @@ def convert_api_1000_to_900(
         reader_900.MicrophoneSensor
     ] = wrapped_packet_900.microphone_sensor()
     if mic_sensor_900 is not None:
-        normalized_audio: List[float] = list(
-            map(_normalize_audio_count, mic_sensor_900.payload_values())
-        )
+        normalized_audio: np.ndarray = mic_sensor_900.payload_values() / _NORMALIZATION_CONSTANT
         audio_sensor_m = sensors_m.new_audio()
         audio_sensor_m.set_first_sample_timestamp(
             mic_sensor_900.first_sample_timestamp_epoch_microseconds_utc()
@@ -1029,7 +1028,7 @@ def convert_api_1000_to_900(
         ).set_sensor_description(
             mic_sensor_900.sensor_name()
         ).get_samples().set_values(
-            np.array(normalized_audio), update_value_statistics=True
+            normalized_audio, update_value_statistics=True
         )
         audio_sensor_m.get_metadata().set_metadata(mic_sensor_900.metadata_as_dict())
 
@@ -1062,9 +1061,9 @@ def convert_api_1000_to_900(
             location_sensor_900.timestamps_microseconds_utc(), True
         )
         if location_sensor_900.check_for_preset_lat_lon():
-            lat_lon = location_sensor_900.get_payload_lat_lon()
-            location_m.get_latitude_samples().set_values(np.array([lat_lon[0]]))
-            location_m.get_longitude_samples().set_values(np.array([lat_lon[1]]))
+            lat_lon: np.ndarray = location_sensor_900.get_payload_lat_lon()
+            location_m.get_latitude_samples().set_values(lat_lon[:1], True)
+            location_m.get_longitude_samples().set_values(lat_lon[1:], True)
         else:
             location_m.get_latitude_samples().set_values(
                 location_sensor_900.payload_values_latitude(), True
@@ -1242,7 +1241,7 @@ def convert_api_1000_to_900(
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>
