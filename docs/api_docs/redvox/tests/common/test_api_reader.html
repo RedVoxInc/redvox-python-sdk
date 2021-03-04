@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>redvox.tests.common.test_api_reader API documentation</title>
 <meta name="description" content="tests for api X reader" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -37,6 +37,7 @@ import os
 import redvox.tests as tests
 from redvox.common import date_time_utils as dtu
 from redvox.common import api_reader
+from redvox.common.io import ReadFilter
 
 
 class ApiReaderTest(unittest.TestCase):
@@ -50,8 +51,8 @@ class ApiReaderTest(unittest.TestCase):
         reader = api_reader.ApiReader(
             self.input_dir,
             True,
-            start_dt_buf=timedelta(seconds=30),
-            start_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000),
+            ReadFilter(start_dt_buf=timedelta(seconds=30),
+                       start_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000)),
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -65,8 +66,8 @@ class ApiReaderTest(unittest.TestCase):
         reader = api_reader.ApiReader(
             self.input_dir,
             True,
-            end_dt_buf=timedelta(seconds=30),
-            end_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000),
+            ReadFilter(end_dt_buf=timedelta(seconds=30),
+                       end_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000)),
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -80,14 +81,14 @@ class ApiReaderTest(unittest.TestCase):
         reader = api_reader.ApiReader(
             self.input_dir,
             True,
-            start_dt=dtu.datetime_from_epoch_seconds_utc(1700000000),
+            ReadFilter(start_dt=dtu.datetime_from_epoch_seconds_utc(1700000000)),
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 0)
 
     def test_read_all_station_ids_no_match(self):
         api1000_dir = os.path.join(self.input_dir, &#34;api1000&#34;)
-        reader = api_reader.ApiReader(api1000_dir, True, station_ids={&#34;1000000900&#34;})
+        reader = api_reader.ApiReader(api1000_dir, True, ReadFilter(station_ids={&#34;1000000900&#34;}))
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 0)
         result_by_id = reader.read_files_by_id(&#34;1000000900&#34;)
@@ -95,7 +96,7 @@ class ApiReaderTest(unittest.TestCase):
 
     def test_read_all_station_ids(self):
         reader = api_reader.ApiReader(
-            self.input_dir, True, station_ids={&#34;1000001000&#34;, &#34;2000001000&#34;}
+            self.input_dir, True, ReadFilter(station_ids={&#34;1000001000&#34;, &#34;2000001000&#34;})
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -107,7 +108,7 @@ class ApiReaderTest(unittest.TestCase):
 
     def test_read_all_api900_in_unstructured_dir(self):
         reader = api_reader.ApiReader(
-            self.input_dir, extensions=self.api_900_extensions
+            self.input_dir, read_filter=ReadFilter(extensions=self.api_900_extensions)
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 1)
@@ -119,7 +120,7 @@ class ApiReaderTest(unittest.TestCase):
 
     def test_read_all_api900_in_structured_dir(self):
         reader = api_reader.ApiReader(
-            self.input_dir, True, extensions=self.api_900_extensions
+            self.input_dir, True, ReadFilter(extensions=self.api_900_extensions)
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -131,7 +132,7 @@ class ApiReaderTest(unittest.TestCase):
 
     def test_read_all_api1000_in_unstructured_dir(self):
         reader = api_reader.ApiReader(
-            self.input_dir, extensions=self.api_1000_extensions
+            self.input_dir, read_filter=ReadFilter(extensions=self.api_1000_extensions)
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 1)
@@ -143,7 +144,7 @@ class ApiReaderTest(unittest.TestCase):
 
     def test_read_all_api1000_in_structured_dir(self):
         reader = api_reader.ApiReader(
-            self.input_dir, True, extensions=self.api_1000_extensions
+            self.input_dir, True, ReadFilter(extensions=self.api_1000_extensions)
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -187,7 +188,7 @@ class ApiReaderTest(unittest.TestCase):
         filter_ids = [&#34;1000000900&#34;, &#34;1000001000&#34;, &#34;2000000900&#34;]
         final_result = 0
         for f_id in filter_ids:
-            reader = api_reader.ApiReader(self.input_dir, True, station_ids={f_id})
+            reader = api_reader.ApiReader(self.input_dir, True, ReadFilter(station_ids={f_id}))
             result = reader.index_summary.total_packets()
             if result == 0:
                 self.assertTrue(&#34;2000000900&#34; in reader.filter.station_ids)
@@ -254,8 +255,8 @@ not have a method with the specified name.</p></div>
         reader = api_reader.ApiReader(
             self.input_dir,
             True,
-            start_dt_buf=timedelta(seconds=30),
-            start_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000),
+            ReadFilter(start_dt_buf=timedelta(seconds=30),
+                       start_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000)),
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -269,8 +270,8 @@ not have a method with the specified name.</p></div>
         reader = api_reader.ApiReader(
             self.input_dir,
             True,
-            end_dt_buf=timedelta(seconds=30),
-            end_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000),
+            ReadFilter(end_dt_buf=timedelta(seconds=30),
+                       end_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000)),
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -284,14 +285,14 @@ not have a method with the specified name.</p></div>
         reader = api_reader.ApiReader(
             self.input_dir,
             True,
-            start_dt=dtu.datetime_from_epoch_seconds_utc(1700000000),
+            ReadFilter(start_dt=dtu.datetime_from_epoch_seconds_utc(1700000000)),
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 0)
 
     def test_read_all_station_ids_no_match(self):
         api1000_dir = os.path.join(self.input_dir, &#34;api1000&#34;)
-        reader = api_reader.ApiReader(api1000_dir, True, station_ids={&#34;1000000900&#34;})
+        reader = api_reader.ApiReader(api1000_dir, True, ReadFilter(station_ids={&#34;1000000900&#34;}))
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 0)
         result_by_id = reader.read_files_by_id(&#34;1000000900&#34;)
@@ -299,7 +300,7 @@ not have a method with the specified name.</p></div>
 
     def test_read_all_station_ids(self):
         reader = api_reader.ApiReader(
-            self.input_dir, True, station_ids={&#34;1000001000&#34;, &#34;2000001000&#34;}
+            self.input_dir, True, ReadFilter(station_ids={&#34;1000001000&#34;, &#34;2000001000&#34;})
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -311,7 +312,7 @@ not have a method with the specified name.</p></div>
 
     def test_read_all_api900_in_unstructured_dir(self):
         reader = api_reader.ApiReader(
-            self.input_dir, extensions=self.api_900_extensions
+            self.input_dir, read_filter=ReadFilter(extensions=self.api_900_extensions)
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 1)
@@ -323,7 +324,7 @@ not have a method with the specified name.</p></div>
 
     def test_read_all_api900_in_structured_dir(self):
         reader = api_reader.ApiReader(
-            self.input_dir, True, extensions=self.api_900_extensions
+            self.input_dir, True, ReadFilter(extensions=self.api_900_extensions)
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -335,7 +336,7 @@ not have a method with the specified name.</p></div>
 
     def test_read_all_api1000_in_unstructured_dir(self):
         reader = api_reader.ApiReader(
-            self.input_dir, extensions=self.api_1000_extensions
+            self.input_dir, read_filter=ReadFilter(extensions=self.api_1000_extensions)
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 1)
@@ -347,7 +348,7 @@ not have a method with the specified name.</p></div>
 
     def test_read_all_api1000_in_structured_dir(self):
         reader = api_reader.ApiReader(
-            self.input_dir, True, extensions=self.api_1000_extensions
+            self.input_dir, True, ReadFilter(extensions=self.api_1000_extensions)
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -391,7 +392,7 @@ not have a method with the specified name.</p></div>
         filter_ids = [&#34;1000000900&#34;, &#34;1000001000&#34;, &#34;2000000900&#34;]
         final_result = 0
         for f_id in filter_ids:
-            reader = api_reader.ApiReader(self.input_dir, True, station_ids={f_id})
+            reader = api_reader.ApiReader(self.input_dir, True, ReadFilter(station_ids={f_id}))
             result = reader.index_summary.total_packets()
             if result == 0:
                 self.assertTrue(&#34;2000000900&#34; in reader.filter.station_ids)
@@ -438,7 +439,7 @@ def setUpClass(cls) -&gt; None:
     filter_ids = [&#34;1000000900&#34;, &#34;1000001000&#34;, &#34;2000000900&#34;]
     final_result = 0
     for f_id in filter_ids:
-        reader = api_reader.ApiReader(self.input_dir, True, station_ids={f_id})
+        reader = api_reader.ApiReader(self.input_dir, True, ReadFilter(station_ids={f_id}))
         result = reader.index_summary.total_packets()
         if result == 0:
             self.assertTrue(&#34;2000000900&#34; in reader.filter.station_ids)
@@ -459,7 +460,7 @@ def setUpClass(cls) -&gt; None:
 </summary>
 <pre><code class="python">def test_read_all_api1000_in_structured_dir(self):
     reader = api_reader.ApiReader(
-        self.input_dir, True, extensions=self.api_1000_extensions
+        self.input_dir, True, ReadFilter(extensions=self.api_1000_extensions)
     )
     result = reader.index_summary.total_packets()
     self.assertEqual(result, 2)
@@ -481,7 +482,7 @@ def setUpClass(cls) -&gt; None:
 </summary>
 <pre><code class="python">def test_read_all_api1000_in_unstructured_dir(self):
     reader = api_reader.ApiReader(
-        self.input_dir, extensions=self.api_1000_extensions
+        self.input_dir, read_filter=ReadFilter(extensions=self.api_1000_extensions)
     )
     result = reader.index_summary.total_packets()
     self.assertEqual(result, 1)
@@ -503,7 +504,7 @@ def setUpClass(cls) -&gt; None:
 </summary>
 <pre><code class="python">def test_read_all_api900_in_structured_dir(self):
     reader = api_reader.ApiReader(
-        self.input_dir, True, extensions=self.api_900_extensions
+        self.input_dir, True, ReadFilter(extensions=self.api_900_extensions)
     )
     result = reader.index_summary.total_packets()
     self.assertEqual(result, 2)
@@ -525,7 +526,7 @@ def setUpClass(cls) -&gt; None:
 </summary>
 <pre><code class="python">def test_read_all_api900_in_unstructured_dir(self):
     reader = api_reader.ApiReader(
-        self.input_dir, extensions=self.api_900_extensions
+        self.input_dir, read_filter=ReadFilter(extensions=self.api_900_extensions)
     )
     result = reader.index_summary.total_packets()
     self.assertEqual(result, 1)
@@ -549,8 +550,8 @@ def setUpClass(cls) -&gt; None:
     reader = api_reader.ApiReader(
         self.input_dir,
         True,
-        end_dt_buf=timedelta(seconds=30),
-        end_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000),
+        ReadFilter(end_dt_buf=timedelta(seconds=30),
+                   end_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000)),
     )
     result = reader.index_summary.total_packets()
     self.assertEqual(result, 2)
@@ -624,8 +625,8 @@ def setUpClass(cls) -&gt; None:
     reader = api_reader.ApiReader(
         self.input_dir,
         True,
-        start_dt_buf=timedelta(seconds=30),
-        start_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000),
+        ReadFilter(start_dt_buf=timedelta(seconds=30),
+                   start_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000)),
     )
     result = reader.index_summary.total_packets()
     self.assertEqual(result, 2)
@@ -649,7 +650,7 @@ def setUpClass(cls) -&gt; None:
     reader = api_reader.ApiReader(
         self.input_dir,
         True,
-        start_dt=dtu.datetime_from_epoch_seconds_utc(1700000000),
+        ReadFilter(start_dt=dtu.datetime_from_epoch_seconds_utc(1700000000)),
     )
     result = reader.index_summary.total_packets()
     self.assertEqual(result, 0)</code></pre>
@@ -666,7 +667,7 @@ def setUpClass(cls) -&gt; None:
 </summary>
 <pre><code class="python">def test_read_all_station_ids(self):
     reader = api_reader.ApiReader(
-        self.input_dir, True, station_ids={&#34;1000001000&#34;, &#34;2000001000&#34;}
+        self.input_dir, True, ReadFilter(station_ids={&#34;1000001000&#34;, &#34;2000001000&#34;})
     )
     result = reader.index_summary.total_packets()
     self.assertEqual(result, 2)
@@ -688,7 +689,7 @@ def setUpClass(cls) -&gt; None:
 </summary>
 <pre><code class="python">def test_read_all_station_ids_no_match(self):
     api1000_dir = os.path.join(self.input_dir, &#34;api1000&#34;)
-    reader = api_reader.ApiReader(api1000_dir, True, station_ids={&#34;1000000900&#34;})
+    reader = api_reader.ApiReader(api1000_dir, True, ReadFilter(station_ids={&#34;1000000900&#34;}))
     result = reader.index_summary.total_packets()
     self.assertEqual(result, 0)
     result_by_id = reader.read_files_by_id(&#34;1000000900&#34;)
@@ -737,7 +738,7 @@ def setUpClass(cls) -&gt; None:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

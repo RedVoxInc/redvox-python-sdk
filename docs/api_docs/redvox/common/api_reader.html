@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>redvox.common.api_reader API documentation</title>
 <meta name="description" content="Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
@@ -36,14 +36,20 @@ Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 &#34;&#34;&#34;
-from typing import List, Optional, Set, Dict
-from datetime import datetime, timedelta
+from collections import defaultdict
+from multiprocessing import Pool, cpu_count
+from typing import List, Optional, Dict
+from datetime import timedelta
+
+import numpy as np
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-from redvox.api900 import reader as api900_io
+from redvox.common import date_time_utils as dtu
+from redvox.common import offset_model
 from redvox.common import api_conversions as ac
 from redvox.common import io
 from redvox.common import file_statistics as fs
+import redvox.common.parallel_utils as parallel
 from redvox.common.station import Station
 
 
@@ -72,13 +78,7 @@ class ApiReader:
         self,
         base_dir: str,
         structured_dir: bool = False,
-        start_dt: Optional[datetime] = None,
-        end_dt: Optional[datetime] = None,
-        start_dt_buf: Optional[timedelta] = None,
-        end_dt_buf: Optional[timedelta] = None,
-        station_ids: Optional[Set[str]] = None,
-        extensions: Optional[Set[str]] = None,
-        api_versions: Optional[Set[io.ApiVersion]] = None,
+        read_filter: io.ReadFilter = None,
         debug: bool = False,
     ):
         &#34;&#34;&#34;
@@ -86,32 +86,15 @@ class ApiReader:
         :param base_dir: directory containing the files to read
         :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
                                 api formats.  If False, base_dir only has the data files.  Default False.
-        :param start_dt: optional starting datetime to filter from.  If None, get all data in base_dir.  Default None
-        :param end_dt: optional ending datetime to filter from.  If None, get all data in base_dir.  Default None
-        :param start_dt_buf: optional timedelta buffer to combine with start_dt.
-                                If None, use the default in io.ReadFilter.  Default None
-        :param end_dt_buf: optional timedelta buffer to combine with end_dt.
-                            If None, use the default in io.ReadFilter.  Default None
-        :param station_ids: optional set of station_ids to filter on.  If None, get all data in base_dir.  Default None
-        :param extensions: optional set of file extensions to filter on.  If None, get all data in base_dir.
-                            Default None
-        :param api_versions: optional set of api versions to filter on.  If None, get all data in base_dir.
-                            Default None
+        :param read_filter: ReadFilter for the data files, if None, get everything.  Default None
         :param debug: if True, output additional statements during function execution.  Default False.
         &#34;&#34;&#34;
-        if not station_ids or len(station_ids) &lt; 1:
-            station_ids = None
-        self.filter = io.ReadFilter(
-            start_dt=start_dt, end_dt=end_dt, station_ids=station_ids
-        )
-        if start_dt_buf:
-            self.filter = self.filter.with_start_dt_buf(start_dt_buf)
-        if end_dt_buf:
-            self.filter = self.filter.with_end_dt_buf(end_dt_buf)
-        if extensions:
-            self.filter = self.filter.with_extensions(extensions)
-        if api_versions:
-            self.filter = self.filter.with_api_versions(api_versions)
+        if read_filter:
+            self.filter = read_filter
+            if self.filter.station_ids:
+                self.filter.station_ids = set(self.filter.station_ids)
+        else:
+            self.filter = io.ReadFilter()
         self.base_dir = base_dir
         self.structured_dir = structured_dir
         self.debug = debug
@@ -123,64 +106,183 @@ class ApiReader:
         get all files in the base dir of the ApiReader
         :return: index with all the files that match the filter
         &#34;&#34;&#34;
-        if self.structured_dir:
-            index = io.index_structured(self.base_dir, self.filter)
-        else:
-            index = io.index_unstructured(self.base_dir, self.filter)
-        file_stats = fs.extract_stats(index)
-        # todo: file_stats has all the stuff we need to do the thing
-        # todo: consider adding offset and packet length to the start time to get the partial first packet
+        index = io.Index()
+        # this guarantees that all ids we search for are valid
+        all_index = self._apply_filter()
+        for station_id in all_index.summarize().station_ids():
+            station_filter = self.filter.clone()
+            checked_index = self._check_station_stats(station_filter.with_station_ids({station_id}))
+            index.append(checked_index.entries)
         return index
+
+    def _apply_filter(self, reader_filter: Optional[io.ReadFilter] = None) -&gt; io.Index:
+        &#34;&#34;&#34;
+        apply the filter of the reader, or another filter if specified
+        :param reader_filter: optional filter; if None, use the reader&#39;s filter, default None
+        :return: index of the filtered files
+        &#34;&#34;&#34;
+        if not reader_filter:
+            reader_filter = self.filter
+        if self.structured_dir:
+            index = io.index_structured(self.base_dir, reader_filter)
+        else:
+            index = io.index_unstructured(self.base_dir, reader_filter)
+        return index
+
+    def _check_station_stats(self, request_filter: io.ReadFilter) -&gt; io.Index:
+        &#34;&#34;&#34;
+        recursively check the filter&#39;s results; if resulting index has enough information in it,
+        return it, otherwise search for more data.
+        The filter should only request one station
+        :param request_filter: filter representing the requested information
+        :return: Index that includes as much information as possible that fits the request
+        &#34;&#34;&#34;
+        index = self._apply_filter(request_filter)
+        # if there are no restrictions on time or we found nothing, return the index
+        if (not self.filter.start_dt and not self.filter.end_dt) or \
+                (not request_filter.start_dt and not request_filter.end_dt) or len(index.entries) &lt; 1:
+            return index
+        stats = fs.extract_stats(index)
+        # punt if duration or other important values are invalid
+        if any(st.packet_duration == 0.0 or not st.packet_duration for st in stats):
+            return index
+        latencies = [
+            st.latency
+            if st.latency is not None and not np.isnan(st.latency) else np.nan
+            for st in stats
+        ]
+        # no latencies means no correction means we&#39;re done
+        if len(latencies) &lt; 1:
+            return index
+        # get the model and calculate the revised start and end offsets
+        # best fit would be to use the machine timestamps that correspond to the best latencies,
+        #   but for now we use the packet start times + 1/2 the packet duration
+        offsets = [st.offset if st.offset is not None and not np.isnan(st.offset) else np.nan for st in stats]
+        times = [dtu.datetime_to_epoch_microseconds_utc(st.packet_start_dt) for st in stats]
+        packet_duration = np.mean([dtu.seconds_to_microseconds(st.packet_duration.total_seconds()) for st in stats])
+        model = offset_model.OffsetModel(np.array(latencies), np.array(offsets),
+                                         times + 0.5 * packet_duration, 5, 3, times[0],
+                                         times[-1] + packet_duration)
+        # revise packet&#39;s times to real times and compare to requested values
+        start_offset = timedelta(microseconds=model.get_offset_at_new_time(
+            dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)))
+        revised_start = stats[0].packet_start_dt + start_offset
+        end = stats[-1].packet_start_dt + stats[-1].packet_duration
+        end_offset = timedelta(microseconds=model.get_offset_at_new_time(dtu.datetime_to_epoch_microseconds_utc(end)))
+        revised_end = end + end_offset
+        # if our filtered files encompass the request even when the packet times are updated, return the index
+        if (not self.filter.start_dt or revised_start &lt;= self.filter.start_dt) \
+                and (not self.filter.end_dt or revised_end &gt;= self.filter.end_dt):
+            return index
+        # we have to update our filter to get more information
+        new_filter = request_filter.clone()
+        no_more_start = True
+        no_more_end = True
+        # check if there is a packet just beyond the request times
+        if self.filter.start_dt and revised_start &gt; self.filter.start_dt:
+            beyond_start = self.filter.start_dt - np.abs(start_offset) - stats[0].packet_duration
+            start_filter = request_filter.clone().with_start_dt(beyond_start).with_end_dt(stats[0].packet_start_dt) \
+                .with_end_dt_buf(timedelta(seconds=0))
+            start_index = self._apply_filter(start_filter)
+            # if the beyond check produces an earlier start date time,
+            #  then update filter, otherwise flag result as no more data to obtain
+            if len(start_index.entries) &gt; 0 and start_index.entries[0].date_time &lt; index.entries[0].date_time:
+                new_filter.with_start_dt(beyond_start)
+                no_more_start = False
+        if self.filter.end_dt and revised_end &lt; self.filter.end_dt:
+            beyond_end = self.filter.end_dt + np.abs(end_offset)
+            end_filter = request_filter.clone().with_start_dt(stats[-1].packet_start_dt + stats[-1].packet_duration)\
+                .with_end_dt(beyond_end).with_start_dt_buf(timedelta(seconds=0))
+            end_index = self._apply_filter(end_filter)
+            # if the beyond check produces a later end date time,
+            #  then update filter, otherwise flag result as no more data to obtain
+            if len(end_index.entries) &gt; 0 and end_index.entries[-1].date_time &gt; index.entries[-1].date_time:
+                new_filter.with_end_dt(beyond_end)
+                no_more_end = False
+        # if there is no more data to obtain from either end, return the original index
+        if no_more_start and no_more_end:
+            return index
+        # check the updated index
+        return self._check_station_stats(new_filter)
 
     def read_files(self) -&gt; Dict[str, List[WrappedRedvoxPacketM]]:
         &#34;&#34;&#34;
-        read the all files in the index
+        read all the files in the index
         :return: dictionary of id: list of WrappedRedvoxPacketM, converted from API 900 if necessary
         &#34;&#34;&#34;
-        result: Dict[str, List[WrappedRedvoxPacketM]] = {
-            s_id: [] for s_id in self.index_summary.station_ids()
-        }
-        files = self.files_index.read()
-        for file in files:
-            if isinstance(file, api900_io.WrappedRedvoxPacket):
-                result[file.redvox_id()].append(ac.convert_api_900_to_1000(file))
-            elif isinstance(file, WrappedRedvoxPacketM):
-                result[file.get_station_information().get_id()].append(file)
+        result: Dict[str, List[WrappedRedvoxPacketM]] = defaultdict(list)
+
+        # Iterate over the API 900 packets in a memory efficient way
+        # and convert to API 1000
+        # noinspection PyTypeChecker
+        for packet_900 in self.files_index.stream(
+            io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_900})
+        ):
+            # noinspection Mypy
+            result[packet_900.redvox_id()].append(
+                ac.convert_api_900_to_1000(packet_900)
+            )
+
+        # Grab the API 1000 packets
+        # noinspection PyTypeChecker
+        for packet in self.files_index.stream(
+            io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_1000})
+        ):
+            # noinspection Mypy
+            result[packet.get_station_information().get_id()].append(packet)
+
         return result
 
+    # noinspection PyTypeChecker
     def read_files_by_id(self, get_id: str) -&gt; Optional[List[WrappedRedvoxPacketM]]:
         &#34;&#34;&#34;
         :param get_id: the id to filter on
         :return: the list of packets with the requested id, or None if the id can&#39;t be found
         &#34;&#34;&#34;
+
         result: List[WrappedRedvoxPacketM] = []
-        for path in self.files_index.entries:
-            if path.station_id == get_id:
-                if path.extension == &#34;.rdvxz&#34;:
-                    result.append(
-                        ac.convert_api_900_to_1000(
-                            api900_io.read_rdvxz_file(path.full_path)
-                        )
-                    )
-                elif path.extension == &#34;.rdvxm&#34;:
-                    result.append(
-                        WrappedRedvoxPacketM.from_compressed_path(path.full_path)
-                    )
+
+        # Iterate over the API 900 packets in a memory efficient way
+        # and convert to API 1000
+        for packet_900 in self.files_index.stream(
+            io.ReadFilter.empty()
+            .with_api_versions({io.ApiVersion.API_900})
+            .with_station_ids({get_id})
+        ):
+            # noinspection Mypy
+            result.append(ac.convert_api_900_to_1000(packet_900))
+
+        # Grab the API 1000 packets
+        for packet in self.files_index.stream(
+            io.ReadFilter.empty()
+            .with_api_versions({io.ApiVersion.API_1000})
+            .with_station_ids({get_id})
+        ):
+            # noinspection Mypy
+            result.append(packet)
+
         if len(result) == 0:
             return None
+
         return result
 
     def get_stations(self) -&gt; List[Station]:
         &#34;&#34;&#34;
         :return: a list of all stations represented by the data packets
         &#34;&#34;&#34;
-        return [Station(packets) for packets in self.read_files().values()]
+        station_ids: List[str] = self.index_summary.station_ids()
+        pool = parallel.pool()
+
+        stations_opt: List[Optional[Station]] = pool.map(self.get_station_by_id, station_ids)
+        # noinspection Mypy
+        return list(filter(lambda station: station is not None, stations_opt))
 
     def read_files_as_stations(self) -&gt; Dict[str, Station]:
         &#34;&#34;&#34;
         :return: a dictionary of all station_id to station pairs represented by the data packets
         &#34;&#34;&#34;
-        return {s_id: Station(packets) for s_id, packets in self.read_files().items()}
+        stations: List[Station] = self.get_stations()
+        return {station.id: station for station in stations}
 
     def get_station_by_id(self, get_id: str) -&gt; Optional[Station]:
         &#34;&#34;&#34;
@@ -201,7 +303,7 @@ class ApiReader:
 <dl>
 <dt id="redvox.common.api_reader.ApiReader"><code class="flex name class">
 <span>class <span class="ident">ApiReader</span></span>
-<span>(</span><span>base_dir: str, structured_dir: bool = False, start_dt: typing.Optional[datetime.datetime] = None, end_dt: typing.Optional[datetime.datetime] = None, start_dt_buf: typing.Optional[datetime.timedelta] = None, end_dt_buf: typing.Optional[datetime.timedelta] = None, station_ids: typing.Optional[typing.Set[str]] = None, extensions: typing.Optional[typing.Set[str]] = None, api_versions: typing.Optional[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]] = None, debug: bool = False)</span>
+<span>(</span><span>base_dir: str, structured_dir: bool = False, read_filter: <a title="redvox.common.io.ReadFilter" href="io.html#redvox.common.io.ReadFilter">ReadFilter</a> = None, debug: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reads data from api 900 or api 1000 format, converting all data read into WrappedRedvoxPacketM for
@@ -229,26 +331,7 @@ Default False.</p>
 api formats.
 If False, base_dir only has the data files.
 Default False.
-:param start_dt: optional starting datetime to filter from.
-If None, get all data in base_dir.
-Default None
-:param end_dt: optional ending datetime to filter from.
-If None, get all data in base_dir.
-Default None
-:param start_dt_buf: optional timedelta buffer to combine with start_dt.
-If None, use the default in io.ReadFilter.
-Default None
-:param end_dt_buf: optional timedelta buffer to combine with end_dt.
-If None, use the default in io.ReadFilter.
-Default None
-:param station_ids: optional set of station_ids to filter on.
-If None, get all data in base_dir.
-Default None
-:param extensions: optional set of file extensions to filter on.
-If None, get all data in base_dir.
-Default None
-:param api_versions: optional set of api versions to filter on.
-If None, get all data in base_dir.
+:param read_filter: ReadFilter for the data files, if None, get everything.
 Default None
 :param debug: if True, output additional statements during function execution.
 Default False.</p></div>
@@ -278,13 +361,7 @@ Default False.</p></div>
         self,
         base_dir: str,
         structured_dir: bool = False,
-        start_dt: Optional[datetime] = None,
-        end_dt: Optional[datetime] = None,
-        start_dt_buf: Optional[timedelta] = None,
-        end_dt_buf: Optional[timedelta] = None,
-        station_ids: Optional[Set[str]] = None,
-        extensions: Optional[Set[str]] = None,
-        api_versions: Optional[Set[io.ApiVersion]] = None,
+        read_filter: io.ReadFilter = None,
         debug: bool = False,
     ):
         &#34;&#34;&#34;
@@ -292,32 +369,15 @@ Default False.</p></div>
         :param base_dir: directory containing the files to read
         :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
                                 api formats.  If False, base_dir only has the data files.  Default False.
-        :param start_dt: optional starting datetime to filter from.  If None, get all data in base_dir.  Default None
-        :param end_dt: optional ending datetime to filter from.  If None, get all data in base_dir.  Default None
-        :param start_dt_buf: optional timedelta buffer to combine with start_dt.
-                                If None, use the default in io.ReadFilter.  Default None
-        :param end_dt_buf: optional timedelta buffer to combine with end_dt.
-                            If None, use the default in io.ReadFilter.  Default None
-        :param station_ids: optional set of station_ids to filter on.  If None, get all data in base_dir.  Default None
-        :param extensions: optional set of file extensions to filter on.  If None, get all data in base_dir.
-                            Default None
-        :param api_versions: optional set of api versions to filter on.  If None, get all data in base_dir.
-                            Default None
+        :param read_filter: ReadFilter for the data files, if None, get everything.  Default None
         :param debug: if True, output additional statements during function execution.  Default False.
         &#34;&#34;&#34;
-        if not station_ids or len(station_ids) &lt; 1:
-            station_ids = None
-        self.filter = io.ReadFilter(
-            start_dt=start_dt, end_dt=end_dt, station_ids=station_ids
-        )
-        if start_dt_buf:
-            self.filter = self.filter.with_start_dt_buf(start_dt_buf)
-        if end_dt_buf:
-            self.filter = self.filter.with_end_dt_buf(end_dt_buf)
-        if extensions:
-            self.filter = self.filter.with_extensions(extensions)
-        if api_versions:
-            self.filter = self.filter.with_api_versions(api_versions)
+        if read_filter:
+            self.filter = read_filter
+            if self.filter.station_ids:
+                self.filter.station_ids = set(self.filter.station_ids)
+        else:
+            self.filter = io.ReadFilter()
         self.base_dir = base_dir
         self.structured_dir = structured_dir
         self.debug = debug
@@ -329,64 +389,183 @@ Default False.</p></div>
         get all files in the base dir of the ApiReader
         :return: index with all the files that match the filter
         &#34;&#34;&#34;
-        if self.structured_dir:
-            index = io.index_structured(self.base_dir, self.filter)
-        else:
-            index = io.index_unstructured(self.base_dir, self.filter)
-        file_stats = fs.extract_stats(index)
-        # todo: file_stats has all the stuff we need to do the thing
-        # todo: consider adding offset and packet length to the start time to get the partial first packet
+        index = io.Index()
+        # this guarantees that all ids we search for are valid
+        all_index = self._apply_filter()
+        for station_id in all_index.summarize().station_ids():
+            station_filter = self.filter.clone()
+            checked_index = self._check_station_stats(station_filter.with_station_ids({station_id}))
+            index.append(checked_index.entries)
         return index
+
+    def _apply_filter(self, reader_filter: Optional[io.ReadFilter] = None) -&gt; io.Index:
+        &#34;&#34;&#34;
+        apply the filter of the reader, or another filter if specified
+        :param reader_filter: optional filter; if None, use the reader&#39;s filter, default None
+        :return: index of the filtered files
+        &#34;&#34;&#34;
+        if not reader_filter:
+            reader_filter = self.filter
+        if self.structured_dir:
+            index = io.index_structured(self.base_dir, reader_filter)
+        else:
+            index = io.index_unstructured(self.base_dir, reader_filter)
+        return index
+
+    def _check_station_stats(self, request_filter: io.ReadFilter) -&gt; io.Index:
+        &#34;&#34;&#34;
+        recursively check the filter&#39;s results; if resulting index has enough information in it,
+        return it, otherwise search for more data.
+        The filter should only request one station
+        :param request_filter: filter representing the requested information
+        :return: Index that includes as much information as possible that fits the request
+        &#34;&#34;&#34;
+        index = self._apply_filter(request_filter)
+        # if there are no restrictions on time or we found nothing, return the index
+        if (not self.filter.start_dt and not self.filter.end_dt) or \
+                (not request_filter.start_dt and not request_filter.end_dt) or len(index.entries) &lt; 1:
+            return index
+        stats = fs.extract_stats(index)
+        # punt if duration or other important values are invalid
+        if any(st.packet_duration == 0.0 or not st.packet_duration for st in stats):
+            return index
+        latencies = [
+            st.latency
+            if st.latency is not None and not np.isnan(st.latency) else np.nan
+            for st in stats
+        ]
+        # no latencies means no correction means we&#39;re done
+        if len(latencies) &lt; 1:
+            return index
+        # get the model and calculate the revised start and end offsets
+        # best fit would be to use the machine timestamps that correspond to the best latencies,
+        #   but for now we use the packet start times + 1/2 the packet duration
+        offsets = [st.offset if st.offset is not None and not np.isnan(st.offset) else np.nan for st in stats]
+        times = [dtu.datetime_to_epoch_microseconds_utc(st.packet_start_dt) for st in stats]
+        packet_duration = np.mean([dtu.seconds_to_microseconds(st.packet_duration.total_seconds()) for st in stats])
+        model = offset_model.OffsetModel(np.array(latencies), np.array(offsets),
+                                         times + 0.5 * packet_duration, 5, 3, times[0],
+                                         times[-1] + packet_duration)
+        # revise packet&#39;s times to real times and compare to requested values
+        start_offset = timedelta(microseconds=model.get_offset_at_new_time(
+            dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)))
+        revised_start = stats[0].packet_start_dt + start_offset
+        end = stats[-1].packet_start_dt + stats[-1].packet_duration
+        end_offset = timedelta(microseconds=model.get_offset_at_new_time(dtu.datetime_to_epoch_microseconds_utc(end)))
+        revised_end = end + end_offset
+        # if our filtered files encompass the request even when the packet times are updated, return the index
+        if (not self.filter.start_dt or revised_start &lt;= self.filter.start_dt) \
+                and (not self.filter.end_dt or revised_end &gt;= self.filter.end_dt):
+            return index
+        # we have to update our filter to get more information
+        new_filter = request_filter.clone()
+        no_more_start = True
+        no_more_end = True
+        # check if there is a packet just beyond the request times
+        if self.filter.start_dt and revised_start &gt; self.filter.start_dt:
+            beyond_start = self.filter.start_dt - np.abs(start_offset) - stats[0].packet_duration
+            start_filter = request_filter.clone().with_start_dt(beyond_start).with_end_dt(stats[0].packet_start_dt) \
+                .with_end_dt_buf(timedelta(seconds=0))
+            start_index = self._apply_filter(start_filter)
+            # if the beyond check produces an earlier start date time,
+            #  then update filter, otherwise flag result as no more data to obtain
+            if len(start_index.entries) &gt; 0 and start_index.entries[0].date_time &lt; index.entries[0].date_time:
+                new_filter.with_start_dt(beyond_start)
+                no_more_start = False
+        if self.filter.end_dt and revised_end &lt; self.filter.end_dt:
+            beyond_end = self.filter.end_dt + np.abs(end_offset)
+            end_filter = request_filter.clone().with_start_dt(stats[-1].packet_start_dt + stats[-1].packet_duration)\
+                .with_end_dt(beyond_end).with_start_dt_buf(timedelta(seconds=0))
+            end_index = self._apply_filter(end_filter)
+            # if the beyond check produces a later end date time,
+            #  then update filter, otherwise flag result as no more data to obtain
+            if len(end_index.entries) &gt; 0 and end_index.entries[-1].date_time &gt; index.entries[-1].date_time:
+                new_filter.with_end_dt(beyond_end)
+                no_more_end = False
+        # if there is no more data to obtain from either end, return the original index
+        if no_more_start and no_more_end:
+            return index
+        # check the updated index
+        return self._check_station_stats(new_filter)
 
     def read_files(self) -&gt; Dict[str, List[WrappedRedvoxPacketM]]:
         &#34;&#34;&#34;
-        read the all files in the index
+        read all the files in the index
         :return: dictionary of id: list of WrappedRedvoxPacketM, converted from API 900 if necessary
         &#34;&#34;&#34;
-        result: Dict[str, List[WrappedRedvoxPacketM]] = {
-            s_id: [] for s_id in self.index_summary.station_ids()
-        }
-        files = self.files_index.read()
-        for file in files:
-            if isinstance(file, api900_io.WrappedRedvoxPacket):
-                result[file.redvox_id()].append(ac.convert_api_900_to_1000(file))
-            elif isinstance(file, WrappedRedvoxPacketM):
-                result[file.get_station_information().get_id()].append(file)
+        result: Dict[str, List[WrappedRedvoxPacketM]] = defaultdict(list)
+
+        # Iterate over the API 900 packets in a memory efficient way
+        # and convert to API 1000
+        # noinspection PyTypeChecker
+        for packet_900 in self.files_index.stream(
+            io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_900})
+        ):
+            # noinspection Mypy
+            result[packet_900.redvox_id()].append(
+                ac.convert_api_900_to_1000(packet_900)
+            )
+
+        # Grab the API 1000 packets
+        # noinspection PyTypeChecker
+        for packet in self.files_index.stream(
+            io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_1000})
+        ):
+            # noinspection Mypy
+            result[packet.get_station_information().get_id()].append(packet)
+
         return result
 
+    # noinspection PyTypeChecker
     def read_files_by_id(self, get_id: str) -&gt; Optional[List[WrappedRedvoxPacketM]]:
         &#34;&#34;&#34;
         :param get_id: the id to filter on
         :return: the list of packets with the requested id, or None if the id can&#39;t be found
         &#34;&#34;&#34;
+
         result: List[WrappedRedvoxPacketM] = []
-        for path in self.files_index.entries:
-            if path.station_id == get_id:
-                if path.extension == &#34;.rdvxz&#34;:
-                    result.append(
-                        ac.convert_api_900_to_1000(
-                            api900_io.read_rdvxz_file(path.full_path)
-                        )
-                    )
-                elif path.extension == &#34;.rdvxm&#34;:
-                    result.append(
-                        WrappedRedvoxPacketM.from_compressed_path(path.full_path)
-                    )
+
+        # Iterate over the API 900 packets in a memory efficient way
+        # and convert to API 1000
+        for packet_900 in self.files_index.stream(
+            io.ReadFilter.empty()
+            .with_api_versions({io.ApiVersion.API_900})
+            .with_station_ids({get_id})
+        ):
+            # noinspection Mypy
+            result.append(ac.convert_api_900_to_1000(packet_900))
+
+        # Grab the API 1000 packets
+        for packet in self.files_index.stream(
+            io.ReadFilter.empty()
+            .with_api_versions({io.ApiVersion.API_1000})
+            .with_station_ids({get_id})
+        ):
+            # noinspection Mypy
+            result.append(packet)
+
         if len(result) == 0:
             return None
+
         return result
 
     def get_stations(self) -&gt; List[Station]:
         &#34;&#34;&#34;
         :return: a list of all stations represented by the data packets
         &#34;&#34;&#34;
-        return [Station(packets) for packets in self.read_files().values()]
+        station_ids: List[str] = self.index_summary.station_ids()
+        pool = parallel.pool()
+
+        stations_opt: List[Optional[Station]] = pool.map(self.get_station_by_id, station_ids)
+        # noinspection Mypy
+        return list(filter(lambda station: station is not None, stations_opt))
 
     def read_files_as_stations(self) -&gt; Dict[str, Station]:
         &#34;&#34;&#34;
         :return: a dictionary of all station_id to station pairs represented by the data packets
         &#34;&#34;&#34;
-        return {s_id: Station(packets) for s_id, packets in self.read_files().items()}
+        stations: List[Station] = self.get_stations()
+        return {station.id: station for station in stations}
 
     def get_station_by_id(self, get_id: str) -&gt; Optional[Station]:
         &#34;&#34;&#34;
@@ -398,7 +577,7 @@ Default False.</p></div>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.api_reader.ApiReader.get_station_by_id"><code class="name flex">
-<span>def <span class="ident">get_station_by_id</span></span>(<span>self, get_id: str) ‑> typing.Optional[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
+<span>def <span class="ident">get_station_by_id</span></span>(<span>self, get_id: str) ‑> typing.Union[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param get_id: the id to filter on
@@ -428,14 +607,19 @@ Default False.</p></div>
     &#34;&#34;&#34;
     :return: a list of all stations represented by the data packets
     &#34;&#34;&#34;
-    return [Station(packets) for packets in self.read_files().values()]</code></pre>
+    station_ids: List[str] = self.index_summary.station_ids()
+    pool = parallel.pool()
+
+    stations_opt: List[Optional[Station]] = pool.map(self.get_station_by_id, station_ids)
+    # noinspection Mypy
+    return list(filter(lambda station: station is not None, stations_opt))</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.api_reader.ApiReader.read_files"><code class="name flex">
 <span>def <span class="ident">read_files</span></span>(<span>self) ‑> typing.Dict[str, typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>read the all files in the index
+<div class="desc"><p>read all the files in the index
 :return: dictionary of id: list of WrappedRedvoxPacketM, converted from API 900 if necessary</p></div>
 <details class="source">
 <summary>
@@ -443,18 +627,30 @@ Default False.</p></div>
 </summary>
 <pre><code class="python">def read_files(self) -&gt; Dict[str, List[WrappedRedvoxPacketM]]:
     &#34;&#34;&#34;
-    read the all files in the index
+    read all the files in the index
     :return: dictionary of id: list of WrappedRedvoxPacketM, converted from API 900 if necessary
     &#34;&#34;&#34;
-    result: Dict[str, List[WrappedRedvoxPacketM]] = {
-        s_id: [] for s_id in self.index_summary.station_ids()
-    }
-    files = self.files_index.read()
-    for file in files:
-        if isinstance(file, api900_io.WrappedRedvoxPacket):
-            result[file.redvox_id()].append(ac.convert_api_900_to_1000(file))
-        elif isinstance(file, WrappedRedvoxPacketM):
-            result[file.get_station_information().get_id()].append(file)
+    result: Dict[str, List[WrappedRedvoxPacketM]] = defaultdict(list)
+
+    # Iterate over the API 900 packets in a memory efficient way
+    # and convert to API 1000
+    # noinspection PyTypeChecker
+    for packet_900 in self.files_index.stream(
+        io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_900})
+    ):
+        # noinspection Mypy
+        result[packet_900.redvox_id()].append(
+            ac.convert_api_900_to_1000(packet_900)
+        )
+
+    # Grab the API 1000 packets
+    # noinspection PyTypeChecker
+    for packet in self.files_index.stream(
+        io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_1000})
+    ):
+        # noinspection Mypy
+        result[packet.get_station_information().get_id()].append(packet)
+
     return result</code></pre>
 </details>
 </dd>
@@ -471,11 +667,12 @@ Default False.</p></div>
     &#34;&#34;&#34;
     :return: a dictionary of all station_id to station pairs represented by the data packets
     &#34;&#34;&#34;
-    return {s_id: Station(packets) for s_id, packets in self.read_files().items()}</code></pre>
+    stations: List[Station] = self.get_stations()
+    return {station.id: station for station in stations}</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.api_reader.ApiReader.read_files_by_id"><code class="name flex">
-<span>def <span class="ident">read_files_by_id</span></span>(<span>self, get_id: str) ‑> typing.Optional[typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
+<span>def <span class="ident">read_files_by_id</span></span>(<span>self, get_id: str) ‑> typing.Union[typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>], NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param get_id: the id to filter on
@@ -489,21 +686,31 @@ Default False.</p></div>
     :param get_id: the id to filter on
     :return: the list of packets with the requested id, or None if the id can&#39;t be found
     &#34;&#34;&#34;
+
     result: List[WrappedRedvoxPacketM] = []
-    for path in self.files_index.entries:
-        if path.station_id == get_id:
-            if path.extension == &#34;.rdvxz&#34;:
-                result.append(
-                    ac.convert_api_900_to_1000(
-                        api900_io.read_rdvxz_file(path.full_path)
-                    )
-                )
-            elif path.extension == &#34;.rdvxm&#34;:
-                result.append(
-                    WrappedRedvoxPacketM.from_compressed_path(path.full_path)
-                )
+
+    # Iterate over the API 900 packets in a memory efficient way
+    # and convert to API 1000
+    for packet_900 in self.files_index.stream(
+        io.ReadFilter.empty()
+        .with_api_versions({io.ApiVersion.API_900})
+        .with_station_ids({get_id})
+    ):
+        # noinspection Mypy
+        result.append(ac.convert_api_900_to_1000(packet_900))
+
+    # Grab the API 1000 packets
+    for packet in self.files_index.stream(
+        io.ReadFilter.empty()
+        .with_api_versions({io.ApiVersion.API_1000})
+        .with_station_ids({get_id})
+    ):
+        # noinspection Mypy
+        result.append(packet)
+
     if len(result) == 0:
         return None
+
     return result</code></pre>
 </details>
 </dd>
@@ -541,7 +748,7 @@ Default False.</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

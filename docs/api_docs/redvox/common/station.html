@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>redvox.common.station API documentation</title>
 <meta name="description" content="Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
@@ -37,6 +37,8 @@ all timestamps are integers in microseconds unless otherwise stated
 Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
 &#34;&#34;&#34;
 from typing import List, Optional, Dict
+from itertools import repeat
+from types import FunctionType
 
 import numpy as np
 
@@ -44,6 +46,7 @@ from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPac
 from redvox.common import sensor_data as sd
 from redvox.common.station_utils import StationKey, StationMetadata
 from redvox.common.timesync import TimeSyncAnalysis
+from redvox.common import offset_model as om
 
 
 def validate_station_data(data_packets: List[WrappedRedvoxPacketM]) -&gt; bool:
@@ -101,12 +104,12 @@ class Station:
         self.data = {}
         self.metadata = []
         if data_packets and validate_station_data(data_packets):
-            self._set_all_sensors(data_packets)
             self.id = data_packets[0].get_station_information().get_id()
             self.uuid = data_packets[0].get_station_information().get_uuid()
             self.start_timestamp = (
                 data_packets[0].get_timing_information().get_app_start_mach_timestamp()
             )
+            self._set_all_sensors(data_packets)
             self._get_start_and_end_timestamps()
             if self.has_audio_sensor():
                 self.audio_sample_rate_hz = self.audio_sensor().sample_rate
@@ -116,6 +119,14 @@ class Station:
             else:
                 self.audio_sample_rate_hz = np.nan
                 self.is_audio_scrambled = False
+            self.timesync_analysis = \
+                TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp).from_packets(data_packets)
+            if data_packets and validate_station_data(data_packets):
+                self.offset_model = om.OffsetModel(self.timesync_analysis.get_latencies(),
+                                                   self.timesync_analysis.get_offsets(),
+                                                   self.timesync_analysis.get_start_times() +
+                                                   0.5*self.get_mean_packet_duration(),
+                                                   5, 3, self.first_data_timestamp, self.last_data_timestamp)
         else:
             if data_packets:
                 print(
@@ -129,24 +140,23 @@ class Station:
             self.last_data_timestamp = np.nan
             self.audio_sample_rate_hz = np.nan
             self.is_audio_scrambled = False
+            self.timesync_analysis = TimeSyncAnalysis()
         self.is_timestamps_updated = False
-        self.timesync_analysis = \
-            TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp).from_packets(data_packets)
 
     def _sort_metadata_packets(self):
         &#34;&#34;&#34;
         orders the metadata packets by their starting timestamps.  Returns nothing, sorts the data in place
         &#34;&#34;&#34;
         self.metadata.sort(
-            key=lambda t: t.timing_information.get_packet_start_mach_timestamp()
+            key=lambda t: t.packet_start_mach_timestamp
         )
 
     def _get_start_and_end_timestamps(self):
         &#34;&#34;&#34;
         uses the sorted metadata packets to get the first and last timestamp of the station
         &#34;&#34;&#34;
-        self.first_data_timestamp = self.metadata[0].timing_information.get_packet_start_mach_timestamp()
-        self.last_data_timestamp = self.metadata[-1].timing_information.get_packet_end_mach_timestamp()
+        self.first_data_timestamp = self.audio_sensor().first_data_timestamp()
+        self.last_data_timestamp = self.audio_sensor().last_data_timestamp()
 
     def set_id(self, station_id: str) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
@@ -219,22 +229,18 @@ class Station:
 
     def append_station(self, new_station: &#34;Station&#34;):
         &#34;&#34;&#34;
-        append a new station to the current station
+        append a new station to the current station; does nothing if keys do not match
         :param new_station: Station to append to current station
         &#34;&#34;&#34;
-        if new_station.get_key() == self.get_key():
+        if self.get_key() is not None and new_station.get_key() == self.get_key():
             self.append_station_data(new_station.data)
             self.metadata.extend(new_station.metadata)
             self._sort_metadata_packets()
             self._get_start_and_end_timestamps()
             new_timesync_analysis = TimeSyncAnalysis(
-                self.id, self.audio_sample_rate_hz, self.start_timestamp
+                self.id, self.audio_sample_rate_hz, self.start_timestamp,
+                self.timesync_analysis.timesync_data + new_station.timesync_analysis.timesync_data
             )
-            new_timesync_analysis.timesync_data = (
-                self.timesync_analysis.timesync_data
-                + new_station.timesync_analysis.timesync_data
-            )
-            new_timesync_analysis.evaluate_and_validate_data()
             self.timesync_analysis = new_timesync_analysis
 
     def append_station_data(self, new_station_data: Dict[sd.SensorType, sd.SensorData]):
@@ -251,9 +257,7 @@ class Station:
         :param sensor_data: the data to append
         &#34;&#34;&#34;
         if sensor_data.type in self.data.keys():
-            self.data[sensor_data.type] = self.data[sensor_data.type].append_data(
-                sensor_data.data_df
-            )
+            self.data[sensor_data.type] = self.data[sensor_data.type].append_data(sensor_data.data_df)
         else:
             self._add_sensor(sensor_data.type, sensor_data)
 
@@ -272,9 +276,7 @@ class Station:
         :param sensor: the sensor data to add
         &#34;&#34;&#34;
         if sensor_type in self.data.keys():
-            raise ValueError(
-                f&#34;Cannot add sensor type ({sensor_type.name}) that already exists in packet!&#34;
-            )
+            raise ValueError(f&#34;Cannot add sensor type ({sensor_type.name}) that already exists in packet!&#34;)
         else:
             self.data[sensor_type] = sensor
 
@@ -1014,161 +1016,53 @@ class Station:
         :param packets: the packets to read data from
         &#34;&#34;&#34;
         self.data = {}
-        self.metadata: List[StationMetadata] = []
-        for packet in packets:
-            self.metadata.append(
-                StationMetadata(
-                    packet.get_api(),
-                    packet.get_sub_api(),
-                    packet.get_station_information(),
-                    &#34;Redvox&#34;,
-                    packet.get_timing_information(),
-                )
-            )
-        if any(
-            s.get_sensors().has_audio() and s.get_sensors().validate_audio()
-            for s in packets
-        ):
-            self.data[sd.SensorType.AUDIO] = sd.load_apim_audio_from_list(packets)
-        if any(
-            s.get_sensors().has_compressed_audio()
-            and s.get_sensors().validate_compressed_audio()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.COMPRESSED_AUDIO
-            ] = sd.load_apim_compressed_audio_from_list(packets)
-        if any(
-            s.get_sensors().has_image() and s.get_sensors().validate_image()
-            for s in packets
-        ):
-            self.data[sd.SensorType.IMAGE] = sd.load_apim_image_from_list(packets)
-        if any(
-            s.get_sensors().has_location() and s.get_sensors().validate_location()
-            for s in packets
-        ):
-            self.data[sd.SensorType.LOCATION] = sd.load_apim_location_from_list(packets)
-        if any(
-            s.get_sensors().has_pressure() and s.get_sensors().validate_pressure()
-            for s in packets
-        ):
-            self.data[sd.SensorType.PRESSURE] = sd.load_apim_pressure_from_list(packets)
-        if any(
-            s.get_sensors().has_light() and s.get_sensors().validate_light()
-            for s in packets
-        ):
-            self.data[sd.SensorType.LIGHT] = sd.load_apim_light_from_list(packets)
-        if any(
-            s.get_sensors().has_ambient_temperature()
-            and s.get_sensors().validate_ambient_temperature()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.AMBIENT_TEMPERATURE
-            ] = sd.load_apim_ambient_temp_from_list(packets)
-        if any(
-            s.get_sensors().has_relative_humidity()
-            and s.get_sensors().validate_relative_humidity()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.RELATIVE_HUMIDITY
-            ] = sd.load_apim_rel_humidity_from_list(packets)
-        if any(
-            s.get_sensors().has_proximity() and s.get_sensors().validate_proximity()
-            for s in packets
-        ):
-            self.data[sd.SensorType.PROXIMITY] = sd.load_apim_proximity_from_list(
-                packets
-            )
-        if any(
-            s.get_sensors().has_accelerometer()
-            and s.get_sensors().validate_accelerometer()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.ACCELEROMETER
-            ] = sd.load_apim_accelerometer_from_list(packets)
-        if any(
-            s.get_sensors().has_gyroscope() and s.get_sensors().validate_gyroscope()
-            for s in packets
-        ):
-            self.data[sd.SensorType.GYROSCOPE] = sd.load_apim_gyroscope_from_list(
-                packets
-            )
-        if any(
-            s.get_sensors().has_magnetometer()
-            and s.get_sensors().validate_magnetometer()
-            for s in packets
-        ):
-            self.data[sd.SensorType.MAGNETOMETER] = sd.load_apim_magnetometer_from_list(
-                packets
-            )
-        if any(
-            s.get_sensors().has_gravity() and s.get_sensors().validate_gravity()
-            for s in packets
-        ):
-            self.data[sd.SensorType.GRAVITY] = sd.load_apim_gravity_from_list(packets)
-        if any(
-            s.get_sensors().has_linear_acceleration()
-            and s.get_sensors().validate_linear_acceleration()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.LINEAR_ACCELERATION
-            ] = sd.load_apim_linear_accel_from_list(packets)
-        if any(
-            s.get_sensors().has_orientation() and s.get_sensors().validate_orientation()
-            for s in packets
-        ):
-            self.data[sd.SensorType.ORIENTATION] = sd.load_apim_orientation_from_list(
-                packets
-            )
-        if any(
-            s.get_sensors().has_rotation_vector()
-            and s.get_sensors().validate_rotation_vector()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.ROTATION_VECTOR
-            ] = sd.load_apim_rotation_vector_from_list(packets)
-        if any(
-            s.get_station_information()
-            .get_station_metrics()
-            .get_timestamps()
-            .get_timestamps_count()
-            &gt; 0
-            for s in packets
-        ):
-            self.data[sd.SensorType.STATION_HEALTH] = sd.load_apim_health_from_list(
-                packets
-            )
+        self.metadata: List[StationMetadata] = [
+            StationMetadata(
+                packet.get_api(),
+                packet.get_sub_api(),
+                packet.get_station_information(),
+                &#34;Redvox&#34;,
+                packet.get_timing_information(),
+            ) for packet in packets]
+        funcs = [sd.load_apim_audio_from_list,
+                 sd.load_apim_compressed_audio_from_list,
+                 sd.load_apim_image_from_list,
+                 sd.load_apim_location_from_list,
+                 sd.load_apim_pressure_from_list,
+                 sd.load_apim_light_from_list,
+                 sd.load_apim_ambient_temp_from_list,
+                 sd.load_apim_rel_humidity_from_list,
+                 sd.load_apim_proximity_from_list,
+                 sd.load_apim_accelerometer_from_list,
+                 sd.load_apim_gyroscope_from_list,
+                 sd.load_apim_magnetometer_from_list,
+                 sd.load_apim_gravity_from_list,
+                 sd.load_apim_linear_accel_from_list,
+                 sd.load_apim_orientation_from_list,
+                 sd.load_apim_rotation_vector_from_list,
+                 sd.load_apim_health_from_list,
+                 ]
+        sensors = map(FunctionType.__call__, funcs, repeat(packets))
+        for sensor in sensors:
+            if sensor:
+                self.append_sensor(sensor)
 
-    def update_timestamps(self, delta: Optional[float] = None):
+    def update_timestamps(self):
         &#34;&#34;&#34;
-        updates the timestamps in the station by adding delta microseconds
-            negative delta values move timestamps backwards in time.
-        :param delta: optional microseconds to add, default None (adds the station&#39;s best offset)
+        updates the timestamps in the station using the offset model
         &#34;&#34;&#34;
         if self.is_timestamps_updated:
             print(&#34;WARNING: Timestamps already corrected!&#34;)
         else:
-            if not delta:
-                if np.isnan(self.timesync_analysis.get_best_offset()):
-                    print(
-                        &#34;WARNING: Station does not have timing data, assuming existing values are the correct ones!&#34;
-                    )
-                else:
-                    delta = self.timesync_analysis.get_best_offset()
-            if delta:
+            if not np.isnan(self.offset_model.slope):
                 for sensor in self.data.values():
-                    sensor.update_data_timestamps(delta)
+                    sensor.update_data_timestamps(self.offset_model)
                 for packet in self.metadata:
-                    packet.update_timestamps(delta)
-                self.timesync_analysis.update_timestamps(delta)
-                self.start_timestamp += delta
-                self.first_data_timestamp += delta
-                self.last_data_timestamp += delta
+                    packet.update_timestamps(self.offset_model)
+                self.timesync_analysis.update_timestamps(self.offset_model)
+                self.start_timestamp = self.offset_model.update_time(self.start_timestamp)
+                self.first_data_timestamp = self.offset_model.update_time(self.first_data_timestamp)
+                self.last_data_timestamp = self.offset_model.update_time(self.last_data_timestamp)
                 self.is_timestamps_updated = True</code></pre>
 </details>
 </section>
@@ -1220,7 +1114,7 @@ class Station:
 <dl>
 <dt id="redvox.common.station.Station"><code class="flex name class">
 <span>class <span class="ident">Station</span></span>
-<span>(</span><span>data_packets: typing.Optional[typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]] = None)</span>
+<span>(</span><span>data_packets: typing.Union[typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>], NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>generic station for api-independent stuff; uses API M as the core data object since its quite versatile
@@ -1281,12 +1175,12 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
         self.data = {}
         self.metadata = []
         if data_packets and validate_station_data(data_packets):
-            self._set_all_sensors(data_packets)
             self.id = data_packets[0].get_station_information().get_id()
             self.uuid = data_packets[0].get_station_information().get_uuid()
             self.start_timestamp = (
                 data_packets[0].get_timing_information().get_app_start_mach_timestamp()
             )
+            self._set_all_sensors(data_packets)
             self._get_start_and_end_timestamps()
             if self.has_audio_sensor():
                 self.audio_sample_rate_hz = self.audio_sensor().sample_rate
@@ -1296,6 +1190,14 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
             else:
                 self.audio_sample_rate_hz = np.nan
                 self.is_audio_scrambled = False
+            self.timesync_analysis = \
+                TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp).from_packets(data_packets)
+            if data_packets and validate_station_data(data_packets):
+                self.offset_model = om.OffsetModel(self.timesync_analysis.get_latencies(),
+                                                   self.timesync_analysis.get_offsets(),
+                                                   self.timesync_analysis.get_start_times() +
+                                                   0.5*self.get_mean_packet_duration(),
+                                                   5, 3, self.first_data_timestamp, self.last_data_timestamp)
         else:
             if data_packets:
                 print(
@@ -1309,24 +1211,23 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
             self.last_data_timestamp = np.nan
             self.audio_sample_rate_hz = np.nan
             self.is_audio_scrambled = False
+            self.timesync_analysis = TimeSyncAnalysis()
         self.is_timestamps_updated = False
-        self.timesync_analysis = \
-            TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp).from_packets(data_packets)
 
     def _sort_metadata_packets(self):
         &#34;&#34;&#34;
         orders the metadata packets by their starting timestamps.  Returns nothing, sorts the data in place
         &#34;&#34;&#34;
         self.metadata.sort(
-            key=lambda t: t.timing_information.get_packet_start_mach_timestamp()
+            key=lambda t: t.packet_start_mach_timestamp
         )
 
     def _get_start_and_end_timestamps(self):
         &#34;&#34;&#34;
         uses the sorted metadata packets to get the first and last timestamp of the station
         &#34;&#34;&#34;
-        self.first_data_timestamp = self.metadata[0].timing_information.get_packet_start_mach_timestamp()
-        self.last_data_timestamp = self.metadata[-1].timing_information.get_packet_end_mach_timestamp()
+        self.first_data_timestamp = self.audio_sensor().first_data_timestamp()
+        self.last_data_timestamp = self.audio_sensor().last_data_timestamp()
 
     def set_id(self, station_id: str) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
@@ -1399,22 +1300,18 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 
     def append_station(self, new_station: &#34;Station&#34;):
         &#34;&#34;&#34;
-        append a new station to the current station
+        append a new station to the current station; does nothing if keys do not match
         :param new_station: Station to append to current station
         &#34;&#34;&#34;
-        if new_station.get_key() == self.get_key():
+        if self.get_key() is not None and new_station.get_key() == self.get_key():
             self.append_station_data(new_station.data)
             self.metadata.extend(new_station.metadata)
             self._sort_metadata_packets()
             self._get_start_and_end_timestamps()
             new_timesync_analysis = TimeSyncAnalysis(
-                self.id, self.audio_sample_rate_hz, self.start_timestamp
+                self.id, self.audio_sample_rate_hz, self.start_timestamp,
+                self.timesync_analysis.timesync_data + new_station.timesync_analysis.timesync_data
             )
-            new_timesync_analysis.timesync_data = (
-                self.timesync_analysis.timesync_data
-                + new_station.timesync_analysis.timesync_data
-            )
-            new_timesync_analysis.evaluate_and_validate_data()
             self.timesync_analysis = new_timesync_analysis
 
     def append_station_data(self, new_station_data: Dict[sd.SensorType, sd.SensorData]):
@@ -1431,9 +1328,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
         :param sensor_data: the data to append
         &#34;&#34;&#34;
         if sensor_data.type in self.data.keys():
-            self.data[sensor_data.type] = self.data[sensor_data.type].append_data(
-                sensor_data.data_df
-            )
+            self.data[sensor_data.type] = self.data[sensor_data.type].append_data(sensor_data.data_df)
         else:
             self._add_sensor(sensor_data.type, sensor_data)
 
@@ -1452,9 +1347,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
         :param sensor: the sensor data to add
         &#34;&#34;&#34;
         if sensor_type in self.data.keys():
-            raise ValueError(
-                f&#34;Cannot add sensor type ({sensor_type.name}) that already exists in packet!&#34;
-            )
+            raise ValueError(f&#34;Cannot add sensor type ({sensor_type.name}) that already exists in packet!&#34;)
         else:
             self.data[sensor_type] = sensor
 
@@ -2194,167 +2087,59 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
         :param packets: the packets to read data from
         &#34;&#34;&#34;
         self.data = {}
-        self.metadata: List[StationMetadata] = []
-        for packet in packets:
-            self.metadata.append(
-                StationMetadata(
-                    packet.get_api(),
-                    packet.get_sub_api(),
-                    packet.get_station_information(),
-                    &#34;Redvox&#34;,
-                    packet.get_timing_information(),
-                )
-            )
-        if any(
-            s.get_sensors().has_audio() and s.get_sensors().validate_audio()
-            for s in packets
-        ):
-            self.data[sd.SensorType.AUDIO] = sd.load_apim_audio_from_list(packets)
-        if any(
-            s.get_sensors().has_compressed_audio()
-            and s.get_sensors().validate_compressed_audio()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.COMPRESSED_AUDIO
-            ] = sd.load_apim_compressed_audio_from_list(packets)
-        if any(
-            s.get_sensors().has_image() and s.get_sensors().validate_image()
-            for s in packets
-        ):
-            self.data[sd.SensorType.IMAGE] = sd.load_apim_image_from_list(packets)
-        if any(
-            s.get_sensors().has_location() and s.get_sensors().validate_location()
-            for s in packets
-        ):
-            self.data[sd.SensorType.LOCATION] = sd.load_apim_location_from_list(packets)
-        if any(
-            s.get_sensors().has_pressure() and s.get_sensors().validate_pressure()
-            for s in packets
-        ):
-            self.data[sd.SensorType.PRESSURE] = sd.load_apim_pressure_from_list(packets)
-        if any(
-            s.get_sensors().has_light() and s.get_sensors().validate_light()
-            for s in packets
-        ):
-            self.data[sd.SensorType.LIGHT] = sd.load_apim_light_from_list(packets)
-        if any(
-            s.get_sensors().has_ambient_temperature()
-            and s.get_sensors().validate_ambient_temperature()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.AMBIENT_TEMPERATURE
-            ] = sd.load_apim_ambient_temp_from_list(packets)
-        if any(
-            s.get_sensors().has_relative_humidity()
-            and s.get_sensors().validate_relative_humidity()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.RELATIVE_HUMIDITY
-            ] = sd.load_apim_rel_humidity_from_list(packets)
-        if any(
-            s.get_sensors().has_proximity() and s.get_sensors().validate_proximity()
-            for s in packets
-        ):
-            self.data[sd.SensorType.PROXIMITY] = sd.load_apim_proximity_from_list(
-                packets
-            )
-        if any(
-            s.get_sensors().has_accelerometer()
-            and s.get_sensors().validate_accelerometer()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.ACCELEROMETER
-            ] = sd.load_apim_accelerometer_from_list(packets)
-        if any(
-            s.get_sensors().has_gyroscope() and s.get_sensors().validate_gyroscope()
-            for s in packets
-        ):
-            self.data[sd.SensorType.GYROSCOPE] = sd.load_apim_gyroscope_from_list(
-                packets
-            )
-        if any(
-            s.get_sensors().has_magnetometer()
-            and s.get_sensors().validate_magnetometer()
-            for s in packets
-        ):
-            self.data[sd.SensorType.MAGNETOMETER] = sd.load_apim_magnetometer_from_list(
-                packets
-            )
-        if any(
-            s.get_sensors().has_gravity() and s.get_sensors().validate_gravity()
-            for s in packets
-        ):
-            self.data[sd.SensorType.GRAVITY] = sd.load_apim_gravity_from_list(packets)
-        if any(
-            s.get_sensors().has_linear_acceleration()
-            and s.get_sensors().validate_linear_acceleration()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.LINEAR_ACCELERATION
-            ] = sd.load_apim_linear_accel_from_list(packets)
-        if any(
-            s.get_sensors().has_orientation() and s.get_sensors().validate_orientation()
-            for s in packets
-        ):
-            self.data[sd.SensorType.ORIENTATION] = sd.load_apim_orientation_from_list(
-                packets
-            )
-        if any(
-            s.get_sensors().has_rotation_vector()
-            and s.get_sensors().validate_rotation_vector()
-            for s in packets
-        ):
-            self.data[
-                sd.SensorType.ROTATION_VECTOR
-            ] = sd.load_apim_rotation_vector_from_list(packets)
-        if any(
-            s.get_station_information()
-            .get_station_metrics()
-            .get_timestamps()
-            .get_timestamps_count()
-            &gt; 0
-            for s in packets
-        ):
-            self.data[sd.SensorType.STATION_HEALTH] = sd.load_apim_health_from_list(
-                packets
-            )
+        self.metadata: List[StationMetadata] = [
+            StationMetadata(
+                packet.get_api(),
+                packet.get_sub_api(),
+                packet.get_station_information(),
+                &#34;Redvox&#34;,
+                packet.get_timing_information(),
+            ) for packet in packets]
+        funcs = [sd.load_apim_audio_from_list,
+                 sd.load_apim_compressed_audio_from_list,
+                 sd.load_apim_image_from_list,
+                 sd.load_apim_location_from_list,
+                 sd.load_apim_pressure_from_list,
+                 sd.load_apim_light_from_list,
+                 sd.load_apim_ambient_temp_from_list,
+                 sd.load_apim_rel_humidity_from_list,
+                 sd.load_apim_proximity_from_list,
+                 sd.load_apim_accelerometer_from_list,
+                 sd.load_apim_gyroscope_from_list,
+                 sd.load_apim_magnetometer_from_list,
+                 sd.load_apim_gravity_from_list,
+                 sd.load_apim_linear_accel_from_list,
+                 sd.load_apim_orientation_from_list,
+                 sd.load_apim_rotation_vector_from_list,
+                 sd.load_apim_health_from_list,
+                 ]
+        sensors = map(FunctionType.__call__, funcs, repeat(packets))
+        for sensor in sensors:
+            if sensor:
+                self.append_sensor(sensor)
 
-    def update_timestamps(self, delta: Optional[float] = None):
+    def update_timestamps(self):
         &#34;&#34;&#34;
-        updates the timestamps in the station by adding delta microseconds
-            negative delta values move timestamps backwards in time.
-        :param delta: optional microseconds to add, default None (adds the station&#39;s best offset)
+        updates the timestamps in the station using the offset model
         &#34;&#34;&#34;
         if self.is_timestamps_updated:
             print(&#34;WARNING: Timestamps already corrected!&#34;)
         else:
-            if not delta:
-                if np.isnan(self.timesync_analysis.get_best_offset()):
-                    print(
-                        &#34;WARNING: Station does not have timing data, assuming existing values are the correct ones!&#34;
-                    )
-                else:
-                    delta = self.timesync_analysis.get_best_offset()
-            if delta:
+            if not np.isnan(self.offset_model.slope):
                 for sensor in self.data.values():
-                    sensor.update_data_timestamps(delta)
+                    sensor.update_data_timestamps(self.offset_model)
                 for packet in self.metadata:
-                    packet.update_timestamps(delta)
-                self.timesync_analysis.update_timestamps(delta)
-                self.start_timestamp += delta
-                self.first_data_timestamp += delta
-                self.last_data_timestamp += delta
+                    packet.update_timestamps(self.offset_model)
+                self.timesync_analysis.update_timestamps(self.offset_model)
+                self.start_timestamp = self.offset_model.update_time(self.start_timestamp)
+                self.first_data_timestamp = self.offset_model.update_time(self.first_data_timestamp)
+                self.last_data_timestamp = self.offset_model.update_time(self.last_data_timestamp)
                 self.is_timestamps_updated = True</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.station.Station.accelerometer_sensor"><code class="name flex">
-<span>def <span class="ident">accelerometer_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">accelerometer_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the accelerometer sensor if it exists
@@ -2374,7 +2159,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.ambient_temperature_sensor"><code class="name flex">
-<span>def <span class="ident">ambient_temperature_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">ambient_temperature_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the ambient temperature sensor if it exists
@@ -2409,9 +2194,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
     :param sensor_data: the data to append
     &#34;&#34;&#34;
     if sensor_data.type in self.data.keys():
-        self.data[sensor_data.type] = self.data[sensor_data.type].append_data(
-            sensor_data.data_df
-        )
+        self.data[sensor_data.type] = self.data[sensor_data.type].append_data(sensor_data.data_df)
     else:
         self._add_sensor(sensor_data.type, sensor_data)</code></pre>
 </details>
@@ -2420,7 +2203,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 <span>def <span class="ident">append_station</span></span>(<span>self, new_station: <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>append a new station to the current station
+<div class="desc"><p>append a new station to the current station; does nothing if keys do not match
 :param new_station: Station to append to current station</p></div>
 <details class="source">
 <summary>
@@ -2428,22 +2211,18 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </summary>
 <pre><code class="python">def append_station(self, new_station: &#34;Station&#34;):
     &#34;&#34;&#34;
-    append a new station to the current station
+    append a new station to the current station; does nothing if keys do not match
     :param new_station: Station to append to current station
     &#34;&#34;&#34;
-    if new_station.get_key() == self.get_key():
+    if self.get_key() is not None and new_station.get_key() == self.get_key():
         self.append_station_data(new_station.data)
         self.metadata.extend(new_station.metadata)
         self._sort_metadata_packets()
         self._get_start_and_end_timestamps()
         new_timesync_analysis = TimeSyncAnalysis(
-            self.id, self.audio_sample_rate_hz, self.start_timestamp
+            self.id, self.audio_sample_rate_hz, self.start_timestamp,
+            self.timesync_analysis.timesync_data + new_station.timesync_analysis.timesync_data
         )
-        new_timesync_analysis.timesync_data = (
-            self.timesync_analysis.timesync_data
-            + new_station.timesync_analysis.timesync_data
-        )
-        new_timesync_analysis.evaluate_and_validate_data()
         self.timesync_analysis = new_timesync_analysis</code></pre>
 </details>
 </dd>
@@ -2467,7 +2246,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.audio_sensor"><code class="name flex">
-<span>def <span class="ident">audio_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">audio_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the audio sensor if it exists
@@ -2487,7 +2266,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.barometer_sensor"><code class="name flex">
-<span>def <span class="ident">barometer_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">barometer_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the barometer (aka pressure) sensor if it exists
@@ -2532,7 +2311,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.compressed_audio_sensor"><code class="name flex">
-<span>def <span class="ident">compressed_audio_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">compressed_audio_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the compressed audio sensor if it exists
@@ -2552,7 +2331,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_id"><code class="name flex">
-<span>def <span class="ident">get_id</span></span>(<span>self) ‑> typing.Optional[str]</span>
+<span>def <span class="ident">get_id</span></span>(<span>self) ‑> typing.Union[str, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: the station id or None if it doesn't exist</p></div>
@@ -2568,7 +2347,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_key"><code class="name flex">
-<span>def <span class="ident">get_key</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.station_utils.StationKey" href="station_utils.html#redvox.common.station_utils.StationKey">StationKey</a>]</span>
+<span>def <span class="ident">get_key</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.station_utils.StationKey" href="station_utils.html#redvox.common.station_utils.StationKey">StationKey</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: the station's key if id, uuid and start timestamp is set, or None if key cannot be created</p></div>
@@ -2642,7 +2421,7 @@ number of audio sensor's data points and the number of packets
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_uuid"><code class="name flex">
-<span>def <span class="ident">get_uuid</span></span>(<span>self) ‑> typing.Optional[str]</span>
+<span>def <span class="ident">get_uuid</span></span>(<span>self) ‑> typing.Union[str, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: the station uuid or None if it doesn't exist</p></div>
@@ -2658,7 +2437,7 @@ number of audio sensor's data points and the number of packets
 </details>
 </dd>
 <dt id="redvox.common.station.Station.gravity_sensor"><code class="name flex">
-<span>def <span class="ident">gravity_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">gravity_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the gravity sensor if it exists
@@ -2678,7 +2457,7 @@ number of audio sensor's data points and the number of packets
 </details>
 </dd>
 <dt id="redvox.common.station.Station.gyroscope_sensor"><code class="name flex">
-<span>def <span class="ident">gyroscope_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">gyroscope_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the gyroscope sensor if it exists
@@ -3407,7 +3186,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.health_sensor"><code class="name flex">
-<span>def <span class="ident">health_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">health_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the station health sensor if it exists
@@ -3427,7 +3206,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.image_sensor"><code class="name flex">
-<span>def <span class="ident">image_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">image_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the image sensor if it exists
@@ -3447,7 +3226,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.infrared_sensor"><code class="name flex">
-<span>def <span class="ident">infrared_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">infrared_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the infrared (proximity) sensor if it exists
@@ -3465,7 +3244,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.light_sensor"><code class="name flex">
-<span>def <span class="ident">light_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">light_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the light sensor if it exists
@@ -3485,7 +3264,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.linear_acceleration_sensor"><code class="name flex">
-<span>def <span class="ident">linear_acceleration_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">linear_acceleration_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the linear acceleration sensor if it exists
@@ -3505,7 +3284,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.location_sensor"><code class="name flex">
-<span>def <span class="ident">location_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">location_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the location sensor if it exists
@@ -3525,7 +3304,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.magnetometer_sensor"><code class="name flex">
-<span>def <span class="ident">magnetometer_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">magnetometer_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the magnetometer sensor if it exists
@@ -3545,7 +3324,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.orientation_sensor"><code class="name flex">
-<span>def <span class="ident">orientation_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">orientation_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the orientation sensor if it exists
@@ -3565,7 +3344,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.pressure_sensor"><code class="name flex">
-<span>def <span class="ident">pressure_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">pressure_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the pressure sensor if it exists
@@ -3585,7 +3364,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.proximity_sensor"><code class="name flex">
-<span>def <span class="ident">proximity_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">proximity_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the proximity sensor if it exists
@@ -3605,7 +3384,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.relative_humidity_sensor"><code class="name flex">
-<span>def <span class="ident">relative_humidity_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">relative_humidity_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the relative humidity sensor if it exists
@@ -3625,7 +3404,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.rotation_vector_sensor"><code class="name flex">
-<span>def <span class="ident">rotation_vector_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">rotation_vector_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the rotation vector sensor if it exists
@@ -3645,7 +3424,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_accelerometer_sensor"><code class="name flex">
-<span>def <span class="ident">set_accelerometer_sensor</span></span>(<span>self, acc_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_accelerometer_sensor</span></span>(<span>self, acc_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the accelerometer sensor; can remove accelerometer sensor by passing None
@@ -3671,7 +3450,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_ambient_temperature_sensor"><code class="name flex">
-<span>def <span class="ident">set_ambient_temperature_sensor</span></span>(<span>self, amb_temp_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_ambient_temperature_sensor</span></span>(<span>self, amb_temp_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the ambient temperature sensor; can remove ambient temperature sensor by passing None
@@ -3697,7 +3476,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_audio_sensor"><code class="name flex">
-<span>def <span class="ident">set_audio_sensor</span></span>(<span>self, audio_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_audio_sensor</span></span>(<span>self, audio_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the audio sensor; can remove audio sensor by passing None
@@ -3723,7 +3502,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_barometer_sensor"><code class="name flex">
-<span>def <span class="ident">set_barometer_sensor</span></span>(<span>self, bar_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_barometer_sensor</span></span>(<span>self, bar_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the barometer (pressure) sensor; can remove barometer sensor by passing None
@@ -3745,7 +3524,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_compressed_audio_sensor"><code class="name flex">
-<span>def <span class="ident">set_compressed_audio_sensor</span></span>(<span>self, comp_audio_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_compressed_audio_sensor</span></span>(<span>self, comp_audio_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the compressed audio sensor; can remove compressed audio sensor by passing None
@@ -3771,7 +3550,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_gravity_sensor"><code class="name flex">
-<span>def <span class="ident">set_gravity_sensor</span></span>(<span>self, grav_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_gravity_sensor</span></span>(<span>self, grav_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the gravity sensor; can remove gravity sensor by passing None
@@ -3797,7 +3576,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_gyroscope_sensor"><code class="name flex">
-<span>def <span class="ident">set_gyroscope_sensor</span></span>(<span>self, gyro_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_gyroscope_sensor</span></span>(<span>self, gyro_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the gyroscope sensor; can remove gyroscope sensor by passing None
@@ -3823,7 +3602,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_health_sensor"><code class="name flex">
-<span>def <span class="ident">set_health_sensor</span></span>(<span>self, health_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_health_sensor</span></span>(<span>self, health_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the health sensor; can remove health sensor by passing None
@@ -3870,7 +3649,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_image_sensor"><code class="name flex">
-<span>def <span class="ident">set_image_sensor</span></span>(<span>self, img_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_image_sensor</span></span>(<span>self, img_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the image sensor; can remove image sensor by passing None
@@ -3894,7 +3673,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_infrared_sensor"><code class="name flex">
-<span>def <span class="ident">set_infrared_sensor</span></span>(<span>self, infrd_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_infrared_sensor</span></span>(<span>self, infrd_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the infrared sensor; can remove infrared sensor by passing None
@@ -3916,7 +3695,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_light_sensor"><code class="name flex">
-<span>def <span class="ident">set_light_sensor</span></span>(<span>self, light_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_light_sensor</span></span>(<span>self, light_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the light sensor; can remove light sensor by passing None
@@ -3942,7 +3721,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_linear_acceleration_sensor"><code class="name flex">
-<span>def <span class="ident">set_linear_acceleration_sensor</span></span>(<span>self, lin_acc_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_linear_acceleration_sensor</span></span>(<span>self, lin_acc_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the linear acceleration sensor; can remove linear acceleration sensor by passing None
@@ -3968,7 +3747,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_location_sensor"><code class="name flex">
-<span>def <span class="ident">set_location_sensor</span></span>(<span>self, loc_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_location_sensor</span></span>(<span>self, loc_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the location sensor; can remove location sensor by passing None
@@ -3994,7 +3773,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_magnetometer_sensor"><code class="name flex">
-<span>def <span class="ident">set_magnetometer_sensor</span></span>(<span>self, mag_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_magnetometer_sensor</span></span>(<span>self, mag_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the magnetometer sensor; can remove magnetometer sensor by passing None
@@ -4020,7 +3799,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_orientation_sensor"><code class="name flex">
-<span>def <span class="ident">set_orientation_sensor</span></span>(<span>self, orientation_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_orientation_sensor</span></span>(<span>self, orientation_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the orientation sensor; can remove orientation sensor by passing None
@@ -4046,7 +3825,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_pressure_sensor"><code class="name flex">
-<span>def <span class="ident">set_pressure_sensor</span></span>(<span>self, pressure_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_pressure_sensor</span></span>(<span>self, pressure_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the pressure sensor; can remove pressure sensor by passing None
@@ -4072,7 +3851,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_proximity_sensor"><code class="name flex">
-<span>def <span class="ident">set_proximity_sensor</span></span>(<span>self, proximity_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_proximity_sensor</span></span>(<span>self, proximity_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the proximity sensor; can remove proximity sensor by passing None
@@ -4098,7 +3877,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_relative_humidity_sensor"><code class="name flex">
-<span>def <span class="ident">set_relative_humidity_sensor</span></span>(<span>self, rel_hum_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_relative_humidity_sensor</span></span>(<span>self, rel_hum_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the relative humidity sensor; can remove relative humidity sensor by passing None
@@ -4124,7 +3903,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_rotation_vector_sensor"><code class="name flex">
-<span>def <span class="ident">set_rotation_vector_sensor</span></span>(<span>self, rot_vec_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_rotation_vector_sensor</span></span>(<span>self, rot_vec_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the rotation vector sensor; can remove rotation vector sensor by passing None
@@ -4192,41 +3971,30 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.update_timestamps"><code class="name flex">
-<span>def <span class="ident">update_timestamps</span></span>(<span>self, delta: typing.Optional[float] = None)</span>
+<span>def <span class="ident">update_timestamps</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>updates the timestamps in the station by adding delta microseconds
-negative delta values move timestamps backwards in time.
-:param delta: optional microseconds to add, default None (adds the station's best offset)</p></div>
+<div class="desc"><p>updates the timestamps in the station using the offset model</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_timestamps(self, delta: Optional[float] = None):
+<pre><code class="python">def update_timestamps(self):
     &#34;&#34;&#34;
-    updates the timestamps in the station by adding delta microseconds
-        negative delta values move timestamps backwards in time.
-    :param delta: optional microseconds to add, default None (adds the station&#39;s best offset)
+    updates the timestamps in the station using the offset model
     &#34;&#34;&#34;
     if self.is_timestamps_updated:
         print(&#34;WARNING: Timestamps already corrected!&#34;)
     else:
-        if not delta:
-            if np.isnan(self.timesync_analysis.get_best_offset()):
-                print(
-                    &#34;WARNING: Station does not have timing data, assuming existing values are the correct ones!&#34;
-                )
-            else:
-                delta = self.timesync_analysis.get_best_offset()
-        if delta:
+        if not np.isnan(self.offset_model.slope):
             for sensor in self.data.values():
-                sensor.update_data_timestamps(delta)
+                sensor.update_data_timestamps(self.offset_model)
             for packet in self.metadata:
-                packet.update_timestamps(delta)
-            self.timesync_analysis.update_timestamps(delta)
-            self.start_timestamp += delta
-            self.first_data_timestamp += delta
-            self.last_data_timestamp += delta
+                packet.update_timestamps(self.offset_model)
+            self.timesync_analysis.update_timestamps(self.offset_model)
+            self.start_timestamp = self.offset_model.update_time(self.start_timestamp)
+            self.first_data_timestamp = self.offset_model.update_time(self.first_data_timestamp)
+            self.last_data_timestamp = self.offset_model.update_time(self.last_data_timestamp)
             self.is_timestamps_updated = True</code></pre>
 </details>
 </dd>
@@ -4354,7 +4122,7 @@ negative delta values move timestamps backwards in time.
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

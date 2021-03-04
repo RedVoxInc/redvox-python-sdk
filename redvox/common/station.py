@@ -26,15 +26,11 @@ def validate_station_data(data_packets: List[WrappedRedvoxPacketM]) -> bool:
         return True
     elif len(data_packets) < 1:
         return False
-    elif all(
-        lambda: t.get_station_information().get_id()
-        == data_packets[0].get_station_information().get_id()
-        and t.get_station_information().get_uuid()
-        == data_packets[0].get_station_information().get_uuid()
-        and t.get_timing_information().get_app_start_mach_timestamp()
-        == data_packets[0].get_timing_information().get_app_start_mach_timestamp()
-        for t in data_packets
-    ):
+    elif all([t.get_station_information().get_id() == data_packets[0].get_station_information().get_id()
+              and t.get_station_information().get_uuid() == data_packets[0].get_station_information().get_uuid()
+              and t.get_timing_information().get_app_start_mach_timestamp()
+              == data_packets[0].get_timing_information().get_app_start_mach_timestamp()
+              for t in data_packets]):
         return True
     return False
 
@@ -98,8 +94,12 @@ class Station:
             if data_packets:
                 print(
                     "Warning: Data given to create station is not consistent; check station_id, station_uuid "
-                    "and app_start_time of the packets."
+                    "and app_start_time of the packets for differences."
                 )
+                for i in range(len(data_packets)):
+                    print(f"Packet {i}: id: {data_packets[i].get_station_information().get_id()}, "
+                          f"uuid: {data_packets[i].get_station_information().get_uuid()}, "
+                          f"app_start_time: {data_packets[i].get_timing_information().get_app_start_mach_timestamp()}")
             self.id = None
             self.uuid = None
             self.start_timestamp = np.nan

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>redvox.common.file_statistics API documentation</title>
 <meta name="description" content="This module provides utility functions for determining statistics of well structured RedVox data." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -39,6 +39,7 @@ import multiprocessing
 import numpy as np
 
 from redvox.common.timesync import TimeSyncData
+import redvox.common.parallel_utils as parallel
 
 # noinspection Mypy
 if TYPE_CHECKING:
@@ -218,7 +219,7 @@ class StationStat:
             best_latency,
             best_offset,
             packet.microphone_sensor().sample_rate_hz() if packet.has_microphone_sensor() else np.nan,
-            timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else np.nan,
+            timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else 0.0,
         )
 
     # noinspection Mypy
@@ -277,7 +278,7 @@ class StationStat:
         )
 
 
-# noinspection PyTypeChecker
+# noinspection PyTypeChecker,DuplicatedCode
 def extract_stats_serial(index: io.Index) -&gt; List[StationStat]:
     &#34;&#34;&#34;
     Extracts StationStat information from packets stored in the provided index.
@@ -309,7 +310,7 @@ def extract_stats_parallel(index: io.Index) -&gt; List[StationStat]:
     indices: List[io.Index] = list(map(lambda entries: io.Index(entries), partitioned))
 
     # Run da buggahs in parallel
-    pool = multiprocessing.Pool(processes=num_cores)
+    pool = parallel.pool()
     nested: List[List[StationStat]] = pool.map(extract_stats_serial, indices)
     return [item for sublist in nested for item in sublist]
 
@@ -389,7 +390,7 @@ parallel, otherwise they are read in serial.
     indices: List[io.Index] = list(map(lambda entries: io.Index(entries), partitioned))
 
     # Run da buggahs in parallel
-    pool = multiprocessing.Pool(processes=num_cores)
+    pool = parallel.pool()
     nested: List[List[StationStat]] = pool.map(extract_stats_serial, indices)
     return [item for sublist in nested for item in sublist]</code></pre>
 </details>
@@ -510,7 +511,7 @@ parallel, otherwise they are read in serial.
 <dl>
 <dt id="redvox.common.file_statistics.GpsDateTime"><code class="flex name class">
 <span>class <span class="ident">GpsDateTime</span></span>
-<span>(</span><span>mach_dt: datetime.datetime, gps_dt: typing.Optional[datetime.datetime])</span>
+<span>(</span><span>mach_dt: datetime.datetime, gps_dt: typing.Union[datetime.datetime, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Represents timestamp pairings in API 1000 data.</p></div>
@@ -518,8 +519,7 @@ parallel, otherwise they are read in serial.
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass
-class GpsDateTime:
+<pre><code class="python">class GpsDateTime:
     &#34;&#34;&#34;
     Represents timestamp pairings in API 1000 data.
     &#34;&#34;&#34;
@@ -529,7 +529,7 @@ class GpsDateTime:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.common.file_statistics.GpsDateTime.gps_dt"><code class="name">var <span class="ident">gps_dt</span> : typing.Optional[datetime.datetime]</code></dt>
+<dt id="redvox.common.file_statistics.GpsDateTime.gps_dt"><code class="name">var <span class="ident">gps_dt</span> : typing.Union[datetime.datetime, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -541,7 +541,7 @@ class GpsDateTime:
 </dd>
 <dt id="redvox.common.file_statistics.StationStat"><code class="flex name class">
 <span>class <span class="ident">StationStat</span></span>
-<span>(</span><span>station_id: str, station_uuid: str, app_start_dt: typing.Optional[datetime.datetime], packet_start_dt: datetime.datetime, server_recv_dt: typing.Optional[datetime.datetime], gps_dts: typing.Optional[typing.List[<a title="redvox.common.file_statistics.GpsDateTime" href="#redvox.common.file_statistics.GpsDateTime">GpsDateTime</a>]], latency: typing.Optional[float], offset: typing.Optional[float], sample_rate_hz: typing.Optional[float], packet_duration: typing.Optional[datetime.timedelta])</span>
+<span>(</span><span>station_id: str, station_uuid: str, app_start_dt: typing.Union[datetime.datetime, NoneType], packet_start_dt: datetime.datetime, server_recv_dt: typing.Union[datetime.datetime, NoneType], gps_dts: typing.Union[typing.List[<a title="redvox.common.file_statistics.GpsDateTime" href="#redvox.common.file_statistics.GpsDateTime">GpsDateTime</a>], NoneType], latency: typing.Union[float, NoneType], offset: typing.Union[float, NoneType], sample_rate_hz: typing.Union[float, NoneType], packet_duration: typing.Union[datetime.timedelta, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A collection of station fields for a given API 900 or API 1000 packet.
@@ -550,8 +550,7 @@ These are used for timing correction and gap detection.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass
-class StationStat:
+<pre><code class="python">class StationStat:
     &#34;&#34;&#34;
     A collection of station fields for a given API 900 or API 1000 packet.
     These are used for timing correction and gap detection.
@@ -601,7 +600,7 @@ class StationStat:
             best_latency,
             best_offset,
             packet.microphone_sensor().sample_rate_hz() if packet.has_microphone_sensor() else np.nan,
-            timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else np.nan,
+            timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else 0.0,
         )
 
     # noinspection Mypy
@@ -661,23 +660,23 @@ class StationStat:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.common.file_statistics.StationStat.app_start_dt"><code class="name">var <span class="ident">app_start_dt</span> : typing.Optional[datetime.datetime]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.app_start_dt"><code class="name">var <span class="ident">app_start_dt</span> : typing.Union[datetime.datetime, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.gps_dts"><code class="name">var <span class="ident">gps_dts</span> : typing.Optional[typing.List[<a title="redvox.common.file_statistics.GpsDateTime" href="#redvox.common.file_statistics.GpsDateTime">GpsDateTime</a>]]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.gps_dts"><code class="name">var <span class="ident">gps_dts</span> : typing.Union[typing.List[<a title="redvox.common.file_statistics.GpsDateTime" href="#redvox.common.file_statistics.GpsDateTime">GpsDateTime</a>], NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.latency"><code class="name">var <span class="ident">latency</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.latency"><code class="name">var <span class="ident">latency</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.offset"><code class="name">var <span class="ident">offset</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.offset"><code class="name">var <span class="ident">offset</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.packet_duration"><code class="name">var <span class="ident">packet_duration</span> : typing.Optional[datetime.timedelta]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.packet_duration"><code class="name">var <span class="ident">packet_duration</span> : typing.Union[datetime.timedelta, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -685,11 +684,11 @@ class StationStat:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.sample_rate_hz"><code class="name">var <span class="ident">sample_rate_hz</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.sample_rate_hz"><code class="name">var <span class="ident">sample_rate_hz</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.server_recv_dt"><code class="name">var <span class="ident">server_recv_dt</span> : typing.Optional[datetime.datetime]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.server_recv_dt"><code class="name">var <span class="ident">server_recv_dt</span> : typing.Union[datetime.datetime, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -814,7 +813,7 @@ def from_api_900(packet: &#34;WrappedRedvoxPacket&#34;) -&gt; &#34;StationStat&#
         best_latency,
         best_offset,
         packet.microphone_sensor().sample_rate_hz() if packet.has_microphone_sensor() else np.nan,
-        timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else np.nan,
+        timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else 0.0,
     )</code></pre>
 </details>
 </dd>
@@ -876,7 +875,7 @@ def from_api_900(packet: &#34;WrappedRedvoxPacket&#34;) -&gt; &#34;StationStat&#
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>
