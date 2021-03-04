@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>redvox.common.station_utils API documentation</title>
 <meta name="description" content="Defines generic station metadata for API-independent analysis
 all timestamps are floats in microseconds unless otherwise stated" />
@@ -36,6 +36,7 @@ all timestamps are floats in microseconds unless otherwise stated
 from dataclasses import dataclass
 from typing import Tuple
 
+from redvox.common.offset_model import OffsetModel
 from redvox.api1000.wrapped_redvox_packet import (
     station_information as si,
     timing_information as ti,
@@ -57,6 +58,9 @@ class StationKey:
     uuid: str
     start_timestamp_micros: float
 
+    def __repr__(self):
+        return f&#34;StationKey:\nid:{self.id}, uuid:{self.uuid}, start_timestamp:{self.start_timestamp_micros}&#34;
+
     def get_key(self) -&gt; Tuple[str, str, float]:
         return self.id, self.uuid, self.start_timestamp_micros
 
@@ -75,9 +79,11 @@ class StationMetadata:
         app: str, station app
         app_version: str, station app version
         is_private: bool, is station data private
-        app_settings: AppSettings
-        service_urls: ServiceUrls
-        timing_information: TimingInformation
+        packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
+        packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
+        packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
+        packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+        timing_info_score: float, quality of timing information
     &#34;&#34;&#34;
 
     def __init__(
@@ -105,25 +111,23 @@ class StationMetadata:
         self.app = app
         self.app_version = station_info.get_app_version()
         self.is_private = station_info.get_is_private()
-        self.app_settings = station_info.get_app_settings()
-        self.service_urls = station_info.get_service_urls()
-        self.timing_information = timing_info
+        self.packet_start_mach_timestamp = timing_info.get_packet_start_mach_timestamp()
+        self.packet_end_mach_timestamp = timing_info.get_packet_end_mach_timestamp()
+        self.packet_start_os_timestamp = timing_info.get_packet_start_os_timestamp()
+        self.packet_end_os_timestamp = timing_info.get_packet_end_os_timestamp()
+        self.timing_info_score = timing_info.get_score()
 
-    def update_timestamps(self, delta: float):
+    def update_timestamps(self, om: OffsetModel):
         &#34;&#34;&#34;
         updates the timestamps in the metadata by adding delta microseconds
             negative delta values move timestamps backwards in time.
-        :param delta: optional microseconds to add
+        :param om: OffsetModel to apply to data
+        # :param delta: optional microseconds to add
         &#34;&#34;&#34;
-        self.timing_information.set_packet_start_mach_timestamp(
-            self.timing_information.get_packet_start_mach_timestamp() + delta
-        )
-        self.timing_information.set_packet_end_mach_timestamp(
-            self.timing_information.get_packet_end_mach_timestamp() + delta
-        )
-        self.timing_information.set_app_start_mach_timestamp(
-            self.timing_information.get_app_start_mach_timestamp() + delta
-        )</code></pre>
+        self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp)
+        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
+        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
+        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)</code></pre>
 </details>
 </section>
 <section>
@@ -149,8 +153,7 @@ start_timestamp_micros: float, starting time of the station in microseconds sinc
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass
-class StationKey:
+<pre><code class="python">class StationKey:
     &#34;&#34;&#34;
     A set of values that uniquely define a station
     Properties:
@@ -162,6 +165,9 @@ class StationKey:
     id: str
     uuid: str
     start_timestamp_micros: float
+
+    def __repr__(self):
+        return f&#34;StationKey:\nid:{self.id}, uuid:{self.uuid}, start_timestamp:{self.start_timestamp_micros}&#34;
 
     def get_key(self) -&gt; Tuple[str, str, float]:
         return self.id, self.uuid, self.start_timestamp_micros</code></pre>
@@ -214,9 +220,11 @@ os_version: str, station OS version
 app: str, station app
 app_version: str, station app version
 is_private: bool, is station data private
-app_settings: AppSettings
-service_urls: ServiceUrls
-timing_information: TimingInformation</p>
+packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
+packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
+packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
+packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+timing_info_score: float, quality of timing information</p>
 <p>initialize the metadata
 :param api: api version
 :param sub_api: sub api version
@@ -240,9 +248,11 @@ timing_information: TimingInformation</p>
         app: str, station app
         app_version: str, station app version
         is_private: bool, is station data private
-        app_settings: AppSettings
-        service_urls: ServiceUrls
-        timing_information: TimingInformation
+        packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
+        packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
+        packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
+        packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+        timing_info_score: float, quality of timing information
     &#34;&#34;&#34;
 
     def __init__(
@@ -270,54 +280,49 @@ timing_information: TimingInformation</p>
         self.app = app
         self.app_version = station_info.get_app_version()
         self.is_private = station_info.get_is_private()
-        self.app_settings = station_info.get_app_settings()
-        self.service_urls = station_info.get_service_urls()
-        self.timing_information = timing_info
+        self.packet_start_mach_timestamp = timing_info.get_packet_start_mach_timestamp()
+        self.packet_end_mach_timestamp = timing_info.get_packet_end_mach_timestamp()
+        self.packet_start_os_timestamp = timing_info.get_packet_start_os_timestamp()
+        self.packet_end_os_timestamp = timing_info.get_packet_end_os_timestamp()
+        self.timing_info_score = timing_info.get_score()
 
-    def update_timestamps(self, delta: float):
+    def update_timestamps(self, om: OffsetModel):
         &#34;&#34;&#34;
         updates the timestamps in the metadata by adding delta microseconds
             negative delta values move timestamps backwards in time.
-        :param delta: optional microseconds to add
+        :param om: OffsetModel to apply to data
+        # :param delta: optional microseconds to add
         &#34;&#34;&#34;
-        self.timing_information.set_packet_start_mach_timestamp(
-            self.timing_information.get_packet_start_mach_timestamp() + delta
-        )
-        self.timing_information.set_packet_end_mach_timestamp(
-            self.timing_information.get_packet_end_mach_timestamp() + delta
-        )
-        self.timing_information.set_app_start_mach_timestamp(
-            self.timing_information.get_app_start_mach_timestamp() + delta
-        )</code></pre>
+        self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp)
+        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
+        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
+        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.station_utils.StationMetadata.update_timestamps"><code class="name flex">
-<span>def <span class="ident">update_timestamps</span></span>(<span>self, delta: float)</span>
+<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>updates the timestamps in the metadata by adding delta microseconds
 negative delta values move timestamps backwards in time.
-:param delta: optional microseconds to add</p></div>
+:param om: OffsetModel to apply to data</p>
+<h1 id="param-delta-optional-microseconds-to-add">:param delta: optional microseconds to add</h1></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_timestamps(self, delta: float):
+<pre><code class="python">def update_timestamps(self, om: OffsetModel):
     &#34;&#34;&#34;
     updates the timestamps in the metadata by adding delta microseconds
         negative delta values move timestamps backwards in time.
-    :param delta: optional microseconds to add
+    :param om: OffsetModel to apply to data
+    # :param delta: optional microseconds to add
     &#34;&#34;&#34;
-    self.timing_information.set_packet_start_mach_timestamp(
-        self.timing_information.get_packet_start_mach_timestamp() + delta
-    )
-    self.timing_information.set_packet_end_mach_timestamp(
-        self.timing_information.get_packet_end_mach_timestamp() + delta
-    )
-    self.timing_information.set_app_start_mach_timestamp(
-        self.timing_information.get_app_start_mach_timestamp() + delta
-    )</code></pre>
+    self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp)
+    self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
+    self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
+    self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)</code></pre>
 </details>
 </dd>
 </dl>
@@ -359,7 +364,7 @@ negative delta values move timestamps backwards in time.
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>redvox.common.timesync API documentation</title>
 <meta name="description" content="Modules for extracting time synchronization statistics for API 900 and 1000 data.
 Currently uses API M packets due to versatility of the packet.
@@ -45,6 +45,7 @@ from typing import List, Optional, Union
 import numpy as np
 import pandas as pd
 
+from redvox.common.offset_model import OffsetModel
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 from redvox.common import (
@@ -143,12 +144,12 @@ class TimeSyncData:
             # compute tri message data from time sync exchanges
             tse = tms.TriMessageStats(
                 self.station_id,
-                self.time_sync_exchanges_df[&#34;a1&#34;],
-                self.time_sync_exchanges_df[&#34;a2&#34;],
-                self.time_sync_exchanges_df[&#34;a3&#34;],
-                self.time_sync_exchanges_df[&#34;b1&#34;],
-                self.time_sync_exchanges_df[&#34;b2&#34;],
-                self.time_sync_exchanges_df[&#34;b3&#34;],
+                self.time_sync_exchanges_df[&#34;a1&#34;].to_numpy(),
+                self.time_sync_exchanges_df[&#34;a2&#34;].to_numpy(),
+                self.time_sync_exchanges_df[&#34;a3&#34;].to_numpy(),
+                self.time_sync_exchanges_df[&#34;b1&#34;].to_numpy(),
+                self.time_sync_exchanges_df[&#34;b2&#34;].to_numpy(),
+                self.time_sync_exchanges_df[&#34;b3&#34;].to_numpy(),
             )
             # Compute the statistics for latency and offset
             self.mean_latency = np.mean([*tse.latency1, *tse.latency3])
@@ -159,6 +160,7 @@ class TimeSyncData:
             self.offsets = np.array((tse.offset1, tse.offset3))
             self.best_latency_index = tse.best_latency_index
             self.best_tri_msg_index = tse.best_latency_index
+            self.best_msg_timestamp_index = tse.best_latency_array_index
             # if best_latency is np.nan, set to best computed latency
             if np.isnan(self.best_latency):
                 self.best_latency = tse.best_latency
@@ -176,6 +178,7 @@ class TimeSyncData:
             self.best_offset = 0
             self.mean_offset = 0
             self.offset_std = 0
+            self.best_msg_timestamp_index = np.nan
 
     def num_tri_messages(self) -&gt; int:
         &#34;&#34;&#34;
@@ -184,20 +187,32 @@ class TimeSyncData:
         &#34;&#34;&#34;
         return self.time_sync_exchanges_df.shape[0]
 
-    def update_timestamps(self, delta: Optional[float] = None):
+    def update_timestamps(self, om: Optional[OffsetModel]):
         &#34;&#34;&#34;
-        update the timestamps by delta microseconds, or by the best offset if no delta is given
-            use negative delta to go backwards in time
-        :param delta: microseconds to add to applicable timestamps.  If None, use best offset. default None
+        update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
+            uses negative values to go backwards in time
+        :param om: OffsetModel to calculate offsets, default None
+        # :param delta: microseconds to add to timestamps, default None
         &#34;&#34;&#34;
-        if not delta:
+        if not om:
             delta = self.best_offset
-        self.station_start_timestamp += delta
-        self.packet_start_timestamp += delta
-        self.packet_end_timestamp += delta
+            self.station_start_timestamp += delta
+            self.packet_start_timestamp += delta
+            self.packet_end_timestamp += delta
+        else:
+            self.station_start_timestamp = om.update_time(self.station_start_timestamp)
+            self.packet_start_timestamp = om.update_time(self.packet_start_timestamp)
+            self.packet_end_timestamp = om.update_time(self.packet_end_timestamp)
+
+    def get_best_latency_timestamp(self):
+        if self.best_msg_timestamp_index == 1:
+            return self.time_sync_exchanges_df[&#34;b1&#34;].iloc[self.best_latency_index]
+        elif self.best_msg_timestamp_index == 3:
+            return self.time_sync_exchanges_df[&#34;b3&#34;].iloc[self.best_latency_index]
+        else:
+            return self.packet_start_timestamp
 
 
-# todo: make this out of a list of TimeSyncData objects instead of whatever the init currently is
 class TimeSyncAnalysis:
     &#34;&#34;&#34;
     Used for multiple TimeSyncData objects from a station
@@ -523,17 +538,48 @@ class TimeSyncAnalysis:
         # if here, no gaps
         return True
 
-    def update_timestamps(self, delta: Optional[float] = None):
+    def update_timestamps(self, om: Optional[OffsetModel]):
         &#34;&#34;&#34;
-        update timestamps by adding delta microseconds.  if delta not supplied, uses the best offset
-            use negative delta to go backwards in time
-        :param delta: microseconds to add to timestamps, default None
+        update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
+            uses negative values to go backwards in time
+        :param om: OffsetModel to calculate offsets, default None
+        # :param delta: microseconds to add to timestamps, default None
         &#34;&#34;&#34;
-        if not delta:
-            delta = self.get_best_offset()
-        self.station_start_timestamp += delta
+        if om:
+            self.station_start_timestamp += om.get_offset_at_new_time(self.station_start_timestamp)
         for tsd in self.timesync_data:
-            tsd.update_timestamps(delta)
+            tsd.update_timestamps(om)
+
+
+def timesync_data_from_packet(packet: Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]) -&gt; TimeSyncData:
+    &#34;&#34;&#34;
+    converts a packet into TimeSyncData
+    :param packet: packet to read
+    :return: modified version of self
+    &#34;&#34;&#34;
+    if isinstance(packet, WrappedRedvoxPacketM):
+        return TimeSyncData(packet.get_station_information().get_id(),
+                            packet.get_sensors().get_audio().get_sample_rate(),
+                            packet.get_sensors().get_audio().get_num_samples(),
+                            packet.get_timing_information().get_app_start_mach_timestamp(),
+                            packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
+                            packet.get_timing_information().get_packet_start_mach_timestamp(),
+                            packet.get_timing_information().get_packet_end_mach_timestamp(),
+                            packet.get_timing_information().get_synch_exchange_array(),
+                            packet.get_timing_information().get_best_latency(),
+                            packet.get_timing_information().get_best_offset(),
+                            )
+    return TimeSyncData(packet.redvox_id(),
+                        packet.microphone_sensor().sample_rate_hz(),
+                        packet.microphone_sensor().payload_values().size,
+                        packet.start_timestamp_us_utc(),
+                        packet.server_timestamp_epoch_microseconds_utc(),
+                        packet.start_timestamp_us_utc(),
+                        packet.end_timestamp_us_utc(),
+                        packet.time_synchronization_sensor().payload_values(),
+                        packet.best_latency(),
+                        packet.best_offset(),
+                        )
 
 
 def validate_sensors(tsa_data: TimeSyncAnalysis) -&gt; bool:
@@ -649,6 +695,48 @@ def update_time_array_from_analysis(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="redvox.common.timesync.timesync_data_from_packet"><code class="name flex">
+<span>def <span class="ident">timesync_data_from_packet</span></span>(<span>packet: typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="../api900/wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]) ‑> <a title="redvox.common.timesync.TimeSyncData" href="#redvox.common.timesync.TimeSyncData">TimeSyncData</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>converts a packet into TimeSyncData
+:param packet: packet to read
+:return: modified version of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def timesync_data_from_packet(packet: Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]) -&gt; TimeSyncData:
+    &#34;&#34;&#34;
+    converts a packet into TimeSyncData
+    :param packet: packet to read
+    :return: modified version of self
+    &#34;&#34;&#34;
+    if isinstance(packet, WrappedRedvoxPacketM):
+        return TimeSyncData(packet.get_station_information().get_id(),
+                            packet.get_sensors().get_audio().get_sample_rate(),
+                            packet.get_sensors().get_audio().get_num_samples(),
+                            packet.get_timing_information().get_app_start_mach_timestamp(),
+                            packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
+                            packet.get_timing_information().get_packet_start_mach_timestamp(),
+                            packet.get_timing_information().get_packet_end_mach_timestamp(),
+                            packet.get_timing_information().get_synch_exchange_array(),
+                            packet.get_timing_information().get_best_latency(),
+                            packet.get_timing_information().get_best_offset(),
+                            )
+    return TimeSyncData(packet.redvox_id(),
+                        packet.microphone_sensor().sample_rate_hz(),
+                        packet.microphone_sensor().payload_values().size,
+                        packet.start_timestamp_us_utc(),
+                        packet.server_timestamp_epoch_microseconds_utc(),
+                        packet.start_timestamp_us_utc(),
+                        packet.end_timestamp_us_utc(),
+                        packet.time_synchronization_sensor().payload_values(),
+                        packet.best_latency(),
+                        packet.best_offset(),
+                        )</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.timesync.update_evenly_sampled_time_array"><code class="name flex">
 <span>def <span class="ident">update_evenly_sampled_time_array</span></span>(<span>ts_analysis: <a title="redvox.common.timesync.TimeSyncAnalysis" href="#redvox.common.timesync.TimeSyncAnalysis">TimeSyncAnalysis</a>, num_samples: float = None, time_start_array_s: <built-in function array> = None) ‑> numpy.ndarray</span>
 </code></dt>
@@ -814,7 +902,7 @@ TimeSyncAnalysis object if not given
 <dl>
 <dt id="redvox.common.timesync.TimeSyncAnalysis"><code class="flex name class">
 <span>class <span class="ident">TimeSyncAnalysis</span></span>
-<span>(</span><span>station_id: str = '', audio_sample_rate_hz: float = nan, station_start_timestamp: float = nan, time_sync_data: typing.Optional[typing.List[<a title="redvox.common.timesync.TimeSyncData" href="#redvox.common.timesync.TimeSyncData">TimeSyncData</a>]] = None)</span>
+<span>(</span><span>station_id: str = '', audio_sample_rate_hz: float = nan, station_start_timestamp: float = nan, time_sync_data: typing.Union[typing.List[<a title="redvox.common.timesync.TimeSyncData" href="#redvox.common.timesync.TimeSyncData">TimeSyncData</a>], NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Used for multiple TimeSyncData objects from a station
@@ -1160,17 +1248,17 @@ station_start_timestamp: float, the timestamp of when the station became active,
         # if here, no gaps
         return True
 
-    def update_timestamps(self, delta: Optional[float] = None):
+    def update_timestamps(self, om: Optional[OffsetModel]):
         &#34;&#34;&#34;
-        update timestamps by adding delta microseconds.  if delta not supplied, uses the best offset
-            use negative delta to go backwards in time
-        :param delta: microseconds to add to timestamps, default None
+        update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
+            uses negative values to go backwards in time
+        :param om: OffsetModel to calculate offsets, default None
+        # :param delta: microseconds to add to timestamps, default None
         &#34;&#34;&#34;
-        if not delta:
-            delta = self.get_best_offset()
-        self.station_start_timestamp += delta
+        if om:
+            self.station_start_timestamp += om.get_offset_at_new_time(self.station_start_timestamp)
         for tsd in self.timesync_data:
-            tsd.update_timestamps(delta)</code></pre>
+            tsd.update_timestamps(om)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -1547,28 +1635,29 @@ outputs warnings if a change in timestamps is detected</p></div>
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncAnalysis.update_timestamps"><code class="name flex">
-<span>def <span class="ident">update_timestamps</span></span>(<span>self, delta: typing.Optional[float] = None)</span>
+<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: typing.Union[<a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>, NoneType])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>update timestamps by adding delta microseconds.
-if delta not supplied, uses the best offset
-use negative delta to go backwards in time
-:param delta: microseconds to add to timestamps, default None</p></div>
+<div class="desc"><p>update timestamps by adding microseconds based on the OffsetModel.
+if model not supplied, uses the best offset
+uses negative values to go backwards in time
+:param om: OffsetModel to calculate offsets, default None</p>
+<h1 id="param-delta-microseconds-to-add-to-timestamps-default-none">:param delta: microseconds to add to timestamps, default None</h1></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_timestamps(self, delta: Optional[float] = None):
+<pre><code class="python">def update_timestamps(self, om: Optional[OffsetModel]):
     &#34;&#34;&#34;
-    update timestamps by adding delta microseconds.  if delta not supplied, uses the best offset
-        use negative delta to go backwards in time
-    :param delta: microseconds to add to timestamps, default None
+    update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
+        uses negative values to go backwards in time
+    :param om: OffsetModel to calculate offsets, default None
+    # :param delta: microseconds to add to timestamps, default None
     &#34;&#34;&#34;
-    if not delta:
-        delta = self.get_best_offset()
-    self.station_start_timestamp += delta
+    if om:
+        self.station_start_timestamp += om.get_offset_at_new_time(self.station_start_timestamp)
     for tsd in self.timesync_data:
-        tsd.update_timestamps(delta)</code></pre>
+        tsd.update_timestamps(om)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncAnalysis.validate_sample_rate"><code class="name flex">
@@ -1694,7 +1783,7 @@ outputs warning if a gap is detected
 </dd>
 <dt id="redvox.common.timesync.TimeSyncData"><code class="flex name class">
 <span>class <span class="ident">TimeSyncData</span></span>
-<span>(</span><span>station_id: str = '', sample_rate_hz: float = nan, num_audio_samples: int = nan, station_start_timestamp: float = nan, server_acquisition_timestamp: float = nan, packet_start_timestamp: float = nan, packet_end_timestamp: float = nan, time_sync_exchanges_list: typing.Optional[typing.List[float]] = None, best_latency: float = nan, best_offset: float = 0.0)</span>
+<span>(</span><span>station_id: str = '', sample_rate_hz: float = nan, num_audio_samples: int = nan, station_start_timestamp: float = nan, server_acquisition_timestamp: float = nan, packet_start_timestamp: float = nan, packet_end_timestamp: float = nan, time_sync_exchanges_list: typing.Union[typing.List[float], NoneType] = None, best_latency: float = nan, best_offset: float = 0.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Stores latencies, offsets, and other timesync related information about a single station
@@ -1824,12 +1913,12 @@ default np.nan
             # compute tri message data from time sync exchanges
             tse = tms.TriMessageStats(
                 self.station_id,
-                self.time_sync_exchanges_df[&#34;a1&#34;],
-                self.time_sync_exchanges_df[&#34;a2&#34;],
-                self.time_sync_exchanges_df[&#34;a3&#34;],
-                self.time_sync_exchanges_df[&#34;b1&#34;],
-                self.time_sync_exchanges_df[&#34;b2&#34;],
-                self.time_sync_exchanges_df[&#34;b3&#34;],
+                self.time_sync_exchanges_df[&#34;a1&#34;].to_numpy(),
+                self.time_sync_exchanges_df[&#34;a2&#34;].to_numpy(),
+                self.time_sync_exchanges_df[&#34;a3&#34;].to_numpy(),
+                self.time_sync_exchanges_df[&#34;b1&#34;].to_numpy(),
+                self.time_sync_exchanges_df[&#34;b2&#34;].to_numpy(),
+                self.time_sync_exchanges_df[&#34;b3&#34;].to_numpy(),
             )
             # Compute the statistics for latency and offset
             self.mean_latency = np.mean([*tse.latency1, *tse.latency3])
@@ -1840,6 +1929,7 @@ default np.nan
             self.offsets = np.array((tse.offset1, tse.offset3))
             self.best_latency_index = tse.best_latency_index
             self.best_tri_msg_index = tse.best_latency_index
+            self.best_msg_timestamp_index = tse.best_latency_array_index
             # if best_latency is np.nan, set to best computed latency
             if np.isnan(self.best_latency):
                 self.best_latency = tse.best_latency
@@ -1857,6 +1947,7 @@ default np.nan
             self.best_offset = 0
             self.mean_offset = 0
             self.offset_std = 0
+            self.best_msg_timestamp_index = np.nan
 
     def num_tri_messages(self) -&gt; int:
         &#34;&#34;&#34;
@@ -1865,20 +1956,51 @@ default np.nan
         &#34;&#34;&#34;
         return self.time_sync_exchanges_df.shape[0]
 
-    def update_timestamps(self, delta: Optional[float] = None):
+    def update_timestamps(self, om: Optional[OffsetModel]):
         &#34;&#34;&#34;
-        update the timestamps by delta microseconds, or by the best offset if no delta is given
-            use negative delta to go backwards in time
-        :param delta: microseconds to add to applicable timestamps.  If None, use best offset. default None
+        update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
+            uses negative values to go backwards in time
+        :param om: OffsetModel to calculate offsets, default None
+        # :param delta: microseconds to add to timestamps, default None
         &#34;&#34;&#34;
-        if not delta:
+        if not om:
             delta = self.best_offset
-        self.station_start_timestamp += delta
-        self.packet_start_timestamp += delta
-        self.packet_end_timestamp += delta</code></pre>
+            self.station_start_timestamp += delta
+            self.packet_start_timestamp += delta
+            self.packet_end_timestamp += delta
+        else:
+            self.station_start_timestamp = om.update_time(self.station_start_timestamp)
+            self.packet_start_timestamp = om.update_time(self.packet_start_timestamp)
+            self.packet_end_timestamp = om.update_time(self.packet_end_timestamp)
+
+    def get_best_latency_timestamp(self):
+        if self.best_msg_timestamp_index == 1:
+            return self.time_sync_exchanges_df[&#34;b1&#34;].iloc[self.best_latency_index]
+        elif self.best_msg_timestamp_index == 3:
+            return self.time_sync_exchanges_df[&#34;b3&#34;].iloc[self.best_latency_index]
+        else:
+            return self.packet_start_timestamp</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="redvox.common.timesync.TimeSyncData.get_best_latency_timestamp"><code class="name flex">
+<span>def <span class="ident">get_best_latency_timestamp</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_best_latency_timestamp(self):
+    if self.best_msg_timestamp_index == 1:
+        return self.time_sync_exchanges_df[&#34;b1&#34;].iloc[self.best_latency_index]
+    elif self.best_msg_timestamp_index == 3:
+        return self.time_sync_exchanges_df[&#34;b3&#34;].iloc[self.best_latency_index]
+    else:
+        return self.packet_start_timestamp</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.timesync.TimeSyncData.num_tri_messages"><code class="name flex">
 <span>def <span class="ident">num_tri_messages</span></span>(<span>self) ‑> int</span>
 </code></dt>
@@ -1898,28 +2020,34 @@ default np.nan
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncData.update_timestamps"><code class="name flex">
-<span>def <span class="ident">update_timestamps</span></span>(<span>self, delta: typing.Optional[float] = None)</span>
+<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: typing.Union[<a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>, NoneType])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>update the timestamps by delta microseconds, or by the best offset if no delta is given
-use negative delta to go backwards in time
-:param delta: microseconds to add to applicable timestamps.
-If None, use best offset. default None</p></div>
+<div class="desc"><p>update timestamps by adding microseconds based on the OffsetModel.
+if model not supplied, uses the best offset
+uses negative values to go backwards in time
+:param om: OffsetModel to calculate offsets, default None</p>
+<h1 id="param-delta-microseconds-to-add-to-timestamps-default-none">:param delta: microseconds to add to timestamps, default None</h1></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_timestamps(self, delta: Optional[float] = None):
+<pre><code class="python">def update_timestamps(self, om: Optional[OffsetModel]):
     &#34;&#34;&#34;
-    update the timestamps by delta microseconds, or by the best offset if no delta is given
-        use negative delta to go backwards in time
-    :param delta: microseconds to add to applicable timestamps.  If None, use best offset. default None
+    update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
+        uses negative values to go backwards in time
+    :param om: OffsetModel to calculate offsets, default None
+    # :param delta: microseconds to add to timestamps, default None
     &#34;&#34;&#34;
-    if not delta:
+    if not om:
         delta = self.best_offset
-    self.station_start_timestamp += delta
-    self.packet_start_timestamp += delta
-    self.packet_end_timestamp += delta</code></pre>
+        self.station_start_timestamp += delta
+        self.packet_start_timestamp += delta
+        self.packet_end_timestamp += delta
+    else:
+        self.station_start_timestamp = om.update_time(self.station_start_timestamp)
+        self.packet_start_timestamp = om.update_time(self.packet_start_timestamp)
+        self.packet_end_timestamp = om.update_time(self.packet_end_timestamp)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1940,6 +2068,7 @@ If None, use best offset. default None</p></div>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="redvox.common.timesync.timesync_data_from_packet" href="#redvox.common.timesync.timesync_data_from_packet">timesync_data_from_packet</a></code></li>
 <li><code><a title="redvox.common.timesync.update_evenly_sampled_time_array" href="#redvox.common.timesync.update_evenly_sampled_time_array">update_evenly_sampled_time_array</a></code></li>
 <li><code><a title="redvox.common.timesync.update_time_array" href="#redvox.common.timesync.update_time_array">update_time_array</a></code></li>
 <li><code><a title="redvox.common.timesync.update_time_array_from_analysis" href="#redvox.common.timesync.update_time_array_from_analysis">update_time_array_from_analysis</a></code></li>
@@ -1977,6 +2106,7 @@ If None, use best offset. default None</p></div>
 <li>
 <h4><code><a title="redvox.common.timesync.TimeSyncData" href="#redvox.common.timesync.TimeSyncData">TimeSyncData</a></code></h4>
 <ul class="">
+<li><code><a title="redvox.common.timesync.TimeSyncData.get_best_latency_timestamp" href="#redvox.common.timesync.TimeSyncData.get_best_latency_timestamp">get_best_latency_timestamp</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncData.num_tri_messages" href="#redvox.common.timesync.TimeSyncData.num_tri_messages">num_tri_messages</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncData.update_timestamps" href="#redvox.common.timesync.TimeSyncData.update_timestamps">update_timestamps</a></code></li>
 </ul>
@@ -1987,7 +2117,7 @@ If None, use best offset. default None</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

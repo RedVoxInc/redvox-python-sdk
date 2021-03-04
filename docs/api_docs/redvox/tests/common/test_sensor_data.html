@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>redvox.tests.common.test_sensor_data API documentation</title>
 <meta name="description" content="tests for sensor data and sensor metadata objects" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -200,19 +200,19 @@ class SensorDataTest(unittest.TestCase):
     def test_last_data_timestamp(self):
         self.assertEqual(self.even_sensor.last_data_timestamp(), 180)
 
-    def test_data_duration_s(self):
-        self.assertEqual(self.even_sensor.data_duration_s(), 0.00016)
+    # def test_data_duration_s(self):
+    #     self.assertEqual(self.even_sensor.data_duration_s(), 0.00016)
 
     def test_data_fields(self):
         self.assertEqual(len(self.even_sensor.data_channels()), 3)
         self.assertEqual(self.even_sensor.data_channels()[0], &#34;timestamps&#34;)
         self.assertEqual(self.even_sensor.data_channels()[1], &#34;microphone&#34;)
 
-    def test_update_data_timestamps(self):
-        self.even_sensor.update_data_timestamps(100)
+    def update_data_timestamps_delta(self):
+        self.even_sensor.update_data_timestamps_delta(100)
         self.assertEqual(self.even_sensor.first_data_timestamp(), 120)
         self.assertEqual(self.even_sensor.last_data_timestamp(), 280)
-        self.even_sensor.update_data_timestamps(-100)
+        self.even_sensor.update_data_timestamps_delta(-100)
         self.assertEqual(self.even_sensor.first_data_timestamp(), 20)
         self.assertEqual(self.even_sensor.last_data_timestamp(), 180)
 
@@ -554,19 +554,19 @@ not have a method with the specified name.</p></div>
     def test_last_data_timestamp(self):
         self.assertEqual(self.even_sensor.last_data_timestamp(), 180)
 
-    def test_data_duration_s(self):
-        self.assertEqual(self.even_sensor.data_duration_s(), 0.00016)
+    # def test_data_duration_s(self):
+    #     self.assertEqual(self.even_sensor.data_duration_s(), 0.00016)
 
     def test_data_fields(self):
         self.assertEqual(len(self.even_sensor.data_channels()), 3)
         self.assertEqual(self.even_sensor.data_channels()[0], &#34;timestamps&#34;)
         self.assertEqual(self.even_sensor.data_channels()[1], &#34;microphone&#34;)
 
-    def test_update_data_timestamps(self):
-        self.even_sensor.update_data_timestamps(100)
+    def update_data_timestamps_delta(self):
+        self.even_sensor.update_data_timestamps_delta(100)
         self.assertEqual(self.even_sensor.first_data_timestamp(), 120)
         self.assertEqual(self.even_sensor.last_data_timestamp(), 280)
-        self.even_sensor.update_data_timestamps(-100)
+        self.even_sensor.update_data_timestamps_delta(-100)
         self.assertEqual(self.even_sensor.first_data_timestamp(), 20)
         self.assertEqual(self.even_sensor.last_data_timestamp(), 180)
 
@@ -760,19 +760,6 @@ not have a method with the specified name.</p></div>
     self.assertEqual(self.even_sensor.data_df.size, 27)
     self.assertEqual(self.even_sensor.data_df.ndim, 2)
     self.assertTrue(&#34;test_data&#34; in self.uneven_sensor.data_df.columns)</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_sensor_data.SensorDataTest.test_data_duration_s"><code class="name flex">
-<span>def <span class="ident">test_data_duration_s</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_data_duration_s(self):
-    self.assertEqual(self.even_sensor.data_duration_s(), 0.00016)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_sensor_data.SensorDataTest.test_data_fields"><code class="name flex">
@@ -1078,8 +1065,8 @@ not have a method with the specified name.</p></div>
     self.assertEqual(self.even_sensor.data_timestamps()[1], 160)</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.common.test_sensor_data.SensorDataTest.test_update_data_timestamps"><code class="name flex">
-<span>def <span class="ident">test_update_data_timestamps</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_sensor_data.SensorDataTest.update_data_timestamps_delta"><code class="name flex">
+<span>def <span class="ident">update_data_timestamps_delta</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1087,11 +1074,11 @@ not have a method with the specified name.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_update_data_timestamps(self):
-    self.even_sensor.update_data_timestamps(100)
+<pre><code class="python">def update_data_timestamps_delta(self):
+    self.even_sensor.update_data_timestamps_delta(100)
     self.assertEqual(self.even_sensor.first_data_timestamp(), 120)
     self.assertEqual(self.even_sensor.last_data_timestamp(), 280)
-    self.even_sensor.update_data_timestamps(-100)
+    self.even_sensor.update_data_timestamps_delta(-100)
     self.assertEqual(self.even_sensor.first_data_timestamp(), 20)
     self.assertEqual(self.even_sensor.last_data_timestamp(), 180)</code></pre>
 </details>
@@ -1127,7 +1114,6 @@ not have a method with the specified name.</p></div>
 <li><code><a title="redvox.tests.common.test_sensor_data.SensorDataTest.test_append_data" href="#redvox.tests.common.test_sensor_data.SensorDataTest.test_append_data">test_append_data</a></code></li>
 <li><code><a title="redvox.tests.common.test_sensor_data.SensorDataTest.test_create_read_update_audio_sensor" href="#redvox.tests.common.test_sensor_data.SensorDataTest.test_create_read_update_audio_sensor">test_create_read_update_audio_sensor</a></code></li>
 <li><code><a title="redvox.tests.common.test_sensor_data.SensorDataTest.test_data_df" href="#redvox.tests.common.test_sensor_data.SensorDataTest.test_data_df">test_data_df</a></code></li>
-<li><code><a title="redvox.tests.common.test_sensor_data.SensorDataTest.test_data_duration_s" href="#redvox.tests.common.test_sensor_data.SensorDataTest.test_data_duration_s">test_data_duration_s</a></code></li>
 <li><code><a title="redvox.tests.common.test_sensor_data.SensorDataTest.test_data_fields" href="#redvox.tests.common.test_sensor_data.SensorDataTest.test_data_fields">test_data_fields</a></code></li>
 <li><code><a title="redvox.tests.common.test_sensor_data.SensorDataTest.test_data_timestamps" href="#redvox.tests.common.test_sensor_data.SensorDataTest.test_data_timestamps">test_data_timestamps</a></code></li>
 <li><code><a title="redvox.tests.common.test_sensor_data.SensorDataTest.test_empty_dataframe" href="#redvox.tests.common.test_sensor_data.SensorDataTest.test_empty_dataframe">test_empty_dataframe</a></code></li>
@@ -1146,7 +1132,7 @@ not have a method with the specified name.</p></div>
 <li><code><a title="redvox.tests.common.test_sensor_data.SensorDataTest.test_sample_rate" href="#redvox.tests.common.test_sensor_data.SensorDataTest.test_sample_rate">test_sample_rate</a></code></li>
 <li><code><a title="redvox.tests.common.test_sensor_data.SensorDataTest.test_samples" href="#redvox.tests.common.test_sensor_data.SensorDataTest.test_samples">test_samples</a></code></li>
 <li><code><a title="redvox.tests.common.test_sensor_data.SensorDataTest.test_sort_by_data_timestamps" href="#redvox.tests.common.test_sensor_data.SensorDataTest.test_sort_by_data_timestamps">test_sort_by_data_timestamps</a></code></li>
-<li><code><a title="redvox.tests.common.test_sensor_data.SensorDataTest.test_update_data_timestamps" href="#redvox.tests.common.test_sensor_data.SensorDataTest.test_update_data_timestamps">test_update_data_timestamps</a></code></li>
+<li><code><a title="redvox.tests.common.test_sensor_data.SensorDataTest.update_data_timestamps_delta" href="#redvox.tests.common.test_sensor_data.SensorDataTest.update_data_timestamps_delta">update_data_timestamps_delta</a></code></li>
 </ul>
 </li>
 </ul>
@@ -1155,7 +1141,7 @@ not have a method with the specified name.</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

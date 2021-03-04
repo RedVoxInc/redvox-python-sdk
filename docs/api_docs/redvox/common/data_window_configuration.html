@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>redvox.common.data_window_configuration API documentation</title>
 <meta name="description" content="This module provide type-safe data window configuration" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -71,9 +71,9 @@ class DataWindowConfig:
         end_hour: optional int representing the hour of the data window end time.  Default None
         end_minute: optional int representing the minute of the data window end time.  Default None
         end_second: optional int representing the second of the data window end time.  Default None
-        end_padding_seconds: int representing the amount of seconds to include before the start datetime
+        end_padding_seconds: float representing the amount of seconds to include before the start datetime
                                 when filtering data.  Default DEFAULT_START_PADDING_S
-        end_padding_seconds: int representing the amount of seconds to include after the end datetime
+        end_padding_seconds: float representing the amount of seconds to include after the end datetime
                                 when filtering data.  Default DEFAULT_END_PADDING_S
         gap_time_s: float representing the minimum amount of seconds between data points that would indicate a gap.
                     Default DEFAULT_GAP_TIME_S
@@ -98,8 +98,8 @@ class DataWindowConfig:
     end_hour: Optional[int] = None
     end_minute: Optional[int] = None
     end_second: Optional[int] = None
-    start_padding_seconds: int = DEFAULT_START_PADDING_S
-    end_padding_seconds: int = DEFAULT_END_PADDING_S
+    start_padding_seconds: float = DEFAULT_START_PADDING_S
+    end_padding_seconds: float = DEFAULT_END_PADDING_S
     gap_time_seconds: float = DEFAULT_GAP_TIME_S
     apply_correction: bool = True
     debug: bool = False
@@ -131,7 +131,7 @@ class DataWindowConfig:
 <dl>
 <dt id="redvox.common.data_window_configuration.DataWindowConfig"><code class="flex name class">
 <span>class <span class="ident">DataWindowConfig</span></span>
-<span>(</span><span>input_directory: str, structured_layout: bool = True, station_ids: typing.Optional[typing.List[str]] = None, extensions: typing.Optional[typing.List[str]] = None, api_versions: typing.Optional[typing.List[str]] = None, start_year: typing.Optional[int] = None, start_month: typing.Optional[int] = None, start_day: typing.Optional[int] = None, start_hour: typing.Optional[int] = None, start_minute: typing.Optional[int] = None, start_second: typing.Optional[int] = None, end_year: typing.Optional[int] = None, end_month: typing.Optional[int] = None, end_day: typing.Optional[int] = None, end_hour: typing.Optional[int] = None, end_minute: typing.Optional[int] = None, end_second: typing.Optional[int] = None, start_padding_seconds: int = 120.0, end_padding_seconds: int = 120.0, gap_time_seconds: float = 0.25, apply_correction: bool = True, debug: bool = False)</span>
+<span>(</span><span>input_directory: str, structured_layout: bool = True, station_ids: typing.Union[typing.List[str], NoneType] = None, extensions: typing.Union[typing.List[str], NoneType] = None, api_versions: typing.Union[typing.List[str], NoneType] = None, start_year: typing.Union[int, NoneType] = None, start_month: typing.Union[int, NoneType] = None, start_day: typing.Union[int, NoneType] = None, start_hour: typing.Union[int, NoneType] = None, start_minute: typing.Union[int, NoneType] = None, start_second: typing.Union[int, NoneType] = None, end_year: typing.Union[int, NoneType] = None, end_month: typing.Union[int, NoneType] = None, end_day: typing.Union[int, NoneType] = None, end_hour: typing.Union[int, NoneType] = None, end_minute: typing.Union[int, NoneType] = None, end_second: typing.Union[int, NoneType] = None, start_padding_seconds: float = 120.0, end_padding_seconds: float = 120.0, gap_time_seconds: float = 0.25, apply_correction: bool = True, debug: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="properties">Properties</h2>
@@ -173,10 +173,10 @@ end_minute: optional int representing the minute of the data window end time.
 Default None
 end_second: optional int representing the second of the data window end time.
 Default None
-end_padding_seconds: int representing the amount of seconds to include before the start datetime
+end_padding_seconds: float representing the amount of seconds to include before the start datetime
 when filtering data.
 Default DEFAULT_START_PADDING_S
-end_padding_seconds: int representing the amount of seconds to include after the end datetime
+end_padding_seconds: float representing the amount of seconds to include after the end datetime
 when filtering data.
 Default DEFAULT_END_PADDING_S
 gap_time_s: float representing the minimum amount of seconds between data points that would indicate a gap.
@@ -189,9 +189,7 @@ Default False</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json()
-@dataclass
-class DataWindowConfig:
+<pre><code class="python">class DataWindowConfig:
     &#34;&#34;&#34;
     Properties:
         input_directory: string, directory that contains the files to read data from.  REQUIRED
@@ -215,9 +213,9 @@ class DataWindowConfig:
         end_hour: optional int representing the hour of the data window end time.  Default None
         end_minute: optional int representing the minute of the data window end time.  Default None
         end_second: optional int representing the second of the data window end time.  Default None
-        end_padding_seconds: int representing the amount of seconds to include before the start datetime
+        end_padding_seconds: float representing the amount of seconds to include before the start datetime
                                 when filtering data.  Default DEFAULT_START_PADDING_S
-        end_padding_seconds: int representing the amount of seconds to include after the end datetime
+        end_padding_seconds: float representing the amount of seconds to include after the end datetime
                                 when filtering data.  Default DEFAULT_END_PADDING_S
         gap_time_s: float representing the minimum amount of seconds between data points that would indicate a gap.
                     Default DEFAULT_GAP_TIME_S
@@ -242,8 +240,8 @@ class DataWindowConfig:
     end_hour: Optional[int] = None
     end_minute: Optional[int] = None
     end_second: Optional[int] = None
-    start_padding_seconds: int = DEFAULT_START_PADDING_S
-    end_padding_seconds: int = DEFAULT_END_PADDING_S
+    start_padding_seconds: float = DEFAULT_START_PADDING_S
+    end_padding_seconds: float = DEFAULT_END_PADDING_S
     gap_time_seconds: float = DEFAULT_GAP_TIME_S
     apply_correction: bool = True
     debug: bool = False
@@ -265,7 +263,7 @@ class DataWindowConfig:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.api_versions"><code class="name">var <span class="ident">api_versions</span> : typing.Optional[typing.List[str]]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.api_versions"><code class="name">var <span class="ident">api_versions</span> : typing.Union[typing.List[str], NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -277,35 +275,35 @@ class DataWindowConfig:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_day"><code class="name">var <span class="ident">end_day</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_day"><code class="name">var <span class="ident">end_day</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_hour"><code class="name">var <span class="ident">end_hour</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_hour"><code class="name">var <span class="ident">end_hour</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_minute"><code class="name">var <span class="ident">end_minute</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_minute"><code class="name">var <span class="ident">end_minute</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_month"><code class="name">var <span class="ident">end_month</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_month"><code class="name">var <span class="ident">end_month</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_padding_seconds"><code class="name">var <span class="ident">end_padding_seconds</span> : int</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_padding_seconds"><code class="name">var <span class="ident">end_padding_seconds</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_second"><code class="name">var <span class="ident">end_second</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_second"><code class="name">var <span class="ident">end_second</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_year"><code class="name">var <span class="ident">end_year</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_year"><code class="name">var <span class="ident">end_year</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.extensions"><code class="name">var <span class="ident">extensions</span> : typing.Optional[typing.List[str]]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.extensions"><code class="name">var <span class="ident">extensions</span> : typing.Union[typing.List[str], NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -317,35 +315,35 @@ class DataWindowConfig:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_day"><code class="name">var <span class="ident">start_day</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_day"><code class="name">var <span class="ident">start_day</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_hour"><code class="name">var <span class="ident">start_hour</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_hour"><code class="name">var <span class="ident">start_hour</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_minute"><code class="name">var <span class="ident">start_minute</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_minute"><code class="name">var <span class="ident">start_minute</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_month"><code class="name">var <span class="ident">start_month</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_month"><code class="name">var <span class="ident">start_month</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_padding_seconds"><code class="name">var <span class="ident">start_padding_seconds</span> : int</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_padding_seconds"><code class="name">var <span class="ident">start_padding_seconds</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_second"><code class="name">var <span class="ident">start_second</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_second"><code class="name">var <span class="ident">start_second</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_year"><code class="name">var <span class="ident">start_year</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_year"><code class="name">var <span class="ident">start_year</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.station_ids"><code class="name">var <span class="ident">station_ids</span> : typing.Optional[typing.List[str]]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.station_ids"><code class="name">var <span class="ident">station_ids</span> : typing.Union[typing.List[str], NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -477,7 +475,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.common.data_window_configuration.DataWindowConfig.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -485,8 +483,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=encode_json)</code></pre>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window_configuration.DataWindowConfig.to_json"><code class="name flex">
@@ -509,7 +507,7 @@ def schema(cls: Type[A],
             default: Callable = None,
             sort_keys: bool = False,
             **kw) -&gt; str:
-    return json.dumps(self.to_dict(encode_json=False),
+    return json.dumps(self.to_dict(),
                       cls=_ExtendedEncoder,
                       skipkeys=skipkeys,
                       ensure_ascii=ensure_ascii,
@@ -580,7 +578,7 @@ def schema(cls: Type[A],
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

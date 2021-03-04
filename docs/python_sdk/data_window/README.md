@@ -443,7 +443,7 @@ The table below lists the sensors and their data's units
 |all                     |timestamps              |microseconds since epoch UTC|
 |accelerometer           |                        |meters/second^2|
 |ambient temperature     |                        |degrees Celsius|
-|audio                   |                        |lsb plus/minus counts|
+|audio                   |                        |normalized counts (normalization constant = 0x7FFFFF)|
 |compressed audio        |                        |bytes (codec specific)|
 |gravity                 |                        |meters/second^2|
 |gyroscope               |                        |radians/second|
