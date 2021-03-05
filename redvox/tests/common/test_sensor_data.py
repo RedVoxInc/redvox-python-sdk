@@ -10,7 +10,6 @@ from redvox.common import date_time_utils as dtu
 from redvox.common.sensor_data import (
     SensorData,
     SensorType,
-    calc_evenly_sampled_timestamps,
 )
 
 
@@ -171,9 +170,6 @@ class SensorDataTest(unittest.TestCase):
     def test_last_data_timestamp(self):
         self.assertEqual(self.even_sensor.last_data_timestamp(), 180)
 
-    # def test_data_duration_s(self):
-    #     self.assertEqual(self.even_sensor.data_duration_s(), 0.00016)
-
     def test_data_fields(self):
         self.assertEqual(len(self.even_sensor.data_channels()), 3)
         self.assertEqual(self.even_sensor.data_channels()[0], "timestamps")
@@ -241,12 +237,3 @@ class SensorDataTest(unittest.TestCase):
         self.assertRaises(ValueError, audio_sensor.get_data_channel, "do_not_exist")
         self.assertEqual(audio_sensor.first_data_timestamp(), 10)
         self.assertEqual(audio_sensor.last_data_timestamp(), 40)
-
-
-class CalcTimestampsTest(unittest.TestCase):
-    def test_calc_timestamps(self):
-        timestamps = calc_evenly_sampled_timestamps(1000, 100, 1000)
-        self.assertEqual(len(timestamps), 100)
-        self.assertEqual(timestamps[0], 1000)
-        self.assertEqual(timestamps[1], 2000)
-        self.assertEqual(timestamps[99], 100000)

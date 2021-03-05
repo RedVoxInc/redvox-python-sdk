@@ -10,7 +10,8 @@ import redvox.tests as tests
 from redvox.common import api_reader
 from redvox.common.io import ReadFilter
 from redvox.common.station import Station
-from redvox.common.sensor_data import SensorType, get_empty_sensor_data
+from redvox.common.sensor_data import SensorType
+from redvox.common.sensor_reader_utils import get_empty_sensor_data
 
 
 class StationTest(unittest.TestCase):
