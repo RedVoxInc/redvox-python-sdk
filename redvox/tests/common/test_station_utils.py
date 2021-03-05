@@ -18,11 +18,7 @@ class StationMetadataTest(unittest.TestCase):
     def test_station_metadata(self):
         reader = ApiReader(self.input_dir, read_filter=self.station_filter)
         files = reader.read_files_by_id("0000000001")
-        metadata = [su.StationMetadata(p.get_api(),
-                                       p.get_sub_api(),
-                                       p.get_station_information(),
-                                       "Redvox",
-                                       p.get_timing_information(),) for p in files]
+        metadata = [su.StationMetadata("Redvox", p) for p in files]
         self.assertEqual(len(metadata), 3)
         self.assertEqual(metadata[2].os_version, "Fedora 32")
         self.assertEqual(metadata[1].app_version, "0.2.0")

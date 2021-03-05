@@ -3,14 +3,13 @@ Defines generic station metadata for API-independent analysis
 all timestamps are floats in microseconds unless otherwise stated
 """
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Optional
+
+import numpy as np
 
 from redvox.common.offset_model import OffsetModel
-from redvox.api1000.wrapped_redvox_packet import (
-    station_information as si,
-    timing_information as ti,
-    # event_streams as es,
-)
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+# from redvox.api1000.wrapped_redvox_packet import event_streams as es
 
 
 @dataclass
@@ -53,38 +52,49 @@ class StationMetadata:
         packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
         packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
         timing_info_score: float, quality of timing information
+        other_metadata: dict str: str, other metadata from the packet
     """
 
     def __init__(
         self,
-        api: float,
-        sub_api: float,
-        station_info: si.StationInformation,
         app: str,
-        timing_info: ti.TimingInformation,
+        packet: Optional[WrappedRedvoxPacketM] = None
     ):
         """
         initialize the metadata
-        :param api: api version
-        :param sub_api: sub api version
-        :param station_info: station information
         :param app: app name
-        :param timing_info: timing information
+        :param packet: Optional WrappedRedvoxPacketM to read data from
         """
-        self.api = api
-        self.sub_api = sub_api
-        self.make = station_info.get_make()
-        self.model = station_info.get_model()
-        self.os = station_info.get_os()
-        self.os_version = station_info.get_os_version()
         self.app = app
-        self.app_version = station_info.get_app_version()
-        self.is_private = station_info.get_is_private()
-        self.packet_start_mach_timestamp = timing_info.get_packet_start_mach_timestamp()
-        self.packet_end_mach_timestamp = timing_info.get_packet_end_mach_timestamp()
-        self.packet_start_os_timestamp = timing_info.get_packet_start_os_timestamp()
-        self.packet_end_os_timestamp = timing_info.get_packet_end_os_timestamp()
-        self.timing_info_score = timing_info.get_score()
+        self.other_metadata = {}
+        if packet:
+            self.api = packet.get_api()
+            self.sub_api = packet.get_sub_api()
+            self.make = packet.get_station_information().get_make()
+            self.model = packet.get_station_information().get_model()
+            self.os = packet.get_station_information().get_os()
+            self.os_version = packet.get_station_information().get_os_version()
+            self.app_version = packet.get_station_information().get_app_version()
+            self.is_private = packet.get_station_information().get_is_private()
+            self.packet_start_mach_timestamp = packet.get_timing_information().get_packet_start_mach_timestamp()
+            self.packet_end_mach_timestamp = packet.get_timing_information().get_packet_end_mach_timestamp()
+            self.packet_start_os_timestamp = packet.get_timing_information().get_packet_start_os_timestamp()
+            self.packet_end_os_timestamp = packet.get_timing_information().get_packet_end_os_timestamp()
+            self.timing_info_score = packet.get_timing_information().get_score()
+        else:
+            self.api = np.nan
+            self.sub_api = np.nan
+            self.make = ""
+            self.model = ""
+            self.os = ""
+            self.os_version = ""
+            self.app_version = ""
+            self.is_private = False
+            self.packet_start_mach_timestamp = np.nan
+            self.packet_end_mach_timestamp = np.nan
+            self.packet_start_os_timestamp = np.nan
+            self.packet_end_os_timestamp = np.nan
+            self.timing_info_score = np.nan
 
     def update_timestamps(self, om: OffsetModel):
         """

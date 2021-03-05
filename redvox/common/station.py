@@ -11,6 +11,7 @@ import numpy as np
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common import sensor_data as sd
+from redvox.common import sensor_reader_utils as sdru
 from redvox.common.station_utils import StationKey, StationMetadata
 from redvox.common.timesync import TimeSyncAnalysis
 from redvox.common import offset_model as om
@@ -984,30 +985,24 @@ class Station:
         """
         self.data = {}
         self.metadata: List[StationMetadata] = [
-            StationMetadata(
-                packet.get_api(),
-                packet.get_sub_api(),
-                packet.get_station_information(),
-                "Redvox",
-                packet.get_timing_information(),
-            ) for packet in packets]
-        funcs = [sd.load_apim_audio_from_list,
-                 sd.load_apim_compressed_audio_from_list,
-                 sd.load_apim_image_from_list,
-                 sd.load_apim_location_from_list,
-                 sd.load_apim_pressure_from_list,
-                 sd.load_apim_light_from_list,
-                 sd.load_apim_ambient_temp_from_list,
-                 sd.load_apim_rel_humidity_from_list,
-                 sd.load_apim_proximity_from_list,
-                 sd.load_apim_accelerometer_from_list,
-                 sd.load_apim_gyroscope_from_list,
-                 sd.load_apim_magnetometer_from_list,
-                 sd.load_apim_gravity_from_list,
-                 sd.load_apim_linear_accel_from_list,
-                 sd.load_apim_orientation_from_list,
-                 sd.load_apim_rotation_vector_from_list,
-                 sd.load_apim_health_from_list,
+            StationMetadata("Redvox", packet) for packet in packets]
+        funcs = [sdru.load_apim_audio_from_list,
+                 sdru.load_apim_compressed_audio_from_list,
+                 sdru.load_apim_image_from_list,
+                 sdru.load_apim_location_from_list,
+                 sdru.load_apim_pressure_from_list,
+                 sdru.load_apim_light_from_list,
+                 sdru.load_apim_ambient_temp_from_list,
+                 sdru.load_apim_rel_humidity_from_list,
+                 sdru.load_apim_proximity_from_list,
+                 sdru.load_apim_accelerometer_from_list,
+                 sdru.load_apim_gyroscope_from_list,
+                 sdru.load_apim_magnetometer_from_list,
+                 sdru.load_apim_gravity_from_list,
+                 sdru.load_apim_linear_accel_from_list,
+                 sdru.load_apim_orientation_from_list,
+                 sdru.load_apim_rotation_vector_from_list,
+                 sdru.load_apim_health_from_list,
                  ]
         sensors = map(FunctionType.__call__, funcs, repeat(packets))
         for sensor in sensors:

@@ -50,7 +50,7 @@ class DataWindow:
         gap_time_s: float, the minimum amount of seconds between data points that would indicate a gap.
                     Default DEFAULT_GAP_TIME_S
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
-        stations: list of Stations, the results of reading the data from input_directory
+        stations: dictionary of Id:Station, the results of reading the data from input_directory
         debug: bool, if True, outputs additional information during initialization. Default False
     """
 
