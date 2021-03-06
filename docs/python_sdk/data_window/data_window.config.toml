@@ -2,13 +2,11 @@
 # The only required field is input_directory.  Do not delete this field.
 # Remove any field if you are not setting a value for it
 
-input_directory = "test_read_data"  # input directory where all the files are.  REQUIRED
+input_directory = "/test_read_data" # input directory where all the files are.  Absolute paths recommended.  REQUIRED
 structured_layout = false           # if true, there are organized api900 and/or api1000 directories in input_directory
+apply_correction = false            # if true, timestamps will be adjusted before processing the data window
 # specific station ids to process; write ids as strings i.e. "1234567890"
 station_ids = ["1637610011", "1637610015", "0123456789"]
-extensions = [".rdvxm", ".rdvxz"]   # specific file extensions to get; acceptable values: ".rdvxm", ".rdvxz"
-# specific api versions to get; acceptable values: "API_900", "API_1000", "UNKNOWN"
-api_versions = ["API_900", "API_1000"]
 start_year = 2020                   # year of start date
 start_month = 7                     # month of start year
 start_day = 11                      # day of start month
@@ -24,5 +22,7 @@ end_second = 31                     # second of end minute
 start_padding_seconds = 120         # padding to include before start datetime when searching for data
 end_padding_seconds = 120           # padding to include after start datetime when searching for data
 gap_time_seconds = 0.25             # minimum number of seconds between timestamps that indicates a gap in data
-apply_correction = false            # if true, timestamps will be adjusted before processing the data window
+extensions = [".rdvxm", ".rdvxz"]   # specific file extensions to get; acceptable values: ".rdvxm", ".rdvxz"
+# specific api versions to get; acceptable values: "API_900", "API_1000", "UNKNOWN"
+api_versions = ["API_900", "API_1000"]
 debug = true                        # if true, output extra information when processing the data window

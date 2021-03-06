@@ -271,9 +271,9 @@ def load_apim_image_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
     for packet in wrapped_packets:
         image = packet.get_sensors().get_image()
         if image and packet.get_sensors().validate_image():
-            data_list[0] = image.get_timestamps().get_timestamps()
-            data_list[1] = image.get_samples()
-            data_list[2] = np.full(len(data_list[0]), image.get_image_codec().value)
+            data_list[0].append(image.get_timestamps().get_timestamps())
+            data_list[1].append(image.get_samples())
+            data_list[2].append(np.full(len(data_list[0]), image.get_image_codec().value))
     if len(data_list[0]) > 0:
         data_df = pd.DataFrame(
             np.transpose([data_list[0], data_list[1], data_list[2]]),
