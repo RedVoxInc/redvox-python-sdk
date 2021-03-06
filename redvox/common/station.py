@@ -58,6 +58,7 @@ class Station:
         is_audio_scrambled: bool, True if audio data is scrambled, default False
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
         timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
+        offset_model: OffsetModel object, contains information about the station's timing correction
     """
 
     def __init__(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None):

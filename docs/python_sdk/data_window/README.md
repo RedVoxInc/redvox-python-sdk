@@ -23,6 +23,7 @@ It is capable of reading and exporting to various formats.
   * [3.2 Sensor Data Functions](#32-sensor-data-functions)
   * [3.3 Sensor Data Dataframe Access](#33-sensor-data-dataframe-access)
   * [2.3 Using Sensor Data](#34-using-sensor-data)
+* [4 DataWindow Example Code](#4-datawindow-example-code) 
     
 ## 1 Data Window
 
@@ -35,6 +36,8 @@ DataWindow is accessible through the Redvox SDK. The source for the latest devel
 We recommend installing the SDK through pip. Select the latest version available on [PyPi](https://pypi.org/project/redvox/#history) and follow the "pip install" instructions.
 
 You may find the DataWindow specific API documentation [here](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/data_window.html)
+
+If you want a quick example to copy and paste into your Python IDE, check [here](#4-datawindow-example-code)
 
 _[Table of Contents](#table-of-contents)_
 
@@ -108,7 +111,7 @@ _apply_correction:_ a boolean value representing the option to automatically adj
 _debug:_ a boolean value that controls the output level of DataWindow.  If `True`, DataWindow will output more information when an error occurs.  The default value is `False`.
 
 #### Advanced Optional Data Window Parameters
-It is not recommended to alter the following parameters from the defaults.
+It is not recommended to change the following parameters from the defaults.
 
 _start_buffer_td:_ a timedelta object representing how much additional time before the start_datetime to add when looking for data.  If `None` or not given, 120 seconds is added.  The default value is `None`.
 
@@ -180,11 +183,11 @@ datawindow = DataWindow(input_dir=input_dir_str),
 
 The second is via a config file.
 
-[_Example Config File_](data_window.config.toml)
+_[Example Config File](data_window.config.toml)_
 
 Once the config file is created, you must create the DataWindow using this function:
 
-`datawindow = DataWindow.from_config_file(path/to/config.file.toml)`
+`datawindow = DataWindow.from_config_file(path/to/data_window.config.toml)`
 
 The DataWindowConfiguration specific API documentation is available [here](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/data_window_configuration.html)
 
@@ -195,10 +198,10 @@ _[Table of Contents](#table-of-contents)_
 DataWindow stores all the data gathered in its stations property, which is a dictionary of station IDs to Station data objects.  There are various methods of accessing the Stations:
 
 ```
-stations_dict = datawindow.stations            # All id:station entries
 stations_list = datawindow.get_all_stations()  # All stations as a list
-station = datawindow.stations[station_id]      # The station identified by station_id
 station = datawindow.get_station(station_id)   # The station identified by station_id
+stations_dict = datawindow.stations            # All id:station entries
+station = datawindow.stations[station_id]      # The station identified by station_id
 ```
 
 We recommend using the get_all_stations() and get_station(station_id) methods to get the Station objects.
@@ -209,7 +212,7 @@ Refer to the [Station](#2-station) section or the [Station API documentation](ht
 
 Refer to the [SensorData](#3-sensor-data) section or the [SensorData API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/station_data.html) for more information about how to use SensorData objects.
 
-We will look at the audio sensor in this example:
+Continuing with the example, we will look at the audio sensor of our station in this example:
 
 ```
 audio_sensor = station.audio_sensor()
@@ -507,6 +510,111 @@ station.audio_sensor().data_timestamps()
 station.accelerometer_sensor().get_data_channel("accelerometer_x")
 station.accelerometer_sensor().sample_rate
 station.accelerometer_sensor().sample_interval_s
+```
+
+_[Table of Contents](#table-of-contents)_
+
+## 4 DataWindow Example Code
+
+Below are a few examples of how to use DataWindow.  Ensure you have installed the latest Redvox SDK.
+
+Update the variables to match your environment before running.
+
+Using the initializer function:
+```
+import matplotlib.pyplot as plt
+
+from redvox.common.data_window import DataWindow
+import redvox.common.date_time_utils as dt
+
+
+# Variables
+input_dir: str = "/path/to/api_dir"
+station_ids = ["list", "of", "ids"]
+target_station = "id_from_list"
+start_timestamp_s: dt.datetime = dt.datetime_from(start_year,
+                                                  start_month,
+                                                  start_day,
+                                                  start_hour,
+                                                  start_minute,
+                                                  start_second)
+end_timestamp_s: dt.datetime = dt.datetime_from(end_year,
+                                                end_month,
+                                                end_day,
+                                                end_hour,
+                                                end_minute,
+                                                end_second)
+apply_correction: bool = True_or_False
+structured_layout: bool = True_or_False
+# End Variables
+
+datawindow = DataWindow(input_dir=input_dir,
+                        structured_layout=structured_layout,
+                        start_datetime=start_timestamp_s,
+                        end_datetime=end_timestamp_s,
+                        station_ids=station_ids,
+                        apply_correction=apply_correction)
+
+station = datawindow.get_station(target_station)
+
+print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
+      f"mic sample rate in hz: {station.audio_sensor().sample_rate}\n"
+      f"is mic sample rate constant: {station.audio_sensor().is_sample_rate_fixed}\n"
+      f"mic sample interval in seconds: {station.audio_sensor().sample_interval_s}\n"
+      f"mic sample interval std dev: {station.audio_sensor().sample_interval_std_s}\n"
+      f"the data timestamps as a numpy array:\n {station.audio_sensor().data_timestamps()}\n"
+      f"the first data timestamp: {station.audio_sensor().first_data_timestamp()}\n"
+      f"the last data timestamp:  {station.audio_sensor().last_data_timestamp()}\n"
+      f"the data as an ndarray: {station.audio_sensor().samples()}\n"
+      f"the number of data samples: {station.audio_sensor().num_samples()}\n"
+      f"the names of the dataframe columns: {station.audio_sensor().data_channels()}\n")
+      
+print("Let's plot the mic data: ")
+samples = station.audio_sensor().get_data_channel("microphone")
+plt.plot(station.audio_sensor().data_timestamps() -
+         station.audio_sensor().first_data_timestamp(),
+         samples)
+plt.title(f"{station.id}")
+plt.xlabel(f"microseconds from {start_timestamp_s}")
+plt.show()
+```
+
+Using a config file:
+```
+import matplotlib.pyplot as plt
+
+from redvox.common.data_window import DataWindow
+
+
+# Variables
+config_dir: str = "path/to/config.file.toml"
+target_station = "id_from_config"
+# End Variables
+
+datawindow = DataWindow.from_config_file(config_dir)
+
+station = datawindow.get_station(target_station)
+
+print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
+      f"mic sample rate in hz: {station.audio_sensor().sample_rate}\n"
+      f"is mic sample rate constant: {station.audio_sensor().is_sample_rate_fixed}\n"
+      f"mic sample interval in seconds: {station.audio_sensor().sample_interval_s}\n"
+      f"mic sample interval std dev: {station.audio_sensor().sample_interval_std_s}\n"
+      f"the data timestamps as a numpy array:\n {station.audio_sensor().data_timestamps()}\n"
+      f"the first data timestamp: {station.audio_sensor().first_data_timestamp()}\n"
+      f"the last data timestamp:  {station.audio_sensor().last_data_timestamp()}\n"
+      f"the data as an ndarray: {station.audio_sensor().samples()}\n"
+      f"the number of data samples: {station.audio_sensor().num_samples()}\n"
+      f"the names of the dataframe columns: {station.audio_sensor().data_channels()}\n")
+      
+print("Let's plot the mic data: ")
+samples = station.audio_sensor().get_data_channel("microphone")
+plt.plot(station.audio_sensor().data_timestamps() -
+         station.audio_sensor().first_data_timestamp(),
+         samples)
+plt.title(f"{station.id}")
+plt.xlabel(f"microseconds from {datawindow.start_datetime}")
+plt.show()
 ```
 
 _[Table of Contents](#table-of-contents)_

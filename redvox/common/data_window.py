@@ -114,13 +114,14 @@ class DataWindow:
         self.stations: Dict[str, Station] = {}
         self.create_data_window()
 
-    def from_config_file(self, file: str) -> "DataWindow":
+    @staticmethod
+    def from_config_file(file: str) -> "DataWindow":
         """
         Loads a configuration file to create the DataWindow
         :param file: full path to config file
         :return: a data window
         """
-        return self.from_config(DataWindowConfig.from_path(file))
+        return DataWindow.from_config(DataWindowConfig.from_path(file))
 
     @staticmethod
     def from_config(config: DataWindowConfig) -> "DataWindow":
