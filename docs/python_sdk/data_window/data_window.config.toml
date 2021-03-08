@@ -2,23 +2,23 @@
 # The only required field is input_directory.  Do not delete this field.
 # Remove any field if you are not setting a value for it
 
-input_directory = "/test_read_data" # input directory where all the files are.  Absolute paths recommended.  REQUIRED
+input_directory = "/input_dir"      # input directory where all the files are.  Absolute paths recommended.  REQUIRED
 structured_layout = false           # if true, there are organized api900 and/or api1000 directories in input_directory
 apply_correction = false            # if true, timestamps will be adjusted before processing the data window
 # specific station ids to process; write ids as strings i.e. "1234567890"
-station_ids = ["1637610011", "1637610015", "0123456789"]
+station_ids = ["1234567890", "9876543210"]
 start_year = 2020                   # year of start date
-start_month = 7                     # month of start year
-start_day = 11                      # day of start month
-start_hour = 19                     # hour of start day
-start_minute = 57                   # minute of start hour
-start_second = 30                   # second of start minute
+start_month = 1                     # month of start year
+start_day = 1                       # day of start month
+start_hour = 0                      # hour of start day
+start_minute = 0                    # minute of start hour
+start_second = 0                    # second of start minute
 end_year = 2020                     # year of end date
-end_month = 7                       # month of end year
-end_day = 11                        # day of end month
-end_hour = 19                       # hour of end day
-end_minute = 57                     # minute of end hour
-end_second = 31                     # second of end minute
+end_month = 1                       # month of end year
+end_day = 1                         # day of end month
+end_hour = 0                        # hour of end day
+end_minute = 0                      # minute of end hour
+end_second = 59                     # second of end minute
 start_padding_seconds = 120         # padding to include before start datetime when searching for data
 end_padding_seconds = 120           # padding to include after start datetime when searching for data
 gap_time_seconds = 0.25             # minimum number of seconds between timestamps that indicates a gap in data
