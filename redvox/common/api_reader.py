@@ -125,7 +125,7 @@ class ApiReader:
         # best fit would be to use the machine timestamps that correspond to the best latencies,
         #   but for now we use the packet start times + 1/2 the packet duration
         offsets = [st.offset if st.offset is not None and not np.isnan(st.offset) else np.nan for st in stats]
-        times = [dtu.datetime_to_epoch_microseconds_utc(st.packet_start_dt) for st in stats]
+        times = [st.best_latency_timestamp for st in stats]
         packet_duration = np.mean([dtu.seconds_to_microseconds(st.packet_duration.total_seconds()) for st in stats])
         model = offset_model.OffsetModel(np.array(latencies), np.array(offsets),
                                          times + 0.5 * packet_duration, 5, 3, times[0],
