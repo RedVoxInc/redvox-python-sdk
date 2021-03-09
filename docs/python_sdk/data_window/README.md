@@ -580,6 +580,8 @@ plt.show()
 ```
 
 Using a config file:
+
+_Remember to update your config file to match your environment before running the example_
 ```
 import matplotlib.pyplot as plt
 

@@ -153,6 +153,7 @@ class StationStat:
     server_recv_dt: Optional[datetime]
     gps_dts: Optional[List[GpsDateTime]]
     latency: Optional[float]
+    best_latency_timestamp: Optional[float]
     offset: Optional[float]
     sample_rate_hz: Optional[float]
     packet_duration: Optional[timedelta]
@@ -168,16 +169,19 @@ class StationStat:
 
         best_offset = packet.best_offset()
         best_latency = packet.best_latency()
-
-        if (not best_offset or not best_latency) and packet.has_time_synchronization_sensor():
+        if packet.has_time_synchronization_sensor():
             tsd = TimeSyncData(packet.redvox_id(),
                                time_sync_exchanges_list=packet.time_synchronization_sensor().payload_values(),
                                packet_start_timestamp=packet.app_file_start_timestamp_machine(),
                                packet_end_timestamp=packet.end_timestamp_us_utc(),
                                server_acquisition_timestamp=packet.server_timestamp_epoch_microseconds_utc(),
                                )
-            best_offset = tsd.best_offset
-            best_latency = tsd.best_latency
+            if not best_offset or not best_latency:
+                best_offset = tsd.best_offset
+                best_latency = tsd.best_latency
+            best_latency_timestamp = tsd.get_best_latency_timestamp()
+        else:
+            best_latency_timestamp = np.nan
 
         # noinspection Mypy
         return StationStat(
@@ -188,6 +192,7 @@ class StationStat:
             us2dt(packet.server_timestamp_epoch_microseconds_utc()),
             None,
             best_latency,
+            best_latency_timestamp,
             best_offset,
             packet.microphone_sensor().sample_rate_hz() if packet.has_microphone_sensor() else np.nan,
             timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else 0.0,
@@ -224,16 +229,19 @@ class StationStat:
 
         best_offset = timing_info.get_best_offset()
         best_latency = timing_info.get_best_latency()
-
-        if (np.isnan(best_offset) or np.isnan(best_latency)) and len(timing_info.get_synch_exchange_array()) > 0:
+        if len(timing_info.get_synch_exchange_array()) > 0:
             tsd = TimeSyncData(station_info.get_id(),
                                time_sync_exchanges_list=timing_info.get_synch_exchange_array(),
                                packet_start_timestamp=timing_info.get_packet_start_mach_timestamp(),
                                packet_end_timestamp=timing_info.get_packet_end_mach_timestamp(),
                                server_acquisition_timestamp=timing_info.get_server_acquisition_arrival_timestamp(),
                                )
-            best_offset = tsd.best_offset
-            best_latency = tsd.best_latency
+            if not best_offset or not best_latency:
+                best_offset = tsd.best_offset
+                best_latency = tsd.best_latency
+            best_latency_timestamp = tsd.get_best_latency_timestamp()
+        else:
+            best_latency_timestamp = np.nan
 
         return StationStat(
             station_info.get_id(),
@@ -243,6 +251,7 @@ class StationStat:
             us2dt(timing_info.get_server_acquisition_arrival_timestamp()),
             gps_timestamps,
             best_latency,
+            best_latency_timestamp,
             best_offset,
             _map_opt(audio_sensor, lambda sensor: sensor.get_sample_rate()),
             packet.get_packet_duration(),

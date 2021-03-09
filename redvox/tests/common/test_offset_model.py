@@ -32,3 +32,22 @@ class OffsetModelTest(unittest.TestCase):
         self.assertEqual(model.best_offset, 3440)
         self.assertAlmostEqual(model.slope, 1.39e-06, 2)
         self.assertAlmostEqual(model.intercept, 3436.51, 2)
+
+
+class GetOffsetFunctionTest(unittest.TestCase):
+    def test_get_offset_function_empty_data(self):
+        latencies = np.full(100, [np.nan])
+        offsets = np.full(100, [0])
+        times = np.array(range(100))
+        slope, intercept = om.get_offset_function(latencies, offsets, times, 5, 10, 0, 100)
+        self.assertEqual(slope, 0)
+        self.assertEqual(intercept, 0)
+
+    def test_get_offset_function_partial_empty_data(self):
+        rng = np.random.default_rng(12345)
+        latencies = np.full(900, [int(rng.random())])
+        offsets = np.array([latencies[i] + i for i in range(900)])
+        times = 100 * np.array(range(900))
+        slope, intercept = om.get_offset_function(latencies, offsets, times, 5, 10, 0, 100000)
+        self.assertAlmostEqual(slope, 0.01, 2)
+        self.assertAlmostEqual(intercept, 2.27e-13, 15)

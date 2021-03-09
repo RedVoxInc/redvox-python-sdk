@@ -43,7 +43,8 @@ class TimeSyncData:
         best_offset: float, best offset of the data, default np.nan
         mean_offset: float, mean offset, default np.nan
         offset_std: float, standard deviation of offsets, default np.nan
-        best_tri_msg_index: int, index of the best tri-message, default np.nan
+        best_tri_msg_index: int, index of the best tri-message (same as best_latency_index), default np.nan
+        best_msg_timestamp_index: int = np.nan, 1 or 3, indicates which tri-message latency array has the best latency
         acquire_travel_time: float, calculated time it took packet to reach server, default np.nan
     """
 
@@ -222,10 +223,10 @@ class TimeSyncAnalysis:
         """
         check the data for errors and update the analysis statistics
         """
-        self._calc_timesync_stats()
         self.evaluate_latencies()
         self.validate_start_timestamp()
         self.validate_sample_rate()
+        self._calc_timesync_stats()
 
     def _calc_timesync_stats(self):
         """
@@ -248,6 +249,8 @@ class TimeSyncAnalysis:
                 self.timesync_data[index].offset_std,
                 self.timesync_data[index].num_tri_messages() * 2,
             )
+        self.latency_stats.best_value = self.get_best_latency()
+        self.offset_stats.best_value = self.get_best_offset()
 
     def from_packets(self, packets: List[Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]]) -> 'TimeSyncAnalysis':
         """
@@ -312,10 +315,7 @@ class TimeSyncAnalysis:
         return all the latencies
         :return: np.array containing all the latencies
         """
-        latencies = []
-        for ts_data in self.timesync_data:
-            latencies.append(ts_data.best_latency)
-        return np.array(latencies)
+        return np.array([ts_data.best_latency for ts_data in self.timesync_data])
 
     def get_mean_latency(self) -> float:
         """
@@ -345,10 +345,7 @@ class TimeSyncAnalysis:
         return all the offsets
         :return: np.array containing all the offsets
         """
-        offsets = []
-        for ts_data in self.timesync_data:
-            offsets.append(ts_data.best_offset)
-        return np.array(offsets)
+        return np.array([ts_data.best_offset for ts_data in self.timesync_data])
 
     def get_mean_offset(self) -> float:
         """
@@ -417,12 +414,11 @@ class TimeSyncAnalysis:
         self.best_latency_index = 0
         # assume the first element has the best timesync values for now, then compare with the others
         for index in range(1, self.get_num_packets()):
+            best_latency = self.get_best_latency()
             # find the best latency; in this case, the minimum
-            # if new value is not None and if the current best is None or new value is better than current best, update
-            if not np.isnan(self.timesync_data[index].best_latency) and (
-                np.isnan(self.get_best_latency())
-                or self.timesync_data[index].best_latency < self.get_best_latency()
-            ):
+            # if new value exists and if the current best does not or new value is better than current best, update
+            if (not np.isnan(self.timesync_data[index].best_latency) and (np.isnan(best_latency))
+                    or self.timesync_data[index].best_latency < best_latency):
                 self.best_latency_index = index
 
     def validate_start_timestamp(self, debug: bool = False) -> bool:
@@ -432,12 +428,7 @@ class TimeSyncAnalysis:
         :param debug: if True, output warning message, default False
         :return: True if no change
         """
-        if self.get_num_packets() < 1:
-            if debug:
-                print(
-                    "Less than 1 timesync data object to evaluate start timestamps with"
-                )
-        for index in range(0, self.get_num_packets()):
+        for index in range(self.get_num_packets()):
             # compare station start timestamps; notify when they are different
             if (
                 self.timesync_data[index].station_start_timestamp
@@ -460,10 +451,7 @@ class TimeSyncAnalysis:
         :param debug: if True, output warning message, default False
         :return: True if no change
         """
-        if self.get_num_packets() < 1:
-            if debug:
-                print("Less than 1 timesync data object to evaluate sample rate with")
-        for index in range(0, self.get_num_packets()):
+        for index in range(self.get_num_packets()):
             # compare station start timestamps; notify when they are different
             if (
                 np.isnan(self.timesync_data[index].sample_rate_hz)
@@ -489,18 +477,19 @@ class TimeSyncAnalysis:
         if self.get_num_packets() < 2:
             if debug:
                 print("Less than 2 timesync data objects to evaluate gaps with")
-        for index in range(1, self.get_num_packets()):
-            # compare last packet's end timestamp with current start timestamp
-            if (
-                dt.microseconds_to_seconds(
-                    self.timesync_data[index].packet_start_timestamp
-                    - self.timesync_data[index - 1].packet_end_timestamp
-                )
-                > gap_duration_s
-            ):
-                if debug:
-                    print(f"Warning!  Gap detected at packet number: {index}")
-                return False
+        else:
+            for index in range(1, self.get_num_packets()):
+                # compare last packet's end timestamp with current start timestamp
+                if (
+                    dt.microseconds_to_seconds(
+                        self.timesync_data[index].packet_start_timestamp
+                        - self.timesync_data[index - 1].packet_end_timestamp
+                    )
+                    > gap_duration_s
+                ):
+                    if debug:
+                        print(f"Warning!  Gap detected at packet number: {index}")
+                    return False
         # if here, no gaps
         return True
 
