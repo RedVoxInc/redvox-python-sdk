@@ -4,7 +4,6 @@ Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 """
 from collections import defaultdict
-from multiprocessing import Pool, cpu_count
 from typing import List, Optional, Dict
 from datetime import timedelta
 
@@ -122,14 +121,11 @@ class ApiReader:
         if len(latencies) < 1:
             return index
         # get the model and calculate the revised start and end offsets
-        # best fit would be to use the machine timestamps that correspond to the best latencies,
-        #   but for now we use the packet start times + 1/2 the packet duration
         offsets = [st.offset if st.offset is not None and not np.isnan(st.offset) else np.nan for st in stats]
         times = [st.best_latency_timestamp for st in stats]
         packet_duration = np.mean([dtu.seconds_to_microseconds(st.packet_duration.total_seconds()) for st in stats])
         model = offset_model.OffsetModel(np.array(latencies), np.array(offsets),
-                                         times + 0.5 * packet_duration, 5, 3, times[0],
-                                         times[-1] + packet_duration)
+                                         times + 0.5 * packet_duration, times[0], times[-1] + packet_duration)
         # revise packet's times to real times and compare to requested values
         start_offset = timedelta(microseconds=model.get_offset_at_new_time(
             dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)))

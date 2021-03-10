@@ -309,14 +309,13 @@ These are the properties of the Station class:
 3. `id`: string; id of the station, default None
 4. `uuid`: string; uuid of the station, default None
 5. `start_timestamp`: float; microseconds since epoch UTC when the station started recording, default np.nan
-6. `key`: Tuple of string, string, float; a unique combination of id, uuid and start_timestamp defining the station, default None
-7. `first_data_timestamp`: float; microseconds since epoch UTC of the first data point, default np.nan
-8. `station_end_timestamp`: float; microseconds since epoch UTC of the last data point, default np.nan
-9. `app_name`: string; the name of the app used to record the data, default empty string
-10. `audio_sample_rate_hz`: float; sample rate of audio component in hz, default np.nan
-11. `is_audio_scrambled`: boolean; True if audio data is scrambled, default False
-12. `is_timestamps_updated`: boolean; True if timestamps have been altered from original data values, default False
-13. `timesync_analysis`: TimeSyncAnalysis object; contains information about the station's timing values
+6. `first_data_timestamp`: float; microseconds since epoch UTC of the first data point, default np.nan
+7. `station_end_timestamp`: float; microseconds since epoch UTC of the last data point, default np.nan
+8. `app_name`: string; the name of the app used to record the data, default empty string
+9. `audio_sample_rate_hz`: float; sample rate of audio component in hz, default np.nan
+10. `is_audio_scrambled`: boolean; True if audio data is scrambled, default False
+11. `is_timestamps_updated`: boolean; True if timestamps have been altered from original data values, default False
+12. `timesync_analysis`: TimeSyncAnalysis object; contains information about the station's timing values
 
 _[Table of Contents](#table-of-contents)_
 
@@ -324,16 +323,18 @@ _[Table of Contents](#table-of-contents)_
 
 These are the functions of the Station class:
 1. `get_mean_packet_duration()`: Returns the mean duration of audio samples in the data packets used to create the Station.
-2. `get_mean_packet_audio_samples()`: Returns the mean number of audio samples per data data packet used to create the Station.
+2. `get_mean_packet_audio_samples()`: Returns the mean number of audio samples per data packet used to create the Station.
 3. `append_station(new_station)`: Adds the data from the new_station to the calling Station, if the keys of both Stations are the same.  If the keys are different or one of the keys is invalid, nothing happens.
+4. `get_key`: Returns the key of Station
+5. `check_key`: Returns True if the Station can create a key, False otherwise.  If returning False, prints which value is missing.
    
 For the following 4 functions, replace SENSOR with one of:
 audio, compressed_audio, image, location, pressure, barometer, light, infrared, proximity, health, relative_humidity, ambient_temperature, accelerometer, gyroscope, magnetometer, gravity, linear_acceleration, orientation, rotation_vector
 
-4. `has_SENSOR_sensor()`: Returns True if the sensor exists in the station
-5. `has_SENSOR_data()`: Returns True if the sensor exists in the station and has data
-6. `SENSOR_sensor()`: Returns the SensorData object for the sensor, or `None` if the sensor doesn't exist.
-7. `set_SENSOR_sensor(s: Optional[SensorData])`: Returns the updated Station after setting the sensor in the Station or removing it if argument s is `None`.
+6. `has_SENSOR_sensor()`: Returns True if the sensor exists in the station
+7. `has_SENSOR_data()`: Returns True if the sensor exists in the station and has data
+8. `SENSOR_sensor()`: Returns the SensorData object for the sensor, or `None` if the sensor doesn't exist.
+9. `set_SENSOR_sensor(s: Optional[SensorData])`: Returns the updated Station after setting the sensor in the Station or removing it if argument s is `None`.
 
 _[Table of Contents](#table-of-contents)_
 

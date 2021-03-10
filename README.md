@@ -7,9 +7,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
-### 3.0.0b5 (2021-3-X)
+### 3.0.0b5 (2021-3-10)
 
-* Stuff
+* OffsetModel handles cases where not enough data is present to create a reliable model
+* Performance improvements and streamlined processes
 
 ### 3.0.0b4 (2021-3-2)
 

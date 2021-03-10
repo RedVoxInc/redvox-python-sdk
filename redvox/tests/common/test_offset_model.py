@@ -23,15 +23,17 @@ class OffsetModelTest(unittest.TestCase):
         stats = fs.extract_stats(index)
         latencies = [st.latency for st in stats]
         offsets = [st.offset for st in stats]
-        times = [dtu.datetime_to_epoch_microseconds_utc(st.packet_start_dt) for st in stats]
-        packet_duration = np.mean([dtu.seconds_to_microseconds(st.packet_duration.total_seconds()) for st in stats])
-        model = om.OffsetModel(np.array(latencies), np.array(offsets),
-                               times + 0.5 * packet_duration, 5, 3, times[0],
-                               times[-1] + packet_duration)
-        self.assertEqual(model.best_latency, 1296)
-        self.assertEqual(model.best_offset, 3440)
-        self.assertAlmostEqual(model.slope, 1.39e-06, 2)
-        self.assertAlmostEqual(model.intercept, 3436.51, 2)
+        times = [st.best_latency_timestamp for st in stats]
+        start_time = dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)
+        end_time = dtu.datetime_to_epoch_microseconds_utc(stats[-1].packet_start_dt + stats[-1].packet_duration)
+        model = om.OffsetModel(np.array(latencies), np.array(offsets), np.array(times), start_time, end_time)
+        self.assertEqual(model.intercept, 3440)
+        self.assertEqual(model.slope, 0.0)
+
+    def test_empty_model(self):
+        model = om.OffsetModel.empty_model()
+        self.assertEqual(model.intercept, 0.)
+        self.assertEqual(model.slope, 0.)
 
 
 class GetOffsetFunctionTest(unittest.TestCase):
@@ -42,12 +44,3 @@ class GetOffsetFunctionTest(unittest.TestCase):
         slope, intercept = om.get_offset_function(latencies, offsets, times, 5, 10, 0, 100)
         self.assertEqual(slope, 0)
         self.assertEqual(intercept, 0)
-
-    def test_get_offset_function_partial_empty_data(self):
-        rng = np.random.default_rng(12345)
-        latencies = np.full(900, [int(rng.random())])
-        offsets = np.array([latencies[i] + i for i in range(900)])
-        times = 100 * np.array(range(900))
-        slope, intercept = om.get_offset_function(latencies, offsets, times, 5, 10, 0, 100000)
-        self.assertAlmostEqual(slope, 0.01, 2)
-        self.assertAlmostEqual(intercept, 2.27e-13, 15)
