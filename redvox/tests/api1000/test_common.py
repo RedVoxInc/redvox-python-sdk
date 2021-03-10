@@ -269,15 +269,14 @@ class TestSummaryStatistics(unittest.TestCase):
         zero_mean = self.empty_stats.get_mean()
         self.assertEqual(zero_mean, 100)
 
-    # TODO: Redo with standard deviation instead
-    # def test_get_set_variance(self):
-    #     variance = self.non_empty_stats.get_variance()
-    #     self.assertEqual(variance, 125)
-    #     zero_variance = self.empty_stats.get_variance()
-    #     self.assertEqual(zero_variance, 0)
-    #     self.empty_stats.set_variance(100)
-    #     zero_variance = self.empty_stats.get_variance()
-    #     self.assertEqual(zero_variance, 100)
+    def test_get_set_std_dev(self):
+        std_dev = self.non_empty_stats.get_standard_deviation()
+        self.assertAlmostEqual(std_dev, 11.18, 2)
+        zero_std_dev = self.empty_stats.get_standard_deviation()
+        self.assertEqual(zero_std_dev, 0)
+        self.empty_stats.set_standard_deviation(100)
+        zero_std_dev = self.empty_stats.get_standard_deviation()
+        self.assertEqual(zero_std_dev, 100)
 
     def test_get_set_min(self):
         min_val = self.non_empty_stats.get_min()

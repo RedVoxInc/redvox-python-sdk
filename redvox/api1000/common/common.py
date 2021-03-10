@@ -616,13 +616,10 @@ def validate_timing_payload(timing_payload: TimingPayload) -> List[str]:
     :return: A list of validation errors.
     """
     errors_list = []
-    # if not timing_payload.get_proto().HasField("unit"):
-    #     errors_list.append("Timing payload unit type is missing")
     if timing_payload.get_unit() != Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
         errors_list.append(
             "Timing payload units are not in microseconds since unix epoch"
         )
-    # if timing_payload.get_proto().HasField("timestamps"):
     if timing_payload.get_timestamps_count() < 1:
         errors_list.append("Timing payload timestamps are missing")
     else:

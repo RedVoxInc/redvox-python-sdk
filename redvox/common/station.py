@@ -14,7 +14,6 @@ from redvox.common import sensor_data as sd
 from redvox.common import sensor_reader_utils as sdru
 from redvox.common.station_utils import StationKey, StationMetadata
 from redvox.common.timesync import TimeSyncAnalysis
-from redvox.common import offset_model as om
 
 
 def validate_station_data(data_packets: List[WrappedRedvoxPacketM]) -> bool:
@@ -23,17 +22,15 @@ def validate_station_data(data_packets: List[WrappedRedvoxPacketM]) -> bool:
     :param data_packets: packets to check
     :return: True if all packets have the same key values
     """
-    if len(data_packets) == 1:
+    if len(data_packets) == 1 or (len(data_packets) > 1 and all(
+            [t.get_station_information().get_id() == data_packets[0].get_station_information().get_id()
+             and t.get_station_information().get_uuid() == data_packets[0].get_station_information().get_uuid()
+             and t.get_timing_information().get_app_start_mach_timestamp()
+             == data_packets[0].get_timing_information().get_app_start_mach_timestamp()
+             for t in data_packets])):
         return True
-    elif len(data_packets) < 1:
+    else:
         return False
-    elif all([t.get_station_information().get_id() == data_packets[0].get_station_information().get_id()
-              and t.get_station_information().get_uuid() == data_packets[0].get_station_information().get_uuid()
-              and t.get_timing_information().get_app_start_mach_timestamp()
-              == data_packets[0].get_timing_information().get_app_start_mach_timestamp()
-              for t in data_packets]):
-        return True
-    return False
 
 
 class Station:
@@ -50,7 +47,6 @@ class Station:
         id: str id of the station, default None
         uuid: str uuid of the station, default None
         start_timestamp: float of microseconds since epoch UTC when the station started recording, default np.nan
-        key: Tuple of str, str, float, a unique combination of three values defining the station, default None
         first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan
         last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan
         app_name: str of the name of the app used to record the data, default empty string
@@ -86,12 +82,6 @@ class Station:
                 self.is_audio_scrambled = False
             self.timesync_analysis = \
                 TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp).from_packets(data_packets)
-            if data_packets and validate_station_data(data_packets):
-                self.offset_model = om.OffsetModel(self.timesync_analysis.get_latencies(),
-                                                   self.timesync_analysis.get_offsets(),
-                                                   self.timesync_analysis.get_start_times() +
-                                                   0.5*self.get_mean_packet_duration(),
-                                                   5, 3, self.first_data_timestamp, self.last_data_timestamp)
         else:
             if data_packets:
                 print(
@@ -1017,13 +1007,12 @@ class Station:
         if self.is_timestamps_updated:
             print("WARNING: Timestamps already corrected!")
         else:
-            if not np.isnan(self.offset_model.slope):
-                for sensor in self.data.values():
-                    sensor.update_data_timestamps(self.offset_model)
-                for packet in self.metadata:
-                    packet.update_timestamps(self.offset_model)
-                self.timesync_analysis.update_timestamps(self.offset_model)
-                self.start_timestamp = self.offset_model.update_time(self.start_timestamp)
-                self.first_data_timestamp = self.offset_model.update_time(self.first_data_timestamp)
-                self.last_data_timestamp = self.offset_model.update_time(self.last_data_timestamp)
-                self.is_timestamps_updated = True
+            for sensor in self.data.values():
+                sensor.update_data_timestamps(self.timesync_analysis.offset_model)
+            for packet in self.metadata:
+                packet.update_timestamps(self.timesync_analysis.offset_model)
+            self.timesync_analysis.update_timestamps()
+            self.start_timestamp = self.timesync_analysis.offset_model.update_time(self.start_timestamp)
+            self.first_data_timestamp = self.timesync_analysis.offset_model.update_time(self.first_data_timestamp)
+            self.last_data_timestamp = self.timesync_analysis.offset_model.update_time(self.last_data_timestamp)
+            self.is_timestamps_updated = True

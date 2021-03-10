@@ -188,6 +188,7 @@ class TimeSyncAnalysis:
         best_latency_index: int, the index of the TimeSyncData object with the best latency, default np.nan
         latency_stats: StatsContainer, the statistics of the latencies
         offset_stats: StatsContainer, the statistics of the offsets
+        offset_model: optional OffsetModel, used to calculate offset at a given point in time
         sample_rate_hz: float, the audio sample rate in hz of the station, default np.nan
         timesync_data: list of TimeSyncData, the TimeSyncData to analyze, default empty list
         station_start_timestamp: float, the timestamp of when the station became active, default np.nan
@@ -217,6 +218,7 @@ class TimeSyncAnalysis:
             self.timesync_data: List[TimeSyncData] = time_sync_data
             self.evaluate_and_validate_data()
         else:
+            self.offset_model = OffsetModel.empty_model()
             self.timesync_data = []
 
     def evaluate_and_validate_data(self):
@@ -227,6 +229,10 @@ class TimeSyncAnalysis:
         self.validate_start_timestamp()
         self.validate_sample_rate()
         self._calc_timesync_stats()
+        self.offset_model = OffsetModel(self.get_latencies(), self.get_offsets(),
+                                        np.array([td.get_best_latency_timestamp() for td in self.timesync_data]),
+                                        self.timesync_data[0].packet_start_timestamp,
+                                        self.timesync_data[-1].packet_end_timestamp)
 
     def _calc_timesync_stats(self):
         """
@@ -493,17 +499,14 @@ class TimeSyncAnalysis:
         # if here, no gaps
         return True
 
-    def update_timestamps(self, om: Optional[OffsetModel]):
+    def update_timestamps(self):
         """
-        update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
-            uses negative values to go backwards in time
-        :param om: OffsetModel to calculate offsets, default None
-        # :param delta: microseconds to add to timestamps, default None
+        update timestamps by adding microseconds based on the OffsetModel.
         """
-        if om:
-            self.station_start_timestamp += om.get_offset_at_new_time(self.station_start_timestamp)
+        if self.offset_model:
+            self.station_start_timestamp += self.offset_model.get_offset_at_new_time(self.station_start_timestamp)
         for tsd in self.timesync_data:
-            tsd.update_timestamps(om)
+            tsd.update_timestamps(self.offset_model)
 
 
 def timesync_data_from_packet(packet: Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]) -> TimeSyncData:
