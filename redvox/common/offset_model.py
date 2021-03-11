@@ -7,8 +7,8 @@ DEFAULT_BINS = 5                            # default number of bins
 DEFAULT_SAMPLES = 3                         # default number of samples per bin
 MIN_SAMPLES = 3                             # minimum number of samples per 5 minutes for reliable data
 MIN_TIMESYNC_DURATION_MIN = 5               # minimum number of minutes of data required to produce reliable results
-MIN_QUALITY_OFFSET_MS_PER_HOUR = -15.0      # minimum value of offset slope for reliable data
-MAX_QUALITY_OFFSET_MS_PER_HOUR = -0.5       # maximum value of offset slope for reliable data
+MIN_QUALITY_OFFSET_MS_PER_HOUR = -15.0      # minimum value of offset slope in ms per hour for reliable data
+MAX_QUALITY_OFFSET_MS_PER_HOUR = 15.0       # maximum value of offset slope in ms per hour for reliable data
 
 
 class OffsetModel:
@@ -23,8 +23,8 @@ class OffsetModel:
         if use_model:
             self.slope, self.intercept = get_offset_function(latencies, offsets, times, k_bins,
                                                              n_samples, start_time, end_time)
-            use_model = offset_model_quality_check(self.slope)
-        # if data or model is not sufficient:
+            use_model = self.slope == 0.0 or offset_model_quality_check(self.slope)
+        # if data or model is not sufficient, use the offset corresponding to lowest latency:
         if not use_model:
             self.slope = 0.0
             if all(np.nan_to_num(latencies) == 0.0):
