@@ -123,9 +123,9 @@ class ApiReader:
         # get the model and calculate the revised start and end offsets
         offsets = [st.offset if st.offset is not None and not np.isnan(st.offset) else np.nan for st in stats]
         times = [st.best_latency_timestamp for st in stats]
-        packet_duration = np.mean([dtu.seconds_to_microseconds(st.packet_duration.total_seconds()) for st in stats])
-        model = offset_model.OffsetModel(np.array(latencies), np.array(offsets),
-                                         times + 0.5 * packet_duration, times[0], times[-1] + packet_duration)
+        start_time = dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)
+        end_time = dtu.datetime_to_epoch_microseconds_utc(stats[-1].packet_start_dt + stats[-1].packet_duration)
+        model = offset_model.OffsetModel(np.array(latencies), np.array(offsets), np.array(times), start_time, end_time)
         # revise packet's times to real times and compare to requested values
         start_offset = timedelta(microseconds=model.get_offset_at_new_time(
             dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)))
