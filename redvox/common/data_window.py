@@ -328,25 +328,23 @@ class DataWindow:
             r_f.with_end_dt_buf(self.end_buffer_td)
         if self.api_versions:
             r_f.with_api_versions(self.api_versions)
-        self.stations = ApiReader(
+        stations = ApiReader(
             self.input_directory,
             self.structured_layout,
             r_f,
             self.debug,
-        ).read_files_as_stations()
+        ).get_stations()
         if self.station_ids is None or len(self.station_ids) == 0:
             self.station_ids = set(self.stations.keys())
 
-        stations: List[Station] = list(self.stations.values())
-
         # Parallel update, currently disabled.
-        # pool = parallel.pool()
+        pool = parallel.pool()
         # Apply timing correction in parallel by station
-        # if self.apply_correction:
-        #     pool.map(Station.update_timestamps, stations)
+        if self.apply_correction:
+            stations = pool.map(Station.update_timestamps, stations)
 
         for station in stations:
-            station.update_timestamps()  # Serial update
+            # station.update_timestamps()  # Serial update
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
             if station.id not in ids_to_pop:
                 # set the window start and end if they were specified, otherwise use the bounds of the data
@@ -360,6 +358,7 @@ class DataWindow:
                     end_datetime = station.last_data_timestamp
                 # TRUNCATE!
                 self.create_window_in_sensors(station, start_datetime, end_datetime)
+            self.stations[station.id] = station
         # check for stations without data, then remove any stations that don't have audio data
         self.check_valid_ids()
         for ids in ids_to_pop:
