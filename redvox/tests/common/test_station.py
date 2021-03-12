@@ -47,7 +47,7 @@ class StationTest(unittest.TestCase):
         self.assertTrue(audio_sensor.is_sample_rate_fixed)
         self.assertTrue(self.api900_station.has_location_sensor())
         loc_sensor = self.api900_station.location_sensor()
-        self.assertEqual(loc_sensor.data_df.shape, (2, 11))
+        self.assertEqual(loc_sensor.data_df.shape, (2, 12))
 
     def test_apim_station(self):
         self.assertEqual(len(self.apim_station.data), 2)
@@ -58,7 +58,7 @@ class StationTest(unittest.TestCase):
         self.assertTrue(audio_sensor.is_sample_rate_fixed)
         loc_sensor = self.apim_station.location_sensor()
         self.assertIsNotNone(loc_sensor)
-        self.assertEqual(loc_sensor.data_df.shape, (3, 11))
+        self.assertEqual(loc_sensor.data_df.shape, (3, 12))
         self.assertAlmostEqual(loc_sensor.get_data_channel("latitude")[0], 21.309, 3)
         accel_sensor = self.apim_station.accelerometer_sensor()
         self.assertIsNone(accel_sensor)
@@ -121,3 +121,15 @@ class StationTest(unittest.TestCase):
         self.assertTrue(empty_apim_station.has_audio_sensor())
         self.assertTrue(empty_apim_station.has_audio_data())
         self.assertEqual(empty_apim_station.audio_sensor().sample_rate, 48000)
+
+    def test_update_timestamps(self):
+        updated_station = api_reader.ApiReader(
+            tests.TEST_DATA_DIR,
+            False,
+            ReadFilter(extensions={".rdvxz"}, station_ids={"1637650010"}),
+        ).get_station_by_id("1637650010")
+        self.assertEqual(updated_station.first_data_timestamp,
+                         updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])
+        updated_station.update_timestamps()
+        self.assertNotEqual(updated_station.first_data_timestamp,
+                            updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])

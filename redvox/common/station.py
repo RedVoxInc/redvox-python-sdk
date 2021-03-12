@@ -1000,7 +1000,7 @@ class Station:
             if sensor:
                 self.append_sensor(sensor)
 
-    def update_timestamps(self):
+    def update_timestamps(self) -> "Station":
         """
         updates the timestamps in the station using the offset model
         """
@@ -1016,3 +1016,4 @@ class Station:
             self.first_data_timestamp = self.timesync_analysis.offset_model.update_time(self.first_data_timestamp)
             self.last_data_timestamp = self.timesync_analysis.offset_model.update_time(self.last_data_timestamp)
             self.is_timestamps_updated = True
+        return self

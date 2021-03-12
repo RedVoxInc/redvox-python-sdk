@@ -21,8 +21,8 @@ class SensorDataTest(unittest.TestCase):
         self.even_sensor = SensorData(
             "test",
             pd.DataFrame(
-                np.transpose([timestamps, sensor_data, test_data]),
-                columns=["timestamps", "microphone", "test_data"],
+                np.transpose([timestamps, timestamps, sensor_data, test_data]),
+                columns=["timestamps", "unaltered_timestamps", "microphone", "test_data"],
             ),
             SensorType.AUDIO,
             1 / dtu.microseconds_to_seconds(20),
@@ -55,7 +55,7 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(self.uneven_sensor.name, "test")
 
     def test_data_df(self):
-        self.assertEqual(self.even_sensor.data_df.size, 27)
+        self.assertEqual(self.even_sensor.data_df.size, 36)
         self.assertEqual(self.even_sensor.data_df.ndim, 2)
         self.assertTrue("test_data" in self.uneven_sensor.data_df.columns)
 
@@ -95,7 +95,7 @@ class SensorDataTest(unittest.TestCase):
     def test_append_data(self):
         self.even_sensor.append_data(
             pd.DataFrame(
-                [[0, np.nan, np.nan]], columns=["timestamps", "microphone", "test_data"]
+                [[0, 0, np.nan, np.nan]], columns=["timestamps", "unaltered_timestamps", "microphone", "test_data"]
             )
         )
         self.assertEqual(len(self.even_sensor.get_data_channel("test_data")), 10)
@@ -104,7 +104,7 @@ class SensorDataTest(unittest.TestCase):
         )
         self.even_sensor.append_data(
             pd.DataFrame(
-                [[200, 10, 69]], columns=["timestamps", "microphone", "test_data"]
+                [[200, 200, 10, 69]], columns=["timestamps", "unaltered_timestamps", "microphone", "test_data"]
             )
         )
         self.assertEqual(len(self.even_sensor.get_data_channel("test_data")), 11)
@@ -128,7 +128,7 @@ class SensorDataTest(unittest.TestCase):
         self.assertFalse(self.even_sensor.is_sample_interval_invalid())
         self.even_sensor.append_data(
             pd.DataFrame(
-                [[0, np.nan, np.nan]], columns=["timestamps", "microphone", "test_data"]
+                [[0, 0, np.nan, np.nan]], columns=["timestamps", "unaltered_timestamps", "microphone", "test_data"]
             )
         )
         self.assertEqual(len(self.even_sensor.get_data_channel("test_data")), 10)
@@ -148,7 +148,7 @@ class SensorDataTest(unittest.TestCase):
         self.assertRaises(ValueError, self.even_sensor.get_data_channel, "not_exist")
         self.even_sensor.append_data(
             pd.DataFrame(
-                [[0, np.nan, np.nan]], columns=["timestamps", "microphone", "test_data"]
+                [[0, 0, np.nan, np.nan]], columns=["timestamps", "unaltered_timestamps", "microphone", "test_data"]
             )
         )
         self.assertEqual(len(self.even_sensor.get_data_channel("test_data")), 10)
@@ -171,9 +171,9 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(self.even_sensor.last_data_timestamp(), 180)
 
     def test_data_fields(self):
-        self.assertEqual(len(self.even_sensor.data_channels()), 3)
+        self.assertEqual(len(self.even_sensor.data_channels()), 4)
         self.assertEqual(self.even_sensor.data_channels()[0], "timestamps")
-        self.assertEqual(self.even_sensor.data_channels()[1], "microphone")
+        self.assertEqual(self.even_sensor.data_channels()[2], "microphone")
 
     def update_data_timestamps_delta(self):
         self.even_sensor.update_data_timestamps_delta(100)

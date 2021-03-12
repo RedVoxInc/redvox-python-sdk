@@ -213,7 +213,7 @@ class SensorData:
         gets the samples of dataframe
         :return: the data values of the dataframe as a numpy ndarray
         """
-        return self.data_df.iloc[:, 1:].T.to_numpy()
+        return self.data_df.iloc[:, 2:].T.to_numpy()
 
     def get_data_channel(self, channel_name: str) -> np.array:
         """
