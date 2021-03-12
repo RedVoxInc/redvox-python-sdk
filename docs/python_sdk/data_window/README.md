@@ -409,6 +409,7 @@ These are the functions of the SensorData class:
 5. `first_data_timestamp()`: Returns the first timestamp in the dataframe
 6. `last_data_timestamp()`: Returns the last timestamp in the dataframe
 7. `data_duration_s()`: Returns the duration of the data in seconds
+8. `unaltered_data_timestamps()`: Returns a numpy.array of the raw timestamps as recorded by the sensor.  These values are never updated, adjusted or otherwise changed from what the sensor reported.
 
 ** Reading enumerated types from this function requires additional imports.  Refer to [the footnote on enumerated types](#a-note-on-enumerated-types) for more information
 
@@ -444,7 +445,7 @@ The table below lists the sensors and their data's units
 
 |Sensor name             |Column Name             |units of data|
 |------------------------|------------------------|-------------|
-|all                     |timestamps              |microseconds since epoch UTC|
+|all                     |timestamps, unaltered_timestamps|microseconds since epoch UTC|
 |accelerometer           |                        |meters/second^2|
 |ambient temperature     |                        |degrees Celsius|
 |audio                   |                        |normalized counts (normalization constant = 0x7FFFFF)|

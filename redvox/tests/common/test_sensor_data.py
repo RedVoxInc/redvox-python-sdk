@@ -175,14 +175,6 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(self.even_sensor.data_channels()[0], "timestamps")
         self.assertEqual(self.even_sensor.data_channels()[2], "microphone")
 
-    def update_data_timestamps_delta(self):
-        self.even_sensor.update_data_timestamps_delta(100)
-        self.assertEqual(self.even_sensor.first_data_timestamp(), 120)
-        self.assertEqual(self.even_sensor.last_data_timestamp(), 280)
-        self.even_sensor.update_data_timestamps_delta(-100)
-        self.assertEqual(self.even_sensor.first_data_timestamp(), 20)
-        self.assertEqual(self.even_sensor.last_data_timestamp(), 180)
-
     def test_organize_and_update_stats(self):
         self.even_sensor.organize_and_update_stats()
         self.assertEqual(self.even_sensor.data_timestamps()[1], 40)

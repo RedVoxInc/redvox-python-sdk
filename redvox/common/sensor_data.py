@@ -242,6 +242,12 @@ class SensorData:
         """
         return self.data_df["timestamps"].to_numpy(dtype=np.float)
 
+    def unaltered_data_timestamps(self) -> np.array:
+        """
+        :return: the unaltered timestamps as a numpy array
+        """
+        return self.data_df["unaltered_timestamps"].to_numpy(dtype=np.float)
+
     def first_data_timestamp(self) -> float:
         """
         :return: timestamp of the first data point
@@ -275,15 +281,6 @@ class SensorData:
                 self.sample_rate = 1 / self.sample_interval_s
                 self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
             self.timestamps_altered = True
-
-    def update_data_timestamps_delta(self, time_delta: float):
-        """
-        adds the time_delta to the sensor's timestamps; use negative values to go backwards in time
-        :param time_delta: time to add to sensor's timestamps
-        """
-        new_timestamps = self.data_timestamps() + time_delta
-        self.data_df["timestamps"] = new_timestamps
-        self.timestamps_altered = True
 
     def sort_by_data_timestamps(self, ascending: bool = True):
         """
