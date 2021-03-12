@@ -23,6 +23,10 @@ class DataWindowTest(unittest.TestCase):
             station_ids=["1637650010", "0000000001"],
         )
         self.assertEqual(len(datawindow.stations), 2)
+        test_station = datawindow.get_station("1637650010")
+        self.assertTrue(test_station.is_timestamps_updated)
+        self.assertNotEqual(test_station.first_data_timestamp,
+                            test_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])
         self.assertIsNotNone(datawindow.get_station("1637650010").audio_sensor())
         test_sensor = datawindow.get_station("1637650010").accelerometer_sensor()
         self.assertEqual(test_sensor.num_samples(), 641)

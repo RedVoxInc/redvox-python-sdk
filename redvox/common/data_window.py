@@ -341,7 +341,7 @@ class DataWindow:
         pool = parallel.pool()
         # Apply timing correction in parallel by station
         if self.apply_correction:
-            pool.map(Station.update_timestamps, stations)
+            stations = pool.map(Station.update_timestamps, stations)
 
         for station in stations:
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)

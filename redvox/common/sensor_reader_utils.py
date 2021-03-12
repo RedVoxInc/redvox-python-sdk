@@ -67,10 +67,11 @@ def read_apim_xyz_sensor(sensor: xyz.Xyz, column_id: str) -> pd.DataFrame:
     """
     timestamps = sensor.get_timestamps().get_timestamps()
     try:
-        columns = ["timestamps", f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
+        columns = ["timestamps", "unaltered_timestamps", f"{column_id}_x", f"{column_id}_y", f"{column_id}_z"]
         return pd.DataFrame(
             np.transpose(
                 [
+                    timestamps,
                     timestamps,
                     sensor.get_x_samples().get_values(),
                     sensor.get_y_samples().get_values(),
@@ -87,8 +88,8 @@ def load_apim_xyz_sensor(sensor_type: SensorType, data, name, description) -> Op
     if len(data[0]) > 0:
         return SensorData(
             description,
-            pd.DataFrame(np.transpose([data[0], data[1], data[2], data[3]]),
-                         columns=["timestamps", f"{name}_x", f"{name}_y", f"{name}_z"]),
+            pd.DataFrame(np.transpose([data[0], data[0], data[1], data[2], data[3]]),
+                         columns=["timestamps", "unaltered_timestamps", f"{name}_x", f"{name}_y", f"{name}_z"]),
             sensor_type,
             calculate_stats=True
         )
@@ -105,9 +106,9 @@ def read_apim_single_sensor(sensor: single.Single, column_id: str) -> pd.DataFra
     """
     timestamps = sensor.get_timestamps().get_timestamps()
     try:
-        columns = ["timestamps", column_id]
+        columns = ["timestamps", "unaltered_timestamps", column_id]
         return pd.DataFrame(
-            np.transpose([timestamps, sensor.get_samples().get_values()]),
+            np.transpose([timestamps, timestamps, sensor.get_samples().get_values()]),
             columns=columns,
         )
     except AttributeError:
@@ -130,8 +131,8 @@ def load_apim_audio(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData
         return SensorData(
             audio.get_sensor_description(),
             pd.DataFrame(
-                np.transpose([timestamps, data_for_df]),
-                columns=["timestamps", "microphone"],
+                np.transpose([timestamps, timestamps, data_for_df]),
+                columns=["timestamps", "unaltered_timestamps", "microphone"],
             ),
             SensorType.AUDIO,
             sample_rate_hz,
@@ -161,7 +162,8 @@ def load_apim_audio_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
                                       for p in wrapped_packets]).flatten()
                 return SensorData(
                     wrapped_packets[0].get_sensors().get_audio().get_sensor_description(),
-                    pd.DataFrame(np.transpose([timestamps, data_vals]), columns=["timestamps", "microphone"]),
+                    pd.DataFrame(np.transpose([timestamps, timestamps, data_vals]),
+                                 columns=["timestamps", "unaltered_timestamps", "microphone"]),
                     SensorType.AUDIO,
                     sample_rate_hz,
                     1 / sample_rate_hz,
@@ -189,11 +191,12 @@ def load_apim_compressed_audio(wrapped_packet: WrappedRedvoxPacketM) -> Optional
                 np.transpose(
                     [
                         comp_audio.get_first_sample_timestamp(),
+                        comp_audio.get_first_sample_timestamp(),
                         comp_audio.get_audio_bytes(),
                         comp_audio.get_audio_codec(),
                     ]
                 ),
-                columns=["timestamps", "compressed_audio", "audio_codec"],
+                columns=["timestamps", "unaltered_timestamps", "compressed_audio", "audio_codec"],
             ),
             SensorType.COMPRESSED_AUDIO,
             sample_rate_hz,
@@ -222,8 +225,8 @@ def load_apim_compressed_audio_from_list(wrapped_packets: List[WrappedRedvoxPack
         return SensorData(
             wrapped_packets[0].get_sensors().get_compressed_audio().get_sensor_description(),
             pd.DataFrame(
-                np.transpose([data_df[0], data_df[1], data_df[2]]),
-                columns=["timestamps", "compressed_audio", "audio_codec"],
+                np.transpose([data_df[0], data_df[0], data_df[1], data_df[2]]),
+                columns=["timestamps", "unaltered_timestamps", "compressed_audio", "audio_codec"],
             ),
             SensorType.COMPRESSED_AUDIO,
             sample_rate_hz,
@@ -245,8 +248,8 @@ def load_apim_image(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData
         timestamps = image.get_timestamps().get_timestamps()
         codecs = np.full(len(timestamps), image.get_image_codec().value)
         data_df = pd.DataFrame(
-            np.transpose([timestamps, image.get_samples(), codecs]),
-            columns=["timestamps", "image", "image_codec"],
+            np.transpose([timestamps, timestamps, image.get_samples(), codecs]),
+            columns=["timestamps", "unaltered_timestamps", "image", "image_codec"],
         )
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
@@ -276,8 +279,8 @@ def load_apim_image_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
             data_list[2].append(np.full(len(data_list[0]), image.get_image_codec().value))
     if len(data_list[0]) > 0:
         data_df = pd.DataFrame(
-            np.transpose([data_list[0], data_list[1], data_list[2]]),
-            columns=["timestamps", "image", "image_codec"],
+            np.transpose([data_list[0], data_list[0], data_list[1], data_list[2]]),
+            columns=["timestamps", "unaltered_timestamps", "image", "image_codec"],
         )
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
@@ -308,6 +311,7 @@ def load_apim_location(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorD
             data_for_df = [
                 [
                     best_loc.get_latitude_longitude_timestamp().get_mach(),
+                    best_loc.get_latitude_longitude_timestamp().get_mach(),
                     best_loc.get_latitude(),
                     best_loc.get_longitude(),
                     best_loc.get_altitude(),
@@ -337,6 +341,7 @@ def load_apim_location(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorD
                 for i in range(len(timestamps)):
                     new_entry = [
                         timestamps[i],
+                        timestamps[i],
                         lat_samples[i],
                         lon_samples[i],
                         np.nan if len(alt_samples) < i + 1 else alt_samples[i],
@@ -355,6 +360,7 @@ def load_apim_location(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorD
             data_for_df,
             columns=[
                 "timestamps",
+                "unaltered_timestamps",
                 "latitude",
                 "longitude",
                 "altitude",
@@ -445,10 +451,12 @@ def load_apim_location_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) ->
                         loc_prov_samples = np.full(len(timestamps), loc_prov_samples[0])
                     data_for_df[10].extend(loc_prov_samples)
     if len(data_for_df[0]) > 0:
+        data_for_df.insert(1, data_for_df[0].copy())
         return SensorData(
             wrapped_packets[0].get_sensors().get_location().get_sensor_description(),
             pd.DataFrame(np.transpose(data_for_df), columns=[
                 "timestamps",
+                "unaltered_timestamps",
                 "latitude",
                 "longitude",
                 "altitude",
@@ -503,7 +511,8 @@ def load_apim_pressure_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) ->
     if len(data_df) > 0:
         return SensorData(
             wrapped_packets[0].get_sensors().get_pressure().get_sensor_description(),
-            pd.DataFrame(np.transpose([timestamps, data_df]), columns=["timestamps", "pressure"]),
+            pd.DataFrame(np.transpose([timestamps, timestamps, data_df]),
+                         columns=["timestamps", "unaltered_timestamps", "pressure"]),
             SensorType.PRESSURE,
             calculate_stats=True
         )
@@ -547,7 +556,8 @@ def load_apim_light_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
     if len(data_df) > 0:
         return SensorData(
             wrapped_packets[0].get_sensors().get_light().get_sensor_description(),
-            pd.DataFrame(np.transpose([timestamps, data_df]), columns=["timestamps", "light"]),
+            pd.DataFrame(np.transpose([timestamps, timestamps, data_df]),
+                         columns=["timestamps", "unaltered_timestamps", "light"]),
             SensorType.LIGHT,
             calculate_stats=True
         )
@@ -591,7 +601,8 @@ def load_apim_proximity_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -
     if len(data_df) > 0:
         return SensorData(
             wrapped_packets[0].get_sensors().get_proximity().get_sensor_description(),
-            pd.DataFrame(np.transpose([timestamps, data_df]), columns=["timestamps", "proximity"]),
+            pd.DataFrame(np.transpose([timestamps, timestamps, data_df]),
+                         columns=["timestamps", "unaltered_timestamps", "proximity"]),
             SensorType.PROXIMITY,
             calculate_stats=True
         )
@@ -635,7 +646,8 @@ def load_apim_ambient_temp_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
     if len(data_df) > 0:
         return SensorData(
             wrapped_packets[0].get_sensors().get_ambient_temperature().get_sensor_description(),
-            pd.DataFrame(np.transpose([timestamps, data_df]), columns=["timestamps", "ambient_temp"]),
+            pd.DataFrame(np.transpose([timestamps, timestamps, data_df]),
+                         columns=["timestamps", "unaltered_timestamps", "ambient_temp"]),
             SensorType.AMBIENT_TEMPERATURE,
             calculate_stats=True
         )
@@ -679,7 +691,8 @@ def load_apim_rel_humidity_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
     if len(data_df) > 0:
         return SensorData(
             wrapped_packets[0].get_sensors().get_relative_humidity().get_sensor_description(),
-            pd.DataFrame(np.transpose([timestamps, data_df]), columns=["timestamps", "rel_humidity"]),
+            pd.DataFrame(np.transpose([timestamps, timestamps, data_df]),
+                         columns=["timestamps", "unaltered_timestamps", "rel_humidity"]),
             SensorType.RELATIVE_HUMIDITY,
             calculate_stats=True
         )
@@ -995,6 +1008,7 @@ def load_apim_health(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorDat
         for i in range(len(timestamps)):
             new_entry = [
                 timestamps[i],
+                timestamps[i],
                 np.nan if len(bat_samples) < i + 1 else bat_samples[i],
                 np.nan if len(bat_cur_samples) < i + 1 else bat_cur_samples[i],
                 np.nan if len(temp_samples) < i + 1 else temp_samples[i],
@@ -1010,6 +1024,7 @@ def load_apim_health(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorDat
             data_for_df,
             columns=[
                 "timestamps",
+                "unaltered_timestamps",
                 "battery_charge_remaining",
                 "battery_current_strength",
                 "internal_temp_c",
@@ -1084,12 +1099,14 @@ def load_apim_health_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> O
                 cell_samples = np.full(len(timestamps), np.nan)
             data_for_df[9].extend(cell_samples)
     if len(data_for_df[0]) > 0:
+        data_for_df.insert(1, data_for_df[0].copy())
         return SensorData(
             "station health",
             pd.DataFrame(
                 np.transpose(data_for_df),
                 columns=[
                     "timestamps",
+                    "unaltered_timestamps",
                     "battery_charge_remaining",
                     "battery_current_strength",
                     "internal_temp_c",
