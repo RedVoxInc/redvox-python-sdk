@@ -7,6 +7,12 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0b6 (2021-3-11)
+
+* Fixed bug when calculating OffsetModel validity
+* Fixed invalid latencies appearing in OffsetModel calculations
+* Fixed invalid station ids showing up in DataWindows
+
 ### 3.0.0b5 (2021-3-10)
 
 * OffsetModel handles cases where not enough data is present to create a reliable model

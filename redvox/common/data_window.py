@@ -344,22 +344,24 @@ class DataWindow:
             pool.map(Station.update_timestamps, stations)
 
         for station in stations:
-            # set the window start and end if they were specified, otherwise use the bounds of the data
-            if self.start_datetime:
-                start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
-            else:
-                start_datetime = station.first_data_timestamp
-            if self.end_datetime:
-                end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
-            else:
-                end_datetime = station.last_data_timestamp
-            # TRUNCATE!
-            self.create_window_in_sensors(station, start_datetime, end_datetime)
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
+            if station.id not in ids_to_pop:
+                # set the window start and end if they were specified, otherwise use the bounds of the data
+                if self.start_datetime:
+                    start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
+                else:
+                    start_datetime = station.first_data_timestamp
+                if self.end_datetime:
+                    end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
+                else:
+                    end_datetime = station.last_data_timestamp
+                # TRUNCATE!
+                self.create_window_in_sensors(station, start_datetime, end_datetime)
         # check for stations without data, then remove any stations that don't have audio data
         self.check_valid_ids()
         for ids in ids_to_pop:
             self.station_ids.remove(ids)
+            self.stations.pop(ids)
 
 
 def check_audio_data(
@@ -372,11 +374,10 @@ def check_audio_data(
     :param debug: if True, output warning message, default False
     :return: an updated list of station ids to remove from the data window
     """
-    station_id = station.id
     if not station.has_audio_sensor():
         if debug:
-            print(f"WARNING: {station_id} doesn't have any audio data to read")
-        ids_to_remove.append(station_id)
+            print(f"WARNING: {station.id} doesn't have any audio data to read")
+        ids_to_remove.append(station.id)
     return ids_to_remove
 
 

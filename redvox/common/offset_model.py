@@ -3,27 +3,44 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from typing import Tuple
 
-DEFAULT_BINS = 5                            # default number of bins
+MIN_VALID_LATENCY_MICROS = 100              # minimum value of latency before it's unreliable
 DEFAULT_SAMPLES = 3                         # default number of samples per bin
 MIN_SAMPLES = 3                             # minimum number of samples per 5 minutes for reliable data
 MIN_TIMESYNC_DURATION_MIN = 5               # minimum number of minutes of data required to produce reliable results
-MIN_QUALITY_OFFSET_MS_PER_HOUR = -15.0      # minimum value of offset slope in ms per hour for reliable data
-MAX_QUALITY_OFFSET_MS_PER_HOUR = 15.0       # maximum value of offset slope in ms per hour for reliable data
 
 
 class OffsetModel:
+    """
+    Offset model which represents the change in offset over a period of time
+    Properties:
+        start_time: float, start timestamp of model in microseconds since epoch UTC
+        end_time: float, end timestamp of model in microseconds since epoch UTC
+        k_bins: int, the number of data bins used to create the model
+        n_samples: int, the number of samples per data bin; 3 is the minimum to create a balanced line
+        slope: float, the slope of the change in offset
+        intercept: float, the offset at start_time
+    """
     def __init__(self, latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray,
-                 start_time: float, end_time: float,
-                 k_bins: int = DEFAULT_BINS, n_samples: int = DEFAULT_SAMPLES):
+                 start_time: float, end_time: float, n_samples: int = DEFAULT_SAMPLES):
+        """
+        Create an OffsetModel
+        :param latencies: latencies within the time specified
+        :param offsets: offsets that correspond to the latencies
+        :param times: timestamps that correspond to the latencies
+        :param start_time: model's start timestamp in microseconds since epoch utc
+        :param end_time: model's end timestamp in microseconds since epoch utc
+        :param n_samples: number of samples per bin, default 3
+        """
         self.start_time = start_time
         self.end_time = end_time
-        self.k_bins = k_bins
+        self.k_bins = get_bins_per_5min(start_time, end_time)
         self.n_samples = n_samples
+        latencies = np.where(latencies < MIN_VALID_LATENCY_MICROS, np.nan, latencies)
         use_model = timesync_quality_check(latencies, start_time, end_time)
         if use_model:
-            self.slope, self.intercept = get_offset_function(latencies, offsets, times, k_bins,
+            self.slope, self.intercept = get_offset_function(latencies, offsets, times, self.k_bins,
                                                              n_samples, start_time, end_time)
-            use_model = self.slope == 0.0 or offset_model_quality_check(self.slope)
+            use_model = self.slope != 0.0
         # if data or model is not sufficient, use the offset corresponding to lowest latency:
         if not use_model:
             self.slope = 0.0
@@ -55,6 +72,20 @@ class OffsetModel:
         :return: updated new_time
         """
         return new_time + self.get_offset_at_new_time(new_time)
+
+
+# Method to get number of bins
+def get_bins_per_5min(start_time: float, end_time: float) -> int:
+    """
+    Calculates number of bins needed for roughly 5 minute bins.
+        k_bins = int((end_time - start_time) / (300 * 1e6) + 1)
+    :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
+    :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
+    :return: number of bins to use for offset model
+    """
+
+    # Divide the duration by 5 minutes
+    return int((end_time - start_time) / (1e6 * 300) + 1)
 
 
 # min max scaling for the weights
@@ -222,30 +253,6 @@ def timesync_quality_check(latencies: np.ndarray, start_time: float, end_time: f
     if points_per_5min < MIN_SAMPLES:
         if debug:
             print(f'Less than {MIN_SAMPLES} of timesync data per 5 min')
-        return False
-
-    # Return True if it meets the above criteria
-    return True
-
-
-def offset_model_quality_check(slope: float, debug: bool = False) -> bool:
-    """
-    Checks the quality of the offset model to check if it should be used.
-    The following list is the quality check:
-        If slope (drift) is within -15 to -0.5 ms per hour [this may need to reevaluated so far clock is always slower]
-    Returns False if the data quality is not up to "standards".
-    :param slope: The calculated slope from the offset model
-    :param debug: determines if reason for reject is printed
-    :return: True if offset model passes all quality checks, False otherwise
-    """
-
-    # check the range of the slope
-    drift_ms_per_hour = slope * 3600 * 1e3
-
-    if drift_ms_per_hour < MIN_QUALITY_OFFSET_MS_PER_HOUR \
-            or drift_ms_per_hour > MAX_QUALITY_OFFSET_MS_PER_HOUR:
-        if debug:
-            print('Clock drift appears to be unreasonable')
         return False
 
     # Return True if it meets the above criteria
