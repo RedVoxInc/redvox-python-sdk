@@ -7,6 +7,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0b7 (2021-3-12)
+
+* Fixed error when creating DataWindows
+* Added unaltered_timestamps to all sensors; these timestamps are unchanged values recorded by the sensor
+
 ### 3.0.0b6 (2021-3-11)
 
 * Fixed bug when calculating OffsetModel validity
