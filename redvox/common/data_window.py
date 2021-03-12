@@ -338,12 +338,15 @@ class DataWindow:
             self.station_ids = set(self.stations.keys())
 
         stations: List[Station] = list(self.stations.values())
-        pool = parallel.pool()
+
+        # Parallel update, currently disabled.
+        # pool = parallel.pool()
         # Apply timing correction in parallel by station
-        if self.apply_correction:
-            pool.map(Station.update_timestamps, stations)
+        # if self.apply_correction:
+        #     pool.map(Station.update_timestamps, stations)
 
         for station in stations:
+            station.update_timestamps()  # Serial update
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
             if station.id not in ids_to_pop:
                 # set the window start and end if they were specified, otherwise use the bounds of the data
