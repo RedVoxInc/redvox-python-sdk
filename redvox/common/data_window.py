@@ -357,15 +357,12 @@ class DataWindow:
                     end_datetime = station.last_data_timestamp
                 # TRUNCATE!
                 self.create_window_in_sensors(station, start_datetime, end_datetime)
-            self.stations[station.id] = station
-        # check for stations without data, then remove any stations that don't have audio data
-        self.check_valid_ids()
-        for ids in ids_to_pop:
-            self.station_ids.remove(ids)
-            self.stations.pop(ids)
+                self.stations[station.id] = station
         # if user did not define station_ids, use the stations we have
         if self.station_ids is None or len(self.station_ids) == 0:
             self.station_ids = set(self.stations.keys())
+        # check for stations without data, then remove any stations that don't have audio data
+        self.check_valid_ids()
 
 
 def check_audio_data(
