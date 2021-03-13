@@ -16,6 +16,15 @@ class DataWindowTest(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.input_dir = tests.TEST_DATA_DIR
 
+    def test_data_window_simple(self):
+        datawindow = dw.DataWindow(
+            input_dir=self.input_dir,
+            structured_layout=False
+        )
+        self.assertEqual(len(datawindow.stations), 3)
+        self.assertEqual(len(datawindow.station_ids), 3)
+        self.assertTrue("1637680001" in datawindow.station_ids)
+
     def test_data_window(self):
         datawindow = dw.DataWindow(
             input_dir=self.input_dir,
