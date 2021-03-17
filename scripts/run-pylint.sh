@@ -9,6 +9,8 @@ set -o nounset
 #set -o errexit
 set -o xtrace
 
+cd ..
+
 pylint redvox.api900.sensors                ##&&\
 pylint redvox.api900.qa                     ##&&\
 pylint redvox.api900.timesync               ##&&\
