@@ -768,7 +768,7 @@ def new() -&gt; &#34;Image&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.write_image"><code class="name flex">
-<span>def <span class="ident">write_image</span></span>(<span>self, index: int, base_dir: str = '.', out_file: typing.Union[str, NoneType] = None) ‑> str</span>
+<span>def <span class="ident">write_image</span></span>(<span>self, index: int, base_dir: str = '.', out_file: typing.Optional[str] = None) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Writes an image to disk.
@@ -812,7 +812,7 @@ def new() -&gt; &#34;Image&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.write_images"><code class="name flex">
-<span>def <span class="ident">write_images</span></span>(<span>self, indices: typing.Union[typing.List[int], NoneType] = None, base_dir: str = '.') ‑> typing.List[str]</span>
+<span>def <span class="ident">write_images</span></span>(<span>self, indices: typing.Optional[typing.List[int]] = None, base_dir: str = '.') ‑> typing.List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Write multiple images to disk.
@@ -864,7 +864,8 @@ def new() -&gt; &#34;Image&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ImageCodec(enum.Enum):
+<pre><code class="python">@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.Sensors.Image.ImageCodec)
+class ImageCodec(enum.Enum):
     &#34;&#34;&#34;
     Image Codecs for image data
     &#34;&#34;&#34;

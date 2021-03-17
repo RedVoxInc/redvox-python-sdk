@@ -21,4 +21,14 @@ mkdir -p docs/api_docs
 pdoc3 redvox --overwrite --html --html-dir docs/api_docs -c show_type_annotations=True
 
 # Publish to github.io
+TMP_DIR="/tmp/redvox_docs"
+rm -rf ${TMP_DIR}
+mkdir -p ${TMP_DIR}
+git clone git@github.com:RedVoxInc/RedVoxInc.github.io.git ${TMP_DIR}
+rm -rf ${TMP_DIR}/redvox-sdk/api_docs
+cp -r docs/api_docs ${TMP_DIR}/redvox-sdk
+cd ${TMP_DIR}
+git add -A
+git commit -m"Update RedVox Python SDK API Docs"
+git push origin master
 

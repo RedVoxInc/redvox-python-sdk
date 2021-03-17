@@ -806,7 +806,8 @@ def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -&gt; List[str
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
+<pre><code class="python">@total_ordering
+class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
     &#34;&#34;&#34;
     Wraps a RedVox API M protobuf buffer.
     &#34;&#34;&#34;
@@ -1483,7 +1484,7 @@ Directory structure for this packet when using structured layout</p></div>
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.default_filename"><code class="name flex">
-<span>def <span class="ident">default_filename</span></span>(<span>self, extension: typing.Union[str, NoneType] = 'rdvxm') ‑> str</span>
+<span>def <span class="ident">default_filename</span></span>(<span>self, extension: typing.Optional[str] = 'rdvxm') ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the default filename for a given packet.
@@ -1999,7 +2000,7 @@ Directory structure for this packet when using structured layout</p></div>
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.write_compressed_to_file"><code class="name flex">
-<span>def <span class="ident">write_compressed_to_file</span></span>(<span>self, base_dir: str, filename: typing.Union[str, NoneType] = None) ‑> str</span>
+<span>def <span class="ident">write_compressed_to_file</span></span>(<span>self, base_dir: str, filename: typing.Optional[str] = None) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Writes this packet to a .rdvxm file.
@@ -2035,7 +2036,7 @@ Directory structure for this packet when using structured layout</p></div>
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.write_json_to_file"><code class="name flex">
-<span>def <span class="ident">write_json_to_file</span></span>(<span>self, base_dir: str, filename: typing.Union[str, NoneType] = None) ‑> str</span>
+<span>def <span class="ident">write_json_to_file</span></span>(<span>self, base_dir: str, filename: typing.Optional[str] = None) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Writes this packet to a .json file.

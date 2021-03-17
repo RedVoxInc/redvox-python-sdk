@@ -163,7 +163,8 @@ start_timestamp_micros: float, starting time of the station in microseconds sinc
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class StationKey:
+<pre><code class="python">@dataclass
+class StationKey:
     &#34;&#34;&#34;
     A set of values that uniquely define a station
     Properties:
@@ -216,7 +217,7 @@ start_timestamp_micros: float, starting time of the station in microseconds sinc
 </dd>
 <dt id="redvox.common.station_utils.StationMetadata"><code class="flex name class">
 <span>class <span class="ident">StationMetadata</span></span>
-<span>(</span><span>app: str, packet: typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType] = None)</span>
+<span>(</span><span>app: str, packet: typing.Optional[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A container for all the packet metadata that doesn't fit in a sensor</p>

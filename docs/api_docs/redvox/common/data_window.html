@@ -819,7 +819,7 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
 <dl>
 <dt id="redvox.common.data_window.DataWindow"><code class="flex name class">
 <span>class <span class="ident">DataWindow</span></span>
-<span>(</span><span>input_dir: str, structured_layout: bool = True, start_datetime: typing.Union[datetime.datetime, NoneType] = None, end_datetime: typing.Union[datetime.datetime, NoneType] = None, start_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), end_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), gap_time_s: float = 0.25, station_ids: typing.Union[typing.Iterable[str], NoneType] = None, extensions: typing.Union[typing.Set[str], NoneType] = None, api_versions: typing.Union[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>], NoneType] = None, apply_correction: bool = True, debug: bool = False)</span>
+<span>(</span><span>input_dir: str, structured_layout: bool = True, start_datetime: typing.Optional[datetime.datetime] = None, end_datetime: typing.Optional[datetime.datetime] = None, start_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), end_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), gap_time_s: float = 0.25, station_ids: typing.Optional[typing.Iterable[str]] = None, extensions: typing.Optional[typing.Set[str]] = None, api_versions: typing.Optional[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]] = None, apply_correction: bool = True, debug: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values</p>
@@ -1479,7 +1479,7 @@ returns nothing, updates the station in place
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.get_station"><code class="name flex">
-<span>def <span class="ident">get_station</span></span>(<span>self, station_id: str) ‑> typing.Union[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>, NoneType]</span>
+<span>def <span class="ident">get_station</span></span>(<span>self, station_id: str) ‑> typing.Optional[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get a single station from the data window

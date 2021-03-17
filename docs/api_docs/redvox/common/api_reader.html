@@ -570,7 +570,7 @@ Default False.</p></div>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.api_reader.ApiReader.get_station_by_id"><code class="name flex">
-<span>def <span class="ident">get_station_by_id</span></span>(<span>self, get_id: str) ‑> typing.Union[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>, NoneType]</span>
+<span>def <span class="ident">get_station_by_id</span></span>(<span>self, get_id: str) ‑> typing.Optional[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param get_id: the id to filter on
@@ -665,7 +665,7 @@ Default False.</p></div>
 </details>
 </dd>
 <dt id="redvox.common.api_reader.ApiReader.read_files_by_id"><code class="name flex">
-<span>def <span class="ident">read_files_by_id</span></span>(<span>self, get_id: str) ‑> typing.Union[typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>], NoneType]</span>
+<span>def <span class="ident">read_files_by_id</span></span>(<span>self, get_id: str) ‑> typing.Optional[typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param get_id: the id to filter on

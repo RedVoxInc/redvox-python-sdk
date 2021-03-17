@@ -894,7 +894,7 @@ TimeSyncAnalysis object if not given
 <dl>
 <dt id="redvox.common.timesync.TimeSyncAnalysis"><code class="flex name class">
 <span>class <span class="ident">TimeSyncAnalysis</span></span>
-<span>(</span><span>station_id: str = '', audio_sample_rate_hz: float = nan, station_start_timestamp: float = nan, time_sync_data: typing.Union[typing.List[<a title="redvox.common.timesync.TimeSyncData" href="#redvox.common.timesync.TimeSyncData">TimeSyncData</a>], NoneType] = None)</span>
+<span>(</span><span>station_id: str = '', audio_sample_rate_hz: float = nan, station_start_timestamp: float = nan, time_sync_data: typing.Optional[typing.List[<a title="redvox.common.timesync.TimeSyncData" href="#redvox.common.timesync.TimeSyncData">TimeSyncData</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Used for multiple TimeSyncData objects from a station
@@ -1750,7 +1750,7 @@ outputs warning if a gap is detected
 </dd>
 <dt id="redvox.common.timesync.TimeSyncData"><code class="flex name class">
 <span>class <span class="ident">TimeSyncData</span></span>
-<span>(</span><span>station_id: str = '', sample_rate_hz: float = nan, num_audio_samples: int = nan, station_start_timestamp: float = nan, server_acquisition_timestamp: float = nan, packet_start_timestamp: float = nan, packet_end_timestamp: float = nan, time_sync_exchanges_list: typing.Union[typing.List[float], NoneType] = None, best_latency: float = nan, best_offset: float = 0.0)</span>
+<span>(</span><span>station_id: str = '', sample_rate_hz: float = nan, num_audio_samples: int = nan, station_start_timestamp: float = nan, server_acquisition_timestamp: float = nan, packet_start_timestamp: float = nan, packet_end_timestamp: float = nan, time_sync_exchanges_list: typing.Optional[typing.List[float]] = None, best_latency: float = nan, best_offset: float = 0.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Stores latencies, offsets, and other timesync related information about a single station
@@ -1989,7 +1989,7 @@ default np.nan
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncData.update_timestamps"><code class="name flex">
-<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: typing.Union[<a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>, NoneType])</span>
+<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: typing.Optional[<a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>update timestamps by adding microseconds based on the OffsetModel.

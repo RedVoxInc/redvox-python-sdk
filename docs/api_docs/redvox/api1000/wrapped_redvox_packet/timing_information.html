@@ -2115,7 +2115,8 @@ a1, a2, a3, b1, b2, b3 order
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class TimingScoreMethod(enum.Enum):
+<pre><code class="python">@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.TimingInformation.TimingScoreMethod)
+class TimingScoreMethod(enum.Enum):
     &#34;&#34;&#34;
     Method used to score the timing.
     &#34;&#34;&#34;
