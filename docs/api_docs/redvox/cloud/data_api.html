@@ -516,7 +516,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.data_api.DataRangeReq.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -524,8 +524,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=False)</code></pre>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.DataRangeReq.to_json"><code class="name flex">
@@ -548,7 +548,7 @@ def schema(cls: Type[A],
             default: Callable = None,
             sort_keys: bool = False,
             **kw) -&gt; str:
-    return json.dumps(self.to_dict(),
+    return json.dumps(self.to_dict(encode_json=False),
                       cls=_ExtendedEncoder,
                       skipkeys=skipkeys,
                       ensure_ascii=ensure_ascii,
@@ -772,7 +772,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.DataRangeResp.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -780,8 +780,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=False)</code></pre>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.DataRangeResp.to_json"><code class="name flex">
@@ -804,7 +804,7 @@ def schema(cls: Type[A],
             default: Callable = None,
             sort_keys: bool = False,
             **kw) -&gt; str:
-    return json.dumps(self.to_dict(),
+    return json.dumps(self.to_dict(encode_json=False),
                       cls=_ExtendedEncoder,
                       skipkeys=skipkeys,
                       ensure_ascii=ensure_ascii,
@@ -941,7 +941,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.data_api.ReportDataReq.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -949,8 +949,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=False)</code></pre>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.ReportDataReq.to_json"><code class="name flex">
@@ -973,7 +973,7 @@ def schema(cls: Type[A],
             default: Callable = None,
             sort_keys: bool = False,
             **kw) -&gt; str:
-    return json.dumps(self.to_dict(),
+    return json.dumps(self.to_dict(encode_json=False),
                       cls=_ExtendedEncoder,
                       skipkeys=skipkeys,
                       ensure_ascii=ensure_ascii,
@@ -1163,7 +1163,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.ReportDataResp.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1171,8 +1171,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=False)</code></pre>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.ReportDataResp.to_json"><code class="name flex">
@@ -1195,7 +1195,7 @@ def schema(cls: Type[A],
             default: Callable = None,
             sort_keys: bool = False,
             **kw) -&gt; str:
-    return json.dumps(self.to_dict(),
+    return json.dumps(self.to_dict(encode_json=False),
                       cls=_ExtendedEncoder,
                       skipkeys=skipkeys,
                       ensure_ascii=ensure_ascii,

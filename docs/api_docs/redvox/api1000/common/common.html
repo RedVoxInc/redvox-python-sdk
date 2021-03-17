@@ -645,13 +645,10 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
     :return: A list of validation errors.
     &#34;&#34;&#34;
     errors_list = []
-    # if not timing_payload.get_proto().HasField(&#34;unit&#34;):
-    #     errors_list.append(&#34;Timing payload unit type is missing&#34;)
     if timing_payload.get_unit() != Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
         errors_list.append(
             &#34;Timing payload units are not in microseconds since unix epoch&#34;
         )
-    # if timing_payload.get_proto().HasField(&#34;timestamps&#34;):
     if timing_payload.get_timestamps_count() &lt; 1:
         errors_list.append(&#34;Timing payload timestamps are missing&#34;)
     else:
@@ -793,13 +790,10 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
     :return: A list of validation errors.
     &#34;&#34;&#34;
     errors_list = []
-    # if not timing_payload.get_proto().HasField(&#34;unit&#34;):
-    #     errors_list.append(&#34;Timing payload unit type is missing&#34;)
     if timing_payload.get_unit() != Unit.MICROSECONDS_SINCE_UNIX_EPOCH:
         errors_list.append(
             &#34;Timing payload units are not in microseconds since unix epoch&#34;
         )
-    # if timing_payload.get_proto().HasField(&#34;timestamps&#34;):
     if timing_payload.get_timestamps_count() &lt; 1:
         errors_list.append(&#34;Timing payload timestamps are missing&#34;)
     else:

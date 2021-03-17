@@ -34,14 +34,13 @@ Defines generic station metadata for API-independent analysis
 all timestamps are floats in microseconds unless otherwise stated
 &#34;&#34;&#34;
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Optional
+
+import numpy as np
 
 from redvox.common.offset_model import OffsetModel
-from redvox.api1000.wrapped_redvox_packet import (
-    station_information as si,
-    timing_information as ti,
-    # event_streams as es,
-)
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+# from redvox.api1000.wrapped_redvox_packet import event_streams as es
 
 
 @dataclass
@@ -84,38 +83,49 @@ class StationMetadata:
         packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
         packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
         timing_info_score: float, quality of timing information
+        other_metadata: dict str: str, other metadata from the packet
     &#34;&#34;&#34;
 
     def __init__(
         self,
-        api: float,
-        sub_api: float,
-        station_info: si.StationInformation,
         app: str,
-        timing_info: ti.TimingInformation,
+        packet: Optional[WrappedRedvoxPacketM] = None
     ):
         &#34;&#34;&#34;
         initialize the metadata
-        :param api: api version
-        :param sub_api: sub api version
-        :param station_info: station information
         :param app: app name
-        :param timing_info: timing information
+        :param packet: Optional WrappedRedvoxPacketM to read data from
         &#34;&#34;&#34;
-        self.api = api
-        self.sub_api = sub_api
-        self.make = station_info.get_make()
-        self.model = station_info.get_model()
-        self.os = station_info.get_os()
-        self.os_version = station_info.get_os_version()
         self.app = app
-        self.app_version = station_info.get_app_version()
-        self.is_private = station_info.get_is_private()
-        self.packet_start_mach_timestamp = timing_info.get_packet_start_mach_timestamp()
-        self.packet_end_mach_timestamp = timing_info.get_packet_end_mach_timestamp()
-        self.packet_start_os_timestamp = timing_info.get_packet_start_os_timestamp()
-        self.packet_end_os_timestamp = timing_info.get_packet_end_os_timestamp()
-        self.timing_info_score = timing_info.get_score()
+        self.other_metadata = {}
+        if packet:
+            self.api = packet.get_api()
+            self.sub_api = packet.get_sub_api()
+            self.make = packet.get_station_information().get_make()
+            self.model = packet.get_station_information().get_model()
+            self.os = packet.get_station_information().get_os()
+            self.os_version = packet.get_station_information().get_os_version()
+            self.app_version = packet.get_station_information().get_app_version()
+            self.is_private = packet.get_station_information().get_is_private()
+            self.packet_start_mach_timestamp = packet.get_timing_information().get_packet_start_mach_timestamp()
+            self.packet_end_mach_timestamp = packet.get_timing_information().get_packet_end_mach_timestamp()
+            self.packet_start_os_timestamp = packet.get_timing_information().get_packet_start_os_timestamp()
+            self.packet_end_os_timestamp = packet.get_timing_information().get_packet_end_os_timestamp()
+            self.timing_info_score = packet.get_timing_information().get_score()
+        else:
+            self.api = np.nan
+            self.sub_api = np.nan
+            self.make = &#34;&#34;
+            self.model = &#34;&#34;
+            self.os = &#34;&#34;
+            self.os_version = &#34;&#34;
+            self.app_version = &#34;&#34;
+            self.is_private = False
+            self.packet_start_mach_timestamp = np.nan
+            self.packet_end_mach_timestamp = np.nan
+            self.packet_start_os_timestamp = np.nan
+            self.packet_end_os_timestamp = np.nan
+            self.timing_info_score = np.nan
 
     def update_timestamps(self, om: OffsetModel):
         &#34;&#34;&#34;
@@ -206,7 +216,7 @@ start_timestamp_micros: float, starting time of the station in microseconds sinc
 </dd>
 <dt id="redvox.common.station_utils.StationMetadata"><code class="flex name class">
 <span>class <span class="ident">StationMetadata</span></span>
-<span>(</span><span>api: float, sub_api: float, station_info: <a title="redvox.api1000.wrapped_redvox_packet.station_information.StationInformation" href="../api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation">StationInformation</a>, app: str, timing_info: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="../api1000/wrapped_redvox_packet/timing_information.html#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a>)</span>
+<span>(</span><span>app: str, packet: typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A container for all the packet metadata that doesn't fit in a sensor</p>
@@ -224,13 +234,11 @@ packet_start_mach_timestamp: float, machine timestamp of packet start in microse
 packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
 packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
 packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
-timing_info_score: float, quality of timing information</p>
+timing_info_score: float, quality of timing information
+other_metadata: dict str: str, other metadata from the packet</p>
 <p>initialize the metadata
-:param api: api version
-:param sub_api: sub api version
-:param station_info: station information
 :param app: app name
-:param timing_info: timing information</p></div>
+:param packet: Optional WrappedRedvoxPacketM to read data from</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -253,38 +261,49 @@ timing_info_score: float, quality of timing information</p>
         packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
         packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
         timing_info_score: float, quality of timing information
+        other_metadata: dict str: str, other metadata from the packet
     &#34;&#34;&#34;
 
     def __init__(
         self,
-        api: float,
-        sub_api: float,
-        station_info: si.StationInformation,
         app: str,
-        timing_info: ti.TimingInformation,
+        packet: Optional[WrappedRedvoxPacketM] = None
     ):
         &#34;&#34;&#34;
         initialize the metadata
-        :param api: api version
-        :param sub_api: sub api version
-        :param station_info: station information
         :param app: app name
-        :param timing_info: timing information
+        :param packet: Optional WrappedRedvoxPacketM to read data from
         &#34;&#34;&#34;
-        self.api = api
-        self.sub_api = sub_api
-        self.make = station_info.get_make()
-        self.model = station_info.get_model()
-        self.os = station_info.get_os()
-        self.os_version = station_info.get_os_version()
         self.app = app
-        self.app_version = station_info.get_app_version()
-        self.is_private = station_info.get_is_private()
-        self.packet_start_mach_timestamp = timing_info.get_packet_start_mach_timestamp()
-        self.packet_end_mach_timestamp = timing_info.get_packet_end_mach_timestamp()
-        self.packet_start_os_timestamp = timing_info.get_packet_start_os_timestamp()
-        self.packet_end_os_timestamp = timing_info.get_packet_end_os_timestamp()
-        self.timing_info_score = timing_info.get_score()
+        self.other_metadata = {}
+        if packet:
+            self.api = packet.get_api()
+            self.sub_api = packet.get_sub_api()
+            self.make = packet.get_station_information().get_make()
+            self.model = packet.get_station_information().get_model()
+            self.os = packet.get_station_information().get_os()
+            self.os_version = packet.get_station_information().get_os_version()
+            self.app_version = packet.get_station_information().get_app_version()
+            self.is_private = packet.get_station_information().get_is_private()
+            self.packet_start_mach_timestamp = packet.get_timing_information().get_packet_start_mach_timestamp()
+            self.packet_end_mach_timestamp = packet.get_timing_information().get_packet_end_mach_timestamp()
+            self.packet_start_os_timestamp = packet.get_timing_information().get_packet_start_os_timestamp()
+            self.packet_end_os_timestamp = packet.get_timing_information().get_packet_end_os_timestamp()
+            self.timing_info_score = packet.get_timing_information().get_score()
+        else:
+            self.api = np.nan
+            self.sub_api = np.nan
+            self.make = &#34;&#34;
+            self.model = &#34;&#34;
+            self.os = &#34;&#34;
+            self.os_version = &#34;&#34;
+            self.app_version = &#34;&#34;
+            self.is_private = False
+            self.packet_start_mach_timestamp = np.nan
+            self.packet_end_mach_timestamp = np.nan
+            self.packet_start_os_timestamp = np.nan
+            self.packet_end_os_timestamp = np.nan
+            self.timing_info_score = np.nan
 
     def update_timestamps(self, om: OffsetModel):
         &#34;&#34;&#34;

@@ -37,7 +37,6 @@ Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 &#34;&#34;&#34;
 from collections import defaultdict
-from multiprocessing import Pool, cpu_count
 from typing import List, Optional, Dict
 from datetime import timedelta
 
@@ -155,14 +154,11 @@ class ApiReader:
         if len(latencies) &lt; 1:
             return index
         # get the model and calculate the revised start and end offsets
-        # best fit would be to use the machine timestamps that correspond to the best latencies,
-        #   but for now we use the packet start times + 1/2 the packet duration
         offsets = [st.offset if st.offset is not None and not np.isnan(st.offset) else np.nan for st in stats]
-        times = [dtu.datetime_to_epoch_microseconds_utc(st.packet_start_dt) for st in stats]
-        packet_duration = np.mean([dtu.seconds_to_microseconds(st.packet_duration.total_seconds()) for st in stats])
-        model = offset_model.OffsetModel(np.array(latencies), np.array(offsets),
-                                         times + 0.5 * packet_duration, 5, 3, times[0],
-                                         times[-1] + packet_duration)
+        times = [st.best_latency_timestamp for st in stats]
+        start_time = dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)
+        end_time = dtu.datetime_to_epoch_microseconds_utc(stats[-1].packet_start_dt + stats[-1].packet_duration)
+        model = offset_model.OffsetModel(np.array(latencies), np.array(offsets), np.array(times), start_time, end_time)
         # revise packet&#39;s times to real times and compare to requested values
         start_offset = timedelta(microseconds=model.get_offset_at_new_time(
             dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)))
@@ -438,14 +434,11 @@ Default False.</p></div>
         if len(latencies) &lt; 1:
             return index
         # get the model and calculate the revised start and end offsets
-        # best fit would be to use the machine timestamps that correspond to the best latencies,
-        #   but for now we use the packet start times + 1/2 the packet duration
         offsets = [st.offset if st.offset is not None and not np.isnan(st.offset) else np.nan for st in stats]
-        times = [dtu.datetime_to_epoch_microseconds_utc(st.packet_start_dt) for st in stats]
-        packet_duration = np.mean([dtu.seconds_to_microseconds(st.packet_duration.total_seconds()) for st in stats])
-        model = offset_model.OffsetModel(np.array(latencies), np.array(offsets),
-                                         times + 0.5 * packet_duration, 5, 3, times[0],
-                                         times[-1] + packet_duration)
+        times = [st.best_latency_timestamp for st in stats]
+        start_time = dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)
+        end_time = dtu.datetime_to_epoch_microseconds_utc(stats[-1].packet_start_dt + stats[-1].packet_duration)
+        model = offset_model.OffsetModel(np.array(latencies), np.array(offsets), np.array(times), start_time, end_time)
         # revise packet&#39;s times to real times and compare to requested values
         start_offset = timedelta(microseconds=model.get_offset_at_new_time(
             dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)))

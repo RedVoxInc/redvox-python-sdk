@@ -26,10 +26,7 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python"># todo: scrap if not needed
-import unittest
-import numpy as np
-import pandas as pd
+<pre><code class="python">import unittest
 
 import redvox.tests as tests
 from redvox.common.io import ReadFilter
@@ -44,252 +41,21 @@ class StationMetadataTest(unittest.TestCase):
         cls.station_filter = ReadFilter(station_ids={&#34;0000000001&#34;})
 
     def test_station_metadata(self):
-        reader = ApiReader(self.input_dir, read_filter=self.station_filter)
-        files = reader.read_files_by_id(&#34;0000000001&#34;)
-        metadata = [su.StationMetadata(p.get_api(),
-                                       p.get_sub_api(),
-                                       p.get_station_information(),
-                                       &#34;Redvox&#34;,
-                                       p.get_timing_information(),) for p in files]
+        files = ApiReader(self.input_dir, read_filter=self.station_filter).read_files_by_id(&#34;0000000001&#34;)
+        metadata = [su.StationMetadata(&#34;Redvox&#34;, p) for p in files]
         self.assertEqual(len(metadata), 3)
         self.assertEqual(metadata[2].os_version, &#34;Fedora 32&#34;)
         self.assertEqual(metadata[1].app_version, &#34;0.2.0&#34;)
         self.assertEqual(metadata[0].packet_start_mach_timestamp, 1597189452945991.0)
 
-# from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
-#
-#
-# class StationLocationTest(unittest.TestCase):
-#     def setUp(self):
-#         self.station_loc = station_utils.StationLocation(1000, 1000, 1000, 1000, &#34;USER&#34;, 1,
-#                                                          19.67, -155.55, 10.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0)
-#         self.empty_loc = station_utils.StationLocation()
-#
-#     def test_station_location_init(self):
-#         self.assertEqual(self.station_loc.lat_lon_timestamp, 1000)
-#         self.assertEqual(self.station_loc.altitude_timestamp, 1000)
-#         self.assertEqual(self.station_loc.speed_timestamp, 1000)
-#         self.assertEqual(self.station_loc.bearing_timestamp, 1000)
-#         self.assertEqual(self.station_loc.provider, &#34;USER&#34;)
-#         self.assertEqual(self.station_loc.score, 1)
-#         self.assertEqual(self.station_loc.latitude, 19.67)
-#         self.assertEqual(self.station_loc.longitude, -155.55)
-#         self.assertEqual(self.station_loc.altitude, 10.0)
-#         self.assertEqual(self.station_loc.speed, 0.0)
-#         self.assertEqual(self.station_loc.bearing, 0.0)
-#         self.assertEqual(self.station_loc.horizontal_accuracy, 4.0)
-#         self.assertEqual(self.station_loc.vertical_accuracy, 0.0)
-#         self.assertEqual(self.station_loc.speed_accuracy, 0.0)
-#         self.assertEqual(self.station_loc.bearing_accuracy, 0.0)
-#
-#         self.assertTrue(np.isnan(self.empty_loc.lat_lon_timestamp))
-#         self.assertTrue(np.isnan(self.empty_loc.longitude))
-#
-#     def test_update_timestamps(self):
-#         self.station_loc.update_timestamps(1000)
-#         self.assertEqual(self.station_loc.altitude_timestamp, 2000)
-#         self.station_loc.update_timestamps(-1500)
-#         self.assertEqual(self.station_loc.bearing_timestamp, 500)
-#
-#     def test_is_empty(self):
-#         self.assertFalse(self.station_loc.is_empty())
-#         self.assertTrue(self.empty_loc.is_empty())
-#
-#     def test_station_location_from_data(self):
-#         data = station_utils.station_location_from_data(
-#             pd.Series([10000, LocationProvider(3), 20.0, 150.0, 33.0, 0.0, 45.0, 12.0, 3.0, 0.0, 15.0],
-#                       index=[&#34;timestamps&#34;, &#34;location_provider&#34;, &#34;latitude&#34;, &#34;longitude&#34;, &#34;altitude&#34;, &#34;speed&#34;,
-#                              &#34;bearing&#34;, &#34;horizontal_accuracy&#34;, &#34;vertical_accuracy&#34;, &#34;speed_accuracy&#34;,
-#                              &#34;bearing_accuracy&#34;]))
-#         self.assertEqual(data.lat_lon_timestamp, 10000)
-#         self.assertEqual(data.latitude, 20.0)
-#
-#
-# class LocationDataTest(unittest.TestCase):
-#     def setUp(self):
-#         station_loc = station_utils.StationLocation(1000, 1000, 1000, 1000, &#34;USER&#34;, 1,
-#                                                     19.67, -155.55, 10.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0)
-#         station_loc_2 = station_utils.StationLocation(5000, 5000, 5000, 5000, &#34;USER&#34;, 1,
-#                                                       19.37, -155.05, 20.0, 0.0, 8.0, 16.0, 4.0, 0.0, 6.0)
-#         self.loc_data = station_utils.LocationData(station_loc, [station_loc_2, station_loc])
-#         self.first_loc = station_utils.StationLocation(lat_lon_timestamp=1000, latitude=10.0, longitude=105.0)
-#         self.second_loc = station_utils.StationLocation(lat_lon_timestamp=500, latitude=12.0, longitude=107.0)
-#         self.third_loc = station_utils.StationLocation(lat_lon_timestamp=2000, latitude=14.0, longitude=109.0)
-#         self.fourth_loc = station_utils.StationLocation(lat_lon_timestamp=5000, latitude=16.0, longitude=111.0)
-#         self.fifth_loc = station_utils.StationLocation(lat_lon_timestamp=5500, latitude=18.0, longitude=113.0)
-#         self.sixth_loc = station_utils.StationLocation(lat_lon_timestamp=7500, latitude=20.0, longitude=115.0)
-#         self.seventh_loc = station_utils.StationLocation(lat_lon_timestamp=100000, latitude=40.0, longitude=117.0)
-#         self.last_loc = station_utils.StationLocation(lat_lon_timestamp=9000, latitude=80.0, longitude=119.0)
-#         self.empty_loc = station_utils.StationLocation()
-#         self.window_start = 1500
-#         self.window_end = 7500
-#
-#     def test_location_data_init(self):
-#         self.assertEqual(len(self.loc_data.all_locations), 2)
-#         self.assertEqual(self.loc_data.std_latitude, 0.0)
-#         self.assertEqual(self.loc_data.std_longitude, 0.0)
-#         self.assertEqual(self.loc_data.std_altitude, 0.0)
-#         self.assertEqual(self.loc_data.std_speed, 0.0)
-#         self.assertEqual(self.loc_data.std_bearing, 0.0)
-#         self.assertEqual(self.loc_data.std_horizontal_accuracy, 0.0)
-#         self.assertEqual(self.loc_data.std_latitude, 0.0)
-#         self.assertEqual(self.loc_data.std_vertical_accuracy, 0.0)
-#         self.assertEqual(self.loc_data.std_speed_accuracy, 0.0)
-#         self.assertEqual(self.loc_data.std_bearing_accuracy, 0.0)
-#         self.assertEqual(self.loc_data.std_latitude, 0.0)
-#         self.assertTrue(np.isnan(self.loc_data.mean_latitude))
-#         self.assertTrue(np.isnan(self.loc_data.mean_longitude))
-#         self.assertTrue(np.isnan(self.loc_data.mean_altitude))
-#         self.assertTrue(np.isnan(self.loc_data.mean_speed))
-#         self.assertTrue(np.isnan(self.loc_data.mean_bearing))
-#         self.assertTrue(np.isnan(self.loc_data.mean_horizontal_accuracy))
-#         self.assertTrue(np.isnan(self.loc_data.mean_vertical_accuracy))
-#         self.assertTrue(np.isnan(self.loc_data.mean_speed_accuracy))
-#         self.assertTrue(np.isnan(self.loc_data.mean_bearing_accuracy))
-#         self.assertEqual(self.loc_data.mean_provider, &#34;None&#34;)
-#
-#     def test_update_timestamps(self):
-#         self.loc_data.update_timestamps(4000)
-#         self.assertEqual(self.loc_data.best_location.lat_lon_timestamp, 5000)
-#         self.assertEqual(self.loc_data.all_locations[0].lat_lon_timestamp, 9000)
-#         self.loc_data.update_timestamps(-2000)
-#         self.assertEqual(self.loc_data.best_location.lat_lon_timestamp, 3000)
-#         self.assertEqual(self.loc_data.all_locations[0].lat_lon_timestamp, 7000)
-#
-#     def test_get_sorted_all_locations(self):
-#         sorted_list = self.loc_data.get_sorted_all_locations()
-#         self.assertEqual(len(sorted_list), 2)
-#         self.assertEqual(sorted_list[0].lat_lon_timestamp, 1000)
-#
-#     def test_calc_mean_and_std_from_locations(self):
-#         self.loc_data.calc_mean_and_std_from_locations()
-#         self.assertAlmostEqual(self.loc_data.mean_latitude, 19.52, 2)
-#         self.assertEqual(self.loc_data.mean_longitude, -155.3)
-#         self.assertEqual(self.loc_data.mean_altitude, 15.0)
-#         self.assertEqual(self.loc_data.mean_speed, 0.0)
-#         self.assertEqual(self.loc_data.mean_bearing, 4.0)
-#         self.assertEqual(self.loc_data.mean_horizontal_accuracy, 10.0)
-#         self.assertEqual(self.loc_data.mean_vertical_accuracy, 2.0)
-#         self.assertEqual(self.loc_data.mean_speed_accuracy, 0.0)
-#         self.assertEqual(self.loc_data.mean_bearing_accuracy, 3.0)
-#         self.assertAlmostEqual(self.loc_data.std_latitude, 0.15, 2)
-#         self.assertEqual(self.loc_data.std_longitude, 0.25)
-#         self.assertEqual(self.loc_data.std_altitude, 5.0)
-#         self.assertEqual(self.loc_data.std_speed, 0.0)
-#         self.assertEqual(self.loc_data.std_bearing, 4.0)
-#         self.assertEqual(self.loc_data.std_horizontal_accuracy, 6.0)
-#         self.assertEqual(self.loc_data.std_vertical_accuracy, 2.0)
-#         self.assertEqual(self.loc_data.std_speed_accuracy, 0.0)
-#         self.assertEqual(self.loc_data.std_bearing_accuracy, 3.0)
-#
-#     def test_update_window_locations(self):
-#         loc_data = station_utils.LocationData(all_locations=[self.first_loc, self.second_loc, self.third_loc,
-#                                                              self.fourth_loc, self.fifth_loc, self.sixth_loc,
-#                                                              self.seventh_loc, self.last_loc])
-#         loc_data.update_window_locations(self.window_start, self.window_end)
-#         self.assertEqual(len(loc_data.all_locations), 5)
-#         self.assertEqual(loc_data.all_locations[0].lat_lon_timestamp, 2000)
-#
-#     def test_update_window_locations_outside_before_after(self):
-#         loc_data = station_utils.LocationData(all_locations=[self.first_loc, self.seventh_loc, self.second_loc,
-#                                                              self.last_loc])
-#         loc_data.update_window_locations(self.window_start, self.window_end)
-#         self.assertEqual(len(loc_data.all_locations), 2)
-#         self.assertEqual(loc_data.all_locations[1].lat_lon_timestamp, 9000)
-#
-#     def test_update_window_locations_only_before(self):
-#         loc_data = station_utils.LocationData(all_locations=[self.first_loc, self.first_loc, self.second_loc])
-#         loc_data.update_window_locations(self.window_start, self.window_end)
-#         self.assertEqual(len(loc_data.all_locations), 2)
-#         self.assertEqual(loc_data.all_locations[0].lat_lon_timestamp, 1000)
-#
-#     def test_update_window_locations_only_one(self):
-#         loc_data = station_utils.LocationData(all_locations=[self.fourth_loc])
-#         loc_data.update_window_locations(self.window_start, self.window_end)
-#         self.assertEqual(len(loc_data.all_locations), 1)
-#         self.assertEqual(loc_data.all_locations[0].lat_lon_timestamp, 5000)
-#
-#     def test_update_window_locations_add_too_many_early(self):
-#         loc_data = station_utils.LocationData(all_locations=[self.fourth_loc, self.first_loc, self.second_loc])
-#         loc_data.update_window_locations(self.window_start, self.window_end)
-#         self.assertEqual(len(loc_data.all_locations), 2)
-#         self.assertEqual(loc_data.all_locations[0].lat_lon_timestamp, 5000)
-#
-#     def test_update_window_locations_add_empty_to_valid(self):
-#         loc_data = station_utils.LocationData(all_locations=[self.fourth_loc, self.empty_loc])
-#         loc_data.update_window_locations(self.window_start, self.window_end)
-#         self.assertEqual(len(loc_data.all_locations), 1)
-#         self.assertEqual(loc_data.all_locations[0].lat_lon_timestamp, 5000)
-#
-#
-# class DataPacketTest(unittest.TestCase):
-#     def setUp(self):
-#         station_loc = station_utils.StationLocation(1000, 1000, 1000, 1000, &#34;USER&#34;, 1,
-#                                                     19.67, -155.55, 10.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0)
-#         self.data_packet = station_utils.DataPacket(50000000., 500., 1000., 40961000., 40.96, 32768,
-#                                                     best_location=station_loc)
-#
-#     def test_data_packet_init(self):
-#         self.assertEqual(self.data_packet.server_timestamp, 50000000.)
-#         self.assertEqual(self.data_packet.app_start_timestamp, 500.)
-#         self.assertEqual(self.data_packet.num_audio_samples, 32768)
-#         self.assertEqual(self.data_packet.duration_s, 40.96)
-#         self.assertEqual(self.data_packet.data_start_timestamp, 1000.)
-#         self.assertEqual(self.data_packet.data_end_timestamp, 40961000.)
-#         self.assertTrue(np.isnan(self.data_packet.micros_to_next_packet))
-#         self.assertEqual(self.data_packet.best_location.lat_lon_timestamp, 1000)
-#
-#     def test_expected_sample_interval_s(self):
-#         self.assertEqual(self.data_packet.expected_sample_interval_s(), 0.00125)
-#
-#
-# class StationTimeSyncDataTest(unittest.TestCase):
-#     def setUp(self):
-#         self.value = True
-#     # todo: test for none or empty timing objects
-#
-#
-# class StationTimingTest(unittest.TestCase):
-#     def setUp(self):
-#         self.station_timing = station_utils.StationTiming(100., 800., 500., 1.0, 2.0, 500.0, 3000.0, 3500.0, 500.0)
-#
-#     def test_station_timing_init(self):
-#         self.assertEqual(self.station_timing.station_start_timestamp, 100.)
-#         self.assertEqual(self.station_timing.audio_sample_rate_hz, 800.)
-#         self.assertEqual(self.station_timing.station_first_data_timestamp, 500.)
-#         self.assertEqual(self.station_timing.episode_start_timestamp_s, 1.)
-#         self.assertEqual(self.station_timing.episode_end_timestamp_s, 2.)
-#         self.assertEqual(self.station_timing.station_best_latency, 500.)
-#         self.assertEqual(self.station_timing.station_best_offset, 3000.)
-#         self.assertEqual(self.station_timing.station_mean_offset, 3500.)
-#         self.assertEqual(self.station_timing.station_std_offset, 500.)
-#
-#
-# class StationMetadataTest(unittest.TestCase):
-#     def setUp(self):
-#         station_timing = station_utils.StationTiming(100., 800., 500., 1.0, 2.0, 500.0, 3000.0, 3500.0, 500.0)
-#         self.metadata = station_utils.StationMetadata(&#34;1234567890&#34;, &#34;test_make&#34;, &#34;test_model&#34;, False, &#34;test_os&#34;,
-#                                                       &#34;test_os_version&#34;, &#34;Redvox&#34;, &#34;test_app_version&#34;, False,
-#                                                       station_timing, 1.0, &#34;TEST&#34;, &#34;test_name&#34;, &#34;test_location_name&#34;,
-#                                                       &#34;TST&#34;, &#34;test_encoding&#34;)
-#
-#     def test_station_metadata_init(self):
-#         self.assertEqual(self.metadata.station_id, &#34;1234567890&#34;)
-#         self.assertEqual(self.metadata.station_uuid, &#34;1234567890&#34;)
-#         self.assertEqual(self.metadata.station_make, &#34;test_make&#34;)
-#         self.assertEqual(self.metadata.station_model, &#34;test_model&#34;)
-#         self.assertFalse(self.metadata.station_timing_is_corrected)
-#         self.assertEqual(self.metadata.station_os, &#34;test_os&#34;)
-#         self.assertEqual(self.metadata.station_os_version, &#34;test_os_version&#34;)
-#         self.assertEqual(self.metadata.station_app, &#34;Redvox&#34;)
-#         self.assertEqual(self.metadata.station_app_version, &#34;test_app_version&#34;)
-#         self.assertFalse(self.metadata.is_mic_scrambled)
-#         self.assertEqual(self.metadata.station_calib, 1.0)
-#         self.assertEqual(self.metadata.station_network_name, &#34;TEST&#34;)
-#         self.assertEqual(self.metadata.station_name, &#34;test_name&#34;)
-#         self.assertEqual(self.metadata.station_location_name, &#34;test_location_name&#34;)
-#         self.assertEqual(self.metadata.station_channel_name, &#34;TST&#34;)
-#         self.assertEqual(self.metadata.station_channel_encoding, &#34;test_encoding&#34;)</code></pre>
+
+class StationKeyTest(unittest.TestCase):
+    def test_init_key(self):
+        key = su.StationKey(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0)
+        other_key = su.StationKey(&#34;other_id&#34;, &#34;other_uuid&#34;, 1.0)
+        copy_key = su.StationKey(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0)
+        self.assertEqual(key, copy_key)
+        self.assertNotEqual(key, other_key)</code></pre>
 </details>
 </section>
 <section>
@@ -301,6 +67,76 @@ class StationMetadataTest(unittest.TestCase):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="redvox.tests.common.test_station_utils.StationKeyTest"><code class="flex name class">
+<span>class <span class="ident">StationKeyTest</span></span>
+<span>(</span><span>methodName='runTest')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class whose instances are single test cases.</p>
+<p>By default, the test code itself should be placed in a method named
+'runTest'.</p>
+<p>If the fixture may be used for many test cases, create as
+many test methods as are needed. When instantiating such a TestCase
+subclass, specify in the constructor arguments the name of the test method
+that the instance is to execute.</p>
+<p>Test authors should subclass TestCase for their own tests. Construction
+and deconstruction of the test's environment ('fixture') can be
+implemented by overriding the 'setUp' and 'tearDown' methods respectively.</p>
+<p>If it is necessary to override the <strong>init</strong> method, the base class
+<strong>init</strong> method must always be called. It is important that subclasses
+should not change the signature of their <strong>init</strong> method, since instances
+of the classes are instantiated automatically by parts of the framework
+in order to be run.</p>
+<p>When subclassing TestCase, you can set these attributes:
+* failureException: determines which exception will be raised when
+the instance's assertion methods fail; test methods raising this
+exception will be deemed to have 'failed' rather than 'errored'.
+* longMessage: determines whether long messages (including repr of
+objects used in assert methods) will be printed on failure in <em>addition</em>
+to any explicit message passed.
+* maxDiff: sets the maximum length of a diff in failure messages
+by assert methods using difflib. It is looked up as an instance
+attribute so can be configured by individual tests if required.</p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StationKeyTest(unittest.TestCase):
+    def test_init_key(self):
+        key = su.StationKey(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0)
+        other_key = su.StationKey(&#34;other_id&#34;, &#34;other_uuid&#34;, 1.0)
+        copy_key = su.StationKey(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0)
+        self.assertEqual(key, copy_key)
+        self.assertNotEqual(key, other_key)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>unittest.case.TestCase</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.tests.common.test_station_utils.StationKeyTest.test_init_key"><code class="name flex">
+<span>def <span class="ident">test_init_key</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_init_key(self):
+    key = su.StationKey(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0)
+    other_key = su.StationKey(&#34;other_id&#34;, &#34;other_uuid&#34;, 1.0)
+    copy_key = su.StationKey(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0)
+    self.assertEqual(key, copy_key)
+    self.assertNotEqual(key, other_key)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="redvox.tests.common.test_station_utils.StationMetadataTest"><code class="flex name class">
 <span>class <span class="ident">StationMetadataTest</span></span>
 <span>(</span><span>methodName='runTest')</span>
@@ -345,13 +181,8 @@ not have a method with the specified name.</p></div>
         cls.station_filter = ReadFilter(station_ids={&#34;0000000001&#34;})
 
     def test_station_metadata(self):
-        reader = ApiReader(self.input_dir, read_filter=self.station_filter)
-        files = reader.read_files_by_id(&#34;0000000001&#34;)
-        metadata = [su.StationMetadata(p.get_api(),
-                                       p.get_sub_api(),
-                                       p.get_station_information(),
-                                       &#34;Redvox&#34;,
-                                       p.get_timing_information(),) for p in files]
+        files = ApiReader(self.input_dir, read_filter=self.station_filter).read_files_by_id(&#34;0000000001&#34;)
+        metadata = [su.StationMetadata(&#34;Redvox&#34;, p) for p in files]
         self.assertEqual(len(metadata), 3)
         self.assertEqual(metadata[2].os_version, &#34;Fedora 32&#34;)
         self.assertEqual(metadata[1].app_version, &#34;0.2.0&#34;)
@@ -391,13 +222,8 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_station_metadata(self):
-    reader = ApiReader(self.input_dir, read_filter=self.station_filter)
-    files = reader.read_files_by_id(&#34;0000000001&#34;)
-    metadata = [su.StationMetadata(p.get_api(),
-                                   p.get_sub_api(),
-                                   p.get_station_information(),
-                                   &#34;Redvox&#34;,
-                                   p.get_timing_information(),) for p in files]
+    files = ApiReader(self.input_dir, read_filter=self.station_filter).read_files_by_id(&#34;0000000001&#34;)
+    metadata = [su.StationMetadata(&#34;Redvox&#34;, p) for p in files]
     self.assertEqual(len(metadata), 3)
     self.assertEqual(metadata[2].os_version, &#34;Fedora 32&#34;)
     self.assertEqual(metadata[1].app_version, &#34;0.2.0&#34;)
@@ -422,6 +248,12 @@ def setUpClass(cls) -&gt; None:
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
+<li>
+<h4><code><a title="redvox.tests.common.test_station_utils.StationKeyTest" href="#redvox.tests.common.test_station_utils.StationKeyTest">StationKeyTest</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.tests.common.test_station_utils.StationKeyTest.test_init_key" href="#redvox.tests.common.test_station_utils.StationKeyTest.test_init_key">test_init_key</a></code></li>
+</ul>
+</li>
 <li>
 <h4><code><a title="redvox.tests.common.test_station_utils.StationMetadataTest" href="#redvox.tests.common.test_station_utils.StationMetadataTest">StationMetadataTest</a></code></h4>
 <ul class="">

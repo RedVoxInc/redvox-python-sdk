@@ -81,7 +81,7 @@ class DataWindow:
         gap_time_s: float, the minimum amount of seconds between data points that would indicate a gap.
                     Default DEFAULT_GAP_TIME_S
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
-        stations: list of Stations, the results of reading the data from input_directory
+        stations: dictionary of Id:Station, the results of reading the data from input_directory
         debug: bool, if True, outputs additional information during initialization. Default False
     &#34;&#34;&#34;
 
@@ -145,13 +145,14 @@ class DataWindow:
         self.stations: Dict[str, Station] = {}
         self.create_data_window()
 
-    def from_config_file(self, file: str) -&gt; &#34;DataWindow&#34;:
+    @staticmethod
+    def from_config_file(file: str) -&gt; &#34;DataWindow&#34;:
         &#34;&#34;&#34;
         Loads a configuration file to create the DataWindow
         :param file: full path to config file
         :return: a data window
         &#34;&#34;&#34;
-        return self.from_config(DataWindowConfig.from_path(file))
+        return DataWindow.from_config(DataWindowConfig.from_path(file))
 
     @staticmethod
     def from_config(config: DataWindowConfig) -&gt; &#34;DataWindow&#34;:
@@ -358,38 +359,41 @@ class DataWindow:
             r_f.with_end_dt_buf(self.end_buffer_td)
         if self.api_versions:
             r_f.with_api_versions(self.api_versions)
-        self.stations = ApiReader(
+
+        # get the data to convert into a window
+        stations = ApiReader(
             self.input_directory,
             self.structured_layout,
             r_f,
             self.debug,
-        ).read_files_as_stations()
-        if self.station_ids is None or len(self.station_ids) == 0:
-            self.station_ids = set(self.stations.keys())
+        ).get_stations()
 
-        stations: List[Station] = list(self.stations.values())
+        # Parallel update
         pool = parallel.pool()
         # Apply timing correction in parallel by station
         if self.apply_correction:
-            pool.map(Station.update_timestamps, stations)
+            stations = pool.map(Station.update_timestamps, stations)
 
         for station in stations:
-            # set the window start and end if they were specified, otherwise use the bounds of the data
-            if self.start_datetime:
-                start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
-            else:
-                start_datetime = station.first_data_timestamp
-            if self.end_datetime:
-                end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
-            else:
-                end_datetime = station.last_data_timestamp
-            # TRUNCATE!
-            self.create_window_in_sensors(station, start_datetime, end_datetime)
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
+            if station.id not in ids_to_pop:
+                # set the window start and end if they were specified, otherwise use the bounds of the data
+                if self.start_datetime:
+                    start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
+                else:
+                    start_datetime = station.first_data_timestamp
+                if self.end_datetime:
+                    end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
+                else:
+                    end_datetime = station.last_data_timestamp
+                # TRUNCATE!
+                self.create_window_in_sensors(station, start_datetime, end_datetime)
+                self.stations[station.id] = station
+        # if user did not define station_ids, use the stations we have
+        if self.station_ids is None or len(self.station_ids) == 0:
+            self.station_ids = set(self.stations.keys())
         # check for stations without data, then remove any stations that don&#39;t have audio data
         self.check_valid_ids()
-        for ids in ids_to_pop:
-            self.station_ids.remove(ids)
 
 
 def check_audio_data(
@@ -402,11 +406,10 @@ def check_audio_data(
     :param debug: if True, output warning message, default False
     :return: an updated list of station ids to remove from the data window
     &#34;&#34;&#34;
-    station_id = station.id
     if not station.has_audio_sensor():
         if debug:
-            print(f&#34;WARNING: {station_id} doesn&#39;t have any audio data to read&#34;)
-        ids_to_remove.append(station_id)
+            print(f&#34;WARNING: {station.id} doesn&#39;t have any audio data to read&#34;)
+        ids_to_remove.append(station.id)
     return ids_to_remove
 
 
@@ -599,11 +602,10 @@ def create_dataless_timestamps_df(
     :param debug: if True, output warning message, default False
     :return: an updated list of station ids to remove from the data window
     &#34;&#34;&#34;
-    station_id = station.id
     if not station.has_audio_sensor():
         if debug:
-            print(f&#34;WARNING: {station_id} doesn&#39;t have any audio data to read&#34;)
-        ids_to_remove.append(station_id)
+            print(f&#34;WARNING: {station.id} doesn&#39;t have any audio data to read&#34;)
+        ids_to_remove.append(station.id)
     return ids_to_remove</code></pre>
 </details>
 </dd>
@@ -850,7 +852,7 @@ gap_time_s: float, the minimum amount of seconds between data points that would 
 Default DEFAULT_GAP_TIME_S
 apply_correction: bool, if True, update the timestamps in the data based on best station offset.
 Default True
-stations: list of Stations, the results of reading the data from input_directory
+stations: dictionary of Id:Station, the results of reading the data from input_directory
 debug: bool, if True, outputs additional information during initialization. Default False</p>
 <p>initialize the data window with params
 :param input_dir: string, directory that contains the files to read data from
@@ -908,7 +910,7 @@ Default True
         gap_time_s: float, the minimum amount of seconds between data points that would indicate a gap.
                     Default DEFAULT_GAP_TIME_S
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
-        stations: list of Stations, the results of reading the data from input_directory
+        stations: dictionary of Id:Station, the results of reading the data from input_directory
         debug: bool, if True, outputs additional information during initialization. Default False
     &#34;&#34;&#34;
 
@@ -972,13 +974,14 @@ Default True
         self.stations: Dict[str, Station] = {}
         self.create_data_window()
 
-    def from_config_file(self, file: str) -&gt; &#34;DataWindow&#34;:
+    @staticmethod
+    def from_config_file(file: str) -&gt; &#34;DataWindow&#34;:
         &#34;&#34;&#34;
         Loads a configuration file to create the DataWindow
         :param file: full path to config file
         :return: a data window
         &#34;&#34;&#34;
-        return self.from_config(DataWindowConfig.from_path(file))
+        return DataWindow.from_config(DataWindowConfig.from_path(file))
 
     @staticmethod
     def from_config(config: DataWindowConfig) -&gt; &#34;DataWindow&#34;:
@@ -1185,38 +1188,41 @@ Default True
             r_f.with_end_dt_buf(self.end_buffer_td)
         if self.api_versions:
             r_f.with_api_versions(self.api_versions)
-        self.stations = ApiReader(
+
+        # get the data to convert into a window
+        stations = ApiReader(
             self.input_directory,
             self.structured_layout,
             r_f,
             self.debug,
-        ).read_files_as_stations()
-        if self.station_ids is None or len(self.station_ids) == 0:
-            self.station_ids = set(self.stations.keys())
+        ).get_stations()
 
-        stations: List[Station] = list(self.stations.values())
+        # Parallel update
         pool = parallel.pool()
         # Apply timing correction in parallel by station
         if self.apply_correction:
-            pool.map(Station.update_timestamps, stations)
+            stations = pool.map(Station.update_timestamps, stations)
 
         for station in stations:
-            # set the window start and end if they were specified, otherwise use the bounds of the data
-            if self.start_datetime:
-                start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
-            else:
-                start_datetime = station.first_data_timestamp
-            if self.end_datetime:
-                end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
-            else:
-                end_datetime = station.last_data_timestamp
-            # TRUNCATE!
-            self.create_window_in_sensors(station, start_datetime, end_datetime)
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
+            if station.id not in ids_to_pop:
+                # set the window start and end if they were specified, otherwise use the bounds of the data
+                if self.start_datetime:
+                    start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
+                else:
+                    start_datetime = station.first_data_timestamp
+                if self.end_datetime:
+                    end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
+                else:
+                    end_datetime = station.last_data_timestamp
+                # TRUNCATE!
+                self.create_window_in_sensors(station, start_datetime, end_datetime)
+                self.stations[station.id] = station
+        # if user did not define station_ids, use the stations we have
+        if self.station_ids is None or len(self.station_ids) == 0:
+            self.station_ids = set(self.stations.keys())
         # check for stations without data, then remove any stations that don&#39;t have audio data
-        self.check_valid_ids()
-        for ids in ids_to_pop:
-            self.station_ids.remove(ids)</code></pre>
+        self.check_valid_ids()</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -1288,6 +1294,27 @@ def from_config(config: DataWindowConfig) -&gt; &#34;DataWindow&#34;:
     )</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.data_window.DataWindow.from_config_file"><code class="name flex">
+<span>def <span class="ident">from_config_file</span></span>(<span>file: str) ‑> <a title="redvox.common.data_window.DataWindow" href="#redvox.common.data_window.DataWindow">DataWindow</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Loads a configuration file to create the DataWindow
+:param file: full path to config file
+:return: a data window</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_config_file(file: str) -&gt; &#34;DataWindow&#34;:
+    &#34;&#34;&#34;
+    Loads a configuration file to create the DataWindow
+    :param file: full path to config file
+    :return: a data window
+    &#34;&#34;&#34;
+    return DataWindow.from_config(DataWindowConfig.from_path(file))</code></pre>
+</details>
+</dd>
 </dl>
 <h3>Methods</h3>
 <dl>
@@ -1345,38 +1372,41 @@ stations without audio or any data outside the window are removed</p></div>
         r_f.with_end_dt_buf(self.end_buffer_td)
     if self.api_versions:
         r_f.with_api_versions(self.api_versions)
-    self.stations = ApiReader(
+
+    # get the data to convert into a window
+    stations = ApiReader(
         self.input_directory,
         self.structured_layout,
         r_f,
         self.debug,
-    ).read_files_as_stations()
-    if self.station_ids is None or len(self.station_ids) == 0:
-        self.station_ids = set(self.stations.keys())
+    ).get_stations()
 
-    stations: List[Station] = list(self.stations.values())
+    # Parallel update
     pool = parallel.pool()
     # Apply timing correction in parallel by station
     if self.apply_correction:
-        pool.map(Station.update_timestamps, stations)
+        stations = pool.map(Station.update_timestamps, stations)
 
     for station in stations:
-        # set the window start and end if they were specified, otherwise use the bounds of the data
-        if self.start_datetime:
-            start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
-        else:
-            start_datetime = station.first_data_timestamp
-        if self.end_datetime:
-            end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
-        else:
-            end_datetime = station.last_data_timestamp
-        # TRUNCATE!
-        self.create_window_in_sensors(station, start_datetime, end_datetime)
         ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
+        if station.id not in ids_to_pop:
+            # set the window start and end if they were specified, otherwise use the bounds of the data
+            if self.start_datetime:
+                start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
+            else:
+                start_datetime = station.first_data_timestamp
+            if self.end_datetime:
+                end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
+            else:
+                end_datetime = station.last_data_timestamp
+            # TRUNCATE!
+            self.create_window_in_sensors(station, start_datetime, end_datetime)
+            self.stations[station.id] = station
+    # if user did not define station_ids, use the stations we have
+    if self.station_ids is None or len(self.station_ids) == 0:
+        self.station_ids = set(self.stations.keys())
     # check for stations without data, then remove any stations that don&#39;t have audio data
-    self.check_valid_ids()
-    for ids in ids_to_pop:
-        self.station_ids.remove(ids)</code></pre>
+    self.check_valid_ids()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.create_window_in_sensors"><code class="name flex">
@@ -1414,26 +1444,6 @@ returns nothing, updates the station in place
     station.metadata = new_meta
     station.first_data_timestamp = start_date_timestamp
     station.last_data_timestamp = end_date_timestamp</code></pre>
-</details>
-</dd>
-<dt id="redvox.common.data_window.DataWindow.from_config_file"><code class="name flex">
-<span>def <span class="ident">from_config_file</span></span>(<span>self, file: str) ‑> <a title="redvox.common.data_window.DataWindow" href="#redvox.common.data_window.DataWindow">DataWindow</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Loads a configuration file to create the DataWindow
-:param file: full path to config file
-:return: a data window</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def from_config_file(self, file: str) -&gt; &#34;DataWindow&#34;:
-    &#34;&#34;&#34;
-    Loads a configuration file to create the DataWindow
-    :param file: full path to config file
-    :return: a data window
-    &#34;&#34;&#34;
-    return self.from_config(DataWindowConfig.from_path(file))</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.get_all_station_ids"><code class="name flex">

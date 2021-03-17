@@ -44,9 +44,9 @@ import numpy as np
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common import sensor_data as sd
+from redvox.common import sensor_reader_utils as sdru
 from redvox.common.station_utils import StationKey, StationMetadata
 from redvox.common.timesync import TimeSyncAnalysis
-from redvox.common import offset_model as om
 
 
 def validate_station_data(data_packets: List[WrappedRedvoxPacketM]) -&gt; bool:
@@ -55,21 +55,15 @@ def validate_station_data(data_packets: List[WrappedRedvoxPacketM]) -&gt; bool:
     :param data_packets: packets to check
     :return: True if all packets have the same key values
     &#34;&#34;&#34;
-    if len(data_packets) == 1:
+    if len(data_packets) == 1 or (len(data_packets) &gt; 1 and all(
+            [t.get_station_information().get_id() == data_packets[0].get_station_information().get_id()
+             and t.get_station_information().get_uuid() == data_packets[0].get_station_information().get_uuid()
+             and t.get_timing_information().get_app_start_mach_timestamp()
+             == data_packets[0].get_timing_information().get_app_start_mach_timestamp()
+             for t in data_packets])):
         return True
-    elif len(data_packets) &lt; 1:
+    else:
         return False
-    elif all(
-        lambda: t.get_station_information().get_id()
-        == data_packets[0].get_station_information().get_id()
-        and t.get_station_information().get_uuid()
-        == data_packets[0].get_station_information().get_uuid()
-        and t.get_timing_information().get_app_start_mach_timestamp()
-        == data_packets[0].get_timing_information().get_app_start_mach_timestamp()
-        for t in data_packets
-    ):
-        return True
-    return False
 
 
 class Station:
@@ -86,7 +80,6 @@ class Station:
         id: str id of the station, default None
         uuid: str uuid of the station, default None
         start_timestamp: float of microseconds since epoch UTC when the station started recording, default np.nan
-        key: Tuple of str, str, float, a unique combination of three values defining the station, default None
         first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan
         last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan
         app_name: str of the name of the app used to record the data, default empty string
@@ -94,6 +87,7 @@ class Station:
         is_audio_scrambled: bool, True if audio data is scrambled, default False
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
         timesync_analysis: TimeSyncAnalysis object, contains information about the station&#39;s timing values
+        offset_model: OffsetModel object, contains information about the station&#39;s timing correction
     &#34;&#34;&#34;
 
     def __init__(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None):
@@ -121,18 +115,16 @@ class Station:
                 self.is_audio_scrambled = False
             self.timesync_analysis = \
                 TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp).from_packets(data_packets)
-            if data_packets and validate_station_data(data_packets):
-                self.offset_model = om.OffsetModel(self.timesync_analysis.get_latencies(),
-                                                   self.timesync_analysis.get_offsets(),
-                                                   self.timesync_analysis.get_start_times() +
-                                                   0.5*self.get_mean_packet_duration(),
-                                                   5, 3, self.first_data_timestamp, self.last_data_timestamp)
         else:
             if data_packets:
                 print(
                     &#34;Warning: Data given to create station is not consistent; check station_id, station_uuid &#34;
-                    &#34;and app_start_time of the packets.&#34;
+                    &#34;and app_start_time of the packets for differences.&#34;
                 )
+                for i in range(len(data_packets)):
+                    print(f&#34;Packet {i}: id: {data_packets[i].get_station_information().get_id()}, &#34;
+                          f&#34;uuid: {data_packets[i].get_station_information().get_uuid()}, &#34;
+                          f&#34;app_start_time: {data_packets[i].get_timing_information().get_app_start_mach_timestamp()}&#34;)
             self.id = None
             self.uuid = None
             self.start_timestamp = np.nan
@@ -1017,53 +1009,47 @@ class Station:
         &#34;&#34;&#34;
         self.data = {}
         self.metadata: List[StationMetadata] = [
-            StationMetadata(
-                packet.get_api(),
-                packet.get_sub_api(),
-                packet.get_station_information(),
-                &#34;Redvox&#34;,
-                packet.get_timing_information(),
-            ) for packet in packets]
-        funcs = [sd.load_apim_audio_from_list,
-                 sd.load_apim_compressed_audio_from_list,
-                 sd.load_apim_image_from_list,
-                 sd.load_apim_location_from_list,
-                 sd.load_apim_pressure_from_list,
-                 sd.load_apim_light_from_list,
-                 sd.load_apim_ambient_temp_from_list,
-                 sd.load_apim_rel_humidity_from_list,
-                 sd.load_apim_proximity_from_list,
-                 sd.load_apim_accelerometer_from_list,
-                 sd.load_apim_gyroscope_from_list,
-                 sd.load_apim_magnetometer_from_list,
-                 sd.load_apim_gravity_from_list,
-                 sd.load_apim_linear_accel_from_list,
-                 sd.load_apim_orientation_from_list,
-                 sd.load_apim_rotation_vector_from_list,
-                 sd.load_apim_health_from_list,
+            StationMetadata(&#34;Redvox&#34;, packet) for packet in packets]
+        funcs = [sdru.load_apim_audio_from_list,
+                 sdru.load_apim_compressed_audio_from_list,
+                 sdru.load_apim_image_from_list,
+                 sdru.load_apim_location_from_list,
+                 sdru.load_apim_pressure_from_list,
+                 sdru.load_apim_light_from_list,
+                 sdru.load_apim_ambient_temp_from_list,
+                 sdru.load_apim_rel_humidity_from_list,
+                 sdru.load_apim_proximity_from_list,
+                 sdru.load_apim_accelerometer_from_list,
+                 sdru.load_apim_gyroscope_from_list,
+                 sdru.load_apim_magnetometer_from_list,
+                 sdru.load_apim_gravity_from_list,
+                 sdru.load_apim_linear_accel_from_list,
+                 sdru.load_apim_orientation_from_list,
+                 sdru.load_apim_rotation_vector_from_list,
+                 sdru.load_apim_health_from_list,
                  ]
         sensors = map(FunctionType.__call__, funcs, repeat(packets))
         for sensor in sensors:
             if sensor:
                 self.append_sensor(sensor)
 
-    def update_timestamps(self):
+    def update_timestamps(self) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
         updates the timestamps in the station using the offset model
         &#34;&#34;&#34;
         if self.is_timestamps_updated:
             print(&#34;WARNING: Timestamps already corrected!&#34;)
         else:
-            if not np.isnan(self.offset_model.slope):
-                for sensor in self.data.values():
-                    sensor.update_data_timestamps(self.offset_model)
-                for packet in self.metadata:
-                    packet.update_timestamps(self.offset_model)
-                self.timesync_analysis.update_timestamps(self.offset_model)
-                self.start_timestamp = self.offset_model.update_time(self.start_timestamp)
-                self.first_data_timestamp = self.offset_model.update_time(self.first_data_timestamp)
-                self.last_data_timestamp = self.offset_model.update_time(self.last_data_timestamp)
-                self.is_timestamps_updated = True</code></pre>
+            for sensor in self.data.values():
+                sensor.update_data_timestamps(self.timesync_analysis.offset_model)
+            for packet in self.metadata:
+                packet.update_timestamps(self.timesync_analysis.offset_model)
+            self.timesync_analysis.update_timestamps()
+            self.start_timestamp = self.timesync_analysis.offset_model.update_time(self.start_timestamp)
+            self.first_data_timestamp = self.timesync_analysis.offset_model.update_time(self.first_data_timestamp)
+            self.last_data_timestamp = self.timesync_analysis.offset_model.update_time(self.last_data_timestamp)
+            self.is_timestamps_updated = True
+        return self</code></pre>
 </details>
 </section>
 <section>
@@ -1090,21 +1076,15 @@ class Station:
     :param data_packets: packets to check
     :return: True if all packets have the same key values
     &#34;&#34;&#34;
-    if len(data_packets) == 1:
+    if len(data_packets) == 1 or (len(data_packets) &gt; 1 and all(
+            [t.get_station_information().get_id() == data_packets[0].get_station_information().get_id()
+             and t.get_station_information().get_uuid() == data_packets[0].get_station_information().get_uuid()
+             and t.get_timing_information().get_app_start_mach_timestamp()
+             == data_packets[0].get_timing_information().get_app_start_mach_timestamp()
+             for t in data_packets])):
         return True
-    elif len(data_packets) &lt; 1:
-        return False
-    elif all(
-        lambda: t.get_station_information().get_id()
-        == data_packets[0].get_station_information().get_id()
-        and t.get_station_information().get_uuid()
-        == data_packets[0].get_station_information().get_uuid()
-        and t.get_timing_information().get_app_start_mach_timestamp()
-        == data_packets[0].get_timing_information().get_app_start_mach_timestamp()
-        for t in data_packets
-    ):
-        return True
-    return False</code></pre>
+    else:
+        return False</code></pre>
 </details>
 </dd>
 </dl>
@@ -1129,14 +1109,14 @@ metadata: list of StationMetadata that didn't go into the sensor data, default e
 id: str id of the station, default None
 uuid: str uuid of the station, default None
 start_timestamp: float of microseconds since epoch UTC when the station started recording, default np.nan
-key: Tuple of str, str, float, a unique combination of three values defining the station, default None
 first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan
 last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan
 app_name: str of the name of the app used to record the data, default empty string
 audio_sample_rate_hz: float of sample rate of audio component in hz, default np.nan
 is_audio_scrambled: bool, True if audio data is scrambled, default False
 is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
-timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values</p>
+timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
+offset_model: OffsetModel object, contains information about the station's timing correction</p>
 <p>initialize Station
 :param data_packets: optional list of data packets representing the station, default None</p></div>
 <details class="source">
@@ -1157,7 +1137,6 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
         id: str id of the station, default None
         uuid: str uuid of the station, default None
         start_timestamp: float of microseconds since epoch UTC when the station started recording, default np.nan
-        key: Tuple of str, str, float, a unique combination of three values defining the station, default None
         first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan
         last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan
         app_name: str of the name of the app used to record the data, default empty string
@@ -1165,6 +1144,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
         is_audio_scrambled: bool, True if audio data is scrambled, default False
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
         timesync_analysis: TimeSyncAnalysis object, contains information about the station&#39;s timing values
+        offset_model: OffsetModel object, contains information about the station&#39;s timing correction
     &#34;&#34;&#34;
 
     def __init__(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None):
@@ -1192,18 +1172,16 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
                 self.is_audio_scrambled = False
             self.timesync_analysis = \
                 TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp).from_packets(data_packets)
-            if data_packets and validate_station_data(data_packets):
-                self.offset_model = om.OffsetModel(self.timesync_analysis.get_latencies(),
-                                                   self.timesync_analysis.get_offsets(),
-                                                   self.timesync_analysis.get_start_times() +
-                                                   0.5*self.get_mean_packet_duration(),
-                                                   5, 3, self.first_data_timestamp, self.last_data_timestamp)
         else:
             if data_packets:
                 print(
                     &#34;Warning: Data given to create station is not consistent; check station_id, station_uuid &#34;
-                    &#34;and app_start_time of the packets.&#34;
+                    &#34;and app_start_time of the packets for differences.&#34;
                 )
+                for i in range(len(data_packets)):
+                    print(f&#34;Packet {i}: id: {data_packets[i].get_station_information().get_id()}, &#34;
+                          f&#34;uuid: {data_packets[i].get_station_information().get_uuid()}, &#34;
+                          f&#34;app_start_time: {data_packets[i].get_timing_information().get_app_start_mach_timestamp()}&#34;)
             self.id = None
             self.uuid = None
             self.start_timestamp = np.nan
@@ -2088,53 +2066,47 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
         &#34;&#34;&#34;
         self.data = {}
         self.metadata: List[StationMetadata] = [
-            StationMetadata(
-                packet.get_api(),
-                packet.get_sub_api(),
-                packet.get_station_information(),
-                &#34;Redvox&#34;,
-                packet.get_timing_information(),
-            ) for packet in packets]
-        funcs = [sd.load_apim_audio_from_list,
-                 sd.load_apim_compressed_audio_from_list,
-                 sd.load_apim_image_from_list,
-                 sd.load_apim_location_from_list,
-                 sd.load_apim_pressure_from_list,
-                 sd.load_apim_light_from_list,
-                 sd.load_apim_ambient_temp_from_list,
-                 sd.load_apim_rel_humidity_from_list,
-                 sd.load_apim_proximity_from_list,
-                 sd.load_apim_accelerometer_from_list,
-                 sd.load_apim_gyroscope_from_list,
-                 sd.load_apim_magnetometer_from_list,
-                 sd.load_apim_gravity_from_list,
-                 sd.load_apim_linear_accel_from_list,
-                 sd.load_apim_orientation_from_list,
-                 sd.load_apim_rotation_vector_from_list,
-                 sd.load_apim_health_from_list,
+            StationMetadata(&#34;Redvox&#34;, packet) for packet in packets]
+        funcs = [sdru.load_apim_audio_from_list,
+                 sdru.load_apim_compressed_audio_from_list,
+                 sdru.load_apim_image_from_list,
+                 sdru.load_apim_location_from_list,
+                 sdru.load_apim_pressure_from_list,
+                 sdru.load_apim_light_from_list,
+                 sdru.load_apim_ambient_temp_from_list,
+                 sdru.load_apim_rel_humidity_from_list,
+                 sdru.load_apim_proximity_from_list,
+                 sdru.load_apim_accelerometer_from_list,
+                 sdru.load_apim_gyroscope_from_list,
+                 sdru.load_apim_magnetometer_from_list,
+                 sdru.load_apim_gravity_from_list,
+                 sdru.load_apim_linear_accel_from_list,
+                 sdru.load_apim_orientation_from_list,
+                 sdru.load_apim_rotation_vector_from_list,
+                 sdru.load_apim_health_from_list,
                  ]
         sensors = map(FunctionType.__call__, funcs, repeat(packets))
         for sensor in sensors:
             if sensor:
                 self.append_sensor(sensor)
 
-    def update_timestamps(self):
+    def update_timestamps(self) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
         updates the timestamps in the station using the offset model
         &#34;&#34;&#34;
         if self.is_timestamps_updated:
             print(&#34;WARNING: Timestamps already corrected!&#34;)
         else:
-            if not np.isnan(self.offset_model.slope):
-                for sensor in self.data.values():
-                    sensor.update_data_timestamps(self.offset_model)
-                for packet in self.metadata:
-                    packet.update_timestamps(self.offset_model)
-                self.timesync_analysis.update_timestamps(self.offset_model)
-                self.start_timestamp = self.offset_model.update_time(self.start_timestamp)
-                self.first_data_timestamp = self.offset_model.update_time(self.first_data_timestamp)
-                self.last_data_timestamp = self.offset_model.update_time(self.last_data_timestamp)
-                self.is_timestamps_updated = True</code></pre>
+            for sensor in self.data.values():
+                sensor.update_data_timestamps(self.timesync_analysis.offset_model)
+            for packet in self.metadata:
+                packet.update_timestamps(self.timesync_analysis.offset_model)
+            self.timesync_analysis.update_timestamps()
+            self.start_timestamp = self.timesync_analysis.offset_model.update_time(self.start_timestamp)
+            self.first_data_timestamp = self.timesync_analysis.offset_model.update_time(self.first_data_timestamp)
+            self.last_data_timestamp = self.timesync_analysis.offset_model.update_time(self.last_data_timestamp)
+            self.is_timestamps_updated = True
+        return self</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -3971,7 +3943,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.update_timestamps"><code class="name flex">
-<span>def <span class="ident">update_timestamps</span></span>(<span>self)</span>
+<span>def <span class="ident">update_timestamps</span></span>(<span>self) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>updates the timestamps in the station using the offset model</p></div>
@@ -3979,23 +3951,23 @@ sensor has any data
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_timestamps(self):
+<pre><code class="python">def update_timestamps(self) -&gt; &#34;Station&#34;:
     &#34;&#34;&#34;
     updates the timestamps in the station using the offset model
     &#34;&#34;&#34;
     if self.is_timestamps_updated:
         print(&#34;WARNING: Timestamps already corrected!&#34;)
     else:
-        if not np.isnan(self.offset_model.slope):
-            for sensor in self.data.values():
-                sensor.update_data_timestamps(self.offset_model)
-            for packet in self.metadata:
-                packet.update_timestamps(self.offset_model)
-            self.timesync_analysis.update_timestamps(self.offset_model)
-            self.start_timestamp = self.offset_model.update_time(self.start_timestamp)
-            self.first_data_timestamp = self.offset_model.update_time(self.first_data_timestamp)
-            self.last_data_timestamp = self.offset_model.update_time(self.last_data_timestamp)
-            self.is_timestamps_updated = True</code></pre>
+        for sensor in self.data.values():
+            sensor.update_data_timestamps(self.timesync_analysis.offset_model)
+        for packet in self.metadata:
+            packet.update_timestamps(self.timesync_analysis.offset_model)
+        self.timesync_analysis.update_timestamps()
+        self.start_timestamp = self.timesync_analysis.offset_model.update_time(self.start_timestamp)
+        self.first_data_timestamp = self.timesync_analysis.offset_model.update_time(self.first_data_timestamp)
+        self.last_data_timestamp = self.timesync_analysis.offset_model.update_time(self.last_data_timestamp)
+        self.is_timestamps_updated = True
+    return self</code></pre>
 </details>
 </dd>
 </dl>

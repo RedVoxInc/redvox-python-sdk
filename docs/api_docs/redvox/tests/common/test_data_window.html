@@ -45,6 +45,15 @@ class DataWindowTest(unittest.TestCase):
     def setUpClass(cls) -&gt; None:
         cls.input_dir = tests.TEST_DATA_DIR
 
+    def test_data_window_simple(self):
+        datawindow = dw.DataWindow(
+            input_dir=self.input_dir,
+            structured_layout=False
+        )
+        self.assertEqual(len(datawindow.stations), 3)
+        self.assertEqual(len(datawindow.station_ids), 3)
+        self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
+
     def test_data_window(self):
         datawindow = dw.DataWindow(
             input_dir=self.input_dir,
@@ -52,6 +61,10 @@ class DataWindowTest(unittest.TestCase):
             station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
         )
         self.assertEqual(len(datawindow.stations), 2)
+        test_station = datawindow.get_station(&#34;1637650010&#34;)
+        self.assertTrue(test_station.is_timestamps_updated)
+        self.assertNotEqual(test_station.first_data_timestamp,
+                            test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
         self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;).audio_sensor())
         test_sensor = datawindow.get_station(&#34;1637650010&#34;).accelerometer_sensor()
         self.assertEqual(test_sensor.num_samples(), 641)
@@ -327,6 +340,15 @@ not have a method with the specified name.</p></div>
     def setUpClass(cls) -&gt; None:
         cls.input_dir = tests.TEST_DATA_DIR
 
+    def test_data_window_simple(self):
+        datawindow = dw.DataWindow(
+            input_dir=self.input_dir,
+            structured_layout=False
+        )
+        self.assertEqual(len(datawindow.stations), 3)
+        self.assertEqual(len(datawindow.station_ids), 3)
+        self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
+
     def test_data_window(self):
         datawindow = dw.DataWindow(
             input_dir=self.input_dir,
@@ -334,6 +356,10 @@ not have a method with the specified name.</p></div>
             station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
         )
         self.assertEqual(len(datawindow.stations), 2)
+        test_station = datawindow.get_station(&#34;1637650010&#34;)
+        self.assertTrue(test_station.is_timestamps_updated)
+        self.assertNotEqual(test_station.first_data_timestamp,
+                            test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
         self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;).audio_sensor())
         test_sensor = datawindow.get_station(&#34;1637650010&#34;).accelerometer_sensor()
         self.assertEqual(test_sensor.num_samples(), 641)
@@ -407,6 +433,10 @@ def setUpClass(cls) -&gt; None:
         station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
     )
     self.assertEqual(len(datawindow.stations), 2)
+    test_station = datawindow.get_station(&#34;1637650010&#34;)
+    self.assertTrue(test_station.is_timestamps_updated)
+    self.assertNotEqual(test_station.first_data_timestamp,
+                        test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
     self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;).audio_sensor())
     test_sensor = datawindow.get_station(&#34;1637650010&#34;).accelerometer_sensor()
     self.assertEqual(test_sensor.num_samples(), 641)
@@ -416,6 +446,25 @@ def setUpClass(cls) -&gt; None:
     test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
     self.assertIsNotNone(test_sensor)
     self.assertEqual(test_sensor.num_samples(), 3)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_data_window.DataWindowTest.test_data_window_simple"><code class="name flex">
+<span>def <span class="ident">test_data_window_simple</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_data_window_simple(self):
+    datawindow = dw.DataWindow(
+        input_dir=self.input_dir,
+        structured_layout=False
+    )
+    self.assertEqual(len(datawindow.stations), 3)
+    self.assertEqual(len(datawindow.station_ids), 3)
+    self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid"><code class="name flex">
@@ -859,6 +908,7 @@ def setUpClass(cls) -&gt; None:
 <ul class="">
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.setUpClass" href="#redvox.tests.common.test_data_window.DataWindowTest.setUpClass">setUpClass</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_data_window" href="#redvox.tests.common.test_data_window.DataWindowTest.test_data_window">test_data_window</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_data_window_simple" href="#redvox.tests.common.test_data_window.DataWindowTest.test_data_window_simple">test_data_window_simple</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid">test_dw_invalid</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_with_start_end" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_with_start_end">test_dw_with_start_end</a></code></li>
 </ul>

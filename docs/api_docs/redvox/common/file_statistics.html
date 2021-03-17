@@ -182,6 +182,7 @@ class StationStat:
     server_recv_dt: Optional[datetime]
     gps_dts: Optional[List[GpsDateTime]]
     latency: Optional[float]
+    best_latency_timestamp: Optional[float]
     offset: Optional[float]
     sample_rate_hz: Optional[float]
     packet_duration: Optional[timedelta]
@@ -197,16 +198,19 @@ class StationStat:
 
         best_offset = packet.best_offset()
         best_latency = packet.best_latency()
-
-        if (not best_offset or not best_latency) and packet.has_time_synchronization_sensor():
+        if packet.has_time_synchronization_sensor():
             tsd = TimeSyncData(packet.redvox_id(),
                                time_sync_exchanges_list=packet.time_synchronization_sensor().payload_values(),
                                packet_start_timestamp=packet.app_file_start_timestamp_machine(),
                                packet_end_timestamp=packet.end_timestamp_us_utc(),
                                server_acquisition_timestamp=packet.server_timestamp_epoch_microseconds_utc(),
                                )
-            best_offset = tsd.best_offset
-            best_latency = tsd.best_latency
+            if not best_offset or not best_latency:
+                best_offset = tsd.best_offset
+                best_latency = tsd.best_latency
+            best_latency_timestamp = tsd.get_best_latency_timestamp()
+        else:
+            best_latency_timestamp = np.nan
 
         # noinspection Mypy
         return StationStat(
@@ -217,6 +221,7 @@ class StationStat:
             us2dt(packet.server_timestamp_epoch_microseconds_utc()),
             None,
             best_latency,
+            best_latency_timestamp,
             best_offset,
             packet.microphone_sensor().sample_rate_hz() if packet.has_microphone_sensor() else np.nan,
             timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else 0.0,
@@ -253,16 +258,19 @@ class StationStat:
 
         best_offset = timing_info.get_best_offset()
         best_latency = timing_info.get_best_latency()
-
-        if (np.isnan(best_offset) or np.isnan(best_latency)) and len(timing_info.get_synch_exchange_array()) &gt; 0:
+        if len(timing_info.get_synch_exchange_array()) &gt; 0:
             tsd = TimeSyncData(station_info.get_id(),
                                time_sync_exchanges_list=timing_info.get_synch_exchange_array(),
                                packet_start_timestamp=timing_info.get_packet_start_mach_timestamp(),
                                packet_end_timestamp=timing_info.get_packet_end_mach_timestamp(),
                                server_acquisition_timestamp=timing_info.get_server_acquisition_arrival_timestamp(),
                                )
-            best_offset = tsd.best_offset
-            best_latency = tsd.best_latency
+            if not best_offset or not best_latency:
+                best_offset = tsd.best_offset
+                best_latency = tsd.best_latency
+            best_latency_timestamp = tsd.get_best_latency_timestamp()
+        else:
+            best_latency_timestamp = np.nan
 
         return StationStat(
             station_info.get_id(),
@@ -272,6 +280,7 @@ class StationStat:
             us2dt(timing_info.get_server_acquisition_arrival_timestamp()),
             gps_timestamps,
             best_latency,
+            best_latency_timestamp,
             best_offset,
             _map_opt(audio_sensor, lambda sensor: sensor.get_sample_rate()),
             packet.get_packet_duration(),
@@ -541,7 +550,7 @@ parallel, otherwise they are read in serial.
 </dd>
 <dt id="redvox.common.file_statistics.StationStat"><code class="flex name class">
 <span>class <span class="ident">StationStat</span></span>
-<span>(</span><span>station_id: str, station_uuid: str, app_start_dt: typing.Union[datetime.datetime, NoneType], packet_start_dt: datetime.datetime, server_recv_dt: typing.Union[datetime.datetime, NoneType], gps_dts: typing.Union[typing.List[<a title="redvox.common.file_statistics.GpsDateTime" href="#redvox.common.file_statistics.GpsDateTime">GpsDateTime</a>], NoneType], latency: typing.Union[float, NoneType], offset: typing.Union[float, NoneType], sample_rate_hz: typing.Union[float, NoneType], packet_duration: typing.Union[datetime.timedelta, NoneType])</span>
+<span>(</span><span>station_id: str, station_uuid: str, app_start_dt: typing.Union[datetime.datetime, NoneType], packet_start_dt: datetime.datetime, server_recv_dt: typing.Union[datetime.datetime, NoneType], gps_dts: typing.Union[typing.List[<a title="redvox.common.file_statistics.GpsDateTime" href="#redvox.common.file_statistics.GpsDateTime">GpsDateTime</a>], NoneType], latency: typing.Union[float, NoneType], best_latency_timestamp: typing.Union[float, NoneType], offset: typing.Union[float, NoneType], sample_rate_hz: typing.Union[float, NoneType], packet_duration: typing.Union[datetime.timedelta, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A collection of station fields for a given API 900 or API 1000 packet.
@@ -563,6 +572,7 @@ These are used for timing correction and gap detection.</p></div>
     server_recv_dt: Optional[datetime]
     gps_dts: Optional[List[GpsDateTime]]
     latency: Optional[float]
+    best_latency_timestamp: Optional[float]
     offset: Optional[float]
     sample_rate_hz: Optional[float]
     packet_duration: Optional[timedelta]
@@ -578,16 +588,19 @@ These are used for timing correction and gap detection.</p></div>
 
         best_offset = packet.best_offset()
         best_latency = packet.best_latency()
-
-        if (not best_offset or not best_latency) and packet.has_time_synchronization_sensor():
+        if packet.has_time_synchronization_sensor():
             tsd = TimeSyncData(packet.redvox_id(),
                                time_sync_exchanges_list=packet.time_synchronization_sensor().payload_values(),
                                packet_start_timestamp=packet.app_file_start_timestamp_machine(),
                                packet_end_timestamp=packet.end_timestamp_us_utc(),
                                server_acquisition_timestamp=packet.server_timestamp_epoch_microseconds_utc(),
                                )
-            best_offset = tsd.best_offset
-            best_latency = tsd.best_latency
+            if not best_offset or not best_latency:
+                best_offset = tsd.best_offset
+                best_latency = tsd.best_latency
+            best_latency_timestamp = tsd.get_best_latency_timestamp()
+        else:
+            best_latency_timestamp = np.nan
 
         # noinspection Mypy
         return StationStat(
@@ -598,6 +611,7 @@ These are used for timing correction and gap detection.</p></div>
             us2dt(packet.server_timestamp_epoch_microseconds_utc()),
             None,
             best_latency,
+            best_latency_timestamp,
             best_offset,
             packet.microphone_sensor().sample_rate_hz() if packet.has_microphone_sensor() else np.nan,
             timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else 0.0,
@@ -634,16 +648,19 @@ These are used for timing correction and gap detection.</p></div>
 
         best_offset = timing_info.get_best_offset()
         best_latency = timing_info.get_best_latency()
-
-        if (np.isnan(best_offset) or np.isnan(best_latency)) and len(timing_info.get_synch_exchange_array()) &gt; 0:
+        if len(timing_info.get_synch_exchange_array()) &gt; 0:
             tsd = TimeSyncData(station_info.get_id(),
                                time_sync_exchanges_list=timing_info.get_synch_exchange_array(),
                                packet_start_timestamp=timing_info.get_packet_start_mach_timestamp(),
                                packet_end_timestamp=timing_info.get_packet_end_mach_timestamp(),
                                server_acquisition_timestamp=timing_info.get_server_acquisition_arrival_timestamp(),
                                )
-            best_offset = tsd.best_offset
-            best_latency = tsd.best_latency
+            if not best_offset or not best_latency:
+                best_offset = tsd.best_offset
+                best_latency = tsd.best_latency
+            best_latency_timestamp = tsd.get_best_latency_timestamp()
+        else:
+            best_latency_timestamp = np.nan
 
         return StationStat(
             station_info.get_id(),
@@ -653,6 +670,7 @@ These are used for timing correction and gap detection.</p></div>
             us2dt(timing_info.get_server_acquisition_arrival_timestamp()),
             gps_timestamps,
             best_latency,
+            best_latency_timestamp,
             best_offset,
             _map_opt(audio_sensor, lambda sensor: sensor.get_sample_rate()),
             packet.get_packet_duration(),
@@ -661,6 +679,10 @@ These are used for timing correction and gap detection.</p></div>
 <h3>Class variables</h3>
 <dl>
 <dt id="redvox.common.file_statistics.StationStat.app_start_dt"><code class="name">var <span class="ident">app_start_dt</span> : typing.Union[datetime.datetime, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.file_statistics.StationStat.best_latency_timestamp"><code class="name">var <span class="ident">best_latency_timestamp</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -744,16 +766,19 @@ def from_api_1000(packet: &#34;WrappedRedvoxPacketM&#34;) -&gt; &#34;StationStat
 
     best_offset = timing_info.get_best_offset()
     best_latency = timing_info.get_best_latency()
-
-    if (np.isnan(best_offset) or np.isnan(best_latency)) and len(timing_info.get_synch_exchange_array()) &gt; 0:
+    if len(timing_info.get_synch_exchange_array()) &gt; 0:
         tsd = TimeSyncData(station_info.get_id(),
                            time_sync_exchanges_list=timing_info.get_synch_exchange_array(),
                            packet_start_timestamp=timing_info.get_packet_start_mach_timestamp(),
                            packet_end_timestamp=timing_info.get_packet_end_mach_timestamp(),
                            server_acquisition_timestamp=timing_info.get_server_acquisition_arrival_timestamp(),
                            )
-        best_offset = tsd.best_offset
-        best_latency = tsd.best_latency
+        if not best_offset or not best_latency:
+            best_offset = tsd.best_offset
+            best_latency = tsd.best_latency
+        best_latency_timestamp = tsd.get_best_latency_timestamp()
+    else:
+        best_latency_timestamp = np.nan
 
     return StationStat(
         station_info.get_id(),
@@ -763,6 +788,7 @@ def from_api_1000(packet: &#34;WrappedRedvoxPacketM&#34;) -&gt; &#34;StationStat
         us2dt(timing_info.get_server_acquisition_arrival_timestamp()),
         gps_timestamps,
         best_latency,
+        best_latency_timestamp,
         best_offset,
         _map_opt(audio_sensor, lambda sensor: sensor.get_sample_rate()),
         packet.get_packet_duration(),
@@ -791,16 +817,19 @@ def from_api_900(packet: &#34;WrappedRedvoxPacket&#34;) -&gt; &#34;StationStat&#
 
     best_offset = packet.best_offset()
     best_latency = packet.best_latency()
-
-    if (not best_offset or not best_latency) and packet.has_time_synchronization_sensor():
+    if packet.has_time_synchronization_sensor():
         tsd = TimeSyncData(packet.redvox_id(),
                            time_sync_exchanges_list=packet.time_synchronization_sensor().payload_values(),
                            packet_start_timestamp=packet.app_file_start_timestamp_machine(),
                            packet_end_timestamp=packet.end_timestamp_us_utc(),
                            server_acquisition_timestamp=packet.server_timestamp_epoch_microseconds_utc(),
                            )
-        best_offset = tsd.best_offset
-        best_latency = tsd.best_latency
+        if not best_offset or not best_latency:
+            best_offset = tsd.best_offset
+            best_latency = tsd.best_latency
+        best_latency_timestamp = tsd.get_best_latency_timestamp()
+    else:
+        best_latency_timestamp = np.nan
 
     # noinspection Mypy
     return StationStat(
@@ -811,6 +840,7 @@ def from_api_900(packet: &#34;WrappedRedvoxPacket&#34;) -&gt; &#34;StationStat&#
         us2dt(packet.server_timestamp_epoch_microseconds_utc()),
         None,
         best_latency,
+        best_latency_timestamp,
         best_offset,
         packet.microphone_sensor().sample_rate_hz() if packet.has_microphone_sensor() else np.nan,
         timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else 0.0,
@@ -854,8 +884,9 @@ def from_api_900(packet: &#34;WrappedRedvoxPacket&#34;) -&gt; &#34;StationStat&#
 </li>
 <li>
 <h4><code><a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="redvox.common.file_statistics.StationStat.app_start_dt" href="#redvox.common.file_statistics.StationStat.app_start_dt">app_start_dt</a></code></li>
+<li><code><a title="redvox.common.file_statistics.StationStat.best_latency_timestamp" href="#redvox.common.file_statistics.StationStat.best_latency_timestamp">best_latency_timestamp</a></code></li>
 <li><code><a title="redvox.common.file_statistics.StationStat.from_api_1000" href="#redvox.common.file_statistics.StationStat.from_api_1000">from_api_1000</a></code></li>
 <li><code><a title="redvox.common.file_statistics.StationStat.from_api_900" href="#redvox.common.file_statistics.StationStat.from_api_900">from_api_900</a></code></li>
 <li><code><a title="redvox.common.file_statistics.StationStat.gps_dts" href="#redvox.common.file_statistics.StationStat.gps_dts">gps_dts</a></code></li>

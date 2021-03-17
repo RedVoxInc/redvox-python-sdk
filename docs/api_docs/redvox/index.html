@@ -31,8 +31,8 @@
 Provides library level metadata and constants.
 &#34;&#34;&#34;
 
-NAME = &#34;redvox&#34;
-VERSION = &#34;3.0.0b4&#34;
+NAME: str = &#34;redvox&#34;
+VERSION: str = &#34;3.0.0rc1&#34;
 
 
 def version() -&gt; str:
@@ -40,7 +40,7 @@ def version() -&gt; str:
     return VERSION
 
 
-def print_version():
+def print_version() -&gt; None:
     &#34;&#34;&#34;Prints the version number of this library&#34;&#34;&#34;
     print(version())</code></pre>
 </details>
@@ -80,7 +80,7 @@ def print_version():
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.print_version"><code class="name flex">
-<span>def <span class="ident">print_version</span></span>(<span>)</span>
+<span>def <span class="ident">print_version</span></span>(<span>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Prints the version number of this library</p></div>
@@ -88,7 +88,7 @@ def print_version():
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def print_version():
+<pre><code class="python">def print_version() -&gt; None:
     &#34;&#34;&#34;Prints the version number of this library&#34;&#34;&#34;
     print(version())</code></pre>
 </details>
