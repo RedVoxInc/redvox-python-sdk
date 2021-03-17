@@ -2,8 +2,8 @@
 Provides library level metadata and constants.
 """
 
-NAME = "redvox"
-VERSION = "3.0.0rc0"
+NAME: str = "redvox"
+VERSION: str = "3.0.0rc1"
 
 
 def version() -> str:
@@ -11,6 +11,6 @@ def version() -> str:
     return VERSION
 
 
-def print_version():
+def print_version() -> None:
     """Prints the version number of this library"""
     print(version())
