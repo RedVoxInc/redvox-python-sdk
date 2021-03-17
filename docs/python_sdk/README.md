@@ -39,7 +39,7 @@ The RedVox Python SDK contains routines for reading, creating, and writing RedVo
   * [3.9 Working with the Audio Sensor](#39-working-with-the-audio-sensor)
   * [3.10 Working with Other Single Channel Sensors](#310-working-with-other-single-channel-sensors)
   * [3.11 Working with Three Channel Sensors](#311-working-with-three-channel-sensors)
-  * [3.12 Working with the Location Sensor](#312-working-with-the-location-sensor)
+  * [3.12 Working with the Location Sensor](#312-working-with-the-location-sensor
   
 ## 1 Obtaining the SDK
 
@@ -1197,9 +1197,9 @@ read_filter = io_raw.ReadFilter(start_dt=datetime(2020, 12, 1),
                                 end_dt=datetime(2020, 12, 2),
                                 station_ids={"0000000001", "0000000002"})
 # or
-read_filter = io_raw.ReadFilter()
-  .with_start_dt(datetime(2020, 12, 1))
-  .with_end_dt(datetime(2020, 12, 2))
+read_filter = io_raw.ReadFilter() \
+  .with_start_dt(datetime(2020, 12, 1)) \
+  .with_end_dt(datetime(2020, 12, 2)) \
   .with_station_ids({"0000000001", "0000000002"})
 
 # Once the filter is created, you can pass it directly to one of the read_ or stream_ methods. As an example:
@@ -2786,3 +2786,7 @@ best bearing_accuracy=0.0
 ```
 
 _[Table of Contents](#table-of-contents)_
+
+## 4 SDK High-Level API and Usage
+
+See: [Data Window Documentation](data_window)
