@@ -40,7 +40,8 @@ The RedVox Python SDK contains routines for reading, creating, and writing RedVo
   * [3.10 Working with Other Single Channel Sensors](#310-working-with-other-single-channel-sensors)
   * [3.11 Working with Three Channel Sensors](#311-working-with-three-channel-sensors)
   * [3.12 Working with the Location Sensor](#312-working-with-the-location-sensor)
-  
+* [4 SDK High-Level API and Usage](4-sdk-high-level-api-and-usage)
+  * [4.1 Data Window](#41-data-window)
 ## 1 Obtaining the SDK
 
 The source for the latest development version of the SDK capable of reading API M data resides in the [api-m branch of the GitHub repository](https://github.com/RedVoxInc/redvox-python-sdk/tree/api-m). Here, you'll also find links to the API documentation and several sets of examples created from Jupyter notebooks.
@@ -2784,5 +2785,15 @@ best vertical_accuracy=2.0
 best speed_accuracy=0.0860232561826706
 best bearing_accuracy=0.0
 ```
+
+_[Table of Contents](#table-of-contents)_
+
+## 4 SDK High-Level API and Usage
+The SDK has a high level method called Data Window used to read user-defined periods of data.
+
+_[Table of Contents](#table-of-contents)_
+
+### 4.1 Data Window
+[Data Window Documentation](https://github.com/RedVoxInc/redvox-python-sdk/tree/api-m-dev/docs/python_sdk/data_window)
 
 _[Table of Contents](#table-of-contents)_
