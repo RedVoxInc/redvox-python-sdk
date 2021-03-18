@@ -40,7 +40,7 @@ class TestWrappedPacket(unittest.TestCase):
             set_acquisition_server("wss://fake.acquire.foo")
         self.non_empty_packet_info.get_sensors().new_audio()
         self.non_empty_packet_info.get_sensors().get_audio().get_samples().set_values(np.array([1.000, .50, .1025],
-                                                                                               dtype=np.int))
+                                                                                               dtype=int))
         self.non_empty_packet_info.get_sensors().get_audio().set_sample_rate(80.0)
         self.non_empty_packet_info.get_sensors().get_audio().set_first_sample_timestamp(1)
 

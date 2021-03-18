@@ -9,7 +9,7 @@ class TestSensor(unittest.TestCase):
         self.empty_sensors: sensor.Sensors = sensor.Sensors.new()
         self.non_empty_sensors: sensor.Sensors = sensor.Sensors.new()
         self.non_empty_sensors.new_audio()
-        self.non_empty_sensors.get_audio().get_samples().set_values(np.array([.1000, .50, .1025], dtype=np.int))
+        self.non_empty_sensors.get_audio().get_samples().set_values(np.array([.1000, .50, .1025], dtype=int))
         self.non_empty_sensors.get_audio().set_sample_rate(80.0)
         self.non_empty_sensors.get_audio().set_first_sample_timestamp(1)
         self.non_empty_sensors.new_location()
