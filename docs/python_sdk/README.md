@@ -1,48 +1,53 @@
-# <img src="img/redvox_logo.png" height="25"> **RedVox Python SDK Manual**  
+# <img src="img/redvox_logo.png" height="25"> **RedVox Python SDK Manual**
 
 The RedVox Python SDK contains routines for reading, creating, and writing RedVox API 900 and RedVox API 1000 data files. The SDK is open-source.
 
 ## Table of Contents
 
-* [1 Obtaining the SDK](#1-obtaining-the-sdk)
-* [2 Command Line Interface (CLI)](#2-command-line-interface-cli)
-  * [2.1 data-req Command Details](#21-data-req-command-details)
-  * [2.2 data-req-report Command Details](#22-data-req-report-command-details)
-  * [2.3 gallery Command Details](#23-gallery-command-details)
-  * [2.4 json-to-rdvxm Command Details](#24-json-to-rdvxm-command-details)
-  * [2.5 json-to-rdvxz Command Details](#25-json-to-rdvxz-command-details)
-  * [2.6 print-m Command Details](#26-print-m-command-details)
-  * [2.7 print-z Command Details](#27-print-z-command-details)
-  * [2.8 rdvxm-to-json Command Details](#28-rdvxm-to-json-command-details)
-  * [2.9 rdvxm-to-rdvxz Command Details](#29-rdvxm-to-rdvxz-command-details)
-  * [2.10 rdvxz-to-json Command Details](#210-rdvxz-to-json-command-details)
-  * [2.11 rdvxz-to-rdvxm Command Details](#211-rdvxz-to-rdvxm-command-details)
-  * [2.12 validate-m Command Details](#212-validate-m-command-details)
-* [3 SDK Mid-Level API and Usage](#3-sdk-mid-level-api-and-usage)
-  * [3.1 Reading API M files](#31-reading-api-m-files)
-    * [3.1.1 Reading byte streams](#311-reading-byte-streams)
-    * [3.1.2 Reading data from the file system](#312-reading-data-from-the-file-system)
-    * [3.1.3 Understanding the ReadResult type](#313-understanding-the-readresult-type)
-    * [3.1.3 Streaming data from the file system](#313-streaming-data-from-the-file-system)
-    * [3.1.4 Selectively filtering data](#314-selectively-filtering-data)
-  * [3.2 The WrappedRedvoxPacketM Type](#32-the-wrappedredvoxpacketm-type)
-  * [3.3 Working with Station Information](#33-working-with-station-information)
-  * [3.4 Working with App Settings](#34-working-with-app-settings)
-  * [3.5 Working with TimingPayloads, SamplePayloads, and ProtoRepeatedMessages](#35-working-with-timingpayloads-samplepayloads-and-protorepeatedmessages)
-    * [3.5.1 TimingPayload](#351-timingpayload)
-    * [3.5.2 SamplePayload](#352-samplepayload)
-    * [3.5.3 SummaryStatistics](#353-summarystatistics)
-    * [3.5.4 ProtoRepeatedMessage](#354-protorepeatedmessage)
-  * [3.6 Working with Station Metrics](#36-working-with-station-metrics)
-  * [3.7 Working with Timing Information](#37-working-with-timing-information)
-  * [3.8 Working with Sensors](#38-working-with-sensors)
-  * [3.9 Working with the Audio Sensor](#39-working-with-the-audio-sensor)
-  * [3.10 Working with Other Single Channel Sensors](#310-working-with-other-single-channel-sensors)
-  * [3.11 Working with Three Channel Sensors](#311-working-with-three-channel-sensors)
-  * [3.12 Working with the Location Sensor](#312-working-with-the-location-sensor)
-* [4 SDK High-Level API and Usage](#4-sdk-high-level-api-and-usage)
-  
-## 1 Obtaining the SDK
+<!-- toc -->
+
+- [Obtaining the SDK](#obtaining-the-sdk)
+- [Command Line Interface (CLI)](#command-line-interface-cli)
+  * [data-req Command Details](#data-req-command-details)
+  * [data-req-report Command Details](#data-req-report-command-details)
+  * [gallery Command Details](#gallery-command-details)
+  * [json-to-rdvxm Command Details](#json-to-rdvxm-command-details)
+  * [json-to-rdvxz Command Details](#json-to-rdvxz-command-details)
+  * [print-m Command Details](#print-m-command-details)
+  * [print-z Command Details](#print-z-command-details)
+  * [rdvxm-to-json Command Details](#rdvxm-to-json-command-details)
+  * [rdvxm-to-rdvxz Command Details](#rdvxm-to-rdvxz-command-details)
+  * [rdvxz-to-json Command Details](#rdvxz-to-json-command-details)
+  * [rdvxz-to-rdvxm Command Details](#rdvxz-to-rdvxm-command-details)
+  * [validate-m Command Details](#validate-m-command-details)
+- [SDK Mid-Level API and Usage](#sdk-mid-level-api-and-usage)
+  * [Reading API M files](#reading-api-m-files)
+    + [Reading byte streams](#reading-byte-streams)
+    + [Reading data from the file system](#reading-data-from-the-file-system)
+    + [Understanding the ReadResult type](#understanding-the-readresult-type)
+    + [Streaming data from the file system](#streaming-data-from-the-file-system)
+    + [Selectively filtering data](#selectively-filtering-data)
+  * [The WrappedRedvoxPacketM Type](#the-wrappedredvoxpacketm-type)
+  * [Working with Station Information](#working-with-station-information)
+  * [Working with App Settings](#working-with-app-settings)
+  * [Working with TimingPayloads, SamplePayloads, and ProtoRepeatedMessages](#working-with-timingpayloads-samplepayloads-and-protorepeatedmessages)
+    + [TimingPayload](#timingpayload)
+    + [SamplePayload](#samplepayload)
+    + [SummaryStatistics](#summarystatistics)
+    + [ProtoRepeatedMessage](#protorepeatedmessage)
+  * [Working with Station Metrics](#working-with-station-metrics)
+  * [Working with Timing Information](#working-with-timing-information)
+  * [Working with Sensors](#working-with-sensors)
+  * [Working with the Audio Sensor](#working-with-the-audio-sensor)
+  * [Working with Other Single Channel Sensors](#working-with-other-single-channel-sensors)
+  * [Working with Three Channel Sensors](#working-with-three-channel-sensors)
+  * [Working with the Location Sensor](#working-with-the-location-sensor)
+    + [Working with the BestLocation type](#working-with-the-bestlocation-type)
+- [SDK High-Level API and Usage](#sdk-high-level-api-and-usage)
+
+<!-- tocstop -->
+
+## Obtaining the SDK
 
 The source for the latest development version of the SDK capable of reading API M data resides in the [api-m branch of the GitHub repository](https://github.com/RedVoxInc/redvox-python-sdk/tree/api-m). Here, you'll also find links to the API documentation and several sets of examples created from Jupyter notebooks.
 
@@ -50,7 +55,7 @@ We recommend installing the SDK through pip. Select the latest version available
 
 _[Table of Contents](#table-of-contents)_
 
-## 2 Command Line Interface (CLI)
+## Command Line Interface (CLI)
 
 The RedVox SDK includes a command line interface (CLI) that is installed when the SDK is installed. The name of the CLI is `redvox-cli`.
 
@@ -99,15 +104,15 @@ $ redvox-cli data-req --help
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.1 data-req Command Details
+### data-req Command Details
 
-Allows both API 900 and API 1000 data to be requested from the RedVox cloud services. All positional arguments are required and are used to authenticate against the RedVox services as well as to provide a means of specifying which data should be queried. 
+Allows both API 900 and API 1000 data to be requested from the RedVox cloud services. All positional arguments are required and are used to authenticate against the RedVox services as well as to provide a means of specifying which data should be queried.
 
 Until stated otherwise, the option argument `--secret-token` is also __required__. If you have not done so already, obtain the current API secret token from RedVox, Inc.
 
 Every request requires authentication information, a time window, and one or more API 900 or API 1000 station IDs.
 
-Downloaded data will be stored according to the structured directory layouts for both API 900 and API 1000. Data is stored in the current working directory unless `--out-dir` is specified. 
+Downloaded data will be stored according to the structured directory layouts for both API 900 and API 1000. Data is stored in the current working directory unless `--out-dir` is specified.
 
 The time window (specified by `req_start_s` and `req_end_s`) are represented as timestamps as integer number of seconds since the Unix epoch.
 
@@ -115,7 +120,7 @@ It is possible to specify API 900, API 1000, or both (default) by providing the 
 
 The rest of the optional parameters can be used to specify alternative servers.
 
-_Usage_: 
+_Usage_:
 
 ```
 $ redvox-cli data-req --help
@@ -196,13 +201,13 @@ $ redvox-cli data-req --out-dir /data/downloaded --secret-token \
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.2 data-req-report Command Details
+### data-req-report Command Details
 
 This command can be used to download report data that was generated on redvox.io. The downloaded data will be stored in a .zip folder in the current working directory unless `--out-dir` is specified. Downloaded contents include API 900 data files, plots, and other related products.
 
 All positional arguments are required and `--secret-token` is currently required until otherwise specified. If you have not been provided a `secret-token`, please contact RedVox to obtain one.
 
-In the following example, `$USERNAME`, `$PASSWORD`, and `$SECRET_TOKEN` will be used as placeholders. These should be substituted with valid values in order to run. 
+In the following example, `$USERNAME`, `$PASSWORD`, and `$SECRET_TOKEN` will be used as placeholders. These should be substituted with valid values in order to run.
 
 The report ID for each redvox.io report can be found both in the URL bar:
 
@@ -212,7 +217,7 @@ and in the report itself:
 
 ![](img/report_id_2.png)
 
-_Usage_: 
+_Usage_:
 
 ```
 usage: redvox-cli data-req-report [-h] [--out-dir OUT_DIR] 
@@ -264,13 +269,13 @@ The remaining optional arguments (`--retries`, `--host`, `--port`, `--protocol`)
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.3 gallery Command Details
+### gallery Command Details
 
 Display an image gallery from images collected from API M data files.
 
 ![](img/gallery.png)
 
-_Usage_: 
+_Usage_:
 
 ```
 usage: redvox-cli gallery [-h] rdvxm_paths [rdvxm_paths ...]
@@ -305,11 +310,11 @@ Display a gallery from images collected from all API M files in a directory
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.4 json-to-rdvxm Command Details
+### json-to-rdvxm Command Details
 
 Converts JSON into API M files. This method does not convert between API versions and will only convert API M JSON that matches the API M specification. Converted files are stored in the same directory unless `--out-dir` is specified.
 
-_Usage_: 
+_Usage_:
 
 ```
 usage: redvox-cli json-to-rdvxm [-h] [--out-dir OUT_DIR]
@@ -353,7 +358,7 @@ Convert all JSON files in a directory and store converted files in a different d
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.5 json-to-rdvxz Command Details
+### json-to-rdvxz Command Details
 
 Converts JSON into API 900 files. This method does not convert between API versions and will only convert API 900 JSON that matches the API 900 specification. Converted files are stored in the same directory unless `--out-dir` is specified.
 
@@ -402,9 +407,9 @@ Convert all JSON files in a directory and store converted files in a different d
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.6 print-m Command Details
+### print-m Command Details
 
-Prints the contents of API M files to the standard output (stdout). 
+Prints the contents of API M files to the standard output (stdout).
 The files are first converted to JSON before being displayed to stdout.
 
 _Usage_:
@@ -479,9 +484,9 @@ The resulting output should start similar to:
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.7 print-z Command Details
+### print-z Command Details
 
-Prints the contents of API 900 files to the standard output (stdout). 
+Prints the contents of API 900 files to the standard output (stdout).
 The files are first converted to JSON before being displayed to stdout.
 
 _Usage_:
@@ -557,7 +562,7 @@ evenly_sampled_channels {
     ...
 ```
 
-### 2.8 rdvxm-to-json Command Details
+### rdvxm-to-json Command Details
 
 Converts API M files into JSON. Converted files are placed in the same directory unless `--out-dir` is specified.
 
@@ -645,7 +650,7 @@ The start of a converted file should look similar to:
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.9 rdvxm-to-rdvxz Command Details
+### rdvxm-to-rdvxz Command Details
 
 Convert API M files to API 900 files. This is a lossy conversion since API 900 can not store many of the fields present in API M. Data is stored in the untyped API 900 metadata when feasible.
 
@@ -697,7 +702,7 @@ Convert all API M files in a directory and store converted files in a different 
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.10 rdvxz-to-json Command Details
+### rdvxz-to-json Command Details
 
 Converts API 900 data into JSON. Converted files will be placed in the same directory unless `--out-dir` is specified.
 
@@ -781,7 +786,7 @@ The start of the converted JSON should look similar to:
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.11 rdvxz-to-rdvxm Command Details
+### rdvxz-to-rdvxm Command Details
 
 Convert API 900 data into API M data. By default, converted files are placed in the same directory with an updated filename that uses the extension `.rdvxm`. A separate output directory may be used by passing the `--out-dir` option.
 
@@ -831,9 +836,9 @@ Convert all API 900 files in a directory and store converted files in a differen
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.12 validate-m Command Details
+### validate-m Command Details
 
-Validates API-M data by ensuring constraints are met. If provided API M files successfully validate, no errors will be reported. If there are validation errors, they will be printed to stdout. 
+Validates API-M data by ensuring constraints are met. If provided API M files successfully validate, no errors will be reported. If there are validation errors, they will be printed to stdout.
 
 _Usage_:
 
@@ -870,7 +875,7 @@ Validate all API-M files in a directory:
 
 _[Table of Contents](#table-of-contents)_
 
-## 3 SDK Mid-Level API and Usage
+## SDK Mid-Level API and Usage
 
 The RedVox Python SDK provides three interfaces for working with API M data.
 
@@ -884,7 +889,7 @@ A mid-level interface that:
 
 * Provides getters and setters for reading, creating, and writing API M fields and packets
 * Provides high-level type checking and validation
-* Provides convenience methods for working with the underlying protobuf 
+* Provides convenience methods for working with the underlying protobuf
 
 A high level interface that:
 
@@ -897,13 +902,13 @@ Up-to-date API documentation for the mid-level API is provided on [GitHub](https
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.1 Reading API M files
+### Reading API M files
 
 The [redvox.api1000.io_raw](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html) module is used for reading or streaming API M ".rdvxm" files from disk or byte streams.
 
 _[Table of Contents](#table-of-contents)_
 
-#### 3.1.1 Reading byte streams 
+#### Reading byte streams
 
 At the lowest level, the SDK is able to load serialized and compressed API M packets composed as a list of bytes with the [read_bufs](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.read_bufs) method.
 
@@ -963,7 +968,7 @@ We won't worry about the `ReadResult` type just yet as an entire section is dedi
 
 _[Table of Contents](#table-of-contents)_
 
-#### 3.1.2 Reading data from the file system
+#### Reading data from the file system
 
 API M file can be stored to the file system using two schemes:
 
@@ -1025,13 +1030,13 @@ which produces output similar to:
 
 _[Table of Contents](#table-of-contents)_
 
-#### 3.1.3 Understanding the ReadResult type
+#### Understanding the ReadResult type
 
 The [ReadResult](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.ReadResult) type sorts and aggregates API M data by station ID. This type also provides methods that describe the aggregated data.
 
 [get_station_summaries](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.ReadResult.get_station_summaries) returns a list of [StationSummary](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.StationSummary) objects that describes the main attributes of each station.
 
-This is useful for exploring what types of data were read in. Perhaps most importantly, this provides a list of station IDs and UUIDs which can then be used to further extract data from the `ReadResult` using the [get_packets_for_station_id](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.ReadResult.get_packets_for_station_id) method. 
+This is useful for exploring what types of data were read in. Perhaps most importantly, this provides a list of station IDs and UUIDs which can then be used to further extract data from the `ReadResult` using the [get_packets_for_station_id](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.ReadResult.get_packets_for_station_id) method.
 
 [get_packets_for_station_id](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.ReadResult.get_packets_for_station_id) takes either just the station ID (e.g. `1637610017`) or the station ID and UUID (e.g. `1637610017:1672343294`) and returns a list of [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM) types. Although rare, using the station ID and UUID may be required if two stations have the same ID.
 
@@ -1068,7 +1073,7 @@ Retrieved 14 packets from read_res
 
 _[Table of Contents](#table-of-contents)_
 
-#### 3.1.3 Streaming data from the file system
+#### Streaming data from the file system
 
 When working with large data sets, the `io_raw.read_*` methods may consume large amounts of memory. [stream_structured](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.stream_structured) and [stream_unstructured](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.stream_unstructured) provide lazy streaming alternatives.
 
@@ -1140,13 +1145,13 @@ which produces output similar to:
 
 _[Table of Contents](#table-of-contents)_
 
-#### 3.1.4 Selectively filtering data
+#### Selectively filtering data
 
-Up to this point, we've only looked at examples of reading entire directories. 
-All of the `io_raw.read_*` and 'io_raw.stream_*' methods accept a second 
-optional [ReadFilter](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.ReadFilter) 
-argument which can be used to select (filter) which files that are read by timestamp, station ID, 
-or file extension. 
+Up to this point, we've only looked at examples of reading entire directories.
+All of the `io_raw.read_*` and 'io_raw.stream_*' methods accept a second
+optional [ReadFilter](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.ReadFilter)
+argument which can be used to select (filter) which files that are read by timestamp, station ID,
+or file extension.
 
 `ReadFilter`s can be created using two methods. Filters can be specified in the constuctor or by using the builder pattern. The following filters are provided:
 
@@ -1209,17 +1214,17 @@ read_res: io_raw.ReadResult = io_raw.read_unstructured("/data/unstructured", rea
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.2 The WrappedRedvoxPacketM Type
+### The WrappedRedvoxPacketM Type
 
-When data is read by the mid-level API, [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM) objects are returned. 
+When data is read by the mid-level API, [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM) objects are returned.
 
 This type encapsulates the underlying protobuf and provides a mid-level interface for accessing and setting the underlying protobuf data in a semi type-safe way. All API M data for a single packet is accessible through this type.
 
-The following sections will describe `WrappedRedvocPacketM`s in detail. 
+The following sections will describe `WrappedRedvocPacketM`s in detail.
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.3 Working with Station Information
+### Working with Station Information
 
 The [StationInformation](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation) encapsulates the station state, a copy of the station's AppSettings, and a collection of `StationMetrics`.
 
@@ -1496,7 +1501,7 @@ We examine the embedded `AppSettings` and `StationMetrics` in the following sect
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.4 Working with App Settings
+### Working with App Settings
 
 Each API M packet stores a copy of the settings used to configure it. These are stored in an instance of [AppSettings](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings) which can be retrieved from an instance of `StationInformation` with [get_app_settings](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation.get_app_settings).
 
@@ -1605,7 +1610,7 @@ In the next section, we will examine the final embedded type of `StationInforamt
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.5 Working with TimingPayloads, SamplePayloads, and ProtoRepeatedMessages
+### Working with TimingPayloads, SamplePayloads, and ProtoRepeatedMessages
 
 Associated API M timestamps and sample payloads are encapsulated by the [TimingPayload](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.TimingPayload) and [SamplePayload](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.SamplePayload) types. Each of these types also contain a [SummaryStatistics](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.SummaryStatistics) type which provide descriptive statistics either over the timestamps or the samples.
 
@@ -1615,7 +1620,7 @@ These types are used both within the `StationMetrics` as well as within the indi
 
 _[Table of Contents](#table-of-contents)_
 
-#### 3.5.1 TimingPayload
+#### TimingPayload
 
 Let's look at an example of a `TimingPayload` from a pressure sensor.
 
@@ -1665,7 +1670,7 @@ timestamps:
 
 _[Table of Contents](#table-of-contents)_
 
-#### 3.5.2 SamplePayload
+#### SamplePayload
 
 `SamplePayload`s are quite similar. Let's examine the samples from a pressure sensor.
 
@@ -1686,7 +1691,7 @@ if pressure_sensor is not None:
   print(f"samples: {sample_payload.get_values()}")
 ```
 
-which produces output similar to: 
+which produces output similar to:
 
 ```
 sample unit: Unit.KILOPASCAL
@@ -1707,7 +1712,7 @@ samples:
 
 _[Table of Contents](#table-of-contents)_
 
-#### 3.5.3 SummaryStatistics
+#### SummaryStatistics
 
 Every `TimingPayload` and every `SamplePayload` has an associated [SummaryStatistics](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.SummaryStatistics) sub-type.
 
@@ -1741,7 +1746,7 @@ if TYPE_CHECKING:
 
 _[Table of Contents](#table-of-contents)_
 
-#### 3.5.4 ProtoRepeatedMessage
+#### ProtoRepeatedMessage
 
 Finally, protobuf has the concept of [repeated fields](https://developers.google.com/protocol-buffers/docs/proto3#specifying_field_rules). This SDK provides a special wrapper type [ProtoRepeatedMessage](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage) that makes working with underlying repeated fields easier. Any getter that returns a list of items that can't be represented by a numpy ndarray is represented by a `ProtoRepeatedMessage`.
 
@@ -1781,7 +1786,7 @@ InputSensor.ACCELEROMETER
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.6 Working with Station Metrics
+### Working with Station Metrics
 
 [StationMetrics](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationMetrics) contains timeseries information providing health and status metrics associated with the station. These include computational metrics such as CPU, RAM, and disk usage as well as information on power consumption, network state, temperature, and screen state.
 
@@ -2024,7 +2029,7 @@ The resulting plot is shown below:
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.7 Working with Timing Information
+### Working with Timing Information
 
 The [TimingInformation](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/timing_information.html#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation) type contains several types of timestamps as well as metadata describing the quality of the timing. Let's examine the contents of the `TimingInformation` type: All timestamps are represented as microseconds since the Unix epoch.
 
@@ -2121,7 +2126,7 @@ exchange 12 of 12
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.8 Working with Sensors
+### Working with Sensors
 
 Calling [get_sensors](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_sensors) on an instance of `WrappedRedvoxPacketM` will return a [Sensors](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/sensors.html#redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors) type. This type provides access to all underlying sensor data within a RedVox API M packet.
 
@@ -2133,7 +2138,7 @@ Specialized sensors include [Audio](https://redvoxinc.github.io/redvox-sdk/v3.0.
 
 Generic sensors are represented by the types [Single](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single) (which contains a single channel of timestamped sensor data and includes `ambient_temperature`, `light`, `pressure`, `proximity`, abd `relative_humidity`) and [XYZ](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz) (which contains three channels of timestamped sensor data and includes `accelerometer`, `gravity`, `gyroscope`, `linear_acceleration`, `magnetometer`, `orientation`, `rotation_vector`, and `velocity`).
 
-It's best practice to retrieve a sensor, and then check that it's not `None` before working with it. 
+It's best practice to retrieve a sensor, and then check that it's not `None` before working with it.
 
 ```python
 # ...
@@ -2315,7 +2320,7 @@ The following sections will describe both the specialized and generic sensor typ
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.9 Working with the Audio Sensor
+### Working with the Audio Sensor
 
 The [Audio](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.Audio) sensor type encapsulates audio data and metadata.
 
@@ -2420,7 +2425,7 @@ and saves a figure that looks like:
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.10 Working with Other Single Channel Sensors
+### Working with Other Single Channel Sensors
 
 Sensors with a single channel (such as the pressure sensor) are represented using the [Single](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single) sensor type.
 
@@ -2491,7 +2496,7 @@ and creates a figure that looks like:
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.11 Working with Three Channel Sensors
+### Working with Three Channel Sensors
 
 Three channel sensors (such as the gyroscope) are represented by the [Xyz](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz) type. This type encapsulates timestamped data that has X, Y, and Z channels. Like other types, the `Xyz` type provides samples as `SamplePayload`s and timestamps as a `TimingPayload`.
 
@@ -2571,7 +2576,7 @@ and a plot that looks like:
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.12 Working with the Location Sensor
+### Working with the Location Sensor
 
 The [Location](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.Location) type encapsulates location information.
 
@@ -2711,13 +2716,13 @@ speed accuracies (Unit.METERS_PER_SECOND):
 
 _[Table of Contents](#table-of-contents)_
 
-#### 3.12.1 Working with the BestLocation type
+#### Working with the BestLocation type
 
-Previous "best" locations can be stored in the packet which represent the best recorded locations (or those with the highest accuracy) captured at previous point in time. These are represented using the [BestLocation](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation) type. 
+Previous "best" locations can be stored in the packet which represent the best recorded locations (or those with the highest accuracy) captured at previous point in time. These are represented using the [BestLocation](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation) type.
 
 The `last_best_location` field represents the best location out of a set of locations that was __most recently received__. When a station loses its ability to ascertain the location, the `last_best_location` provides the most recent location estimate of that station.
 
-The `overall_best_location` field stores the best computed location since the station started recording. 
+The `overall_best_location` field stores the best computed location since the station started recording.
 
 Each `BestLocation` type has fields that represent various location metrics at potentially different points in time. For example, the best latitude and longitude with associated timestamp. The best altitude with associated timestamp. The best bearing with associated timestamp. The best speed with associated timestamp. Associated accuracies and scores are set when available.
 
@@ -2788,7 +2793,7 @@ best bearing_accuracy=0.0
 
 _[Table of Contents](#table-of-contents)_
 
-## 4 SDK High-Level API and Usage
+## SDK High-Level API and Usage
 
 See: [Data Window Documentation](data_window)
 

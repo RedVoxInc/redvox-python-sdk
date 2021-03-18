@@ -12,6 +12,11 @@ then
   exit 1
 fi
 
+if ! [[ -x "$(command -v twine)" ]]; then
+  echo 'Error: twine is not installed. Install from requirements_dev.txt' >&2
+  exit 1
+fi
+
 USER=${1}
 PASS=${2}
 

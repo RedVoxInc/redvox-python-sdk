@@ -7,25 +7,31 @@ It is capable of reading and exporting to various formats.
 
 ## Table of Contents
 
-* [1 Data Window](#1-data-window)
-  * [1.1 Data Window Parameters](#11-data-window-parameters)
-    * [1.1.1 Required Data Window Parameter](#111-required-data-window-parameter)
-    * [1.1.2 Optional Data Window Parameters](#112-optional-data-window-parameters)
-  * [1.2 Creating Data Windows](#12-creating-data-windows)
-  * [1.3 Using Data Window](#13-using-the-data-window-results)
-  * [1.4 Data Window Functions](#14-data-window-functions)
-* [2 Station](#2-station)
-  * [2.1 Station Properties](#21-station-properties)
-  * [2.2 Station Functions](#22-station-functions)
-  * [2.3 Using Station](#23-using-station)
-* [3 Sensor Data](#3-sensor-data)
-  * [3.1 Sensor Data Properties](#31-sensor-data-properties)
-  * [3.2 Sensor Data Functions](#32-sensor-data-functions)
-  * [3.3 Sensor Data Dataframe Access](#33-sensor-data-dataframe-access)
-  * [2.3 Using Sensor Data](#34-using-sensor-data)
-* [4 DataWindow Example Code](#4-datawindow-example-code) 
-    
-## 1 Data Window
+<!-- toc -->
+
+- [Data Window](#data-window)
+  * [Data Window Parameters](#data-window-parameters)
+    + [Required Data Window Parameter](#required-data-window-parameter)
+    + [Optional Data Window Parameters](#optional-data-window-parameters)
+    + [Advanced Optional Data Window Parameters](#advanced-optional-data-window-parameters)
+  * [Creating Data Windows](#creating-data-windows)
+  * [Using the Data Window Results](#using-the-data-window-results)
+  * [Data Window Functions](#data-window-functions)
+- [Station](#station)
+  * [Station Properties](#station-properties)
+  * [Station Functions](#station-functions)
+  * [Using Station](#using-station)
+- [Sensor Data](#sensor-data)
+  * [Sensor Data Properties](#sensor-data-properties)
+  * [Sensor Data Functions](#sensor-data-functions)
+  * [Sensor Data DataFrame Access](#sensor-data-dataframe-access)
+    + [A note on enumerated types](#a-note-on-enumerated-types)
+  * [Using Sensor Data](#using-sensor-data)
+- [DataWindow Example Code](#datawindow-example-code)
+
+<!-- tocstop -->
+
+## Data Window
 
 DataWindow is a module designed to search for data within a specified start and end time.  It will provide the most complete set of data it can find to the user.
 
@@ -41,13 +47,13 @@ If you want a quick example to copy and paste into your Python IDE, check [here]
 
 _[Table of Contents](#table-of-contents)_
 
-### 1.1 Data Window Parameters
+### Data Window Parameters
 
 DataWindow has several parameters that allow you to filter the data being read.  This section will detail the specifics of each parameter.
 
 _[Table of Contents](#table-of-contents)_
 
-#### 1.1.1 Required Data Window Parameter
+#### Required Data Window Parameter
 This field is required for DataWindow to run.
 
 _input_dir:_ a string representing the path to the data that will be read into the DataWindow.  Absolute paths are preferred.
@@ -67,7 +73,7 @@ input_dir="relative\path\to\data_folder"
 
 _[Table of Contents](#table-of-contents)_
 
-#### 1.1.2 Optional Data Window Parameters
+#### Optional Data Window Parameters
 These fields do not have to be specified when creating a DataWindow.  Default values for each will be given.
 
 Your data must be stored in one of two ways:
@@ -151,7 +157,7 @@ _Example:_
 
 _[Table of Contents](#table-of-contents)_
 
-### 1.2 Creating Data Windows
+### Creating Data Windows
 
 DataWindows can be created in two ways.  The first is by invoking the initializer function of the class.
 
@@ -193,7 +199,7 @@ The DataWindowConfiguration specific API documentation is available [here](https
 
 _[Table of Contents](#table-of-contents)_
 
-### 1.3 Using the Data Window Results
+### Using the Data Window Results
 
 DataWindow stores all the data gathered in its stations property, which is a dictionary of station IDs to Station data objects.  There are various methods of accessing the Stations:
 
@@ -245,7 +251,7 @@ plt.show()
 
 _[Table of Contents](#table-of-contents)_
 
-### 1.4 Data Window Functions
+### Data Window Functions
 
 These functions allow you to access the information in DataWindow.
 
@@ -286,7 +292,7 @@ Refer to the [DataWindow API documentation](https://redvoxinc.github.io/redvox-s
 
 _[Table of Contents](#table-of-contents)_
 
-## 2 Station
+## Station
 
 Station is a module designed to hold format-agnostic data of various sensors that combine to form a single unit.  The data can be gathered from and turned into various other formats as needed.
 
@@ -300,7 +306,7 @@ Refer to the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.1 Station Properties
+### Station Properties
 
 These are the properties of the Station class:
 
@@ -319,7 +325,7 @@ These are the properties of the Station class:
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.2 Station Functions
+### Station Functions
 
 These are the functions of the Station class:
 1. `get_mean_packet_duration()`: Returns the mean duration of audio samples in the data packets used to create the Station.
@@ -338,7 +344,7 @@ audio, compressed_audio, image, location, pressure, barometer, light, infrared, 
 
 _[Table of Contents](#table-of-contents)_
 
-### 2.3 Using Station
+### Using Station
 
 Stations may hold data from many sensors attached to the Station.  Access to each of the sensors is quite simple as long as you know the type of sensor you wish to access.
 
@@ -371,7 +377,7 @@ Setting or changing any of the properties in Station may cause unexpected result
 
 _[Table of Contents](#table-of-contents)_
 
-## 3 Sensor Data
+## Sensor Data
 
 SensorData is a format-agnostic representation of the data.  This data can be gathered from or converted to another format as needed.
 
@@ -383,7 +389,7 @@ Refer to the [SensorData API documentation](https://redvoxinc.github.io/redvox-s
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.1 Sensor Data Properties
+### Sensor Data Properties
 
 These are the properties of the SensorData class:
 
@@ -398,7 +404,7 @@ These are the properties of the SensorData class:
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.2 Sensor Data Functions
+### Sensor Data Functions
 
 These are the functions of the SensorData class:
 
@@ -415,7 +421,7 @@ These are the functions of the SensorData class:
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.3 Sensor Data DataFrame Access
+### Sensor Data DataFrame Access
 
 The table below shows which columns can be accessed by each sensor
 
@@ -488,7 +494,7 @@ from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvid
 
 _[Table of Contents](#table-of-contents)_
 
-### 3.4 Using Sensor Data
+### Using Sensor Data
 
 Assuming you have retrieved a Station object, you may access SensorData using the *_sensor() functions of the Station.
 
@@ -516,7 +522,7 @@ station.accelerometer_sensor().sample_interval_s
 
 _[Table of Contents](#table-of-contents)_
 
-## 4 DataWindow Example Code
+## DataWindow Example Code
 
 Below are a few examples of how to use DataWindow.  Ensure you have installed the latest Redvox SDK.
 
