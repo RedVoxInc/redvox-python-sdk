@@ -6,6 +6,8 @@ The ReadResult object converts api900 data into api 1000 format
 from collections import defaultdict
 from typing import List, Optional, Dict
 from datetime import timedelta
+import multiprocessing
+import multiprocessing.pool
 
 import numpy as np
 
@@ -15,7 +17,6 @@ from redvox.common import offset_model
 from redvox.common import api_conversions as ac
 from redvox.common import io
 from redvox.common import file_statistics as fs
-import redvox.common.parallel_utils as parallel
 from redvox.common.station import Station
 
 
@@ -46,6 +47,7 @@ class ApiReader:
         structured_dir: bool = False,
         read_filter: io.ReadFilter = None,
         debug: bool = False,
+        pool: Optional[multiprocessing.pool.Pool] = None,
     ):
         """
         Initialize the ApiReader object
@@ -55,6 +57,10 @@ class ApiReader:
         :param read_filter: ReadFilter for the data files, if None, get everything.  Default None
         :param debug: if True, output additional statements during function execution.  Default False.
         """
+        _pool: multiprocessing.pool.Pool = (
+            multiprocessing.Pool() if pool is None else pool
+        )
+
         if read_filter:
             self.filter = read_filter
             if self.filter.station_ids:
@@ -64,38 +70,66 @@ class ApiReader:
         self.base_dir = base_dir
         self.structured_dir = structured_dir
         self.debug = debug
-        self.files_index = self._get_all_files()
+        self.files_index = self._get_all_files(_pool)
         self.index_summary = io.IndexSummary.from_index(self.files_index)
 
-    def _get_all_files(self) -> io.Index:
+        if pool is None:
+            _pool.close()
+
+    def _get_all_files(
+        self, pool: Optional[multiprocessing.pool.Pool] = None
+    ) -> io.Index:
         """
         get all files in the base dir of the ApiReader
         :return: index with all the files that match the filter
         """
+        _pool: multiprocessing.pool.Pool = (
+            multiprocessing.Pool() if pool is None else pool
+        )
         index = io.Index()
         # this guarantees that all ids we search for are valid
         all_index = self._apply_filter()
         for station_id in all_index.summarize().station_ids():
             station_filter = self.filter.clone()
-            checked_index = self._check_station_stats(station_filter.with_station_ids({station_id}))
+            checked_index = self._check_station_stats(
+                station_filter.with_station_ids({station_id}),
+                pool=_pool
+            )
             index.append(checked_index.entries)
+
+        if pool is None:
+            _pool.close()
+
         return index
 
-    def _apply_filter(self, reader_filter: Optional[io.ReadFilter] = None) -> io.Index:
+    def _apply_filter(
+        self,
+        reader_filter: Optional[io.ReadFilter] = None,
+        pool: Optional[multiprocessing.pool.Pool] = None,
+    ) -> io.Index:
         """
         apply the filter of the reader, or another filter if specified
         :param reader_filter: optional filter; if None, use the reader's filter, default None
         :return: index of the filtered files
         """
+        _pool: multiprocessing.pool.Pool = (
+            multiprocessing.Pool() if pool is None else pool
+        )
         if not reader_filter:
             reader_filter = self.filter
         if self.structured_dir:
-            index = io.index_structured(self.base_dir, reader_filter)
+            index = io.index_structured(self.base_dir, reader_filter, _pool)
         else:
-            index = io.index_unstructured(self.base_dir, reader_filter)
+            index = io.index_unstructured(self.base_dir, reader_filter, _pool)
+        if pool is None:
+            _pool.close()
         return index
 
-    def _check_station_stats(self, request_filter: io.ReadFilter) -> io.Index:
+    def _check_station_stats(
+        self,
+        request_filter: io.ReadFilter,
+        pool: Optional[multiprocessing.pool.Pool] = None,
+    ) -> io.Index:
         """
         recursively check the filter's results; if resulting index has enough information in it,
         return it, otherwise search for more data.
@@ -103,39 +137,68 @@ class ApiReader:
         :param request_filter: filter representing the requested information
         :return: Index that includes as much information as possible that fits the request
         """
+        _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
         index = self._apply_filter(request_filter)
         # if there are no restrictions on time or we found nothing, return the index
-        if (not self.filter.start_dt and not self.filter.end_dt) or \
-                (not request_filter.start_dt and not request_filter.end_dt) or len(index.entries) < 1:
+        if (
+            (not self.filter.start_dt and not self.filter.end_dt)
+            or (not request_filter.start_dt and not request_filter.end_dt)
+            or len(index.entries) < 1
+        ):
             return index
-        stats = fs.extract_stats(index)
+        stats = fs.extract_stats(index, pool=_pool)
+
+        # Close pool if created here
+        if pool is None:
+            _pool.close()
+
         # punt if duration or other important values are invalid
         if any(st.packet_duration == 0.0 or not st.packet_duration for st in stats):
             return index
         latencies = [
             st.latency
-            if st.latency is not None and not np.isnan(st.latency) else np.nan
+            if st.latency is not None and not np.isnan(st.latency)
+            else np.nan
             for st in stats
         ]
         # no latencies means no correction means we're done
         if len(latencies) < 1:
             return index
         # get the model and calculate the revised start and end offsets
-        offsets = [st.offset if st.offset is not None and not np.isnan(st.offset) else np.nan for st in stats]
+        offsets = [
+            st.offset if st.offset is not None and not np.isnan(st.offset) else np.nan
+            for st in stats
+        ]
         times = [st.best_latency_timestamp for st in stats]
         start_time = dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)
-        end_time = dtu.datetime_to_epoch_microseconds_utc(stats[-1].packet_start_dt + stats[-1].packet_duration)
-        model = offset_model.OffsetModel(np.array(latencies), np.array(offsets), np.array(times), start_time, end_time)
+        end_time = dtu.datetime_to_epoch_microseconds_utc(
+            stats[-1].packet_start_dt + stats[-1].packet_duration
+        )
+        model = offset_model.OffsetModel(
+            np.array(latencies),
+            np.array(offsets),
+            np.array(times),
+            start_time,
+            end_time,
+        )
         # revise packet's times to real times and compare to requested values
-        start_offset = timedelta(microseconds=model.get_offset_at_new_time(
-            dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)))
+        start_offset = timedelta(
+            microseconds=model.get_offset_at_new_time(
+                dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)
+            )
+        )
         revised_start = stats[0].packet_start_dt + start_offset
         end = stats[-1].packet_start_dt + stats[-1].packet_duration
-        end_offset = timedelta(microseconds=model.get_offset_at_new_time(dtu.datetime_to_epoch_microseconds_utc(end)))
+        end_offset = timedelta(
+            microseconds=model.get_offset_at_new_time(
+                dtu.datetime_to_epoch_microseconds_utc(end)
+            )
+        )
         revised_end = end + end_offset
         # if our filtered files encompass the request even when the packet times are updated, return the index
-        if (not self.filter.start_dt or revised_start <= self.filter.start_dt) \
-                and (not self.filter.end_dt or revised_end >= self.filter.end_dt):
+        if (not self.filter.start_dt or revised_start <= self.filter.start_dt) and (
+            not self.filter.end_dt or revised_end >= self.filter.end_dt
+        ):
             return index
         # we have to update our filter to get more information
         new_filter = request_filter.clone()
@@ -143,30 +206,50 @@ class ApiReader:
         no_more_end = True
         # check if there is a packet just beyond the request times
         if self.filter.start_dt and revised_start > self.filter.start_dt:
-            beyond_start = self.filter.start_dt - np.abs(start_offset) - stats[0].packet_duration
-            start_filter = request_filter.clone().with_start_dt(beyond_start).with_end_dt(stats[0].packet_start_dt) \
+            beyond_start = (
+                self.filter.start_dt - np.abs(start_offset) - stats[0].packet_duration
+            )
+            start_filter = (
+                request_filter.clone()
+                .with_start_dt(beyond_start)
+                .with_end_dt(stats[0].packet_start_dt)
                 .with_end_dt_buf(timedelta(seconds=0))
+            )
             start_index = self._apply_filter(start_filter)
             # if the beyond check produces an earlier start date time,
             #  then update filter, otherwise flag result as no more data to obtain
-            if len(start_index.entries) > 0 and start_index.entries[0].date_time < index.entries[0].date_time:
+            if (
+                len(start_index.entries) > 0
+                and start_index.entries[0].date_time < index.entries[0].date_time
+            ):
                 new_filter.with_start_dt(beyond_start)
                 no_more_start = False
         if self.filter.end_dt and revised_end < self.filter.end_dt:
             beyond_end = self.filter.end_dt + np.abs(end_offset)
-            end_filter = request_filter.clone().with_start_dt(stats[-1].packet_start_dt + stats[-1].packet_duration)\
-                .with_end_dt(beyond_end).with_start_dt_buf(timedelta(seconds=0))
+            end_filter = (
+                request_filter.clone()
+                .with_start_dt(stats[-1].packet_start_dt + stats[-1].packet_duration)
+                .with_end_dt(beyond_end)
+                .with_start_dt_buf(timedelta(seconds=0))
+            )
             end_index = self._apply_filter(end_filter)
             # if the beyond check produces a later end date time,
             #  then update filter, otherwise flag result as no more data to obtain
-            if len(end_index.entries) > 0 and end_index.entries[-1].date_time > index.entries[-1].date_time:
+            if (
+                len(end_index.entries) > 0
+                and end_index.entries[-1].date_time > index.entries[-1].date_time
+            ):
                 new_filter.with_end_dt(beyond_end)
                 no_more_end = False
         # if there is no more data to obtain from either end, return the original index
         if no_more_start and no_more_end:
             return index
         # check the updated index
-        return self._check_station_stats(new_filter)
+        _pool = multiprocessing.Pool() if pool is None else pool
+        ret = self._check_station_stats(new_filter, pool=_pool)
+        if pool is None:
+            _pool.close()
+        return ret
 
     def read_files(self) -> Dict[str, List[WrappedRedvoxPacketM]]:
         """
@@ -229,22 +312,37 @@ class ApiReader:
 
         return result
 
-    def get_stations(self) -> List[Station]:
+    def get_stations(
+        self, pool: Optional[multiprocessing.pool.Pool] = None
+    ) -> List[Station]:
         """
         :return: a list of all stations represented by the data packets
         """
         station_ids: List[str] = self.index_summary.station_ids()
-        pool = parallel.pool()
+        _pool: multiprocessing.pool.Pool = (
+            multiprocessing.Pool() if pool is None else pool
+        )
 
-        stations_opt: List[Optional[Station]] = pool.map(self.get_station_by_id, station_ids)
+        stations_opt: List[Optional[Station]] = _pool.map(
+            self.get_station_by_id, station_ids
+        )
+        if pool is None:
+            _pool.close()
         # noinspection Mypy
         return list(filter(lambda station: station is not None, stations_opt))
 
-    def read_files_as_stations(self) -> Dict[str, Station]:
+    def read_files_as_stations(
+        self, pool: Optional[multiprocessing.pool.Pool] = None
+    ) -> Dict[str, Station]:
         """
         :return: a dictionary of all station_id to station pairs represented by the data packets
         """
-        stations: List[Station] = self.get_stations()
+        _pool: multiprocessing.pool.Pool = (
+            multiprocessing.Pool() if pool is None else pool
+        )
+        stations: List[Station] = self.get_stations(pool=_pool)
+        if pool is None:
+            _pool.close()
         return {station.id: station for station in stations}
 
     def get_station_by_id(self, get_id: str) -> Optional[Station]:

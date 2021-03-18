@@ -20,7 +20,6 @@ from typing import (
     Union,
     TYPE_CHECKING,
     Callable,
-    # TypeVar,
 )
 
 from redvox.api900.reader import read_rdvxz_file
@@ -547,15 +546,6 @@ def _list_subdirs(base_dir: str, valid_choices: Set[str]) -> Iterator[str]:
         lambda p: PurePath(p).name, glob(os.path.join(base_dir, "*", ""))
     )
     return filter(valid_choices.__contains__, subdirs)
-
-
-# T = TypeVar("T")
-# R = TypeVar("R")
-# def pmap(
-#     f: Callable[[T], R],
-#     coll: Iterator[T],
-# ) -> Iterator[R]:
-#     return parallel.pool().imap(f, coll, chunksize=64)
 
 
 def index_unstructured(
