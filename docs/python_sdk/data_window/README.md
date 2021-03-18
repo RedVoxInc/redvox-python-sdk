@@ -41,7 +41,7 @@ DataWindow is accessible through the Redvox SDK. The source for the latest devel
 
 We recommend installing the SDK through pip. Select the latest version available on [PyPi](https://pypi.org/project/redvox/#history) and follow the "pip install" instructions.
 
-You may find the DataWindow specific API documentation [here](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/data_window.html)
+You may find the DataWindow specific API documentation [here](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/data_window.html)
 
 If you want a quick example to copy and paste into your Python IDE, check [here](#4-datawindow-example-code)
 
@@ -195,7 +195,7 @@ Once the config file is created, you must create the DataWindow using this funct
 
 `datawindow = DataWindow.from_config_file(path/to/data_window.config.toml)`
 
-The DataWindowConfiguration specific API documentation is available [here](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/data_window_configuration.html)
+The DataWindowConfiguration specific API documentation is available [here](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/data_window_configuration.html)
 
 _[Table of Contents](#table-of-contents)_
 
@@ -214,9 +214,9 @@ We recommend using the get_all_stations() and get_station(station_id) methods to
 
 Each Station contains SensorData objects, as well as some metadata about the Station.
 
-Refer to the [Station](#2-station) section or the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/station.html) for more information about how to use Station objects.
+Refer to the [Station](#2-station) section or the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/station.html) for more information about how to use Station objects.
 
-Refer to the [SensorData](#3-sensor-data) section or the [SensorData API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/station_data.html) for more information about how to use SensorData objects.
+Refer to the [SensorData](#3-sensor-data) section or the [SensorData API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/station_data.html) for more information about how to use SensorData objects.
 
 Continuing with the example, we will look at the audio sensor of our station in this example:
 
@@ -288,7 +288,7 @@ for id in station_ids:
     print(id)
 ```
 
-Refer to the [DataWindow API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/data_window.html) as needed.
+Refer to the [DataWindow API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/data_window.html) as needed.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -302,7 +302,7 @@ Station objects are comprised of a station key, the sensor data, data packet met
 
 Each Station has a unique key.  Keys are comprised of the Station's id, uuid and start timestamp since epoch UTC.  Stations with the same key can be combined into one Station.
 
-Refer to the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/station.html) as needed.
+Refer to the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/station.html) as needed.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -385,7 +385,7 @@ SensorData represents a single real world recording device like a microphone or 
 
 Each SensorData object is a Pandas DataFrame with some additional metadata.
 
-Refer to the [SensorData API documentation](https://redvoxinc.github.io/redvox-sdk/v3.0.0b4/api_docs/redvox/common/station_data.html) as needed.
+Refer to the [SensorData API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/station_data.html) as needed.
 
 _[Table of Contents](#table-of-contents)_
 

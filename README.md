@@ -7,6 +7,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc2 (2021-3-18)
+
+* Better process pool management.
+* Update numpy deprecated code.
+
 ### 3.0.0rc0 (2021-3-17)
 
 * Prep. first release candidate for 3.0 release.

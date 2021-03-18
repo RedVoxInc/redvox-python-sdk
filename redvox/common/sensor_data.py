@@ -240,13 +240,13 @@ class SensorData:
         """
         :return: the timestamps as a numpy array
         """
-        return self.data_df["timestamps"].to_numpy(dtype=np.float)
+        return self.data_df["timestamps"].to_numpy(dtype=float)
 
     def unaltered_data_timestamps(self) -> np.array:
         """
         :return: the unaltered timestamps as a numpy array
         """
-        return self.data_df["unaltered_timestamps"].to_numpy(dtype=np.float)
+        return self.data_df["unaltered_timestamps"].to_numpy(dtype=float)
 
     def first_data_timestamp(self) -> float:
         """

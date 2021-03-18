@@ -15,7 +15,7 @@ class TestCommonProtoBase(unittest.TestCase):
         self.empty_microphone_channel: microphone.Audio = microphone.Audio.new()
         self.non_empty_microphone_channel: microphone.Audio = microphone.Audio.new()
         self.non_empty_microphone_channel.get_samples().set_unit(common.Unit['DECIBEL'])
-        self.non_empty_microphone_channel.get_samples().set_values(np.array([100.0, 50, 10.25], dtype=np.int))
+        self.non_empty_microphone_channel.get_samples().set_values(np.array([100.0, 50, 10.25], dtype=int))
         self.non_empty_microphone_channel.set_sensor_description("foo")
         self.non_empty_microphone_channel.set_sample_rate(10.0)
         self.non_empty_microphone_channel.set_first_sample_timestamp(1)

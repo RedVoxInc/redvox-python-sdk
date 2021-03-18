@@ -10,7 +10,6 @@ import multiprocessing
 import numpy as np
 
 from redvox.common.timesync import TimeSyncData
-import redvox.common.parallel_utils as parallel
 
 # noinspection Mypy
 if TYPE_CHECKING:
@@ -99,7 +98,7 @@ def get_duration_seconds_from_sample_rate(sample_rate: Union[float, int]) -> flo
 
 
 def _map_opt(
-        opt: Optional[Any], apply: Callable[[Optional[Any]], Optional[Any]]
+    opt: Optional[Any], apply: Callable[[Optional[Any]], Optional[Any]]
 ) -> Optional[Any]:
     """
     Maps an optional with the given function. If the optional is None, None is returned.
@@ -124,7 +123,7 @@ def _partition_list(lst: List[Any], chunks: int) -> List[Any]:
     n: int = len(lst)
     k: int = chunks
     return [
-        lst[i * (n // k) + min(i, n % k): (i + 1) * (n // k) + min(i + 1, n % k)]
+        lst[i * (n // k) + min(i, n % k) : (i + 1) * (n // k) + min(i + 1, n % k)]
         for i in range(k)
     ]
 
@@ -170,12 +169,13 @@ class StationStat:
         best_offset = packet.best_offset()
         best_latency = packet.best_latency()
         if packet.has_time_synchronization_sensor():
-            tsd = TimeSyncData(packet.redvox_id(),
-                               time_sync_exchanges_list=packet.time_synchronization_sensor().payload_values(),
-                               packet_start_timestamp=packet.app_file_start_timestamp_machine(),
-                               packet_end_timestamp=packet.end_timestamp_us_utc(),
-                               server_acquisition_timestamp=packet.server_timestamp_epoch_microseconds_utc(),
-                               )
+            tsd = TimeSyncData(
+                packet.redvox_id(),
+                time_sync_exchanges_list=packet.time_synchronization_sensor().payload_values(),
+                packet_start_timestamp=packet.app_file_start_timestamp_machine(),
+                packet_end_timestamp=packet.end_timestamp_us_utc(),
+                server_acquisition_timestamp=packet.server_timestamp_epoch_microseconds_utc(),
+            )
             if not best_offset or not best_latency:
                 best_offset = tsd.best_offset
                 best_latency = tsd.best_latency
@@ -194,8 +194,12 @@ class StationStat:
             best_latency,
             best_latency_timestamp,
             best_offset,
-            packet.microphone_sensor().sample_rate_hz() if packet.has_microphone_sensor() else np.nan,
-            timedelta(seconds=packet.duration_s()) if packet.has_microphone_sensor() else 0.0,
+            packet.microphone_sensor().sample_rate_hz()
+            if packet.has_microphone_sensor()
+            else np.nan,
+            timedelta(seconds=packet.duration_s())
+            if packet.has_microphone_sensor()
+            else 0.0,
         )
 
     # noinspection Mypy
@@ -230,12 +234,13 @@ class StationStat:
         best_offset = timing_info.get_best_offset()
         best_latency = timing_info.get_best_latency()
         if len(timing_info.get_synch_exchange_array()) > 0:
-            tsd = TimeSyncData(station_info.get_id(),
-                               time_sync_exchanges_list=timing_info.get_synch_exchange_array(),
-                               packet_start_timestamp=timing_info.get_packet_start_mach_timestamp(),
-                               packet_end_timestamp=timing_info.get_packet_end_mach_timestamp(),
-                               server_acquisition_timestamp=timing_info.get_server_acquisition_arrival_timestamp(),
-                               )
+            tsd = TimeSyncData(
+                station_info.get_id(),
+                time_sync_exchanges_list=timing_info.get_synch_exchange_array(),
+                packet_start_timestamp=timing_info.get_packet_start_mach_timestamp(),
+                packet_end_timestamp=timing_info.get_packet_end_mach_timestamp(),
+                server_acquisition_timestamp=timing_info.get_server_acquisition_arrival_timestamp(),
+            )
             if not best_offset or not best_latency:
                 best_offset = tsd.best_offset
                 best_latency = tsd.best_latency
@@ -278,7 +283,9 @@ def extract_stats_serial(index: io.Index) -> List[StationStat]:
     return list(stats_900) + list(stats_1000)
 
 
-def extract_stats_parallel(index: io.Index) -> List[StationStat]:
+def extract_stats_parallel(
+    index: io.Index, pool: Optional[multiprocessing.pool.Pool] = None
+) -> List[StationStat]:
     """
     Extracts StationStat information in parallel from packets stored in the provided index.
     :param index: Index of packets to extract information from.
@@ -290,13 +297,17 @@ def extract_stats_parallel(index: io.Index) -> List[StationStat]:
     indices: List[io.Index] = list(map(lambda entries: io.Index(entries), partitioned))
 
     # Run da buggahs in parallel
-    pool = parallel.pool()
-    nested: List[List[StationStat]] = pool.map(extract_stats_serial, indices)
+    _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
+    nested: List[List[StationStat]] = _pool.map(extract_stats_serial, indices)
+    if pool is None:
+        _pool.close()
     return [item for sublist in nested for item in sublist]
 
 
 def extract_stats(
-        index: io.Index, min_len_for_parallel: int = 128
+    index: io.Index,
+    min_len_for_parallel: int = 128,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> List[StationStat]:
     """
     Extracts StationStat information from packets stored in the provided index.
@@ -306,6 +317,12 @@ def extract_stats(
     :return: A list of StationStat objects.
     """
     if len(index.entries) >= min_len_for_parallel:
-        return extract_stats_parallel(index)
+        _pool: multiprocessing.pool.Pool = (
+            multiprocessing.Pool() if pool is None else pool
+        )
+        stats: List[StationStat] = extract_stats_parallel(index)
+        if pool is None:
+            _pool.close()
+        return stats
     else:
         return extract_stats_serial(index)

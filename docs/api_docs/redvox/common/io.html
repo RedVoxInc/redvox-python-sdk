@@ -49,14 +49,12 @@ from typing import (
     Union,
     TYPE_CHECKING,
     Callable,
-    TypeVar,
 )
 
 from redvox.api900.reader import read_rdvxz_file
 from redvox.api1000.common.common import check_type
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common.versioning import check_version, ApiVersion
-import redvox.common.parallel_utils as parallel
 from redvox.common.date_time_utils import (
     datetime_from_epoch_microseconds_utc as dt_us,
     datetime_from_epoch_milliseconds_utc as dt_ms,
@@ -579,21 +577,11 @@ def _list_subdirs(base_dir: str, valid_choices: Set[str]) -&gt; Iterator[str]:
     return filter(valid_choices.__contains__, subdirs)
 
 
-T = TypeVar(&#34;T&#34;)
-R = TypeVar(&#34;R&#34;)
-
-
-def pmap(
-    f: Callable[[T], R],
-    coll: Iterator[T],
-) -&gt; Iterator[R]:
-    return parallel.pool().imap(f, coll, chunksize=64)
-
-
 def index_unstructured(
     base_dir: str,
     read_filter: ReadFilter = ReadFilter(),
     sort: bool = True,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -&gt; Index:
     &#34;&#34;&#34;
     Returns the list of file paths that match the given filter for unstructured data.
@@ -622,10 +610,12 @@ def index_unstructured(
     all_entries: Iterator[Optional[IndexEntry]]
 
     if len(all_paths) &gt; 128:
-        _pool: multiprocessing.pool.Pool = parallel.pool()
-
-        all_entries = pmap(IndexEntry.from_path, iter(all_paths))
-
+        _pool: multiprocessing.pool.Pool = (
+            multiprocessing.Pool() if pool is None else pool
+        )
+        all_entries = _pool.imap(IndexEntry.from_path, iter(all_paths))
+        if pool is None:
+            _pool.close()
     else:
         all_entries = map(IndexEntry.from_path, all_paths)
 
@@ -645,6 +635,7 @@ def index_structured_api_900(
     base_dir: str,
     read_filter: ReadFilter = ReadFilter(),
     sort: bool = True,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -&gt; Index:
     &#34;&#34;&#34;
     This parses a structured API 900 directory structure and identifies files that match the provided filter.
@@ -654,7 +645,7 @@ def index_structured_api_900(
     &#34;&#34;&#34;
     index: Index = Index()
 
-    _pool: multiprocessing.pool.Pool = parallel.pool()
+    _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
     for year in _list_subdirs(base_dir, __VALID_YEARS):
         for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
@@ -671,10 +662,13 @@ def index_structured_api_900(
                 data_dir: str = os.path.join(base_dir, year, month, day)
                 entries: Iterator[IndexEntry] = iter(
                     index_unstructured(
-                        data_dir, read_filter, sort=False,
+                        data_dir, read_filter, sort=False, pool=_pool
                     ).entries
                 )
                 index.append(entries)
+
+    if pool is None:
+        _pool.close()
 
     if sort:
         index.sort()
@@ -685,6 +679,7 @@ def index_structured_api_1000(
     base_dir: str,
     read_filter: ReadFilter = ReadFilter(),
     sort: bool = True,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -&gt; Index:
     &#34;&#34;&#34;
     This parses a structured API M directory structure and identifies files that match the provided filter.
@@ -694,7 +689,7 @@ def index_structured_api_1000(
     &#34;&#34;&#34;
     index: Index = Index()
 
-    _pool: multiprocessing.pool.Pool = parallel.pool()
+    _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
     for year in _list_subdirs(base_dir, __VALID_YEARS):
         for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
@@ -715,17 +710,24 @@ def index_structured_api_1000(
                     data_dir: str = os.path.join(base_dir, year, month, day, hour)
                     entries: Iterator[IndexEntry] = iter(
                         index_unstructured(
-                            data_dir, read_filter, sort=False
+                            data_dir, read_filter, sort=False, pool=_pool
                         ).entries
                     )
                     index.append(entries)
+
+    if pool is None:
+        _pool.close()
 
     if sort:
         index.sort()
     return index
 
 
-def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&gt; Index:
+def index_structured(
+    base_dir: str,
+    read_filter: ReadFilter = ReadFilter(),
+    pool: Optional[multiprocessing.pool.Pool] = None,
+) -&gt; Index:
     &#34;&#34;&#34;
     &#34;Indexes both API 900 and API 1000 structured directory layouts.
     :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
@@ -735,7 +737,7 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&gt
     &#34;&#34;&#34;
     base_path: PurePath = PurePath(base_dir)
 
-    pool: multiprocessing.pool.Pool = parallel.pool()
+    _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
     # API 900
     if base_path.name == &#34;api900&#34;:
@@ -768,6 +770,9 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&gt
                     ).entries
                 )
             )
+
+        if pool is None:
+            _pool.close()
 
         index.sort()
         return index
@@ -867,7 +872,7 @@ def sort_unstructured_redvox_data(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.common.io.index_structured"><code class="name flex">
-<span>def <span class="ident">index_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), pool: typing.Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>"Indexes both API 900 and API 1000 structured directory layouts.
@@ -879,7 +884,11 @@ API 900 and API 1000.
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -&gt; Index:
+<pre><code class="python">def index_structured(
+    base_dir: str,
+    read_filter: ReadFilter = ReadFilter(),
+    pool: Optional[multiprocessing.pool.Pool] = None,
+) -&gt; Index:
     &#34;&#34;&#34;
     &#34;Indexes both API 900 and API 1000 structured directory layouts.
     :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
@@ -889,7 +898,7 @@ API 900 and API 1000.
     &#34;&#34;&#34;
     base_path: PurePath = PurePath(base_dir)
 
-    pool: multiprocessing.pool.Pool = parallel.pool()
+    _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
     # API 900
     if base_path.name == &#34;api900&#34;:
@@ -923,12 +932,15 @@ API 900 and API 1000.
                 )
             )
 
+        if pool is None:
+            _pool.close()
+
         index.sort()
         return index</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_1000"><code class="name flex">
-<span>def <span class="ident">index_structured_api_1000</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_1000</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: typing.Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API M directory structure and identifies files that match the provided filter.
@@ -943,6 +955,7 @@ API 900 and API 1000.
     base_dir: str,
     read_filter: ReadFilter = ReadFilter(),
     sort: bool = True,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -&gt; Index:
     &#34;&#34;&#34;
     This parses a structured API M directory structure and identifies files that match the provided filter.
@@ -952,7 +965,7 @@ API 900 and API 1000.
     &#34;&#34;&#34;
     index: Index = Index()
 
-    _pool: multiprocessing.pool.Pool = parallel.pool()
+    _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
     for year in _list_subdirs(base_dir, __VALID_YEARS):
         for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
@@ -973,10 +986,13 @@ API 900 and API 1000.
                     data_dir: str = os.path.join(base_dir, year, month, day, hour)
                     entries: Iterator[IndexEntry] = iter(
                         index_unstructured(
-                            data_dir, read_filter, sort=False
+                            data_dir, read_filter, sort=False, pool=_pool
                         ).entries
                     )
                     index.append(entries)
+
+    if pool is None:
+        _pool.close()
 
     if sort:
         index.sort()
@@ -984,7 +1000,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_900"><code class="name flex">
-<span>def <span class="ident">index_structured_api_900</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_900</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: typing.Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API 900 directory structure and identifies files that match the provided filter.
@@ -999,6 +1015,7 @@ API 900 and API 1000.
     base_dir: str,
     read_filter: ReadFilter = ReadFilter(),
     sort: bool = True,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -&gt; Index:
     &#34;&#34;&#34;
     This parses a structured API 900 directory structure and identifies files that match the provided filter.
@@ -1008,7 +1025,7 @@ API 900 and API 1000.
     &#34;&#34;&#34;
     index: Index = Index()
 
-    _pool: multiprocessing.pool.Pool = parallel.pool()
+    _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
     for year in _list_subdirs(base_dir, __VALID_YEARS):
         for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
@@ -1025,10 +1042,13 @@ API 900 and API 1000.
                 data_dir: str = os.path.join(base_dir, year, month, day)
                 entries: Iterator[IndexEntry] = iter(
                     index_unstructured(
-                        data_dir, read_filter, sort=False,
+                        data_dir, read_filter, sort=False, pool=_pool
                     ).entries
                 )
                 index.append(entries)
+
+    if pool is None:
+        _pool.close()
 
     if sort:
         index.sort()
@@ -1036,7 +1056,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_unstructured"><code class="name flex">
-<span>def <span class="ident">index_unstructured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_unstructured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: typing.Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the list of file paths that match the given filter for unstructured data.
@@ -1052,6 +1072,7 @@ API 900 and API 1000.
     base_dir: str,
     read_filter: ReadFilter = ReadFilter(),
     sort: bool = True,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -&gt; Index:
     &#34;&#34;&#34;
     Returns the list of file paths that match the given filter for unstructured data.
@@ -1080,10 +1101,12 @@ API 900 and API 1000.
     all_entries: Iterator[Optional[IndexEntry]]
 
     if len(all_paths) &gt; 128:
-        _pool: multiprocessing.pool.Pool = parallel.pool()
-
-        all_entries = pmap(IndexEntry.from_path, iter(all_paths))
-
+        _pool: multiprocessing.pool.Pool = (
+            multiprocessing.Pool() if pool is None else pool
+        )
+        all_entries = _pool.imap(IndexEntry.from_path, iter(all_paths))
+        if pool is None:
+            _pool.close()
     else:
         all_entries = map(IndexEntry.from_path, all_paths)
 
@@ -1097,22 +1120,6 @@ API 900 and API 1000.
         index.sort()
 
     return index</code></pre>
-</details>
-</dd>
-<dt id="redvox.common.io.pmap"><code class="name flex">
-<span>def <span class="ident">pmap</span></span>(<span>f: typing.Callable[[~T], ~R], coll: typing.Iterator[~T]) ‑> typing.Iterator[~R]</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def pmap(
-    f: Callable[[T], R],
-    coll: Iterator[T],
-) -&gt; Iterator[R]:
-    return parallel.pool().imap(f, coll, chunksize=64)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.sort_unstructured_redvox_data"><code class="name flex">
@@ -2578,7 +2585,6 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 <li><code><a title="redvox.common.io.index_structured_api_1000" href="#redvox.common.io.index_structured_api_1000">index_structured_api_1000</a></code></li>
 <li><code><a title="redvox.common.io.index_structured_api_900" href="#redvox.common.io.index_structured_api_900">index_structured_api_900</a></code></li>
 <li><code><a title="redvox.common.io.index_unstructured" href="#redvox.common.io.index_unstructured">index_unstructured</a></code></li>
-<li><code><a title="redvox.common.io.pmap" href="#redvox.common.io.pmap">pmap</a></code></li>
 <li><code><a title="redvox.common.io.sort_unstructured_redvox_data" href="#redvox.common.io.sort_unstructured_redvox_data">sort_unstructured_redvox_data</a></code></li>
 </ul>
 </li>
