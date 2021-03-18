@@ -20,14 +20,13 @@ from typing import (
     Union,
     TYPE_CHECKING,
     Callable,
-    TypeVar,
+    # TypeVar,
 )
 
 from redvox.api900.reader import read_rdvxz_file
 from redvox.api1000.common.common import check_type
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common.versioning import check_version, ApiVersion
-import redvox.common.parallel_utils as parallel
 from redvox.common.date_time_utils import (
     datetime_from_epoch_microseconds_utc as dt_us,
     datetime_from_epoch_milliseconds_utc as dt_ms,
@@ -550,21 +549,20 @@ def _list_subdirs(base_dir: str, valid_choices: Set[str]) -> Iterator[str]:
     return filter(valid_choices.__contains__, subdirs)
 
 
-T = TypeVar("T")
-R = TypeVar("R")
-
-
-def pmap(
-    f: Callable[[T], R],
-    coll: Iterator[T],
-) -> Iterator[R]:
-    return parallel.pool().imap(f, coll, chunksize=64)
+# T = TypeVar("T")
+# R = TypeVar("R")
+# def pmap(
+#     f: Callable[[T], R],
+#     coll: Iterator[T],
+# ) -> Iterator[R]:
+#     return parallel.pool().imap(f, coll, chunksize=64)
 
 
 def index_unstructured(
     base_dir: str,
     read_filter: ReadFilter = ReadFilter(),
     sort: bool = True,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
     """
     Returns the list of file paths that match the given filter for unstructured data.
@@ -593,10 +591,12 @@ def index_unstructured(
     all_entries: Iterator[Optional[IndexEntry]]
 
     if len(all_paths) > 128:
-        _pool: multiprocessing.pool.Pool = parallel.pool()
-
-        all_entries = pmap(IndexEntry.from_path, iter(all_paths))
-
+        _pool: multiprocessing.pool.Pool = (
+            multiprocessing.Pool() if pool is None else pool
+        )
+        all_entries = _pool.imap(IndexEntry.from_path, iter(all_paths))
+        if pool is None:
+            _pool.close()
     else:
         all_entries = map(IndexEntry.from_path, all_paths)
 
@@ -616,6 +616,7 @@ def index_structured_api_900(
     base_dir: str,
     read_filter: ReadFilter = ReadFilter(),
     sort: bool = True,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
     """
     This parses a structured API 900 directory structure and identifies files that match the provided filter.
@@ -625,7 +626,7 @@ def index_structured_api_900(
     """
     index: Index = Index()
 
-    _pool: multiprocessing.pool.Pool = parallel.pool()
+    _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
     for year in _list_subdirs(base_dir, __VALID_YEARS):
         for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
@@ -642,10 +643,13 @@ def index_structured_api_900(
                 data_dir: str = os.path.join(base_dir, year, month, day)
                 entries: Iterator[IndexEntry] = iter(
                     index_unstructured(
-                        data_dir, read_filter, sort=False,
+                        data_dir, read_filter, sort=False, pool=_pool
                     ).entries
                 )
                 index.append(entries)
+
+    if pool is None:
+        _pool.close()
 
     if sort:
         index.sort()
@@ -656,6 +660,7 @@ def index_structured_api_1000(
     base_dir: str,
     read_filter: ReadFilter = ReadFilter(),
     sort: bool = True,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
     """
     This parses a structured API M directory structure and identifies files that match the provided filter.
@@ -665,7 +670,7 @@ def index_structured_api_1000(
     """
     index: Index = Index()
 
-    _pool: multiprocessing.pool.Pool = parallel.pool()
+    _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
     for year in _list_subdirs(base_dir, __VALID_YEARS):
         for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
@@ -686,17 +691,24 @@ def index_structured_api_1000(
                     data_dir: str = os.path.join(base_dir, year, month, day, hour)
                     entries: Iterator[IndexEntry] = iter(
                         index_unstructured(
-                            data_dir, read_filter, sort=False
+                            data_dir, read_filter, sort=False, pool=_pool
                         ).entries
                     )
                     index.append(entries)
+
+    if pool is None:
+        _pool.close()
 
     if sort:
         index.sort()
     return index
 
 
-def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> Index:
+def index_structured(
+    base_dir: str,
+    read_filter: ReadFilter = ReadFilter(),
+    pool: Optional[multiprocessing.pool.Pool] = None,
+) -> Index:
     """
     "Indexes both API 900 and API 1000 structured directory layouts.
     :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
@@ -706,7 +718,7 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
     """
     base_path: PurePath = PurePath(base_dir)
 
-    pool: multiprocessing.pool.Pool = parallel.pool()
+    _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
     # API 900
     if base_path.name == "api900":
@@ -739,6 +751,9 @@ def index_structured(base_dir: str, read_filter: ReadFilter = ReadFilter()) -> I
                     ).entries
                 )
             )
+
+        if pool is None:
+            _pool.close()
 
         index.sort()
         return index
