@@ -59,13 +59,13 @@ This field is required for DataWindow to run.
 _input_dir:_ a string representing the path to the data that will be read into the DataWindow.  Absolute paths are preferred.
 
 _Linux/Mac examples_:
-```
+```python
 input_dir="/absolute/path/to/data_dir"
 input_dir="relative/path/to/data_dir"
 ```
 
 _Windows examples_:
-```
+```python
 input_dir=\absolute\path\to\data_folder"
 input_dir="C:\absolute\path\to\data_folder"
 input_dir="relative\path\to\data_folder"
@@ -86,7 +86,7 @@ _start_datetime:_ a datetime object representing the start of the request time f
 
 _Examples:_
 
-```
+```python
 start_datetime=datetime.datetime(2021, 1, 1, 0, 0, 0)
 start_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 0, 0)
 ```
@@ -95,7 +95,7 @@ _end_datetime:_ a datetime object representing the end of the request time for t
 
 _Examples:_
 
-```
+```python
 end_datetime=datetime.datetime(2021, 1, 1, 0, 0, 0)
 end_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 0, 0)
 ```
@@ -106,7 +106,7 @@ _station_ids:_ a list, set, or tuple of station IDs as strings to filter on.  If
 
 _Examples:_
 
-```
+```python
 station_ids=["1234567890", "9876543210", "1122334455"]  # list
 station_ids={"1234567890", "9876543210", "1122334455"}  # set
 station_ids=("1234567890", "9876543210", "1122334455")  # tuple
@@ -123,7 +123,7 @@ _start_buffer_td:_ a timedelta object representing how much additional time befo
 
 _Examples:_
 
-```
+```python
 start_buffer_td=datetime.timedelta(seconds=120)
 start_buffer_td=redvox.common.date_time_utils.timedelta(minutes=2)
 ```
@@ -132,7 +132,7 @@ _end_buffer_td:_ a timedelta object representing how much additional time after 
 
 _Examples:_
 
-```
+```python
 end_buffer_td=datetime.timedelta(seconds=120)
 end_buffer_td=redvox.common.date_time_utils.timedelta(minutes=2)
 ```
@@ -161,7 +161,7 @@ _[Table of Contents](#table-of-contents)_
 
 DataWindows can be created in two ways.  The first is by invoking the initializer function of the class.
 
-```
+```python
 datawindow = DataWindow(input_dir=input_dir_str),
                         structured_layout=True_or_False,
                         start_datetime=requested_start_datetime,
@@ -178,7 +178,7 @@ datawindow = DataWindow(input_dir=input_dir_str),
 
 You may prefer a simpler version of the code above that uses the defaults for more complex parameters:
 
-```
+```python
 datawindow = DataWindow(input_dir=input_dir_str),
                         structured_layout=True_or_False,
                         start_datetime=requested_start_datetime,
@@ -203,7 +203,7 @@ _[Table of Contents](#table-of-contents)_
 
 DataWindow stores all the data gathered in its stations property, which is a dictionary of station IDs to Station data objects.  There are various methods of accessing the Stations:
 
-```
+```python
 stations_list = datawindow.get_all_stations()  # All stations as a list
 station = datawindow.get_station(station_id)   # The station identified by station_id
 stations_dict = datawindow.stations            # All id:station entries
@@ -220,7 +220,7 @@ Refer to the [SensorData](#3-sensor-data) section or the [SensorData API documen
 
 Continuing with the example, we will look at the audio sensor of our station in this example:
 
-```
+```python
 audio_sensor = station.audio_sensor()
 print(audio_sensor.sample_rate)             # sample rate in hz
 print(audio_sensor.is_sample_rate_fixed)    # is sample rate constant
@@ -241,7 +241,7 @@ Audio sensors will typically have two data channels, timestamps and microphone. 
 `samples = audio_sensor.get_data_channel("microphone")`
 
 Now that we have access to our data, the possibilities are limitless.  Here is a short pyplot example showing the audio data:
-```
+```python
 import matplotlib.pyplot as plt
 plt.plot(audio_sensor.data_timestamps() - audio_sensor.first_data_timestamp(), samples)
 plt.title(f"{station.id} - audio data")
@@ -260,7 +260,7 @@ These functions allow you to access the information in DataWindow.
 Returns the Station with ID = station_id, or `None` if the station doesn't exist
 
 _Examples:_
-```
+```python
 station = datawindow.get_station("0000000001")
 not_station = datawindow.get_station("not_a_real_station")
 assertIsNone(not_station)
@@ -271,7 +271,7 @@ assertIsNone(not_station)
 Returns all Stations as a list.
 
 _Example:_
-```
+```python
 stations = datawindow.get_all_stations()
 for station in stations:
     # do stuff
@@ -282,7 +282,7 @@ for station in stations:
 Returns all station IDs as a list.
 
 _Example:_
-```
+```python
 station_ids = datawindow.get_all_station_ids()
 for id in station_ids:
     print(id)
@@ -487,7 +487,7 @@ Refer to the previous table for specific column names for each sensor.
 Please note that enumerations require you to import them from the [Redvox SDK](https://pypi.org/project/redvox/#history) before you can properly read their values.
 
 Copy the following lines as needed:
-```
+```python
 from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 ```
@@ -499,7 +499,7 @@ _[Table of Contents](#table-of-contents)_
 Assuming you have retrieved a Station object, you may access SensorData using the *_sensor() functions of the Station.
 
 _Examples:_
-```
+```python
 station.audio_sensor()     # microphone/audio sensor
 station.location_sensor()  # location/gps sensor
 station.pressure_sensor()  # barometer/pressure sensor
@@ -509,7 +509,7 @@ Refer to the tables above for specific column names and functions to access the 
 
 _Examples:_
 
-```
+```python
 # get audio data and timestamps:
 station.audio_sensor().get_data_channel("microphone")
 station.audio_sensor().data_timestamps()
@@ -529,7 +529,7 @@ Below are a few examples of how to use DataWindow.  Ensure you have installed th
 Update the variables to match your environment before running.
 
 Using the initializer function:
-```
+```python
 import matplotlib.pyplot as plt
 
 from redvox.common.data_window import DataWindow
@@ -590,7 +590,7 @@ plt.show()
 Using a config file:
 
 _Remember to update your config file to match your environment before running the example_
-```
+```python
 import matplotlib.pyplot as plt
 
 from redvox.common.data_window import DataWindow
