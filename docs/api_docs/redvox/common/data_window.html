@@ -35,6 +35,8 @@ combine the data packets into a new data packet based on the user parameters
 &#34;&#34;&#34;
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
+import multiprocessing
+import multiprocessing.pool
 
 import pandas as pd
 import numpy as np
@@ -45,7 +47,6 @@ from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.api_reader import ApiReader
 from redvox.common.data_window_configuration import DataWindowConfig
-import redvox.common.parallel_utils as parallel
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 
@@ -337,11 +338,15 @@ class DataWindow:
         station.first_data_timestamp = start_date_timestamp
         station.last_data_timestamp = end_date_timestamp
 
-    def create_data_window(self):
+    def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         &#34;&#34;&#34;
         updates the data window to contain only the data within the window parameters
         stations without audio or any data outside the window are removed
         &#34;&#34;&#34;
+
+        # Let&#39;s create and manage a single pool of workers that we can utilize throughout
+        # the instantiation of the data window.
+        _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
         ids_to_pop = []
         r_f = io.ReadFilter()
@@ -366,13 +371,12 @@ class DataWindow:
             self.structured_layout,
             r_f,
             self.debug,
-        ).get_stations()
+        ).get_stations(pool=_pool)
 
         # Parallel update
-        pool = parallel.pool()
         # Apply timing correction in parallel by station
         if self.apply_correction:
-            stations = pool.map(Station.update_timestamps, stations)
+            stations = _pool.map(Station.update_timestamps, stations)
 
         for station in stations:
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
@@ -394,6 +398,10 @@ class DataWindow:
             self.station_ids = set(self.stations.keys())
         # check for stations without data, then remove any stations that don&#39;t have audio data
         self.check_valid_ids()
+
+        # If the pool was created by this function, then it needs to managed by this function.
+        if pool is None:
+            _pool.close()
 
 
 def check_audio_data(
@@ -1166,11 +1174,15 @@ Default True
         station.first_data_timestamp = start_date_timestamp
         station.last_data_timestamp = end_date_timestamp
 
-    def create_data_window(self):
+    def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         &#34;&#34;&#34;
         updates the data window to contain only the data within the window parameters
         stations without audio or any data outside the window are removed
         &#34;&#34;&#34;
+
+        # Let&#39;s create and manage a single pool of workers that we can utilize throughout
+        # the instantiation of the data window.
+        _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
         ids_to_pop = []
         r_f = io.ReadFilter()
@@ -1195,13 +1207,12 @@ Default True
             self.structured_layout,
             r_f,
             self.debug,
-        ).get_stations()
+        ).get_stations(pool=_pool)
 
         # Parallel update
-        pool = parallel.pool()
         # Apply timing correction in parallel by station
         if self.apply_correction:
-            stations = pool.map(Station.update_timestamps, stations)
+            stations = _pool.map(Station.update_timestamps, stations)
 
         for station in stations:
             ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
@@ -1222,7 +1233,11 @@ Default True
         if self.station_ids is None or len(self.station_ids) == 0:
             self.station_ids = set(self.stations.keys())
         # check for stations without data, then remove any stations that don&#39;t have audio data
-        self.check_valid_ids()</code></pre>
+        self.check_valid_ids()
+
+        # If the pool was created by this function, then it needs to managed by this function.
+        if pool is None:
+            _pool.close()</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -1341,7 +1356,7 @@ outputs a message for each id requested but has no data</p></div>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.create_data_window"><code class="name flex">
-<span>def <span class="ident">create_data_window</span></span>(<span>self)</span>
+<span>def <span class="ident">create_data_window</span></span>(<span>self, pool: typing.Optional[multiprocessing.pool.Pool] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>updates the data window to contain only the data within the window parameters
@@ -1350,11 +1365,15 @@ stations without audio or any data outside the window are removed</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def create_data_window(self):
+<pre><code class="python">def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
     &#34;&#34;&#34;
     updates the data window to contain only the data within the window parameters
     stations without audio or any data outside the window are removed
     &#34;&#34;&#34;
+
+    # Let&#39;s create and manage a single pool of workers that we can utilize throughout
+    # the instantiation of the data window.
+    _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
     ids_to_pop = []
     r_f = io.ReadFilter()
@@ -1379,13 +1398,12 @@ stations without audio or any data outside the window are removed</p></div>
         self.structured_layout,
         r_f,
         self.debug,
-    ).get_stations()
+    ).get_stations(pool=_pool)
 
     # Parallel update
-    pool = parallel.pool()
     # Apply timing correction in parallel by station
     if self.apply_correction:
-        stations = pool.map(Station.update_timestamps, stations)
+        stations = _pool.map(Station.update_timestamps, stations)
 
     for station in stations:
         ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
@@ -1406,7 +1424,11 @@ stations without audio or any data outside the window are removed</p></div>
     if self.station_ids is None or len(self.station_ids) == 0:
         self.station_ids = set(self.stations.keys())
     # check for stations without data, then remove any stations that don&#39;t have audio data
-    self.check_valid_ids()</code></pre>
+    self.check_valid_ids()
+
+    # If the pool was created by this function, then it needs to managed by this function.
+    if pool is None:
+        _pool.close()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.create_window_in_sensors"><code class="name flex">

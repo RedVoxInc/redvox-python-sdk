@@ -271,13 +271,13 @@ class SensorData:
         &#34;&#34;&#34;
         :return: the timestamps as a numpy array
         &#34;&#34;&#34;
-        return self.data_df[&#34;timestamps&#34;].to_numpy(dtype=np.float)
+        return self.data_df[&#34;timestamps&#34;].to_numpy(dtype=float)
 
     def unaltered_data_timestamps(self) -&gt; np.array:
         &#34;&#34;&#34;
         :return: the unaltered timestamps as a numpy array
         &#34;&#34;&#34;
-        return self.data_df[&#34;unaltered_timestamps&#34;].to_numpy(dtype=np.float)
+        return self.data_df[&#34;unaltered_timestamps&#34;].to_numpy(dtype=float)
 
     def first_data_timestamp(self) -&gt; float:
         &#34;&#34;&#34;
@@ -535,13 +535,13 @@ default False</p></div>
         &#34;&#34;&#34;
         :return: the timestamps as a numpy array
         &#34;&#34;&#34;
-        return self.data_df[&#34;timestamps&#34;].to_numpy(dtype=np.float)
+        return self.data_df[&#34;timestamps&#34;].to_numpy(dtype=float)
 
     def unaltered_data_timestamps(self) -&gt; np.array:
         &#34;&#34;&#34;
         :return: the unaltered timestamps as a numpy array
         &#34;&#34;&#34;
-        return self.data_df[&#34;unaltered_timestamps&#34;].to_numpy(dtype=np.float)
+        return self.data_df[&#34;unaltered_timestamps&#34;].to_numpy(dtype=float)
 
     def first_data_timestamp(self) -&gt; float:
         &#34;&#34;&#34;
@@ -667,7 +667,7 @@ recalculate the sample rate, interval, and interval std dev, default False
     &#34;&#34;&#34;
     :return: the timestamps as a numpy array
     &#34;&#34;&#34;
-    return self.data_df[&#34;timestamps&#34;].to_numpy(dtype=np.float)</code></pre>
+    return self.data_df[&#34;timestamps&#34;].to_numpy(dtype=float)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.first_data_timestamp"><code class="name flex">
@@ -924,7 +924,7 @@ Updates the SensorData object with the new values
     &#34;&#34;&#34;
     :return: the unaltered timestamps as a numpy array
     &#34;&#34;&#34;
-    return self.data_df[&#34;unaltered_timestamps&#34;].to_numpy(dtype=np.float)</code></pre>
+    return self.data_df[&#34;unaltered_timestamps&#34;].to_numpy(dtype=float)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.update_data_timestamps"><code class="name flex">
