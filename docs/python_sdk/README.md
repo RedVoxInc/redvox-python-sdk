@@ -40,7 +40,7 @@ The RedVox Python SDK contains routines for reading, creating, and writing RedVo
   * [3.10 Working with Other Single Channel Sensors](#310-working-with-other-single-channel-sensors)
   * [3.11 Working with Three Channel Sensors](#311-working-with-three-channel-sensors)
   * [3.12 Working with the Location Sensor](#312-working-with-the-location-sensor)
-* [4 SDK High-Level API and Usage](4-sdk-high-level-api-and-usage)
+* [4 SDK High-Level API and Usage](#4-sdk-high-level-api-and-usage)
   * [4.1 Data Window](#41-data-window)
 ## 1 Obtaining the SDK
 
