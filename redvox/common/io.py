@@ -850,16 +850,16 @@ def serialize_data_window(
     data_window: "DataWindow",
     base_dir: str = ".",
     file_name: Optional[str] = None,
-    compression_factor: int = 12,
+    compression_factor: int = 4,
 ) -> Path:
     """
     Serializes and compresses a DataWindow to a file.
     :param data_window: The data window to serialize and compress.
     :param base_dir: The base directory to write the serialized file to (default=.).
     :param file_name: The optional file name. If None, a default filename with the following format is used:
-                      [start_ts]_[end_ts]_[num_stations].pickle.lz4
+                      [start_ts]_[end_ts]_[num_stations].pkl.lz4
     :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
-                               (default=12).
+                               (default=4).
     :return: The path to the written file.
     """
 
@@ -868,7 +868,7 @@ def serialize_data_window(
         if file_name is not None
         else f"{data_window.start_datetime.timestamp()}"
         f"_{data_window.end_datetime.timestamp()}"
-        f"_{len(data_window.station_ids)}.pickle.lz4"
+        f"_{len(data_window.get_all_station_ids())}.pkl.lz4"
     )
 
     file_path: Path = Path(base_dir).joinpath(_file_name)
