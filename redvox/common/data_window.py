@@ -2,6 +2,7 @@
 This module creates specific time-bounded segments of data for users
 combine the data packets into a new data packet based on the user parameters
 """
+from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
 import multiprocessing
@@ -181,9 +182,23 @@ class DataWindow:
 
     @staticmethod
     def deserialize(path: str) -> "DataWindow":
+        """
+        Decompresses and deserializes a DataWindow written to disk.
+        :param path: Path to the serialized and compressed data window.
+        :return: An instance of a DataWindow.
+        """
         return io.deserialize_data_window(path)
 
-    def serialize(self, base_dir: str = ".", file_name: Optional[str] = None, compression_factor: int = 4):
+    def serialize(self, base_dir: str = ".", file_name: Optional[str] = None, compression_factor: int = 4) -> Path:
+        """
+        Serializes and compresses this DataWindow to a file.
+        :param base_dir: The base directory to write the serialized file to (default=.).
+        :param file_name: The optional file name. If None, a default filename with the following format is used:
+                          [start_ts]_[end_ts]_[num_stations].pkl.lz4
+        :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                                   (default=4).
+        :return: The path to the written file.
+        """
         return io.serialize_data_window(self, base_dir, file_name, compression_factor)
 
     def _has_time_window(self) -> bool:
