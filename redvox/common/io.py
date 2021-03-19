@@ -9,6 +9,7 @@ import os.path
 import multiprocessing
 import multiprocessing.pool
 from pathlib import Path, PurePath
+import pickle
 from shutil import copy2, move
 from typing import (
     Any,
@@ -21,6 +22,8 @@ from typing import (
     TYPE_CHECKING,
     Callable,
 )
+
+import lz4.frame
 
 from redvox.api900.reader import read_rdvxz_file
 from redvox.api1000.common.common import check_type
@@ -35,6 +38,7 @@ from redvox.common.date_time_utils import (
 
 if TYPE_CHECKING:
     from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+    from redvox.common.data_window import DataWindow
 
 
 def _is_int(value: str) -> Optional[int]:
@@ -833,3 +837,55 @@ def sort_unstructured_redvox_data(
             move(value.full_path, file_out_dir)
 
     return True
+
+
+@dataclass
+class DataWindowSerializationResult:
+    path: str
+    serialized_bytes: int
+    compressed_bytes: int
+
+
+def serialize_data_window(
+    data_window: "DataWindow",
+    base_dir: str = ".",
+    file_name: Optional[str] = None,
+    compression_factor: int = 12,
+) -> Path:
+    """
+    Serializes and compresses a DataWindow to a file.
+    :param data_window: The data window to serialize and compress.
+    :param base_dir: The base directory to write the serialized file to (default=.).
+    :param file_name: The optional file name. If None, a default filename with the following format is used:
+                      [start_ts]_[end_ts]_[num_stations].pickle.lz4
+    :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                               (default=12).
+    :return: The path to the written file.
+    """
+
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f"{data_window.start_datetime.timestamp()}"
+        f"_{data_window.end_datetime.timestamp()}"
+        f"_{len(data_window.station_ids)}.pickle.lz4"
+    )
+
+    file_path: Path = Path(base_dir).joinpath(_file_name)
+
+    with lz4.frame.open(
+        file_path, "wb", compression_level=compression_factor
+    ) as compressed_out:
+        pickle.dump(data_window, compressed_out)
+        compressed_out.flush()
+        return file_path.resolve(False)
+
+
+def deserialize_data_window(path: str) -> "DataWindow":
+    """
+    Decompresses and deserializes a DataWindow written to disk.
+    :param path: Path to the serialized and compressed data window.
+    :return: An instance of a DataWindow.
+    """
+    with lz4.frame.open(path, "rb") as compressed_in:
+        return pickle.load(compressed_in)
