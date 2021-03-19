@@ -16,8 +16,10 @@ from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.api_reader import ApiReader
 from redvox.common.data_window_configuration import DataWindowConfig
+from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
+from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
 
 
 DEFAULT_GAP_TIME_S: float = 0.25  # default length of a gap in seconds
@@ -540,10 +542,20 @@ def create_dataless_timestamps_df(
         for column_index in columns:
             if column_index == "timestamps":
                 empty_df[column_index] = new_timestamps
+            elif column_index == "unaltered_timestamps":
+                empty_df[column_index] = new_timestamps
             elif column_index == "location_provider":
                 empty_df[column_index] = LocationProvider.UNKNOWN
             elif column_index == "image_codec":
                 empty_df[column_index] = ImageCodec.UNKNOWN
+            elif column_index == "audio_codec":
+                empty_df[column_index] = AudioCodec.UNKNOWN
+            elif column_index == "network_type":
+                empty_df[column_index] = NetworkType.UNKNOWN_NETWORK
+            elif column_index == "power_state":
+                empty_df[column_index] = PowerState.UNKNOWN_POWER_STATE
+            elif column_index == "cell_service":
+                empty_df[column_index] = CellServiceState.UNKNOWN
             else:
                 empty_df[column_index] = np.nan
     return empty_df

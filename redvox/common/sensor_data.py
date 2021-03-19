@@ -276,7 +276,7 @@ class SensorData:
         self.data_df["timestamps"] = [offset_model.update_time(t) for t in self.data_timestamps()]
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
-            self.sample_interval_s += offset_model.slope
+            self.sample_interval_s += dtu.microseconds_to_seconds(offset_model.slope)
             if self.sample_interval_s > 0:
                 self.sample_rate = 1 / self.sample_interval_s
                 self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))

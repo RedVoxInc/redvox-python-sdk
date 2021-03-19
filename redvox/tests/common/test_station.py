@@ -36,6 +36,11 @@ class StationTest(unittest.TestCase):
         self.assertTrue(np.isnan(empty_apim_station.start_timestamp))
         self.assertFalse(empty_apim_station.audio_sensor())
 
+    def test_empty_station_update_timestamp(self):
+        empty_apim_station = Station([])
+        empty_apim_station.start_timestamp += 100
+        self.assertTrue(np.isnan(empty_apim_station.start_timestamp))
+
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station.data), 6)
         self.assertEqual(

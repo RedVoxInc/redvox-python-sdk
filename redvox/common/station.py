@@ -70,6 +70,8 @@ class Station:
             self.start_timestamp = (
                 data_packets[0].get_timing_information().get_app_start_mach_timestamp()
             )
+            if self.start_timestamp < 0:
+                self.start_timestamp = np.nan
             self._set_all_sensors(data_packets)
             self._get_start_and_end_timestamps()
             if self.has_audio_sensor():
