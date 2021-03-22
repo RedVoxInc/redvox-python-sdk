@@ -7,6 +7,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc3 (2021-3-XX)
+
+* Fixed process that updates data window timestamps and properties.
+* Added score value to offset model
+
 ### 3.0.0rc2 (2021-3-18)
 
 * Better process pool management.
