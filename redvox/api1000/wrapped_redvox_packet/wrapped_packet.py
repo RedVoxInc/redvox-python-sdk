@@ -9,9 +9,9 @@ from typing import Optional, List
 
 # noinspection PyPackageRequirements
 from google.protobuf import json_format
+import lz4.frame
 
 from redvox.api1000.common.common import check_type
-import redvox.api1000.common.lz4
 import redvox.api1000.common.typing
 import redvox.api1000.errors as errors
 import redvox.api1000.wrapped_redvox_packet.sensors.sensors as _sensors
@@ -92,9 +92,8 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
         :return: An instance of a WrappedRedvoxPacketAPi1000.
         """
         redvox.api1000.common.typing.check_type(data, [bytes])
-        uncompressed_data: bytes = redvox.api1000.common.lz4.decompress(data)
         proto: RedvoxPacketM = RedvoxPacketM()
-        proto.ParseFromString(uncompressed_data)
+        proto.ParseFromString(lz4.frame.decompress(data, False))
         return WrappedRedvoxPacketM(proto)
 
     @staticmethod
@@ -111,9 +110,10 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
                 f"Path to file={rdvxm_path} does not exist."
             )
 
-        with open(rdvxm_path, "rb") as rdvxz_in:
-            compressed_bytes: bytes = rdvxz_in.read()
-            return WrappedRedvoxPacketM.from_compressed_bytes(compressed_bytes)
+        with lz4.frame.open(rdvxm_path, "rb") as serialized_in:
+            proto: RedvoxPacketM = RedvoxPacketM()
+            proto.ParseFromString(serialized_in.read())
+            return WrappedRedvoxPacketM(proto)
 
     @staticmethod
     def from_json(json_str: str) -> "WrappedRedvoxPacketM":

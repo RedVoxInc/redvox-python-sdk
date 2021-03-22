@@ -2,6 +2,7 @@
 This module creates specific time-bounded segments of data for users
 combine the data packets into a new data packet based on the user parameters
 """
+from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
 import multiprocessing
@@ -21,10 +22,9 @@ from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvid
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
 
-
 DEFAULT_GAP_TIME_S: float = 0.25  # default length of a gap in seconds
 DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to start time of data
-DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)    # default padding to end time of data
+DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to end time of data
 # default maximum number of points required to brute force calculate gap timestamps
 DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS: int = 5000
 
@@ -58,19 +58,19 @@ class DataWindow:
     """
 
     def __init__(
-        self,
-        input_dir: str,
-        structured_layout: bool = True,
-        start_datetime: Optional[dtu.datetime] = None,
-        end_datetime: Optional[dtu.datetime] = None,
-        start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
-        end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
-        gap_time_s: float = DEFAULT_GAP_TIME_S,
-        station_ids: Optional[Iterable[str]] = None,
-        extensions: Optional[Set[str]] = None,
-        api_versions: Optional[Set[io.ApiVersion]] = None,
-        apply_correction: bool = True,
-        debug: bool = False,
+            self,
+            input_dir: str,
+            structured_layout: bool = True,
+            start_datetime: Optional[dtu.datetime] = None,
+            end_datetime: Optional[dtu.datetime] = None,
+            start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
+            end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
+            gap_time_s: float = DEFAULT_GAP_TIME_S,
+            station_ids: Optional[Iterable[str]] = None,
+            extensions: Optional[Set[str]] = None,
+            api_versions: Optional[Set[io.ApiVersion]] = None,
+            apply_correction: bool = True,
+            debug: bool = False,
     ):
         """
         initialize the data window with params
@@ -182,6 +182,27 @@ class DataWindow:
             config.debug,
         )
 
+    @staticmethod
+    def deserialize(path: str) -> "DataWindow":
+        """
+        Decompresses and deserializes a DataWindow written to disk.
+        :param path: Path to the serialized and compressed data window.
+        :return: An instance of a DataWindow.
+        """
+        return io.deserialize_data_window(path)
+
+    def serialize(self, base_dir: str = ".", file_name: Optional[str] = None, compression_factor: int = 4) -> Path:
+        """
+        Serializes and compresses this DataWindow to a file.
+        :param base_dir: The base directory to write the serialized file to (default=.).
+        :param file_name: The optional file name. If None, a default filename with the following format is used:
+                          [start_ts]_[end_ts]_[num_stations].pkl.lz4
+        :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                                   (default=4).
+        :return: The path to the written file.
+        """
+        return io.serialize_data_window(self, base_dir, file_name, compression_factor)
+
     def _has_time_window(self) -> bool:
         """
         Returns true if there is a start or end datetime in the settings
@@ -277,7 +298,7 @@ class DataWindow:
                         sample_interval_micros,
                         dtu.seconds_to_microseconds(self.gap_time_s),
                         DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
-                        )
+                    )
                     sensor.data_df = pad_data(
                         start_date_timestamp,
                         end_date_timestamp,
@@ -288,7 +309,7 @@ class DataWindow:
             print(f"WARNING: Data window for {station_id} {sensor.type.name} sensor has no data points!")
 
     def create_window_in_sensors(
-        self, station: Station, start_date_timestamp: float, end_date_timestamp: float
+            self, station: Station, start_date_timestamp: float, end_date_timestamp: float
     ):
         """
         truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
@@ -391,7 +412,7 @@ class DataWindow:
 
 
 def check_audio_data(
-    station: Station, ids_to_remove: List[str], debug: bool = False
+        station: Station, ids_to_remove: List[str], debug: bool = False
 ) -> List[str]:
     """
     check if the station has audio data; if it does not, update the list of stations to remove
@@ -408,10 +429,10 @@ def check_audio_data(
 
 
 def pad_data(
-    expected_start: float,
-    expected_end: float,
-    data_df: pd.DataFrame,
-    sample_interval_micros: float,
+        expected_start: float,
+        expected_end: float,
+        data_df: pd.DataFrame,
+        sample_interval_micros: float,
 ) -> pd.DataFrame:
     """
     Pad the start and end of the dataframe with np.nan
@@ -460,10 +481,10 @@ def pad_data(
 
 
 def fill_gaps(
-    data_df: pd.DataFrame,
-    sample_interval_micros: float,
-    gap_time_micros: float,
-    num_points_to_brute_force: int = DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
+        data_df: pd.DataFrame,
+        sample_interval_micros: float,
+        gap_time_micros: float,
+        num_points_to_brute_force: int = DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
 ) -> pd.DataFrame:
     """
     fills gaps in the dataframe with np.nan by interpolating timestamps based on the mean expected sample interval
@@ -493,7 +514,7 @@ def fill_gaps(
             for index in np.where(timestamp_diffs > gap_time_micros)[0]:
                 # calc samples to add, subtracting 1 to prevent copying last timestamp
                 num_new_samples = (
-                    np.ceil(timestamp_diffs[index] / sample_interval_micros) - 1
+                        np.ceil(timestamp_diffs[index] / sample_interval_micros) - 1
                 )
                 if timestamp_diffs[index] > gap_time_micros and num_new_samples > 0:
                     # add the gap data to the result dataframe
@@ -531,11 +552,11 @@ def fill_gaps(
 
 
 def create_dataless_timestamps_df(
-    start_timestamp: float,
-    sample_interval_micros: float,
-    columns: pd.Index,
-    num_samples_to_add: int,
-    add_to_start: bool = False,
+        start_timestamp: float,
+        sample_interval_micros: float,
+        columns: pd.Index,
+        num_samples_to_add: int,
+        add_to_start: bool = False,
 ) -> pd.DataFrame:
     """
     Creates an empty dataframe with num_samples_to_add timestamps, using columns as the columns
@@ -552,7 +573,7 @@ def create_dataless_timestamps_df(
         if add_to_start:
             sample_interval_micros = -sample_interval_micros
         new_timestamps = (
-            start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+                start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
         )
         for column_index in columns:
             if column_index == "timestamps":
