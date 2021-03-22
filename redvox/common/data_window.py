@@ -447,35 +447,32 @@ def pad_data(
     first_data_timestamp = data_time_stamps[0]
     last_data_timestamp = data_time_stamps[-1]
     result_df = data_df.copy()
+    result_before_update_last_index = len(result_df) - 1
     # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
     if expected_start < first_data_timestamp:
         start_diff = first_data_timestamp - expected_start
         num_missing_samples = np.floor(start_diff / sample_interval_micros)
         if num_missing_samples > 0:
             # add the gap data to the result dataframe
-            result_df = result_df.append(
-                create_dataless_timestamps_df(
-                    first_data_timestamp,
-                    sample_interval_micros,
-                    data_df.columns,
-                    num_missing_samples,
-                    True
-                ),
-                ignore_index=True,
+            result_df = add_dataless_timestamps_to_df(
+                result_df,
+                0,
+                sample_interval_micros,
+                sample_interval_micros,
+                num_missing_samples,
+                True
             )
     if expected_end > last_data_timestamp:
         last_diff = expected_end - last_data_timestamp
         num_missing_samples = np.floor(last_diff / sample_interval_micros)
         if num_missing_samples > 0:
             # add the gap data to the result dataframe
-            result_df = result_df.append(
-                create_dataless_timestamps_df(
-                    last_data_timestamp,
-                    sample_interval_micros,
-                    data_df.columns,
-                    num_missing_samples,
-                ),
-                ignore_index=True,
+            result_df = add_dataless_timestamps_to_df(
+                result_df,
+                result_before_update_last_index,
+                sample_interval_micros,
+                sample_interval_micros,
+                num_missing_samples
             )
     return result_df.sort_values("timestamps", ignore_index=True)
 
@@ -518,15 +515,13 @@ def fill_gaps(
                 )
                 if timestamp_diffs[index] > gap_time_micros and num_new_samples > 0:
                     # add the gap data to the result dataframe
-                    result_df = result_df.append(
-                        create_dataless_timestamps_df(
-                            data_time_stamps[index],
+                    result_df = add_dataless_timestamps_to_df(
+                            result_df,
+                            index,
                             sample_interval_micros,
-                            data_df.columns,
+                            sample_interval_micros,
                             num_new_samples,
-                        ),
-                        ignore_index=True,
-                    )
+                        )
                     if len(result_df) >= expected_num_points:
                         break  # stop the for loop execution when enough points are added
         else:
@@ -549,6 +544,58 @@ def fill_gaps(
             )
             result_df = first_data_df.append(second_data_df, ignore_index=True)
     return result_df.sort_values("timestamps", ignore_index=True)
+
+
+def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
+                                  start_index: int,
+                                  sample_interval_micros: float,
+                                  unaltered_sample_interval_micros: float,
+                                  num_samples_to_add: int,
+                                  add_to_start: bool = False,) -> pd.DataFrame:
+    """
+    adds dataless timestamps directly to a dataframe that already contains data
+    Note:   dataframe must not be empty,
+            start_index must be non-negative and less than the length of dataframe,
+            num_samples_to_add must be greater than 0
+    :param dataframe: dataframe to add dataless timestamps to
+    :param start_index: index of the dataframe to use as starting point for creating new values
+    :param sample_interval_micros: sample interval in microseconds of the timestamps
+    :param unaltered_sample_interval_micros: sample interval in microseconds of unaltered timestamps
+    :param num_samples_to_add: the number of timestamps to create
+    :param add_to_start: if True, subtracts sample_interval_micros from start_timestamp, default False
+    :return: updated dataframe with synthetic data points
+    """
+    if len(dataframe) > start_index and len(dataframe) > 0 and num_samples_to_add > 0:
+        if add_to_start:
+            sample_interval_micros = -sample_interval_micros
+            unaltered_sample_interval_micros = -unaltered_sample_interval_micros
+        empty_df = pd.DataFrame([], columns=dataframe.columns)
+        for column_index in empty_df.columns:
+            if column_index == "timestamps":
+                start_timestamp = dataframe["timestamps"][start_index]
+                empty_df[column_index] = (
+                        start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+                )
+            elif column_index == "unaltered_timestamps":
+                start_unaltered_timestamp = dataframe["unaltered_timestamps"][start_index]
+                empty_df[column_index] = (start_unaltered_timestamp +
+                                          np.arange(1, num_samples_to_add + 1) * unaltered_sample_interval_micros)
+            elif column_index == "location_provider":
+                empty_df[column_index] = LocationProvider.UNKNOWN
+            elif column_index == "image_codec":
+                empty_df[column_index] = ImageCodec.UNKNOWN
+            elif column_index == "audio_codec":
+                empty_df[column_index] = AudioCodec.UNKNOWN
+            elif column_index == "network_type":
+                empty_df[column_index] = NetworkType.UNKNOWN_NETWORK
+            elif column_index == "power_state":
+                empty_df[column_index] = PowerState.UNKNOWN_POWER_STATE
+            elif column_index == "cell_service":
+                empty_df[column_index] = CellServiceState.UNKNOWN
+            else:
+                empty_df[column_index] = np.nan
+        dataframe = dataframe.append(empty_df, ignore_index=True)
+    return dataframe
 
 
 def create_dataless_timestamps_df(
