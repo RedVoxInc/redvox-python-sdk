@@ -24,6 +24,10 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(datawindow.stations), 3)
         self.assertEqual(len(datawindow.station_ids), 3)
         self.assertTrue("1637680001" in datawindow.station_ids)
+        self.assertEqual(datawindow.start_datetime, 1531343779086541.0)
+        self.assertEqual(datawindow.end_datetime, 1597189467949733.2)
+        self.assertEqual(len(datawindow.extensions), 2)
+        self.assertEqual(len(datawindow.api_versions), 2)
 
     def test_data_window(self):
         datawindow = dw.DataWindow(
