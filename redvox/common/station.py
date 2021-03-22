@@ -70,6 +70,7 @@ class Station:
             self.start_timestamp = (
                 data_packets[0].get_timing_information().get_app_start_mach_timestamp()
             )
+            # add warning about missing mach time zero
             if self.start_timestamp < 0:
                 self.start_timestamp = np.nan
             self._set_all_sensors(data_packets)

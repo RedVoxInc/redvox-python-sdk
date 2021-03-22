@@ -270,10 +270,11 @@ class DataWindow:
                             f"sensor; it has undefined sample interval and sample rate!"
                         )
                 else:  # GAP FILL and PAD DATA
-                    sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s) \
+                                             + dtu.seconds_to_microseconds(sensor.sample_interval_std_s)
                     sensor.data_df = fill_gaps(
                         sensor.data_df,
-                        sample_interval_micros + dtu.seconds_to_microseconds(sensor.sample_interval_std_s),
+                        sample_interval_micros,
                         dtu.seconds_to_microseconds(self.gap_time_s),
                         DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
                         )
@@ -329,12 +330,20 @@ class DataWindow:
             r_f.with_station_ids(self.station_ids)
         if self.extensions:
             r_f.with_extensions(self.extensions)
-        if self.start_buffer_td:
-            r_f.with_start_dt_buf(self.start_buffer_td)
-        if self.end_buffer_td:
-            r_f.with_end_dt_buf(self.end_buffer_td)
+        else:
+            self.extensions = r_f.extensions
         if self.api_versions:
             r_f.with_api_versions(self.api_versions)
+        else:
+            self.api_versions = r_f.api_versions
+        if self.start_buffer_td:
+            self.start_buffer_td = r_f.start_dt_buf
+        else:
+            r_f.with_start_dt_buf(self.start_buffer_td)
+        if self.end_buffer_td:
+            self.end_buffer_td = r_f.end_dt_buf
+        else:
+            r_f.with_end_dt_buf(self.end_buffer_td)
 
         # get the data to convert into a window
         stations = ApiReader(
@@ -364,10 +373,16 @@ class DataWindow:
                 # TRUNCATE!
                 self.create_window_in_sensors(station, start_datetime, end_datetime)
                 self.stations[station.id] = station
-        # if user did not define station_ids, use the stations we have
-        if self.station_ids is None or len(self.station_ids) == 0:
+
+        # update remaining data window values if they're still default
+        if not self.station_ids or len(self.station_ids) == 0:
             self.station_ids = set(self.stations.keys())
-        # check for stations without data, then remove any stations that don't have audio data
+        if not self.start_datetime and len(self.stations.keys()) > 0:
+            self.start_datetime = np.min([t.first_data_timestamp for t in self.stations.values()])
+        if not self.end_datetime and len(self.stations.keys()) > 0:
+            self.end_datetime = np.max([t.last_data_timestamp for t in self.stations.values()])
+
+        # check for stations without data
         self.check_valid_ids()
 
         # If the pool was created by this function, then it needs to managed by this function.
