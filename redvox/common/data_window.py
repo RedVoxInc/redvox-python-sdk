@@ -399,9 +399,11 @@ class DataWindow:
         if not self.station_ids or len(self.station_ids) == 0:
             self.station_ids = set(self.stations.keys())
         if not self.start_datetime and len(self.stations.keys()) > 0:
-            self.start_datetime = np.min([t.first_data_timestamp for t in self.stations.values()])
+            self.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
+                np.min([t.first_data_timestamp for t in self.stations.values()]))
         if not self.end_datetime and len(self.stations.keys()) > 0:
-            self.end_datetime = np.max([t.last_data_timestamp for t in self.stations.values()])
+            self.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
+                np.max([t.last_data_timestamp for t in self.stations.values()]))
 
         # check for stations without data
         self.check_valid_ids()
