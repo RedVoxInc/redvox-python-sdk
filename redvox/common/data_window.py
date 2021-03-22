@@ -447,7 +447,7 @@ def pad_data(
     first_data_timestamp = data_time_stamps[0]
     last_data_timestamp = data_time_stamps[-1]
     result_df = data_df.copy()
-    result_before_update_last_index = len(result_df) - 1
+    result_before_update_length = len(result_df) - 1
     # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
     if expected_start < first_data_timestamp:
         start_diff = first_data_timestamp - expected_start
@@ -457,7 +457,6 @@ def pad_data(
             result_df = add_dataless_timestamps_to_df(
                 result_df,
                 0,
-                sample_interval_micros,
                 sample_interval_micros,
                 num_missing_samples,
                 True
@@ -469,8 +468,7 @@ def pad_data(
             # add the gap data to the result dataframe
             result_df = add_dataless_timestamps_to_df(
                 result_df,
-                result_before_update_last_index,
-                sample_interval_micros,
+                result_before_update_length,
                 sample_interval_micros,
                 num_missing_samples
             )
@@ -519,7 +517,6 @@ def fill_gaps(
                             result_df,
                             index,
                             sample_interval_micros,
-                            sample_interval_micros,
                             num_new_samples,
                         )
                     if len(result_df) >= expected_num_points:
@@ -549,7 +546,6 @@ def fill_gaps(
 def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
                                   start_index: int,
                                   sample_interval_micros: float,
-                                  unaltered_sample_interval_micros: float,
                                   num_samples_to_add: int,
                                   add_to_start: bool = False,) -> pd.DataFrame:
     """
@@ -560,41 +556,16 @@ def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
     :param dataframe: dataframe to add dataless timestamps to
     :param start_index: index of the dataframe to use as starting point for creating new values
     :param sample_interval_micros: sample interval in microseconds of the timestamps
-    :param unaltered_sample_interval_micros: sample interval in microseconds of unaltered timestamps
     :param num_samples_to_add: the number of timestamps to create
     :param add_to_start: if True, subtracts sample_interval_micros from start_timestamp, default False
     :return: updated dataframe with synthetic data points
     """
     if len(dataframe) > start_index and len(dataframe) > 0 and num_samples_to_add > 0:
-        if add_to_start:
-            sample_interval_micros = -sample_interval_micros
-            unaltered_sample_interval_micros = -unaltered_sample_interval_micros
-        empty_df = pd.DataFrame([], columns=dataframe.columns)
-        for column_index in empty_df.columns:
-            if column_index == "timestamps":
-                start_timestamp = dataframe["timestamps"][start_index]
-                empty_df[column_index] = (
-                        start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
-                )
-            elif column_index == "unaltered_timestamps":
-                start_unaltered_timestamp = dataframe["unaltered_timestamps"][start_index]
-                empty_df[column_index] = (start_unaltered_timestamp +
-                                          np.arange(1, num_samples_to_add + 1) * unaltered_sample_interval_micros)
-            elif column_index == "location_provider":
-                empty_df[column_index] = LocationProvider.UNKNOWN
-            elif column_index == "image_codec":
-                empty_df[column_index] = ImageCodec.UNKNOWN
-            elif column_index == "audio_codec":
-                empty_df[column_index] = AudioCodec.UNKNOWN
-            elif column_index == "network_type":
-                empty_df[column_index] = NetworkType.UNKNOWN_NETWORK
-            elif column_index == "power_state":
-                empty_df[column_index] = PowerState.UNKNOWN_POWER_STATE
-            elif column_index == "cell_service":
-                empty_df[column_index] = CellServiceState.UNKNOWN
-            else:
-                empty_df[column_index] = np.nan
-        dataframe = dataframe.append(empty_df, ignore_index=True)
+        start_timestamp = dataframe["timestamps"][start_index]
+        dataframe = dataframe.append(
+            create_dataless_timestamps_df(start_timestamp, sample_interval_micros,
+                                          dataframe.columns, num_samples_to_add, add_to_start),
+            ignore_index=True)
     return dataframe
 
 
@@ -617,16 +588,13 @@ def create_dataless_timestamps_df(
     """
     empty_df = pd.DataFrame([], columns=columns)
     if num_samples_to_add > 0:
-        if add_to_start:
-            sample_interval_micros = -sample_interval_micros
-        new_timestamps = (
-                start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
-        )
         for column_index in columns:
             if column_index == "timestamps":
-                empty_df[column_index] = new_timestamps
-            elif column_index == "unaltered_timestamps":
-                empty_df[column_index] = new_timestamps
+                if add_to_start:
+                    sample_interval_micros = -sample_interval_micros
+                empty_df[column_index] = (
+                        start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+                )
             elif column_index == "location_provider":
                 empty_df[column_index] = LocationProvider.UNKNOWN
             elif column_index == "image_codec":

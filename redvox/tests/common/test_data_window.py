@@ -191,22 +191,22 @@ class CreateDatalessTimestampsDFTest(unittest.TestCase):
     def test_add_dataless_timestamps_df_empty(self):
         # dataframe to alter is empty, so nothing changes
         new_base_df = self.base_df.copy()
-        new_df = dw.add_dataless_timestamps_to_df(new_base_df, 0, 1000, 1000, 7, False)
+        new_df = dw.add_dataless_timestamps_to_df(new_base_df, 0, 1000, 7, False)
         self.assertEqual(len(new_df), 0)
 
     def test_add_dataless_timestamps_df(self):
         new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 6, 1000, 1000, 7, False)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 6, 1000, 7, False)
         self.assertEqual(new_df.loc[7, "timestamps"], 2000)
         self.assertEqual(new_df.loc[13, "timestamps"], 8000)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 1000, 7, True)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 7, True)
         self.assertEqual(new_df.loc[14, "timestamps"], 6000)
         self.assertEqual(new_df.loc[20, "timestamps"], 0)
 
     def test_add_dataless_timestamps_df_index_too_high(self):
         # no change to dataframe if index is too high
         new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 99, 1000, 1000, 7, True)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 99, 1000, 7, True)
         self.assertEqual(len(new_df), 7)
         self.assertEqual(new_df.loc[0, "timestamps"], 7000)
         self.assertEqual(new_df.loc[6, "timestamps"], 1000)
@@ -214,11 +214,11 @@ class CreateDatalessTimestampsDFTest(unittest.TestCase):
     def test_add_dataless_timestamps_df_not_enough_samples(self):
         # no change to dataframe if adding less than 1 samples
         new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 1000, -10, True)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, -10, True)
         self.assertEqual(len(new_df), 7)
         self.assertEqual(new_df.loc[0, "timestamps"], 7000)
         self.assertEqual(new_df.loc[6, "timestamps"], 1000)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 1000, 0, True)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 0, True)
         self.assertEqual(len(new_df), 7)
         self.assertEqual(new_df.loc[0, "timestamps"], 7000)
         self.assertEqual(new_df.loc[6, "timestamps"], 1000)
