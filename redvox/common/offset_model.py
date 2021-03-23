@@ -20,6 +20,8 @@ class OffsetModel:
         slope: float, the slope of the change in offset
         intercept: float, the offset at start_time
         score: float, R2 value of the model; 1.0 is best, 0.0 is worst
+        mean_latency: mean latency
+        std_dev_latency: latency standard deviation
     """
     def __init__(self, latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray,
                  start_time: float, end_time: float, n_samples: int = DEFAULT_SAMPLES):
@@ -39,8 +41,8 @@ class OffsetModel:
         latencies = np.where(latencies < MIN_VALID_LATENCY_MICROS, np.nan, latencies)
         use_model = timesync_quality_check(latencies, start_time, end_time)
         if use_model:
-            self.slope, self.intercept, self.score = get_offset_function(latencies, offsets, times, self.k_bins,
-                                                                         n_samples, start_time, end_time)
+            self.slope, self.intercept, self.score, self.mean_latency, self.std_dev_latency = \
+                get_offset_function(latencies, offsets, times, self.k_bins, n_samples, start_time, end_time)
             use_model = self.slope != 0.0
         # if data or model is not sufficient, use the offset corresponding to lowest latency:
         if not use_model:
@@ -210,7 +212,8 @@ def get_binned_df(full_df: pd.DataFrame, bin_times: np.ndarray, n_samples: float
 
 # The main function
 def get_offset_function(latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray,
-                        k_bins: int, n_samples: int, start_time: float, end_time: float) -> Tuple[float, float, float]:
+                        k_bins: int, n_samples: int, start_time: float,
+                        end_time: float) -> Tuple[float, float, float, float, float]:
     """
     Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
     The data is binned by k_bins in equally spaced times, the n_samples best latencies are taken to be used to get
@@ -224,7 +227,7 @@ def get_offset_function(latencies: np.ndarray, offsets: np.ndarray, times: np.nd
     :param n_samples: number of points to use per bins
     :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
     :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
-    :return: slope, intercept, score
+    :return: slope, intercept, score, mean latency of the binned_df, latency standard deviation of the binned_df
     """
 
     # Organize the data into a data frame
@@ -241,9 +244,9 @@ def get_offset_function(latencies: np.ndarray, offsets: np.ndarray, times: np.nd
                               n_samples=n_samples)
 
     # Compute the weighted linear regression
-    slope, zero_intercept, score = offset_weighted_linear_regression(latencies=binned_df['latencies'].values,
-                                                                     offsets=binned_df['offsets'].values,
-                                                                     times=binned_df['times'].values)
+    slope, zero_intercept, r2_score = offset_weighted_linear_regression(latencies=binned_df['latencies'].values,
+                                                                        offsets=binned_df['offsets'].values,
+                                                                        times=binned_df['times'].values)
 
     # Get offset relative to the first time
     intercept = get_offset_at_new_time(new_time=start_time,
@@ -251,7 +254,7 @@ def get_offset_function(latencies: np.ndarray, offsets: np.ndarray, times: np.nd
                                        intercept=zero_intercept,
                                        model_time=0)
 
-    return slope, intercept, score
+    return slope, intercept, r2_score, np.mean(binned_df['latencies'].values), np.std(binned_df['latencies'].values)
 
 
 def timesync_quality_check(latencies: np.ndarray, start_time: float, end_time: float, debug: bool = False) -> bool:
