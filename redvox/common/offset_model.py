@@ -19,8 +19,8 @@ class OffsetModel:
     Properties:
         start_time: float, start timestamp of model in microseconds since epoch UTC
         end_time: float, end timestamp of model in microseconds since epoch UTC
-        k_bins: int, the number of data bins used to create the model
-        n_samples: int, the number of samples per data bin; 3 is the minimum to create a balanced line
+        k_bins: int, the number of data bins used to create the model, default is 1 if model is empty
+        n_samples: int, the number of samples per data bin; default is 3 (minimum to create a balanced line)
         slope: float, the slope of the change in offset
         intercept: float, the offset at start_time
         score: float, R2 value of the model; 1.0 is best, 0.0 is worst
@@ -76,12 +76,17 @@ class OffsetModel:
             use_model = self.slope != 0.0
         # if data or model is not sufficient, use the offset corresponding to lowest latency:
         if not use_model:
+            self.score = 0.0
             self.slope = 0.0
             if all(np.nan_to_num(latencies) == 0.0):
                 self.intercept = 0.0
+                self.mean_latency = 0.0
+                self.std_dev_latency = 0.0
             else:
                 best_latency = np.nanmin(latencies[np.nonzero(latencies)])
                 self.intercept = offsets[np.argwhere(latencies == best_latency)[0][0]]
+                self.mean_latency = np.mean(latencies)
+                self.std_dev_latency = np.std(latencies)
 
     @staticmethod
     def empty_model() -> "OffsetModel":
