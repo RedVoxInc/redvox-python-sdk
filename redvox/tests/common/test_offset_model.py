@@ -34,14 +34,3 @@ class OffsetModelTest(unittest.TestCase):
         model = om.OffsetModel.empty_model()
         self.assertEqual(model.intercept, 0.)
         self.assertEqual(model.slope, 0.)
-
-
-class GetOffsetFunctionTest(unittest.TestCase):
-    def test_get_offset_function_empty_data(self):
-        latencies = np.full(100, [np.nan])
-        offsets = np.full(100, [0])
-        times = np.array(range(100))
-        slope, intercept, score = om.get_offset_function(latencies, offsets, times, 5, 10, 0, 100)
-        self.assertEqual(slope, 0)
-        self.assertEqual(intercept, 0)
-        self.assertEqual(score, 0)
