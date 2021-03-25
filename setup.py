@@ -39,7 +39,6 @@ setup(name=redvox.NAME,
       entry_points={
             'console_scripts': [
                 'redvox-cli=redvox.cli.cli:main',
-                'redvox-gui=redvox.api1000.gui.redvox_gui:main [GUI]'
             ]
       },
       python_requires=">=3.6")
