@@ -1,6 +1,9 @@
 name: redvox-python-sdk testing
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build:

@@ -19,7 +19,8 @@ class TestCli(unittest.TestCase):
 
     def tearDown(self):
         # Delete the copies from setUp
-        test_files = glob.glob(TEST_DATA_DIR + "/test_*")
+        test_dir: str = str(os.path.join(TEST_DATA_DIR, "test_*"))
+        test_files = glob.glob(test_dir)
         for test_file in test_files:
             os.remove(test_file)
 
@@ -30,7 +31,8 @@ class TestCli(unittest.TestCase):
                          reader.read_json_file(test_data("test_a.json")))
 
     def test_to_json_multi(self):
-        os.system("python3 -m redvox.cli.cli rdvxz-to-json %s/*.rdvxz" % TEST_DATA_DIR)
+        joined: str = str(os.path.join(TEST_DATA_DIR, "*.rdvxz"))
+        os.system(f"python3 -m redvox.cli.cli rdvxz-to-json {joined}")
         self.assertTrue(os.path.isfile(test_data("test_a.json")))
         self.assertTrue(os.path.isfile(test_data("test_b.json")))
         self.assertEqual(reader.read_rdvxz_file(test_data("test_a.rdvxz")),
@@ -45,7 +47,8 @@ class TestCli(unittest.TestCase):
                          reader.read_json_file(test_data("test_c.json")))
 
     def test_to_rdvxz_multi(self):
-        os.system("python3 -m redvox.cli.cli json-to-rdvxz %s/*.json" % TEST_DATA_DIR)
+        joined: str = str(os.path.join(TEST_DATA_DIR, "*.json"))
+        os.system(f"python3 -m redvox.cli.cli json-to-rdvxz {joined}")
         self.assertTrue(os.path.isfile(test_data("test_c.rdvxz")))
         self.assertTrue(os.path.isfile(test_data("test_d.rdvxz")))
         self.assertEqual(reader.read_rdvxz_file(test_data("test_c.rdvxz")),
@@ -59,7 +62,8 @@ class TestCli(unittest.TestCase):
         self.assertTrue("api: 900" in output)
 
     def test_print_multi(self):
-        output: str = subprocess.check_output("python3 -m redvox.cli.cli print-z %s/*.rdvxz" % TEST_DATA_DIR,
+        joined: str = str(os.path.join(TEST_DATA_DIR, "*.rdvxz"))
+        output: str = subprocess.check_output(f"python3 -m redvox.cli.cli print-z {joined}",
                                               shell=True).decode()
         self.assertEqual(len(list(filter(lambda line: line.startswith("api: 900"),
                                     output.split("\n")))),
