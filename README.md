@@ -7,9 +7,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
-### 3.0.0rc4 (2021-3-25)
+### 3.0.0rc5 (2021-3-25)
 
 * Make GUI features an optional "extra"
+* Fix missing toml dependency
 
 ### 3.0.0rc3 (2021-3-XX)
 

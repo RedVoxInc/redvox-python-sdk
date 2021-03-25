@@ -14,4 +14,4 @@ requests>=2.24.0
 scipy>=1.5.1
 obspy>=1.2.2
 sklearn
-
+toml
