@@ -11,7 +11,6 @@ from redvox.api1000.common.decorators import wrap_enum
 import redvox.api1000.common.generic
 from redvox.api1000.common.typing import check_type
 from redvox.api1000.errors import ApiMImageChannelError
-import redvox.api1000.gui.image_viewer as image_viewer
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
 
@@ -205,7 +204,12 @@ class Image(
         """
         Opens a simple image gallery for viewing images in packet
         """
-        image_viewer.start_gui(self)
+        try:
+            import redvox.api1000.gui.image_viewer as image_viewer
+            image_viewer.start_gui(self)
+        except ImportError:
+            import warnings
+            warnings.warn("GUI dependencies are not installed. Install the 'GUI' extra to enable this functionality.")
 
 
 def validate_image(image_sensor: Image) -> List[str]:

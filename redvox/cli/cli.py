@@ -8,7 +8,6 @@ import os.path
 import sys
 from typing import Dict, List, Optional, Any, Callable
 
-from redvox.api1000.gui.image_viewer import start_gui
 from redvox.api1000.wrapped_redvox_packet.sensors.image import Image, ImageCodec
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.cloud.data_api import DataRangeReqType
@@ -325,24 +324,30 @@ def gallery(rdvxm_paths: List[str]) -> bool:
     :return: True if this completes successfully, False otherwise
     """
     # Create a new image sensor to hold images from all packets
-    image: Image = Image.new()
-    # noinspection PyTypeChecker
-    image.set_image_codec(ImageCodec.JPG)
+    try:
+        from redvox.api1000.gui.image_viewer import start_gui
+        image: Image = Image.new()
+        # noinspection PyTypeChecker
+        image.set_image_codec(ImageCodec.JPG)
 
-    packets: List[WrappedRedvoxPacketM] = list(
-        map(WrappedRedvoxPacketM.from_compressed_path, rdvxm_paths)
-    )
+        packets: List[WrappedRedvoxPacketM] = list(
+            map(WrappedRedvoxPacketM.from_compressed_path, rdvxm_paths)
+        )
 
-    for packet in packets:
-        image_sensor: Optional[Image] = packet.get_sensors().get_image()
-        if image_sensor is not None:
-            image.get_timestamps().append_timestamps(
-                image_sensor.get_timestamps().get_timestamps()
-            )
-            image.append_values(image_sensor.get_samples())
+        for packet in packets:
+            image_sensor: Optional[Image] = packet.get_sensors().get_image()
+            if image_sensor is not None:
+                image.get_timestamps().append_timestamps(
+                    image_sensor.get_timestamps().get_timestamps()
+                )
+                image.append_values(image_sensor.get_samples())
 
-    start_gui(image)
-    return True
+        start_gui(image)
+        return True
+
+    except ImportError:
+        import warnings
+        warnings.warn("GUI dependencies are not installed. Install the 'GUI' extra to enable this functionality.")
 
 
 def gallery_args(args) -> None:
