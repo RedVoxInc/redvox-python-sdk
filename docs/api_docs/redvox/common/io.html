@@ -38,6 +38,7 @@ import os.path
 import multiprocessing
 import multiprocessing.pool
 from pathlib import Path, PurePath
+import pickle
 from shutil import copy2, move
 from typing import (
     Any,
@@ -50,6 +51,8 @@ from typing import (
     TYPE_CHECKING,
     Callable,
 )
+
+import lz4.frame
 
 from redvox.api900.reader import read_rdvxz_file
 from redvox.api1000.common.common import check_type
@@ -64,6 +67,7 @@ from redvox.common.date_time_utils import (
 
 if TYPE_CHECKING:
     from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+    from redvox.common.data_window import DataWindow
 
 
 def _is_int(value: str) -&gt; Optional[int]:
@@ -861,7 +865,59 @@ def sort_unstructured_redvox_data(
         else:
             move(value.full_path, file_out_dir)
 
-    return True</code></pre>
+    return True
+
+
+@dataclass
+class DataWindowSerializationResult:
+    path: str
+    serialized_bytes: int
+    compressed_bytes: int
+
+
+def serialize_data_window(
+    data_window: &#34;DataWindow&#34;,
+    base_dir: str = &#34;.&#34;,
+    file_name: Optional[str] = None,
+    compression_factor: int = 4,
+) -&gt; Path:
+    &#34;&#34;&#34;
+    Serializes and compresses a DataWindow to a file.
+    :param data_window: The data window to serialize and compress.
+    :param base_dir: The base directory to write the serialized file to (default=.).
+    :param file_name: The optional file name. If None, a default filename with the following format is used:
+                      [start_ts]_[end_ts]_[num_stations].pkl.lz4
+    :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                               (default=4).
+    :return: The path to the written file.
+    &#34;&#34;&#34;
+
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f&#34;{data_window.start_datetime.timestamp()}&#34;
+        f&#34;_{data_window.end_datetime.timestamp()}&#34;
+        f&#34;_{len(data_window.get_all_station_ids())}.pkl.lz4&#34;
+    )
+
+    file_path: Path = Path(base_dir).joinpath(_file_name)
+
+    with lz4.frame.open(
+        file_path, &#34;wb&#34;, compression_level=compression_factor
+    ) as compressed_out:
+        pickle.dump(data_window, compressed_out)
+        compressed_out.flush()
+        return file_path.resolve(False)
+
+
+def deserialize_data_window(path: str) -&gt; &#34;DataWindow&#34;:
+    &#34;&#34;&#34;
+    Decompresses and deserializes a DataWindow written to disk.
+    :param path: Path to the serialized and compressed data window.
+    :return: An instance of a DataWindow.
+    &#34;&#34;&#34;
+    with lz4.frame.open(path, &#34;rb&#34;) as compressed_in:
+        return pickle.load(compressed_in)</code></pre>
 </details>
 </section>
 <section>
@@ -871,6 +927,27 @@ def sort_unstructured_redvox_data(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="redvox.common.io.deserialize_data_window"><code class="name flex">
+<span>def <span class="ident">deserialize_data_window</span></span>(<span>path: str) ‑> DataWindow</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Decompresses and deserializes a DataWindow written to disk.
+:param path: Path to the serialized and compressed data window.
+:return: An instance of a DataWindow.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_data_window(path: str) -&gt; &#34;DataWindow&#34;:
+    &#34;&#34;&#34;
+    Decompresses and deserializes a DataWindow written to disk.
+    :param path: Path to the serialized and compressed data window.
+    :return: An instance of a DataWindow.
+    &#34;&#34;&#34;
+    with lz4.frame.open(path, &#34;rb&#34;) as compressed_in:
+        return pickle.load(compressed_in)</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.io.index_structured"><code class="name flex">
 <span>def <span class="ident">index_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), pool: typing.Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
@@ -1122,6 +1199,57 @@ API 900 and API 1000.
     return index</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.io.serialize_data_window"><code class="name flex">
+<span>def <span class="ident">serialize_data_window</span></span>(<span>data_window: DataWindow, base_dir: str = '.', file_name: typing.Optional[str] = None, compression_factor: int = 4) ‑> pathlib.Path</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Serializes and compresses a DataWindow to a file.
+:param data_window: The data window to serialize and compress.
+:param base_dir: The base directory to write the serialized file to (default=.).
+:param file_name: The optional file name. If None, a default filename with the following format is used:
+[start_ts]<em>[end_ts]</em>[num_stations].pkl.lz4
+:param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+(default=4).
+:return: The path to the written file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_data_window(
+    data_window: &#34;DataWindow&#34;,
+    base_dir: str = &#34;.&#34;,
+    file_name: Optional[str] = None,
+    compression_factor: int = 4,
+) -&gt; Path:
+    &#34;&#34;&#34;
+    Serializes and compresses a DataWindow to a file.
+    :param data_window: The data window to serialize and compress.
+    :param base_dir: The base directory to write the serialized file to (default=.).
+    :param file_name: The optional file name. If None, a default filename with the following format is used:
+                      [start_ts]_[end_ts]_[num_stations].pkl.lz4
+    :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                               (default=4).
+    :return: The path to the written file.
+    &#34;&#34;&#34;
+
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f&#34;{data_window.start_datetime.timestamp()}&#34;
+        f&#34;_{data_window.end_datetime.timestamp()}&#34;
+        f&#34;_{len(data_window.get_all_station_ids())}.pkl.lz4&#34;
+    )
+
+    file_path: Path = Path(base_dir).joinpath(_file_name)
+
+    with lz4.frame.open(
+        file_path, &#34;wb&#34;, compression_level=compression_factor
+    ) as compressed_out:
+        pickle.dump(data_window, compressed_out)
+        compressed_out.flush()
+        return file_path.resolve(False)</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.io.sort_unstructured_redvox_data"><code class="name flex">
 <span>def <span class="ident">sort_unstructured_redvox_data</span></span>(<span>input_dir: str, output_dir: typing.Optional[str] = None, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), copy: bool = True) ‑> bool</span>
 </code></dt>
@@ -1228,6 +1356,38 @@ is set to False, the files will instead by moved.</p>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="redvox.common.io.DataWindowSerializationResult"><code class="flex name class">
+<span>class <span class="ident">DataWindowSerializationResult</span></span>
+<span>(</span><span>path: str, serialized_bytes: int, compressed_bytes: int)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>DataWindowSerializationResult(path: str, serialized_bytes: int, compressed_bytes: int)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class DataWindowSerializationResult:
+    path: str
+    serialized_bytes: int
+    compressed_bytes: int</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.io.DataWindowSerializationResult.compressed_bytes"><code class="name">var <span class="ident">compressed_bytes</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.DataWindowSerializationResult.path"><code class="name">var <span class="ident">path</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.DataWindowSerializationResult.serialized_bytes"><code class="name">var <span class="ident">serialized_bytes</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="redvox.common.io.Index"><code class="flex name class">
 <span>class <span class="ident">Index</span></span>
 <span>(</span><span>entries: typing.List[<a title="redvox.common.io.IndexEntry" href="#redvox.common.io.IndexEntry">IndexEntry</a>] = &lt;factory&gt;)</span>
@@ -2581,15 +2741,25 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="redvox.common.io.deserialize_data_window" href="#redvox.common.io.deserialize_data_window">deserialize_data_window</a></code></li>
 <li><code><a title="redvox.common.io.index_structured" href="#redvox.common.io.index_structured">index_structured</a></code></li>
 <li><code><a title="redvox.common.io.index_structured_api_1000" href="#redvox.common.io.index_structured_api_1000">index_structured_api_1000</a></code></li>
 <li><code><a title="redvox.common.io.index_structured_api_900" href="#redvox.common.io.index_structured_api_900">index_structured_api_900</a></code></li>
 <li><code><a title="redvox.common.io.index_unstructured" href="#redvox.common.io.index_unstructured">index_unstructured</a></code></li>
+<li><code><a title="redvox.common.io.serialize_data_window" href="#redvox.common.io.serialize_data_window">serialize_data_window</a></code></li>
 <li><code><a title="redvox.common.io.sort_unstructured_redvox_data" href="#redvox.common.io.sort_unstructured_redvox_data">sort_unstructured_redvox_data</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
+<li>
+<h4><code><a title="redvox.common.io.DataWindowSerializationResult" href="#redvox.common.io.DataWindowSerializationResult">DataWindowSerializationResult</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.io.DataWindowSerializationResult.compressed_bytes" href="#redvox.common.io.DataWindowSerializationResult.compressed_bytes">compressed_bytes</a></code></li>
+<li><code><a title="redvox.common.io.DataWindowSerializationResult.path" href="#redvox.common.io.DataWindowSerializationResult.path">path</a></code></li>
+<li><code><a title="redvox.common.io.DataWindowSerializationResult.serialized_bytes" href="#redvox.common.io.DataWindowSerializationResult.serialized_bytes">serialized_bytes</a></code></li>
+</ul>
+</li>
 <li>
 <h4><code><a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></code></h4>
 <ul class="">

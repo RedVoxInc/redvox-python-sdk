@@ -103,6 +103,9 @@ class Station:
             self.start_timestamp = (
                 data_packets[0].get_timing_information().get_app_start_mach_timestamp()
             )
+            # add warning about missing mach time zero
+            if self.start_timestamp &lt; 0:
+                self.start_timestamp = np.nan
             self._set_all_sensors(data_packets)
             self._get_start_and_end_timestamps()
             if self.has_audio_sensor():
@@ -1160,6 +1163,9 @@ offset_model: OffsetModel object, contains information about the station's timin
             self.start_timestamp = (
                 data_packets[0].get_timing_information().get_app_start_mach_timestamp()
             )
+            # add warning about missing mach time zero
+            if self.start_timestamp &lt; 0:
+                self.start_timestamp = np.nan
             self._set_all_sensors(data_packets)
             self._get_start_and_end_timestamps()
             if self.has_audio_sensor():

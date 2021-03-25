@@ -40,13 +40,20 @@ MIN_TIMESYNC_DURATION_MIN = 5               # minimum number of minutes of data 
 class OffsetModel:
     &#34;&#34;&#34;
     Offset model which represents the change in offset over a period of time
+    Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
+    Invalidates latencies that are below our recognition threshold MIN_VALID_LATENCY_MICROS
+    The data is binned by k_bins in equally spaced times; in each bin the n_samples best latencies are taken to get
+    the weighted linear regression.
     Properties:
         start_time: float, start timestamp of model in microseconds since epoch UTC
         end_time: float, end timestamp of model in microseconds since epoch UTC
-        k_bins: int, the number of data bins used to create the model
-        n_samples: int, the number of samples per data bin; 3 is the minimum to create a balanced line
+        k_bins: int, the number of data bins used to create the model, default is 1 if model is empty
+        n_samples: int, the number of samples per data bin; default is 3 (minimum to create a balanced line)
         slope: float, the slope of the change in offset
         intercept: float, the offset at start_time
+        score: float, R2 value of the model; 1.0 is best, 0.0 is worst
+        mean_latency: mean latency
+        std_dev_latency: latency standard deviation
     &#34;&#34;&#34;
     def __init__(self, latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray,
                  start_time: float, end_time: float, n_samples: int = DEFAULT_SAMPLES):
@@ -66,17 +73,48 @@ class OffsetModel:
         latencies = np.where(latencies &lt; MIN_VALID_LATENCY_MICROS, np.nan, latencies)
         use_model = timesync_quality_check(latencies, start_time, end_time)
         if use_model:
-            self.slope, self.intercept = get_offset_function(latencies, offsets, times, self.k_bins,
-                                                             n_samples, start_time, end_time)
+            # Organize the data into a data frame
+            full_df = pd.DataFrame(data=times, columns=[&#39;times&#39;])
+            full_df[&#39;latencies&#39;] = latencies
+            full_df[&#39;offsets&#39;] = offsets
+
+            # Get the index for the separations (add +1 to k_bins so that there would be k_bins bins)
+            bin_times = np.linspace(start_time, end_time, self.k_bins + 1)
+
+            # Make the dataframe with the data with n_samples per bins
+            binned_df = get_binned_df(full_df=full_df,
+                                      bin_times=bin_times,
+                                      n_samples=n_samples)
+
+            # Compute the weighted linear regression
+            self.slope, zero_intercept, self.score = offset_weighted_linear_regression(
+                latencies=binned_df[&#39;latencies&#39;].values,
+                offsets=binned_df[&#39;offsets&#39;].values,
+                times=binned_df[&#39;times&#39;].values)
+
+            # Get offset relative to the first time
+            self.intercept = get_offset_at_new_time(new_time=start_time,
+                                                    slope=self.slope,
+                                                    intercept=zero_intercept,
+                                                    model_time=0)
+
+            self.mean_latency = np.mean(binned_df[&#39;latencies&#39;].values)
+            self.std_dev_latency = np.std(binned_df[&#39;latencies&#39;].values)
+
             use_model = self.slope != 0.0
         # if data or model is not sufficient, use the offset corresponding to lowest latency:
         if not use_model:
+            self.score = 0.0
             self.slope = 0.0
             if all(np.nan_to_num(latencies) == 0.0):
                 self.intercept = 0.0
+                self.mean_latency = 0.0
+                self.std_dev_latency = 0.0
             else:
                 best_latency = np.nanmin(latencies[np.nonzero(latencies)])
                 self.intercept = offsets[np.argwhere(latencies == best_latency)[0][0]]
+                self.mean_latency = np.mean(latencies)
+                self.std_dev_latency = np.std(latencies)
 
     @staticmethod
     def empty_model() -&gt; &#34;OffsetModel&#34;:
@@ -127,20 +165,44 @@ def minmax_scale(data: np.ndarray) -&gt; np.ndarray:
     return (data - np.nanmin(data)) / (np.nanmax(data) - np.nanmin(data))
 
 
+# The score for Weighted Linear Regression Function
+def get_wlr_score(model: LinearRegression, offsets: np.ndarray,
+                  times: np.ndarray, weights: np.ndarray) -&gt; float:
+    &#34;&#34;&#34;
+    Computes and returns a R2 score for the weighted linear regression using sklearn&#39;s score method.
+    The best value is 1.0, and 0.0 corresponds to a function with no slope.
+    Negative values are also adjusted to be 0.0.
+    :param model: The linear regression model
+    :param offsets: array of offsets corresponding to the best latencies per packet
+    :param times: array of device times corresponding to the best latencies per packet
+    :param weights: weights used to compute the weighted linear regression
+    :return: score
+    &#34;&#34;&#34;
+    # Get predicted offsets of the model
+    predicted_offsets = model.predict(X=times.reshape(-1, 1))
+
+    # Compute the score
+    score = model.score(X=predicted_offsets, y=offsets, sample_weight=weights)
+
+    # Adjust the score so negative values are cast to 0.0
+    return np.max([score, 0.0])
+
+
 # The Weighted Linear Regression Function for offsets
 def offset_weighted_linear_regression(latencies: np.ndarray, offsets: np.ndarray,
-                                      times: np.ndarray) -&gt; Tuple[float, float]:
+                                      times: np.ndarray) -&gt; Tuple[float, float, float]:
     &#34;&#34;&#34;
     Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
     The intercept is based on first UTC time 0, all units are in microseconds
+    The function uses sklearn&#39;s LinearRegression with sample weights, and also returns the R2 score.
     :param latencies: array of the best latencies per packet
     :param offsets: array of offsets corresponding to the best latencies per packet
     :param times: array of device times corresponding to the best latencies per packet
-    :return:  slope, intercept
+    :return:  slope, intercept, score
     &#34;&#34;&#34;
 
     if all(np.isnan(latencies)):
-        return 0.0, 0.0
+        return 0.0, 0.0, 0.0
 
     # Compute the weights for the linear regression by the latencies
     latencies_ms = latencies / 1e3
@@ -153,8 +215,11 @@ def offset_weighted_linear_regression(latencies: np.ndarray, offsets: np.ndarray
             y=offsets.reshape(-1, 1),
             sample_weight=norm_weights)
 
+    # get the score of the model
+    score = get_wlr_score(model=wls, offsets=offsets, times=times, weights=norm_weights)
+
     # return the slope and intercept
-    return wls.coef_[0][0], wls.intercept_[0]
+    return wls.coef_[0][0], wls.intercept_[0], score
 
 
 # Function to correct the intercept value
@@ -206,51 +271,6 @@ def get_binned_df(full_df: pd.DataFrame, bin_times: np.ndarray, n_samples: float
     binned_df = binned_df.sort_values(by=[&#39;times&#39;])
 
     return binned_df
-
-
-# The main function
-def get_offset_function(latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray,
-                        k_bins: int, n_samples: int, start_time: float, end_time: float) -&gt; Tuple[float, float]:
-    &#34;&#34;&#34;
-    Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
-    The data is binned by k_bins in equally spaced times, the n_samples best latencies are taken to be used to get
-    the weighted linear regression. The slope and intercept is then returned as the offset model.
-    The intercept is offset at first_start_time.
-    :param latencies: array of the best latencies per packet
-    :param offsets: array of offsets corresponding to the best latencies per packet
-    :param times: array of device times corresponding to the best latencies per packet
-    :param k_bins: number of bins to separate the latencies
-    :param n_samples: number of points to use per bins
-    :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
-    :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
-    :return: slope, intercept
-    &#34;&#34;&#34;
-
-    # Organize the data into a data frame
-    full_df = pd.DataFrame(data=times, columns=[&#39;times&#39;])
-    full_df[&#39;latencies&#39;] = latencies
-    full_df[&#39;offsets&#39;] = offsets
-
-    # Get the index for the separations (add +1 to k_bins so that there would be k_bins bins)
-    bin_times = np.linspace(start_time, end_time, k_bins + 1)
-
-    # Make the dataframe with the data with n_samples per bins
-    binned_df = get_binned_df(full_df=full_df,
-                              bin_times=bin_times,
-                              n_samples=n_samples)
-
-    # Compute the weighted linear regression
-    slope, zero_intercept = offset_weighted_linear_regression(latencies=binned_df[&#39;latencies&#39;].values,
-                                                              offsets=binned_df[&#39;offsets&#39;].values,
-                                                              times=binned_df[&#39;times&#39;].values)
-
-    # Get offset relative to the first time
-    intercept = get_offset_at_new_time(new_time=start_time,
-                                       slope=slope,
-                                       intercept=zero_intercept,
-                                       model_time=0)
-
-    return slope, intercept
 
 
 def timesync_quality_check(latencies: np.ndarray, start_time: float, end_time: float, debug: bool = False) -&gt; bool:
@@ -397,68 +417,42 @@ k_bins = int((end_time - start_time) / (300 * 1e6) + 1)
     return new_offset</code></pre>
 </details>
 </dd>
-<dt id="redvox.common.offset_model.get_offset_function"><code class="name flex">
-<span>def <span class="ident">get_offset_function</span></span>(<span>latencies: numpy.ndarray, offsets: numpy.ndarray, times: numpy.ndarray, k_bins: int, n_samples: int, start_time: float, end_time: float) ‑> typing.Tuple[float, float]</span>
+<dt id="redvox.common.offset_model.get_wlr_score"><code class="name flex">
+<span>def <span class="ident">get_wlr_score</span></span>(<span>model: sklearn.linear_model._base.LinearRegression, offsets: numpy.ndarray, times: numpy.ndarray, weights: numpy.ndarray) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
-The data is binned by k_bins in equally spaced times, the n_samples best latencies are taken to be used to get
-the weighted linear regression. The slope and intercept is then returned as the offset model.
-The intercept is offset at first_start_time.
-:param latencies: array of the best latencies per packet
+<div class="desc"><p>Computes and returns a R2 score for the weighted linear regression using sklearn's score method.
+The best value is 1.0, and 0.0 corresponds to a function with no slope.
+Negative values are also adjusted to be 0.0.
+:param model: The linear regression model
 :param offsets: array of offsets corresponding to the best latencies per packet
 :param times: array of device times corresponding to the best latencies per packet
-:param k_bins: number of bins to separate the latencies
-:param n_samples: number of points to use per bins
-:param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
-:param end_time: the time used to compute the time bins; use start time of last packet + packet duration
-:return: slope, intercept</p></div>
+:param weights: weights used to compute the weighted linear regression
+:return: score</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_offset_function(latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray,
-                        k_bins: int, n_samples: int, start_time: float, end_time: float) -&gt; Tuple[float, float]:
+<pre><code class="python">def get_wlr_score(model: LinearRegression, offsets: np.ndarray,
+                  times: np.ndarray, weights: np.ndarray) -&gt; float:
     &#34;&#34;&#34;
-    Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
-    The data is binned by k_bins in equally spaced times, the n_samples best latencies are taken to be used to get
-    the weighted linear regression. The slope and intercept is then returned as the offset model.
-    The intercept is offset at first_start_time.
-    :param latencies: array of the best latencies per packet
+    Computes and returns a R2 score for the weighted linear regression using sklearn&#39;s score method.
+    The best value is 1.0, and 0.0 corresponds to a function with no slope.
+    Negative values are also adjusted to be 0.0.
+    :param model: The linear regression model
     :param offsets: array of offsets corresponding to the best latencies per packet
     :param times: array of device times corresponding to the best latencies per packet
-    :param k_bins: number of bins to separate the latencies
-    :param n_samples: number of points to use per bins
-    :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
-    :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
-    :return: slope, intercept
+    :param weights: weights used to compute the weighted linear regression
+    :return: score
     &#34;&#34;&#34;
+    # Get predicted offsets of the model
+    predicted_offsets = model.predict(X=times.reshape(-1, 1))
 
-    # Organize the data into a data frame
-    full_df = pd.DataFrame(data=times, columns=[&#39;times&#39;])
-    full_df[&#39;latencies&#39;] = latencies
-    full_df[&#39;offsets&#39;] = offsets
+    # Compute the score
+    score = model.score(X=predicted_offsets, y=offsets, sample_weight=weights)
 
-    # Get the index for the separations (add +1 to k_bins so that there would be k_bins bins)
-    bin_times = np.linspace(start_time, end_time, k_bins + 1)
-
-    # Make the dataframe with the data with n_samples per bins
-    binned_df = get_binned_df(full_df=full_df,
-                              bin_times=bin_times,
-                              n_samples=n_samples)
-
-    # Compute the weighted linear regression
-    slope, zero_intercept = offset_weighted_linear_regression(latencies=binned_df[&#39;latencies&#39;].values,
-                                                              offsets=binned_df[&#39;offsets&#39;].values,
-                                                              times=binned_df[&#39;times&#39;].values)
-
-    # Get offset relative to the first time
-    intercept = get_offset_at_new_time(new_time=start_time,
-                                       slope=slope,
-                                       intercept=zero_intercept,
-                                       model_time=0)
-
-    return slope, intercept</code></pre>
+    # Adjust the score so negative values are cast to 0.0
+    return np.max([score, 0.0])</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.offset_model.minmax_scale"><code class="name flex">
@@ -483,33 +477,35 @@ The intercept is offset at first_start_time.
 </details>
 </dd>
 <dt id="redvox.common.offset_model.offset_weighted_linear_regression"><code class="name flex">
-<span>def <span class="ident">offset_weighted_linear_regression</span></span>(<span>latencies: numpy.ndarray, offsets: numpy.ndarray, times: numpy.ndarray) ‑> typing.Tuple[float, float]</span>
+<span>def <span class="ident">offset_weighted_linear_regression</span></span>(<span>latencies: numpy.ndarray, offsets: numpy.ndarray, times: numpy.ndarray) ‑> typing.Tuple[float, float, float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
 The intercept is based on first UTC time 0, all units are in microseconds
+The function uses sklearn's LinearRegression with sample weights, and also returns the R2 score.
 :param latencies: array of the best latencies per packet
 :param offsets: array of offsets corresponding to the best latencies per packet
 :param times: array of device times corresponding to the best latencies per packet
 :return:
-slope, intercept</p></div>
+slope, intercept, score</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def offset_weighted_linear_regression(latencies: np.ndarray, offsets: np.ndarray,
-                                      times: np.ndarray) -&gt; Tuple[float, float]:
+                                      times: np.ndarray) -&gt; Tuple[float, float, float]:
     &#34;&#34;&#34;
     Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
     The intercept is based on first UTC time 0, all units are in microseconds
+    The function uses sklearn&#39;s LinearRegression with sample weights, and also returns the R2 score.
     :param latencies: array of the best latencies per packet
     :param offsets: array of offsets corresponding to the best latencies per packet
     :param times: array of device times corresponding to the best latencies per packet
-    :return:  slope, intercept
+    :return:  slope, intercept, score
     &#34;&#34;&#34;
 
     if all(np.isnan(latencies)):
-        return 0.0, 0.0
+        return 0.0, 0.0, 0.0
 
     # Compute the weights for the linear regression by the latencies
     latencies_ms = latencies / 1e3
@@ -522,8 +518,11 @@ slope, intercept</p></div>
             y=offsets.reshape(-1, 1),
             sample_weight=norm_weights)
 
+    # get the score of the model
+    score = get_wlr_score(model=wls, offsets=offsets, times=times, weights=norm_weights)
+
     # return the slope and intercept
-    return wls.coef_[0][0], wls.intercept_[0]</code></pre>
+    return wls.coef_[0][0], wls.intercept_[0], score</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.offset_model.timesync_quality_check"><code class="name flex">
@@ -588,14 +587,21 @@ Returns False if the data quality is not up to "standards".
 <span>(</span><span>latencies: numpy.ndarray, offsets: numpy.ndarray, times: numpy.ndarray, start_time: float, end_time: float, n_samples: int = 3)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Offset model which represents the change in offset over a period of time</p>
+<div class="desc"><p>Offset model which represents the change in offset over a period of time
+Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
+Invalidates latencies that are below our recognition threshold MIN_VALID_LATENCY_MICROS
+The data is binned by k_bins in equally spaced times; in each bin the n_samples best latencies are taken to get
+the weighted linear regression.</p>
 <h2 id="properties">Properties</h2>
 <p>start_time: float, start timestamp of model in microseconds since epoch UTC
 end_time: float, end timestamp of model in microseconds since epoch UTC
-k_bins: int, the number of data bins used to create the model
-n_samples: int, the number of samples per data bin; 3 is the minimum to create a balanced line
+k_bins: int, the number of data bins used to create the model, default is 1 if model is empty
+n_samples: int, the number of samples per data bin; default is 3 (minimum to create a balanced line)
 slope: float, the slope of the change in offset
-intercept: float, the offset at start_time</p>
+intercept: float, the offset at start_time
+score: float, R2 value of the model; 1.0 is best, 0.0 is worst
+mean_latency: mean latency
+std_dev_latency: latency standard deviation</p>
 <p>Create an OffsetModel
 :param latencies: latencies within the time specified
 :param offsets: offsets that correspond to the latencies
@@ -610,13 +616,20 @@ intercept: float, the offset at start_time</p>
 <pre><code class="python">class OffsetModel:
     &#34;&#34;&#34;
     Offset model which represents the change in offset over a period of time
+    Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
+    Invalidates latencies that are below our recognition threshold MIN_VALID_LATENCY_MICROS
+    The data is binned by k_bins in equally spaced times; in each bin the n_samples best latencies are taken to get
+    the weighted linear regression.
     Properties:
         start_time: float, start timestamp of model in microseconds since epoch UTC
         end_time: float, end timestamp of model in microseconds since epoch UTC
-        k_bins: int, the number of data bins used to create the model
-        n_samples: int, the number of samples per data bin; 3 is the minimum to create a balanced line
+        k_bins: int, the number of data bins used to create the model, default is 1 if model is empty
+        n_samples: int, the number of samples per data bin; default is 3 (minimum to create a balanced line)
         slope: float, the slope of the change in offset
         intercept: float, the offset at start_time
+        score: float, R2 value of the model; 1.0 is best, 0.0 is worst
+        mean_latency: mean latency
+        std_dev_latency: latency standard deviation
     &#34;&#34;&#34;
     def __init__(self, latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray,
                  start_time: float, end_time: float, n_samples: int = DEFAULT_SAMPLES):
@@ -636,17 +649,48 @@ intercept: float, the offset at start_time</p>
         latencies = np.where(latencies &lt; MIN_VALID_LATENCY_MICROS, np.nan, latencies)
         use_model = timesync_quality_check(latencies, start_time, end_time)
         if use_model:
-            self.slope, self.intercept = get_offset_function(latencies, offsets, times, self.k_bins,
-                                                             n_samples, start_time, end_time)
+            # Organize the data into a data frame
+            full_df = pd.DataFrame(data=times, columns=[&#39;times&#39;])
+            full_df[&#39;latencies&#39;] = latencies
+            full_df[&#39;offsets&#39;] = offsets
+
+            # Get the index for the separations (add +1 to k_bins so that there would be k_bins bins)
+            bin_times = np.linspace(start_time, end_time, self.k_bins + 1)
+
+            # Make the dataframe with the data with n_samples per bins
+            binned_df = get_binned_df(full_df=full_df,
+                                      bin_times=bin_times,
+                                      n_samples=n_samples)
+
+            # Compute the weighted linear regression
+            self.slope, zero_intercept, self.score = offset_weighted_linear_regression(
+                latencies=binned_df[&#39;latencies&#39;].values,
+                offsets=binned_df[&#39;offsets&#39;].values,
+                times=binned_df[&#39;times&#39;].values)
+
+            # Get offset relative to the first time
+            self.intercept = get_offset_at_new_time(new_time=start_time,
+                                                    slope=self.slope,
+                                                    intercept=zero_intercept,
+                                                    model_time=0)
+
+            self.mean_latency = np.mean(binned_df[&#39;latencies&#39;].values)
+            self.std_dev_latency = np.std(binned_df[&#39;latencies&#39;].values)
+
             use_model = self.slope != 0.0
         # if data or model is not sufficient, use the offset corresponding to lowest latency:
         if not use_model:
+            self.score = 0.0
             self.slope = 0.0
             if all(np.nan_to_num(latencies) == 0.0):
                 self.intercept = 0.0
+                self.mean_latency = 0.0
+                self.std_dev_latency = 0.0
             else:
                 best_latency = np.nanmin(latencies[np.nonzero(latencies)])
                 self.intercept = offsets[np.argwhere(latencies == best_latency)[0][0]]
+                self.mean_latency = np.mean(latencies)
+                self.std_dev_latency = np.std(latencies)
 
     @staticmethod
     def empty_model() -&gt; &#34;OffsetModel&#34;:
@@ -754,7 +798,7 @@ def empty_model() -&gt; &#34;OffsetModel&#34;:
 <li><code><a title="redvox.common.offset_model.get_binned_df" href="#redvox.common.offset_model.get_binned_df">get_binned_df</a></code></li>
 <li><code><a title="redvox.common.offset_model.get_bins_per_5min" href="#redvox.common.offset_model.get_bins_per_5min">get_bins_per_5min</a></code></li>
 <li><code><a title="redvox.common.offset_model.get_offset_at_new_time" href="#redvox.common.offset_model.get_offset_at_new_time">get_offset_at_new_time</a></code></li>
-<li><code><a title="redvox.common.offset_model.get_offset_function" href="#redvox.common.offset_model.get_offset_function">get_offset_function</a></code></li>
+<li><code><a title="redvox.common.offset_model.get_wlr_score" href="#redvox.common.offset_model.get_wlr_score">get_wlr_score</a></code></li>
 <li><code><a title="redvox.common.offset_model.minmax_scale" href="#redvox.common.offset_model.minmax_scale">minmax_scale</a></code></li>
 <li><code><a title="redvox.common.offset_model.offset_weighted_linear_regression" href="#redvox.common.offset_model.offset_weighted_linear_regression">offset_weighted_linear_regression</a></code></li>
 <li><code><a title="redvox.common.offset_model.timesync_quality_check" href="#redvox.common.offset_model.timesync_quality_check">timesync_quality_check</a></code></li>

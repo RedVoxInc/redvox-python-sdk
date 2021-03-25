@@ -40,7 +40,6 @@ from redvox.api1000.common.decorators import wrap_enum
 import redvox.api1000.common.generic
 from redvox.api1000.common.typing import check_type
 from redvox.api1000.errors import ApiMImageChannelError
-import redvox.api1000.gui.image_viewer as image_viewer
 import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
 
 
@@ -234,7 +233,12 @@ class Image(
         &#34;&#34;&#34;
         Opens a simple image gallery for viewing images in packet
         &#34;&#34;&#34;
-        image_viewer.start_gui(self)
+        try:
+            import redvox.api1000.gui.image_viewer as image_viewer
+            image_viewer.start_gui(self)
+        except ImportError:
+            import warnings
+            warnings.warn(&#34;GUI dependencies are not installed. Install the &#39;GUI&#39; extra to enable this functionality.&#34;)
 
 
 def validate_image(image_sensor: Image) -&gt; List[str]:
@@ -471,7 +475,12 @@ def validate_image(image_sensor: Image) -&gt; List[str]:
         &#34;&#34;&#34;
         Opens a simple image gallery for viewing images in packet
         &#34;&#34;&#34;
-        image_viewer.start_gui(self)</code></pre>
+        try:
+            import redvox.api1000.gui.image_viewer as image_viewer
+            image_viewer.start_gui(self)
+        except ImportError:
+            import warnings
+            warnings.warn(&#34;GUI dependencies are not installed. Install the &#39;GUI&#39; extra to enable this functionality.&#34;)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -576,7 +585,12 @@ def new() -&gt; &#34;Image&#34;:
     &#34;&#34;&#34;
     Opens a simple image gallery for viewing images in packet
     &#34;&#34;&#34;
-    image_viewer.start_gui(self)</code></pre>
+    try:
+        import redvox.api1000.gui.image_viewer as image_viewer
+        image_viewer.start_gui(self)
+    except ImportError:
+        import warnings
+        warnings.warn(&#34;GUI dependencies are not installed. Install the &#39;GUI&#39; extra to enable this functionality.&#34;)</code></pre>
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_file_ext"><code class="name flex">

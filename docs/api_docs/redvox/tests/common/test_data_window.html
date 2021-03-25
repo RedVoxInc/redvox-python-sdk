@@ -53,6 +53,10 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(datawindow.stations), 3)
         self.assertEqual(len(datawindow.station_ids), 3)
         self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
+        self.assertEqual(datawindow.start_datetime, dt.datetime_from_epoch_microseconds_utc(1531343779086541.0))
+        self.assertEqual(datawindow.end_datetime, dt.datetime_from_epoch_microseconds_utc(1597189467949733.2))
+        self.assertEqual(len(datawindow.extensions), 2)
+        self.assertEqual(len(datawindow.api_versions), 2)
 
     def test_data_window(self):
         datawindow = dw.DataWindow(
@@ -205,12 +209,50 @@ class FillGapTest(unittest.TestCase):
 
 
 class CreateDatalessTimestampsDFTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -&gt; None:
+        cls.base_df = pd.DataFrame([], columns=[&#34;timestamps&#34;, &#34;data&#34;])
+
     def test_create_dataless_timestamps_df(self):
-        base_df = pd.DataFrame([], columns=[&#34;timestamps&#34;, &#34;data&#34;])
-        new_df = dw.create_dataless_timestamps_df(2000, 1000, base_df.columns, 7, False)
+        new_df = dw.create_dataless_timestamps_df(2000, 1000, self.base_df.columns, 7, False)
         self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 3000)
         self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 9000)
-        new_df = dw.create_dataless_timestamps_df(8000, 1000, base_df.columns, 7, True)
+        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
+        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
+        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
+
+    def test_add_dataless_timestamps_df_empty(self):
+        # dataframe to alter is empty, so nothing changes
+        new_base_df = self.base_df.copy()
+        new_df = dw.add_dataless_timestamps_to_df(new_base_df, 0, 1000, 7, False)
+        self.assertEqual(len(new_df), 0)
+
+    def test_add_dataless_timestamps_df(self):
+        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 6, 1000, 7, False)
+        self.assertEqual(new_df.loc[7, &#34;timestamps&#34;], 2000)
+        self.assertEqual(new_df.loc[13, &#34;timestamps&#34;], 8000)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 7, True)
+        self.assertEqual(new_df.loc[14, &#34;timestamps&#34;], 6000)
+        self.assertEqual(new_df.loc[20, &#34;timestamps&#34;], 0)
+
+    def test_add_dataless_timestamps_df_index_too_high(self):
+        # no change to dataframe if index is too high
+        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 99, 1000, 7, True)
+        self.assertEqual(len(new_df), 7)
+        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
+        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
+
+    def test_add_dataless_timestamps_df_not_enough_samples(self):
+        # no change to dataframe if adding less than 1 samples
+        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, -10, True)
+        self.assertEqual(len(new_df), 7)
+        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
+        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 0, True)
+        self.assertEqual(len(new_df), 7)
         self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
         self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)</code></pre>
 </details>
@@ -262,12 +304,50 @@ not have a method with the specified name.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class CreateDatalessTimestampsDFTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -&gt; None:
+        cls.base_df = pd.DataFrame([], columns=[&#34;timestamps&#34;, &#34;data&#34;])
+
     def test_create_dataless_timestamps_df(self):
-        base_df = pd.DataFrame([], columns=[&#34;timestamps&#34;, &#34;data&#34;])
-        new_df = dw.create_dataless_timestamps_df(2000, 1000, base_df.columns, 7, False)
+        new_df = dw.create_dataless_timestamps_df(2000, 1000, self.base_df.columns, 7, False)
         self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 3000)
         self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 9000)
-        new_df = dw.create_dataless_timestamps_df(8000, 1000, base_df.columns, 7, True)
+        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
+        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
+        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
+
+    def test_add_dataless_timestamps_df_empty(self):
+        # dataframe to alter is empty, so nothing changes
+        new_base_df = self.base_df.copy()
+        new_df = dw.add_dataless_timestamps_to_df(new_base_df, 0, 1000, 7, False)
+        self.assertEqual(len(new_df), 0)
+
+    def test_add_dataless_timestamps_df(self):
+        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 6, 1000, 7, False)
+        self.assertEqual(new_df.loc[7, &#34;timestamps&#34;], 2000)
+        self.assertEqual(new_df.loc[13, &#34;timestamps&#34;], 8000)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 7, True)
+        self.assertEqual(new_df.loc[14, &#34;timestamps&#34;], 6000)
+        self.assertEqual(new_df.loc[20, &#34;timestamps&#34;], 0)
+
+    def test_add_dataless_timestamps_df_index_too_high(self):
+        # no change to dataframe if index is too high
+        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 99, 1000, 7, True)
+        self.assertEqual(len(new_df), 7)
+        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
+        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
+
+    def test_add_dataless_timestamps_df_not_enough_samples(self):
+        # no change to dataframe if adding less than 1 samples
+        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, -10, True)
+        self.assertEqual(len(new_df), 7)
+        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
+        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
+        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 0, True)
+        self.assertEqual(len(new_df), 7)
         self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
         self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)</code></pre>
 </details>
@@ -275,8 +355,100 @@ not have a method with the specified name.</p></div>
 <ul class="hlist">
 <li>unittest.case.TestCase</li>
 </ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.setUpClass"><code class="name flex">
+<span>def <span class="ident">setUpClass</span></span>(<span>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Hook method for setting up class fixture before running tests in the class.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def setUpClass(cls) -&gt; None:
+    cls.base_df = pd.DataFrame([], columns=[&#34;timestamps&#34;, &#34;data&#34;])</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
+<dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df"><code class="name flex">
+<span>def <span class="ident">test_add_dataless_timestamps_df</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_add_dataless_timestamps_df(self):
+    new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
+    new_df = dw.add_dataless_timestamps_to_df(new_df, 6, 1000, 7, False)
+    self.assertEqual(new_df.loc[7, &#34;timestamps&#34;], 2000)
+    self.assertEqual(new_df.loc[13, &#34;timestamps&#34;], 8000)
+    new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 7, True)
+    self.assertEqual(new_df.loc[14, &#34;timestamps&#34;], 6000)
+    self.assertEqual(new_df.loc[20, &#34;timestamps&#34;], 0)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_empty"><code class="name flex">
+<span>def <span class="ident">test_add_dataless_timestamps_df_empty</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_add_dataless_timestamps_df_empty(self):
+    # dataframe to alter is empty, so nothing changes
+    new_base_df = self.base_df.copy()
+    new_df = dw.add_dataless_timestamps_to_df(new_base_df, 0, 1000, 7, False)
+    self.assertEqual(len(new_df), 0)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_index_too_high"><code class="name flex">
+<span>def <span class="ident">test_add_dataless_timestamps_df_index_too_high</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_add_dataless_timestamps_df_index_too_high(self):
+    # no change to dataframe if index is too high
+    new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
+    new_df = dw.add_dataless_timestamps_to_df(new_df, 99, 1000, 7, True)
+    self.assertEqual(len(new_df), 7)
+    self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
+    self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_not_enough_samples"><code class="name flex">
+<span>def <span class="ident">test_add_dataless_timestamps_df_not_enough_samples</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_add_dataless_timestamps_df_not_enough_samples(self):
+    # no change to dataframe if adding less than 1 samples
+    new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
+    new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, -10, True)
+    self.assertEqual(len(new_df), 7)
+    self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
+    self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
+    new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 0, True)
+    self.assertEqual(len(new_df), 7)
+    self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
+    self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)</code></pre>
+</details>
+</dd>
 <dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_create_dataless_timestamps_df"><code class="name flex">
 <span>def <span class="ident">test_create_dataless_timestamps_df</span></span>(<span>self)</span>
 </code></dt>
@@ -287,11 +459,10 @@ not have a method with the specified name.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_create_dataless_timestamps_df(self):
-    base_df = pd.DataFrame([], columns=[&#34;timestamps&#34;, &#34;data&#34;])
-    new_df = dw.create_dataless_timestamps_df(2000, 1000, base_df.columns, 7, False)
+    new_df = dw.create_dataless_timestamps_df(2000, 1000, self.base_df.columns, 7, False)
     self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 3000)
     self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 9000)
-    new_df = dw.create_dataless_timestamps_df(8000, 1000, base_df.columns, 7, True)
+    new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
     self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
     self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)</code></pre>
 </details>
@@ -348,6 +519,10 @@ not have a method with the specified name.</p></div>
         self.assertEqual(len(datawindow.stations), 3)
         self.assertEqual(len(datawindow.station_ids), 3)
         self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
+        self.assertEqual(datawindow.start_datetime, dt.datetime_from_epoch_microseconds_utc(1531343779086541.0))
+        self.assertEqual(datawindow.end_datetime, dt.datetime_from_epoch_microseconds_utc(1597189467949733.2))
+        self.assertEqual(len(datawindow.extensions), 2)
+        self.assertEqual(len(datawindow.api_versions), 2)
 
     def test_data_window(self):
         datawindow = dw.DataWindow(
@@ -464,7 +639,11 @@ def setUpClass(cls) -&gt; None:
     )
     self.assertEqual(len(datawindow.stations), 3)
     self.assertEqual(len(datawindow.station_ids), 3)
-    self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)</code></pre>
+    self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
+    self.assertEqual(datawindow.start_datetime, dt.datetime_from_epoch_microseconds_utc(1531343779086541.0))
+    self.assertEqual(datawindow.end_datetime, dt.datetime_from_epoch_microseconds_utc(1597189467949733.2))
+    self.assertEqual(len(datawindow.extensions), 2)
+    self.assertEqual(len(datawindow.api_versions), 2)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid"><code class="name flex">
@@ -900,6 +1079,11 @@ def setUpClass(cls) -&gt; None:
 <li>
 <h4><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest">CreateDatalessTimestampsDFTest</a></code></h4>
 <ul class="">
+<li><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.setUpClass" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.setUpClass">setUpClass</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df">test_add_dataless_timestamps_df</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_empty" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_empty">test_add_dataless_timestamps_df_empty</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_index_too_high" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_index_too_high">test_add_dataless_timestamps_df_index_too_high</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_not_enough_samples" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_not_enough_samples">test_add_dataless_timestamps_df_not_enough_samples</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_create_dataless_timestamps_df" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_create_dataless_timestamps_df">test_create_dataless_timestamps_df</a></code></li>
 </ul>
 </li>

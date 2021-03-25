@@ -33,6 +33,7 @@ combine the data packets into a new data packet based on the user parameters</p>
 This module creates specific time-bounded segments of data for users
 combine the data packets into a new data packet based on the user parameters
 &#34;&#34;&#34;
+from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
 import multiprocessing
@@ -47,13 +48,14 @@ from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.api_reader import ApiReader
 from redvox.common.data_window_configuration import DataWindowConfig
+from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
-
+from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
 
 DEFAULT_GAP_TIME_S: float = 0.25  # default length of a gap in seconds
 DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to start time of data
-DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)    # default padding to end time of data
+DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to end time of data
 # default maximum number of points required to brute force calculate gap timestamps
 DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS: int = 5000
 
@@ -87,19 +89,19 @@ class DataWindow:
     &#34;&#34;&#34;
 
     def __init__(
-        self,
-        input_dir: str,
-        structured_layout: bool = True,
-        start_datetime: Optional[dtu.datetime] = None,
-        end_datetime: Optional[dtu.datetime] = None,
-        start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
-        end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
-        gap_time_s: float = DEFAULT_GAP_TIME_S,
-        station_ids: Optional[Iterable[str]] = None,
-        extensions: Optional[Set[str]] = None,
-        api_versions: Optional[Set[io.ApiVersion]] = None,
-        apply_correction: bool = True,
-        debug: bool = False,
+            self,
+            input_dir: str,
+            structured_layout: bool = True,
+            start_datetime: Optional[dtu.datetime] = None,
+            end_datetime: Optional[dtu.datetime] = None,
+            start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
+            end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
+            gap_time_s: float = DEFAULT_GAP_TIME_S,
+            station_ids: Optional[Iterable[str]] = None,
+            extensions: Optional[Set[str]] = None,
+            api_versions: Optional[Set[io.ApiVersion]] = None,
+            apply_correction: bool = True,
+            debug: bool = False,
     ):
         &#34;&#34;&#34;
         initialize the data window with params
@@ -211,6 +213,27 @@ class DataWindow:
             config.debug,
         )
 
+    @staticmethod
+    def deserialize(path: str) -&gt; &#34;DataWindow&#34;:
+        &#34;&#34;&#34;
+        Decompresses and deserializes a DataWindow written to disk.
+        :param path: Path to the serialized and compressed data window.
+        :return: An instance of a DataWindow.
+        &#34;&#34;&#34;
+        return io.deserialize_data_window(path)
+
+    def serialize(self, base_dir: str = &#34;.&#34;, file_name: Optional[str] = None, compression_factor: int = 4) -&gt; Path:
+        &#34;&#34;&#34;
+        Serializes and compresses this DataWindow to a file.
+        :param base_dir: The base directory to write the serialized file to (default=.).
+        :param file_name: The optional file name. If None, a default filename with the following format is used:
+                          [start_ts]_[end_ts]_[num_stations].pkl.lz4
+        :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                                   (default=4).
+        :return: The path to the written file.
+        &#34;&#34;&#34;
+        return io.serialize_data_window(self, base_dir, file_name, compression_factor)
+
     def _has_time_window(self) -&gt; bool:
         &#34;&#34;&#34;
         Returns true if there is a start or end datetime in the settings
@@ -299,13 +322,14 @@ class DataWindow:
                             f&#34;sensor; it has undefined sample interval and sample rate!&#34;
                         )
                 else:  # GAP FILL and PAD DATA
-                    sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s) \
+                                             + dtu.seconds_to_microseconds(sensor.sample_interval_std_s)
                     sensor.data_df = fill_gaps(
                         sensor.data_df,
-                        sample_interval_micros + dtu.seconds_to_microseconds(sensor.sample_interval_std_s),
+                        sample_interval_micros,
                         dtu.seconds_to_microseconds(self.gap_time_s),
                         DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
-                        )
+                    )
                     sensor.data_df = pad_data(
                         start_date_timestamp,
                         end_date_timestamp,
@@ -316,7 +340,7 @@ class DataWindow:
             print(f&#34;WARNING: Data window for {station_id} {sensor.type.name} sensor has no data points!&#34;)
 
     def create_window_in_sensors(
-        self, station: Station, start_date_timestamp: float, end_date_timestamp: float
+            self, station: Station, start_date_timestamp: float, end_date_timestamp: float
     ):
         &#34;&#34;&#34;
         truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
@@ -358,12 +382,20 @@ class DataWindow:
             r_f.with_station_ids(self.station_ids)
         if self.extensions:
             r_f.with_extensions(self.extensions)
-        if self.start_buffer_td:
-            r_f.with_start_dt_buf(self.start_buffer_td)
-        if self.end_buffer_td:
-            r_f.with_end_dt_buf(self.end_buffer_td)
+        else:
+            self.extensions = r_f.extensions
         if self.api_versions:
             r_f.with_api_versions(self.api_versions)
+        else:
+            self.api_versions = r_f.api_versions
+        if self.start_buffer_td:
+            self.start_buffer_td = r_f.start_dt_buf
+        else:
+            r_f.with_start_dt_buf(self.start_buffer_td)
+        if self.end_buffer_td:
+            self.end_buffer_td = r_f.end_dt_buf
+        else:
+            r_f.with_end_dt_buf(self.end_buffer_td)
 
         # get the data to convert into a window
         stations = ApiReader(
@@ -393,10 +425,18 @@ class DataWindow:
                 # TRUNCATE!
                 self.create_window_in_sensors(station, start_datetime, end_datetime)
                 self.stations[station.id] = station
-        # if user did not define station_ids, use the stations we have
-        if self.station_ids is None or len(self.station_ids) == 0:
+
+        # update remaining data window values if they&#39;re still default
+        if not self.station_ids or len(self.station_ids) == 0:
             self.station_ids = set(self.stations.keys())
-        # check for stations without data, then remove any stations that don&#39;t have audio data
+        if not self.start_datetime and len(self.stations.keys()) &gt; 0:
+            self.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
+                np.min([t.first_data_timestamp for t in self.stations.values()]))
+        if not self.end_datetime and len(self.stations.keys()) &gt; 0:
+            self.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
+                np.max([t.last_data_timestamp for t in self.stations.values()]))
+
+        # check for stations without data
         self.check_valid_ids()
 
         # If the pool was created by this function, then it needs to managed by this function.
@@ -405,7 +445,7 @@ class DataWindow:
 
 
 def check_audio_data(
-    station: Station, ids_to_remove: List[str], debug: bool = False
+        station: Station, ids_to_remove: List[str], debug: bool = False
 ) -&gt; List[str]:
     &#34;&#34;&#34;
     check if the station has audio data; if it does not, update the list of stations to remove
@@ -422,10 +462,10 @@ def check_audio_data(
 
 
 def pad_data(
-    expected_start: float,
-    expected_end: float,
-    data_df: pd.DataFrame,
-    sample_interval_micros: float,
+        expected_start: float,
+        expected_end: float,
+        data_df: pd.DataFrame,
+        sample_interval_micros: float,
 ) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
     Pad the start and end of the dataframe with np.nan
@@ -440,44 +480,39 @@ def pad_data(
     first_data_timestamp = data_time_stamps[0]
     last_data_timestamp = data_time_stamps[-1]
     result_df = data_df.copy()
+    result_before_update_length = len(result_df) - 1
     # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
     if expected_start &lt; first_data_timestamp:
         start_diff = first_data_timestamp - expected_start
         num_missing_samples = np.floor(start_diff / sample_interval_micros)
         if num_missing_samples &gt; 0:
             # add the gap data to the result dataframe
-            result_df = result_df.append(
-                create_dataless_timestamps_df(
-                    first_data_timestamp,
-                    sample_interval_micros,
-                    data_df.columns,
-                    num_missing_samples,
-                    True
-                ),
-                ignore_index=True,
+            result_df = add_dataless_timestamps_to_df(
+                result_df,
+                0,
+                sample_interval_micros,
+                num_missing_samples,
+                True
             )
     if expected_end &gt; last_data_timestamp:
         last_diff = expected_end - last_data_timestamp
         num_missing_samples = np.floor(last_diff / sample_interval_micros)
         if num_missing_samples &gt; 0:
             # add the gap data to the result dataframe
-            result_df = result_df.append(
-                create_dataless_timestamps_df(
-                    last_data_timestamp,
-                    sample_interval_micros,
-                    data_df.columns,
-                    num_missing_samples,
-                ),
-                ignore_index=True,
+            result_df = add_dataless_timestamps_to_df(
+                result_df,
+                result_before_update_length,
+                sample_interval_micros,
+                num_missing_samples
             )
     return result_df.sort_values(&#34;timestamps&#34;, ignore_index=True)
 
 
 def fill_gaps(
-    data_df: pd.DataFrame,
-    sample_interval_micros: float,
-    gap_time_micros: float,
-    num_points_to_brute_force: int = DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
+        data_df: pd.DataFrame,
+        sample_interval_micros: float,
+        gap_time_micros: float,
+        num_points_to_brute_force: int = DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
 ) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
     fills gaps in the dataframe with np.nan by interpolating timestamps based on the mean expected sample interval
@@ -507,19 +542,16 @@ def fill_gaps(
             for index in np.where(timestamp_diffs &gt; gap_time_micros)[0]:
                 # calc samples to add, subtracting 1 to prevent copying last timestamp
                 num_new_samples = (
-                    np.ceil(timestamp_diffs[index] / sample_interval_micros) - 1
+                        np.ceil(timestamp_diffs[index] / sample_interval_micros) - 1
                 )
                 if timestamp_diffs[index] &gt; gap_time_micros and num_new_samples &gt; 0:
                     # add the gap data to the result dataframe
-                    result_df = result_df.append(
-                        create_dataless_timestamps_df(
-                            data_time_stamps[index],
+                    result_df = add_dataless_timestamps_to_df(
+                            result_df,
+                            index,
                             sample_interval_micros,
-                            data_df.columns,
                             num_new_samples,
-                        ),
-                        ignore_index=True,
-                    )
+                        )
                     if len(result_df) &gt;= expected_num_points:
                         break  # stop the for loop execution when enough points are added
         else:
@@ -544,12 +576,38 @@ def fill_gaps(
     return result_df.sort_values(&#34;timestamps&#34;, ignore_index=True)
 
 
+def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
+                                  start_index: int,
+                                  sample_interval_micros: float,
+                                  num_samples_to_add: int,
+                                  add_to_start: bool = False,) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    adds dataless timestamps directly to a dataframe that already contains data
+    Note:   dataframe must not be empty,
+            start_index must be non-negative and less than the length of dataframe,
+            num_samples_to_add must be greater than 0
+    :param dataframe: dataframe to add dataless timestamps to
+    :param start_index: index of the dataframe to use as starting point for creating new values
+    :param sample_interval_micros: sample interval in microseconds of the timestamps
+    :param num_samples_to_add: the number of timestamps to create
+    :param add_to_start: if True, subtracts sample_interval_micros from start_timestamp, default False
+    :return: updated dataframe with synthetic data points
+    &#34;&#34;&#34;
+    if len(dataframe) &gt; start_index and len(dataframe) &gt; 0 and num_samples_to_add &gt; 0:
+        start_timestamp = dataframe[&#34;timestamps&#34;][start_index]
+        dataframe = dataframe.append(
+            create_dataless_timestamps_df(start_timestamp, sample_interval_micros,
+                                          dataframe.columns, num_samples_to_add, add_to_start),
+            ignore_index=True)
+    return dataframe
+
+
 def create_dataless_timestamps_df(
-    start_timestamp: float,
-    sample_interval_micros: float,
-    columns: pd.Index,
-    num_samples_to_add: int,
-    add_to_start: bool = False,
+        start_timestamp: float,
+        sample_interval_micros: float,
+        columns: pd.Index,
+        num_samples_to_add: int,
+        add_to_start: bool = False,
 ) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
     Creates an empty dataframe with num_samples_to_add timestamps, using columns as the columns
@@ -563,18 +621,25 @@ def create_dataless_timestamps_df(
     &#34;&#34;&#34;
     empty_df = pd.DataFrame([], columns=columns)
     if num_samples_to_add &gt; 0:
-        if add_to_start:
-            sample_interval_micros = -sample_interval_micros
-        new_timestamps = (
-            start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
-        )
         for column_index in columns:
             if column_index == &#34;timestamps&#34;:
-                empty_df[column_index] = new_timestamps
+                if add_to_start:
+                    sample_interval_micros = -sample_interval_micros
+                empty_df[column_index] = (
+                        start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+                )
             elif column_index == &#34;location_provider&#34;:
                 empty_df[column_index] = LocationProvider.UNKNOWN
             elif column_index == &#34;image_codec&#34;:
                 empty_df[column_index] = ImageCodec.UNKNOWN
+            elif column_index == &#34;audio_codec&#34;:
+                empty_df[column_index] = AudioCodec.UNKNOWN
+            elif column_index == &#34;network_type&#34;:
+                empty_df[column_index] = NetworkType.UNKNOWN_NETWORK
+            elif column_index == &#34;power_state&#34;:
+                empty_df[column_index] = PowerState.UNKNOWN_POWER_STATE
+            elif column_index == &#34;cell_service&#34;:
+                empty_df[column_index] = CellServiceState.UNKNOWN
             else:
                 empty_df[column_index] = np.nan
     return empty_df</code></pre>
@@ -587,6 +652,51 @@ def create_dataless_timestamps_df(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="redvox.common.data_window.add_dataless_timestamps_to_df"><code class="name flex">
+<span>def <span class="ident">add_dataless_timestamps_to_df</span></span>(<span>dataframe: pandas.core.frame.DataFrame, start_index: int, sample_interval_micros: float, num_samples_to_add: int, add_to_start: bool = False) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>adds dataless timestamps directly to a dataframe that already contains data
+Note:
+dataframe must not be empty,
+start_index must be non-negative and less than the length of dataframe,
+num_samples_to_add must be greater than 0
+:param dataframe: dataframe to add dataless timestamps to
+:param start_index: index of the dataframe to use as starting point for creating new values
+:param sample_interval_micros: sample interval in microseconds of the timestamps
+:param num_samples_to_add: the number of timestamps to create
+:param add_to_start: if True, subtracts sample_interval_micros from start_timestamp, default False
+:return: updated dataframe with synthetic data points</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
+                                  start_index: int,
+                                  sample_interval_micros: float,
+                                  num_samples_to_add: int,
+                                  add_to_start: bool = False,) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    adds dataless timestamps directly to a dataframe that already contains data
+    Note:   dataframe must not be empty,
+            start_index must be non-negative and less than the length of dataframe,
+            num_samples_to_add must be greater than 0
+    :param dataframe: dataframe to add dataless timestamps to
+    :param start_index: index of the dataframe to use as starting point for creating new values
+    :param sample_interval_micros: sample interval in microseconds of the timestamps
+    :param num_samples_to_add: the number of timestamps to create
+    :param add_to_start: if True, subtracts sample_interval_micros from start_timestamp, default False
+    :return: updated dataframe with synthetic data points
+    &#34;&#34;&#34;
+    if len(dataframe) &gt; start_index and len(dataframe) &gt; 0 and num_samples_to_add &gt; 0:
+        start_timestamp = dataframe[&#34;timestamps&#34;][start_index]
+        dataframe = dataframe.append(
+            create_dataless_timestamps_df(start_timestamp, sample_interval_micros,
+                                          dataframe.columns, num_samples_to_add, add_to_start),
+            ignore_index=True)
+    return dataframe</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.data_window.check_audio_data"><code class="name flex">
 <span>def <span class="ident">check_audio_data</span></span>(<span>station: <a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>, ids_to_remove: typing.List[str], debug: bool = False) ‑> typing.List[str]</span>
 </code></dt>
@@ -601,7 +711,7 @@ def create_dataless_timestamps_df(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def check_audio_data(
-    station: Station, ids_to_remove: List[str], debug: bool = False
+        station: Station, ids_to_remove: List[str], debug: bool = False
 ) -&gt; List[str]:
     &#34;&#34;&#34;
     check if the station has audio data; if it does not, update the list of stations to remove
@@ -634,11 +744,11 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def create_dataless_timestamps_df(
-    start_timestamp: float,
-    sample_interval_micros: float,
-    columns: pd.Index,
-    num_samples_to_add: int,
-    add_to_start: bool = False,
+        start_timestamp: float,
+        sample_interval_micros: float,
+        columns: pd.Index,
+        num_samples_to_add: int,
+        add_to_start: bool = False,
 ) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
     Creates an empty dataframe with num_samples_to_add timestamps, using columns as the columns
@@ -652,18 +762,25 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
     &#34;&#34;&#34;
     empty_df = pd.DataFrame([], columns=columns)
     if num_samples_to_add &gt; 0:
-        if add_to_start:
-            sample_interval_micros = -sample_interval_micros
-        new_timestamps = (
-            start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
-        )
         for column_index in columns:
             if column_index == &#34;timestamps&#34;:
-                empty_df[column_index] = new_timestamps
+                if add_to_start:
+                    sample_interval_micros = -sample_interval_micros
+                empty_df[column_index] = (
+                        start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+                )
             elif column_index == &#34;location_provider&#34;:
                 empty_df[column_index] = LocationProvider.UNKNOWN
             elif column_index == &#34;image_codec&#34;:
                 empty_df[column_index] = ImageCodec.UNKNOWN
+            elif column_index == &#34;audio_codec&#34;:
+                empty_df[column_index] = AudioCodec.UNKNOWN
+            elif column_index == &#34;network_type&#34;:
+                empty_df[column_index] = NetworkType.UNKNOWN_NETWORK
+            elif column_index == &#34;power_state&#34;:
+                empty_df[column_index] = PowerState.UNKNOWN_POWER_STATE
+            elif column_index == &#34;cell_service&#34;:
+                empty_df[column_index] = CellServiceState.UNKNOWN
             else:
                 empty_df[column_index] = np.nan
     return empty_df</code></pre>
@@ -684,10 +801,10 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def fill_gaps(
-    data_df: pd.DataFrame,
-    sample_interval_micros: float,
-    gap_time_micros: float,
-    num_points_to_brute_force: int = DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
+        data_df: pd.DataFrame,
+        sample_interval_micros: float,
+        gap_time_micros: float,
+        num_points_to_brute_force: int = DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
 ) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
     fills gaps in the dataframe with np.nan by interpolating timestamps based on the mean expected sample interval
@@ -717,19 +834,16 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
             for index in np.where(timestamp_diffs &gt; gap_time_micros)[0]:
                 # calc samples to add, subtracting 1 to prevent copying last timestamp
                 num_new_samples = (
-                    np.ceil(timestamp_diffs[index] / sample_interval_micros) - 1
+                        np.ceil(timestamp_diffs[index] / sample_interval_micros) - 1
                 )
                 if timestamp_diffs[index] &gt; gap_time_micros and num_new_samples &gt; 0:
                     # add the gap data to the result dataframe
-                    result_df = result_df.append(
-                        create_dataless_timestamps_df(
-                            data_time_stamps[index],
+                    result_df = add_dataless_timestamps_to_df(
+                            result_df,
+                            index,
                             sample_interval_micros,
-                            data_df.columns,
                             num_new_samples,
-                        ),
-                        ignore_index=True,
-                    )
+                        )
                     if len(result_df) &gt;= expected_num_points:
                         break  # stop the for loop execution when enough points are added
         else:
@@ -769,10 +883,10 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def pad_data(
-    expected_start: float,
-    expected_end: float,
-    data_df: pd.DataFrame,
-    sample_interval_micros: float,
+        expected_start: float,
+        expected_end: float,
+        data_df: pd.DataFrame,
+        sample_interval_micros: float,
 ) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
     Pad the start and end of the dataframe with np.nan
@@ -787,35 +901,30 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
     first_data_timestamp = data_time_stamps[0]
     last_data_timestamp = data_time_stamps[-1]
     result_df = data_df.copy()
+    result_before_update_length = len(result_df) - 1
     # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
     if expected_start &lt; first_data_timestamp:
         start_diff = first_data_timestamp - expected_start
         num_missing_samples = np.floor(start_diff / sample_interval_micros)
         if num_missing_samples &gt; 0:
             # add the gap data to the result dataframe
-            result_df = result_df.append(
-                create_dataless_timestamps_df(
-                    first_data_timestamp,
-                    sample_interval_micros,
-                    data_df.columns,
-                    num_missing_samples,
-                    True
-                ),
-                ignore_index=True,
+            result_df = add_dataless_timestamps_to_df(
+                result_df,
+                0,
+                sample_interval_micros,
+                num_missing_samples,
+                True
             )
     if expected_end &gt; last_data_timestamp:
         last_diff = expected_end - last_data_timestamp
         num_missing_samples = np.floor(last_diff / sample_interval_micros)
         if num_missing_samples &gt; 0:
             # add the gap data to the result dataframe
-            result_df = result_df.append(
-                create_dataless_timestamps_df(
-                    last_data_timestamp,
-                    sample_interval_micros,
-                    data_df.columns,
-                    num_missing_samples,
-                ),
-                ignore_index=True,
+            result_df = add_dataless_timestamps_to_df(
+                result_df,
+                result_before_update_length,
+                sample_interval_micros,
+                num_missing_samples
             )
     return result_df.sort_values(&#34;timestamps&#34;, ignore_index=True)</code></pre>
 </details>
@@ -923,19 +1032,19 @@ Default True
     &#34;&#34;&#34;
 
     def __init__(
-        self,
-        input_dir: str,
-        structured_layout: bool = True,
-        start_datetime: Optional[dtu.datetime] = None,
-        end_datetime: Optional[dtu.datetime] = None,
-        start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
-        end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
-        gap_time_s: float = DEFAULT_GAP_TIME_S,
-        station_ids: Optional[Iterable[str]] = None,
-        extensions: Optional[Set[str]] = None,
-        api_versions: Optional[Set[io.ApiVersion]] = None,
-        apply_correction: bool = True,
-        debug: bool = False,
+            self,
+            input_dir: str,
+            structured_layout: bool = True,
+            start_datetime: Optional[dtu.datetime] = None,
+            end_datetime: Optional[dtu.datetime] = None,
+            start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
+            end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
+            gap_time_s: float = DEFAULT_GAP_TIME_S,
+            station_ids: Optional[Iterable[str]] = None,
+            extensions: Optional[Set[str]] = None,
+            api_versions: Optional[Set[io.ApiVersion]] = None,
+            apply_correction: bool = True,
+            debug: bool = False,
     ):
         &#34;&#34;&#34;
         initialize the data window with params
@@ -1047,6 +1156,27 @@ Default True
             config.debug,
         )
 
+    @staticmethod
+    def deserialize(path: str) -&gt; &#34;DataWindow&#34;:
+        &#34;&#34;&#34;
+        Decompresses and deserializes a DataWindow written to disk.
+        :param path: Path to the serialized and compressed data window.
+        :return: An instance of a DataWindow.
+        &#34;&#34;&#34;
+        return io.deserialize_data_window(path)
+
+    def serialize(self, base_dir: str = &#34;.&#34;, file_name: Optional[str] = None, compression_factor: int = 4) -&gt; Path:
+        &#34;&#34;&#34;
+        Serializes and compresses this DataWindow to a file.
+        :param base_dir: The base directory to write the serialized file to (default=.).
+        :param file_name: The optional file name. If None, a default filename with the following format is used:
+                          [start_ts]_[end_ts]_[num_stations].pkl.lz4
+        :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                                   (default=4).
+        :return: The path to the written file.
+        &#34;&#34;&#34;
+        return io.serialize_data_window(self, base_dir, file_name, compression_factor)
+
     def _has_time_window(self) -&gt; bool:
         &#34;&#34;&#34;
         Returns true if there is a start or end datetime in the settings
@@ -1135,13 +1265,14 @@ Default True
                             f&#34;sensor; it has undefined sample interval and sample rate!&#34;
                         )
                 else:  # GAP FILL and PAD DATA
-                    sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s) \
+                                             + dtu.seconds_to_microseconds(sensor.sample_interval_std_s)
                     sensor.data_df = fill_gaps(
                         sensor.data_df,
-                        sample_interval_micros + dtu.seconds_to_microseconds(sensor.sample_interval_std_s),
+                        sample_interval_micros,
                         dtu.seconds_to_microseconds(self.gap_time_s),
                         DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
-                        )
+                    )
                     sensor.data_df = pad_data(
                         start_date_timestamp,
                         end_date_timestamp,
@@ -1152,7 +1283,7 @@ Default True
             print(f&#34;WARNING: Data window for {station_id} {sensor.type.name} sensor has no data points!&#34;)
 
     def create_window_in_sensors(
-        self, station: Station, start_date_timestamp: float, end_date_timestamp: float
+            self, station: Station, start_date_timestamp: float, end_date_timestamp: float
     ):
         &#34;&#34;&#34;
         truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
@@ -1194,12 +1325,20 @@ Default True
             r_f.with_station_ids(self.station_ids)
         if self.extensions:
             r_f.with_extensions(self.extensions)
-        if self.start_buffer_td:
-            r_f.with_start_dt_buf(self.start_buffer_td)
-        if self.end_buffer_td:
-            r_f.with_end_dt_buf(self.end_buffer_td)
+        else:
+            self.extensions = r_f.extensions
         if self.api_versions:
             r_f.with_api_versions(self.api_versions)
+        else:
+            self.api_versions = r_f.api_versions
+        if self.start_buffer_td:
+            self.start_buffer_td = r_f.start_dt_buf
+        else:
+            r_f.with_start_dt_buf(self.start_buffer_td)
+        if self.end_buffer_td:
+            self.end_buffer_td = r_f.end_dt_buf
+        else:
+            r_f.with_end_dt_buf(self.end_buffer_td)
 
         # get the data to convert into a window
         stations = ApiReader(
@@ -1229,10 +1368,18 @@ Default True
                 # TRUNCATE!
                 self.create_window_in_sensors(station, start_datetime, end_datetime)
                 self.stations[station.id] = station
-        # if user did not define station_ids, use the stations we have
-        if self.station_ids is None or len(self.station_ids) == 0:
+
+        # update remaining data window values if they&#39;re still default
+        if not self.station_ids or len(self.station_ids) == 0:
             self.station_ids = set(self.stations.keys())
-        # check for stations without data, then remove any stations that don&#39;t have audio data
+        if not self.start_datetime and len(self.stations.keys()) &gt; 0:
+            self.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
+                np.min([t.first_data_timestamp for t in self.stations.values()]))
+        if not self.end_datetime and len(self.stations.keys()) &gt; 0:
+            self.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
+                np.max([t.last_data_timestamp for t in self.stations.values()]))
+
+        # check for stations without data
         self.check_valid_ids()
 
         # If the pool was created by this function, then it needs to managed by this function.
@@ -1241,6 +1388,27 @@ Default True
 </details>
 <h3>Static methods</h3>
 <dl>
+<dt id="redvox.common.data_window.DataWindow.deserialize"><code class="name flex">
+<span>def <span class="ident">deserialize</span></span>(<span>path: str) ‑> <a title="redvox.common.data_window.DataWindow" href="#redvox.common.data_window.DataWindow">DataWindow</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Decompresses and deserializes a DataWindow written to disk.
+:param path: Path to the serialized and compressed data window.
+:return: An instance of a DataWindow.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def deserialize(path: str) -&gt; &#34;DataWindow&#34;:
+    &#34;&#34;&#34;
+    Decompresses and deserializes a DataWindow written to disk.
+    :param path: Path to the serialized and compressed data window.
+    :return: An instance of a DataWindow.
+    &#34;&#34;&#34;
+    return io.deserialize_data_window(path)</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.data_window.DataWindow.from_config"><code class="name flex">
 <span>def <span class="ident">from_config</span></span>(<span>config: <a title="redvox.common.data_window_configuration.DataWindowConfig" href="data_window_configuration.html#redvox.common.data_window_configuration.DataWindowConfig">DataWindowConfig</a>) ‑> <a title="redvox.common.data_window.DataWindow" href="#redvox.common.data_window.DataWindow">DataWindow</a></span>
 </code></dt>
@@ -1385,12 +1553,20 @@ stations without audio or any data outside the window are removed</p></div>
         r_f.with_station_ids(self.station_ids)
     if self.extensions:
         r_f.with_extensions(self.extensions)
-    if self.start_buffer_td:
-        r_f.with_start_dt_buf(self.start_buffer_td)
-    if self.end_buffer_td:
-        r_f.with_end_dt_buf(self.end_buffer_td)
+    else:
+        self.extensions = r_f.extensions
     if self.api_versions:
         r_f.with_api_versions(self.api_versions)
+    else:
+        self.api_versions = r_f.api_versions
+    if self.start_buffer_td:
+        self.start_buffer_td = r_f.start_dt_buf
+    else:
+        r_f.with_start_dt_buf(self.start_buffer_td)
+    if self.end_buffer_td:
+        self.end_buffer_td = r_f.end_dt_buf
+    else:
+        r_f.with_end_dt_buf(self.end_buffer_td)
 
     # get the data to convert into a window
     stations = ApiReader(
@@ -1420,10 +1596,18 @@ stations without audio or any data outside the window are removed</p></div>
             # TRUNCATE!
             self.create_window_in_sensors(station, start_datetime, end_datetime)
             self.stations[station.id] = station
-    # if user did not define station_ids, use the stations we have
-    if self.station_ids is None or len(self.station_ids) == 0:
+
+    # update remaining data window values if they&#39;re still default
+    if not self.station_ids or len(self.station_ids) == 0:
         self.station_ids = set(self.stations.keys())
-    # check for stations without data, then remove any stations that don&#39;t have audio data
+    if not self.start_datetime and len(self.stations.keys()) &gt; 0:
+        self.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
+            np.min([t.first_data_timestamp for t in self.stations.values()]))
+    if not self.end_datetime and len(self.stations.keys()) &gt; 0:
+        self.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
+            np.max([t.last_data_timestamp for t in self.stations.values()]))
+
+    # check for stations without data
     self.check_valid_ids()
 
     # If the pool was created by this function, then it needs to managed by this function.
@@ -1445,7 +1629,7 @@ returns nothing, updates the station in place
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def create_window_in_sensors(
-    self, station: Station, start_date_timestamp: float, end_date_timestamp: float
+        self, station: Station, start_date_timestamp: float, end_date_timestamp: float
 ):
     &#34;&#34;&#34;
     truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
@@ -1579,13 +1763,14 @@ returns nothing, updates the station in place
                         f&#34;sensor; it has undefined sample interval and sample rate!&#34;
                     )
             else:  # GAP FILL and PAD DATA
-                sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s) \
+                                         + dtu.seconds_to_microseconds(sensor.sample_interval_std_s)
                 sensor.data_df = fill_gaps(
                     sensor.data_df,
-                    sample_interval_micros + dtu.seconds_to_microseconds(sensor.sample_interval_std_s),
+                    sample_interval_micros,
                     dtu.seconds_to_microseconds(self.gap_time_s),
                     DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
-                    )
+                )
                 sensor.data_df = pad_data(
                     start_date_timestamp,
                     end_date_timestamp,
@@ -1594,6 +1779,34 @@ returns nothing, updates the station in place
                 )
     elif self.debug:
         print(f&#34;WARNING: Data window for {station_id} {sensor.type.name} sensor has no data points!&#34;)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window.DataWindow.serialize"><code class="name flex">
+<span>def <span class="ident">serialize</span></span>(<span>self, base_dir: str = '.', file_name: typing.Optional[str] = None, compression_factor: int = 4) ‑> pathlib.Path</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Serializes and compresses this DataWindow to a file.
+:param base_dir: The base directory to write the serialized file to (default=.).
+:param file_name: The optional file name. If None, a default filename with the following format is used:
+[start_ts]<em>[end_ts]</em>[num_stations].pkl.lz4
+:param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+(default=4).
+:return: The path to the written file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize(self, base_dir: str = &#34;.&#34;, file_name: Optional[str] = None, compression_factor: int = 4) -&gt; Path:
+    &#34;&#34;&#34;
+    Serializes and compresses this DataWindow to a file.
+    :param base_dir: The base directory to write the serialized file to (default=.).
+    :param file_name: The optional file name. If None, a default filename with the following format is used:
+                      [start_ts]_[end_ts]_[num_stations].pkl.lz4
+    :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                               (default=4).
+    :return: The path to the written file.
+    &#34;&#34;&#34;
+    return io.serialize_data_window(self, base_dir, file_name, compression_factor)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1614,6 +1827,7 @@ returns nothing, updates the station in place
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="redvox.common.data_window.add_dataless_timestamps_to_df" href="#redvox.common.data_window.add_dataless_timestamps_to_df">add_dataless_timestamps_to_df</a></code></li>
 <li><code><a title="redvox.common.data_window.check_audio_data" href="#redvox.common.data_window.check_audio_data">check_audio_data</a></code></li>
 <li><code><a title="redvox.common.data_window.create_dataless_timestamps_df" href="#redvox.common.data_window.create_dataless_timestamps_df">create_dataless_timestamps_df</a></code></li>
 <li><code><a title="redvox.common.data_window.fill_gaps" href="#redvox.common.data_window.fill_gaps">fill_gaps</a></code></li>
@@ -1628,12 +1842,14 @@ returns nothing, updates the station in place
 <li><code><a title="redvox.common.data_window.DataWindow.check_valid_ids" href="#redvox.common.data_window.DataWindow.check_valid_ids">check_valid_ids</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.create_data_window" href="#redvox.common.data_window.DataWindow.create_data_window">create_data_window</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.create_window_in_sensors" href="#redvox.common.data_window.DataWindow.create_window_in_sensors">create_window_in_sensors</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindow.deserialize" href="#redvox.common.data_window.DataWindow.deserialize">deserialize</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.from_config" href="#redvox.common.data_window.DataWindow.from_config">from_config</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.from_config_file" href="#redvox.common.data_window.DataWindow.from_config_file">from_config_file</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.get_all_station_ids" href="#redvox.common.data_window.DataWindow.get_all_station_ids">get_all_station_ids</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.get_all_stations" href="#redvox.common.data_window.DataWindow.get_all_stations">get_all_stations</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.get_station" href="#redvox.common.data_window.DataWindow.get_station">get_station</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.process_sensor" href="#redvox.common.data_window.DataWindow.process_sensor">process_sensor</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindow.serialize" href="#redvox.common.data_window.DataWindow.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>

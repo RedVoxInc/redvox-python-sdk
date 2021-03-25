@@ -65,6 +65,11 @@ class StationTest(unittest.TestCase):
         self.assertTrue(np.isnan(empty_apim_station.start_timestamp))
         self.assertFalse(empty_apim_station.audio_sensor())
 
+    def test_empty_station_update_timestamp(self):
+        empty_apim_station = Station([])
+        empty_apim_station.start_timestamp += 100
+        self.assertTrue(np.isnan(empty_apim_station.start_timestamp))
+
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station.data), 6)
         self.assertEqual(
@@ -231,6 +236,11 @@ not have a method with the specified name.</p></div>
         self.assertEqual(len(empty_apim_station.data), 0)
         self.assertTrue(np.isnan(empty_apim_station.start_timestamp))
         self.assertFalse(empty_apim_station.audio_sensor())
+
+    def test_empty_station_update_timestamp(self):
+        empty_apim_station = Station([])
+        empty_apim_station.start_timestamp += 100
+        self.assertTrue(np.isnan(empty_apim_station.start_timestamp))
 
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station.data), 6)
@@ -510,6 +520,21 @@ def setUpClass(cls) -&gt; None:
     self.assertFalse(empty_apim_station.audio_sensor())</code></pre>
 </details>
 </dd>
+<dt id="redvox.tests.common.test_station.StationTest.test_empty_station_update_timestamp"><code class="name flex">
+<span>def <span class="ident">test_empty_station_update_timestamp</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_empty_station_update_timestamp(self):
+    empty_apim_station = Station([])
+    empty_apim_station.start_timestamp += 100
+    self.assertTrue(np.isnan(empty_apim_station.start_timestamp))</code></pre>
+</details>
+</dd>
 <dt id="redvox.tests.common.test_station.StationTest.test_set_sensor"><code class="name flex">
 <span>def <span class="ident">test_set_sensor</span></span>(<span>self)</span>
 </code></dt>
@@ -587,6 +612,7 @@ def setUpClass(cls) -&gt; None:
 <li><code><a title="redvox.tests.common.test_station.StationTest.test_append_station_success" href="#redvox.tests.common.test_station.StationTest.test_append_station_success">test_append_station_success</a></code></li>
 <li><code><a title="redvox.tests.common.test_station.StationTest.test_check_key" href="#redvox.tests.common.test_station.StationTest.test_check_key">test_check_key</a></code></li>
 <li><code><a title="redvox.tests.common.test_station.StationTest.test_empty_station" href="#redvox.tests.common.test_station.StationTest.test_empty_station">test_empty_station</a></code></li>
+<li><code><a title="redvox.tests.common.test_station.StationTest.test_empty_station_update_timestamp" href="#redvox.tests.common.test_station.StationTest.test_empty_station_update_timestamp">test_empty_station_update_timestamp</a></code></li>
 <li><code><a title="redvox.tests.common.test_station.StationTest.test_set_sensor" href="#redvox.tests.common.test_station.StationTest.test_set_sensor">test_set_sensor</a></code></li>
 <li><code><a title="redvox.tests.common.test_station.StationTest.test_update_timestamps" href="#redvox.tests.common.test_station.StationTest.test_update_timestamps">test_update_timestamps</a></code></li>
 </ul>
