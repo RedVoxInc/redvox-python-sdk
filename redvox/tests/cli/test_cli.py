@@ -31,14 +31,15 @@ class TestCli(unittest.TestCase):
                          reader.read_json_file(test_data("test_a.json")))
 
     def test_to_json_multi(self):
-        joined: str = str(os.path.join(TEST_DATA_DIR, "*.rdvxz"))
-        os.system(f"python3 -m redvox.cli.cli rdvxz-to-json {joined}")
-        self.assertTrue(os.path.isfile(test_data("test_a.json")))
-        self.assertTrue(os.path.isfile(test_data("test_b.json")))
-        self.assertEqual(reader.read_rdvxz_file(test_data("test_a.rdvxz")),
-                         reader.read_json_file(test_data("test_a.json")))
-        self.assertEqual(reader.read_rdvxz_file(test_data("test_b.rdvxz")),
-                         reader.read_json_file(test_data("test_b.json")))
+        if os.name != "nt":
+            joined: str = str(os.path.join(TEST_DATA_DIR, "*.rdvxz"))
+            os.system(f"python3 -m redvox.cli.cli rdvxz-to-json {joined}")
+            self.assertTrue(os.path.isfile(test_data("test_a.json")))
+            self.assertTrue(os.path.isfile(test_data("test_b.json")))
+            self.assertEqual(reader.read_rdvxz_file(test_data("test_a.rdvxz")),
+                             reader.read_json_file(test_data("test_a.json")))
+            self.assertEqual(reader.read_rdvxz_file(test_data("test_b.rdvxz")),
+                             reader.read_json_file(test_data("test_b.json")))
 
     def test_to_rdvxz_single(self):
         os.system("python3 -m redvox.cli.cli json-to-rdvxz %s" % test_data("test_c.json"))
@@ -47,14 +48,15 @@ class TestCli(unittest.TestCase):
                          reader.read_json_file(test_data("test_c.json")))
 
     def test_to_rdvxz_multi(self):
-        joined: str = str(os.path.join(TEST_DATA_DIR, "*.json"))
-        os.system(f"python3 -m redvox.cli.cli json-to-rdvxz {joined}")
-        self.assertTrue(os.path.isfile(test_data("test_c.rdvxz")))
-        self.assertTrue(os.path.isfile(test_data("test_d.rdvxz")))
-        self.assertEqual(reader.read_rdvxz_file(test_data("test_c.rdvxz")),
-                         reader.read_json_file(test_data("test_c.json")))
-        self.assertEqual(reader.read_rdvxz_file(test_data("test_d.rdvxz")),
-                         reader.read_json_file(test_data("test_d.json")))
+        if os.name != "nt":
+            joined: str = str(os.path.join(TEST_DATA_DIR, "*.json"))
+            os.system(f"python3 -m redvox.cli.cli json-to-rdvxz {joined}")
+            self.assertTrue(os.path.isfile(test_data("test_c.rdvxz")))
+            self.assertTrue(os.path.isfile(test_data("test_d.rdvxz")))
+            self.assertEqual(reader.read_rdvxz_file(test_data("test_c.rdvxz")),
+                             reader.read_json_file(test_data("test_c.json")))
+            self.assertEqual(reader.read_rdvxz_file(test_data("test_d.rdvxz")),
+                             reader.read_json_file(test_data("test_d.json")))
 
     def test_print_single(self):
         output: str = subprocess.check_output("python3 -m redvox.cli.cli print-z %s" % test_data("test_a.rdvxz"),
@@ -62,12 +64,13 @@ class TestCli(unittest.TestCase):
         self.assertTrue("api: 900" in output)
 
     def test_print_multi(self):
-        joined: str = str(os.path.join(TEST_DATA_DIR, "*.rdvxz"))
-        output: str = subprocess.check_output(f"python3 -m redvox.cli.cli print-z {joined}",
-                                              shell=True).decode()
-        self.assertEqual(len(list(filter(lambda line: line.startswith("api: 900"),
-                                    output.split("\n")))),
-                         7)
+        if os.name != "nt":
+            joined: str = str(os.path.join(TEST_DATA_DIR, "*.rdvxz"))
+            output: str = subprocess.check_output(f"python3 -m redvox.cli.cli print-z {joined}",
+                                                  shell=True).decode()
+            self.assertEqual(len(list(filter(lambda line: line.startswith("api: 900"),
+                                        output.split("\n")))),
+                             7)
 
     def test_no_args(self):
         process = subprocess.Popen("python3 -m redvox.cli.cli", stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
