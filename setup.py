@@ -33,10 +33,13 @@ setup(name=redvox.NAME,
                              exclude=['tests']),
       long_description=open('README.md').read(),
       install_requires=requirements,
+      extras_require={
+          "GUI":  ["PySide2>=5.15.0"],
+      },
       entry_points={
             'console_scripts': [
                 'redvox-cli=redvox.cli.cli:main',
-                'redvox-gui=redvox.api1000.gui.redvox_gui:main'
+                'redvox-gui=redvox.api1000.gui.redvox_gui:main [GUI]'
             ]
       },
       python_requires=">=3.6")

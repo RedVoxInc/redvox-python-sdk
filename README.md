@@ -7,6 +7,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc4 (2021-3-25)
+
+* Make GUI features an optional "extra"
+
 ### 3.0.0rc3 (2021-3-XX)
 
 * Fixed process that updates data window timestamps and properties.
