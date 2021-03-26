@@ -446,7 +446,7 @@ def datetime_from_epoch_seconds_utc(epoch_seconds_utc: float) -> datetime:
     :param epoch_seconds_utc: A UTC second timestamp.
     :return: A datetime object.
     """
-    return datetime.utcfromtimestamp(epoch_seconds_utc)
+    return EPOCH + timedelta(seconds=epoch_seconds_utc)
 
 
 def datetime_from_epoch_milliseconds_utc(epoch_milliseconds_utc: float) -> datetime:
@@ -455,8 +455,7 @@ def datetime_from_epoch_milliseconds_utc(epoch_milliseconds_utc: float) -> datet
     :param epoch_milliseconds_utc: UTC millisecond timestamp.
     :return: Datetime object.
     """
-    seconds: float = milliseconds_to_seconds(epoch_milliseconds_utc)
-    return datetime.utcfromtimestamp(seconds)
+    return EPOCH + timedelta(milliseconds=epoch_milliseconds_utc)
 
 
 def datetime_from_epoch_microseconds_utc(epoch_microseconds_utc: float) -> datetime:
@@ -465,8 +464,7 @@ def datetime_from_epoch_microseconds_utc(epoch_microseconds_utc: float) -> datet
     :param epoch_microseconds_utc: UTC microsecond timestamp.
     :return: A datetime object.
     """
-    seconds: float = microseconds_to_seconds(epoch_microseconds_utc)
-    return datetime.utcfromtimestamp(seconds)
+    return EPOCH + timedelta(microseconds=epoch_microseconds_utc)
 
 
 def datetimes_from_epoch_seconds_utc(epochs_seconds_utc: List[int]) -> List[datetime]:
