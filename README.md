@@ -7,12 +7,14 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
-### 3.0.0rc6 (2021-3-25)
+### 3.0.0rc7 (2021-3-25)
 
 * Make GUI features an optional "extra"
 * Fix missing toml dependency
+* Remove unused dependencies
+* Fix windows specific bugs relating to path management and datetime management
 
-### 3.0.0rc3 (2021-3-XX)
+### 3.0.0rc3 (2021-3-23)
 
 * Fixed process that updates data window timestamps and properties.
 * Added score value to offset model
