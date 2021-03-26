@@ -35,103 +35,110 @@ import unittest
 import redvox.api900.reader as reader
 from redvox.tests import test_data, TEST_DATA_DIR
 
+if os.name != &#34;nt&#34;:
+    class TestCli(unittest.TestCase):
 
-class TestCli(unittest.TestCase):
+        def setUp(self):
+            # Make some copies of the test data so that they can be used here
+            shutil.copyfile(test_data(&#34;example.rdvxz&#34;), test_data(&#34;test_a.rdvxz&#34;))
+            shutil.copyfile(test_data(&#34;example.rdvxz&#34;), test_data(&#34;test_b.rdvxz&#34;))
+            shutil.copyfile(test_data(&#34;example.json&#34;), test_data(&#34;test_c.json&#34;))
+            shutil.copyfile(test_data(&#34;example.json&#34;), test_data(&#34;test_d.json&#34;))
 
-    def setUp(self):
-        # Make some copies of the test data so that they can be used here
-        shutil.copyfile(test_data(&#34;example.rdvxz&#34;), test_data(&#34;test_a.rdvxz&#34;))
-        shutil.copyfile(test_data(&#34;example.rdvxz&#34;), test_data(&#34;test_b.rdvxz&#34;))
-        shutil.copyfile(test_data(&#34;example.json&#34;), test_data(&#34;test_c.json&#34;))
-        shutil.copyfile(test_data(&#34;example.json&#34;), test_data(&#34;test_d.json&#34;))
+        def tearDown(self):
+            # Delete the copies from setUp
+            test_dir: str = str(os.path.join(TEST_DATA_DIR, &#34;test_*&#34;))
+            test_files = glob.glob(test_dir)
+            for test_file in test_files:
+                os.remove(test_file)
 
-    def tearDown(self):
-        # Delete the copies from setUp
-        test_files = glob.glob(TEST_DATA_DIR + &#34;/test_*&#34;)
-        for test_file in test_files:
-            os.remove(test_file)
+        def test_to_json_single(self):
+            os.system(&#34;python3 -m redvox.cli.cli rdvxz-to-json %s&#34; % test_data(&#34;test_a.rdvxz&#34;))
+            self.assertTrue(os.path.isfile(test_data(&#34;test_a.json&#34;)))
+            self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_a.rdvxz&#34;)),
+                             reader.read_json_file(test_data(&#34;test_a.json&#34;)))
 
-    def test_to_json_single(self):
-        os.system(&#34;python3 -m redvox.cli.cli rdvxz-to-json %s&#34; % test_data(&#34;test_a.rdvxz&#34;))
-        self.assertTrue(os.path.isfile(test_data(&#34;test_a.json&#34;)))
-        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_a.rdvxz&#34;)),
-                         reader.read_json_file(test_data(&#34;test_a.json&#34;)))
+        def test_to_json_multi(self):
+            if os.name != &#34;nt&#34;:
+                joined: str = str(os.path.join(TEST_DATA_DIR, &#34;*.rdvxz&#34;))
+                os.system(f&#34;python3 -m redvox.cli.cli rdvxz-to-json {joined}&#34;)
+                self.assertTrue(os.path.isfile(test_data(&#34;test_a.json&#34;)))
+                self.assertTrue(os.path.isfile(test_data(&#34;test_b.json&#34;)))
+                self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_a.rdvxz&#34;)),
+                                 reader.read_json_file(test_data(&#34;test_a.json&#34;)))
+                self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_b.rdvxz&#34;)),
+                                 reader.read_json_file(test_data(&#34;test_b.json&#34;)))
 
-    def test_to_json_multi(self):
-        os.system(&#34;python3 -m redvox.cli.cli rdvxz-to-json %s/*.rdvxz&#34; % TEST_DATA_DIR)
-        self.assertTrue(os.path.isfile(test_data(&#34;test_a.json&#34;)))
-        self.assertTrue(os.path.isfile(test_data(&#34;test_b.json&#34;)))
-        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_a.rdvxz&#34;)),
-                         reader.read_json_file(test_data(&#34;test_a.json&#34;)))
-        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_b.rdvxz&#34;)),
-                         reader.read_json_file(test_data(&#34;test_b.json&#34;)))
+        def test_to_rdvxz_single(self):
+            os.system(&#34;python3 -m redvox.cli.cli json-to-rdvxz %s&#34; % test_data(&#34;test_c.json&#34;))
+            self.assertTrue(os.path.isfile(test_data(&#34;test_c.rdvxz&#34;)))
+            self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_c.rdvxz&#34;)),
+                             reader.read_json_file(test_data(&#34;test_c.json&#34;)))
 
-    def test_to_rdvxz_single(self):
-        os.system(&#34;python3 -m redvox.cli.cli json-to-rdvxz %s&#34; % test_data(&#34;test_c.json&#34;))
-        self.assertTrue(os.path.isfile(test_data(&#34;test_c.rdvxz&#34;)))
-        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_c.rdvxz&#34;)),
-                         reader.read_json_file(test_data(&#34;test_c.json&#34;)))
+        def test_to_rdvxz_multi(self):
+            if os.name != &#34;nt&#34;:
+                joined: str = str(os.path.join(TEST_DATA_DIR, &#34;*.json&#34;))
+                os.system(f&#34;python3 -m redvox.cli.cli json-to-rdvxz {joined}&#34;)
+                self.assertTrue(os.path.isfile(test_data(&#34;test_c.rdvxz&#34;)))
+                self.assertTrue(os.path.isfile(test_data(&#34;test_d.rdvxz&#34;)))
+                self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_c.rdvxz&#34;)),
+                                 reader.read_json_file(test_data(&#34;test_c.json&#34;)))
+                self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_d.rdvxz&#34;)),
+                                 reader.read_json_file(test_data(&#34;test_d.json&#34;)))
 
-    def test_to_rdvxz_multi(self):
-        os.system(&#34;python3 -m redvox.cli.cli json-to-rdvxz %s/*.json&#34; % TEST_DATA_DIR)
-        self.assertTrue(os.path.isfile(test_data(&#34;test_c.rdvxz&#34;)))
-        self.assertTrue(os.path.isfile(test_data(&#34;test_d.rdvxz&#34;)))
-        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_c.rdvxz&#34;)),
-                         reader.read_json_file(test_data(&#34;test_c.json&#34;)))
-        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_d.rdvxz&#34;)),
-                         reader.read_json_file(test_data(&#34;test_d.json&#34;)))
+        def test_print_single(self):
+            output: str = subprocess.check_output(&#34;python3 -m redvox.cli.cli print-z %s&#34; % test_data(&#34;test_a.rdvxz&#34;),
+                                                  shell=True).decode()
+            self.assertTrue(&#34;api: 900&#34; in output)
 
-    def test_print_single(self):
-        output: str = subprocess.check_output(&#34;python3 -m redvox.cli.cli print-z %s&#34; % test_data(&#34;test_a.rdvxz&#34;),
-                                              shell=True).decode()
-        self.assertTrue(&#34;api: 900&#34; in output)
+        def test_print_multi(self):
+            if os.name != &#34;nt&#34;:
+                joined: str = str(os.path.join(TEST_DATA_DIR, &#34;*.rdvxz&#34;))
+                output: str = subprocess.check_output(f&#34;python3 -m redvox.cli.cli print-z {joined}&#34;,
+                                                      shell=True).decode()
+                self.assertEqual(len(list(filter(lambda line: line.startswith(&#34;api: 900&#34;),
+                                            output.split(&#34;\n&#34;)))),
+                                 7)
 
-    def test_print_multi(self):
-        output: str = subprocess.check_output(&#34;python3 -m redvox.cli.cli print-z %s/*.rdvxz&#34; % TEST_DATA_DIR,
-                                              shell=True).decode()
-        self.assertEqual(len(list(filter(lambda line: line.startswith(&#34;api: 900&#34;),
-                                    output.split(&#34;\n&#34;)))),
-                         7)
+        def test_no_args(self):
+            process = subprocess.Popen(&#34;python3 -m redvox.cli.cli&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+            output = process.communicate()[0].decode()
+            self.assertTrue(&#34;usage&#34; in output)
 
-    def test_no_args(self):
-        process = subprocess.Popen(&#34;python3 -m redvox.cli.cli&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
-        output = process.communicate()[0].decode()
-        self.assertTrue(&#34;usage&#34; in output)
+        def test_cmd_no_args(self):
+            process = subprocess.Popen(&#34;python3 -m redvox.cli.cli rdvxz-to-json&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+            output = process.communicate()[0].decode()
+            self.assertTrue(&#34;usage&#34; in output)
 
-    def test_cmd_no_args(self):
-        process = subprocess.Popen(&#34;python3 -m redvox.cli.cli rdvxz-to-json&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
-        output = process.communicate()[0].decode()
-        self.assertTrue(&#34;usage&#34; in output)
+            process = subprocess.Popen(&#34;python3 -m redvox.cli.cli json-to-rdvxz&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+            output = process.communicate()[0].decode()
+            self.assertTrue(&#34;usage&#34; in output)
 
-        process = subprocess.Popen(&#34;python3 -m redvox.cli.cli json-to-rdvxz&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
-        output = process.communicate()[0].decode()
-        self.assertTrue(&#34;usage&#34; in output)
+            process = subprocess.Popen(&#34;python3 -m redvox.cli.cli print-z&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+            output = process.communicate()[0].decode()
+            self.assertTrue(&#34;usage&#34; in output)
 
-        process = subprocess.Popen(&#34;python3 -m redvox.cli.cli print-z&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
-        output = process.communicate()[0].decode()
-        self.assertTrue(&#34;usage&#34; in output)
+        def test_bad_cmd(self):
+            process = subprocess.Popen(&#34;python3 -m redvox.cli.cli bad&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+            output = process.communicate()[0].decode()
+            self.assertTrue(&#34;usage&#34; in output)
 
-    def test_bad_cmd(self):
-        process = subprocess.Popen(&#34;python3 -m redvox.cli.cli bad&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
-        output = process.communicate()[0].decode()
-        self.assertTrue(&#34;usage&#34; in output)
+        def test_bad_path(self):
+            process = subprocess.Popen(&#34;python3 -m redvox.cli.cli rdvxz-to-json bad&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+            output = process.communicate()[0].decode()
+            self.assertTrue(&#34;Invalid path bad&#34; in output)
 
-    def test_bad_path(self):
-        process = subprocess.Popen(&#34;python3 -m redvox.cli.cli rdvxz-to-json bad&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
-        output = process.communicate()[0].decode()
-        self.assertTrue(&#34;Invalid path bad&#34; in output)
+            process = subprocess.Popen(&#34;python3 -m redvox.cli.cli json-to-rdvxz bad&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+            output = process.communicate()[0].decode()
+            self.assertTrue(&#34;Invalid path bad&#34; in output)
 
-        process = subprocess.Popen(&#34;python3 -m redvox.cli.cli json-to-rdvxz bad&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
-        output = process.communicate()[0].decode()
-        self.assertTrue(&#34;Invalid path bad&#34; in output)
+            process = subprocess.Popen(&#34;python3 -m redvox.cli.cli print-z bad&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+            output = process.communicate()[0].decode()
+            self.assertTrue(&#34;Invalid path bad&#34; in output)
 
-        process = subprocess.Popen(&#34;python3 -m redvox.cli.cli print-z bad&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
-        output = process.communicate()[0].decode()
-        self.assertTrue(&#34;Invalid path bad&#34; in output)
-
-        process = subprocess.Popen(&#34;python3 -m redvox.cli.cli json-to-rdvxz *.whatever&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
-        output = process.communicate()[0].decode()
-        self.assertTrue(&#34;Invalid path *.whatever&#34; in output)</code></pre>
+            process = subprocess.Popen(&#34;python3 -m redvox.cli.cli json-to-rdvxz *.whatever&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+            output = process.communicate()[0].decode()
+            self.assertTrue(&#34;Invalid path *.whatever&#34; in output)</code></pre>
 </details>
 </section>
 <section>
@@ -191,7 +198,8 @@ not have a method with the specified name.</p></div>
 
     def tearDown(self):
         # Delete the copies from setUp
-        test_files = glob.glob(TEST_DATA_DIR + &#34;/test_*&#34;)
+        test_dir: str = str(os.path.join(TEST_DATA_DIR, &#34;test_*&#34;))
+        test_files = glob.glob(test_dir)
         for test_file in test_files:
             os.remove(test_file)
 
@@ -202,13 +210,15 @@ not have a method with the specified name.</p></div>
                          reader.read_json_file(test_data(&#34;test_a.json&#34;)))
 
     def test_to_json_multi(self):
-        os.system(&#34;python3 -m redvox.cli.cli rdvxz-to-json %s/*.rdvxz&#34; % TEST_DATA_DIR)
-        self.assertTrue(os.path.isfile(test_data(&#34;test_a.json&#34;)))
-        self.assertTrue(os.path.isfile(test_data(&#34;test_b.json&#34;)))
-        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_a.rdvxz&#34;)),
-                         reader.read_json_file(test_data(&#34;test_a.json&#34;)))
-        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_b.rdvxz&#34;)),
-                         reader.read_json_file(test_data(&#34;test_b.json&#34;)))
+        if os.name != &#34;nt&#34;:
+            joined: str = str(os.path.join(TEST_DATA_DIR, &#34;*.rdvxz&#34;))
+            os.system(f&#34;python3 -m redvox.cli.cli rdvxz-to-json {joined}&#34;)
+            self.assertTrue(os.path.isfile(test_data(&#34;test_a.json&#34;)))
+            self.assertTrue(os.path.isfile(test_data(&#34;test_b.json&#34;)))
+            self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_a.rdvxz&#34;)),
+                             reader.read_json_file(test_data(&#34;test_a.json&#34;)))
+            self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_b.rdvxz&#34;)),
+                             reader.read_json_file(test_data(&#34;test_b.json&#34;)))
 
     def test_to_rdvxz_single(self):
         os.system(&#34;python3 -m redvox.cli.cli json-to-rdvxz %s&#34; % test_data(&#34;test_c.json&#34;))
@@ -217,13 +227,15 @@ not have a method with the specified name.</p></div>
                          reader.read_json_file(test_data(&#34;test_c.json&#34;)))
 
     def test_to_rdvxz_multi(self):
-        os.system(&#34;python3 -m redvox.cli.cli json-to-rdvxz %s/*.json&#34; % TEST_DATA_DIR)
-        self.assertTrue(os.path.isfile(test_data(&#34;test_c.rdvxz&#34;)))
-        self.assertTrue(os.path.isfile(test_data(&#34;test_d.rdvxz&#34;)))
-        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_c.rdvxz&#34;)),
-                         reader.read_json_file(test_data(&#34;test_c.json&#34;)))
-        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_d.rdvxz&#34;)),
-                         reader.read_json_file(test_data(&#34;test_d.json&#34;)))
+        if os.name != &#34;nt&#34;:
+            joined: str = str(os.path.join(TEST_DATA_DIR, &#34;*.json&#34;))
+            os.system(f&#34;python3 -m redvox.cli.cli json-to-rdvxz {joined}&#34;)
+            self.assertTrue(os.path.isfile(test_data(&#34;test_c.rdvxz&#34;)))
+            self.assertTrue(os.path.isfile(test_data(&#34;test_d.rdvxz&#34;)))
+            self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_c.rdvxz&#34;)),
+                             reader.read_json_file(test_data(&#34;test_c.json&#34;)))
+            self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_d.rdvxz&#34;)),
+                             reader.read_json_file(test_data(&#34;test_d.json&#34;)))
 
     def test_print_single(self):
         output: str = subprocess.check_output(&#34;python3 -m redvox.cli.cli print-z %s&#34; % test_data(&#34;test_a.rdvxz&#34;),
@@ -231,11 +243,13 @@ not have a method with the specified name.</p></div>
         self.assertTrue(&#34;api: 900&#34; in output)
 
     def test_print_multi(self):
-        output: str = subprocess.check_output(&#34;python3 -m redvox.cli.cli print-z %s/*.rdvxz&#34; % TEST_DATA_DIR,
-                                              shell=True).decode()
-        self.assertEqual(len(list(filter(lambda line: line.startswith(&#34;api: 900&#34;),
-                                    output.split(&#34;\n&#34;)))),
-                         7)
+        if os.name != &#34;nt&#34;:
+            joined: str = str(os.path.join(TEST_DATA_DIR, &#34;*.rdvxz&#34;))
+            output: str = subprocess.check_output(f&#34;python3 -m redvox.cli.cli print-z {joined}&#34;,
+                                                  shell=True).decode()
+            self.assertEqual(len(list(filter(lambda line: line.startswith(&#34;api: 900&#34;),
+                                        output.split(&#34;\n&#34;)))),
+                             7)
 
     def test_no_args(self):
         process = subprocess.Popen(&#34;python3 -m redvox.cli.cli&#34;, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
@@ -311,7 +325,8 @@ not have a method with the specified name.</p></div>
 </summary>
 <pre><code class="python">def tearDown(self):
     # Delete the copies from setUp
-    test_files = glob.glob(TEST_DATA_DIR + &#34;/test_*&#34;)
+    test_dir: str = str(os.path.join(TEST_DATA_DIR, &#34;test_*&#34;))
+    test_files = glob.glob(test_dir)
     for test_file in test_files:
         os.remove(test_file)</code></pre>
 </details>
@@ -406,11 +421,13 @@ not have a method with the specified name.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_print_multi(self):
-    output: str = subprocess.check_output(&#34;python3 -m redvox.cli.cli print-z %s/*.rdvxz&#34; % TEST_DATA_DIR,
-                                          shell=True).decode()
-    self.assertEqual(len(list(filter(lambda line: line.startswith(&#34;api: 900&#34;),
-                                output.split(&#34;\n&#34;)))),
-                     7)</code></pre>
+    if os.name != &#34;nt&#34;:
+        joined: str = str(os.path.join(TEST_DATA_DIR, &#34;*.rdvxz&#34;))
+        output: str = subprocess.check_output(f&#34;python3 -m redvox.cli.cli print-z {joined}&#34;,
+                                              shell=True).decode()
+        self.assertEqual(len(list(filter(lambda line: line.startswith(&#34;api: 900&#34;),
+                                    output.split(&#34;\n&#34;)))),
+                         7)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.cli.test_cli.TestCli.test_print_single"><code class="name flex">
@@ -438,13 +455,15 @@ not have a method with the specified name.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_to_json_multi(self):
-    os.system(&#34;python3 -m redvox.cli.cli rdvxz-to-json %s/*.rdvxz&#34; % TEST_DATA_DIR)
-    self.assertTrue(os.path.isfile(test_data(&#34;test_a.json&#34;)))
-    self.assertTrue(os.path.isfile(test_data(&#34;test_b.json&#34;)))
-    self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_a.rdvxz&#34;)),
-                     reader.read_json_file(test_data(&#34;test_a.json&#34;)))
-    self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_b.rdvxz&#34;)),
-                     reader.read_json_file(test_data(&#34;test_b.json&#34;)))</code></pre>
+    if os.name != &#34;nt&#34;:
+        joined: str = str(os.path.join(TEST_DATA_DIR, &#34;*.rdvxz&#34;))
+        os.system(f&#34;python3 -m redvox.cli.cli rdvxz-to-json {joined}&#34;)
+        self.assertTrue(os.path.isfile(test_data(&#34;test_a.json&#34;)))
+        self.assertTrue(os.path.isfile(test_data(&#34;test_b.json&#34;)))
+        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_a.rdvxz&#34;)),
+                         reader.read_json_file(test_data(&#34;test_a.json&#34;)))
+        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_b.rdvxz&#34;)),
+                         reader.read_json_file(test_data(&#34;test_b.json&#34;)))</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.cli.test_cli.TestCli.test_to_json_single"><code class="name flex">
@@ -473,13 +492,15 @@ not have a method with the specified name.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_to_rdvxz_multi(self):
-    os.system(&#34;python3 -m redvox.cli.cli json-to-rdvxz %s/*.json&#34; % TEST_DATA_DIR)
-    self.assertTrue(os.path.isfile(test_data(&#34;test_c.rdvxz&#34;)))
-    self.assertTrue(os.path.isfile(test_data(&#34;test_d.rdvxz&#34;)))
-    self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_c.rdvxz&#34;)),
-                     reader.read_json_file(test_data(&#34;test_c.json&#34;)))
-    self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_d.rdvxz&#34;)),
-                     reader.read_json_file(test_data(&#34;test_d.json&#34;)))</code></pre>
+    if os.name != &#34;nt&#34;:
+        joined: str = str(os.path.join(TEST_DATA_DIR, &#34;*.json&#34;))
+        os.system(f&#34;python3 -m redvox.cli.cli json-to-rdvxz {joined}&#34;)
+        self.assertTrue(os.path.isfile(test_data(&#34;test_c.rdvxz&#34;)))
+        self.assertTrue(os.path.isfile(test_data(&#34;test_d.rdvxz&#34;)))
+        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_c.rdvxz&#34;)),
+                         reader.read_json_file(test_data(&#34;test_c.json&#34;)))
+        self.assertEqual(reader.read_rdvxz_file(test_data(&#34;test_d.rdvxz&#34;)),
+                         reader.read_json_file(test_data(&#34;test_d.json&#34;)))</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.cli.test_cli.TestCli.test_to_rdvxz_single"><code class="name flex">

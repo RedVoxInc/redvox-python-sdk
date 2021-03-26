@@ -15,6 +15,7 @@ This repository contains code for reading and working with the RedVox API 900 an
 * Fix missing toml dependency
 * Remove unused dependencies
 * Fix windows specific bugs relating to path management and datetime management
+* Update CI to test against more OS environments
 
 ### 3.0.0rc3 (2021-3-23)
 

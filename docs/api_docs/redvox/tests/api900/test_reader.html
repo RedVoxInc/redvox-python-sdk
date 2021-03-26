@@ -26,7 +26,8 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import unittest
+<pre><code class="python">import os
+import unittest
 
 import redvox.api900.reader as reader
 import redvox.tests as test_utils
@@ -54,46 +55,46 @@ class TestReader(unittest.TestCase):
         self.assertFalse(reader._is_valid_redvox_filename(&#34;1637681006_1546631601587&#34;))
 
     def test_is_path_in_set(self):
-        self.assertTrue(reader._is_path_in_set(&#34;/1637681006_1546631601587.rdvxz&#34;,
+        self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}1637681006_1546631601587.rdvxz&#34;,
                                                1546631601 - 1,
                                                1546631601 + 1,
                                                {&#34;1637681006&#34;}))
-        self.assertFalse(reader._is_path_in_set(&#34;/1637681007_1546631601587.rdvxz&#34;,
+        self.assertFalse(reader._is_path_in_set(f&#34;{os.sep}1637681007_1546631601587.rdvxz&#34;,
                                                 1546631601 - 1,
                                                 1546631601 + 1,
                                                 {&#34;1637681006&#34;}))
-        self.assertTrue(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+        self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                                1000000000 - 1,
                                                1000000000 + 1,
                                                {&#34;0000000001&#34;, &#34;0000000002&#34;}))
-        self.assertTrue(reader._is_path_in_set(&#34;/0000000002_1000000000000.rdvxz&#34;,
+        self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000002_1000000000000.rdvxz&#34;,
                                                1000000000 - 1,
                                                1000000000 + 1,
                                                {&#34;0000000001&#34;, &#34;0000000002&#34;}))
-        self.assertFalse(reader._is_path_in_set(&#34;/0000000003_1000000000000.rdvxz&#34;,
+        self.assertFalse(reader._is_path_in_set(f&#34;{os.sep}0000000003_1000000000000.rdvxz&#34;,
                                                 1000000000 - 1,
                                                 1000000000 + 1,
                                                 {&#34;0000000001&#34;, &#34;0000000002&#34;}))
-        self.assertTrue(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+        self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                                1000000000,
                                                1000000000 + 1,
                                                {&#34;0000000001&#34;, &#34;0000000002&#34;}))
-        self.assertTrue(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+        self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                                1000000000 - 1,
                                                1000000000,
                                                {&#34;0000000001&#34;, &#34;0000000002&#34;}))
 
-        self.assertTrue(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+        self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                                1000000000,
                                                1000000000,
                                                {&#34;0000000001&#34;, &#34;0000000002&#34;}))
 
-        self.assertFalse(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+        self.assertFalse(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                                 2000000000,
                                                 3000000000,
                                                 {&#34;0000000001&#34;, &#34;0000000002&#34;}))
 
-        self.assertFalse(reader._is_path_in_set(&#34;/0000000001_4000000000000.rdvxz&#34;,
+        self.assertFalse(reader._is_path_in_set(f&#34;{os.sep}0000000001_4000000000000.rdvxz&#34;,
                                                 1000000000,
                                                 3000000000,
                                                 {&#34;0000000001&#34;, &#34;0000000002&#34;}))
@@ -193,46 +194,46 @@ not have a method with the specified name.</p></div>
         self.assertFalse(reader._is_valid_redvox_filename(&#34;1637681006_1546631601587&#34;))
 
     def test_is_path_in_set(self):
-        self.assertTrue(reader._is_path_in_set(&#34;/1637681006_1546631601587.rdvxz&#34;,
+        self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}1637681006_1546631601587.rdvxz&#34;,
                                                1546631601 - 1,
                                                1546631601 + 1,
                                                {&#34;1637681006&#34;}))
-        self.assertFalse(reader._is_path_in_set(&#34;/1637681007_1546631601587.rdvxz&#34;,
+        self.assertFalse(reader._is_path_in_set(f&#34;{os.sep}1637681007_1546631601587.rdvxz&#34;,
                                                 1546631601 - 1,
                                                 1546631601 + 1,
                                                 {&#34;1637681006&#34;}))
-        self.assertTrue(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+        self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                                1000000000 - 1,
                                                1000000000 + 1,
                                                {&#34;0000000001&#34;, &#34;0000000002&#34;}))
-        self.assertTrue(reader._is_path_in_set(&#34;/0000000002_1000000000000.rdvxz&#34;,
+        self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000002_1000000000000.rdvxz&#34;,
                                                1000000000 - 1,
                                                1000000000 + 1,
                                                {&#34;0000000001&#34;, &#34;0000000002&#34;}))
-        self.assertFalse(reader._is_path_in_set(&#34;/0000000003_1000000000000.rdvxz&#34;,
+        self.assertFalse(reader._is_path_in_set(f&#34;{os.sep}0000000003_1000000000000.rdvxz&#34;,
                                                 1000000000 - 1,
                                                 1000000000 + 1,
                                                 {&#34;0000000001&#34;, &#34;0000000002&#34;}))
-        self.assertTrue(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+        self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                                1000000000,
                                                1000000000 + 1,
                                                {&#34;0000000001&#34;, &#34;0000000002&#34;}))
-        self.assertTrue(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+        self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                                1000000000 - 1,
                                                1000000000,
                                                {&#34;0000000001&#34;, &#34;0000000002&#34;}))
 
-        self.assertTrue(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+        self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                                1000000000,
                                                1000000000,
                                                {&#34;0000000001&#34;, &#34;0000000002&#34;}))
 
-        self.assertFalse(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+        self.assertFalse(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                                 2000000000,
                                                 3000000000,
                                                 {&#34;0000000001&#34;, &#34;0000000002&#34;}))
 
-        self.assertFalse(reader._is_path_in_set(&#34;/0000000001_4000000000000.rdvxz&#34;,
+        self.assertFalse(reader._is_path_in_set(f&#34;{os.sep}0000000001_4000000000000.rdvxz&#34;,
                                                 1000000000,
                                                 3000000000,
                                                 {&#34;0000000001&#34;, &#34;0000000002&#34;}))
@@ -357,46 +358,46 @@ not have a method with the specified name.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_is_path_in_set(self):
-    self.assertTrue(reader._is_path_in_set(&#34;/1637681006_1546631601587.rdvxz&#34;,
+    self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}1637681006_1546631601587.rdvxz&#34;,
                                            1546631601 - 1,
                                            1546631601 + 1,
                                            {&#34;1637681006&#34;}))
-    self.assertFalse(reader._is_path_in_set(&#34;/1637681007_1546631601587.rdvxz&#34;,
+    self.assertFalse(reader._is_path_in_set(f&#34;{os.sep}1637681007_1546631601587.rdvxz&#34;,
                                             1546631601 - 1,
                                             1546631601 + 1,
                                             {&#34;1637681006&#34;}))
-    self.assertTrue(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+    self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                            1000000000 - 1,
                                            1000000000 + 1,
                                            {&#34;0000000001&#34;, &#34;0000000002&#34;}))
-    self.assertTrue(reader._is_path_in_set(&#34;/0000000002_1000000000000.rdvxz&#34;,
+    self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000002_1000000000000.rdvxz&#34;,
                                            1000000000 - 1,
                                            1000000000 + 1,
                                            {&#34;0000000001&#34;, &#34;0000000002&#34;}))
-    self.assertFalse(reader._is_path_in_set(&#34;/0000000003_1000000000000.rdvxz&#34;,
+    self.assertFalse(reader._is_path_in_set(f&#34;{os.sep}0000000003_1000000000000.rdvxz&#34;,
                                             1000000000 - 1,
                                             1000000000 + 1,
                                             {&#34;0000000001&#34;, &#34;0000000002&#34;}))
-    self.assertTrue(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+    self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                            1000000000,
                                            1000000000 + 1,
                                            {&#34;0000000001&#34;, &#34;0000000002&#34;}))
-    self.assertTrue(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+    self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                            1000000000 - 1,
                                            1000000000,
                                            {&#34;0000000001&#34;, &#34;0000000002&#34;}))
 
-    self.assertTrue(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+    self.assertTrue(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                            1000000000,
                                            1000000000,
                                            {&#34;0000000001&#34;, &#34;0000000002&#34;}))
 
-    self.assertFalse(reader._is_path_in_set(&#34;/0000000001_1000000000000.rdvxz&#34;,
+    self.assertFalse(reader._is_path_in_set(f&#34;{os.sep}0000000001_1000000000000.rdvxz&#34;,
                                             2000000000,
                                             3000000000,
                                             {&#34;0000000001&#34;, &#34;0000000002&#34;}))
 
-    self.assertFalse(reader._is_path_in_set(&#34;/0000000001_4000000000000.rdvxz&#34;,
+    self.assertFalse(reader._is_path_in_set(f&#34;{os.sep}0000000001_4000000000000.rdvxz&#34;,
                                             1000000000,
                                             3000000000,
                                             {&#34;0000000001&#34;, &#34;0000000002&#34;}))</code></pre>
