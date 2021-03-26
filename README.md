@@ -1,6 +1,6 @@
 ### RedVox Python SDK
 
-https://github.com/RedVoxInc/redvox-python-sdk/actions/workflows/testing.yml/badge.svg
+![Build Status](https://github.com/RedVoxInc/redvox-python-sdk/actions/workflows/testing.yml/badge.svg)
 
 This repository contains code for reading and working with the RedVox API 900 and API 1000 (M) data formats.
 
