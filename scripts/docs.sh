@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-cd ..
-
 if ! [[ -x "$(command -v pdoc3)" ]]; then
   echo 'Error: pdoc3 is not installed.' >&2
   exit 1
@@ -10,6 +8,11 @@ fi
 set -o nounset
 set -o errexit
 set -o xtrace
+
+# Ensure RedVox configuration isn't brought into API documentation
+./check_user_config.py
+
+cd ..
 
 # Remove old documentation
 rm -rf docs/api_docs
