@@ -23,6 +23,7 @@ from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
 
 DEFAULT_GAP_TIME_S: float = 0.25  # default length of a gap in seconds
+PERCENT_PACKET_DURATION_TOLERANCE = 0.02  # percentage of ideal packet duration tolerance allowed
 DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to start time of data
 DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to end time of data
 # default maximum number of points required to brute force calculate gap timestamps
@@ -308,6 +309,50 @@ class DataWindow:
         elif self.debug:
             print(f"WARNING: Data window for {station_id} {sensor.type.name} sensor has no data points!")
 
+    def process_audio_sensor(self, station: Station, start_date_timestamp: float, end_date_timestamp: float):
+        sensor = station.audio_sensor()
+        packet_start_times = [s.packet_start_mach_timestamp for s in station.metadata]
+        packet_duration = dtu.seconds_to_microseconds(sensor.num_samples() / sensor.sample_rate / len(station.metadata))
+        if len(packet_start_times) > 1 and any(packet_duration - np.diff(packet_start_times)
+                                               > packet_duration * PERCENT_PACKET_DURATION_TOLERANCE):
+            print("Gap detected between packets.")
+        # get only the timestamps between the start and end timestamps
+        df_timestamps = sensor.data_timestamps()
+        if len(df_timestamps) > 0:
+            window_indices = np.where(
+                (start_date_timestamp <= df_timestamps)
+                & (df_timestamps <= end_date_timestamp)
+            )[0]
+            # check if all the samples have been cut off
+            if len(window_indices) < 1 and self.debug:
+                print(f"WARNING: Data window for {station.id} Audio sensor has truncated all data points")
+            else:
+                sensor.data_df = sensor.data_df.iloc[window_indices].reset_index(
+                    drop=True
+                )
+                if sensor.is_sample_interval_invalid():
+                    if self.debug:
+                        print(
+                            f"WARNING: Cannot fill gaps or pad {station.id} Audio "
+                            f"sensor; it has undefined sample interval and sample rate!"
+                        )
+                else:  # GAP FILL and PAD DATA
+                    sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    sensor.data_df = fill_gaps(
+                        sensor.data_df,
+                        sample_interval_micros,
+                        dtu.seconds_to_microseconds(self.gap_time_s),
+                        DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
+                    )
+                    sensor.data_df = pad_data(
+                        start_date_timestamp,
+                        end_date_timestamp,
+                        sensor.data_df,
+                        sample_interval_micros,
+                    )
+        elif self.debug:
+            print(f"WARNING: Data window for {station.id} Audio sensor has no data points!")
+
     def create_window_in_sensors(
             self, station: Station, start_date_timestamp: float, end_date_timestamp: float
     ):
@@ -318,7 +363,7 @@ class DataWindow:
         :param start_date_timestamp: timestamp in microseconds since epoch UTC of start of window
         :param end_date_timestamp: timestamp in microseconds since epoch UTC of end of window
         """
-        self.process_sensor(station.audio_sensor(), station.id, start_date_timestamp, end_date_timestamp)
+        self.process_audio_sensor(station, start_date_timestamp, end_date_timestamp)
         for sensor_type, sensor in station.data.items():
             if sensor_type != SensorType.AUDIO:
                 self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
@@ -393,7 +438,13 @@ class DataWindow:
                     end_datetime = station.last_data_timestamp
                 # TRUNCATE!
                 self.create_window_in_sensors(station, start_datetime, end_datetime)
-                self.stations[station.id] = station
+                ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
+                if station.id not in ids_to_pop:
+                    self.stations[station.id] = station
+
+        # remove station ids without audio data
+        for ids in ids_to_pop:
+            self.stations.pop(ids)
 
         # update remaining data window values if they're still default
         if not self.station_ids or len(self.station_ids) == 0:
@@ -480,6 +531,7 @@ def pad_data(
 def fill_gaps(
         data_df: pd.DataFrame,
         sample_interval_micros: float,
+        sample_interval_std_micros: float,
         gap_time_micros: float,
         num_points_to_brute_force: int = DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
 ) -> pd.DataFrame:
@@ -487,6 +539,7 @@ def fill_gaps(
     fills gaps in the dataframe with np.nan by interpolating timestamps based on the mean expected sample interval
     :param data_df: dataframe with timestamps as column "timestamps"
     :param sample_interval_micros: sample interval in microseconds
+    :param sample_interval_std_micros: sample interval standard deviation in microseconds
     :param gap_time_micros: minimum amount of microseconds between data points that would indicate a gap
     :param num_points_to_brute_force: maximum number of points to calculate when filling a gap
     :return: dataframe without gaps
@@ -499,8 +552,8 @@ def fill_gaps(
     num_points = len(data_time_stamps)
     # add one to calculation to include the last timestamp
     expected_num_points = np.ceil(data_duration_micros / sample_interval_micros) + 1
-    # gap duration cannot be less than sample interval
-    gap_time_micros = np.max([sample_interval_micros, gap_time_micros])
+    # gap duration cannot be less than sample interval + one standard deviation
+    gap_time_micros = np.max([sample_interval_micros + sample_interval_std_micros, gap_time_micros])
     result_df = data_df.copy()
     # if there are less points than our expected amount, we have gaps to fill
     if num_points < expected_num_points:

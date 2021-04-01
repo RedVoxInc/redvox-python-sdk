@@ -171,7 +171,7 @@ class StationStat:
         if packet.has_time_synchronization_sensor():
             tsd = TimeSyncData(
                 packet.redvox_id(),
-                time_sync_exchanges_list=packet.time_synchronization_sensor().payload_values(),
+                time_sync_exchanges_list=list(packet.time_synchronization_sensor().payload_values()),
                 packet_start_timestamp=packet.app_file_start_timestamp_machine(),
                 packet_end_timestamp=packet.end_timestamp_us_utc(),
                 server_acquisition_timestamp=packet.server_timestamp_epoch_microseconds_utc(),

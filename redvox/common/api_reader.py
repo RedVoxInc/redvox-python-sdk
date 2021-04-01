@@ -20,9 +20,6 @@ from redvox.common import file_statistics as fs
 from redvox.common.station import Station
 
 
-DEFAULT_GAP_TIME_S: float = 0.25  # default length of a gap in seconds
-
-
 class ApiReader:
     """
     Reads data from api 900 or api 1000 format, converting all data read into WrappedRedvoxPacketM for
@@ -34,10 +31,7 @@ class ApiReader:
         structured_dir: bool, if True, the base_dir contains a specific directory structure used by the
                         respective api formats.  If False, base_dir only has the data files.  Default False.
         files_index: io.Index of the files that match the filter that are in base_dir
-        files_stats: list of Fs.StationStat for the stations in the filter
         index_summary: io.IndexSummary of the filtered data
-        gap_time_s: int, minimum amount of seconds between data points to be considered a gap.  Default GAP_TIME_S
-        apply_correction: bool, if True, apply timing correction values based on the data in the packets.  Default True
         debug: bool, if True, output additional information during function execution.  Default False.
     """
 

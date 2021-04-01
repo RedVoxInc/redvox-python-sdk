@@ -45,7 +45,7 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(test_sensor.num_samples(), 641)
         test_sensor = datawindow.get_station("0000000001").audio_sensor()
         self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 720000)
+        self.assertEqual(test_sensor.num_samples(), 720015)
         test_sensor = datawindow.get_station("0000000001").location_sensor()
         self.assertIsNotNone(test_sensor)
         self.assertEqual(test_sensor.num_samples(), 3)
@@ -61,10 +61,24 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(dw_with_start_end.stations), 1)
         audio_sensor = dw_with_start_end.get_station("0000000001").audio_sensor()
         self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 479984)
+        self.assertEqual(audio_sensor.num_samples(), 480000)
         loc_sensor = dw_with_start_end.get_station("0000000001").location_sensor()
         self.assertIsNotNone(loc_sensor)
         self.assertEqual(loc_sensor.num_samples(), 2)
+
+    def test_data_window2(self):
+        datawindow = dw.DataWindow(
+            input_dir=self.input_dir,
+            structured_layout=False,
+            station_ids=["0000000001"],
+        )
+        self.assertEqual(len(datawindow.stations), 1)
+        test_sensor = datawindow.get_station("0000000001").audio_sensor()
+        self.assertIsNotNone(test_sensor)
+        self.assertEqual(test_sensor.num_samples(), 720015)
+        test_sensor = datawindow.get_station("0000000001").location_sensor()
+        self.assertIsNotNone(test_sensor)
+        self.assertEqual(test_sensor.num_samples(), 3)
 
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(
@@ -86,6 +100,9 @@ class PadDataTest(unittest.TestCase):
         cls.dataframe = pd.DataFrame(
             np.transpose([timestamps, [4, 5, 6]]), columns=["timestamps", "temp"]
         )
+        cls.singleton = pd.DataFrame(
+            [[timestamps[0], 1]], columns=["timestamps", "temp"]
+        )
 
     def test_pad_data(self):
         filled_dataframe = dw.pad_data(
@@ -100,6 +117,21 @@ class PadDataTest(unittest.TestCase):
         )
         self.assertEqual(
             filled_dataframe.loc[2, "timestamps"], dt.seconds_to_microseconds(30)
+        )
+
+    def test_pad_data_single_value(self):
+        filled_singleton = dw.pad_data(
+            dt.seconds_to_microseconds(10),
+            dt.seconds_to_microseconds(100),
+            self.singleton,
+            dt.seconds_to_microseconds(10),
+        )
+        self.assertEqual(filled_singleton.shape, (10, 2))
+        self.assertEqual(
+            filled_singleton.loc[1, "timestamps"], dt.seconds_to_microseconds(20)
+        )
+        self.assertEqual(
+            filled_singleton.loc[3, "timestamps"], dt.seconds_to_microseconds(40)
         )
 
     def test_pad_data_uneven_ends(self):
@@ -135,12 +167,28 @@ class FillGapTest(unittest.TestCase):
         cls.dataframe = pd.DataFrame(
             np.transpose([timestamps, [1, 3, 10]]), columns=["timestamps", "temp"]
         )
+        cls.singleton = pd.DataFrame(
+            [[timestamps[0], 1]], columns=["timestamps", "temp"]
+        )
+
+    def test_singleton_fill_gaps(self):
+        filled_singleton = dw.fill_gaps(
+            self.singleton,
+            dt.seconds_to_microseconds(10),
+            0,
+            dt.seconds_to_microseconds(10)
+        )
+        self.assertEqual(filled_singleton.shape, (1, 2))
+        self.assertEqual(
+            filled_singleton.loc[0, "timestamps"], dt.seconds_to_microseconds(10)
+        )
 
     def test_fill_gaps(self):
         filled_dataframe = dw.fill_gaps(
             self.dataframe,
             dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(10),
+            0,
+            dt.seconds_to_microseconds(10)
         )
         self.assertEqual(filled_dataframe.shape, (10, 2))
         self.assertEqual(
@@ -154,6 +202,7 @@ class FillGapTest(unittest.TestCase):
         filled_dataframe = dw.fill_gaps(
             self.dataframe,
             dt.seconds_to_microseconds(20),
+            0,
             dt.seconds_to_microseconds(10),
         )
         self.assertEqual(filled_dataframe.shape, (6, 2))
@@ -168,6 +217,7 @@ class FillGapTest(unittest.TestCase):
         filled_dataframe = dw.fill_gaps(
             self.dataframe,
             dt.seconds_to_microseconds(10),
+            0,
             dt.seconds_to_microseconds(20),
         )
         self.assertEqual(filled_dataframe.shape, (9, 2))

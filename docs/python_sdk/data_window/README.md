@@ -17,6 +17,7 @@ It is capable of reading and exporting to various formats.
   * [Creating Data Windows](#creating-data-windows)
   * [Using the Data Window Results](#using-the-data-window-results)
   * [Data Window Functions](#data-window-functions)
+- [Data Window Methodology](#data-window-methodology)
 - [Station](#station)
   * [Station Properties](#station-properties)
   * [Station Functions](#station-functions)
@@ -289,6 +290,84 @@ for id in station_ids:
 ```
 
 Refer to the [DataWindow API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/data_window.html) as needed.
+
+_[Table of Contents](#table-of-contents)_
+
+## Data Window Methodology
+
+Creating a Data Window involves many processes of varying complexity.  This section will break down and explain each step taken in the creation of the Data Window.
+
+_[Table of Contents](#table-of-contents)_
+
+### Data Window Initialization
+
+When creating a Data Window, the parameters of its creation are stored for future reference.  Each parameter used to create the Data Window is saved to its respective property.  If the parameter is not specified, the default value is saved.
+
+This process always occurs, regardless of the exact method of Data Window creation.
+
+Once the parameters are saved, the Data Window begins aggregating and updating the data requested.
+
+### Data Window File Search
+
+Data Window uses several methods in the Redvox SDK to gather the files needed to complete the request.
+
+If the user specified a structured directory, we are looking for directories specifically named `api900` and/or `api1000` either as part of the input directory or within the input directory.  Next, we read through the sub-directories of the api directory, which are organized by year, month, day and for api1000 data, by hour as well. 
+
+If the user specified an unstructured directory, we are looking at all files within the input directory.
+
+We add the buffer times to the requested start and end times to get our query start and end times, then get any file with a timestamp within our query times.  We index the files for later analysis.
+
+### File Indexing and Timestamp Update
+
+1. Once all files are indexed, if we had a requested start or end time, we gather basic information from each file and use that to update the file timestamps to match our request times.
+   * If we don't have a requested start and end time, we go straight to Data Aggregation
+
+2. We use UTC as the time zone for our data request.  Each recording device will have some amount of offset (LINK HERE), which is a difference in the device's time to "true" time.
+   * We can account for this offset by utilizing the basic information from each file to create an offset model (LINK HERE).  We _**always**_ ADD our offset values to device time to get "true" time.
+
+3. Once we have the offset model, we can calculate the "true" time for our gathered data.  We simply take our data's timestamps and add the offset from the model to it.
+
+4. If we specified a start and/or end time for our request, we must make sure our data's "true" times are able to satisfy the request. We now want two things to be true:
+   * The "true" start time of the data is before our request start time
+   * The "true" end time of the data is after our request end time
+  
+5. If both of the conditions are true, we have all the data we need and can continue to Data Aggregation.
+
+6. If at least one of the two conditions is not true, we will update the query times by the offset value.  This efficiently expands our search criteria without overloading the query.
+
+7. If the expanded query produces new start and/or end times from the previous query, we use the expanded query times to get more files and start from step 1 again.
+
+8. If the expanded query does not produce new start and/or end times from the previous query, we go to Data Aggregation and use what we have since it won't get any better.
+
+### Data Aggregation
+
+Once the data is verified as within the confines of our request, the data must be aggregated and prepared for the user.
+
+1. All data files are completely read into memory.
+
+2. The data files are organized into Station objects.  Files are put into a station if and only if each of these three values are equal across each file: station id, station uuid, and station start timestamp
+
+* Any errors encountered while creating the Station object will cause the Data Window to stop.
+
+### Data Preparation
+
+The data is now organized by Station.  This process will be performed on all Stations in the Data Window.
+
+1. Update all timestamps in the Station using the offset model.  This is the final timestamp update before the user gets the data.
+
+2. Check for Audio sensor data.  No Audio sensor data means the Station isn't useful to us, and will be discarded before the user sees it.
+
+3. Remove any Audio data points outside the request window.
+
+4. Remove any other sensor data points outside the request window.  There is one caveat to this step:
+   * We will create data points at the start and end timestamps of the trimmed audio sensor.  The points are interpolated from existing data.
+
+5. Fill any gaps within the data.
+   * A gap is a period of time longer than the amount specified by the Data Window [(gap_time_s)](#advanced-optional-data-window-parameters) or the mean sample rate + one standard deviation of the data, whichever of the two is greater.
+
+6. Update the Station metadata.
+
+7. Update the Data Window metadata to match the data.
 
 _[Table of Contents](#table-of-contents)_
 
