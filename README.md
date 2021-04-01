@@ -9,6 +9,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc8 (2021-4-1)
+
+* Data Window lz4 serialization and deserialization added
+* Audio sensor timestamps are recalculated based on updated first timestamp and sample interval
+
 ### 3.0.0rc7 (2021-3-25)
 
 * Make GUI features an optional "extra"

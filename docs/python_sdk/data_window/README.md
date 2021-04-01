@@ -354,6 +354,7 @@ Once the data is verified as within the confines of our request, the data must b
 The data is now organized by Station.  This process will be performed on all Stations in the Data Window.
 
 1. Update all timestamps in the Station using the offset model.  This is the final timestamp update before the user gets the data.
+    * Audio data timestamps are adjusted by updating the first timestamp of the data, then using the sample interval to compute the other points from the updated first timestamp.
 
 2. Check for Audio sensor data.  No Audio sensor data means the Station isn't useful to us, and will be discarded before the user sees it.
 
