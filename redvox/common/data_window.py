@@ -417,6 +417,7 @@ class DataWindow:
             self.structured_layout,
             r_f,
             self.debug,
+            pool=_pool,
         ).get_stations(pool=_pool)
 
         # Parallel update
