@@ -313,9 +313,9 @@ class DataWindow:
         sensor = station.audio_sensor()
         packet_start_times = [s.packet_start_mach_timestamp for s in station.metadata]
         packet_duration = dtu.seconds_to_microseconds(sensor.num_samples() / sensor.sample_rate / len(station.metadata))
-        if len(packet_start_times) > 1 and any(packet_duration - np.diff(packet_start_times)
-                                               > packet_duration * PERCENT_PACKET_DURATION_TOLERANCE):
-            print("Gap detected between packets.")
+        # if len(packet_start_times) > 1 and any(np.abs(packet_duration - np.diff(packet_start_times))
+        #                                        > packet_duration * PERCENT_PACKET_DURATION_TOLERANCE):
+        #     print("Gap detected between packets.")
         # get only the timestamps between the start and end timestamps
         df_timestamps = sensor.data_timestamps()
         if len(df_timestamps) > 0:
@@ -595,6 +595,11 @@ def fill_gaps(
                 num_points_to_brute_force,
             )
             result_df = first_data_df.append(second_data_df, ignore_index=True)
+            if result_df["timestamps"].size < expected_num_points:
+                mid_df = data_df.iloc[half_samples-1:half_samples+1].copy().reset_index(drop=True)
+                mid_df = fill_gaps(mid_df, sample_interval_micros, gap_time_micros, num_points_to_brute_force)
+                mid_df = mid_df.iloc[1:len(mid_df["timestamps"])-1]
+                result_df = result_df.append(mid_df, ignore_index=True)
     return result_df.sort_values("timestamps", ignore_index=True)
 
 

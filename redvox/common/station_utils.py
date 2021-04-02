@@ -51,6 +51,7 @@ class StationMetadata:
         packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
         packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
         packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+        packet_duration_s: float, duration of the packet in seconds
         timing_info_score: float, quality of timing information
         other_metadata: dict str: str, other metadata from the packet
     """
@@ -80,6 +81,7 @@ class StationMetadata:
             self.packet_end_mach_timestamp = packet.get_timing_information().get_packet_end_mach_timestamp()
             self.packet_start_os_timestamp = packet.get_timing_information().get_packet_start_os_timestamp()
             self.packet_end_os_timestamp = packet.get_timing_information().get_packet_end_os_timestamp()
+            self.packet_duration_s = packet.get_packet_duration_s()
             self.timing_info_score = packet.get_timing_information().get_score()
         else:
             self.api = np.nan
@@ -94,6 +96,7 @@ class StationMetadata:
             self.packet_end_mach_timestamp = np.nan
             self.packet_start_os_timestamp = np.nan
             self.packet_end_os_timestamp = np.nan
+            self.packet_duration_s = np.nan
             self.timing_info_score = np.nan
 
     def update_timestamps(self, om: OffsetModel):

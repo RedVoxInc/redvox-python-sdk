@@ -9,6 +9,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc9 (2021-4-1)
+
+* Fixed bug when filling gaps in data window
+* updated audio sensor creation to account for gaps in packets
+
 ### 3.0.0rc8 (2021-4-1)
 
 * Data Window lz4 serialization and deserialization added
