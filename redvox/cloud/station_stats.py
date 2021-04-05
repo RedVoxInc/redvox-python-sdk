@@ -43,7 +43,7 @@ class GpsDateTime:
 
     def into_file_stat(self) -> file_stats.GpsDateTime:
         """
-        :return: Converts this into the file_statistics module representationion.
+        :return: Converts this into the file_statistics module representation.
         """
         gps_dt: Optional[datetime] = _map_opt(self.gps_dt, us2dt)
         return file_stats.GpsDateTime(us2dt(self.mach_dt), gps_dt)

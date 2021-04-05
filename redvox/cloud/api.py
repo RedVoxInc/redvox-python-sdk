@@ -11,32 +11,6 @@ import redvox.cloud.errors as cloud_errors
 from redvox.cloud.routes import RoutesV1
 
 
-# @dataclass
-# class ApiConfig:
-#     """
-#     Provides a configuration for the base API URL.
-#     """
-#
-#     protocol: str
-#     host: str
-#     port: int
-#
-#     def url(self, end_point: str) -> str:
-#         """
-#         Formats the API URL.
-#         :param end_point: Endpoint to use.
-#         :return: The formatted API URL.
-#         """
-#         return f"{self.protocol}://{self.host}:{self.port}{end_point}"
-#
-#     @staticmethod
-#     def default() -> "ApiConfig":
-#         """
-#         :return: The default API configuration for communicating with RedVox cloud services.
-#         """
-#         return ApiConfig("https", "redvox.io", 8080)
-
-
 def post_req(
     redvox_config: RedVoxConfig,
     route: str,
