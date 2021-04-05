@@ -64,6 +64,7 @@ class StationStat:
     server_recv_dt: Optional[float]
     gps_dts: Optional[List[GpsDateTime]]
     latency: Optional[float]
+    best_latency_timestamp: Optional[float]
     offset: Optional[float]
     sample_rate_hz: Optional[float]
     packet_duration: Optional[float]
@@ -81,6 +82,7 @@ class StationStat:
             _map_opt(
                 self.gps_dts, lambda dts: list(map(GpsDateTime.into_file_stat, dts))
             ),
+            self.best_latency_timestamp,
             self.latency,
             self.offset,
             self.sample_rate_hz,
