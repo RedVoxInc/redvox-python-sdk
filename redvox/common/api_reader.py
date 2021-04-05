@@ -146,52 +146,15 @@ class ApiReader:
         if pool is None:
             _pool.close()
 
-        # punt if duration or other important values are invalid
-        if any(st.packet_duration == 0.0 or not st.packet_duration for st in stats):
+        timing_offsets: Optional[offset_model.TimingOffsets] = offset_model.compute_offsets(stats)
+
+        # # punt if duration or other important values are invalid or if the latency array was empty
+        if timing_offsets is None:
             return index
-        latencies = [
-            st.latency
-            if st.latency is not None and not np.isnan(st.latency)
-            else np.nan
-            for st in stats
-        ]
-        # no latencies means no correction means we're done
-        if len(latencies) < 1:
-            return index
-        # get the model and calculate the revised start and end offsets
-        offsets = [
-            st.offset if st.offset is not None and not np.isnan(st.offset) else np.nan
-            for st in stats
-        ]
-        times = [st.best_latency_timestamp for st in stats]
-        start_time = dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)
-        end_time = dtu.datetime_to_epoch_microseconds_utc(
-            stats[-1].packet_start_dt + stats[-1].packet_duration
-        )
-        model = offset_model.OffsetModel(
-            np.array(latencies),
-            np.array(offsets),
-            np.array(times),
-            start_time,
-            end_time,
-        )
-        # revise packet's times to real times and compare to requested values
-        start_offset = timedelta(
-            microseconds=model.get_offset_at_new_time(
-                dtu.datetime_to_epoch_microseconds_utc(stats[0].packet_start_dt)
-            )
-        )
-        revised_start = stats[0].packet_start_dt + start_offset
-        end = stats[-1].packet_start_dt + stats[-1].packet_duration
-        end_offset = timedelta(
-            microseconds=model.get_offset_at_new_time(
-                dtu.datetime_to_epoch_microseconds_utc(end)
-            )
-        )
-        revised_end = end + end_offset
+
         # if our filtered files encompass the request even when the packet times are updated, return the index
-        if (not self.filter.start_dt or revised_start <= self.filter.start_dt) and (
-            not self.filter.end_dt or revised_end >= self.filter.end_dt
+        if (not self.filter.start_dt or timing_offsets.adjusted_start <= self.filter.start_dt) and (
+            not self.filter.end_dt or timing_offsets.adjusted_end >= self.filter.end_dt
         ):
             return index
         # we have to update our filter to get more information
@@ -199,9 +162,9 @@ class ApiReader:
         no_more_start = True
         no_more_end = True
         # check if there is a packet just beyond the request times
-        if self.filter.start_dt and revised_start > self.filter.start_dt:
+        if self.filter.start_dt and timing_offsets.adjusted_start > self.filter.start_dt:
             beyond_start = (
-                self.filter.start_dt - np.abs(start_offset) - stats[0].packet_duration
+                self.filter.start_dt - np.abs(timing_offsets.start_offset) - stats[0].packet_duration
             )
             start_filter = (
                 request_filter.clone()
@@ -218,8 +181,8 @@ class ApiReader:
             ):
                 new_filter.with_start_dt(beyond_start)
                 no_more_start = False
-        if self.filter.end_dt and revised_end < self.filter.end_dt:
-            beyond_end = self.filter.end_dt + np.abs(end_offset)
+        if self.filter.end_dt and timing_offsets.adjusted_end < self.filter.end_dt:
+            beyond_end = self.filter.end_dt + np.abs(timing_offsets.end_offset)
             end_filter = (
                 request_filter.clone()
                 .with_start_dt(stats[-1].packet_start_dt + stats[-1].packet_duration)
