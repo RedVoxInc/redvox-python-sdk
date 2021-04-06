@@ -457,7 +457,7 @@ class CloudClient:
         start_ts_s: int,
         end_ts_s: int,
         station_ids: List[str],
-        req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900,
+        req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900_1000,
     ) -> data_api.DataRangeResp:
         """
         Request signed URLs for RedVox packets.
