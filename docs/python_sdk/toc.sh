@@ -11,3 +11,4 @@ set -o xtrace
 
 markdown-toc -i README.md
 markdown-toc -i data_window/README.md
+markdown-toc -i cli/README.md
