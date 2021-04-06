@@ -12,6 +12,7 @@ It is capable of reading and exporting to various formats.
 - [Data Window](#data-window)
   * [Data Window Parameters](#data-window-parameters)
     + [Required Data Window Parameter](#required-data-window-parameter)
+    + [Strongly Recommended Data Window Parameters](#strongly-recommended-data-window-parameters)  
     + [Optional Data Window Parameters](#optional-data-window-parameters)
     + [Advanced Optional Data Window Parameters](#advanced-optional-data-window-parameters)
   * [Creating Data Windows](#creating-data-windows)
@@ -72,16 +73,13 @@ input_dir="C:\absolute\path\to\data_folder"
 input_dir="relative\path\to\data_folder"
 ```
 
-_[Table of Contents](#table-of-contents)_
+#### Strongly Recommended Data Window Parameters
 
-#### Optional Data Window Parameters
-These fields do not have to be specified when creating a DataWindow.  Default values for each will be given.
+We strongly recommend setting these parameters when creating a Data Window.
 
-Your data must be stored in one of two ways:
-1. `Unstructured`: All files exist in the `input_dir`.
-2. `Structured`: Files are organized by date and time as specified in the [API-M repo](https://github.com/RedVoxInc/redvox-api-1000/blob/master/docs/standards/filenames_and_directory_structures.md#standard-directory-structure).
+If these parameters are not set, your results will not be aligned.
 
-_structured_layout:_ a boolean value representing the structure of the input directory.  If `True`, the data is stored in the Structured format.  The default value is `True`.
+These parameters are not required to run Data Window.  Default values are given.
 
 _start_datetime:_ a datetime object representing the start of the request time for the DataWindow.  All data timestamps*** in the DataWindow will be equal to or greater than this time.  If `None` or not given, uses the earliest timestamp it finds that matches the other filter criteria.  The default value is `None`.
 
@@ -102,6 +100,17 @@ end_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 0, 0)
 ```
 
 *** There may be some location timestamps which are outside the requested range.  This is normal.  They indicate the best position of the station, and the station has not moved since the timestamp of the best location.
+
+_[Table of Contents](#table-of-contents)_
+
+#### Optional Data Window Parameters
+These parameters do not have to be set when creating a DataWindow.  Default values for each will be given.
+
+Your data must be stored in one of two ways:
+1. `Unstructured`: All files exist in the `input_dir`.
+2. `Structured`: Files are organized by date and time as specified in the [API-M repo](https://github.com/RedVoxInc/redvox-api-1000/blob/master/docs/standards/filenames_and_directory_structures.md#standard-directory-structure).
+
+_structured_layout:_ a boolean value representing the structure of the input directory.  If `True`, the data is stored in the Structured format.  The default value is `True`.
 
 _station_ids:_ a list, set, or tuple of station IDs as strings to filter on.  If `None` or not given, will return all IDs that match the other filter criteria.  The default value is `None`.
 
@@ -364,11 +373,17 @@ The data is now organized by Station.  This process will be performed on all Sta
    * We will create data points at the start and end timestamps of the trimmed audio sensor.  The points are interpolated from existing data.
 
 5. Fill any gaps within the data.
-   * A gap is a period of time longer than the amount specified by the Data Window [(gap_time_s)](#advanced-optional-data-window-parameters) or the mean sample rate + one standard deviation of the data, whichever of the two is greater.
+   * Gap duration is defined by Data Window here: [(gap_time_s)](#advanced-optional-data-window-parameters)
+   * For evenly sampled sensors, a gap is a period of time longer than the amount specified by the Data Window or the mean sample rate of the data, whichever of the two is greater.
+   * For unevenly sampled sensors, a gap is a period of time longer than the amount specified by the Data Window or the mean sample rate + one standard deviation of the data, whichever of the two is greater.
 
 6. Update the Station metadata.
 
 7. Update the Data Window metadata to match the data.
+
+### Data Window Complete
+
+The Data Window has completed all operations and is ready for you to use!
 
 _[Table of Contents](#table-of-contents)_
 
@@ -505,23 +520,24 @@ _[Table of Contents](#table-of-contents)_
 
 The table below shows which columns can be accessed by each sensor
 
-|Sensor name         |Dataframe columns              |
-|--------------------|-------------------------------|
-|audio               |microphone                     |
-|compressed audio    |compressed_audio, audio_codec  |
-|image               |image, image_codec             |
-|pressure            |pressure                       |
-|light               |light                          |
-|proximity           |proximity                      |
-|ambient temperature |ambient_temp                   |
-|relative humidity   |rel_humidity                   |
+|Sensor name         |Dataframe columns               |
+|--------------------|--------------------------------|
+|all                 |timestamps, unaltered_timestamps|
+|audio               |microphone                      |
+|compressed audio    |compressed_audio, audio_codec   |
+|image               |image, image_codec              |
+|pressure            |pressure                        |
+|light               |light                           |
+|proximity           |proximity                       |
+|ambient temperature |ambient_temp                    |
+|relative humidity   |rel_humidity                    |
 |accelerometer       |accelerometer_x, accelerometer_y, accelerometer_z|
 |magnetometer        |magnetometer_x, magnetometer_y, magnetometer_z|
 |linear acceleration |linear_accel_x, linear_accel_y, linear_accel_z|
 |orientation         |orientation_x, orientation_y, orientation_z|
 |rotation vector     |rotation_vector_x, rotation_vector_y, rotation_vector_z|
 |gyroscope           |gyroscope_x, gyroscope_y, gyroscope_z|
-|gravity             |gravity_x, gravity_y, gravity_z|
+|gravity             |gravity_x, gravity_y, gravity_z |
 |location            |latitude, longitude, altitude, speed, bearing, horizontal_accuracy, vertical_accuracy, speed_accuracy, bearing_accuracy, location_provider|
 |station health      |battery_charge_remaining, battery_current_strength, internal_temp_c, network_type, network_strength, power_state, avail_ram, avail_disk, cell_service|
 

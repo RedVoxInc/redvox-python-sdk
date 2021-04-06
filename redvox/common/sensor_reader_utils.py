@@ -8,13 +8,10 @@ import numpy as np
 import pandas as pd
 
 from redvox.common import date_time_utils as dtu
+from redvox.common import gap_and_pad_utils as gpu
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
-from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
-from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
-from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
 
 
 def get_empty_sensor_data(
@@ -147,142 +144,6 @@ def load_apim_audio(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData
     return None
 
 
-def fill_audio_gaps(
-        timestamps: np.array,
-        audio_data: np.array,
-        sample_interval_micros: float,
-        samples_per_packet: int,
-) -> pd.DataFrame:
-    """
-    fills gaps in the dataframe with np.nan by interpolating timestamps based on the mean expected sample interval
-    :param timestamps: array of timestamps for the data
-    :param audio_data: array of data points
-    :param sample_interval_micros: sample interval in microseconds
-    :param samples_per_packet: number of samples to create per packet
-    :return: dataframe without gaps
-    """
-    PERCENT_PACKET_CONFIRM = .9
-    PERCENT_NOT_PACKET_CONFIRM = .02
-    result_df = pd.DataFrame(np.transpose([timestamps, timestamps, audio_data]),
-                             columns=["timestamps", "unaltered_timestamps", "microphone"])
-    num_points = len(timestamps)
-    # if there are less points than our expected amount, we have gaps to fill
-    if num_points < 10000:
-        # look at every timestamp difference
-        timestamp_diffs = np.diff(timestamps)
-        for index in np.where(timestamp_diffs > sample_interval_micros)[0]:
-            num_samples = timestamp_diffs[index] / sample_interval_micros
-            if num_samples <= samples_per_packet * PERCENT_NOT_PACKET_CONFIRM:
-                break  # difference too small, no gap
-            elif num_samples >= samples_per_packet * PERCENT_PACKET_CONFIRM:
-                # add samples per packet for each packet missing
-                num_samples = samples_per_packet * np.floor(num_samples / (samples_per_packet * PERCENT_PACKET_CONFIRM))
-            # add the gap data to the result dataframe
-            result_df = add_dataless_timestamps_to_df(
-                result_df,
-                index,
-                sample_interval_micros,
-                num_samples,
-            )
-    else:
-        # too many points to check, divide and conquer using recursion!
-        half_samples = int(num_points / 2)
-        first_data_timestamps = timestamps[:half_samples]
-        first_audio_data = audio_data[:half_samples]
-        second_data_timestamps = timestamps[half_samples:]
-        second_audio_data = audio_data[half_samples:]
-        # give half the samples to each recursive call
-        first_data_timestamps = fill_audio_gaps(
-            first_data_timestamps,
-            first_audio_data,
-            sample_interval_micros,
-            samples_per_packet,
-        )
-        second_data_timestamps = fill_audio_gaps(
-            second_data_timestamps,
-            second_audio_data,
-            sample_interval_micros,
-            samples_per_packet,
-        )
-        result_df = first_data_timestamps.append(second_data_timestamps, ignore_index=True)
-        mid_timestamps = timestamps[half_samples-1:half_samples+1]
-        mid_audio_data = audio_data[half_samples-1:half_samples+1]
-        mid_df = fill_audio_gaps(mid_timestamps, mid_audio_data, sample_interval_micros, samples_per_packet)
-        if len(mid_df["timestamps"]) > 2:
-            mid_df = mid_df.iloc[1:len(mid_df["timestamps"])-1]
-            result_df = result_df.append(mid_df, ignore_index=True)
-    return result_df.sort_values("timestamps", ignore_index=True)
-
-
-def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
-                                  start_index: int,
-                                  sample_interval_micros: float,
-                                  num_samples_to_add: int,
-                                  add_to_start: bool = False,) -> pd.DataFrame:
-    """
-    adds dataless timestamps directly to a dataframe that already contains data
-    Note:   dataframe must not be empty,
-            start_index must be non-negative and less than the length of dataframe,
-            num_samples_to_add must be greater than 0
-    :param dataframe: dataframe to add dataless timestamps to
-    :param start_index: index of the dataframe to use as starting point for creating new values
-    :param sample_interval_micros: sample interval in microseconds of the timestamps
-    :param num_samples_to_add: the number of timestamps to create
-    :param add_to_start: if True, subtracts sample_interval_micros from start_timestamp, default False
-    :return: updated dataframe with synthetic data points
-    """
-    if len(dataframe) > start_index and len(dataframe) > 0 and num_samples_to_add > 0:
-        start_timestamp = dataframe["timestamps"][start_index]
-        dataframe = dataframe.append(
-            create_dataless_timestamps_df(start_timestamp, sample_interval_micros,
-                                          dataframe.columns, num_samples_to_add, add_to_start),
-            ignore_index=True)
-    return dataframe
-
-
-def create_dataless_timestamps_df(
-        start_timestamp: float,
-        sample_interval_micros: float,
-        columns: pd.Index,
-        num_samples_to_add: int,
-        add_to_start: bool = False,
-) -> pd.DataFrame:
-    """
-    Creates an empty dataframe with num_samples_to_add timestamps, using columns as the columns
-    the first timestamp created is 1 sample_interval_s from the start_timestamp
-    :param start_timestamp: timestamp in microseconds since epoch UTC to start calculating other timestamps from
-    :param sample_interval_micros: fixed sample interval in microseconds since epoch UTC
-    :param columns: dataframe the non-timestamp columns of the dataframe
-    :param num_samples_to_add: the number of timestamps to create
-    :param add_to_start: if True, subtracts sample_interval_s from start_timestamp, default False
-    :return: dataframe with timestamps and no data
-    """
-    empty_df = pd.DataFrame([], columns=columns)
-    if num_samples_to_add > 0:
-        for column_index in columns:
-            if column_index == "timestamps":
-                if add_to_start:
-                    sample_interval_micros = -sample_interval_micros
-                empty_df[column_index] = (
-                        start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
-                )
-            elif column_index == "location_provider":
-                empty_df[column_index] = LocationProvider.UNKNOWN
-            elif column_index == "image_codec":
-                empty_df[column_index] = ImageCodec.UNKNOWN
-            elif column_index == "audio_codec":
-                empty_df[column_index] = AudioCodec.UNKNOWN
-            elif column_index == "network_type":
-                empty_df[column_index] = NetworkType.UNKNOWN_NETWORK
-            elif column_index == "power_state":
-                empty_df[column_index] = PowerState.UNKNOWN_POWER_STATE
-            elif column_index == "cell_service":
-                empty_df[column_index] = CellServiceState.UNKNOWN
-            else:
-                empty_df[column_index] = np.nan
-    return empty_df
-
-
 def load_apim_audio_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Optional[SensorData]:
     """
     load audio data from a list of wrapped packets
@@ -301,8 +162,8 @@ def load_apim_audio_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
                      for p in wrapped_packets]).flatten()
                 data_vals = np.array([p.get_sensors().get_audio().get_samples().get_values()
                                       for p in wrapped_packets]).flatten()
-                df = fill_audio_gaps(timestamps, data_vals,
-                                     dtu.seconds_to_microseconds(1/sample_rate_hz), samples_per_packet)
+                df = gpu.fill_audio_gaps(timestamps, data_vals,
+                                         dtu.seconds_to_microseconds(1/sample_rate_hz), samples_per_packet)
 
                 return SensorData(
                     wrapped_packets[0].get_sensors().get_audio().get_sensor_description(),

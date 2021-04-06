@@ -12,6 +12,7 @@ This repository contains code for reading and working with the RedVox API 900 an
 ### 3.0.0rc10 (2021-4-5)
 
 * Implement functionality to provide cloud based timing corrections
+* Updated Data Window creation to include edge timestamps on non-audio sensors
 
 ### 3.0.0rc9 (2021-4-1)
 
