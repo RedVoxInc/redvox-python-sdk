@@ -51,6 +51,37 @@ Only `REDVOX_USERNAME` and `REDVOX_PASSWORD` are required, otherwise defaults ar
 
 ## Setting up the Cloud Client
 
+The SDK provides a cloud client that implements Python's context manager interface (see: [cloud_client](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/cloud/client.html#redvox.cloud.client.cloud_client)). This means that the cloud client will close its connection and cleanup resources automatically when it's no longer used.
+
+The `cloud_client` method takes an instance of a [RedvoxConfig](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/cloud/config.html#redvox.cloud.config.RedVoxConfig). If you do not wish to provide this manually, see [Authenticating with RedVox Cloud Services](#authenticating-with-redvox-cloud-services) for strategies on how to load this by automatically from the user's system.
+
+The `cloud_client` method returns an instance of [CloudClient](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/cloud/client.html#redvox.cloud.client.CloudClient). 
+
+Let's look at an example of setting up a cloud client.
+
+```python
+from redvox.cloud.client import cloud_client, CloudClient
+from redvox.cloud.config import RedVoxConfig
+
+cloud_config: RedVoxConfig = RedVoxConfig(username="foo@bar.baz", password="hunter2")
+
+client: CloudClient
+with cloud_client(cloud_config) as client:
+    # Use client within this with block to access RedVox services
+    pass
+```
+
+Of course, if your authentication details are stored on your system, this becomes:
+
+```python
+from redvox.cloud.client import cloud_client, CloudClient
+
+client: CloudClient
+with cloud_client() as client:
+    # Use client within this with block to access RedVox services
+    pass
+```
+
 ## Retrieving Timing Statistics
 
 ## Raw Data Requests
