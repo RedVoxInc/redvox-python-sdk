@@ -54,6 +54,7 @@ from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
 
 DEFAULT_GAP_TIME_S: float = 0.25  # default length of a gap in seconds
+PERCENT_PACKET_DURATION_TOLERANCE = 0.02  # percentage of ideal packet duration tolerance allowed
 DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to start time of data
 DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to end time of data
 # default maximum number of points required to brute force calculate gap timestamps
@@ -339,6 +340,50 @@ class DataWindow:
         elif self.debug:
             print(f&#34;WARNING: Data window for {station_id} {sensor.type.name} sensor has no data points!&#34;)
 
+    def process_audio_sensor(self, station: Station, start_date_timestamp: float, end_date_timestamp: float):
+        sensor = station.audio_sensor()
+        packet_start_times = [s.packet_start_mach_timestamp for s in station.metadata]
+        packet_duration = dtu.seconds_to_microseconds(sensor.num_samples() / sensor.sample_rate / len(station.metadata))
+        # if len(packet_start_times) &gt; 1 and any(np.abs(packet_duration - np.diff(packet_start_times))
+        #                                        &gt; packet_duration * PERCENT_PACKET_DURATION_TOLERANCE):
+        #     print(&#34;Gap detected between packets.&#34;)
+        # get only the timestamps between the start and end timestamps
+        df_timestamps = sensor.data_timestamps()
+        if len(df_timestamps) &gt; 0:
+            window_indices = np.where(
+                (start_date_timestamp &lt;= df_timestamps)
+                &amp; (df_timestamps &lt;= end_date_timestamp)
+            )[0]
+            # check if all the samples have been cut off
+            if len(window_indices) &lt; 1 and self.debug:
+                print(f&#34;WARNING: Data window for {station.id} Audio sensor has truncated all data points&#34;)
+            else:
+                sensor.data_df = sensor.data_df.iloc[window_indices].reset_index(
+                    drop=True
+                )
+                if sensor.is_sample_interval_invalid():
+                    if self.debug:
+                        print(
+                            f&#34;WARNING: Cannot fill gaps or pad {station.id} Audio &#34;
+                            f&#34;sensor; it has undefined sample interval and sample rate!&#34;
+                        )
+                else:  # GAP FILL and PAD DATA
+                    sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    sensor.data_df = fill_gaps(
+                        sensor.data_df,
+                        sample_interval_micros,
+                        dtu.seconds_to_microseconds(self.gap_time_s),
+                        DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
+                    )
+                    sensor.data_df = pad_data(
+                        start_date_timestamp,
+                        end_date_timestamp,
+                        sensor.data_df,
+                        sample_interval_micros,
+                    )
+        elif self.debug:
+            print(f&#34;WARNING: Data window for {station.id} Audio sensor has no data points!&#34;)
+
     def create_window_in_sensors(
             self, station: Station, start_date_timestamp: float, end_date_timestamp: float
     ):
@@ -349,7 +394,7 @@ class DataWindow:
         :param start_date_timestamp: timestamp in microseconds since epoch UTC of start of window
         :param end_date_timestamp: timestamp in microseconds since epoch UTC of end of window
         &#34;&#34;&#34;
-        self.process_sensor(station.audio_sensor(), station.id, start_date_timestamp, end_date_timestamp)
+        self.process_audio_sensor(station, start_date_timestamp, end_date_timestamp)
         for sensor_type, sensor in station.data.items():
             if sensor_type != SensorType.AUDIO:
                 self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
@@ -403,6 +448,7 @@ class DataWindow:
             self.structured_layout,
             r_f,
             self.debug,
+            pool=_pool,
         ).get_stations(pool=_pool)
 
         # Parallel update
@@ -424,7 +470,13 @@ class DataWindow:
                     end_datetime = station.last_data_timestamp
                 # TRUNCATE!
                 self.create_window_in_sensors(station, start_datetime, end_datetime)
-                self.stations[station.id] = station
+                ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
+                if station.id not in ids_to_pop:
+                    self.stations[station.id] = station
+
+        # remove station ids without audio data
+        for ids in ids_to_pop:
+            self.stations.pop(ids)
 
         # update remaining data window values if they&#39;re still default
         if not self.station_ids or len(self.station_ids) == 0:
@@ -511,6 +563,7 @@ def pad_data(
 def fill_gaps(
         data_df: pd.DataFrame,
         sample_interval_micros: float,
+        sample_interval_std_micros: float,
         gap_time_micros: float,
         num_points_to_brute_force: int = DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
 ) -&gt; pd.DataFrame:
@@ -518,6 +571,7 @@ def fill_gaps(
     fills gaps in the dataframe with np.nan by interpolating timestamps based on the mean expected sample interval
     :param data_df: dataframe with timestamps as column &#34;timestamps&#34;
     :param sample_interval_micros: sample interval in microseconds
+    :param sample_interval_std_micros: sample interval standard deviation in microseconds
     :param gap_time_micros: minimum amount of microseconds between data points that would indicate a gap
     :param num_points_to_brute_force: maximum number of points to calculate when filling a gap
     :return: dataframe without gaps
@@ -530,8 +584,8 @@ def fill_gaps(
     num_points = len(data_time_stamps)
     # add one to calculation to include the last timestamp
     expected_num_points = np.ceil(data_duration_micros / sample_interval_micros) + 1
-    # gap duration cannot be less than sample interval
-    gap_time_micros = np.max([sample_interval_micros, gap_time_micros])
+    # gap duration cannot be less than sample interval + one standard deviation
+    gap_time_micros = np.max([sample_interval_micros + sample_interval_std_micros, gap_time_micros])
     result_df = data_df.copy()
     # if there are less points than our expected amount, we have gaps to fill
     if num_points &lt; expected_num_points:
@@ -573,6 +627,11 @@ def fill_gaps(
                 num_points_to_brute_force,
             )
             result_df = first_data_df.append(second_data_df, ignore_index=True)
+            if result_df[&#34;timestamps&#34;].size &lt; expected_num_points:
+                mid_df = data_df.iloc[half_samples-1:half_samples+1].copy().reset_index(drop=True)
+                mid_df = fill_gaps(mid_df, sample_interval_micros, gap_time_micros, num_points_to_brute_force)
+                mid_df = mid_df.iloc[1:len(mid_df[&#34;timestamps&#34;])-1]
+                result_df = result_df.append(mid_df, ignore_index=True)
     return result_df.sort_values(&#34;timestamps&#34;, ignore_index=True)
 
 
@@ -787,12 +846,13 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
 </details>
 </dd>
 <dt id="redvox.common.data_window.fill_gaps"><code class="name flex">
-<span>def <span class="ident">fill_gaps</span></span>(<span>data_df: pandas.core.frame.DataFrame, sample_interval_micros: float, gap_time_micros: float, num_points_to_brute_force: int = 5000) ‑> pandas.core.frame.DataFrame</span>
+<span>def <span class="ident">fill_gaps</span></span>(<span>data_df: pandas.core.frame.DataFrame, sample_interval_micros: float, sample_interval_std_micros: float, gap_time_micros: float, num_points_to_brute_force: int = 5000) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
 <div class="desc"><p>fills gaps in the dataframe with np.nan by interpolating timestamps based on the mean expected sample interval
 :param data_df: dataframe with timestamps as column "timestamps"
 :param sample_interval_micros: sample interval in microseconds
+:param sample_interval_std_micros: sample interval standard deviation in microseconds
 :param gap_time_micros: minimum amount of microseconds between data points that would indicate a gap
 :param num_points_to_brute_force: maximum number of points to calculate when filling a gap
 :return: dataframe without gaps</p></div>
@@ -803,6 +863,7 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
 <pre><code class="python">def fill_gaps(
         data_df: pd.DataFrame,
         sample_interval_micros: float,
+        sample_interval_std_micros: float,
         gap_time_micros: float,
         num_points_to_brute_force: int = DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
 ) -&gt; pd.DataFrame:
@@ -810,6 +871,7 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
     fills gaps in the dataframe with np.nan by interpolating timestamps based on the mean expected sample interval
     :param data_df: dataframe with timestamps as column &#34;timestamps&#34;
     :param sample_interval_micros: sample interval in microseconds
+    :param sample_interval_std_micros: sample interval standard deviation in microseconds
     :param gap_time_micros: minimum amount of microseconds between data points that would indicate a gap
     :param num_points_to_brute_force: maximum number of points to calculate when filling a gap
     :return: dataframe without gaps
@@ -822,8 +884,8 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
     num_points = len(data_time_stamps)
     # add one to calculation to include the last timestamp
     expected_num_points = np.ceil(data_duration_micros / sample_interval_micros) + 1
-    # gap duration cannot be less than sample interval
-    gap_time_micros = np.max([sample_interval_micros, gap_time_micros])
+    # gap duration cannot be less than sample interval + one standard deviation
+    gap_time_micros = np.max([sample_interval_micros + sample_interval_std_micros, gap_time_micros])
     result_df = data_df.copy()
     # if there are less points than our expected amount, we have gaps to fill
     if num_points &lt; expected_num_points:
@@ -865,6 +927,11 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
                 num_points_to_brute_force,
             )
             result_df = first_data_df.append(second_data_df, ignore_index=True)
+            if result_df[&#34;timestamps&#34;].size &lt; expected_num_points:
+                mid_df = data_df.iloc[half_samples-1:half_samples+1].copy().reset_index(drop=True)
+                mid_df = fill_gaps(mid_df, sample_interval_micros, gap_time_micros, num_points_to_brute_force)
+                mid_df = mid_df.iloc[1:len(mid_df[&#34;timestamps&#34;])-1]
+                result_df = result_df.append(mid_df, ignore_index=True)
     return result_df.sort_values(&#34;timestamps&#34;, ignore_index=True)</code></pre>
 </details>
 </dd>
@@ -936,7 +1003,7 @@ the first timestamp created is 1 sample_interval_s from the start_timestamp
 <dl>
 <dt id="redvox.common.data_window.DataWindow"><code class="flex name class">
 <span>class <span class="ident">DataWindow</span></span>
-<span>(</span><span>input_dir: str, structured_layout: bool = True, start_datetime: typing.Optional[datetime.datetime] = None, end_datetime: typing.Optional[datetime.datetime] = None, start_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), end_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), gap_time_s: float = 0.25, station_ids: typing.Optional[typing.Iterable[str]] = None, extensions: typing.Optional[typing.Set[str]] = None, api_versions: typing.Optional[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]] = None, apply_correction: bool = True, debug: bool = False)</span>
+<span>(</span><span>input_dir: str, structured_layout: bool = True, start_datetime: typing.Union[datetime.datetime, NoneType] = None, end_datetime: typing.Union[datetime.datetime, NoneType] = None, start_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), end_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), gap_time_s: float = 0.25, station_ids: typing.Union[typing.Iterable[str], NoneType] = None, extensions: typing.Union[typing.Set[str], NoneType] = None, api_versions: typing.Union[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>], NoneType] = None, apply_correction: bool = True, debug: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values</p>
@@ -1282,6 +1349,50 @@ Default True
         elif self.debug:
             print(f&#34;WARNING: Data window for {station_id} {sensor.type.name} sensor has no data points!&#34;)
 
+    def process_audio_sensor(self, station: Station, start_date_timestamp: float, end_date_timestamp: float):
+        sensor = station.audio_sensor()
+        packet_start_times = [s.packet_start_mach_timestamp for s in station.metadata]
+        packet_duration = dtu.seconds_to_microseconds(sensor.num_samples() / sensor.sample_rate / len(station.metadata))
+        # if len(packet_start_times) &gt; 1 and any(np.abs(packet_duration - np.diff(packet_start_times))
+        #                                        &gt; packet_duration * PERCENT_PACKET_DURATION_TOLERANCE):
+        #     print(&#34;Gap detected between packets.&#34;)
+        # get only the timestamps between the start and end timestamps
+        df_timestamps = sensor.data_timestamps()
+        if len(df_timestamps) &gt; 0:
+            window_indices = np.where(
+                (start_date_timestamp &lt;= df_timestamps)
+                &amp; (df_timestamps &lt;= end_date_timestamp)
+            )[0]
+            # check if all the samples have been cut off
+            if len(window_indices) &lt; 1 and self.debug:
+                print(f&#34;WARNING: Data window for {station.id} Audio sensor has truncated all data points&#34;)
+            else:
+                sensor.data_df = sensor.data_df.iloc[window_indices].reset_index(
+                    drop=True
+                )
+                if sensor.is_sample_interval_invalid():
+                    if self.debug:
+                        print(
+                            f&#34;WARNING: Cannot fill gaps or pad {station.id} Audio &#34;
+                            f&#34;sensor; it has undefined sample interval and sample rate!&#34;
+                        )
+                else:  # GAP FILL and PAD DATA
+                    sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    sensor.data_df = fill_gaps(
+                        sensor.data_df,
+                        sample_interval_micros,
+                        dtu.seconds_to_microseconds(self.gap_time_s),
+                        DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
+                    )
+                    sensor.data_df = pad_data(
+                        start_date_timestamp,
+                        end_date_timestamp,
+                        sensor.data_df,
+                        sample_interval_micros,
+                    )
+        elif self.debug:
+            print(f&#34;WARNING: Data window for {station.id} Audio sensor has no data points!&#34;)
+
     def create_window_in_sensors(
             self, station: Station, start_date_timestamp: float, end_date_timestamp: float
     ):
@@ -1292,7 +1403,7 @@ Default True
         :param start_date_timestamp: timestamp in microseconds since epoch UTC of start of window
         :param end_date_timestamp: timestamp in microseconds since epoch UTC of end of window
         &#34;&#34;&#34;
-        self.process_sensor(station.audio_sensor(), station.id, start_date_timestamp, end_date_timestamp)
+        self.process_audio_sensor(station, start_date_timestamp, end_date_timestamp)
         for sensor_type, sensor in station.data.items():
             if sensor_type != SensorType.AUDIO:
                 self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
@@ -1346,6 +1457,7 @@ Default True
             self.structured_layout,
             r_f,
             self.debug,
+            pool=_pool,
         ).get_stations(pool=_pool)
 
         # Parallel update
@@ -1367,7 +1479,13 @@ Default True
                     end_datetime = station.last_data_timestamp
                 # TRUNCATE!
                 self.create_window_in_sensors(station, start_datetime, end_datetime)
-                self.stations[station.id] = station
+                ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
+                if station.id not in ids_to_pop:
+                    self.stations[station.id] = station
+
+        # remove station ids without audio data
+        for ids in ids_to_pop:
+            self.stations.pop(ids)
 
         # update remaining data window values if they&#39;re still default
         if not self.station_ids or len(self.station_ids) == 0:
@@ -1524,7 +1642,7 @@ outputs a message for each id requested but has no data</p></div>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.create_data_window"><code class="name flex">
-<span>def <span class="ident">create_data_window</span></span>(<span>self, pool: typing.Optional[multiprocessing.pool.Pool] = None)</span>
+<span>def <span class="ident">create_data_window</span></span>(<span>self, pool: typing.Union[multiprocessing.pool.Pool, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>updates the data window to contain only the data within the window parameters
@@ -1574,6 +1692,7 @@ stations without audio or any data outside the window are removed</p></div>
         self.structured_layout,
         r_f,
         self.debug,
+        pool=_pool,
     ).get_stations(pool=_pool)
 
     # Parallel update
@@ -1595,7 +1714,13 @@ stations without audio or any data outside the window are removed</p></div>
                 end_datetime = station.last_data_timestamp
             # TRUNCATE!
             self.create_window_in_sensors(station, start_datetime, end_datetime)
-            self.stations[station.id] = station
+            ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
+            if station.id not in ids_to_pop:
+                self.stations[station.id] = station
+
+    # remove station ids without audio data
+    for ids in ids_to_pop:
+        self.stations.pop(ids)
 
     # update remaining data window values if they&#39;re still default
     if not self.station_ids or len(self.station_ids) == 0:
@@ -1638,7 +1763,7 @@ returns nothing, updates the station in place
     :param start_date_timestamp: timestamp in microseconds since epoch UTC of start of window
     :param end_date_timestamp: timestamp in microseconds since epoch UTC of end of window
     &#34;&#34;&#34;
-    self.process_sensor(station.audio_sensor(), station.id, start_date_timestamp, end_date_timestamp)
+    self.process_audio_sensor(station, start_date_timestamp, end_date_timestamp)
     for sensor_type, sensor in station.data.items():
         if sensor_type != SensorType.AUDIO:
             self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
@@ -1685,7 +1810,7 @@ returns nothing, updates the station in place
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.get_station"><code class="name flex">
-<span>def <span class="ident">get_station</span></span>(<span>self, station_id: str) ‑> typing.Optional[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
+<span>def <span class="ident">get_station</span></span>(<span>self, station_id: str) ‑> typing.Union[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get a single station from the data window
@@ -1706,6 +1831,60 @@ returns nothing, updates the station in place
     if self.debug:
         print(f&#34;Warning: Attempted to get station {station_id}, but that station is not in this data window!&#34;)
     return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window.DataWindow.process_audio_sensor"><code class="name flex">
+<span>def <span class="ident">process_audio_sensor</span></span>(<span>self, station: <a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>, start_date_timestamp: float, end_date_timestamp: float)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def process_audio_sensor(self, station: Station, start_date_timestamp: float, end_date_timestamp: float):
+    sensor = station.audio_sensor()
+    packet_start_times = [s.packet_start_mach_timestamp for s in station.metadata]
+    packet_duration = dtu.seconds_to_microseconds(sensor.num_samples() / sensor.sample_rate / len(station.metadata))
+    # if len(packet_start_times) &gt; 1 and any(np.abs(packet_duration - np.diff(packet_start_times))
+    #                                        &gt; packet_duration * PERCENT_PACKET_DURATION_TOLERANCE):
+    #     print(&#34;Gap detected between packets.&#34;)
+    # get only the timestamps between the start and end timestamps
+    df_timestamps = sensor.data_timestamps()
+    if len(df_timestamps) &gt; 0:
+        window_indices = np.where(
+            (start_date_timestamp &lt;= df_timestamps)
+            &amp; (df_timestamps &lt;= end_date_timestamp)
+        )[0]
+        # check if all the samples have been cut off
+        if len(window_indices) &lt; 1 and self.debug:
+            print(f&#34;WARNING: Data window for {station.id} Audio sensor has truncated all data points&#34;)
+        else:
+            sensor.data_df = sensor.data_df.iloc[window_indices].reset_index(
+                drop=True
+            )
+            if sensor.is_sample_interval_invalid():
+                if self.debug:
+                    print(
+                        f&#34;WARNING: Cannot fill gaps or pad {station.id} Audio &#34;
+                        f&#34;sensor; it has undefined sample interval and sample rate!&#34;
+                    )
+            else:  # GAP FILL and PAD DATA
+                sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                sensor.data_df = fill_gaps(
+                    sensor.data_df,
+                    sample_interval_micros,
+                    dtu.seconds_to_microseconds(self.gap_time_s),
+                    DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
+                )
+                sensor.data_df = pad_data(
+                    start_date_timestamp,
+                    end_date_timestamp,
+                    sensor.data_df,
+                    sample_interval_micros,
+                )
+    elif self.debug:
+        print(f&#34;WARNING: Data window for {station.id} Audio sensor has no data points!&#34;)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.process_sensor"><code class="name flex">
@@ -1782,7 +1961,7 @@ returns nothing, updates the station in place
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.serialize"><code class="name flex">
-<span>def <span class="ident">serialize</span></span>(<span>self, base_dir: str = '.', file_name: typing.Optional[str] = None, compression_factor: int = 4) ‑> pathlib.Path</span>
+<span>def <span class="ident">serialize</span></span>(<span>self, base_dir: str = '.', file_name: typing.Union[str, NoneType] = None, compression_factor: int = 4) ‑> pathlib.Path</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Serializes and compresses this DataWindow to a file.
@@ -1848,6 +2027,7 @@ returns nothing, updates the station in place
 <li><code><a title="redvox.common.data_window.DataWindow.get_all_station_ids" href="#redvox.common.data_window.DataWindow.get_all_station_ids">get_all_station_ids</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.get_all_stations" href="#redvox.common.data_window.DataWindow.get_all_stations">get_all_stations</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.get_station" href="#redvox.common.data_window.DataWindow.get_station">get_station</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindow.process_audio_sensor" href="#redvox.common.data_window.DataWindow.process_audio_sensor">process_audio_sensor</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.process_sensor" href="#redvox.common.data_window.DataWindow.process_sensor">process_sensor</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.serialize" href="#redvox.common.data_window.DataWindow.serialize">serialize</a></code></li>
 </ul>

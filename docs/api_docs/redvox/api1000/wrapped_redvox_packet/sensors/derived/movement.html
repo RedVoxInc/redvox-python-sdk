@@ -508,7 +508,7 @@ class MovementData:
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData"><code class="flex name class">
 <span>class <span class="ident">MovementData</span></span>
-<span>(</span><span>movement_event_stream: <a title="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementEventStream" href="#redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementEventStream">MovementEventStream</a>, accelerometer_timestamps: typing.Optional[numpy.ndarray], accelerometer_x: typing.Optional[numpy.ndarray], accelerometer_y: typing.Optional[numpy.ndarray], accelerometer_z: typing.Optional[numpy.ndarray], gyroscope_timestamps: typing.Optional[numpy.ndarray], gyroscope_x: typing.Optional[numpy.ndarray], gyroscope_y: typing.Optional[numpy.ndarray], gyroscope_z: typing.Optional[numpy.ndarray])</span>
+<span>(</span><span>movement_event_stream: <a title="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementEventStream" href="#redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementEventStream">MovementEventStream</a>, accelerometer_timestamps: typing.Union[numpy.ndarray, NoneType], accelerometer_x: typing.Union[numpy.ndarray, NoneType], accelerometer_y: typing.Union[numpy.ndarray, NoneType], accelerometer_z: typing.Union[numpy.ndarray, NoneType], gyroscope_timestamps: typing.Union[numpy.ndarray, NoneType], gyroscope_x: typing.Union[numpy.ndarray, NoneType], gyroscope_y: typing.Union[numpy.ndarray, NoneType], gyroscope_z: typing.Union[numpy.ndarray, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Encapsulates movement data from multiple packets from a single station.</p></div>
@@ -516,8 +516,7 @@ class MovementData:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass
-class MovementData:
+<pre><code class="python">class MovementData:
     &#34;&#34;&#34;
     Encapsulates movement data from multiple packets from a single station.
     &#34;&#34;&#34;
@@ -747,35 +746,35 @@ class MovementData:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.accelerometer_timestamps"><code class="name">var <span class="ident">accelerometer_timestamps</span> : typing.Optional[numpy.ndarray]</code></dt>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.accelerometer_timestamps"><code class="name">var <span class="ident">accelerometer_timestamps</span> : typing.Union[numpy.ndarray, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.accelerometer_x"><code class="name">var <span class="ident">accelerometer_x</span> : typing.Optional[numpy.ndarray]</code></dt>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.accelerometer_x"><code class="name">var <span class="ident">accelerometer_x</span> : typing.Union[numpy.ndarray, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.accelerometer_y"><code class="name">var <span class="ident">accelerometer_y</span> : typing.Optional[numpy.ndarray]</code></dt>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.accelerometer_y"><code class="name">var <span class="ident">accelerometer_y</span> : typing.Union[numpy.ndarray, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.accelerometer_z"><code class="name">var <span class="ident">accelerometer_z</span> : typing.Optional[numpy.ndarray]</code></dt>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.accelerometer_z"><code class="name">var <span class="ident">accelerometer_z</span> : typing.Union[numpy.ndarray, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.gyroscope_timestamps"><code class="name">var <span class="ident">gyroscope_timestamps</span> : typing.Optional[numpy.ndarray]</code></dt>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.gyroscope_timestamps"><code class="name">var <span class="ident">gyroscope_timestamps</span> : typing.Union[numpy.ndarray, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.gyroscope_x"><code class="name">var <span class="ident">gyroscope_x</span> : typing.Optional[numpy.ndarray]</code></dt>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.gyroscope_x"><code class="name">var <span class="ident">gyroscope_x</span> : typing.Union[numpy.ndarray, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.gyroscope_y"><code class="name">var <span class="ident">gyroscope_y</span> : typing.Optional[numpy.ndarray]</code></dt>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.gyroscope_y"><code class="name">var <span class="ident">gyroscope_y</span> : typing.Union[numpy.ndarray, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.gyroscope_z"><code class="name">var <span class="ident">gyroscope_z</span> : typing.Optional[numpy.ndarray]</code></dt>
+<dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.gyroscope_z"><code class="name">var <span class="ident">gyroscope_z</span> : typing.Union[numpy.ndarray, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -912,7 +911,7 @@ def from_packets(packets: List[&#34;WrappedRedvoxPacketM&#34;]) -&gt; &#34;Movem
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.derived.movement.MovementData.post_process"><code class="name flex">
-<span>def <span class="ident">post_process</span></span>(<span>self, max_merge_gap: typing.Optional[datetime.timedelta] = None, min_detection: typing.Optional[datetime.timedelta] = None)</span>
+<span>def <span class="ident">post_process</span></span>(<span>self, max_merge_gap: typing.Union[datetime.timedelta, NoneType] = None, min_detection: typing.Union[datetime.timedelta, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Performs post-processing on the MovementEventStream to optionally merge close together events and filter out
@@ -959,9 +958,7 @@ short-duration events.
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@total_ordering
-@dataclass
-class MovementEvent:
+<pre><code class="python">class MovementEvent:
     &#34;&#34;&#34;
     Represents the metadata associated with a derived movement event.
     &#34;&#34;&#34;
@@ -1197,8 +1194,7 @@ def from_event(event: &#34;Event&#34;) -&gt; &#34;MovementEvent&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass
-class MovementEventStream:
+<pre><code class="python">class MovementEventStream:
     &#34;&#34;&#34;
     Represents a derived movement event stream.
     &#34;&#34;&#34;

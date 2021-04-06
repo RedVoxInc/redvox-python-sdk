@@ -707,7 +707,7 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
 </details>
 </dd>
 <dt id="redvox.api1000.common.common.validate_sample_payload"><code class="name flex">
-<span>def <span class="ident">validate_sample_payload</span></span>(<span>sample_payload: <a title="redvox.api1000.common.common.SamplePayload" href="#redvox.api1000.common.common.SamplePayload">SamplePayload</a>, payload_name: typing.Optional[str] = None, payload_unit: typing.Optional[<a title="redvox.api1000.common.common.Unit" href="#redvox.api1000.common.common.Unit">Unit</a>] = None) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate_sample_payload</span></span>(<span>sample_payload: <a title="redvox.api1000.common.common.SamplePayload" href="#redvox.api1000.common.common.SamplePayload">SamplePayload</a>, payload_name: typing.Union[str, NoneType] = None, payload_unit: typing.Union[<a title="redvox.api1000.common.common.Unit" href="#redvox.api1000.common.common.Unit">Unit</a>, NoneType] = None) ‑> typing.List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates the sample payload.
@@ -2328,8 +2328,7 @@ def new() -&gt; &#34;TimingPayload&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.Unit)
-class Unit(enum.Enum):
+<pre><code class="python">class Unit(enum.Enum):
     &#34;&#34;&#34;
     Standard units expected to be used within API M.
     &#34;&#34;&#34;

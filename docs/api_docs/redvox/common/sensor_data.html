@@ -43,6 +43,19 @@ import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om
 
 
+def calc_evenly_sampled_timestamps(
+        start: float, samples: int, rate_hz: float
+) -&gt; np.array:
+    &#34;&#34;&#34;
+    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+    :param start: float, start timestamp in microseconds
+    :param samples: int, number of samples
+    :param rate_hz: float, sample rate in hz
+    :return: np.array with evenly spaced timestamps starting at start
+    &#34;&#34;&#34;
+    return start + (np.arange(0, samples) / rate_hz) * dtu.MICROSECONDS_IN_SECOND
+
+
 # todo: add original timestamps to the dataframes
 class SensorType(enum.Enum):
     &#34;&#34;&#34;
@@ -304,6 +317,12 @@ class SensorData:
         return self.data_df.columns.to_list()
 
     def update_data_timestamps(self, offset_model: om.OffsetModel):
+        # if self.is_sample_rate_fixed:
+        #     first_timestamp = offset_model.update_time(self.first_data_timestamp())
+        #     self.data_df[&#34;timestamps&#34;] = \
+        #         calc_evenly_sampled_timestamps(first_timestamp, self.num_samples(),
+        #                                        self.sample_rate + dtu.microseconds_to_seconds(offset_model.slope))
+        # else:
         self.data_df[&#34;timestamps&#34;] = [offset_model.update_time(t) for t in self.data_timestamps()]
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) &gt; 1:
@@ -311,7 +330,7 @@ class SensorData:
             if self.sample_interval_s &gt; 0:
                 self.sample_rate = 1 / self.sample_interval_s
                 self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
-            self.timestamps_altered = True
+        self.timestamps_altered = True
 
     def sort_by_data_timestamps(self, ascending: bool = True):
         &#34;&#34;&#34;
@@ -347,6 +366,35 @@ class SensorData:
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.common.sensor_data.calc_evenly_sampled_timestamps"><code class="name flex">
+<span>def <span class="ident">calc_evenly_sampled_timestamps</span></span>(<span>start: float, samples: int, rate_hz: float) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+:param start: float, start timestamp in microseconds
+:param samples: int, number of samples
+:param rate_hz: float, sample rate in hz
+:return: np.array with evenly spaced timestamps starting at start</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calc_evenly_sampled_timestamps(
+        start: float, samples: int, rate_hz: float
+) -&gt; np.array:
+    &#34;&#34;&#34;
+    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+    :param start: float, start timestamp in microseconds
+    :param samples: int, number of samples
+    :param rate_hz: float, sample rate in hz
+    :return: np.array with evenly spaced timestamps starting at start
+    &#34;&#34;&#34;
+    return start + (np.arange(0, samples) / rate_hz) * dtu.MICROSECONDS_IN_SECOND</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -568,6 +616,12 @@ default False</p></div>
         return self.data_df.columns.to_list()
 
     def update_data_timestamps(self, offset_model: om.OffsetModel):
+        # if self.is_sample_rate_fixed:
+        #     first_timestamp = offset_model.update_time(self.first_data_timestamp())
+        #     self.data_df[&#34;timestamps&#34;] = \
+        #         calc_evenly_sampled_timestamps(first_timestamp, self.num_samples(),
+        #                                        self.sample_rate + dtu.microseconds_to_seconds(offset_model.slope))
+        # else:
         self.data_df[&#34;timestamps&#34;] = [offset_model.update_time(t) for t in self.data_timestamps()]
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) &gt; 1:
@@ -575,7 +629,7 @@ default False</p></div>
             if self.sample_interval_s &gt; 0:
                 self.sample_rate = 1 / self.sample_interval_s
                 self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
-            self.timestamps_altered = True
+        self.timestamps_altered = True
 
     def sort_by_data_timestamps(self, ascending: bool = True):
         &#34;&#34;&#34;
@@ -937,6 +991,12 @@ Updates the SensorData object with the new values
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def update_data_timestamps(self, offset_model: om.OffsetModel):
+    # if self.is_sample_rate_fixed:
+    #     first_timestamp = offset_model.update_time(self.first_data_timestamp())
+    #     self.data_df[&#34;timestamps&#34;] = \
+    #         calc_evenly_sampled_timestamps(first_timestamp, self.num_samples(),
+    #                                        self.sample_rate + dtu.microseconds_to_seconds(offset_model.slope))
+    # else:
     self.data_df[&#34;timestamps&#34;] = [offset_model.update_time(t) for t in self.data_timestamps()]
     time_diffs = np.floor(np.diff(self.data_timestamps()))
     if len(time_diffs) &gt; 1:
@@ -944,7 +1004,7 @@ Updates the SensorData object with the new values
         if self.sample_interval_s &gt; 0:
             self.sample_rate = 1 / self.sample_interval_s
             self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
-        self.timestamps_altered = True</code></pre>
+    self.timestamps_altered = True</code></pre>
 </details>
 </dd>
 </dl>
@@ -1195,6 +1255,11 @@ def type_from_str(type_str: str) -&gt; &#34;SensorType&#34;:
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="redvox.common" href="index.html">redvox.common</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.common.sensor_data.calc_evenly_sampled_timestamps" href="#redvox.common.sensor_data.calc_evenly_sampled_timestamps">calc_evenly_sampled_timestamps</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

@@ -40,32 +40,6 @@ import redvox.cloud.errors as cloud_errors
 from redvox.cloud.routes import RoutesV1
 
 
-# @dataclass
-# class ApiConfig:
-#     &#34;&#34;&#34;
-#     Provides a configuration for the base API URL.
-#     &#34;&#34;&#34;
-#
-#     protocol: str
-#     host: str
-#     port: int
-#
-#     def url(self, end_point: str) -&gt; str:
-#         &#34;&#34;&#34;
-#         Formats the API URL.
-#         :param end_point: Endpoint to use.
-#         :return: The formatted API URL.
-#         &#34;&#34;&#34;
-#         return f&#34;{self.protocol}://{self.host}:{self.port}{end_point}&#34;
-#
-#     @staticmethod
-#     def default() -&gt; &#34;ApiConfig&#34;:
-#         &#34;&#34;&#34;
-#         :return: The default API configuration for communicating with RedVox cloud services.
-#         &#34;&#34;&#34;
-#         return ApiConfig(&#34;https&#34;, &#34;redvox.io&#34;, 8080)
-
-
 def post_req(
     redvox_config: RedVoxConfig,
     route: str,
@@ -137,7 +111,7 @@ def health_check(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.api.health_check"><code class="name flex">
-<span>def <span class="ident">health_check</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, session: typing.Optional[requests.sessions.Session] = None, timeout: typing.Optional[float] = 10.0) ‑> bool</span>
+<span>def <span class="ident">health_check</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = 10.0) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Check that the Cloud API endpoint is up.
@@ -175,7 +149,7 @@ def health_check(
 </details>
 </dd>
 <dt id="redvox.cloud.api.post_req"><code class="name flex">
-<span>def <span class="ident">post_req</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, route: str, req: typing.Any, resp_transform: typing.Callable[[requests.models.Response], typing.Any], session: typing.Optional[requests.sessions.Session] = None, timeout: typing.Optional[float] = 10.0) ‑> typing.Optional[typing.Any]</span>
+<span>def <span class="ident">post_req</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, route: str, req: typing.Any, resp_transform: typing.Callable[[requests.models.Response], typing.Any], session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = 10.0) ‑> typing.Union[typing.Any, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Performs an HTTP POST request.

@@ -188,7 +188,7 @@ except ImportError:
 <dl>
 <dt id="redvox.api1000.gui.image_viewer.ImageSelectionWidget"><code class="flex name class">
 <span>class <span class="ident">ImageSelectionWidget</span></span>
-<span>(</span><span>image_sensor: Image, image_view_widget: <a title="redvox.api1000.gui.image_viewer.ImageViewWidget" href="#redvox.api1000.gui.image_viewer.ImageViewWidget">ImageViewWidget</a>, parent: typing.Optional[PySide2.QtWidgets.QWidget] = None)</span>
+<span>(</span><span>image_sensor: Image, image_view_widget: <a title="redvox.api1000.gui.image_viewer.ImageViewWidget" href="#redvox.api1000.gui.image_viewer.ImageViewWidget">ImageViewWidget</a>, parent: typing.Union[PySide2.QtWidgets.QWidget, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This widget provides a table view of available images in the packet.</p></div>
@@ -322,7 +322,7 @@ except ImportError:
 </dd>
 <dt id="redvox.api1000.gui.image_viewer.ImageViewer"><code class="flex name class">
 <span>class <span class="ident">ImageViewer</span></span>
-<span>(</span><span>image_sensor: Image, parent: typing.Optional[PySide2.QtWidgets.QWidget] = None)</span>
+<span>(</span><span>image_sensor: Image, parent: typing.Union[PySide2.QtWidgets.QWidget, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Widget that acts as the "main" widget into the application</p></div>
@@ -368,7 +368,7 @@ except ImportError:
 </dd>
 <dt id="redvox.api1000.gui.image_viewer.MainWindow"><code class="flex name class">
 <span>class <span class="ident">MainWindow</span></span>
-<span>(</span><span>image_sensor: Image, parent: typing.Optional[PySide2.QtWidgets.QWidget] = None)</span>
+<span>(</span><span>image_sensor: Image, parent: typing.Union[PySide2.QtWidgets.QWidget, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Main window of the application</p></div>

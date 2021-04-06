@@ -74,7 +74,7 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(test_sensor.num_samples(), 641)
         test_sensor = datawindow.get_station(&#34;0000000001&#34;).audio_sensor()
         self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 720000)
+        self.assertEqual(test_sensor.num_samples(), 720068)
         test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
         self.assertIsNotNone(test_sensor)
         self.assertEqual(test_sensor.num_samples(), 3)
@@ -90,7 +90,7 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(dw_with_start_end.stations), 1)
         audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).audio_sensor()
         self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 479984)
+        self.assertEqual(audio_sensor.num_samples(), 479994)
         loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).location_sensor()
         self.assertIsNotNone(loc_sensor)
         self.assertEqual(loc_sensor.num_samples(), 2)
@@ -115,6 +115,9 @@ class PadDataTest(unittest.TestCase):
         cls.dataframe = pd.DataFrame(
             np.transpose([timestamps, [4, 5, 6]]), columns=[&#34;timestamps&#34;, &#34;temp&#34;]
         )
+        cls.singleton = pd.DataFrame(
+            [[timestamps[0], 1]], columns=[&#34;timestamps&#34;, &#34;temp&#34;]
+        )
 
     def test_pad_data(self):
         filled_dataframe = dw.pad_data(
@@ -129,6 +132,21 @@ class PadDataTest(unittest.TestCase):
         )
         self.assertEqual(
             filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
+        )
+
+    def test_pad_data_single_value(self):
+        filled_singleton = dw.pad_data(
+            dt.seconds_to_microseconds(10),
+            dt.seconds_to_microseconds(100),
+            self.singleton,
+            dt.seconds_to_microseconds(10),
+        )
+        self.assertEqual(filled_singleton.shape, (10, 2))
+        self.assertEqual(
+            filled_singleton.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(20)
+        )
+        self.assertEqual(
+            filled_singleton.loc[3, &#34;timestamps&#34;], dt.seconds_to_microseconds(40)
         )
 
     def test_pad_data_uneven_ends(self):
@@ -164,12 +182,28 @@ class FillGapTest(unittest.TestCase):
         cls.dataframe = pd.DataFrame(
             np.transpose([timestamps, [1, 3, 10]]), columns=[&#34;timestamps&#34;, &#34;temp&#34;]
         )
+        cls.singleton = pd.DataFrame(
+            [[timestamps[0], 1]], columns=[&#34;timestamps&#34;, &#34;temp&#34;]
+        )
+
+    def test_singleton_fill_gaps(self):
+        filled_singleton = dw.fill_gaps(
+            self.singleton,
+            dt.seconds_to_microseconds(10),
+            0,
+            dt.seconds_to_microseconds(10)
+        )
+        self.assertEqual(filled_singleton.shape, (1, 2))
+        self.assertEqual(
+            filled_singleton.loc[0, &#34;timestamps&#34;], dt.seconds_to_microseconds(10)
+        )
 
     def test_fill_gaps(self):
         filled_dataframe = dw.fill_gaps(
             self.dataframe,
             dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(10),
+            0,
+            dt.seconds_to_microseconds(10)
         )
         self.assertEqual(filled_dataframe.shape, (10, 2))
         self.assertEqual(
@@ -183,6 +217,7 @@ class FillGapTest(unittest.TestCase):
         filled_dataframe = dw.fill_gaps(
             self.dataframe,
             dt.seconds_to_microseconds(20),
+            0,
             dt.seconds_to_microseconds(10),
         )
         self.assertEqual(filled_dataframe.shape, (6, 2))
@@ -197,6 +232,7 @@ class FillGapTest(unittest.TestCase):
         filled_dataframe = dw.fill_gaps(
             self.dataframe,
             dt.seconds_to_microseconds(10),
+            0,
             dt.seconds_to_microseconds(20),
         )
         self.assertEqual(filled_dataframe.shape, (9, 2))
@@ -540,7 +576,7 @@ not have a method with the specified name.</p></div>
         self.assertEqual(test_sensor.num_samples(), 641)
         test_sensor = datawindow.get_station(&#34;0000000001&#34;).audio_sensor()
         self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 720000)
+        self.assertEqual(test_sensor.num_samples(), 720068)
         test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
         self.assertIsNotNone(test_sensor)
         self.assertEqual(test_sensor.num_samples(), 3)
@@ -556,7 +592,7 @@ not have a method with the specified name.</p></div>
         self.assertEqual(len(dw_with_start_end.stations), 1)
         audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).audio_sensor()
         self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 479984)
+        self.assertEqual(audio_sensor.num_samples(), 479994)
         loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).location_sensor()
         self.assertIsNotNone(loc_sensor)
         self.assertEqual(loc_sensor.num_samples(), 2)
@@ -617,7 +653,7 @@ def setUpClass(cls) -&gt; None:
     self.assertEqual(test_sensor.num_samples(), 641)
     test_sensor = datawindow.get_station(&#34;0000000001&#34;).audio_sensor()
     self.assertIsNotNone(test_sensor)
-    self.assertEqual(test_sensor.num_samples(), 720000)
+    self.assertEqual(test_sensor.num_samples(), 720068)
     test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
     self.assertIsNotNone(test_sensor)
     self.assertEqual(test_sensor.num_samples(), 3)</code></pre>
@@ -684,7 +720,7 @@ def setUpClass(cls) -&gt; None:
     self.assertEqual(len(dw_with_start_end.stations), 1)
     audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).audio_sensor()
     self.assertIsNotNone(audio_sensor)
-    self.assertEqual(audio_sensor.num_samples(), 479984)
+    self.assertEqual(audio_sensor.num_samples(), 479994)
     loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).location_sensor()
     self.assertIsNotNone(loc_sensor)
     self.assertEqual(loc_sensor.num_samples(), 2)</code></pre>
@@ -740,12 +776,28 @@ not have a method with the specified name.</p></div>
         cls.dataframe = pd.DataFrame(
             np.transpose([timestamps, [1, 3, 10]]), columns=[&#34;timestamps&#34;, &#34;temp&#34;]
         )
+        cls.singleton = pd.DataFrame(
+            [[timestamps[0], 1]], columns=[&#34;timestamps&#34;, &#34;temp&#34;]
+        )
+
+    def test_singleton_fill_gaps(self):
+        filled_singleton = dw.fill_gaps(
+            self.singleton,
+            dt.seconds_to_microseconds(10),
+            0,
+            dt.seconds_to_microseconds(10)
+        )
+        self.assertEqual(filled_singleton.shape, (1, 2))
+        self.assertEqual(
+            filled_singleton.loc[0, &#34;timestamps&#34;], dt.seconds_to_microseconds(10)
+        )
 
     def test_fill_gaps(self):
         filled_dataframe = dw.fill_gaps(
             self.dataframe,
             dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(10),
+            0,
+            dt.seconds_to_microseconds(10)
         )
         self.assertEqual(filled_dataframe.shape, (10, 2))
         self.assertEqual(
@@ -759,6 +811,7 @@ not have a method with the specified name.</p></div>
         filled_dataframe = dw.fill_gaps(
             self.dataframe,
             dt.seconds_to_microseconds(20),
+            0,
             dt.seconds_to_microseconds(10),
         )
         self.assertEqual(filled_dataframe.shape, (6, 2))
@@ -773,6 +826,7 @@ not have a method with the specified name.</p></div>
         filled_dataframe = dw.fill_gaps(
             self.dataframe,
             dt.seconds_to_microseconds(10),
+            0,
             dt.seconds_to_microseconds(20),
         )
         self.assertEqual(filled_dataframe.shape, (9, 2))
@@ -807,6 +861,9 @@ def setUpClass(cls) -&gt; None:
     ]
     cls.dataframe = pd.DataFrame(
         np.transpose([timestamps, [1, 3, 10]]), columns=[&#34;timestamps&#34;, &#34;temp&#34;]
+    )
+    cls.singleton = pd.DataFrame(
+        [[timestamps[0], 1]], columns=[&#34;timestamps&#34;, &#34;temp&#34;]
     )</code></pre>
 </details>
 </dd>
@@ -826,7 +883,8 @@ def setUpClass(cls) -&gt; None:
     filled_dataframe = dw.fill_gaps(
         self.dataframe,
         dt.seconds_to_microseconds(10),
-        dt.seconds_to_microseconds(10),
+        0,
+        dt.seconds_to_microseconds(10)
     )
     self.assertEqual(filled_dataframe.shape, (10, 2))
     self.assertEqual(
@@ -850,6 +908,7 @@ def setUpClass(cls) -&gt; None:
     filled_dataframe = dw.fill_gaps(
         self.dataframe,
         dt.seconds_to_microseconds(10),
+        0,
         dt.seconds_to_microseconds(20),
     )
     self.assertEqual(filled_dataframe.shape, (9, 2))
@@ -874,6 +933,7 @@ def setUpClass(cls) -&gt; None:
     filled_dataframe = dw.fill_gaps(
         self.dataframe,
         dt.seconds_to_microseconds(20),
+        0,
         dt.seconds_to_microseconds(10),
     )
     self.assertEqual(filled_dataframe.shape, (6, 2))
@@ -882,6 +942,28 @@ def setUpClass(cls) -&gt; None:
     )
     self.assertEqual(
         filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(50)
+    )</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_data_window.FillGapTest.test_singleton_fill_gaps"><code class="name flex">
+<span>def <span class="ident">test_singleton_fill_gaps</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_singleton_fill_gaps(self):
+    filled_singleton = dw.fill_gaps(
+        self.singleton,
+        dt.seconds_to_microseconds(10),
+        0,
+        dt.seconds_to_microseconds(10)
+    )
+    self.assertEqual(filled_singleton.shape, (1, 2))
+    self.assertEqual(
+        filled_singleton.loc[0, &#34;timestamps&#34;], dt.seconds_to_microseconds(10)
     )</code></pre>
 </details>
 </dd>
@@ -935,6 +1017,9 @@ not have a method with the specified name.</p></div>
         cls.dataframe = pd.DataFrame(
             np.transpose([timestamps, [4, 5, 6]]), columns=[&#34;timestamps&#34;, &#34;temp&#34;]
         )
+        cls.singleton = pd.DataFrame(
+            [[timestamps[0], 1]], columns=[&#34;timestamps&#34;, &#34;temp&#34;]
+        )
 
     def test_pad_data(self):
         filled_dataframe = dw.pad_data(
@@ -949,6 +1034,21 @@ not have a method with the specified name.</p></div>
         )
         self.assertEqual(
             filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
+        )
+
+    def test_pad_data_single_value(self):
+        filled_singleton = dw.pad_data(
+            dt.seconds_to_microseconds(10),
+            dt.seconds_to_microseconds(100),
+            self.singleton,
+            dt.seconds_to_microseconds(10),
+        )
+        self.assertEqual(filled_singleton.shape, (10, 2))
+        self.assertEqual(
+            filled_singleton.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(20)
+        )
+        self.assertEqual(
+            filled_singleton.loc[3, &#34;timestamps&#34;], dt.seconds_to_microseconds(40)
         )
 
     def test_pad_data_uneven_ends(self):
@@ -996,6 +1096,9 @@ def setUpClass(cls) -&gt; None:
     ]
     cls.dataframe = pd.DataFrame(
         np.transpose([timestamps, [4, 5, 6]]), columns=[&#34;timestamps&#34;, &#34;temp&#34;]
+    )
+    cls.singleton = pd.DataFrame(
+        [[timestamps[0], 1]], columns=[&#34;timestamps&#34;, &#34;temp&#34;]
     )</code></pre>
 </details>
 </dd>
@@ -1024,6 +1127,31 @@ def setUpClass(cls) -&gt; None:
     )
     self.assertEqual(
         filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
+    )</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_data_window.PadDataTest.test_pad_data_single_value"><code class="name flex">
+<span>def <span class="ident">test_pad_data_single_value</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_pad_data_single_value(self):
+    filled_singleton = dw.pad_data(
+        dt.seconds_to_microseconds(10),
+        dt.seconds_to_microseconds(100),
+        self.singleton,
+        dt.seconds_to_microseconds(10),
+    )
+    self.assertEqual(filled_singleton.shape, (10, 2))
+    self.assertEqual(
+        filled_singleton.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(20)
+    )
+    self.assertEqual(
+        filled_singleton.loc[3, &#34;timestamps&#34;], dt.seconds_to_microseconds(40)
     )</code></pre>
 </details>
 </dd>
@@ -1104,6 +1232,7 @@ def setUpClass(cls) -&gt; None:
 <li><code><a title="redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps" href="#redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps">test_fill_gaps</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps_long_gap" href="#redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps_long_gap">test_fill_gaps_long_gap</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps_long_interval" href="#redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps_long_interval">test_fill_gaps_long_interval</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.FillGapTest.test_singleton_fill_gaps" href="#redvox.tests.common.test_data_window.FillGapTest.test_singleton_fill_gaps">test_singleton_fill_gaps</a></code></li>
 </ul>
 </li>
 <li>
@@ -1111,6 +1240,7 @@ def setUpClass(cls) -&gt; None:
 <ul class="">
 <li><code><a title="redvox.tests.common.test_data_window.PadDataTest.setUpClass" href="#redvox.tests.common.test_data_window.PadDataTest.setUpClass">setUpClass</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.PadDataTest.test_pad_data" href="#redvox.tests.common.test_data_window.PadDataTest.test_pad_data">test_pad_data</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.PadDataTest.test_pad_data_single_value" href="#redvox.tests.common.test_data_window.PadDataTest.test_pad_data_single_value">test_pad_data_single_value</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.PadDataTest.test_pad_data_uneven_ends" href="#redvox.tests.common.test_data_window.PadDataTest.test_pad_data_uneven_ends">test_pad_data_uneven_ends</a></code></li>
 </ul>
 </li>

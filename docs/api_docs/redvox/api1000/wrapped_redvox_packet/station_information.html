@@ -3324,10 +3324,7 @@ def new() -&gt; &#34;AppSettings&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@wrap_enum(
-    redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate
-)
-class AudioSamplingRate(enum.Enum):
+<pre><code class="python">class AudioSamplingRate(enum.Enum):
     &#34;&#34;&#34;
     Sampling Rate as provided by the app settings.
     &#34;&#34;&#34;
@@ -3397,7 +3394,7 @@ class AudioSamplingRate(enum.Enum):
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.api1000.wrapped_redvox_packet.station_information.AudioSamplingRate.from_sampling_rate"><code class="name flex">
-<span>def <span class="ident">from_sampling_rate</span></span>(<span>sampling_rate: float) ‑> typing.Optional[<a title="redvox.api1000.wrapped_redvox_packet.station_information.AudioSamplingRate" href="#redvox.api1000.wrapped_redvox_packet.station_information.AudioSamplingRate">AudioSamplingRate</a>]</span>
+<span>def <span class="ident">from_sampling_rate</span></span>(<span>sampling_rate: float) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.station_information.AudioSamplingRate" href="#redvox.api1000.wrapped_redvox_packet.station_information.AudioSamplingRate">AudioSamplingRate</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert from a numeric sampling rate into this enum.
@@ -3455,10 +3452,7 @@ def from_sampling_rate(sampling_rate: float) -&gt; Optional[&#34;AudioSamplingRa
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@wrap_enum(
-    redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning
-)
-class AudioSourceTuning(enum.Enum):
+<pre><code class="python">class AudioSourceTuning(enum.Enum):
     &#34;&#34;&#34;
     Audio source tuning from app settings
     &#34;&#34;&#34;
@@ -3521,10 +3515,7 @@ class AudioSourceTuning(enum.Enum):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@wrap_enum(
-    redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState
-)
-class CellServiceState(enum.Enum):
+<pre><code class="python">class CellServiceState(enum.Enum):
     &#34;&#34;&#34;
     Cell service state for station metrics
     &#34;&#34;&#34;
@@ -3592,8 +3583,7 @@ class CellServiceState(enum.Enum):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.FftOverlap)
-class FftOverlap(enum.Enum):
+<pre><code class="python">class FftOverlap(enum.Enum):
     &#34;&#34;&#34;
     FFT overlap provided by the app settings
     &#34;&#34;&#34;
@@ -3656,8 +3646,7 @@ class FftOverlap(enum.Enum):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.InputSensor)
-class InputSensor(enum.Enum):
+<pre><code class="python">class InputSensor(enum.Enum):
     &#34;&#34;&#34;
     Input sensors provided to additional input sensors in the app settings.
     &#34;&#34;&#34;
@@ -3810,8 +3799,7 @@ class InputSensor(enum.Enum):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.ScreenState)
-class MetricsRate(enum.Enum):
+<pre><code class="python">class MetricsRate(enum.Enum):
     &#34;&#34;&#34;
     Enumeration for valid metric collection rates
     &#34;&#34;&#34;
@@ -3869,8 +3857,7 @@ class MetricsRate(enum.Enum):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.NetworkType)
-class NetworkType(enum.Enum):
+<pre><code class="python">class NetworkType(enum.Enum):
     &#34;&#34;&#34;
     Network type for station metrics
     &#34;&#34;&#34;
@@ -3938,8 +3925,7 @@ class NetworkType(enum.Enum):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.OsType)
-class OsType(enum.Enum):
+<pre><code class="python">class OsType(enum.Enum):
     &#34;&#34;&#34;
     Type-safe OS enumeration for station info
     &#34;&#34;&#34;
@@ -4012,8 +3998,7 @@ class OsType(enum.Enum):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.PowerState)
-class PowerState(enum.Enum):
+<pre><code class="python">class PowerState(enum.Enum):
     &#34;&#34;&#34;
     Power state for station metrics
     &#34;&#34;&#34;
@@ -4076,8 +4061,7 @@ class PowerState(enum.Enum):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@wrap_enum(redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.ScreenState)
-class ScreenState(enum.Enum):
+<pre><code class="python">class ScreenState(enum.Enum):
     &#34;&#34;&#34;
     Enumeration of possible screen states.
     &#34;&#34;&#34;
@@ -6216,10 +6200,7 @@ def new() -&gt; &#34;StationMetrics&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@wrap_enum(
-    redvox_api_m_pb2.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock
-)
-class WifiWakeLock(enum.Enum):
+<pre><code class="python">class WifiWakeLock(enum.Enum):
     &#34;&#34;&#34;
     WiFi wake lock states for station metrics
     &#34;&#34;&#34;

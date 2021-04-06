@@ -610,7 +610,7 @@ def request_station_statuses(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.metadata_api.request_metadata"><code class="name flex">
-<span>def <span class="ident">request_metadata</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, packet_metadata_req: <a title="redvox.cloud.metadata_api.MetadataReq" href="#redvox.cloud.metadata_api.MetadataReq">MetadataReq</a>, session: typing.Optional[requests.sessions.Session] = None, timeout: typing.Optional[float] = None) ‑> typing.Optional[<a title="redvox.cloud.metadata_api.MetadataResp" href="#redvox.cloud.metadata_api.MetadataResp">MetadataResp</a>]</span>
+<span>def <span class="ident">request_metadata</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, packet_metadata_req: <a title="redvox.cloud.metadata_api.MetadataReq" href="#redvox.cloud.metadata_api.MetadataReq">MetadataReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> typing.Union[<a title="redvox.cloud.metadata_api.MetadataResp" href="#redvox.cloud.metadata_api.MetadataResp">MetadataResp</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Requests generic metadata from the cloud API.
@@ -653,7 +653,7 @@ def request_station_statuses(
 </details>
 </dd>
 <dt id="redvox.cloud.metadata_api.request_metadata_m"><code class="name flex">
-<span>def <span class="ident">request_metadata_m</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, packet_metadata_req: <a title="redvox.cloud.metadata_api.MetadataReq" href="#redvox.cloud.metadata_api.MetadataReq">MetadataReq</a>, session: typing.Optional[requests.sessions.Session] = None, timeout: typing.Optional[float] = None) ‑> typing.Optional[<a title="redvox.cloud.metadata_api.MetadataRespM" href="#redvox.cloud.metadata_api.MetadataRespM">MetadataRespM</a>]</span>
+<span>def <span class="ident">request_metadata_m</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, packet_metadata_req: <a title="redvox.cloud.metadata_api.MetadataReq" href="#redvox.cloud.metadata_api.MetadataReq">MetadataReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> typing.Union[<a title="redvox.cloud.metadata_api.MetadataRespM" href="#redvox.cloud.metadata_api.MetadataRespM">MetadataRespM</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Requests generic metadata from the cloud API.
@@ -695,7 +695,7 @@ def request_station_statuses(
 </details>
 </dd>
 <dt id="redvox.cloud.metadata_api.request_station_statuses"><code class="name flex">
-<span>def <span class="ident">request_station_statuses</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, station_status_req: <a title="redvox.cloud.metadata_api.StationStatusReq" href="#redvox.cloud.metadata_api.StationStatusReq">StationStatusReq</a>, session: typing.Optional[requests.sessions.Session] = None, timeout: typing.Optional[float] = None) ‑> typing.Optional[<a title="redvox.cloud.metadata_api.StationStatusResp" href="#redvox.cloud.metadata_api.StationStatusResp">StationStatusResp</a>]</span>
+<span>def <span class="ident">request_station_statuses</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, station_status_req: <a title="redvox.cloud.metadata_api.StationStatusReq" href="#redvox.cloud.metadata_api.StationStatusReq">StationStatusReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> typing.Union[<a title="redvox.cloud.metadata_api.StationStatusResp" href="#redvox.cloud.metadata_api.StationStatusResp">StationStatusResp</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -724,7 +724,7 @@ def request_station_statuses(
 </details>
 </dd>
 <dt id="redvox.cloud.metadata_api.request_timing_metadata"><code class="name flex">
-<span>def <span class="ident">request_timing_metadata</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, timing_req: <a title="redvox.cloud.metadata_api.TimingMetaRequest" href="#redvox.cloud.metadata_api.TimingMetaRequest">TimingMetaRequest</a>, session: typing.Optional[requests.sessions.Session] = None, timeout: typing.Optional[float] = None) ‑> <a title="redvox.cloud.metadata_api.TimingMetaResponse" href="#redvox.cloud.metadata_api.TimingMetaResponse">TimingMetaResponse</a></span>
+<span>def <span class="ident">request_timing_metadata</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, timing_req: <a title="redvox.cloud.metadata_api.TimingMetaRequest" href="#redvox.cloud.metadata_api.TimingMetaRequest">TimingMetaRequest</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> <a title="redvox.cloud.metadata_api.TimingMetaResponse" href="#redvox.cloud.metadata_api.TimingMetaResponse">TimingMetaResponse</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Retrieve timing metadata.
@@ -778,7 +778,7 @@ def request_station_statuses(
 <dl>
 <dt id="redvox.cloud.metadata_api.AdditionalMetadata"><code class="flex name class">
 <span>class <span class="ident">AdditionalMetadata</span></span>
-<span>(</span><span>data_key: typing.Optional[str])</span>
+<span>(</span><span>data_key: typing.Union[str, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Representation of additional metadata from database.</p></div>
@@ -786,8 +786,7 @@ def request_station_statuses(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass
-class AdditionalMetadata:
+<pre><code class="python">class AdditionalMetadata:
     &#34;&#34;&#34;
     Representation of additional metadata from database.
     &#34;&#34;&#34;
@@ -808,7 +807,7 @@ class AdditionalMetadata:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.metadata_api.AdditionalMetadata.data_key"><code class="name">var <span class="ident">data_key</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.AdditionalMetadata.data_key"><code class="name">var <span class="ident">data_key</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -816,7 +815,7 @@ class AdditionalMetadata:
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.metadata_api.AdditionalMetadata.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>json_dict: typing.Optional[typing.Dict]) ‑> typing.Optional[<a title="redvox.cloud.metadata_api.AdditionalMetadata" href="#redvox.cloud.metadata_api.AdditionalMetadata">AdditionalMetadata</a>]</span>
+<span>def <span class="ident">from_dict</span></span>(<span>json_dict: typing.Union[typing.Dict, NoneType]) ‑> typing.Union[<a title="redvox.cloud.metadata_api.AdditionalMetadata" href="#redvox.cloud.metadata_api.AdditionalMetadata">AdditionalMetadata</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts JSON into additional metadata.
@@ -843,7 +842,7 @@ def from_dict(json_dict: Optional[Dict]) -&gt; Optional[&#34;AdditionalMetadata&
 </dd>
 <dt id="redvox.cloud.metadata_api.AudioMetadata"><code class="flex name class">
 <span>class <span class="ident">AudioMetadata</span></span>
-<span>(</span><span>sensor_name: typing.Optional[str] = None, sample_rate: typing.Optional[float] = None, first_sample_ts: typing.Optional[int] = None, payload_cnt: typing.Optional[int] = None, payload_mean: typing.Optional[float] = None, payload_std: typing.Optional[float] = None, payload_median: typing.Optional[float] = None)</span>
+<span>(</span><span>sensor_name: typing.Union[str, NoneType] = None, sample_rate: typing.Union[float, NoneType] = None, first_sample_ts: typing.Union[int, NoneType] = None, payload_cnt: typing.Union[int, NoneType] = None, payload_mean: typing.Union[float, NoneType] = None, payload_std: typing.Union[float, NoneType] = None, payload_median: typing.Union[float, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Metadata associated with audio sensors.</p></div>
@@ -851,9 +850,7 @@ def from_dict(json_dict: Optional[Dict]) -&gt; Optional[&#34;AdditionalMetadata&
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class AudioMetadata:
+<pre><code class="python">class AudioMetadata:
     &#34;&#34;&#34;
     Metadata associated with audio sensors.
     &#34;&#34;&#34;
@@ -868,31 +865,31 @@ class AudioMetadata:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.metadata_api.AudioMetadata.first_sample_ts"><code class="name">var <span class="ident">first_sample_ts</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.first_sample_ts"><code class="name">var <span class="ident">first_sample_ts</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.AudioMetadata.payload_cnt"><code class="name">var <span class="ident">payload_cnt</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.payload_cnt"><code class="name">var <span class="ident">payload_cnt</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.AudioMetadata.payload_mean"><code class="name">var <span class="ident">payload_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.payload_mean"><code class="name">var <span class="ident">payload_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.AudioMetadata.payload_median"><code class="name">var <span class="ident">payload_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.payload_median"><code class="name">var <span class="ident">payload_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.AudioMetadata.payload_std"><code class="name">var <span class="ident">payload_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.payload_std"><code class="name">var <span class="ident">payload_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.AudioMetadata.sample_rate"><code class="name">var <span class="ident">sample_rate</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.sample_rate"><code class="name">var <span class="ident">sample_rate</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.AudioMetadata.sensor_name"><code class="name">var <span class="ident">sensor_name</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.AudioMetadata.sensor_name"><code class="name">var <span class="ident">sensor_name</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1042,10 +1039,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-# pylint: disable=C0103
-class AvailableMetadata:
+<pre><code class="python">class AvailableMetadata:
     &#34;&#34;&#34;
     Contains definitions for all available metadata that an be requested from the cloud api.
     &#34;&#34;&#34;
@@ -1459,9 +1453,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class DataAvailability:
+<pre><code class="python">class DataAvailability:
     station_id: str
     station_uuid: str
     start: int
@@ -1633,7 +1625,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.metadata_api.DbPacket"><code class="flex name class">
 <span>class <span class="ident">DbPacket</span></span>
-<span>(</span><span>_id: typing.Optional[str], metadata: typing.Optional[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>], additional_metadata: typing.Optional[<a title="redvox.cloud.metadata_api.AdditionalMetadata" href="#redvox.cloud.metadata_api.AdditionalMetadata">AdditionalMetadata</a>])</span>
+<span>(</span><span>_id: typing.Union[str, NoneType], metadata: typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType], additional_metadata: typing.Union[<a title="redvox.cloud.metadata_api.AdditionalMetadata" href="#redvox.cloud.metadata_api.AdditionalMetadata">AdditionalMetadata</a>, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Representation of a packet loaded from the database.</p></div>
@@ -1641,8 +1633,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass
-class DbPacket:
+<pre><code class="python">class DbPacket:
     &#34;&#34;&#34;
     Representation of a packet loaded from the database.
     &#34;&#34;&#34;
@@ -1666,11 +1657,11 @@ class DbPacket:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.metadata_api.DbPacket.additional_metadata"><code class="name">var <span class="ident">additional_metadata</span> : typing.Optional[<a title="redvox.cloud.metadata_api.AdditionalMetadata" href="#redvox.cloud.metadata_api.AdditionalMetadata">AdditionalMetadata</a>]</code></dt>
+<dt id="redvox.cloud.metadata_api.DbPacket.additional_metadata"><code class="name">var <span class="ident">additional_metadata</span> : typing.Union[<a title="redvox.cloud.metadata_api.AdditionalMetadata" href="#redvox.cloud.metadata_api.AdditionalMetadata">AdditionalMetadata</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.DbPacket.metadata"><code class="name">var <span class="ident">metadata</span> : typing.Optional[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]</code></dt>
+<dt id="redvox.cloud.metadata_api.DbPacket.metadata"><code class="name">var <span class="ident">metadata</span> : typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1706,7 +1697,7 @@ def from_dict(json_dict: Dict) -&gt; &#34;DbPacket&#34;:
 </dd>
 <dt id="redvox.cloud.metadata_api.LocationMetadata"><code class="flex name class">
 <span>class <span class="ident">LocationMetadata</span></span>
-<span>(</span><span>sensor_name: typing.Optional[str] = None, timestamps_microseconds_utc_count: typing.Optional[int] = None, payload_count: typing.Optional[int] = None, sample_interval_mean: typing.Optional[float] = None, sample_interval_std: typing.Optional[float] = None, sample_interval_median: typing.Optional[float] = None, latitude_mean: typing.Optional[float] = None, latitude_std: typing.Optional[float] = None, latitude_median: typing.Optional[float] = None, longitude_mean: typing.Optional[float] = None, longitude_std: typing.Optional[float] = None, longitude_median: typing.Optional[float] = None, altitude_mean: typing.Optional[float] = None, altitude_std: typing.Optional[float] = None, altitude_median: typing.Optional[float] = None, speed_mean: typing.Optional[float] = None, speed_std: typing.Optional[float] = None, speed_median: typing.Optional[float] = None, accuracy_mean: typing.Optional[float] = None, accuracy_std: typing.Optional[float] = None, accuracy_median: typing.Optional[float] = None, metadata: typing.Optional[typing.List[str]] = None)</span>
+<span>(</span><span>sensor_name: typing.Union[str, NoneType] = None, timestamps_microseconds_utc_count: typing.Union[int, NoneType] = None, payload_count: typing.Union[int, NoneType] = None, sample_interval_mean: typing.Union[float, NoneType] = None, sample_interval_std: typing.Union[float, NoneType] = None, sample_interval_median: typing.Union[float, NoneType] = None, latitude_mean: typing.Union[float, NoneType] = None, latitude_std: typing.Union[float, NoneType] = None, latitude_median: typing.Union[float, NoneType] = None, longitude_mean: typing.Union[float, NoneType] = None, longitude_std: typing.Union[float, NoneType] = None, longitude_median: typing.Union[float, NoneType] = None, altitude_mean: typing.Union[float, NoneType] = None, altitude_std: typing.Union[float, NoneType] = None, altitude_median: typing.Union[float, NoneType] = None, speed_mean: typing.Union[float, NoneType] = None, speed_std: typing.Union[float, NoneType] = None, speed_median: typing.Union[float, NoneType] = None, accuracy_mean: typing.Union[float, NoneType] = None, accuracy_std: typing.Union[float, NoneType] = None, accuracy_median: typing.Union[float, NoneType] = None, metadata: typing.Union[typing.List[str], NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Metadata associated with the location sensor.</p></div>
@@ -1714,9 +1705,7 @@ def from_dict(json_dict: Dict) -&gt; &#34;DbPacket&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class LocationMetadata:
+<pre><code class="python">class LocationMetadata:
     &#34;&#34;&#34;
     Metadata associated with the location sensor.
     &#34;&#34;&#34;
@@ -1746,91 +1735,91 @@ class LocationMetadata:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.accuracy_mean"><code class="name">var <span class="ident">accuracy_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.accuracy_mean"><code class="name">var <span class="ident">accuracy_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.accuracy_median"><code class="name">var <span class="ident">accuracy_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.accuracy_median"><code class="name">var <span class="ident">accuracy_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.accuracy_std"><code class="name">var <span class="ident">accuracy_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.accuracy_std"><code class="name">var <span class="ident">accuracy_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.altitude_mean"><code class="name">var <span class="ident">altitude_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.altitude_mean"><code class="name">var <span class="ident">altitude_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.altitude_median"><code class="name">var <span class="ident">altitude_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.altitude_median"><code class="name">var <span class="ident">altitude_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.altitude_std"><code class="name">var <span class="ident">altitude_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.altitude_std"><code class="name">var <span class="ident">altitude_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.latitude_mean"><code class="name">var <span class="ident">latitude_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.latitude_mean"><code class="name">var <span class="ident">latitude_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.latitude_median"><code class="name">var <span class="ident">latitude_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.latitude_median"><code class="name">var <span class="ident">latitude_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.latitude_std"><code class="name">var <span class="ident">latitude_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.latitude_std"><code class="name">var <span class="ident">latitude_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.longitude_mean"><code class="name">var <span class="ident">longitude_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.longitude_mean"><code class="name">var <span class="ident">longitude_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.longitude_median"><code class="name">var <span class="ident">longitude_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.longitude_median"><code class="name">var <span class="ident">longitude_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.longitude_std"><code class="name">var <span class="ident">longitude_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.longitude_std"><code class="name">var <span class="ident">longitude_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.metadata"><code class="name">var <span class="ident">metadata</span> : typing.Optional[typing.List[str]]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.metadata"><code class="name">var <span class="ident">metadata</span> : typing.Union[typing.List[str], NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.payload_count"><code class="name">var <span class="ident">payload_count</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.payload_count"><code class="name">var <span class="ident">payload_count</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.sample_interval_mean"><code class="name">var <span class="ident">sample_interval_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.sample_interval_mean"><code class="name">var <span class="ident">sample_interval_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.sample_interval_median"><code class="name">var <span class="ident">sample_interval_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.sample_interval_median"><code class="name">var <span class="ident">sample_interval_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.sample_interval_std"><code class="name">var <span class="ident">sample_interval_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.sample_interval_std"><code class="name">var <span class="ident">sample_interval_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.sensor_name"><code class="name">var <span class="ident">sensor_name</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.sensor_name"><code class="name">var <span class="ident">sensor_name</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.speed_mean"><code class="name">var <span class="ident">speed_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.speed_mean"><code class="name">var <span class="ident">speed_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.speed_median"><code class="name">var <span class="ident">speed_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.speed_median"><code class="name">var <span class="ident">speed_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.speed_std"><code class="name">var <span class="ident">speed_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.speed_std"><code class="name">var <span class="ident">speed_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.LocationMetadata.timestamps_microseconds_utc_count"><code class="name">var <span class="ident">timestamps_microseconds_utc_count</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.cloud.metadata_api.LocationMetadata.timestamps_microseconds_utc_count"><code class="name">var <span class="ident">timestamps_microseconds_utc_count</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1972,7 +1961,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.metadata_api.MetadataReq"><code class="flex name class">
 <span>class <span class="ident">MetadataReq</span></span>
-<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, station_ids: typing.List[str], fields: typing.List[str], secret_token: typing.Optional[str] = None)</span>
+<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, station_ids: typing.List[str], fields: typing.List[str], secret_token: typing.Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The definition of a metadata request. Fields should include the definitions defined by AvailableMetadata.</p></div>
@@ -1980,9 +1969,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class MetadataReq:
+<pre><code class="python">class MetadataReq:
     &#34;&#34;&#34;
     The definition of a metadata request. Fields should include the definitions defined by AvailableMetadata.
     &#34;&#34;&#34;
@@ -2008,7 +1995,7 @@ class MetadataReq:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.MetadataReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.MetadataReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2166,9 +2153,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class MetadataResp:
+<pre><code class="python">class MetadataResp:
     &#34;&#34;&#34;
     Response of a metadata request.
     &#34;&#34;&#34;
@@ -2327,8 +2312,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass
-class MetadataRespM:
+<pre><code class="python">class MetadataRespM:
     &#34;&#34;&#34;
     A metadata response for API M.
     &#34;&#34;&#34;
@@ -2378,7 +2362,7 @@ def from_json(json_dicts: Dict) -&gt; &#34;MetadataRespM&#34;:
 </dd>
 <dt id="redvox.cloud.metadata_api.PacketMetadataResult"><code class="flex name class">
 <span>class <span class="ident">PacketMetadataResult</span></span>
-<span>(</span><span>api: typing.Optional[int] = None, station_id: typing.Optional[str] = None, station_uuid: typing.Optional[str] = None, auth_email: typing.Optional[str] = None, is_backfilled: typing.Optional[bool] = None, is_private: typing.Optional[bool] = None, is_scrambled: typing.Optional[bool] = None, station_make: typing.Optional[str] = None, station_model: typing.Optional[str] = None, station_os: typing.Optional[str] = None, station_os_version: typing.Optional[str] = None, station_app_version: typing.Optional[str] = None, battery_level: typing.Optional[float] = None, station_temperature: typing.Optional[float] = None, acquisition_url: typing.Optional[str] = None, synch_url: typing.Optional[str] = None, auth_url: typing.Optional[str] = None, os_ts: typing.Optional[int] = None, mach_ts: typing.Optional[int] = None, server_ts: typing.Optional[int] = None, data_key: typing.Optional[str] = None, mach_time_zero: typing.Optional[float] = None, best_latency: typing.Optional[float] = None, best_offset: typing.Optional[float] = None, audio_sensor: typing.Optional[<a title="redvox.cloud.metadata_api.AudioMetadata" href="#redvox.cloud.metadata_api.AudioMetadata">AudioMetadata</a>] = None, barometer_sensor: typing.Optional[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>] = None, location_sensor: typing.Optional[<a title="redvox.cloud.metadata_api.LocationMetadata" href="#redvox.cloud.metadata_api.LocationMetadata">LocationMetadata</a>] = None, time_synchronization_sensor: typing.Optional[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>] = None, accelerometer_sensor: typing.Optional[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>] = None, magnetometer_sensor: typing.Optional[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>] = None, gyroscope_sensor: typing.Optional[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>] = None, light_sensor: typing.Optional[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>] = None, proximity_sensor: typing.Optional[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>] = None)</span>
+<span>(</span><span>api: typing.Union[int, NoneType] = None, station_id: typing.Union[str, NoneType] = None, station_uuid: typing.Union[str, NoneType] = None, auth_email: typing.Union[str, NoneType] = None, is_backfilled: typing.Union[bool, NoneType] = None, is_private: typing.Union[bool, NoneType] = None, is_scrambled: typing.Union[bool, NoneType] = None, station_make: typing.Union[str, NoneType] = None, station_model: typing.Union[str, NoneType] = None, station_os: typing.Union[str, NoneType] = None, station_os_version: typing.Union[str, NoneType] = None, station_app_version: typing.Union[str, NoneType] = None, battery_level: typing.Union[float, NoneType] = None, station_temperature: typing.Union[float, NoneType] = None, acquisition_url: typing.Union[str, NoneType] = None, synch_url: typing.Union[str, NoneType] = None, auth_url: typing.Union[str, NoneType] = None, os_ts: typing.Union[int, NoneType] = None, mach_ts: typing.Union[int, NoneType] = None, server_ts: typing.Union[int, NoneType] = None, data_key: typing.Union[str, NoneType] = None, mach_time_zero: typing.Union[float, NoneType] = None, best_latency: typing.Union[float, NoneType] = None, best_offset: typing.Union[float, NoneType] = None, audio_sensor: typing.Union[<a title="redvox.cloud.metadata_api.AudioMetadata" href="#redvox.cloud.metadata_api.AudioMetadata">AudioMetadata</a>, NoneType] = None, barometer_sensor: typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType] = None, location_sensor: typing.Union[<a title="redvox.cloud.metadata_api.LocationMetadata" href="#redvox.cloud.metadata_api.LocationMetadata">LocationMetadata</a>, NoneType] = None, time_synchronization_sensor: typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType] = None, accelerometer_sensor: typing.Union[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>, NoneType] = None, magnetometer_sensor: typing.Union[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>, NoneType] = None, gyroscope_sensor: typing.Union[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>, NoneType] = None, light_sensor: typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType] = None, proximity_sensor: typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Metadata associated with RedVox API 900 packets.</p></div>
@@ -2386,9 +2370,7 @@ def from_json(json_dicts: Dict) -&gt; &#34;MetadataRespM&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class PacketMetadataResult:
+<pre><code class="python">class PacketMetadataResult:
     &#34;&#34;&#34;
     Metadata associated with RedVox API 900 packets.
     &#34;&#34;&#34;
@@ -2429,135 +2411,135 @@ class PacketMetadataResult:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.accelerometer_sensor"><code class="name">var <span class="ident">accelerometer_sensor</span> : typing.Optional[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.accelerometer_sensor"><code class="name">var <span class="ident">accelerometer_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.acquisition_url"><code class="name">var <span class="ident">acquisition_url</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.acquisition_url"><code class="name">var <span class="ident">acquisition_url</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.api"><code class="name">var <span class="ident">api</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.api"><code class="name">var <span class="ident">api</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.audio_sensor"><code class="name">var <span class="ident">audio_sensor</span> : typing.Optional[<a title="redvox.cloud.metadata_api.AudioMetadata" href="#redvox.cloud.metadata_api.AudioMetadata">AudioMetadata</a>]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.audio_sensor"><code class="name">var <span class="ident">audio_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.AudioMetadata" href="#redvox.cloud.metadata_api.AudioMetadata">AudioMetadata</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.auth_email"><code class="name">var <span class="ident">auth_email</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.auth_email"><code class="name">var <span class="ident">auth_email</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.auth_url"><code class="name">var <span class="ident">auth_url</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.auth_url"><code class="name">var <span class="ident">auth_url</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.barometer_sensor"><code class="name">var <span class="ident">barometer_sensor</span> : typing.Optional[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.barometer_sensor"><code class="name">var <span class="ident">barometer_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.battery_level"><code class="name">var <span class="ident">battery_level</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.battery_level"><code class="name">var <span class="ident">battery_level</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.best_latency"><code class="name">var <span class="ident">best_latency</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.best_latency"><code class="name">var <span class="ident">best_latency</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.best_offset"><code class="name">var <span class="ident">best_offset</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.best_offset"><code class="name">var <span class="ident">best_offset</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.data_key"><code class="name">var <span class="ident">data_key</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.data_key"><code class="name">var <span class="ident">data_key</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.gyroscope_sensor"><code class="name">var <span class="ident">gyroscope_sensor</span> : typing.Optional[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.gyroscope_sensor"><code class="name">var <span class="ident">gyroscope_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.is_backfilled"><code class="name">var <span class="ident">is_backfilled</span> : typing.Optional[bool]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.is_backfilled"><code class="name">var <span class="ident">is_backfilled</span> : typing.Union[bool, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.is_private"><code class="name">var <span class="ident">is_private</span> : typing.Optional[bool]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.is_private"><code class="name">var <span class="ident">is_private</span> : typing.Union[bool, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.is_scrambled"><code class="name">var <span class="ident">is_scrambled</span> : typing.Optional[bool]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.is_scrambled"><code class="name">var <span class="ident">is_scrambled</span> : typing.Union[bool, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.light_sensor"><code class="name">var <span class="ident">light_sensor</span> : typing.Optional[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.light_sensor"><code class="name">var <span class="ident">light_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.location_sensor"><code class="name">var <span class="ident">location_sensor</span> : typing.Optional[<a title="redvox.cloud.metadata_api.LocationMetadata" href="#redvox.cloud.metadata_api.LocationMetadata">LocationMetadata</a>]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.location_sensor"><code class="name">var <span class="ident">location_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.LocationMetadata" href="#redvox.cloud.metadata_api.LocationMetadata">LocationMetadata</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.mach_time_zero"><code class="name">var <span class="ident">mach_time_zero</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.mach_time_zero"><code class="name">var <span class="ident">mach_time_zero</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.mach_ts"><code class="name">var <span class="ident">mach_ts</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.mach_ts"><code class="name">var <span class="ident">mach_ts</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.magnetometer_sensor"><code class="name">var <span class="ident">magnetometer_sensor</span> : typing.Optional[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.magnetometer_sensor"><code class="name">var <span class="ident">magnetometer_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.XyzMetadata" href="#redvox.cloud.metadata_api.XyzMetadata">XyzMetadata</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.os_ts"><code class="name">var <span class="ident">os_ts</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.os_ts"><code class="name">var <span class="ident">os_ts</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.proximity_sensor"><code class="name">var <span class="ident">proximity_sensor</span> : typing.Optional[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.proximity_sensor"><code class="name">var <span class="ident">proximity_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.server_ts"><code class="name">var <span class="ident">server_ts</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.server_ts"><code class="name">var <span class="ident">server_ts</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_app_version"><code class="name">var <span class="ident">station_app_version</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_app_version"><code class="name">var <span class="ident">station_app_version</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_id"><code class="name">var <span class="ident">station_id</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_id"><code class="name">var <span class="ident">station_id</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_make"><code class="name">var <span class="ident">station_make</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_make"><code class="name">var <span class="ident">station_make</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_model"><code class="name">var <span class="ident">station_model</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_model"><code class="name">var <span class="ident">station_model</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_os"><code class="name">var <span class="ident">station_os</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_os"><code class="name">var <span class="ident">station_os</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_os_version"><code class="name">var <span class="ident">station_os_version</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_os_version"><code class="name">var <span class="ident">station_os_version</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_temperature"><code class="name">var <span class="ident">station_temperature</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_temperature"><code class="name">var <span class="ident">station_temperature</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_uuid"><code class="name">var <span class="ident">station_uuid</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.station_uuid"><code class="name">var <span class="ident">station_uuid</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.synch_url"><code class="name">var <span class="ident">synch_url</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.synch_url"><code class="name">var <span class="ident">synch_url</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.PacketMetadataResult.time_synchronization_sensor"><code class="name">var <span class="ident">time_synchronization_sensor</span> : typing.Optional[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>]</code></dt>
+<dt id="redvox.cloud.metadata_api.PacketMetadataResult.time_synchronization_sensor"><code class="name">var <span class="ident">time_synchronization_sensor</span> : typing.Union[<a title="redvox.cloud.metadata_api.SingleMetadata" href="#redvox.cloud.metadata_api.SingleMetadata">SingleMetadata</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2699,7 +2681,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.metadata_api.SingleMetadata"><code class="flex name class">
 <span>class <span class="ident">SingleMetadata</span></span>
-<span>(</span><span>sensor_name: typing.Optional[str] = None, timestamps_microseconds_utc_count: typing.Optional[int] = None, payload_count: typing.Optional[int] = None, sample_interval_mean: typing.Optional[float] = None, sample_interval_std: typing.Optional[float] = None, sample_interval_median: typing.Optional[float] = None, value_mean: typing.Optional[float] = None, value_std: typing.Optional[float] = None, value_median: typing.Optional[float] = None, metadata: typing.Optional[typing.List[str]] = None)</span>
+<span>(</span><span>sensor_name: typing.Union[str, NoneType] = None, timestamps_microseconds_utc_count: typing.Union[int, NoneType] = None, payload_count: typing.Union[int, NoneType] = None, sample_interval_mean: typing.Union[float, NoneType] = None, sample_interval_std: typing.Union[float, NoneType] = None, sample_interval_median: typing.Union[float, NoneType] = None, value_mean: typing.Union[float, NoneType] = None, value_std: typing.Union[float, NoneType] = None, value_median: typing.Union[float, NoneType] = None, metadata: typing.Union[typing.List[str], NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Metadata associated with sensors that only contain a single dimensional channel of data
@@ -2708,9 +2690,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class SingleMetadata:
+<pre><code class="python">class SingleMetadata:
     &#34;&#34;&#34;
     Metadata associated with sensors that only contain a single dimensional channel of data
         (barometer, light, proximity).
@@ -2729,43 +2709,43 @@ class SingleMetadata:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.metadata_api.SingleMetadata.metadata"><code class="name">var <span class="ident">metadata</span> : typing.Optional[typing.List[str]]</code></dt>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.metadata"><code class="name">var <span class="ident">metadata</span> : typing.Union[typing.List[str], NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.SingleMetadata.payload_count"><code class="name">var <span class="ident">payload_count</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.payload_count"><code class="name">var <span class="ident">payload_count</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.SingleMetadata.sample_interval_mean"><code class="name">var <span class="ident">sample_interval_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.sample_interval_mean"><code class="name">var <span class="ident">sample_interval_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.SingleMetadata.sample_interval_median"><code class="name">var <span class="ident">sample_interval_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.sample_interval_median"><code class="name">var <span class="ident">sample_interval_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.SingleMetadata.sample_interval_std"><code class="name">var <span class="ident">sample_interval_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.sample_interval_std"><code class="name">var <span class="ident">sample_interval_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.SingleMetadata.sensor_name"><code class="name">var <span class="ident">sensor_name</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.sensor_name"><code class="name">var <span class="ident">sensor_name</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.SingleMetadata.timestamps_microseconds_utc_count"><code class="name">var <span class="ident">timestamps_microseconds_utc_count</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.timestamps_microseconds_utc_count"><code class="name">var <span class="ident">timestamps_microseconds_utc_count</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.SingleMetadata.value_mean"><code class="name">var <span class="ident">value_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.value_mean"><code class="name">var <span class="ident">value_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.SingleMetadata.value_median"><code class="name">var <span class="ident">value_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.value_median"><code class="name">var <span class="ident">value_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.SingleMetadata.value_std"><code class="name">var <span class="ident">value_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.SingleMetadata.value_std"><code class="name">var <span class="ident">value_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2907,17 +2887,15 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.metadata_api.StationStatus"><code class="flex name class">
 <span>class <span class="ident">StationStatus</span></span>
-<span>(</span><span>api: str, sub_api: typing.Optional[str], recording_state: str, app_start_timestamp: float, timestamp: float, synch_enabled: bool, synch_latency: typing.Optional[float], station_id: str, station_uuid: str, authenticated_user: typing.Optional[str], private: bool, sampling_rate: float, bit_depth: typing.Optional[float], sensor_name: str, samples_per_packet: int, additional_sensors: typing.List[typing.Tuple[str, str]], movement_detected: typing.Optional[bool], location_provider: typing.Optional[str], latitude: typing.Optional[float], longitude: typing.Optional[float], altitude: typing.Optional[float], speed: typing.Optional[float], make: str, model: str, os: str, os_version: str, client_version: str, settings: typing.Optional[typing.Dict], network_type: typing.Optional[str], power_state: typing.Optional[str], screen_state: typing.Optional[str], cell_service_state: typing.Optional[str], battery: typing.Optional[float], temperature: typing.Optional[float], network_strength: typing.Optional[float], diffs: typing.Optional[typing.List[typing.Dict]])</span>
+<span>(</span><span>api: str, sub_api: typing.Union[str, NoneType], recording_state: str, app_start_timestamp: float, timestamp: float, synch_enabled: bool, synch_latency: typing.Union[float, NoneType], station_id: str, station_uuid: str, authenticated_user: typing.Union[str, NoneType], private: bool, sampling_rate: float, bit_depth: typing.Union[float, NoneType], sensor_name: str, samples_per_packet: int, additional_sensors: typing.List[typing.Tuple[str, str]], movement_detected: typing.Union[bool, NoneType], location_provider: typing.Union[str, NoneType], latitude: typing.Union[float, NoneType], longitude: typing.Union[float, NoneType], altitude: typing.Union[float, NoneType], speed: typing.Union[float, NoneType], make: str, model: str, os: str, os_version: str, client_version: str, settings: typing.Union[typing.Dict, NoneType], network_type: typing.Union[str, NoneType], power_state: typing.Union[str, NoneType], screen_state: typing.Union[str, NoneType], cell_service_state: typing.Union[str, NoneType], battery: typing.Union[float, NoneType], temperature: typing.Union[float, NoneType], network_strength: typing.Union[float, NoneType], diffs: typing.Union[typing.List[typing.Dict], NoneType])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>StationStatus(api: str, sub_api: typing.Optional[str], recording_state: str, app_start_timestamp: float, timestamp: float, synch_enabled: bool, synch_latency: typing.Optional[float], station_id: str, station_uuid: str, authenticated_user: typing.Optional[str], private: bool, sampling_rate: float, bit_depth: typing.Optional[float], sensor_name: str, samples_per_packet: int, additional_sensors: typing.List[typing.Tuple[str, str]], movement_detected: typing.Optional[bool], location_provider: typing.Optional[str], latitude: typing.Optional[float], longitude: typing.Optional[float], altitude: typing.Optional[float], speed: typing.Optional[float], make: str, model: str, os: str, os_version: str, client_version: str, settings: typing.Optional[typing.Dict], network_type: typing.Optional[str], power_state: typing.Optional[str], screen_state: typing.Optional[str], cell_service_state: typing.Optional[str], battery: typing.Optional[float], temperature: typing.Optional[float], network_strength: typing.Optional[float], diffs: typing.Optional[typing.List[typing.Dict]])</p></div>
+<div class="desc"><p>StationStatus(api: str, sub_api: typing.Union[str, NoneType], recording_state: str, app_start_timestamp: float, timestamp: float, synch_enabled: bool, synch_latency: typing.Union[float, NoneType], station_id: str, station_uuid: str, authenticated_user: typing.Union[str, NoneType], private: bool, sampling_rate: float, bit_depth: typing.Union[float, NoneType], sensor_name: str, samples_per_packet: int, additional_sensors: typing.List[typing.Tuple[str, str]], movement_detected: typing.Union[bool, NoneType], location_provider: typing.Union[str, NoneType], latitude: typing.Union[float, NoneType], longitude: typing.Union[float, NoneType], altitude: typing.Union[float, NoneType], speed: typing.Union[float, NoneType], make: str, model: str, os: str, os_version: str, client_version: str, settings: typing.Union[typing.Dict, NoneType], network_type: typing.Union[str, NoneType], power_state: typing.Union[str, NoneType], screen_state: typing.Union[str, NoneType], cell_service_state: typing.Union[str, NoneType], battery: typing.Union[float, NoneType], temperature: typing.Union[float, NoneType], network_strength: typing.Union[float, NoneType], diffs: typing.Union[typing.List[typing.Dict], NoneType])</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class StationStatus:
+<pre><code class="python">class StationStatus:
     # API status
     api: str
     sub_api: Optional[str]
@@ -2981,7 +2959,7 @@ class StationStatus:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.altitude"><code class="name">var <span class="ident">altitude</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.altitude"><code class="name">var <span class="ident">altitude</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2993,19 +2971,19 @@ class StationStatus:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.authenticated_user"><code class="name">var <span class="ident">authenticated_user</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.authenticated_user"><code class="name">var <span class="ident">authenticated_user</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.battery"><code class="name">var <span class="ident">battery</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.battery"><code class="name">var <span class="ident">battery</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.bit_depth"><code class="name">var <span class="ident">bit_depth</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.bit_depth"><code class="name">var <span class="ident">bit_depth</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.cell_service_state"><code class="name">var <span class="ident">cell_service_state</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.cell_service_state"><code class="name">var <span class="ident">cell_service_state</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3013,19 +2991,19 @@ class StationStatus:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.diffs"><code class="name">var <span class="ident">diffs</span> : typing.Optional[typing.List[typing.Dict]]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.diffs"><code class="name">var <span class="ident">diffs</span> : typing.Union[typing.List[typing.Dict], NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.latitude"><code class="name">var <span class="ident">latitude</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.latitude"><code class="name">var <span class="ident">latitude</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.location_provider"><code class="name">var <span class="ident">location_provider</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.location_provider"><code class="name">var <span class="ident">location_provider</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.longitude"><code class="name">var <span class="ident">longitude</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.longitude"><code class="name">var <span class="ident">longitude</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3037,15 +3015,15 @@ class StationStatus:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.movement_detected"><code class="name">var <span class="ident">movement_detected</span> : typing.Optional[bool]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.movement_detected"><code class="name">var <span class="ident">movement_detected</span> : typing.Union[bool, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.network_strength"><code class="name">var <span class="ident">network_strength</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.network_strength"><code class="name">var <span class="ident">network_strength</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.network_type"><code class="name">var <span class="ident">network_type</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.network_type"><code class="name">var <span class="ident">network_type</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3057,7 +3035,7 @@ class StationStatus:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.power_state"><code class="name">var <span class="ident">power_state</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.power_state"><code class="name">var <span class="ident">power_state</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3077,7 +3055,7 @@ class StationStatus:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.screen_state"><code class="name">var <span class="ident">screen_state</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.screen_state"><code class="name">var <span class="ident">screen_state</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3085,11 +3063,11 @@ class StationStatus:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.settings"><code class="name">var <span class="ident">settings</span> : typing.Optional[typing.Dict]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.settings"><code class="name">var <span class="ident">settings</span> : typing.Union[typing.Dict, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.speed"><code class="name">var <span class="ident">speed</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.speed"><code class="name">var <span class="ident">speed</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3101,7 +3079,7 @@ class StationStatus:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.sub_api"><code class="name">var <span class="ident">sub_api</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.sub_api"><code class="name">var <span class="ident">sub_api</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3109,11 +3087,11 @@ class StationStatus:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.synch_latency"><code class="name">var <span class="ident">synch_latency</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.synch_latency"><code class="name">var <span class="ident">synch_latency</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatus.temperature"><code class="name">var <span class="ident">temperature</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatus.temperature"><code class="name">var <span class="ident">temperature</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3259,17 +3237,15 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.metadata_api.StationStatusReq"><code class="flex name class">
 <span>class <span class="ident">StationStatusReq</span></span>
-<span>(</span><span>secret_token: typing.Optional[str], auth_token: str, start_ts_s: float, end_ts_s: float, station_ids: typing.List[str])</span>
+<span>(</span><span>secret_token: typing.Union[str, NoneType], auth_token: str, start_ts_s: float, end_ts_s: float, station_ids: typing.List[str])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>StationStatusReq(secret_token: typing.Optional[str], auth_token: str, start_ts_s: float, end_ts_s: float, station_ids: typing.List[str])</p></div>
+<div class="desc"><p>StationStatusReq(secret_token: typing.Union[str, NoneType], auth_token: str, start_ts_s: float, end_ts_s: float, station_ids: typing.List[str])</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class StationStatusReq:
+<pre><code class="python">class StationStatusReq:
     secret_token: Optional[str]
     auth_token: str
     start_ts_s: float
@@ -3286,7 +3262,7 @@ class StationStatusReq:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.StationStatusReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.StationStatusReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3444,9 +3420,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class StationStatusResp:
+<pre><code class="python">class StationStatusResp:
     station_statuses: List[StationStatus]
     data_availabilities: List[DataAvailability]</code></pre>
 </details>
@@ -3606,9 +3580,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class TimingMeta:
+<pre><code class="python">class TimingMeta:
     &#34;&#34;&#34;
     Timing metadata extracted from an individual packet.
     &#34;&#34;&#34;
@@ -3789,7 +3761,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.metadata_api.TimingMetaRequest"><code class="flex name class">
 <span>class <span class="ident">TimingMetaRequest</span></span>
-<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, station_ids: typing.List[str], secret_token: typing.Optional[str] = None)</span>
+<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, station_ids: typing.List[str], secret_token: typing.Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Request for timing metadata.</p></div>
@@ -3797,9 +3769,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class TimingMetaRequest:
+<pre><code class="python">class TimingMetaRequest:
     &#34;&#34;&#34;
     Request for timing metadata.
     &#34;&#34;&#34;
@@ -3820,7 +3790,7 @@ class TimingMetaRequest:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.TimingMetaRequest.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.TimingMetaRequest.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3978,9 +3948,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class TimingMetaResponse:
+<pre><code class="python">class TimingMetaResponse:
     &#34;&#34;&#34;
     Response of obtaining timing metadta.
     &#34;&#34;&#34;
@@ -4131,7 +4099,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.metadata_api.XyzMetadata"><code class="flex name class">
 <span>class <span class="ident">XyzMetadata</span></span>
-<span>(</span><span>sensor_name: typing.Optional[str] = None, timestamps_microseconds_utc_count: typing.Optional[int] = None, payload_count: typing.Optional[int] = None, sample_interval_mean: typing.Optional[float] = None, sample_interval_std: typing.Optional[float] = None, sample_interval_median: typing.Optional[float] = None, x_mean: typing.Optional[float] = None, x_std: typing.Optional[float] = None, x_median: typing.Optional[float] = None, y_mean: typing.Optional[float] = None, y_std: typing.Optional[float] = None, y_median: typing.Optional[float] = None, z_mean: typing.Optional[float] = None, z_std: typing.Optional[float] = None, z_median: typing.Optional[float] = None, metadata: typing.Optional[typing.List[str]] = None)</span>
+<span>(</span><span>sensor_name: typing.Union[str, NoneType] = None, timestamps_microseconds_utc_count: typing.Union[int, NoneType] = None, payload_count: typing.Union[int, NoneType] = None, sample_interval_mean: typing.Union[float, NoneType] = None, sample_interval_std: typing.Union[float, NoneType] = None, sample_interval_median: typing.Union[float, NoneType] = None, x_mean: typing.Union[float, NoneType] = None, x_std: typing.Union[float, NoneType] = None, x_median: typing.Union[float, NoneType] = None, y_mean: typing.Union[float, NoneType] = None, y_std: typing.Union[float, NoneType] = None, y_median: typing.Union[float, NoneType] = None, z_mean: typing.Union[float, NoneType] = None, z_std: typing.Union[float, NoneType] = None, z_median: typing.Union[float, NoneType] = None, metadata: typing.Union[typing.List[str], NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Metadata for sensors that have 3-dimensions of data (accelerometer, gyroscope, magenetometer)</p></div>
@@ -4139,9 +4107,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class XyzMetadata:
+<pre><code class="python">class XyzMetadata:
     &#34;&#34;&#34;
     Metadata for sensors that have 3-dimensions of data (accelerometer, gyroscope, magenetometer)
     &#34;&#34;&#34;
@@ -4165,67 +4131,67 @@ class XyzMetadata:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.metadata"><code class="name">var <span class="ident">metadata</span> : typing.Optional[typing.List[str]]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.metadata"><code class="name">var <span class="ident">metadata</span> : typing.Union[typing.List[str], NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.payload_count"><code class="name">var <span class="ident">payload_count</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.payload_count"><code class="name">var <span class="ident">payload_count</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.sample_interval_mean"><code class="name">var <span class="ident">sample_interval_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.sample_interval_mean"><code class="name">var <span class="ident">sample_interval_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.sample_interval_median"><code class="name">var <span class="ident">sample_interval_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.sample_interval_median"><code class="name">var <span class="ident">sample_interval_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.sample_interval_std"><code class="name">var <span class="ident">sample_interval_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.sample_interval_std"><code class="name">var <span class="ident">sample_interval_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.sensor_name"><code class="name">var <span class="ident">sensor_name</span> : typing.Optional[str]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.sensor_name"><code class="name">var <span class="ident">sensor_name</span> : typing.Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.timestamps_microseconds_utc_count"><code class="name">var <span class="ident">timestamps_microseconds_utc_count</span> : typing.Optional[int]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.timestamps_microseconds_utc_count"><code class="name">var <span class="ident">timestamps_microseconds_utc_count</span> : typing.Union[int, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.x_mean"><code class="name">var <span class="ident">x_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.x_mean"><code class="name">var <span class="ident">x_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.x_median"><code class="name">var <span class="ident">x_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.x_median"><code class="name">var <span class="ident">x_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.x_std"><code class="name">var <span class="ident">x_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.x_std"><code class="name">var <span class="ident">x_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.y_mean"><code class="name">var <span class="ident">y_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.y_mean"><code class="name">var <span class="ident">y_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.y_median"><code class="name">var <span class="ident">y_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.y_median"><code class="name">var <span class="ident">y_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.y_std"><code class="name">var <span class="ident">y_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.y_std"><code class="name">var <span class="ident">y_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.z_mean"><code class="name">var <span class="ident">z_mean</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.z_mean"><code class="name">var <span class="ident">z_mean</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.z_median"><code class="name">var <span class="ident">z_median</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.z_median"><code class="name">var <span class="ident">z_median</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.metadata_api.XyzMetadata.z_std"><code class="name">var <span class="ident">z_std</span> : typing.Optional[float]</code></dt>
+<dt id="redvox.cloud.metadata_api.XyzMetadata.z_std"><code class="name">var <span class="ident">z_std</span> : typing.Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

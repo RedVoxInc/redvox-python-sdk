@@ -82,6 +82,7 @@ class StationMetadata:
         packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
         packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
         packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+        packet_duration_s: float, duration of the packet in seconds
         timing_info_score: float, quality of timing information
         other_metadata: dict str: str, other metadata from the packet
     &#34;&#34;&#34;
@@ -111,6 +112,7 @@ class StationMetadata:
             self.packet_end_mach_timestamp = packet.get_timing_information().get_packet_end_mach_timestamp()
             self.packet_start_os_timestamp = packet.get_timing_information().get_packet_start_os_timestamp()
             self.packet_end_os_timestamp = packet.get_timing_information().get_packet_end_os_timestamp()
+            self.packet_duration_s = packet.get_packet_duration_s()
             self.timing_info_score = packet.get_timing_information().get_score()
         else:
             self.api = np.nan
@@ -125,6 +127,7 @@ class StationMetadata:
             self.packet_end_mach_timestamp = np.nan
             self.packet_start_os_timestamp = np.nan
             self.packet_end_os_timestamp = np.nan
+            self.packet_duration_s = np.nan
             self.timing_info_score = np.nan
 
     def update_timestamps(self, om: OffsetModel):
@@ -163,8 +166,7 @@ start_timestamp_micros: float, starting time of the station in microseconds sinc
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass
-class StationKey:
+<pre><code class="python">class StationKey:
     &#34;&#34;&#34;
     A set of values that uniquely define a station
     Properties:
@@ -217,7 +219,7 @@ class StationKey:
 </dd>
 <dt id="redvox.common.station_utils.StationMetadata"><code class="flex name class">
 <span>class <span class="ident">StationMetadata</span></span>
-<span>(</span><span>app: str, packet: typing.Optional[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>] = None)</span>
+<span>(</span><span>app: str, packet: typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A container for all the packet metadata that doesn't fit in a sensor</p>
@@ -235,6 +237,7 @@ packet_start_mach_timestamp: float, machine timestamp of packet start in microse
 packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
 packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
 packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+packet_duration_s: float, duration of the packet in seconds
 timing_info_score: float, quality of timing information
 other_metadata: dict str: str, other metadata from the packet</p>
 <p>initialize the metadata
@@ -261,6 +264,7 @@ other_metadata: dict str: str, other metadata from the packet</p>
         packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
         packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
         packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+        packet_duration_s: float, duration of the packet in seconds
         timing_info_score: float, quality of timing information
         other_metadata: dict str: str, other metadata from the packet
     &#34;&#34;&#34;
@@ -290,6 +294,7 @@ other_metadata: dict str: str, other metadata from the packet</p>
             self.packet_end_mach_timestamp = packet.get_timing_information().get_packet_end_mach_timestamp()
             self.packet_start_os_timestamp = packet.get_timing_information().get_packet_start_os_timestamp()
             self.packet_end_os_timestamp = packet.get_timing_information().get_packet_end_os_timestamp()
+            self.packet_duration_s = packet.get_packet_duration_s()
             self.timing_info_score = packet.get_timing_information().get_score()
         else:
             self.api = np.nan
@@ -304,6 +309,7 @@ other_metadata: dict str: str, other metadata from the packet</p>
             self.packet_end_mach_timestamp = np.nan
             self.packet_start_os_timestamp = np.nan
             self.packet_end_os_timestamp = np.nan
+            self.packet_duration_s = np.nan
             self.timing_info_score = np.nan
 
     def update_timestamps(self, om: OffsetModel):
