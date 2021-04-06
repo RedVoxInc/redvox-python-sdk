@@ -10,5 +10,6 @@ set -o errexit
 set -o xtrace
 
 markdown-toc -i README.md
-markdown-toc -i data_window/README.md
 markdown-toc -i cli/README.md
+markdown-toc -i cloud/README.md
+markdown-toc -i data_window/README.md
