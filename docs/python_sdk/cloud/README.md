@@ -21,7 +21,7 @@ RedVox cloud services can only be accessed when utilizing a Premium RedVox subsc
 
 When utilizing the SDK to access RedVox Cloud services, authentication information must be passed either to the CLI or the API. 
 
-Instead of passing your RedVox username and password to the API or CLI each time it's used, we recommend storing your authentication information separately on your system. The SDK provides two methods of storing authentication state. You can store a `.redvox.toml` file in your "home directory" or you can export authentication fields as environmental variables.
+Instead of passing your RedVox username and password to the API or CLI each time it's used, we recommend storing your authentication information separately on your system. The SDK provides two methods of storing authentication state. You can store a `.redvox.toml` file in your "home directory" or you can export authentication fields as environmental variables. The SDK will automatically search these locations to try and load cloud based authentication information.
 
 ### Storing authentication information in a file
 
@@ -37,13 +37,17 @@ host = "redvox.io"  # Optional
 port = 8080         # Optional
 ```
 
-
-
-
-
-An example configuration file is provided below. 
-
 ### Storing authentication information in the environment
+
+Alternatively, environment variables can be used to store authentication information. The following environment variables are searched for and utilized by the SDK.
+
+* `REDVOX_USERNAME`
+* `REDVOX_PASSWORD`
+* `REDVOX_PROTOCOL`
+* `REDVOX_HOST`
+* `REDVOX_PORT`
+
+Only `REDVOX_USERNAME` and `REDVOX_PASSWORD` are required, otherwise defaults are used as described by the [RedvoxConfig](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/cloud/config.html#redvox.cloud.config.RedVoxConfig).
 
 ## Setting up the Cloud Client
 
