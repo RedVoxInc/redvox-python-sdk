@@ -34,7 +34,7 @@ The RedVox Python SDK contains routines for reading, creating, and writing RedVo
   * [Working with Three Channel Sensors](#working-with-three-channel-sensors)
   * [Working with the Location Sensor](#working-with-the-location-sensor)
     + [Working with the BestLocation type](#working-with-the-bestlocation-type)
-- [SDK High-Level API and Usage](#sdk-high-level-api-and-usage)
+- [SDK High-Level API and Usage (DataWindow)](#sdk-high-level-api-and-usage-datawindow)
 
 <!-- tocstop -->
 
@@ -76,8 +76,6 @@ A high level interface that:
 
 * Aggregates both API 900 and API M data into a common format
 * Provides corrections for timing and location
-
-This manual documents the mid-level interface as the high-level interface is still under development and considered experimental. The high-level documentation is still forthcoming.
 
 Up-to-date API documentation for the mid-level API is provided on [GitHub](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/index.html) and frequently referenced throughout this manual.
 
@@ -1974,7 +1972,7 @@ best bearing_accuracy=0.0
 
 _[Table of Contents](#table-of-contents)_
 
-## SDK High-Level API and Usage
+## SDK High-Level API and Usage (DataWindow)
 
 See: [Data Window Documentation](data_window)
 
