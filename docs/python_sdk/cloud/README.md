@@ -8,6 +8,14 @@ RedVox cloud services can only be accessed when utilizing a Premium RedVox subsc
 
 <!-- toc -->
 
+- [Authenticating with RedVox Cloud Services](#authenticating-with-redvox-cloud-services)
+  * [Storing authentication information in a file](#storing-authentication-information-in-a-file)
+  * [Storing authentication information in the environment](#storing-authentication-information-in-the-environment)
+- [Setting up the Cloud Client](#setting-up-the-cloud-client)
+- [Retrieving Timing Statistics](#retrieving-timing-statistics)
+- [Raw Data Requests](#raw-data-requests)
+
+<!-- tocstop -->
 
 ## Authenticating with RedVox Cloud Services
 

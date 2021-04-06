@@ -35,6 +35,7 @@ The RedVox Python SDK contains routines for reading, creating, and writing RedVo
   * [Working with the Location Sensor](#working-with-the-location-sensor)
     + [Working with the BestLocation type](#working-with-the-bestlocation-type)
 - [SDK High-Level API and Usage (DataWindow)](#sdk-high-level-api-and-usage-datawindow)
+- [Accessing RedVox Cloud Services](#accessing-redvox-cloud-services)
 
 <!-- tocstop -->
 
