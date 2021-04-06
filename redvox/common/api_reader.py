@@ -148,7 +148,7 @@ class ApiReader:
 
         timing_offsets: Optional[offset_model.TimingOffsets] = offset_model.compute_offsets(stats)
 
-        # # punt if duration or other important values are invalid or if the latency array was empty
+        # punt if duration or other important values are invalid or if the latency array was empty
         if timing_offsets is None:
             return index
 

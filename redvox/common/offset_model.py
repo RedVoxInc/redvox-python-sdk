@@ -314,23 +314,39 @@ def timesync_quality_check(
 
 @dataclass
 class TimingOffsets:
+    """
+    Represents the start and end offsets of a timing corrected window.
+    """
     start_offset: timedelta
     adjusted_start: datetime
     end_offset: timedelta
     adjusted_end: datetime
 
 
-def mapf(latency: Optional[float]) -> float:
-    if latency is None or np.isnan(latency):
+def mapf(val: Optional[float]) -> float:
+    """
+    Maps an optional float to floats by replacing Nones with NaNs.
+    :param val: Float value to map.
+    :return: The mapped float.
+    """
+    if val is None or np.isnan(val):
         return np.nan
-    return latency
+    return val
 
 
 def compute_offsets(station_stats: List["StationStat"]) -> Optional[TimingOffsets]:
+    """
+    Computes the offsets from the provided station statistics.
+    :param station_stats: Statistics to compute offsets from.
+    :return: Timing offset information or None if there are no offsets or there is an error.
+    """
+
+    # Preallocate the data arrays.
     latencies: np.ndarray = np.zeros(len(station_stats), float)
     offsets: np.ndarray = np.zeros(len(station_stats), float)
     times: np.ndarray = np.zeros(len(station_stats), float)
 
+    # Extract data or return early on data error
     i: int
     stat: "StationStat"
     for i, stat in enumerate(station_stats):
@@ -344,6 +360,7 @@ def compute_offsets(station_stats: List["StationStat"]) -> Optional[TimingOffset
     if len(latencies) == 0:
         return None
 
+    # Prep clock model
     start_dt: datetime = station_stats[0].packet_start_dt
     end_dt: datetime = station_stats[-1].packet_start_dt + station_stats[-1].packet_duration
     start_time: float = dt_utils.datetime_to_epoch_microseconds_utc(start_dt)
@@ -357,6 +374,7 @@ def compute_offsets(station_stats: List["StationStat"]) -> Optional[TimingOffset
         end_time
     )
 
+    # Compute new start and end offsets
     start_offset: timedelta = timedelta(microseconds=model.get_offset_at_new_time(start_time))
     end_offset: timedelta = timedelta(microseconds=model.get_offset_at_new_time(end_time))
 
