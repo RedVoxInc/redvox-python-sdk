@@ -2,10 +2,13 @@
 
 The RedVox Python SDK contains routines for reading, creating, and writing RedVox API 900 and RedVox API 1000 data files. The SDK is open-source.
 
+
+
 ## Table of Contents
 
 <!-- toc -->
 
+- [Getting Started](#getting-started)
 - [Obtaining the SDK](#obtaining-the-sdk)
 - [Command Line Interface (CLI)](#command-line-interface-cli)
   * [data-req Command Details](#data-req-command-details)
@@ -46,6 +49,10 @@ The RedVox Python SDK contains routines for reading, creating, and writing RedVo
 - [SDK High-Level API and Usage](#sdk-high-level-api-and-usage)
 
 <!-- tocstop -->
+
+## Getting Started
+
+This guide documents the entirety of the RedVox SDK. If you're new to our SDK, after obtaining the SDK, we recommend heading to the [Data Window Documentation](data_window) next. This documents the high-level interface for reading RedVox data.
 
 ## Obtaining the SDK
 
