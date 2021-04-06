@@ -84,5 +84,12 @@ with cloud_client() as client:
 
 ## Retrieving Timing Statistics
 
-## Raw Data Requests
+The fields required to correct timing can be retrieved using the [request_station_stats](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/cloud/client.html#redvox.cloud.client.CloudClient.request_station_stats) method.
 
+The above method returns a [StationStatsResp](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/cloud/station_stats.html#redvox.cloud.station_stats.StationStatResp) which contains a list of [StationStat](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/file_statistics.html#redvox.common.file_statistics.StationStat) objects.
+
+## Ranged Data Requests
+
+A ranged data request can be made with the [request_data_range](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/cloud/client.html#redvox.cloud.client.CloudClient.request_data_range) method.
+
+The [DataRangeResp](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/cloud/data_api.html#redvox.cloud.data_api.DataRangeResp) will contain a list of the AWS S3 URLs which can be accessed to obtain the underlying data.
