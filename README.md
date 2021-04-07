@@ -12,6 +12,7 @@ This repository contains code for reading and working with the RedVox API 900 an
 ### 3.0.0rc11 (2021-4-6)
 
 * Fixed timestamp discrepancies when creating Audio Sensors
+* Added optional automatic timing correction to cloud data queries
 
 ### 3.0.0rc10 (2021-4-5)
 

@@ -36,9 +36,10 @@ This client provides convenient access to RedVox metadata and data. This client 
 an up-to-date authentication token for making authenticated API requests.
 &#34;&#34;&#34;
 
+from collections import defaultdict
 import contextlib
 import threading
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import requests
 
@@ -47,9 +48,15 @@ import redvox.cloud.auth_api as auth_api
 from redvox.cloud.config import RedVoxConfig
 import redvox.cloud.errors as cloud_errors
 import redvox.common.constants as constants
+from redvox.common.offset_model import compute_offsets
 import redvox.cloud.data_api as data_api
 import redvox.cloud.metadata_api as metadata_api
 import redvox.cloud.station_stats as station_stats_api
+
+if TYPE_CHECKING:
+    from redvox.cloud.station_stats import StationStatsResp
+    from redvox.common.file_statistics import StationStat
+    from redvox.common.offset_model import TimingOffsets
 
 
 def chunk_time_range(
@@ -489,6 +496,7 @@ class CloudClient:
         end_ts_s: int,
         station_ids: List[str],
         req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900_1000,
+        correct_query_timing: bool = True,
     ) -&gt; data_api.DataRangeResp:
         &#34;&#34;&#34;
         Request signed URLs for RedVox packets.
@@ -496,29 +504,97 @@ class CloudClient:
         :param end_ts_s:  The end epoch of the window.
         :param station_ids: A list of station ids.
         :param req_type: The type of data to request.
+        :param correct_query_timing: If set to true, timing correction will be applied to each station before the data is
+                                    correct_timing queried.
         :return: A response containing a list of signed URLs for the RedVox packets.
         &#34;&#34;&#34;
+
+        def _make_req(
+            _start_ts_s: int, _end_ts_s: int, _station_ids: List[str]
+        ) -&gt; data_api.DataRangeResp:
+            &#34;&#34;&#34;
+            Makes the actual data request after timing correction was or was not applied.
+            :param _start_ts_s: The start epoch of the window.
+            :param _end_ts_s: The end epoch of the window.
+            :param _station_ids: A list of station IDs.
+            :return: A response containing a list of signed URLs for the RedVox packets.
+            &#34;&#34;&#34;
+            data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(
+                self.auth_token,
+                _start_ts_s,
+                _end_ts_s,
+                _station_ids,
+                self.redvox_config.secret_token,
+            )
+
+            req_resp: data_api.DataRangeResp = data_api.request_range_data(
+                self.redvox_config,
+                data_range_req,
+                session=self.__session,
+                timeout=self.timeout,
+                req_type=req_type,
+            )
+
+            return req_resp
+
         if end_ts_s &lt;= start_ts_s:
             raise cloud_errors.CloudApiError(&#34;start_ts_s must be &lt; end_ts_s&#34;)
 
         if len(station_ids) == 0:
             raise cloud_errors.CloudApiError(&#34;At least one station_id must be provided&#34;)
 
-        data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(
-            self.auth_token,
-            start_ts_s,
-            end_ts_s,
-            station_ids,
-            self.redvox_config.secret_token,
-        )
+        # If timing correction was requested, we want to find the corrected start and end offsets in order to
+        # request the correct range of data for each station&#39;s particular clock offset
+        if correct_query_timing:
+            station_stats: Optional[&#34;StationStatsResp&#34;] = self.request_station_stats(
+                start_ts_s, end_ts_s, station_ids
+            )
 
-        return data_api.request_range_data(
-            self.redvox_config,
-            data_range_req,
-            session=self.__session,
-            timeout=self.timeout,
-            req_type=req_type,
-        )
+            # If none, we can&#39;t apply a correction
+            if station_stats is None:
+                return _make_req(start_ts_s, end_ts_s, station_ids)
+
+            # Group stats by station
+            station_to_stats: Dict[str, List[&#34;StationStat&#34;]] = defaultdict(list)
+            stats: &#34;StationStat&#34;
+            for stats in station_stats.station_stats:
+                station_to_stats[f&#34;{stats.station_id}:{stats.station_uuid}&#34;].append(
+                    stats
+                )
+
+            # Initialize a final response that we can use to append each corrected response onto
+            resp: data_api.DataRangeResp = data_api.DataRangeResp([])
+
+            # For each station, make the data request with the updated start and end times for that station.
+            # Merge the multiple responses into a single response.
+            for station, all_stats in station_to_stats.items():
+                timing_offsets: Optional[&#34;TimingOffsets&#34;] = compute_offsets(all_stats)
+
+                start_offset: int = (
+                    timing_offsets.start_offset.seconds
+                    if timing_offsets is not None
+                    else 0
+                )
+                end_offset: int = (
+                    timing_offsets.end_offset.seconds
+                    if timing_offsets is not None
+                    else 0
+                )
+
+                print(f&#34;Correcting query for station={station}&#34;)
+                print(f&#34;\tstart diff: {start_offset}&#34;)
+                print(f&#34;\tend diff: {end_offset}&#34;)
+
+                resp.append(
+                    _make_req(
+                        start_ts_s + start_offset, end_ts_s + end_offset, [station.split(&#34;:&#34;)[0]]
+                    )
+                )
+
+            return resp
+        else:
+            # No timing correction requested, go ahead just make the original uncorrected request
+            return _make_req(start_ts_s, end_ts_s, station_ids)
 
     def request_station_stats(
         self,
@@ -1108,6 +1184,7 @@ def cloud_client(
         end_ts_s: int,
         station_ids: List[str],
         req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900_1000,
+        correct_query_timing: bool = True,
     ) -&gt; data_api.DataRangeResp:
         &#34;&#34;&#34;
         Request signed URLs for RedVox packets.
@@ -1115,29 +1192,97 @@ def cloud_client(
         :param end_ts_s:  The end epoch of the window.
         :param station_ids: A list of station ids.
         :param req_type: The type of data to request.
+        :param correct_query_timing: If set to true, timing correction will be applied to each station before the data is
+                                    correct_timing queried.
         :return: A response containing a list of signed URLs for the RedVox packets.
         &#34;&#34;&#34;
+
+        def _make_req(
+            _start_ts_s: int, _end_ts_s: int, _station_ids: List[str]
+        ) -&gt; data_api.DataRangeResp:
+            &#34;&#34;&#34;
+            Makes the actual data request after timing correction was or was not applied.
+            :param _start_ts_s: The start epoch of the window.
+            :param _end_ts_s: The end epoch of the window.
+            :param _station_ids: A list of station IDs.
+            :return: A response containing a list of signed URLs for the RedVox packets.
+            &#34;&#34;&#34;
+            data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(
+                self.auth_token,
+                _start_ts_s,
+                _end_ts_s,
+                _station_ids,
+                self.redvox_config.secret_token,
+            )
+
+            req_resp: data_api.DataRangeResp = data_api.request_range_data(
+                self.redvox_config,
+                data_range_req,
+                session=self.__session,
+                timeout=self.timeout,
+                req_type=req_type,
+            )
+
+            return req_resp
+
         if end_ts_s &lt;= start_ts_s:
             raise cloud_errors.CloudApiError(&#34;start_ts_s must be &lt; end_ts_s&#34;)
 
         if len(station_ids) == 0:
             raise cloud_errors.CloudApiError(&#34;At least one station_id must be provided&#34;)
 
-        data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(
-            self.auth_token,
-            start_ts_s,
-            end_ts_s,
-            station_ids,
-            self.redvox_config.secret_token,
-        )
+        # If timing correction was requested, we want to find the corrected start and end offsets in order to
+        # request the correct range of data for each station&#39;s particular clock offset
+        if correct_query_timing:
+            station_stats: Optional[&#34;StationStatsResp&#34;] = self.request_station_stats(
+                start_ts_s, end_ts_s, station_ids
+            )
 
-        return data_api.request_range_data(
-            self.redvox_config,
-            data_range_req,
-            session=self.__session,
-            timeout=self.timeout,
-            req_type=req_type,
-        )
+            # If none, we can&#39;t apply a correction
+            if station_stats is None:
+                return _make_req(start_ts_s, end_ts_s, station_ids)
+
+            # Group stats by station
+            station_to_stats: Dict[str, List[&#34;StationStat&#34;]] = defaultdict(list)
+            stats: &#34;StationStat&#34;
+            for stats in station_stats.station_stats:
+                station_to_stats[f&#34;{stats.station_id}:{stats.station_uuid}&#34;].append(
+                    stats
+                )
+
+            # Initialize a final response that we can use to append each corrected response onto
+            resp: data_api.DataRangeResp = data_api.DataRangeResp([])
+
+            # For each station, make the data request with the updated start and end times for that station.
+            # Merge the multiple responses into a single response.
+            for station, all_stats in station_to_stats.items():
+                timing_offsets: Optional[&#34;TimingOffsets&#34;] = compute_offsets(all_stats)
+
+                start_offset: int = (
+                    timing_offsets.start_offset.seconds
+                    if timing_offsets is not None
+                    else 0
+                )
+                end_offset: int = (
+                    timing_offsets.end_offset.seconds
+                    if timing_offsets is not None
+                    else 0
+                )
+
+                print(f&#34;Correcting query for station={station}&#34;)
+                print(f&#34;\tstart diff: {start_offset}&#34;)
+                print(f&#34;\tend diff: {end_offset}&#34;)
+
+                resp.append(
+                    _make_req(
+                        start_ts_s + start_offset, end_ts_s + end_offset, [station.split(&#34;:&#34;)[0]]
+                    )
+                )
+
+            return resp
+        else:
+            # No timing correction requested, go ahead just make the original uncorrected request
+            return _make_req(start_ts_s, end_ts_s, station_ids)
 
     def request_station_stats(
         self,
@@ -1307,7 +1452,7 @@ def cloud_client(
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.request_data_range"><code class="name flex">
-<span>def <span class="ident">request_data_range</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: typing.List[str], req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900_1000) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="data_api.html#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
+<span>def <span class="ident">request_data_range</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: typing.List[str], req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900_1000, correct_query_timing: bool = True) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="data_api.html#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Request signed URLs for RedVox packets.
@@ -1316,6 +1461,8 @@ def cloud_client(
 The end epoch of the window.
 :param station_ids: A list of station ids.
 :param req_type: The type of data to request.
+:param correct_query_timing: If set to true, timing correction will be applied to each station before the data is
+correct_timing queried.
 :return: A response containing a list of signed URLs for the RedVox packets.</p></div>
 <details class="source">
 <summary>
@@ -1327,6 +1474,7 @@ The end epoch of the window.
     end_ts_s: int,
     station_ids: List[str],
     req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900_1000,
+    correct_query_timing: bool = True,
 ) -&gt; data_api.DataRangeResp:
     &#34;&#34;&#34;
     Request signed URLs for RedVox packets.
@@ -1334,29 +1482,97 @@ The end epoch of the window.
     :param end_ts_s:  The end epoch of the window.
     :param station_ids: A list of station ids.
     :param req_type: The type of data to request.
+    :param correct_query_timing: If set to true, timing correction will be applied to each station before the data is
+                                correct_timing queried.
     :return: A response containing a list of signed URLs for the RedVox packets.
     &#34;&#34;&#34;
+
+    def _make_req(
+        _start_ts_s: int, _end_ts_s: int, _station_ids: List[str]
+    ) -&gt; data_api.DataRangeResp:
+        &#34;&#34;&#34;
+        Makes the actual data request after timing correction was or was not applied.
+        :param _start_ts_s: The start epoch of the window.
+        :param _end_ts_s: The end epoch of the window.
+        :param _station_ids: A list of station IDs.
+        :return: A response containing a list of signed URLs for the RedVox packets.
+        &#34;&#34;&#34;
+        data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(
+            self.auth_token,
+            _start_ts_s,
+            _end_ts_s,
+            _station_ids,
+            self.redvox_config.secret_token,
+        )
+
+        req_resp: data_api.DataRangeResp = data_api.request_range_data(
+            self.redvox_config,
+            data_range_req,
+            session=self.__session,
+            timeout=self.timeout,
+            req_type=req_type,
+        )
+
+        return req_resp
+
     if end_ts_s &lt;= start_ts_s:
         raise cloud_errors.CloudApiError(&#34;start_ts_s must be &lt; end_ts_s&#34;)
 
     if len(station_ids) == 0:
         raise cloud_errors.CloudApiError(&#34;At least one station_id must be provided&#34;)
 
-    data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(
-        self.auth_token,
-        start_ts_s,
-        end_ts_s,
-        station_ids,
-        self.redvox_config.secret_token,
-    )
+    # If timing correction was requested, we want to find the corrected start and end offsets in order to
+    # request the correct range of data for each station&#39;s particular clock offset
+    if correct_query_timing:
+        station_stats: Optional[&#34;StationStatsResp&#34;] = self.request_station_stats(
+            start_ts_s, end_ts_s, station_ids
+        )
 
-    return data_api.request_range_data(
-        self.redvox_config,
-        data_range_req,
-        session=self.__session,
-        timeout=self.timeout,
-        req_type=req_type,
-    )</code></pre>
+        # If none, we can&#39;t apply a correction
+        if station_stats is None:
+            return _make_req(start_ts_s, end_ts_s, station_ids)
+
+        # Group stats by station
+        station_to_stats: Dict[str, List[&#34;StationStat&#34;]] = defaultdict(list)
+        stats: &#34;StationStat&#34;
+        for stats in station_stats.station_stats:
+            station_to_stats[f&#34;{stats.station_id}:{stats.station_uuid}&#34;].append(
+                stats
+            )
+
+        # Initialize a final response that we can use to append each corrected response onto
+        resp: data_api.DataRangeResp = data_api.DataRangeResp([])
+
+        # For each station, make the data request with the updated start and end times for that station.
+        # Merge the multiple responses into a single response.
+        for station, all_stats in station_to_stats.items():
+            timing_offsets: Optional[&#34;TimingOffsets&#34;] = compute_offsets(all_stats)
+
+            start_offset: int = (
+                timing_offsets.start_offset.seconds
+                if timing_offsets is not None
+                else 0
+            )
+            end_offset: int = (
+                timing_offsets.end_offset.seconds
+                if timing_offsets is not None
+                else 0
+            )
+
+            print(f&#34;Correcting query for station={station}&#34;)
+            print(f&#34;\tstart diff: {start_offset}&#34;)
+            print(f&#34;\tend diff: {end_offset}&#34;)
+
+            resp.append(
+                _make_req(
+                    start_ts_s + start_offset, end_ts_s + end_offset, [station.split(&#34;:&#34;)[0]]
+                )
+            )
+
+        return resp
+    else:
+        # No timing correction requested, go ahead just make the original uncorrected request
+        return _make_req(start_ts_s, end_ts_s, station_ids)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.request_metadata"><code class="name flex">

@@ -43,19 +43,6 @@ import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om
 
 
-def calc_evenly_sampled_timestamps(
-        start: float, samples: int, rate_hz: float
-) -&gt; np.array:
-    &#34;&#34;&#34;
-    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
-    :param start: float, start timestamp in microseconds
-    :param samples: int, number of samples
-    :param rate_hz: float, sample rate in hz
-    :return: np.array with evenly spaced timestamps starting at start
-    &#34;&#34;&#34;
-    return start + (np.arange(0, samples) / rate_hz) * dtu.MICROSECONDS_IN_SECOND
-
-
 # todo: add original timestamps to the dataframes
 class SensorType(enum.Enum):
     &#34;&#34;&#34;
@@ -366,35 +353,6 @@ class SensorData:
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="redvox.common.sensor_data.calc_evenly_sampled_timestamps"><code class="name flex">
-<span>def <span class="ident">calc_evenly_sampled_timestamps</span></span>(<span>start: float, samples: int, rate_hz: float) ‑> <built-in function array></span>
-</code></dt>
-<dd>
-<div class="desc"><p>given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
-:param start: float, start timestamp in microseconds
-:param samples: int, number of samples
-:param rate_hz: float, sample rate in hz
-:return: np.array with evenly spaced timestamps starting at start</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def calc_evenly_sampled_timestamps(
-        start: float, samples: int, rate_hz: float
-) -&gt; np.array:
-    &#34;&#34;&#34;
-    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
-    :param start: float, start timestamp in microseconds
-    :param samples: int, number of samples
-    :param rate_hz: float, sample rate in hz
-    :return: np.array with evenly spaced timestamps starting at start
-    &#34;&#34;&#34;
-    return start + (np.arange(0, samples) / rate_hz) * dtu.MICROSECONDS_IN_SECOND</code></pre>
-</details>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -1255,11 +1213,6 @@ def type_from_str(type_str: str) -&gt; &#34;SensorType&#34;:
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="redvox.common" href="index.html">redvox.common</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="redvox.common.sensor_data.calc_evenly_sampled_timestamps" href="#redvox.common.sensor_data.calc_evenly_sampled_timestamps">calc_evenly_sampled_timestamps</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

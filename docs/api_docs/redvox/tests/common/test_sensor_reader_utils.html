@@ -49,15 +49,6 @@ class EmptySensorTest(unittest.TestCase):
         self.assertEqual(empty_sensor.type, SensorType.UNKNOWN_SENSOR)
 
 
-class CalcTimestampsTest(unittest.TestCase):
-    def test_calc_timestamps(self):
-        timestamps = sdru.calc_evenly_sampled_timestamps(1000, 100, 1000)
-        self.assertEqual(len(timestamps), 100)
-        self.assertEqual(timestamps[0], 1000)
-        self.assertEqual(timestamps[1], 2000)
-        self.assertEqual(timestamps[99], 100000)
-
-
 class SampleStatisticsTest(unittest.TestCase):
     def test_sample_stats(self):
         new_df = pd.DataFrame([10000, 20000, 30000, 40000, 50000], columns=[&#34;timestamps&#34;])
@@ -104,76 +95,6 @@ class ReaderTests(unittest.TestCase):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="redvox.tests.common.test_sensor_reader_utils.CalcTimestampsTest"><code class="flex name class">
-<span>class <span class="ident">CalcTimestampsTest</span></span>
-<span>(</span><span>methodName='runTest')</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class whose instances are single test cases.</p>
-<p>By default, the test code itself should be placed in a method named
-'runTest'.</p>
-<p>If the fixture may be used for many test cases, create as
-many test methods as are needed. When instantiating such a TestCase
-subclass, specify in the constructor arguments the name of the test method
-that the instance is to execute.</p>
-<p>Test authors should subclass TestCase for their own tests. Construction
-and deconstruction of the test's environment ('fixture') can be
-implemented by overriding the 'setUp' and 'tearDown' methods respectively.</p>
-<p>If it is necessary to override the <strong>init</strong> method, the base class
-<strong>init</strong> method must always be called. It is important that subclasses
-should not change the signature of their <strong>init</strong> method, since instances
-of the classes are instantiated automatically by parts of the framework
-in order to be run.</p>
-<p>When subclassing TestCase, you can set these attributes:
-* failureException: determines which exception will be raised when
-the instance's assertion methods fail; test methods raising this
-exception will be deemed to have 'failed' rather than 'errored'.
-* longMessage: determines whether long messages (including repr of
-objects used in assert methods) will be printed on failure in <em>addition</em>
-to any explicit message passed.
-* maxDiff: sets the maximum length of a diff in failure messages
-by assert methods using difflib. It is looked up as an instance
-attribute so can be configured by individual tests if required.</p>
-<p>Create an instance of the class that will use the named test
-method when executed. Raises a ValueError if the instance does
-not have a method with the specified name.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class CalcTimestampsTest(unittest.TestCase):
-    def test_calc_timestamps(self):
-        timestamps = sdru.calc_evenly_sampled_timestamps(1000, 100, 1000)
-        self.assertEqual(len(timestamps), 100)
-        self.assertEqual(timestamps[0], 1000)
-        self.assertEqual(timestamps[1], 2000)
-        self.assertEqual(timestamps[99], 100000)</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>unittest.case.TestCase</li>
-</ul>
-<h3>Methods</h3>
-<dl>
-<dt id="redvox.tests.common.test_sensor_reader_utils.CalcTimestampsTest.test_calc_timestamps"><code class="name flex">
-<span>def <span class="ident">test_calc_timestamps</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_calc_timestamps(self):
-    timestamps = sdru.calc_evenly_sampled_timestamps(1000, 100, 1000)
-    self.assertEqual(len(timestamps), 100)
-    self.assertEqual(timestamps[0], 1000)
-    self.assertEqual(timestamps[1], 2000)
-    self.assertEqual(timestamps[99], 100000)</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
 <dt id="redvox.tests.common.test_sensor_reader_utils.EmptySensorTest"><code class="flex name class">
 <span>class <span class="ident">EmptySensorTest</span></span>
 <span>(</span><span>methodName='runTest')</span>
@@ -469,12 +390,6 @@ not have a method with the specified name.</p></div>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
-<li>
-<h4><code><a title="redvox.tests.common.test_sensor_reader_utils.CalcTimestampsTest" href="#redvox.tests.common.test_sensor_reader_utils.CalcTimestampsTest">CalcTimestampsTest</a></code></h4>
-<ul class="">
-<li><code><a title="redvox.tests.common.test_sensor_reader_utils.CalcTimestampsTest.test_calc_timestamps" href="#redvox.tests.common.test_sensor_reader_utils.CalcTimestampsTest.test_calc_timestamps">test_calc_timestamps</a></code></li>
-</ul>
-</li>
 <li>
 <h4><code><a title="redvox.tests.common.test_sensor_reader_utils.EmptySensorTest" href="#redvox.tests.common.test_sensor_reader_utils.EmptySensorTest">EmptySensorTest</a></code></h4>
 <ul class="">

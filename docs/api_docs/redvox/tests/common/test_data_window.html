@@ -32,9 +32,6 @@ tests for data window objects
 &#34;&#34;&#34;
 import unittest
 
-import numpy as np
-import pandas as pd
-
 import redvox.tests as tests
 import redvox.common.date_time_utils as dt
 from redvox.common import data_window as dw
@@ -53,8 +50,6 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(datawindow.stations), 3)
         self.assertEqual(len(datawindow.station_ids), 3)
         self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
-        self.assertEqual(datawindow.start_datetime, dt.datetime_from_epoch_microseconds_utc(1531343779086541.0))
-        self.assertEqual(datawindow.end_datetime, dt.datetime_from_epoch_microseconds_utc(1597189467949733.2))
         self.assertEqual(len(datawindow.extensions), 2)
         self.assertEqual(len(datawindow.api_versions), 2)
 
@@ -71,13 +66,14 @@ class DataWindowTest(unittest.TestCase):
                             test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
         self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;).audio_sensor())
         test_sensor = datawindow.get_station(&#34;1637650010&#34;).accelerometer_sensor()
-        self.assertEqual(test_sensor.num_samples(), 641)
+        self.assertEqual(test_sensor.num_samples(), 643)
+        self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
         test_sensor = datawindow.get_station(&#34;0000000001&#34;).audio_sensor()
         self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 720068)
+        self.assertEqual(test_sensor.num_samples(), 720000)
         test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
         self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 3)
+        self.assertEqual(test_sensor.num_samples(), 5)
 
     def test_dw_with_start_end(self):
         dw_with_start_end = dw.DataWindow(
@@ -90,10 +86,10 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(dw_with_start_end.stations), 1)
         audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).audio_sensor()
         self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 479994)
+        self.assertEqual(audio_sensor.num_samples(), 480000)
         loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).location_sensor()
         self.assertIsNotNone(loc_sensor)
-        self.assertEqual(loc_sensor.num_samples(), 2)
+        self.assertEqual(loc_sensor.num_samples(), 4)
 
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(
@@ -101,196 +97,7 @@ class DataWindowTest(unittest.TestCase):
             station_ids=[&#34;does_not_exist&#34;],
             structured_layout=False,
         )
-        self.assertIsNone(dw_invalid.get_station(&#34;does_not_exist&#34;))
-
-
-class PadDataTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -&gt; None:
-        timestamps = [
-            dt.seconds_to_microseconds(40),
-            dt.seconds_to_microseconds(50),
-            dt.seconds_to_microseconds(60),
-        ]
-        cls.dataframe = pd.DataFrame(
-            np.transpose([timestamps, [4, 5, 6]]), columns=[&#34;timestamps&#34;, &#34;temp&#34;]
-        )
-        cls.singleton = pd.DataFrame(
-            [[timestamps[0], 1]], columns=[&#34;timestamps&#34;, &#34;temp&#34;]
-        )
-
-    def test_pad_data(self):
-        filled_dataframe = dw.pad_data(
-            dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(100),
-            self.dataframe,
-            dt.seconds_to_microseconds(10),
-        )
-        self.assertEqual(filled_dataframe.shape, (10, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(20)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
-        )
-
-    def test_pad_data_single_value(self):
-        filled_singleton = dw.pad_data(
-            dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(100),
-            self.singleton,
-            dt.seconds_to_microseconds(10),
-        )
-        self.assertEqual(filled_singleton.shape, (10, 2))
-        self.assertEqual(
-            filled_singleton.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(20)
-        )
-        self.assertEqual(
-            filled_singleton.loc[3, &#34;timestamps&#34;], dt.seconds_to_microseconds(40)
-        )
-
-    def test_pad_data_uneven_ends(self):
-        filled_dataframe = dw.pad_data(
-            dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(100),
-            self.dataframe,
-            dt.seconds_to_microseconds(12),
-        )
-        self.assertEqual(filled_dataframe.shape, (8, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(28)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(40)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[6, &#34;timestamps&#34;], dt.seconds_to_microseconds(84)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[7, &#34;timestamps&#34;], dt.seconds_to_microseconds(96)
-        )
-
-
-class FillGapTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -&gt; None:
-        timestamps = [
-            dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(30),
-            dt.seconds_to_microseconds(100),
-        ]
-        cls.dataframe = pd.DataFrame(
-            np.transpose([timestamps, [1, 3, 10]]), columns=[&#34;timestamps&#34;, &#34;temp&#34;]
-        )
-        cls.singleton = pd.DataFrame(
-            [[timestamps[0], 1]], columns=[&#34;timestamps&#34;, &#34;temp&#34;]
-        )
-
-    def test_singleton_fill_gaps(self):
-        filled_singleton = dw.fill_gaps(
-            self.singleton,
-            dt.seconds_to_microseconds(10),
-            0,
-            dt.seconds_to_microseconds(10)
-        )
-        self.assertEqual(filled_singleton.shape, (1, 2))
-        self.assertEqual(
-            filled_singleton.loc[0, &#34;timestamps&#34;], dt.seconds_to_microseconds(10)
-        )
-
-    def test_fill_gaps(self):
-        filled_dataframe = dw.fill_gaps(
-            self.dataframe,
-            dt.seconds_to_microseconds(10),
-            0,
-            dt.seconds_to_microseconds(10)
-        )
-        self.assertEqual(filled_dataframe.shape, (10, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(20)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
-        )
-
-    def test_fill_gaps_long_interval(self):
-        filled_dataframe = dw.fill_gaps(
-            self.dataframe,
-            dt.seconds_to_microseconds(20),
-            0,
-            dt.seconds_to_microseconds(10),
-        )
-        self.assertEqual(filled_dataframe.shape, (6, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(50)
-        )
-
-    def test_fill_gaps_long_gap(self):
-        filled_dataframe = dw.fill_gaps(
-            self.dataframe,
-            dt.seconds_to_microseconds(10),
-            0,
-            dt.seconds_to_microseconds(20),
-        )
-        self.assertEqual(filled_dataframe.shape, (9, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(40)
-        )
-
-
-class CreateDatalessTimestampsDFTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -&gt; None:
-        cls.base_df = pd.DataFrame([], columns=[&#34;timestamps&#34;, &#34;data&#34;])
-
-    def test_create_dataless_timestamps_df(self):
-        new_df = dw.create_dataless_timestamps_df(2000, 1000, self.base_df.columns, 7, False)
-        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 3000)
-        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 9000)
-        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
-        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
-
-    def test_add_dataless_timestamps_df_empty(self):
-        # dataframe to alter is empty, so nothing changes
-        new_base_df = self.base_df.copy()
-        new_df = dw.add_dataless_timestamps_to_df(new_base_df, 0, 1000, 7, False)
-        self.assertEqual(len(new_df), 0)
-
-    def test_add_dataless_timestamps_df(self):
-        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 6, 1000, 7, False)
-        self.assertEqual(new_df.loc[7, &#34;timestamps&#34;], 2000)
-        self.assertEqual(new_df.loc[13, &#34;timestamps&#34;], 8000)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 7, True)
-        self.assertEqual(new_df.loc[14, &#34;timestamps&#34;], 6000)
-        self.assertEqual(new_df.loc[20, &#34;timestamps&#34;], 0)
-
-    def test_add_dataless_timestamps_df_index_too_high(self):
-        # no change to dataframe if index is too high
-        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 99, 1000, 7, True)
-        self.assertEqual(len(new_df), 7)
-        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
-        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
-
-    def test_add_dataless_timestamps_df_not_enough_samples(self):
-        # no change to dataframe if adding less than 1 samples
-        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, -10, True)
-        self.assertEqual(len(new_df), 7)
-        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
-        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 0, True)
-        self.assertEqual(len(new_df), 7)
-        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
-        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)</code></pre>
+        self.assertIsNone(dw_invalid.get_station(&#34;does_not_exist&#34;))</code></pre>
 </details>
 </section>
 <section>
@@ -302,209 +109,6 @@ class CreateDatalessTimestampsDFTest(unittest.TestCase):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest"><code class="flex name class">
-<span>class <span class="ident">CreateDatalessTimestampsDFTest</span></span>
-<span>(</span><span>methodName='runTest')</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class whose instances are single test cases.</p>
-<p>By default, the test code itself should be placed in a method named
-'runTest'.</p>
-<p>If the fixture may be used for many test cases, create as
-many test methods as are needed. When instantiating such a TestCase
-subclass, specify in the constructor arguments the name of the test method
-that the instance is to execute.</p>
-<p>Test authors should subclass TestCase for their own tests. Construction
-and deconstruction of the test's environment ('fixture') can be
-implemented by overriding the 'setUp' and 'tearDown' methods respectively.</p>
-<p>If it is necessary to override the <strong>init</strong> method, the base class
-<strong>init</strong> method must always be called. It is important that subclasses
-should not change the signature of their <strong>init</strong> method, since instances
-of the classes are instantiated automatically by parts of the framework
-in order to be run.</p>
-<p>When subclassing TestCase, you can set these attributes:
-* failureException: determines which exception will be raised when
-the instance's assertion methods fail; test methods raising this
-exception will be deemed to have 'failed' rather than 'errored'.
-* longMessage: determines whether long messages (including repr of
-objects used in assert methods) will be printed on failure in <em>addition</em>
-to any explicit message passed.
-* maxDiff: sets the maximum length of a diff in failure messages
-by assert methods using difflib. It is looked up as an instance
-attribute so can be configured by individual tests if required.</p>
-<p>Create an instance of the class that will use the named test
-method when executed. Raises a ValueError if the instance does
-not have a method with the specified name.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class CreateDatalessTimestampsDFTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -&gt; None:
-        cls.base_df = pd.DataFrame([], columns=[&#34;timestamps&#34;, &#34;data&#34;])
-
-    def test_create_dataless_timestamps_df(self):
-        new_df = dw.create_dataless_timestamps_df(2000, 1000, self.base_df.columns, 7, False)
-        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 3000)
-        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 9000)
-        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
-        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
-
-    def test_add_dataless_timestamps_df_empty(self):
-        # dataframe to alter is empty, so nothing changes
-        new_base_df = self.base_df.copy()
-        new_df = dw.add_dataless_timestamps_to_df(new_base_df, 0, 1000, 7, False)
-        self.assertEqual(len(new_df), 0)
-
-    def test_add_dataless_timestamps_df(self):
-        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 6, 1000, 7, False)
-        self.assertEqual(new_df.loc[7, &#34;timestamps&#34;], 2000)
-        self.assertEqual(new_df.loc[13, &#34;timestamps&#34;], 8000)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 7, True)
-        self.assertEqual(new_df.loc[14, &#34;timestamps&#34;], 6000)
-        self.assertEqual(new_df.loc[20, &#34;timestamps&#34;], 0)
-
-    def test_add_dataless_timestamps_df_index_too_high(self):
-        # no change to dataframe if index is too high
-        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 99, 1000, 7, True)
-        self.assertEqual(len(new_df), 7)
-        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
-        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
-
-    def test_add_dataless_timestamps_df_not_enough_samples(self):
-        # no change to dataframe if adding less than 1 samples
-        new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, -10, True)
-        self.assertEqual(len(new_df), 7)
-        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
-        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
-        new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 0, True)
-        self.assertEqual(len(new_df), 7)
-        self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
-        self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>unittest.case.TestCase</li>
-</ul>
-<h3>Static methods</h3>
-<dl>
-<dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.setUpClass"><code class="name flex">
-<span>def <span class="ident">setUpClass</span></span>(<span>) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Hook method for setting up class fixture before running tests in the class.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def setUpClass(cls) -&gt; None:
-    cls.base_df = pd.DataFrame([], columns=[&#34;timestamps&#34;, &#34;data&#34;])</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df"><code class="name flex">
-<span>def <span class="ident">test_add_dataless_timestamps_df</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_add_dataless_timestamps_df(self):
-    new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-    new_df = dw.add_dataless_timestamps_to_df(new_df, 6, 1000, 7, False)
-    self.assertEqual(new_df.loc[7, &#34;timestamps&#34;], 2000)
-    self.assertEqual(new_df.loc[13, &#34;timestamps&#34;], 8000)
-    new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 7, True)
-    self.assertEqual(new_df.loc[14, &#34;timestamps&#34;], 6000)
-    self.assertEqual(new_df.loc[20, &#34;timestamps&#34;], 0)</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_empty"><code class="name flex">
-<span>def <span class="ident">test_add_dataless_timestamps_df_empty</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_add_dataless_timestamps_df_empty(self):
-    # dataframe to alter is empty, so nothing changes
-    new_base_df = self.base_df.copy()
-    new_df = dw.add_dataless_timestamps_to_df(new_base_df, 0, 1000, 7, False)
-    self.assertEqual(len(new_df), 0)</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_index_too_high"><code class="name flex">
-<span>def <span class="ident">test_add_dataless_timestamps_df_index_too_high</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_add_dataless_timestamps_df_index_too_high(self):
-    # no change to dataframe if index is too high
-    new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-    new_df = dw.add_dataless_timestamps_to_df(new_df, 99, 1000, 7, True)
-    self.assertEqual(len(new_df), 7)
-    self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
-    self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_not_enough_samples"><code class="name flex">
-<span>def <span class="ident">test_add_dataless_timestamps_df_not_enough_samples</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_add_dataless_timestamps_df_not_enough_samples(self):
-    # no change to dataframe if adding less than 1 samples
-    new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-    new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, -10, True)
-    self.assertEqual(len(new_df), 7)
-    self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
-    self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)
-    new_df = dw.add_dataless_timestamps_to_df(new_df, 0, 1000, 0, True)
-    self.assertEqual(len(new_df), 7)
-    self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
-    self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_create_dataless_timestamps_df"><code class="name flex">
-<span>def <span class="ident">test_create_dataless_timestamps_df</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_create_dataless_timestamps_df(self):
-    new_df = dw.create_dataless_timestamps_df(2000, 1000, self.base_df.columns, 7, False)
-    self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 3000)
-    self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 9000)
-    new_df = dw.create_dataless_timestamps_df(8000, 1000, self.base_df.columns, 7, True)
-    self.assertEqual(new_df.loc[0, &#34;timestamps&#34;], 7000)
-    self.assertEqual(new_df.loc[6, &#34;timestamps&#34;], 1000)</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest"><code class="flex name class">
 <span>class <span class="ident">DataWindowTest</span></span>
 <span>(</span><span>methodName='runTest')</span>
@@ -555,8 +159,6 @@ not have a method with the specified name.</p></div>
         self.assertEqual(len(datawindow.stations), 3)
         self.assertEqual(len(datawindow.station_ids), 3)
         self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
-        self.assertEqual(datawindow.start_datetime, dt.datetime_from_epoch_microseconds_utc(1531343779086541.0))
-        self.assertEqual(datawindow.end_datetime, dt.datetime_from_epoch_microseconds_utc(1597189467949733.2))
         self.assertEqual(len(datawindow.extensions), 2)
         self.assertEqual(len(datawindow.api_versions), 2)
 
@@ -573,13 +175,14 @@ not have a method with the specified name.</p></div>
                             test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
         self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;).audio_sensor())
         test_sensor = datawindow.get_station(&#34;1637650010&#34;).accelerometer_sensor()
-        self.assertEqual(test_sensor.num_samples(), 641)
+        self.assertEqual(test_sensor.num_samples(), 643)
+        self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
         test_sensor = datawindow.get_station(&#34;0000000001&#34;).audio_sensor()
         self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 720068)
+        self.assertEqual(test_sensor.num_samples(), 720000)
         test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
         self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 3)
+        self.assertEqual(test_sensor.num_samples(), 5)
 
     def test_dw_with_start_end(self):
         dw_with_start_end = dw.DataWindow(
@@ -592,10 +195,10 @@ not have a method with the specified name.</p></div>
         self.assertEqual(len(dw_with_start_end.stations), 1)
         audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).audio_sensor()
         self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 479994)
+        self.assertEqual(audio_sensor.num_samples(), 480000)
         loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).location_sensor()
         self.assertIsNotNone(loc_sensor)
-        self.assertEqual(loc_sensor.num_samples(), 2)
+        self.assertEqual(loc_sensor.num_samples(), 4)
 
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(
@@ -650,13 +253,14 @@ def setUpClass(cls) -&gt; None:
                         test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
     self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;).audio_sensor())
     test_sensor = datawindow.get_station(&#34;1637650010&#34;).accelerometer_sensor()
-    self.assertEqual(test_sensor.num_samples(), 641)
+    self.assertEqual(test_sensor.num_samples(), 643)
+    self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
     test_sensor = datawindow.get_station(&#34;0000000001&#34;).audio_sensor()
     self.assertIsNotNone(test_sensor)
-    self.assertEqual(test_sensor.num_samples(), 720068)
+    self.assertEqual(test_sensor.num_samples(), 720000)
     test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
     self.assertIsNotNone(test_sensor)
-    self.assertEqual(test_sensor.num_samples(), 3)</code></pre>
+    self.assertEqual(test_sensor.num_samples(), 5)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest.test_data_window_simple"><code class="name flex">
@@ -676,8 +280,6 @@ def setUpClass(cls) -&gt; None:
     self.assertEqual(len(datawindow.stations), 3)
     self.assertEqual(len(datawindow.station_ids), 3)
     self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
-    self.assertEqual(datawindow.start_datetime, dt.datetime_from_epoch_microseconds_utc(1531343779086541.0))
-    self.assertEqual(datawindow.end_datetime, dt.datetime_from_epoch_microseconds_utc(1597189467949733.2))
     self.assertEqual(len(datawindow.extensions), 2)
     self.assertEqual(len(datawindow.api_versions), 2)</code></pre>
 </details>
@@ -720,470 +322,10 @@ def setUpClass(cls) -&gt; None:
     self.assertEqual(len(dw_with_start_end.stations), 1)
     audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).audio_sensor()
     self.assertIsNotNone(audio_sensor)
-    self.assertEqual(audio_sensor.num_samples(), 479994)
+    self.assertEqual(audio_sensor.num_samples(), 480000)
     loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).location_sensor()
     self.assertIsNotNone(loc_sensor)
-    self.assertEqual(loc_sensor.num_samples(), 2)</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="redvox.tests.common.test_data_window.FillGapTest"><code class="flex name class">
-<span>class <span class="ident">FillGapTest</span></span>
-<span>(</span><span>methodName='runTest')</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class whose instances are single test cases.</p>
-<p>By default, the test code itself should be placed in a method named
-'runTest'.</p>
-<p>If the fixture may be used for many test cases, create as
-many test methods as are needed. When instantiating such a TestCase
-subclass, specify in the constructor arguments the name of the test method
-that the instance is to execute.</p>
-<p>Test authors should subclass TestCase for their own tests. Construction
-and deconstruction of the test's environment ('fixture') can be
-implemented by overriding the 'setUp' and 'tearDown' methods respectively.</p>
-<p>If it is necessary to override the <strong>init</strong> method, the base class
-<strong>init</strong> method must always be called. It is important that subclasses
-should not change the signature of their <strong>init</strong> method, since instances
-of the classes are instantiated automatically by parts of the framework
-in order to be run.</p>
-<p>When subclassing TestCase, you can set these attributes:
-* failureException: determines which exception will be raised when
-the instance's assertion methods fail; test methods raising this
-exception will be deemed to have 'failed' rather than 'errored'.
-* longMessage: determines whether long messages (including repr of
-objects used in assert methods) will be printed on failure in <em>addition</em>
-to any explicit message passed.
-* maxDiff: sets the maximum length of a diff in failure messages
-by assert methods using difflib. It is looked up as an instance
-attribute so can be configured by individual tests if required.</p>
-<p>Create an instance of the class that will use the named test
-method when executed. Raises a ValueError if the instance does
-not have a method with the specified name.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class FillGapTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -&gt; None:
-        timestamps = [
-            dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(30),
-            dt.seconds_to_microseconds(100),
-        ]
-        cls.dataframe = pd.DataFrame(
-            np.transpose([timestamps, [1, 3, 10]]), columns=[&#34;timestamps&#34;, &#34;temp&#34;]
-        )
-        cls.singleton = pd.DataFrame(
-            [[timestamps[0], 1]], columns=[&#34;timestamps&#34;, &#34;temp&#34;]
-        )
-
-    def test_singleton_fill_gaps(self):
-        filled_singleton = dw.fill_gaps(
-            self.singleton,
-            dt.seconds_to_microseconds(10),
-            0,
-            dt.seconds_to_microseconds(10)
-        )
-        self.assertEqual(filled_singleton.shape, (1, 2))
-        self.assertEqual(
-            filled_singleton.loc[0, &#34;timestamps&#34;], dt.seconds_to_microseconds(10)
-        )
-
-    def test_fill_gaps(self):
-        filled_dataframe = dw.fill_gaps(
-            self.dataframe,
-            dt.seconds_to_microseconds(10),
-            0,
-            dt.seconds_to_microseconds(10)
-        )
-        self.assertEqual(filled_dataframe.shape, (10, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(20)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
-        )
-
-    def test_fill_gaps_long_interval(self):
-        filled_dataframe = dw.fill_gaps(
-            self.dataframe,
-            dt.seconds_to_microseconds(20),
-            0,
-            dt.seconds_to_microseconds(10),
-        )
-        self.assertEqual(filled_dataframe.shape, (6, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(50)
-        )
-
-    def test_fill_gaps_long_gap(self):
-        filled_dataframe = dw.fill_gaps(
-            self.dataframe,
-            dt.seconds_to_microseconds(10),
-            0,
-            dt.seconds_to_microseconds(20),
-        )
-        self.assertEqual(filled_dataframe.shape, (9, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(40)
-        )</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>unittest.case.TestCase</li>
-</ul>
-<h3>Static methods</h3>
-<dl>
-<dt id="redvox.tests.common.test_data_window.FillGapTest.setUpClass"><code class="name flex">
-<span>def <span class="ident">setUpClass</span></span>(<span>) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Hook method for setting up class fixture before running tests in the class.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def setUpClass(cls) -&gt; None:
-    timestamps = [
-        dt.seconds_to_microseconds(10),
-        dt.seconds_to_microseconds(30),
-        dt.seconds_to_microseconds(100),
-    ]
-    cls.dataframe = pd.DataFrame(
-        np.transpose([timestamps, [1, 3, 10]]), columns=[&#34;timestamps&#34;, &#34;temp&#34;]
-    )
-    cls.singleton = pd.DataFrame(
-        [[timestamps[0], 1]], columns=[&#34;timestamps&#34;, &#34;temp&#34;]
-    )</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps"><code class="name flex">
-<span>def <span class="ident">test_fill_gaps</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_fill_gaps(self):
-    filled_dataframe = dw.fill_gaps(
-        self.dataframe,
-        dt.seconds_to_microseconds(10),
-        0,
-        dt.seconds_to_microseconds(10)
-    )
-    self.assertEqual(filled_dataframe.shape, (10, 2))
-    self.assertEqual(
-        filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(20)
-    )
-    self.assertEqual(
-        filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
-    )</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps_long_gap"><code class="name flex">
-<span>def <span class="ident">test_fill_gaps_long_gap</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_fill_gaps_long_gap(self):
-    filled_dataframe = dw.fill_gaps(
-        self.dataframe,
-        dt.seconds_to_microseconds(10),
-        0,
-        dt.seconds_to_microseconds(20),
-    )
-    self.assertEqual(filled_dataframe.shape, (9, 2))
-    self.assertEqual(
-        filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
-    )
-    self.assertEqual(
-        filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(40)
-    )</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps_long_interval"><code class="name flex">
-<span>def <span class="ident">test_fill_gaps_long_interval</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_fill_gaps_long_interval(self):
-    filled_dataframe = dw.fill_gaps(
-        self.dataframe,
-        dt.seconds_to_microseconds(20),
-        0,
-        dt.seconds_to_microseconds(10),
-    )
-    self.assertEqual(filled_dataframe.shape, (6, 2))
-    self.assertEqual(
-        filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
-    )
-    self.assertEqual(
-        filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(50)
-    )</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.FillGapTest.test_singleton_fill_gaps"><code class="name flex">
-<span>def <span class="ident">test_singleton_fill_gaps</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_singleton_fill_gaps(self):
-    filled_singleton = dw.fill_gaps(
-        self.singleton,
-        dt.seconds_to_microseconds(10),
-        0,
-        dt.seconds_to_microseconds(10)
-    )
-    self.assertEqual(filled_singleton.shape, (1, 2))
-    self.assertEqual(
-        filled_singleton.loc[0, &#34;timestamps&#34;], dt.seconds_to_microseconds(10)
-    )</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="redvox.tests.common.test_data_window.PadDataTest"><code class="flex name class">
-<span>class <span class="ident">PadDataTest</span></span>
-<span>(</span><span>methodName='runTest')</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class whose instances are single test cases.</p>
-<p>By default, the test code itself should be placed in a method named
-'runTest'.</p>
-<p>If the fixture may be used for many test cases, create as
-many test methods as are needed. When instantiating such a TestCase
-subclass, specify in the constructor arguments the name of the test method
-that the instance is to execute.</p>
-<p>Test authors should subclass TestCase for their own tests. Construction
-and deconstruction of the test's environment ('fixture') can be
-implemented by overriding the 'setUp' and 'tearDown' methods respectively.</p>
-<p>If it is necessary to override the <strong>init</strong> method, the base class
-<strong>init</strong> method must always be called. It is important that subclasses
-should not change the signature of their <strong>init</strong> method, since instances
-of the classes are instantiated automatically by parts of the framework
-in order to be run.</p>
-<p>When subclassing TestCase, you can set these attributes:
-* failureException: determines which exception will be raised when
-the instance's assertion methods fail; test methods raising this
-exception will be deemed to have 'failed' rather than 'errored'.
-* longMessage: determines whether long messages (including repr of
-objects used in assert methods) will be printed on failure in <em>addition</em>
-to any explicit message passed.
-* maxDiff: sets the maximum length of a diff in failure messages
-by assert methods using difflib. It is looked up as an instance
-attribute so can be configured by individual tests if required.</p>
-<p>Create an instance of the class that will use the named test
-method when executed. Raises a ValueError if the instance does
-not have a method with the specified name.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class PadDataTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -&gt; None:
-        timestamps = [
-            dt.seconds_to_microseconds(40),
-            dt.seconds_to_microseconds(50),
-            dt.seconds_to_microseconds(60),
-        ]
-        cls.dataframe = pd.DataFrame(
-            np.transpose([timestamps, [4, 5, 6]]), columns=[&#34;timestamps&#34;, &#34;temp&#34;]
-        )
-        cls.singleton = pd.DataFrame(
-            [[timestamps[0], 1]], columns=[&#34;timestamps&#34;, &#34;temp&#34;]
-        )
-
-    def test_pad_data(self):
-        filled_dataframe = dw.pad_data(
-            dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(100),
-            self.dataframe,
-            dt.seconds_to_microseconds(10),
-        )
-        self.assertEqual(filled_dataframe.shape, (10, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(20)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
-        )
-
-    def test_pad_data_single_value(self):
-        filled_singleton = dw.pad_data(
-            dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(100),
-            self.singleton,
-            dt.seconds_to_microseconds(10),
-        )
-        self.assertEqual(filled_singleton.shape, (10, 2))
-        self.assertEqual(
-            filled_singleton.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(20)
-        )
-        self.assertEqual(
-            filled_singleton.loc[3, &#34;timestamps&#34;], dt.seconds_to_microseconds(40)
-        )
-
-    def test_pad_data_uneven_ends(self):
-        filled_dataframe = dw.pad_data(
-            dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(100),
-            self.dataframe,
-            dt.seconds_to_microseconds(12),
-        )
-        self.assertEqual(filled_dataframe.shape, (8, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(28)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(40)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[6, &#34;timestamps&#34;], dt.seconds_to_microseconds(84)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[7, &#34;timestamps&#34;], dt.seconds_to_microseconds(96)
-        )</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>unittest.case.TestCase</li>
-</ul>
-<h3>Static methods</h3>
-<dl>
-<dt id="redvox.tests.common.test_data_window.PadDataTest.setUpClass"><code class="name flex">
-<span>def <span class="ident">setUpClass</span></span>(<span>) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Hook method for setting up class fixture before running tests in the class.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def setUpClass(cls) -&gt; None:
-    timestamps = [
-        dt.seconds_to_microseconds(40),
-        dt.seconds_to_microseconds(50),
-        dt.seconds_to_microseconds(60),
-    ]
-    cls.dataframe = pd.DataFrame(
-        np.transpose([timestamps, [4, 5, 6]]), columns=[&#34;timestamps&#34;, &#34;temp&#34;]
-    )
-    cls.singleton = pd.DataFrame(
-        [[timestamps[0], 1]], columns=[&#34;timestamps&#34;, &#34;temp&#34;]
-    )</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="redvox.tests.common.test_data_window.PadDataTest.test_pad_data"><code class="name flex">
-<span>def <span class="ident">test_pad_data</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_pad_data(self):
-    filled_dataframe = dw.pad_data(
-        dt.seconds_to_microseconds(10),
-        dt.seconds_to_microseconds(100),
-        self.dataframe,
-        dt.seconds_to_microseconds(10),
-    )
-    self.assertEqual(filled_dataframe.shape, (10, 2))
-    self.assertEqual(
-        filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(20)
-    )
-    self.assertEqual(
-        filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(30)
-    )</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.PadDataTest.test_pad_data_single_value"><code class="name flex">
-<span>def <span class="ident">test_pad_data_single_value</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_pad_data_single_value(self):
-    filled_singleton = dw.pad_data(
-        dt.seconds_to_microseconds(10),
-        dt.seconds_to_microseconds(100),
-        self.singleton,
-        dt.seconds_to_microseconds(10),
-    )
-    self.assertEqual(filled_singleton.shape, (10, 2))
-    self.assertEqual(
-        filled_singleton.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(20)
-    )
-    self.assertEqual(
-        filled_singleton.loc[3, &#34;timestamps&#34;], dt.seconds_to_microseconds(40)
-    )</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.PadDataTest.test_pad_data_uneven_ends"><code class="name flex">
-<span>def <span class="ident">test_pad_data_uneven_ends</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_pad_data_uneven_ends(self):
-    filled_dataframe = dw.pad_data(
-        dt.seconds_to_microseconds(10),
-        dt.seconds_to_microseconds(100),
-        self.dataframe,
-        dt.seconds_to_microseconds(12),
-    )
-    self.assertEqual(filled_dataframe.shape, (8, 2))
-    self.assertEqual(
-        filled_dataframe.loc[1, &#34;timestamps&#34;], dt.seconds_to_microseconds(28)
-    )
-    self.assertEqual(
-        filled_dataframe.loc[2, &#34;timestamps&#34;], dt.seconds_to_microseconds(40)
-    )
-    self.assertEqual(
-        filled_dataframe.loc[6, &#34;timestamps&#34;], dt.seconds_to_microseconds(84)
-    )
-    self.assertEqual(
-        filled_dataframe.loc[7, &#34;timestamps&#34;], dt.seconds_to_microseconds(96)
-    )</code></pre>
+    self.assertEqual(loc_sensor.num_samples(), 4)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1205,17 +347,6 @@ def setUpClass(cls) -&gt; None:
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest">CreateDatalessTimestampsDFTest</a></code></h4>
-<ul class="">
-<li><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.setUpClass" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.setUpClass">setUpClass</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df">test_add_dataless_timestamps_df</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_empty" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_empty">test_add_dataless_timestamps_df_empty</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_index_too_high" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_index_too_high">test_add_dataless_timestamps_df_index_too_high</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_not_enough_samples" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_add_dataless_timestamps_df_not_enough_samples">test_add_dataless_timestamps_df_not_enough_samples</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_create_dataless_timestamps_df" href="#redvox.tests.common.test_data_window.CreateDatalessTimestampsDFTest.test_create_dataless_timestamps_df">test_create_dataless_timestamps_df</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="redvox.tests.common.test_data_window.DataWindowTest" href="#redvox.tests.common.test_data_window.DataWindowTest">DataWindowTest</a></code></h4>
 <ul class="">
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.setUpClass" href="#redvox.tests.common.test_data_window.DataWindowTest.setUpClass">setUpClass</a></code></li>
@@ -1223,25 +354,6 @@ def setUpClass(cls) -&gt; None:
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_data_window_simple" href="#redvox.tests.common.test_data_window.DataWindowTest.test_data_window_simple">test_data_window_simple</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid">test_dw_invalid</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_with_start_end" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_with_start_end">test_dw_with_start_end</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="redvox.tests.common.test_data_window.FillGapTest" href="#redvox.tests.common.test_data_window.FillGapTest">FillGapTest</a></code></h4>
-<ul class="">
-<li><code><a title="redvox.tests.common.test_data_window.FillGapTest.setUpClass" href="#redvox.tests.common.test_data_window.FillGapTest.setUpClass">setUpClass</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps" href="#redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps">test_fill_gaps</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps_long_gap" href="#redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps_long_gap">test_fill_gaps_long_gap</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps_long_interval" href="#redvox.tests.common.test_data_window.FillGapTest.test_fill_gaps_long_interval">test_fill_gaps_long_interval</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.FillGapTest.test_singleton_fill_gaps" href="#redvox.tests.common.test_data_window.FillGapTest.test_singleton_fill_gaps">test_singleton_fill_gaps</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="redvox.tests.common.test_data_window.PadDataTest" href="#redvox.tests.common.test_data_window.PadDataTest">PadDataTest</a></code></h4>
-<ul class="">
-<li><code><a title="redvox.tests.common.test_data_window.PadDataTest.setUpClass" href="#redvox.tests.common.test_data_window.PadDataTest.setUpClass">setUpClass</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.PadDataTest.test_pad_data" href="#redvox.tests.common.test_data_window.PadDataTest.test_pad_data">test_pad_data</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.PadDataTest.test_pad_data_single_value" href="#redvox.tests.common.test_data_window.PadDataTest.test_pad_data_single_value">test_pad_data_single_value</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.PadDataTest.test_pad_data_uneven_ends" href="#redvox.tests.common.test_data_window.PadDataTest.test_pad_data_uneven_ends">test_pad_data_uneven_ends</a></code></li>
 </ul>
 </li>
 </ul>
