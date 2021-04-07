@@ -17,6 +17,7 @@ import redvox.cloud.auth_api as auth_api
 from redvox.cloud.config import RedVoxConfig
 import redvox.cloud.errors as cloud_errors
 import redvox.common.constants as constants
+from redvox.common.offset_model import compute_offsets
 import redvox.cloud.data_api as data_api
 import redvox.cloud.metadata_api as metadata_api
 import redvox.cloud.station_stats as station_stats_api
@@ -24,7 +25,7 @@ import redvox.cloud.station_stats as station_stats_api
 if TYPE_CHECKING:
     from redvox.cloud.station_stats import StationStatsResp
     from redvox.common.file_statistics import StationStat
-    from redvox.common.offset_model import TimingOffsets, compute_offsets
+    from redvox.common.offset_model import TimingOffsets
 
 
 def chunk_time_range(
@@ -495,13 +496,15 @@ class CloudClient:
                 self.redvox_config.secret_token,
             )
 
-            return data_api.request_range_data(
+            req_resp: data_api.DataRangeResp = data_api.request_range_data(
                 self.redvox_config,
                 data_range_req,
                 session=self.__session,
                 timeout=self.timeout,
                 req_type=req_type,
             )
+
+            return req_resp
 
         if end_ts_s <= start_ts_s:
             raise cloud_errors.CloudApiError("start_ts_s must be < end_ts_s")
@@ -535,6 +538,7 @@ class CloudClient:
             # Merge the multiple responses into a single response.
             for station, all_stats in station_to_stats.items():
                 timing_offsets: Optional["TimingOffsets"] = compute_offsets(all_stats)
+
                 start_offset: int = (
                     timing_offsets.start_offset.seconds
                     if timing_offsets is not None
@@ -546,9 +550,13 @@ class CloudClient:
                     else 0
                 )
 
+                print(f"Correcting query for station={station}")
+                print(f"\tstart diff: {start_offset}")
+                print(f"\tend diff: {end_offset}")
+
                 resp.append(
                     _make_req(
-                        start_ts_s + start_offset, end_ts_s + end_offset, [station]
+                        start_ts_s + start_offset, end_ts_s + end_offset, [station.split(":")[0]]
                     )
                 )
 
