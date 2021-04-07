@@ -464,7 +464,7 @@ class CloudClient:
         end_ts_s: int,
         station_ids: List[str],
         req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900_1000,
-        correct_timing: bool = True,
+        correct_query_timing: bool = True,
     ) -> data_api.DataRangeResp:
         """
         Request signed URLs for RedVox packets.
@@ -472,10 +472,11 @@ class CloudClient:
         :param end_ts_s:  The end epoch of the window.
         :param station_ids: A list of station ids.
         :param req_type: The type of data to request.
-        :param correct_timing: If set to true, timing correction will be applied to each station before the data is
-                               queried.
+        :param correct_query_timing: If set to true, timing correction will be applied to each station before the data is
+                                    correct_timing queried.
         :return: A response containing a list of signed URLs for the RedVox packets.
         """
+        
         if end_ts_s <= start_ts_s:
             raise cloud_errors.CloudApiError("start_ts_s must be < end_ts_s")
 
@@ -484,8 +485,8 @@ class CloudClient:
 
         # If timing correction was requested, we want to find the corrected start and end offsets in order to
         # request the correct range of data for each station's particular clock offset
-        if correct_timing:
-            station_stats: "StationStatsResp" = self.request_station_stats(
+        if correct_query_timing:
+            station_stats: Optional["StationStatsResp"] = self.request_station_stats(
                 start_ts_s,
                 end_ts_s,
                 station_ids
@@ -522,21 +523,22 @@ class CloudClient:
 
             return resp
         else:
-            data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(
-                self.auth_token,
-                start_ts_s,
-                end_ts_s,
-                station_ids,
-                self.redvox_config.secret_token,
-            )
+            # data_range_req: data_api.DataRangeReq = data_api.DataRangeReq(
+            #     self.auth_token,
+            #     start_ts_s,
+            #     end_ts_s,
+            #     station_ids,
+            #     self.redvox_config.secret_token,
+            # )
+            #
+            # return data_api.request_range_data(
+            #     self.redvox_config,
+            #     data_range_req,
+            #     session=self.__session,
+            #     timeout=self.timeout,
+            #     req_type=req_type,
+            # )
 
-            return data_api.request_range_data(
-                self.redvox_config,
-                data_range_req,
-                session=self.__session,
-                timeout=self.timeout,
-                req_type=req_type,
-            )
 
     def request_station_stats(
         self,
