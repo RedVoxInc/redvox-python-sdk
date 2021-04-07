@@ -20,15 +20,6 @@ class EmptySensorTest(unittest.TestCase):
         self.assertEqual(empty_sensor.type, SensorType.UNKNOWN_SENSOR)
 
 
-class CalcTimestampsTest(unittest.TestCase):
-    def test_calc_timestamps(self):
-        timestamps = sdru.calc_evenly_sampled_timestamps(1000, 100, 1000)
-        self.assertEqual(len(timestamps), 100)
-        self.assertEqual(timestamps[0], 1000)
-        self.assertEqual(timestamps[1], 2000)
-        self.assertEqual(timestamps[99], 100000)
-
-
 class SampleStatisticsTest(unittest.TestCase):
     def test_sample_stats(self):
         new_df = pd.DataFrame([10000, 20000, 30000, 40000, 50000], columns=["timestamps"])

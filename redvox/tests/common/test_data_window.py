@@ -21,8 +21,6 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(datawindow.stations), 3)
         self.assertEqual(len(datawindow.station_ids), 3)
         self.assertTrue("1637680001" in datawindow.station_ids)
-        self.assertEqual(datawindow.start_datetime, dt.datetime_from_epoch_microseconds_utc(1531343779086541.0))
-        self.assertEqual(datawindow.end_datetime, dt.datetime_from_epoch_microseconds_utc(1597189467949733.2))
         self.assertEqual(len(datawindow.extensions), 2)
         self.assertEqual(len(datawindow.api_versions), 2)
 
@@ -59,7 +57,7 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(dw_with_start_end.stations), 1)
         audio_sensor = dw_with_start_end.get_station("0000000001").audio_sensor()
         self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 479984)
+        self.assertEqual(audio_sensor.num_samples(), 480000)
         loc_sensor = dw_with_start_end.get_station("0000000001").location_sensor()
         self.assertIsNotNone(loc_sensor)
         self.assertEqual(loc_sensor.num_samples(), 4)

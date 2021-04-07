@@ -1,6 +1,9 @@
+from typing import List, Tuple, Optional
+
 import pandas as pd
 import numpy as np
 
+from redvox.common import date_time_utils as dtu
 from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
@@ -8,6 +11,19 @@ from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType
 
 # default maximum number of points required to brute force calculating gap timestamps
 DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS: int = 5000
+
+
+def calc_evenly_sampled_timestamps(
+        start: float, samples: int, sample_interval_micros: float
+) -> np.array:
+    """
+    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+    :param start: float, start timestamp in microseconds
+    :param samples: int, number of samples
+    :param sample_interval_micros: float, sample interval in microseconds
+    :return: np.array with evenly spaced timestamps starting at start
+    """
+    return start + (np.arange(0, samples) * sample_interval_micros)
 
 
 def pad_data(
@@ -131,77 +147,58 @@ def fill_gaps(
 
 
 def fill_audio_gaps(
-        timestamps: np.array,
-        audio_data: np.array,
+        packet_data: List[Tuple[float, np.array, int]],
         sample_interval_micros: float,
-        samples_per_packet: int,
-        num_points_to_brute_force: int = DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS,
         gap_upper_limit: float = .9,
         gap_lower_limit: float = .02
 ) -> pd.DataFrame:
     """
-    fills gaps in the dataframe with np.nan by interpolating timestamps based on the mean expected sample interval
+    fills gaps in the dataframe with np.nan by interpolating timestamps based on the expected sample interval
       ignores gaps with duration less than or equal to packet length * gap_lower_limit
 
       converts gaps with duration greater than or equal to packet length * gap_upper_limit into a multiple of
       packet length
-    :param timestamps: array of timestamps for the data
-    :param audio_data: array of data points
+    :param packet_data: list of tuples, each tuple containing three pieces of packet information:
+        * packet_start_timestamps: float of packet start timestamp in microseconds
+        * audio_data: array of data points
+        * samples_per_packet: int, number of samples in the packet
     :param sample_interval_micros: sample interval in microseconds
-    :param samples_per_packet: number of samples to create per packet
-    :param num_points_to_brute_force: maximum number of timestamps required to check the timestamps for gaps
     :param gap_upper_limit: percentage of packet length required to confirm gap is at least 1 packet
     :param gap_lower_limit: percentage of packet length required to disregard gap
     :return: dataframe without gaps
     """
-    result_df = pd.DataFrame(np.transpose([timestamps, timestamps, audio_data]),
+    result_df = pd.DataFrame(np.transpose([[], [], []]),
                              columns=["timestamps", "unaltered_timestamps", "microphone"])
-    num_points = len(timestamps)
-    # if there are less points than our expected amount, we have gaps to fill
-    if num_points < num_points_to_brute_force:
-        # look at every timestamp difference
-        timestamp_diffs = np.diff(timestamps)
-        for index in np.where(timestamp_diffs > sample_interval_micros)[0]:
-            num_samples = np.ceil(timestamp_diffs[index] / sample_interval_micros) - 1
-            if num_samples <= samples_per_packet * gap_lower_limit:
-                break  # difference too small, no gap
-            elif num_samples >= samples_per_packet * gap_upper_limit:
-                # add samples per packet for each packet missing
-                num_samples = samples_per_packet * np.floor(num_samples / (samples_per_packet * gap_upper_limit))
-            # add the gap data to the result dataframe
-            result_df = add_dataless_timestamps_to_df(
-                result_df,
-                index,
-                sample_interval_micros,
-                num_samples,
-            )
-    else:
-        # too many points to check, divide and conquer using recursion!
-        half_samples = int(num_points / 2)
-        first_data_timestamps = timestamps[:half_samples]
-        first_audio_data = audio_data[:half_samples]
-        second_data_timestamps = timestamps[half_samples:]
-        second_audio_data = audio_data[half_samples:]
-        # give half the samples to each recursive call
-        first_data_timestamps = fill_audio_gaps(
-            first_data_timestamps,
-            first_audio_data,
-            sample_interval_micros,
-            samples_per_packet,
-        )
-        second_data_timestamps = fill_audio_gaps(
-            second_data_timestamps,
-            second_audio_data,
-            sample_interval_micros,
-            samples_per_packet,
-        )
-        result_df = first_data_timestamps.append(second_data_timestamps, ignore_index=True)
-        mid_timestamps = timestamps[half_samples-1:half_samples+1]
-        mid_audio_data = audio_data[half_samples-1:half_samples+1]
-        mid_df = fill_audio_gaps(mid_timestamps, mid_audio_data, sample_interval_micros, samples_per_packet)
-        if len(mid_df["timestamps"]) > 2:
-            mid_df = mid_df.iloc[1:len(mid_df["timestamps"])-1]
-            result_df = result_df.append(mid_df, ignore_index=True)
+    last_data_timestamp: Optional[float] = None
+    for packet in packet_data:
+        samples_in_packet = packet[2]
+        start_ts = packet[0]
+        packet_length = sample_interval_micros * samples_in_packet
+        estimated_df = pd.DataFrame(np.transpose([[], [], []]),
+                                    columns=["timestamps", "unaltered_timestamps", "microphone"])
+        if last_data_timestamp:
+            # check if start_ts is close to the last timestamp in data_timestamps
+            last_timestamp_diff = start_ts - last_data_timestamp
+            if np.abs(last_timestamp_diff) < gap_lower_limit * packet_length:
+                start_ts = last_data_timestamp + sample_interval_micros
+            elif last_timestamp_diff < 0:
+                raise ValueError(f"ERROR: Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} is before "
+                                 f"last timestamp of previous "
+                                 f"packet: {dtu.microseconds_to_seconds(last_data_timestamp)}")
+            else:
+                if np.abs(last_timestamp_diff) > gap_upper_limit * packet_length:
+                    num_samples = samples_in_packet
+                else:
+                    num_samples = np.ceil(last_timestamp_diff / sample_interval_micros) - 1
+                estimated_df = create_dataless_timestamps_df(last_data_timestamp, sample_interval_micros,
+                                                             estimated_df.columns, num_samples)
+                start_ts = estimated_df["timestamps"].iloc[-1] + sample_interval_micros
+        estimated_ts = calc_evenly_sampled_timestamps(start_ts, samples_in_packet, sample_interval_micros)
+        result_df = pd.concat([result_df, estimated_df,
+                               pd.DataFrame(np.transpose([estimated_ts, estimated_ts, packet[1]]),
+                                            columns=["timestamps", "unaltered_timestamps", "microphone"])],
+                              ignore_index=True)
+        last_data_timestamp = estimated_ts[-1]
     return result_df.sort_values("timestamps", ignore_index=True)
 
 
