@@ -7,6 +7,15 @@ import redvox.common.date_time_utils as dt
 import redvox.common.gap_and_pad_utils as gpu
 
 
+class CalcTimestampsTest(unittest.TestCase):
+    def test_calc_timestamps(self):
+        timestamps = gpu.calc_evenly_sampled_timestamps(1000, 100, 1000)
+        self.assertEqual(len(timestamps), 100)
+        self.assertEqual(timestamps[0], 1000)
+        self.assertEqual(timestamps[1], 2000)
+        self.assertEqual(timestamps[99], 100000)
+
+
 class PadDataTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:

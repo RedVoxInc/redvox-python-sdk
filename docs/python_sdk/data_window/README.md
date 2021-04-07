@@ -369,19 +369,21 @@ Once the data is verified as within the confines of our request, the data must b
 The data is now organized by Station.  This process will be performed on all Stations in the Data Window.
 
 1. Update all timestamps in the Station using the offset model.  This is the final timestamp update before the user gets the data.
-    * Audio data timestamps are adjusted by updating the first timestamp of the data, then using the sample interval to compute the other points from the updated first timestamp.
 
 2. Check for Audio sensor data.  No Audio sensor data means the Station isn't useful to us, and will be discarded before the user sees it.
 
 3. Remove any Audio data points outside the request window.
 
-4. Remove any other sensor data points outside the request window.  There is one caveat to this step:
-   * We will create data points at the start and end timestamps of the trimmed audio sensor.  The points are interpolated from existing data.
+4. Remove data points from each non-audio sensor that are outside the request window.  There is one caveat to this step:
+   * We will create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
+   * The non-timestamp values of the rows are interpolated from existing data, or contain nan or default values (for enumerations) if not enough existing data.
 
-5. Fill any gaps within the data.
+5. For each non-audio sensor, fill any gaps within the sensor's data.
+   * Gaps are filled by creating rows in the dataframe consisting of a calculated timestamp and nan or default values (for enumerations) for each other column in the row.
    * Gap duration is defined by Data Window here: [(gap_time_s)](#advanced-optional-data-window-parameters)
    * For evenly sampled sensors, a gap is a period of time longer than the amount specified by the Data Window or the mean sample rate of the data, whichever of the two is greater.
    * For unevenly sampled sensors, a gap is a period of time longer than the amount specified by the Data Window or the mean sample rate + one standard deviation of the data, whichever of the two is greater.
+   * Gaps between the first data point and the requested start and between the last data point and the requested end are filled using the mean sample rate of the sensor.
 
 6. Update the Station metadata.
 

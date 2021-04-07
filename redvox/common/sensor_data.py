@@ -12,19 +12,6 @@ import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om
 
 
-def calc_evenly_sampled_timestamps(
-        start: float, samples: int, rate_hz: float
-) -> np.array:
-    """
-    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
-    :param start: float, start timestamp in microseconds
-    :param samples: int, number of samples
-    :param rate_hz: float, sample rate in hz
-    :return: np.array with evenly spaced timestamps starting at start
-    """
-    return start + (np.arange(0, samples) / rate_hz) * dtu.MICROSECONDS_IN_SECOND
-
-
 # todo: add original timestamps to the dataframes
 class SensorType(enum.Enum):
     """

@@ -26,19 +26,6 @@ def get_empty_sensor_data(
     return SensorData(name, pd.DataFrame([], columns=["timestamps"]), sensor_type)
 
 
-def calc_evenly_sampled_timestamps(
-        start: float, samples: int, rate_hz: float
-) -> np.array:
-    """
-    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
-    :param start: float, start timestamp in microseconds
-    :param samples: int, number of samples
-    :param rate_hz: float, sample rate in hz
-    :return: np.array with evenly spaced timestamps starting at start
-    """
-    return start + (np.arange(0, samples) / rate_hz) * dtu.MICROSECONDS_IN_SECOND
-
-
 def get_sample_statistics(data_df: pd.DataFrame) -> Tuple[float, float, float]:
     """
     calculate the sample rate, interval and interval std dev using the timestamps in the dataframe
@@ -126,8 +113,8 @@ def load_apim_audio(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData
     if audio and wrapped_packet.get_sensors().validate_audio():
         sample_rate_hz = audio.get_sample_rate()
         data_for_df = audio.get_samples().get_values()
-        timestamps = calc_evenly_sampled_timestamps(
-            audio.get_first_sample_timestamp(), audio.get_num_samples(), sample_rate_hz
+        timestamps = gpu.calc_evenly_sampled_timestamps(
+            audio.get_first_sample_timestamp(), audio.get_num_samples(), dtu.seconds_to_microseconds(1/sample_rate_hz)
         )
         return SensorData(
             audio.get_sensor_description(),
@@ -155,15 +142,11 @@ def load_apim_audio_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
         if wrapped_packets[0].get_sensors().get_audio() and wrapped_packets[0].get_sensors().validate_audio():
             try:
                 sample_rate_hz = wrapped_packets[0].get_sensors().get_audio().get_sample_rate()
-                samples_per_packet = wrapped_packets[0].get_sensors().get_audio().get_num_samples()
-                timestamps = np.array(
-                    [calc_evenly_sampled_timestamps(p.get_sensors().get_audio().get_first_sample_timestamp(),
-                                                    p.get_sensors().get_audio().get_num_samples(), sample_rate_hz)
-                     for p in wrapped_packets]).flatten()
-                data_vals = np.array([p.get_sensors().get_audio().get_samples().get_values()
-                                      for p in wrapped_packets]).flatten()
-                df = gpu.fill_audio_gaps(timestamps, data_vals,
-                                         dtu.seconds_to_microseconds(1/sample_rate_hz), samples_per_packet)
+                packet_info = [(p.get_sensors().get_audio().get_first_sample_timestamp(),
+                                p.get_sensors().get_audio().get_samples().get_values(),
+                                p.get_sensors().get_audio().get_num_samples())
+                               for p in wrapped_packets]
+                df = gpu.fill_audio_gaps(packet_info, dtu.seconds_to_microseconds(1/sample_rate_hz))
 
                 return SensorData(
                     wrapped_packets[0].get_sensors().get_audio().get_sensor_description(),

@@ -93,6 +93,10 @@ class DataWindow:
         """
 
         self.input_directory: str = input_dir
+        if start_datetime and end_datetime:
+            if end_datetime <= start_datetime:
+                raise AttributeError("Data Window does not like end datetimes before start datetimes:"
+                                     f"{end_datetime} <= {start_datetime}")
         self.structured_layout: bool = structured_layout
         self.start_datetime: Optional[dtu.datetime] = start_datetime
         self.end_datetime: Optional[dtu.datetime] = end_datetime
@@ -284,6 +288,7 @@ class DataWindow:
                         f"sensor has truncated all data points"
                     )
             else:
+                # update existing points immediately beyond the edge to be at the edge using interpolation.
                 if last_before_start:
                     sensor.data_df.iloc[last_before_start] = sensor.interpolate(last_before_start,
                                                                                 start_index, start_date_timestamp)
@@ -315,8 +320,9 @@ class DataWindow:
                         sensor.data_df,
                         sample_interval_micros,
                     )
+                # add in the nan-ed data points at the edges of the window if nothing beyond the edges
                 if not first_after_end:
-                    sensor.data_df = gpu.add_dataless_timestamps_to_df(sensor.data_df, sensor.num_samples()-1,
+                    sensor.data_df = gpu.add_dataless_timestamps_to_df(sensor.data_df, sensor.num_samples() - 1,
                                                                        np.abs(sensor.last_data_timestamp() -
                                                                               end_date_timestamp),
                                                                        1)
@@ -357,13 +363,8 @@ class DataWindow:
                             f"WARNING: Cannot fill gaps or pad {station.id} Audio "
                             f"sensor; it has undefined sample interval and sample rate!"
                         )
-                else:  # GAP FILL and PAD DATA
+                else:  # PAD DATA
                     sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
-                    sensor.data_df = gpu.fill_gaps(
-                        sensor.data_df,
-                        sample_interval_micros,
-                        dtu.seconds_to_microseconds(self.gap_time_s),
-                    )
                     sensor.data_df = gpu.pad_data(
                         start_date_timestamp,
                         end_date_timestamp,
