@@ -9,6 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc12 (2-21-4-7)
+
+* Add CLI argument to disable query timing correction on data requests
+
 ### 3.0.0rc11 (2021-4-6)
 
 * Fixed timestamp discrepancies when creating Audio Sensors
