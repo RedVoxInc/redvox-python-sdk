@@ -12,6 +12,7 @@ This repository contains code for reading and working with the RedVox API 900 an
 ### 3.0.0rc12 (2-21-4-7)
 
 * Add CLI argument to disable query timing correction on data requests
+* Sensor sample rate update function more accurately adjusts to a slope in offset model
 
 ### 3.0.0rc11 (2021-4-6)
 

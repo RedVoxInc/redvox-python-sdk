@@ -201,6 +201,25 @@ class DataWindow:
         """
         return io.serialize_data_window(self, base_dir, file_name, compression_factor)
 
+    # def to_json(self, base_dir: str = ".", file_name: Optional[str] = None) -> Path:
+    #     """
+    #     Converts the data window into a JSON file and writes it to disk.
+    #     :param base_dir: base directory to write the json file to.  Default . (local directory)
+    #     :param file_name: the optional file name.  If None, a default file name is created using this format:
+    #                         [start_ts]_[end_ts]_[num_stations].json
+    #     :return: The path to the written file
+    #     """
+    #     return io.data_window_to_json(self, base_dir, file_name)
+    #
+    # @staticmethod
+    # def from_json(path: str) -> Dict:
+    #     """
+    #     Reads a JSON file and converts it to a data window
+    #     :param path: the path to the JSON file to read
+    #     :return: a dictionary? FOR NOW todo: data window?
+    #     """
+    #     return io.json_to_data_window(path)
+
     def _has_time_window(self) -> bool:
         """
         Returns true if there is a start or end datetime in the settings

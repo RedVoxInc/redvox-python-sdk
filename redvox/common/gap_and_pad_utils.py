@@ -11,6 +11,10 @@ from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType
 
 # default maximum number of points required to brute force calculating gap timestamps
 DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS: int = 5000
+# percent of packet duration/sample rate required for gap to be considered a whole unit
+DEFAULT_GAP_UPPER_LIMIT: float = 0.8
+# percent of packet duration/sample rate required for gap to be considered nothing
+DEFAULT_GAP_LOWER_LIMIT: float = 0.02
 
 
 def calc_evenly_sampled_timestamps(
@@ -46,7 +50,7 @@ def pad_data(
     last_data_timestamp = data_time_stamps[-1]
     result_df = data_df.copy()
     result_before_update_length = len(result_df) - 1
-    # FRONT/END GAP FILL!  calculate the audio samples missing based on inputs
+    # FRONT/END GAP FILL!  calculate the samples missing based on inputs
     if expected_start < first_data_timestamp:
         start_diff = first_data_timestamp - expected_start
         num_missing_samples = np.floor(start_diff / sample_interval_micros)

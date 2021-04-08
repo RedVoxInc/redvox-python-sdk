@@ -29,8 +29,7 @@ def validate_station_data(data_packets: List[WrappedRedvoxPacketM]) -> bool:
              == data_packets[0].get_timing_information().get_app_start_mach_timestamp()
              for t in data_packets])):
         return True
-    else:
-        return False
+    return False
 
 
 class Station:
@@ -49,7 +48,6 @@ class Station:
         start_timestamp: float of microseconds since epoch UTC when the station started recording, default np.nan
         first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan
         last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan
-        app_name: str of the name of the app used to record the data, default empty string
         audio_sample_rate_hz: float of sample rate of audio component in hz, default np.nan
         is_audio_scrambled: bool, True if audio data is scrambled, default False
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
