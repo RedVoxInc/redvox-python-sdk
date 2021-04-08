@@ -32,33 +32,24 @@ It's possible to see a list of all commands by running:
 
 ```
 $ redvox-cli --help
-usage: redvox-cli [-h] [--verbose] {gallery,rdvxz-to-rdvxm,
- rdvxm-to-rdvxz,rdvxz-to-json,rdvxm-to-json,json-to-rdvxz,
- json-to-rdvxm,print-z,print-m,validate-m,data-req,data-req-report} 
- ...
+usage: redvox-cli [-h] [--verbose] {gallery,rdvxz-to-rdvxm,rdvxm-to-rdvxz,rdvxz-to-json,rdvxm-to-json,json-to-rdvxz,json-to-rdvxm,sort-unstructured,print-z,print-m,validate-m,data-req,data-req-report} ...
 
-Command line tools for viewing, converting, and downloading RedVox
- data.
+Command line tools for viewing, converting, and downloading RedVox data.
 
 positional arguments:
-  {gallery,rdvxz-to-rdvxm,rdvxm-to-rdvxz,rdvxz-to-json,rdvxm-to-json,
-   json-to-rdvxz,json-to-rdvxm,print-z,print-m,validate-m,data-req,
-   data-req-report}
-    rdvxz-to-rdvxm      Convert rdvxz (API 900) to rdvxm (API 1000/M)
-                         files
-    rdvxm-to-rdvxz      Convert rdvxm (API 1000/M) to rdvxx (API 900)
-                         files
+  {gallery,rdvxz-to-rdvxm,rdvxm-to-rdvxz,rdvxz-to-json,rdvxm-to-json,json-to-rdvxz,json-to-rdvxm,sort-unstructured,print-z,print-m,validate-m,data-req,data-req-report}
+    rdvxz-to-rdvxm      Convert rdvxz (API 900) to rdvxm (API 1000/M) files
+    rdvxm-to-rdvxz      Convert rdvxm (API 1000/M) to rdvxx (API 900) files
     rdvxz-to-json       Convert rdvxz files to json files
     rdvxm-to-json       Convert rdvxm files to json files
     json-to-rdvxz       Convert json files to rdvxz files
     json-to-rdvxm       Convert json files to rdvxm files
+    sort-unstructured   Sorts unstructured RedVox files into their structured counterpart
     print-z             Print contents of rdvxz files to stdout
     print-m             Print contents of rdvxm files to stdout
     validate-m          Validate the structure of API M files
-    data-req            Request bulk RedVox data from the RedVox 
-                         servers
-    data-req-report     Request bulk RedVox data from the RedVox 
-                         servers
+    data-req            Request bulk RedVox data from RedVox servers
+    data-req-report     Request bulk RedVox data from the RedVox servers
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -77,9 +68,7 @@ _[Table of Contents](#table-of-contents)_
 
 Allows both API 900 and API 1000 data to be requested from the RedVox cloud services. All positional arguments are required and are used to authenticate against the RedVox services as well as to provide a means of specifying which data should be queried.
 
-Until stated otherwise, the option argument `--secret-token` is also __required__. If you have not done so already, obtain the current API secret token from RedVox, Inc.
-
-Every request requires authentication information, a time window, and one or more API 900 or API 1000 station IDs.
+Every request requires authentication information, a time window, and one or more API 900 or API 1000 station IDs. We recommend storing authentication information in a globally accessible configuration file or through environment variables. This is described in the RedVox Cloud Services documentation at: https://github.com/RedVoxInc/redvox-python-sdk/blob/master/docs/python_sdk/cloud
 
 Downloaded data will be stored according to the structured directory layouts for both API 900 and API 1000. Data is stored in the current working directory unless `--out-dir` is specified.
 
@@ -93,37 +82,33 @@ _Usage_:
 
 ```
 $ redvox-cli data-req --help
-usage: redvox-cli data-req [-h] [--out-dir OUT_DIR]
-  [--retries {0,1,2,3,4,5}]
- [--host HOST] [--port PORT] [--protocol {https,http}] 
- [--secret-token SECRET_TOKEN] [--api-type
-  {API_900,API_1000,API_900_1000}]
-email password req_start_s req_end_s station_ids [station_ids ...]
+usage: redvox-cli data-req [-h] [--email EMAIL] [--password PASSWORD] [--out-dir OUT_DIR] [--disable-timing-correction] [--retries {0,1,2,3,4,5}] [--host HOST] [--port PORT] [--protocol {https,http}] [--secret-token SECRET_TOKEN]
+                           [--api-type {API_900,API_1000,API_900_1000}] [--timeout TIMEOUT]
+                           req_start_s req_end_s station_ids [station_ids ...]
 
 positional arguments:
-email                 redvox.io account email
-password              redvox.io account password
-req_start_s           Data request start as seconds since the epoch
-                       UTC
-req_end_s             Data request end as seconds since the epoch UTC
-station_ids           A list of RedVox ids delimited by a space
+  req_start_s           Data request start as number of seconds since the epoch UTC
+  req_end_s             Data request end as number of seconds since the epoch UTC
+  station_ids           A list of RedVox ids delimited by a space
 
 optional arguments:
--h, --help            show this help message and exit
---out-dir OUT_DIR, -o OUT_DIR
-The output directory that RedVox files will be written to (default=.)
---retries {0,1,2,3,4,5}, -r {0,1,2,3,4,5}
-The number of times the client should retry getting a file on failure 
-  (default=1)
---host HOST, -H HOST  Data server host (default=redvox.io)
---port PORT, -p PORT  Data server port (default=8080)
---protocol {https,http}
-One of either http or https (default https)
---secret-token SECRET_TOKEN
-A shared secret token provided by RedVox required for accessing the
- data request service
---api-type {API_900,API_1000,API_900_1000}
-Data API to be retrieved
+  -h, --help            show this help message and exit
+  --email EMAIL         redvox.io account email
+  --password PASSWORD   redvox.io account password
+  --out-dir OUT_DIR     The output directory that RedVox files will be written to (default=.)
+  --disable-timing-correction
+                        Disables query timing correction
+  --retries {0,1,2,3,4,5}
+                        The number of times the client should retry getting a file on failure (default=1)
+  --host HOST           Data server host
+  --port PORT           Data server port
+  --protocol {https,http}
+                        One of either http or https
+  --secret-token SECRET_TOKEN
+                        A shared secret token provided by RedVox required for accessing the data request service
+  --api-type {API_900,API_1000,API_900_1000}
+                        Data API to be retrieved
+  --timeout TIMEOUT     Read timeout in seconds (default=10 seconds)
 ```
 
 _Examples_:
@@ -131,8 +116,8 @@ _Examples_:
 Download one hour (2020-12-21 00:00 to 01:00 UTC) of data for a single station (1637681016). Once the download starts, a progress bar will be displayed to stdout:
 
 ```
-$ redvox-cli data-req --secret-token $SECRET_TOKEN $USERNAME \ 
-  $PASSWORD 1608508800 1608512400 1637681016 
+$ redvox-cli data-req --email $USERNAME \ 
+  --password $PASSWORD 1608508800 1608512400 1637681016 
 [   88 /    88] [100.0%] [   8172067 bytes] 
  [est time remaining 0000.0s] 
  api900/2020/12/21/1637681016_1608512389005.rdvxz(redvox) 
@@ -141,31 +126,34 @@ $ redvox-cli data-req --secret-token $SECRET_TOKEN $USERNAME \
 Download one hour of data for multiple stations:
 
 ```
-$ redvox-cli data-req --secret-token $SECRET_TOKEN $USERNAME \
- $PASSWORD 1608508800 1608512400 1637681016 1637620010 1637610002
+$ redvox-cli data-req --email $USERNAME \
+ --password $PASSWORD 1608508800 1608512400 1637681016 1637620010 1637610002
 ```
 
 Download only API 900 data:
 
 ```
-$ redvox-cli data-req --api-type API_900 --secret-token \ 
-  $SECRET_TOKEN $USERNAME $PASSWORD 1608508800 1608512400 1637681016 \
+$ redvox-cli data-req --api-type API_900 --email $USERNAME --password $PASSWORD 1608508800 1608512400 1637681016 \
   1637620010 1637610002
 ```
 
 Download only API 1000 data:
 
 ```
-$ redvox-cli data-req --api-type API_1000 --secret-token \
- $SECRET_TOKEN $USERNAME $PASSWORD 1608508800 1608512400 1637681016 \
+$ redvox-cli data-req --api-type API_1000 --email $USERNAME --password $PASSWORD 1608508800 1608512400 1637681016 \
  1637620010 1637610002
 ```
 
 Download data to an alternate directory:
 
 ```
-$ redvox-cli data-req --out-dir /data/downloaded --secret-token \
- $SECRET_TOKEN $USERNAME $PASSWORD 1608508800 1608512400 1637681016 
+$ redvox-cli data-req --out-dir /data/downloaded --email $USERNAME --password $PASSWORD 1608508800 1608512400 1637681016 
+```
+
+Download data with authentication information supplied by the system and without timing correction.
+
+```
+$ redvox-cli data-req --out-dir /data/downloaded --disable-timing-correction 1608508800 1608512400 1637681016 
 ```
 
 _[Table of Contents](#table-of-contents)_
@@ -174,9 +162,9 @@ _[Table of Contents](#table-of-contents)_
 
 This command can be used to download report data that was generated on redvox.io. The downloaded data will be stored in a .zip folder in the current working directory unless `--out-dir` is specified. Downloaded contents include API 900 data files, plots, and other related products.
 
-All positional arguments are required and `--secret-token` is currently required until otherwise specified. If you have not been provided a `secret-token`, please contact RedVox to obtain one.
+All positional arguments are required.
 
-In the following example, `$USERNAME`, `$PASSWORD`, and `$SECRET_TOKEN` will be used as placeholders. These should be substituted with valid values in order to run.
+In the following example, `$USERNAME` and `$PASSWORD` will be used as placeholders. These should be substituted with valid values in order to run.
 
 The report ID for each redvox.io report can be found both in the URL bar:
 
@@ -189,49 +177,42 @@ and in the report itself:
 _Usage_:
 
 ```
-usage: redvox-cli data-req-report [-h] [--out-dir OUT_DIR] 
- [--retries {0,1,2,3,4,5}] [--host HOST] [--port PORT] 
- [--protocol {https,http}] [--secret-token SECRET_TOKEN] email 
-  password report_id
+$ redvox-cli data-req-report --help
+usage: redvox-cli data-req-report [-h] [--out-dir OUT_DIR] [--email EMAIL] [--password PASSWORD] [--retries {0,1,2,3,4,5}] [--host HOST] [--port PORT] [--protocol {https,http}] [--secret-token SECRET_TOKEN] report_id
 
 positional arguments:
-  email                 redvox.io account email
-  password              redvox.io account password
-  report_id             The full report id that data is being
-                         requested for
+  report_id             The full report id that data is being requested for
 
 optional arguments:
   -h, --help            show this help message and exit
-  --out-dir OUT_DIR, -o OUT_DIR
-                        The output directory that RedVox files will be
-                         written to (default=.)
-  --retries {0,1,2,3,4,5}, -r {0,1,2,3,4,5}
-                        The number of times the client should retry
-                         getting a file on failure (default=1)
-  --host HOST, -H HOST  Data server host (default=redvox.io)
-  --port PORT, -p PORT  Data server port (default=8080)
+  --out-dir OUT_DIR     The output directory that RedVox files will be written to (default=.)
+  --email EMAIL         redvox.io account email
+  --password PASSWORD   redvox.io account password
+  --retries {0,1,2,3,4,5}
+                        The number of times the client should retry getting a file on failure (default=1)
+  --host HOST           Data server host
+  --port PORT           Data server port
   --protocol {https,http}
                         One of either http or https (default https)
   --secret-token SECRET_TOKEN
-                        A shared secret token provided by RedVox 
-                         required for accessing the data request
-                         service
+                        A shared secret token provided by RedVox required for accessing the data request service
 ```
+
+Please note that `--email` and `--password` are only required if you don't store authentication information on your system: https://github.com/RedVoxInc/redvox-python-sdk/blob/master/docs/python_sdk/cloud
 
 _Examples_:
 
 Download data from a report.
 
 ```
-$ redvox-cli data-req-report --secret-token $SECRET_TOKEN $USERNAME \
-  $PASSWORD 24902e9ace824ca3985e60519a9081a4
+$ redvox-cli data-req-report --email $USERNAME \
+  --password $PASSWORD 24902e9ace824ca3985e60519a9081a4
 ```
 
 Download data from a report and store in a separate repository.
 
 ```
-$ redvox-cli data-req-report --out-dir /data/reports --secret-token \
-  $SECRET_TOKEN $USERNAME $PASSWORD 24902e9ace824ca3985e60519a9081a4
+$ redvox-cli data-req-report --out-dir /data/reports --email $USERNAME --password $PASSWORD 24902e9ace824ca3985e60519a9081a4
 ```
 
 The remaining optional arguments (`--retries`, `--host`, `--port`, `--protocol`) can be used to specify alternate servers for data collection.
