@@ -401,41 +401,42 @@ def load_apim_location_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) ->
                 data_for_df[10].append(best_loc.get_location_provider())
             else:
                 timestamps = loc.get_timestamps().get_timestamps()
-                if len(timestamps) > 0:
+                num_samples = len(timestamps)
+                if num_samples > 0:
                     data_for_df[0].extend(timestamps)
                     data_for_df[1].extend(loc.get_latitude_samples().get_values())
                     data_for_df[2].extend(loc.get_longitude_samples().get_values())
                     alt_samples = loc.get_altitude_samples().get_values()
-                    if len(alt_samples) <= 0:
-                        alt_samples = np.full(len(timestamps), np.nan)
+                    if len(alt_samples) != num_samples:
+                        alt_samples = np.full(num_samples, np.nan)
                     data_for_df[3].extend(alt_samples)
                     spd_samples = loc.get_speed_samples().get_values()
-                    if len(spd_samples) <= 0:
-                        spd_samples = np.full(len(timestamps), np.nan)
+                    if len(spd_samples) != num_samples:
+                        spd_samples = np.full(num_samples, np.nan)
                     data_for_df[4].extend(spd_samples)
                     bear_samples = loc.get_bearing_samples().get_values()
-                    if len(bear_samples) <= 0:
-                        bear_samples = np.full(len(timestamps), np.nan)
+                    if len(bear_samples) != num_samples:
+                        bear_samples = np.full(num_samples, np.nan)
                     data_for_df[5].extend(bear_samples)
                     hor_acc_samples = loc.get_horizontal_accuracy_samples().get_values()
-                    if len(hor_acc_samples) <= 0:
-                        hor_acc_samples = np.full(len(timestamps), np.nan)
+                    if len(hor_acc_samples) != num_samples:
+                        hor_acc_samples = np.full(num_samples, np.nan)
                     data_for_df[6].extend(hor_acc_samples)
                     vert_acc_samples = loc.get_vertical_accuracy_samples().get_values()
-                    if len(vert_acc_samples) <= 0:
-                        vert_acc_samples = np.full(len(timestamps), np.nan)
+                    if len(vert_acc_samples) != num_samples:
+                        vert_acc_samples = np.full(num_samples, np.nan)
                     data_for_df[7].extend(vert_acc_samples)
                     spd_acc_samples = loc.get_speed_accuracy_samples().get_values()
-                    if len(spd_acc_samples) <= 0:
-                        spd_acc_samples = np.full(len(timestamps), np.nan)
+                    if len(spd_acc_samples) != num_samples:
+                        spd_acc_samples = np.full(num_samples, np.nan)
                     data_for_df[8].extend(spd_acc_samples)
                     bear_acc_samples = loc.get_bearing_accuracy_samples().get_values()
-                    if len(bear_acc_samples) <= 0:
-                        bear_acc_samples = np.full(len(timestamps), np.nan)
+                    if len(bear_acc_samples) != num_samples:
+                        bear_acc_samples = np.full(num_samples, np.nan)
                     data_for_df[9].extend(bear_acc_samples)
                     loc_prov_samples = loc.get_location_providers().get_values()
-                    if len(loc_prov_samples) <= len(timestamps):
-                        loc_prov_samples = np.full(len(timestamps), loc_prov_samples[0])
+                    if len(loc_prov_samples) != num_samples:
+                        loc_prov_samples = np.full(num_samples, loc_prov_samples[0])
                     data_for_df[10].extend(loc_prov_samples)
     if len(data_for_df[0]) > 0:
         data_for_df.insert(1, data_for_df[0].copy())
@@ -1047,43 +1048,44 @@ def load_apim_health_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> O
     for packet in wrapped_packets:
         metrics = packet.get_station_information().get_station_metrics()
         timestamps = metrics.get_timestamps().get_timestamps()
-        if len(timestamps) > 0:
+        num_samples = len(timestamps)
+        if num_samples > 0:
             data_for_df[0].extend(timestamps)
             bat_samples = metrics.get_battery().get_values()
-            if len(bat_samples) <= 0:
-                bat_samples = np.full(len(timestamps), np.nan)
+            if len(bat_samples) != num_samples:
+                bat_samples = np.full(num_samples, np.nan)
             data_for_df[1].extend(bat_samples)
             bat_cur_samples = metrics.get_battery_current().get_values()
-            if len(bat_cur_samples) <= 0:
-                bat_cur_samples = np.full(len(timestamps), np.nan)
+            if len(bat_cur_samples) != num_samples:
+                bat_cur_samples = np.full(num_samples, np.nan)
             data_for_df[2].extend(bat_cur_samples)
             temp_samples = metrics.get_temperature().get_values()
-            if len(temp_samples) <= 0:
-                temp_samples = np.full(len(timestamps), np.nan)
+            if len(temp_samples) != num_samples:
+                temp_samples = np.full(num_samples, np.nan)
             data_for_df[3].extend(temp_samples)
             net_samples = metrics.get_network_type().get_values()
-            if len(net_samples) <= 0:
-                net_samples = np.full(len(timestamps), np.nan)
+            if len(net_samples) != num_samples:
+                net_samples = np.full(num_samples, np.nan)
             data_for_df[4].extend(net_samples)
             net_str_samples = metrics.get_network_strength().get_values()
-            if len(net_str_samples) <= 0:
-                net_str_samples = np.full(len(timestamps), np.nan)
+            if len(net_str_samples) != num_samples:
+                net_str_samples = np.full(num_samples, np.nan)
             data_for_df[5].extend(net_str_samples)
             pow_samples = metrics.get_power_state().get_values()
-            if len(pow_samples) <= 0:
-                pow_samples = np.full(len(timestamps), np.nan)
+            if len(pow_samples) != num_samples:
+                pow_samples = np.full(num_samples, np.nan)
             data_for_df[6].extend(pow_samples)
             avail_ram_samples = metrics.get_available_ram().get_values()
-            if len(avail_ram_samples) <= 0:
-                avail_ram_samples = np.full(len(timestamps), np.nan)
+            if len(avail_ram_samples) != num_samples:
+                avail_ram_samples = np.full(num_samples, np.nan)
             data_for_df[7].extend(avail_ram_samples)
             avail_disk_samples = metrics.get_available_disk().get_values()
-            if len(avail_disk_samples) <= 0:
-                avail_disk_samples = np.full(len(timestamps), np.nan)
+            if len(avail_disk_samples) != num_samples:
+                avail_disk_samples = np.full(num_samples, np.nan)
             data_for_df[8].extend(avail_disk_samples)
             cell_samples = metrics.get_cell_service_state().get_values()
-            if len(cell_samples) <= 0:
-                cell_samples = np.full(len(timestamps), np.nan)
+            if len(cell_samples) != num_samples:
+                cell_samples = np.full(num_samples, np.nan)
             data_for_df[9].extend(cell_samples)
     if len(data_for_df[0]) > 0:
         data_for_df.insert(1, data_for_df[0].copy())

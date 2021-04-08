@@ -8,8 +8,48 @@ from typing import Tuple, Optional, List
 import numpy as np
 
 from redvox.common.offset_model import OffsetModel
+from redvox.api1000.wrapped_redvox_packet.station_information import OsType
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 # from redvox.api1000.wrapped_redvox_packet import event_streams as es
+
+
+def validate_station_key_list(data_packets: List[WrappedRedvoxPacketM], debug: bool = False) -> bool:
+    """
+    Checks for consistency in the data packets.  Returns False if discrepancies are found.
+    If debug is True, will output the discrepancies.
+    :param data_packets: list of WrappedRedvoxPacketM to look at
+    :param debug: bool, if True, output any discrepancies found, default False
+    :return: True if no discrepancies found.  False otherwise
+    """
+    if len(data_packets) < 2:
+        return True
+    k = np.transpose([[t.get_station_information().get_id(),
+                       t.get_station_information().get_uuid(),
+                       t.get_timing_information().get_app_start_mach_timestamp(),
+                       t.get_api(),
+                       t.get_sub_api(),
+                       t.get_station_information().get_make(),
+                       t.get_station_information().get_model(),
+                       t.get_station_information().get_os().value,
+                       t.get_station_information().get_os_version(),
+                       t.get_station_information().get_app_version(),
+                       t.get_station_information().get_is_private(),
+                       t.get_packet_duration_s()] for t in data_packets])
+
+    k = {"ids": k[0], "uuids": k[1], "station_start_times": k[2], "apis": k[3],
+         "sub_apis": k[4], "makes": k[5], "models": k[6], "os": k[7], "os_versions": k[8],
+         "app_versions": k[9], "privates": k[10], "durations": k[11]}
+
+    for key, value in k.items():
+        result = np.unique(value)
+        if len(result) > 1:
+            if debug:
+                print(f"WARNING: {data_packets[0].get_station_information().get_id()} "
+                      f"{key} contains multiple unique values: {result}.")
+                print("Current solution is to alter your query to omit or focus on this station.")
+            return False  # stop processing, one bad key is enough
+
+    return True  # if here, everything is consistent
 
 
 @dataclass
@@ -33,46 +73,22 @@ class StationKey:
         return self.id, self.uuid, self.start_timestamp_micros
 
 
-def validate_metadata_list(data_packets: List[WrappedRedvoxPacketM]) -> bool:
-    """
-    Check if all packets have the same metadata values
-    :param data_packets: packets to check
-    :return: True if all packets have the same metadata values
-    """
-    if len(data_packets) == 1 or (len(data_packets) > 1 and all(
-            [t.get_api() == data_packets[0].get_api()
-             and t.get_sub_api() == data_packets[0].get_sub_api()
-             and t.get_station_information().get_make() == data_packets[0].get_station_information().get_make()
-             and t.get_station_information().get_model() == data_packets[0].get_station_information().get_model()
-             and t.get_station_information().get_os() == data_packets[0].get_station_information().get_os()
-             and t.get_station_information().get_os_version()
-             == data_packets[0].get_station_information().get_os_version()
-             and t.get_station_information().get_app_version()
-             == data_packets[0].get_station_information().get_app_version()
-             and t.get_station_information().get_is_private()
-             == data_packets[0].get_station_information().get_is_private()
-             and t.get_packet_duration_s() == data_packets[0].get_packet_duration_s()
-             for t in data_packets])):
-        return True
-    print("WARNING: Metadata in packets has changed; this may indicate a change in the station.")
-    return False
-
-
 # todo add event streams?
 class StationMetadata:
     """
     A container for all the packet metadata consistent across all packets
     Properties:
-        api: float, api version
-        sub_api: float, sub api version
-        make: str, station make
-        model: str, station model
-        os: str, station OS
-        os_version: str, station OS version
-        app: str, station app
-        app_version: str, station app version
-        is_private: bool, is station data private
-        packet_duration_s: float, duration of the packet in seconds
+        api: float, api version, default np.nan
+        sub_api: float, sub api version, default np.nan
+        make: str, station make, default empty string
+        model: str, station model, default empty string
+        os: OsType enum, station OS, default OsType.UNKNOWN_OS
+        os_version: str, station OS version, default empty string
+        app: str, station app, default empty string
+        app_version: str, station app version, default empty string
+        is_private: bool, is station data private, default False
+        packet_duration_s: float, duration of the packet in seconds, default np.nan
+        other_metadata: dict, str: str of other metadata from the packet, default empty list
     """
 
     def __init__(
@@ -102,7 +118,7 @@ class StationMetadata:
             self.sub_api = np.nan
             self.make = ""
             self.model = ""
-            self.os = ""
+            self.os = OsType.UNKNOWN_OS
             self.os_version = ""
             self.app_version = ""
             self.is_private = False
@@ -134,7 +150,7 @@ class StationPacketMetadata:
         packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
         packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
         timing_info_score: float, quality of timing information
-        other_metadata: dict str: str, other metadata from the packet
+        other_metadata: dict, str: str of other metadata from the packet
     """
 
     def __init__(
@@ -161,10 +177,8 @@ class StationPacketMetadata:
 
     def update_timestamps(self, om: OffsetModel):
         """
-        updates the timestamps in the metadata by adding delta microseconds
-            negative delta values move timestamps backwards in time.
+        updates the timestamps in the metadata using the offset model
         :param om: OffsetModel to apply to data
-        # :param delta: optional microseconds to add
         """
         self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp)
         self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)

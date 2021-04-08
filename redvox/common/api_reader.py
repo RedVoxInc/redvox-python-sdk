@@ -12,7 +12,6 @@ import multiprocessing.pool
 import numpy as np
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-from redvox.common import date_time_utils as dtu
 from redvox.common import offset_model
 from redvox.common import api_conversions as ac
 from redvox.common import io
@@ -114,7 +113,7 @@ class ApiReader:
         if self.structured_dir:
             index = io.index_structured(self.base_dir, reader_filter, _pool)
         else:
-            index = io.index_unstructured(self.base_dir, reader_filter, _pool)
+            index = io.index_unstructured(self.base_dir, reader_filter, pool=_pool)
         if pool is None:
             _pool.close()
         return index

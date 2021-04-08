@@ -9,6 +9,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc14 (2021-4-8)
+
+* Fixed creating Location and Health sensors when data is inconsistent
+* Updated and added validation for Station metadata objects
+
 ### 3.0.0rc13 (2021-4-7)
 
 * Add CLI argument to disable query timing correction on data requests

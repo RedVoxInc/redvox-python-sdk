@@ -60,8 +60,8 @@ class SensorDataTest(unittest.TestCase):
         self.assertTrue("test_data" in self.uneven_sensor.data_df.columns)
 
     def test_sample_rate(self):
-        self.assertAlmostEqual(self.even_sensor.sample_rate, 50000.0, 1)
-        self.assertAlmostEqual(self.uneven_sensor.sample_rate, 75471.7, 1)
+        self.assertAlmostEqual(self.even_sensor.sample_rate_hz, 50000.0, 1)
+        self.assertAlmostEqual(self.uneven_sensor.sample_rate_hz, 75471.7, 1)
 
     def test_sample_interval_s(self):
         self.assertEqual(self.even_sensor.sample_interval_s, 0.00002)
@@ -178,7 +178,7 @@ class SensorDataTest(unittest.TestCase):
     def test_organize_and_update_stats(self):
         self.even_sensor.organize_and_update_stats()
         self.assertEqual(self.even_sensor.data_timestamps()[1], 40)
-        self.assertAlmostEqual(self.even_sensor.sample_rate, 50000.0, 1)
+        self.assertAlmostEqual(self.even_sensor.sample_rate_hz, 50000.0, 1)
         self.assertEqual(self.even_sensor.sample_interval_std_s, 0)
         timestamps = [120, 111, 97, 83, 74, 65, 31, 25, 14]
         test_data = [75, 12, 86, 22, 200, 52, 99, 188, 121]
@@ -223,7 +223,7 @@ class SensorDataTest(unittest.TestCase):
             1,
             True,
         )
-        self.assertEqual(audio_sensor.sample_rate, 1)
+        self.assertEqual(audio_sensor.sample_rate_hz, 1)
         self.assertEqual(audio_sensor.num_samples(), 4)
         self.assertIsInstance(audio_sensor.get_data_channel("microphone"), np.ndarray)
         self.assertRaises(ValueError, audio_sensor.get_data_channel, "do_not_exist")

@@ -1,6 +1,7 @@
 """
 tests for station
 """
+import json
 import unittest
 import contextlib
 
@@ -49,7 +50,7 @@ class StationTest(unittest.TestCase):
         )
         self.assertTrue(self.api900_station.has_audio_sensor())
         audio_sensor = self.api900_station.audio_sensor()
-        self.assertEqual(audio_sensor.sample_rate, 80)
+        self.assertEqual(audio_sensor.sample_rate_hz, 80)
         self.assertTrue(audio_sensor.is_sample_rate_fixed)
         self.assertTrue(self.api900_station.has_location_sensor())
         loc_sensor = self.api900_station.location_sensor()
@@ -60,7 +61,7 @@ class StationTest(unittest.TestCase):
         self.assertEqual(self.apim_station.timesync_analysis.get_best_latency(), 1296.0)
         audio_sensor = self.apim_station.audio_sensor()
         self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.sample_rate, 48000.0)
+        self.assertEqual(audio_sensor.sample_rate_hz, 48000.0)
         self.assertTrue(audio_sensor.is_sample_rate_fixed)
         loc_sensor = self.apim_station.location_sensor()
         self.assertIsNotNone(loc_sensor)
@@ -106,11 +107,11 @@ class StationTest(unittest.TestCase):
         empty_apim_station.append_sensor(self.apim_station.audio_sensor())
         self.assertEqual(len(empty_apim_station.data), 1)
         self.assertTrue(empty_apim_station.has_audio_sensor())
-        self.assertEqual(empty_apim_station.audio_sensor().sample_rate, 48000.0)
+        self.assertEqual(empty_apim_station.audio_sensor().sample_rate_hz, 48000.0)
         self.assertTrue(empty_apim_station.audio_sensor().is_sample_rate_fixed)
         empty_apim_station.append_sensor(self.api900_station.pressure_sensor())
         self.assertAlmostEqual(
-            empty_apim_station.pressure_sensor().sample_rate, 5.01, 2
+            empty_apim_station.pressure_sensor().sample_rate_hz, 5.01, 2
         )
 
     def test_set_sensor(self):
@@ -127,7 +128,7 @@ class StationTest(unittest.TestCase):
         empty_apim_station.set_audio_sensor(self.apim_station.audio_sensor())
         self.assertTrue(empty_apim_station.has_audio_sensor())
         self.assertTrue(empty_apim_station.has_audio_data())
-        self.assertEqual(empty_apim_station.audio_sensor().sample_rate, 48000)
+        self.assertEqual(empty_apim_station.audio_sensor().sample_rate_hz, 48000)
 
     def test_update_timestamps(self):
         with contextlib.redirect_stdout(None):
@@ -141,3 +142,4 @@ class StationTest(unittest.TestCase):
             updated_station.update_timestamps()
             self.assertNotEqual(updated_station.first_data_timestamp,
                                 updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])
+

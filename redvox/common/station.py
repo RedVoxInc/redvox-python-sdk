@@ -10,26 +10,11 @@ from types import FunctionType
 import numpy as np
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.common import io
 from redvox.common import sensor_data as sd
 from redvox.common import sensor_reader_utils as sdru
 from redvox.common import station_utils as st_utils
 from redvox.common.timesync import TimeSyncAnalysis
-
-
-def validate_station_data(data_packets: List[WrappedRedvoxPacketM]) -> bool:
-    """
-    Check if all packets have the same key values
-    :param data_packets: packets to check
-    :return: True if all packets have the same key values
-    """
-    if len(data_packets) == 1 or (len(data_packets) > 1 and all(
-            [t.get_station_information().get_id() == data_packets[0].get_station_information().get_id()
-             and t.get_station_information().get_uuid() == data_packets[0].get_station_information().get_uuid()
-             and t.get_timing_information().get_app_start_mach_timestamp()
-             == data_packets[0].get_timing_information().get_app_start_mach_timestamp()
-             for t in data_packets]) and st_utils.validate_metadata_list(data_packets)):
-        return True
-    return False
 
 
 class Station:
@@ -53,7 +38,6 @@ class Station:
         is_audio_scrambled: bool, True if audio data is scrambled, default False
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
         timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
-        offset_model: OffsetModel object, contains information about the station's timing correction
     """
 
     def __init__(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None):
@@ -62,20 +46,23 @@ class Station:
         :param data_packets: optional list of data packets representing the station, default None
         """
         self.data = {}
-        if data_packets and validate_station_data(data_packets):
+        self.packet_metadata = []
+        self.is_timestamps_updated = False
+        if data_packets and st_utils.validate_station_key_list(data_packets, True):
             self.id = data_packets[0].get_station_information().get_id()
             self.uuid = data_packets[0].get_station_information().get_uuid()
             self.start_timestamp = (
                 data_packets[0].get_timing_information().get_app_start_mach_timestamp()
             )
             if self.start_timestamp < 0:
-                print(f"WARNING: Station {self.id} has start timestamp before epoch.  Start timestamp reset to np.nan")
+                print(f"WARNING: Station {self.id} has start timestamp before epoch.  "
+                      f"Start timestamp reset to np.nan")
                 self.start_timestamp = np.nan
             self.metadata = st_utils.StationMetadata("Redvox", data_packets[0])
             self._set_all_sensors(data_packets)
             self._get_start_and_end_timestamps()
             if self.has_audio_sensor():
-                self.audio_sample_rate_hz = self.audio_sensor().sample_rate
+                self.audio_sample_rate_hz = self.audio_sensor().sample_rate_hz
                 self.is_audio_scrambled = (
                     data_packets[0].get_sensors().get_audio().get_is_scrambled()
                 )
@@ -83,28 +70,25 @@ class Station:
                 self.audio_sample_rate_hz = np.nan
                 self.is_audio_scrambled = False
             self.timesync_analysis = \
-                TimeSyncAnalysis(self.id, self.audio_sample_rate_hz, self.start_timestamp).from_packets(data_packets)
+                TimeSyncAnalysis(self.id, self.audio_sample_rate_hz,
+                                 self.start_timestamp).from_packets(data_packets)
         else:
-            if data_packets:
-                print(
-                    "Warning: Data given to create station is not consistent; check id, uuid, "
-                    "app_start_timestamp and metadata of the packets for differences."
-                )
-                print(f"ids: {np.unique([p.get_station_information().get_id() for p in data_packets])}")
-                print(f"uuids: {np.unique([p.get_station_information().get_uuid() for p in data_packets])}")
-                print("station_start_times: "
-                      f"{np.unique([p.get_timing_information().get_app_start_mach_timestamp() for p in data_packets])}")
             self.id = None
             self.uuid = None
             self.metadata = st_utils.StationMetadata("None")
-            self.packet_metadata = []
             self.start_timestamp = np.nan
             self.first_data_timestamp = np.nan
             self.last_data_timestamp = np.nan
             self.audio_sample_rate_hz = np.nan
             self.is_audio_scrambled = False
             self.timesync_analysis = TimeSyncAnalysis()
-        self.is_timestamps_updated = False
+
+    def station_as_json(self) -> str:
+        """
+        converts the station into a json string
+        :return: JSON string representing the station's metadata
+        """
+        return io.station_to_json(self)
 
     def _sort_metadata_packets(self):
         """

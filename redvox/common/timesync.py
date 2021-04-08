@@ -283,7 +283,7 @@ class TimeSyncAnalysis:
                                            packet.server_timestamp_epoch_microseconds_utc(),
                                            packet.start_timestamp_us_utc(),
                                            packet.end_timestamp_us_utc(),
-                                           packet.time_synchronization_sensor().payload_values(),
+                                           list(packet.time_synchronization_sensor().payload_values()),
                                            packet.best_latency(),
                                            packet.best_offset(),
                                            )
@@ -534,7 +534,7 @@ def timesync_data_from_packet(packet: Union[WrappedRedvoxPacketM, WrappedRedvoxP
                         packet.server_timestamp_epoch_microseconds_utc(),
                         packet.start_timestamp_us_utc(),
                         packet.end_timestamp_us_utc(),
-                        packet.time_synchronization_sensor().payload_values(),
+                        list(packet.time_synchronization_sensor().payload_values()),
                         packet.best_latency(),
                         packet.best_offset(),
                         )

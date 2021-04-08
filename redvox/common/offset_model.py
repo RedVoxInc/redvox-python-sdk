@@ -384,4 +384,3 @@ def compute_offsets(station_stats: List["StationStat"]) -> Optional[TimingOffset
         end_offset,
         end_dt + end_offset
     )
-
