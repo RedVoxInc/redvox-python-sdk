@@ -414,13 +414,12 @@ _[Table of Contents](#table-of-contents)_
 These are the properties of the Station class:
 
 1. `data`: dictionary of sensor type and sensor data associated with the station, default empty dictionary
-2. `metadata`: list of StationMetadata that didn't go into the sensor data, default empty list
+2. `metadata`: StationMetadata that didn't go into the sensor data, default empty StationMetadata object
 3. `id`: string; id of the station, default None
 4. `uuid`: string; uuid of the station, default None
 5. `start_timestamp`: float; microseconds since epoch UTC when the station started recording, default np.nan
 6. `first_data_timestamp`: float; microseconds since epoch UTC of the first data point, default np.nan
 7. `station_end_timestamp`: float; microseconds since epoch UTC of the last data point, default np.nan
-8. `app_name`: string; the name of the app used to record the data, default empty string
 9. `audio_sample_rate_hz`: float; sample rate of audio component in hz, default np.nan
 10. `is_audio_scrambled`: boolean; True if audio data is scrambled, default False
 11. `is_timestamps_updated`: boolean; True if timestamps have been altered from original data values, default False
