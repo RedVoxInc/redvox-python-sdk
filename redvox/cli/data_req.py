@@ -26,6 +26,7 @@ def make_data_req(
     api_type: "DataRangeReqType",
     retries: int,
     timeout: int,
+    correct_query_timing: bool
 ) -> bool:
     """
     Makes a data request to the RedVox data_server.
@@ -40,7 +41,7 @@ def make_data_req(
     """
     client: cloud_client.CloudClient = cloud_client.CloudClient(redvox_config, timeout=timeout)
     data_resp: data_api.DataRangeResp = client.request_data_range(
-        req_start_s, req_end_s, redvox_ids, api_type
+        req_start_s, req_end_s, redvox_ids, api_type, correct_query_timing=correct_query_timing
     )
     client.close()
 

@@ -248,7 +248,8 @@ def data_req_args(args) -> None:
             args.station_ids,
             api_type,
             args.retries,
-            args.timeout
+            args.timeout,
+            not args.disable_timing_correction
         )
     )
 
@@ -569,6 +570,12 @@ def main():
         "--out-dir",
         help="The output directory that RedVox files will be written to (default=.)",
         default=".",
+    )
+    data_req_parser.add_argument(
+        "--disable-timing-correction",
+        help="Disables query timing correction",
+        default=False,
+        action="store_true"
     )
     data_req_parser.add_argument(
         "--retries",
