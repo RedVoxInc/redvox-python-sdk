@@ -17,18 +17,19 @@ from redvox.common.sensor_reader_utils import get_empty_sensor_data
 class StationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        reader = api_reader.ApiReader(
-            tests.TEST_DATA_DIR,
-            False,
-            ReadFilter(extensions={".rdvxm"}, station_ids={"0000000001"}),
-        )
-        cls.apim_station = reader.get_station_by_id("0000000001")
-        reader = api_reader.ApiReader(
-            tests.TEST_DATA_DIR,
-            False,
-            ReadFilter(extensions={".rdvxz"}, station_ids={"1637650010"}),
-        )
-        cls.api900_station = reader.get_station_by_id("1637650010")
+        with contextlib.redirect_stdout(None):
+            reader = api_reader.ApiReader(
+                tests.TEST_DATA_DIR,
+                False,
+                ReadFilter(extensions={".rdvxm"}, station_ids={"0000000001"}),
+            )
+            cls.apim_station = reader.get_station_by_id("0000000001")
+            reader = api_reader.ApiReader(
+                tests.TEST_DATA_DIR,
+                False,
+                ReadFilter(extensions={".rdvxz"}, station_ids={"1637650010"}),
+            )
+            cls.api900_station = reader.get_station_by_id("1637650010")
 
     def test_empty_station(self):
         empty_apim_station = Station([])
@@ -92,6 +93,7 @@ class StationTest(unittest.TestCase):
         empty_apim_station.set_id(self.apim_station.get_id()).set_uuid(
             self.apim_station.get_uuid()
         ).set_start_timestamp(self.apim_station.get_start_timestamp())
+        empty_apim_station.metadata = self.apim_station.metadata
         empty_apim_station.append_station(self.apim_station)
         self.assertEqual(len(empty_apim_station.data), 2)
         self.assertEqual(
@@ -128,13 +130,14 @@ class StationTest(unittest.TestCase):
         self.assertEqual(empty_apim_station.audio_sensor().sample_rate, 48000)
 
     def test_update_timestamps(self):
-        updated_station = api_reader.ApiReader(
-            tests.TEST_DATA_DIR,
-            False,
-            ReadFilter(extensions={".rdvxz"}, station_ids={"1637650010"}),
-        ).get_station_by_id("1637650010")
-        self.assertEqual(updated_station.first_data_timestamp,
-                         updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])
-        updated_station.update_timestamps()
-        self.assertNotEqual(updated_station.first_data_timestamp,
-                            updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])
+        with contextlib.redirect_stdout(None):
+            updated_station = api_reader.ApiReader(
+                tests.TEST_DATA_DIR,
+                False,
+                ReadFilter(extensions={".rdvxz"}, station_ids={"1637650010"}),
+            ).get_station_by_id("1637650010")
+            self.assertEqual(updated_station.first_data_timestamp,
+                             updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])
+            updated_station.update_timestamps()
+            self.assertNotEqual(updated_station.first_data_timestamp,
+                                updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])

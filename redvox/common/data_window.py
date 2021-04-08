@@ -201,24 +201,24 @@ class DataWindow:
         """
         return io.serialize_data_window(self, base_dir, file_name, compression_factor)
 
-    # def to_json(self, base_dir: str = ".", file_name: Optional[str] = None) -> Path:
-    #     """
-    #     Converts the data window into a JSON file and writes it to disk.
-    #     :param base_dir: base directory to write the json file to.  Default . (local directory)
-    #     :param file_name: the optional file name.  If None, a default file name is created using this format:
-    #                         [start_ts]_[end_ts]_[num_stations].json
-    #     :return: The path to the written file
-    #     """
-    #     return io.data_window_to_json(self, base_dir, file_name)
-    #
-    # @staticmethod
-    # def from_json(path: str) -> Dict:
-    #     """
-    #     Reads a JSON file and converts it to a data window
-    #     :param path: the path to the JSON file to read
-    #     :return: a dictionary? FOR NOW todo: data window?
-    #     """
-    #     return io.json_to_data_window(path)
+    def to_json(self, base_dir: str = ".", file_name: Optional[str] = None) -> Path:
+        """
+        Converts the data window into a JSON file and writes it to disk.
+        :param base_dir: base directory to write the json file to.  Default . (local directory)
+        :param file_name: the optional file name.  If None, a default file name is created using this format:
+                            [start_ts]_[end_ts]_[num_stations].json
+        :return: The path to the written file
+        """
+        return io.data_window_to_json(self, base_dir, file_name)
+
+    @staticmethod
+    def from_json(path: str) -> Dict:
+        """
+        Reads a JSON file and converts it to a data window
+        :param path: the path to the JSON file to read
+        :return: a dictionary? FOR NOW todo: data window?
+        """
+        return io.json_to_data_window(path)
 
     def _has_time_window(self) -> bool:
         """
@@ -409,10 +409,10 @@ class DataWindow:
                 self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
                                     station.audio_sensor().last_data_timestamp())
         # recalculate metadata
-        new_meta = [meta for meta in station.metadata
+        new_meta = [meta for meta in station.packet_metadata
                     if meta.packet_start_mach_timestamp < end_date_timestamp and
                     meta.packet_end_mach_timestamp > start_date_timestamp]
-        station.metadata = new_meta
+        station.packet_metadata = new_meta
         station.first_data_timestamp = start_date_timestamp
         station.last_data_timestamp = end_date_timestamp
 
@@ -466,30 +466,30 @@ class DataWindow:
             stations = _pool.map(Station.update_timestamps, stations)
 
         for station in stations:
-            ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
-            if station.id not in ids_to_pop:
-                # set the window start and end if they were specified, otherwise use the bounds of the data
-                if self.start_datetime:
-                    start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
-                else:
-                    start_datetime = station.first_data_timestamp
-                if self.end_datetime:
-                    end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
-                else:
-                    end_datetime = station.last_data_timestamp
-                # TRUNCATE!
-                self.create_window_in_sensors(station, start_datetime, end_datetime)
+            if station.id:
                 ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
                 if station.id not in ids_to_pop:
-                    self.stations[station.id] = station
-
-        # remove station ids without audio data
-        for ids in ids_to_pop:
-            self.stations.pop(ids)
+                    # set the window start and end if they were specified, otherwise use the bounds of the data
+                    if self.start_datetime:
+                        start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
+                    else:
+                        start_datetime = station.first_data_timestamp
+                    if self.end_datetime:
+                        end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
+                    else:
+                        end_datetime = station.last_data_timestamp
+                    # TRUNCATE!
+                    self.create_window_in_sensors(station, start_datetime, end_datetime)
+                    ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
+                    if station.id not in ids_to_pop:
+                        self.stations[station.id] = station
 
         # update remaining data window values if they're still default
         if not self.station_ids or len(self.station_ids) == 0:
             self.station_ids = set(self.stations.keys())
+        # remove station ids without audio data
+        for ids in ids_to_pop:
+            self.stations.pop(ids)
         if not self.start_datetime and len(self.stations.keys()) > 0:
             self.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
                 np.min([t.first_data_timestamp for t in self.stations.values()]))

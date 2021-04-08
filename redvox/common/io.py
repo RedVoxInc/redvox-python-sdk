@@ -840,40 +840,40 @@ def sort_unstructured_redvox_data(
     return True
 
 
-# def data_window_to_json(
-#         data_win: "DataWindow",
-#         base_dir: str = ".",
-#         file_name: Optional[str] = None
-# ) -> Path:
-#     """
-#     Converts a data window to json format
-#     :param data_win: the data window object to convert
-#     :param base_dir: the base directory to write the json file to
-#     :param file_name: the optional file name.  If None, a default file name is created using this format:
-#                         [start_ts]_[end_ts]_[num_stations].json
-#     :return: The path to the written file
-#     """
-#     _file_name: str = (
-#         file_name
-#         if file_name is not None
-#         else f"{data_win.start_datetime.timestamp()}"
-#              f"_{data_win.end_datetime.timestamp()}"
-#              f"_{len(data_win.get_all_station_ids())}.json"
-#     )
-#     file_path: Path = Path(base_dir).joinpath(_file_name)
-#     with open(file_path, "w") as f_p:
-#         f_p.write(json.dumps([{st.id: st.start_timestamp} for st in data_win.get_all_stations()]))
-#         return file_path.resolve(False)
-#
-#
-# def json_to_data_window(path: str) -> Dict:
-#     """
-#     load a data window from json written to disk
-#     :param path: path to the json file to read
-#     :return: a string representing the json-ified data window
-#     """
-#     with open(path, 'r') as r_f:
-#         return json.loads(r_f.read())
+def data_window_to_json(
+        data_win: "DataWindow",
+        base_dir: str = ".",
+        file_name: Optional[str] = None
+) -> Path:
+    """
+    Converts a data window to json format
+    :param data_win: the data window object to convert
+    :param base_dir: the base directory to write the json file to
+    :param file_name: the optional file name.  If None, a default file name is created using this format:
+                        [start_ts]_[end_ts]_[num_stations].json
+    :return: The path to the written file
+    """
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f"{data_win.start_datetime.timestamp()}"
+             f"_{data_win.end_datetime.timestamp()}"
+             f"_{len(data_win.get_all_station_ids())}.json"
+    )
+    file_path: Path = Path(base_dir).joinpath(_file_name)
+    with open(file_path, "w") as f_p:
+        f_p.write(json.dumps([{st.id: st.start_timestamp} for st in data_win.get_all_stations()]))
+        return file_path.resolve(False)
+
+
+def json_to_data_window(path: str) -> Dict:
+    """
+    load a data window from json written to disk
+    :param path: path to the json file to read
+    :return: a string representing the json-ified data window
+    """
+    with open(path, 'r') as r_f:
+        return json.loads(r_f.read())
 
 
 @dataclass

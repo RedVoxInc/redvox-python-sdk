@@ -12,7 +12,7 @@ import numpy as np
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common import sensor_data as sd
 from redvox.common import sensor_reader_utils as sdru
-from redvox.common.station_utils import StationKey, StationMetadata
+from redvox.common import station_utils as st_utils
 from redvox.common.timesync import TimeSyncAnalysis
 
 
@@ -27,7 +27,7 @@ def validate_station_data(data_packets: List[WrappedRedvoxPacketM]) -> bool:
              and t.get_station_information().get_uuid() == data_packets[0].get_station_information().get_uuid()
              and t.get_timing_information().get_app_start_mach_timestamp()
              == data_packets[0].get_timing_information().get_app_start_mach_timestamp()
-             for t in data_packets])):
+             for t in data_packets]) and st_utils.validate_metadata_list(data_packets)):
         return True
     return False
 
@@ -42,7 +42,8 @@ class Station:
         Have the same audio sample rate
     Properties:
         data: dict of sensor type and sensor data associated with the station, default empty dictionary
-        metadata: list of StationMetadata that didn't go into the sensor data, default empty list
+        metadata: StationMetadata consistent across all packets, default empty StationMetadata
+        packet_metadata: list of StationPacketMetadata that changes from packet to packet, default empty list
         id: str id of the station, default None
         uuid: str uuid of the station, default None
         start_timestamp: float of microseconds since epoch UTC when the station started recording, default np.nan
@@ -61,16 +62,16 @@ class Station:
         :param data_packets: optional list of data packets representing the station, default None
         """
         self.data = {}
-        self.metadata = []
         if data_packets and validate_station_data(data_packets):
             self.id = data_packets[0].get_station_information().get_id()
             self.uuid = data_packets[0].get_station_information().get_uuid()
             self.start_timestamp = (
                 data_packets[0].get_timing_information().get_app_start_mach_timestamp()
             )
-            # add warning about missing mach time zero
             if self.start_timestamp < 0:
+                print(f"WARNING: Station {self.id} has start timestamp before epoch.  Start timestamp reset to np.nan")
                 self.start_timestamp = np.nan
+            self.metadata = st_utils.StationMetadata("Redvox", data_packets[0])
             self._set_all_sensors(data_packets)
             self._get_start_and_end_timestamps()
             if self.has_audio_sensor():
@@ -86,15 +87,17 @@ class Station:
         else:
             if data_packets:
                 print(
-                    "Warning: Data given to create station is not consistent; check station_id, station_uuid "
-                    "and app_start_time of the packets for differences."
+                    "Warning: Data given to create station is not consistent; check id, uuid, "
+                    "app_start_timestamp and metadata of the packets for differences."
                 )
-                for i in range(len(data_packets)):
-                    print(f"Packet {i}: id: {data_packets[i].get_station_information().get_id()}, "
-                          f"uuid: {data_packets[i].get_station_information().get_uuid()}, "
-                          f"app_start_time: {data_packets[i].get_timing_information().get_app_start_mach_timestamp()}")
+                print(f"ids: {np.unique([p.get_station_information().get_id() for p in data_packets])}")
+                print(f"uuids: {np.unique([p.get_station_information().get_uuid() for p in data_packets])}")
+                print("station_start_times: "
+                      f"{np.unique([p.get_timing_information().get_app_start_mach_timestamp() for p in data_packets])}")
             self.id = None
             self.uuid = None
+            self.metadata = st_utils.StationMetadata("None")
+            self.packet_metadata = []
             self.start_timestamp = np.nan
             self.first_data_timestamp = np.nan
             self.last_data_timestamp = np.nan
@@ -107,7 +110,7 @@ class Station:
         """
         orders the metadata packets by their starting timestamps.  Returns nothing, sorts the data in place
         """
-        self.metadata.sort(
+        self.packet_metadata.sort(
             key=lambda t: t.packet_start_mach_timestamp
         )
 
@@ -179,12 +182,12 @@ class Station:
             print("WARNING: Station id is not set.")
         return False
 
-    def get_key(self) -> Optional[StationKey]:
+    def get_key(self) -> Optional[st_utils.StationKey]:
         """
         :return: the station's key if id, uuid and start timestamp is set, or None if key cannot be created
         """
         if self.check_key():
-            return StationKey(self.id, self.uuid, self.start_timestamp)
+            return st_utils.StationKey(self.id, self.uuid, self.start_timestamp)
         return None
 
     def append_station(self, new_station: "Station"):
@@ -192,9 +195,10 @@ class Station:
         append a new station to the current station; does nothing if keys do not match
         :param new_station: Station to append to current station
         """
-        if self.get_key() is not None and new_station.get_key() == self.get_key():
+        if self.get_key() is not None and new_station.get_key() == self.get_key() \
+                and self.metadata.validate_metadata(new_station.metadata):
             self.append_station_data(new_station.data)
-            self.metadata.extend(new_station.metadata)
+            self.packet_metadata.extend(new_station.packet_metadata)
             self._sort_metadata_packets()
             self._get_start_and_end_timestamps()
             new_timesync_analysis = TimeSyncAnalysis(
@@ -255,7 +259,7 @@ class Station:
           number of audio sensor's data points and the number of packets
         :return: mean number of audio samples per packet
         """
-        return self.audio_sensor().num_samples() / len(self.metadata)
+        return self.audio_sensor().num_samples() / len(self.packet_metadata)
 
     def has_audio_sensor(self) -> bool:
         """
@@ -976,8 +980,8 @@ class Station:
         :param packets: the packets to read data from
         """
         self.data = {}
-        self.metadata: List[StationMetadata] = [
-            StationMetadata("Redvox", packet) for packet in packets]
+        self.packet_metadata: List[st_utils.StationPacketMetadata] = [
+            st_utils.StationPacketMetadata(packet) for packet in packets]
         funcs = [sdru.load_apim_audio_from_list,
                  sdru.load_apim_compressed_audio_from_list,
                  sdru.load_apim_image_from_list,
@@ -1010,7 +1014,7 @@ class Station:
         else:
             for sensor in self.data.values():
                 sensor.update_data_timestamps(self.timesync_analysis.offset_model)
-            for packet in self.metadata:
+            for packet in self.packet_metadata:
                 packet.update_timestamps(self.timesync_analysis.offset_model)
             self.timesync_analysis.update_timestamps()
             self.start_timestamp = self.timesync_analysis.offset_model.update_time(self.start_timestamp)
