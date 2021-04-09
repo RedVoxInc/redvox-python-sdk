@@ -11,6 +11,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ### 3.0.0rc14 (2021-4-8)
 
+* Add GUI for downloading RedVox data from the cloud
+* Update GUI libraries to PySide6
+
+### 3.0.0rc14 (2021-4-8)
+
 * Fixed creating Location and Health sensors when data is inconsistent
 * Updated and added validation for Station metadata objects
 

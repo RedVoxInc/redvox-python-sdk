@@ -4,6 +4,7 @@ This module contains API definitions and functions for working with raw RedVox d
 
 from dataclasses import dataclass
 from enum import Enum
+from multiprocessing.queues import Queue
 from typing import Callable, List, Optional, Tuple
 
 from dataclasses_json import dataclass_json
@@ -80,13 +81,13 @@ class DataRangeResp:
 
     signed_urls: List[str]
 
-    def download_fs(self, out_dir: str, retries: int = 3) -> None:
+    def download_fs(self, out_dir: str, retries: int = 3, out_queue: Optional[Queue] = None) -> None:
         """
         Download the referenced packets to the provided output directory.
         :param out_dir: Output directory to store the downloaded files.
         :param retries: Number of times to retry downloading the file on failure.
         """
-        data_client.download_files(self.signed_urls, out_dir, retries)
+        data_client.download_files(self.signed_urls, out_dir, retries, out_queue=out_queue)
 
     def append(self, other: "DataRangeResp") -> "DataRangeResp":
         """

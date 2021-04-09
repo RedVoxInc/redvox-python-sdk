@@ -26,7 +26,7 @@ def make_data_req(
     api_type: "DataRangeReqType",
     retries: int,
     timeout: int,
-    correct_query_timing: bool
+    correct_query_timing: bool,
 ) -> bool:
     """
     Makes a data request to the RedVox data_server.
@@ -46,7 +46,7 @@ def make_data_req(
     client.close()
 
     if len(data_resp.signed_urls) == 0:
-        log.error("No signed urls returned")
+        log.info("No signed urls returned")
         return False
 
     data_client.download_files(data_resp.signed_urls, out_dir, retries)

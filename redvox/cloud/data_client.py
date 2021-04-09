@@ -4,7 +4,7 @@ This module provides a custom work-stealing thread pool for downloading API M da
 
 from dataclasses import dataclass
 import time
-from typing import List
+from typing import List, Optional
 from multiprocessing import cpu_count, Manager, Process, Queue
 import queue
 
@@ -48,10 +48,15 @@ def download_process(
 
 
 def download_files(
-    urls: List[str], out_dir: str, retries: int, num_processes: int = cpu_count()
+    urls: List[str],
+    out_dir: str,
+    retries: int,
+    num_processes: int = cpu_count(),
+    out_queue: Optional[Queue] = None,
 ) -> None:
     """
     Downloads files in parallel from the provided URLs.
+    :param out_queue: If provided, send results to this queue instead of printing them
     :param urls: URLs to files to retrieve.
     :param out_dir: The base output directory where files should be stored.
     :param retries: The number of times to retry a failed download.
@@ -86,12 +91,17 @@ def download_files(
         remaining: float = ((100.0 / percentage) * time_range) - time_range
 
         total_bytes += res.resp_len
-        print(
-            f"\r[{(i + 1):5} / {len(urls):5}] [{percentage:04.1f}%] "
-            f"[{total_bytes:10} bytes] [est time remaining {remaining:06.1f}s] {res.data_key:>55}",
-            end="",
-        )
+
+        out_str: str = f"\r[{(i + 1):5} / {len(urls):5}] [{percentage:04.1f}%] [{total_bytes:10} bytes] " \
+                       f"[est time remaining {remaining:06.1f}s] {res.data_key:>55}"
+        if out_queue is None:
+            print(out_str)
+        else:
+            out_queue.put(out_str, False)
         i += 1
+
+    if out_queue is not None:
+        out_queue.put("done", False)
 
     # Wait for all processes in pool to finish
     for process in processes:

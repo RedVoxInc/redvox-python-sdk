@@ -9,11 +9,11 @@ try:
 
     import numpy as np
     # pylint: disable=E0611
-    from PySide2.QtCore import Qt, QByteArray
+    from PySide6.QtCore import Qt, QByteArray
     # pylint: disable=E0611
-    from PySide2.QtGui import QPixmap
+    from PySide6.QtGui import QPixmap
     # pylint: disable=E0611
-    from PySide2.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem, \
+    from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem, \
         QHeaderView, QSizePolicy, QAbstractItemView
 
     import redvox

@@ -18,6 +18,7 @@ import redvox.cloud.data_api as data_api
 import redvox.cli.conversions as conversions
 import redvox.cli.data_req as data_req
 import redvox.common.io as io
+from redvox.common.gui import cloud_data_retrieval
 
 # pylint: disable=C0103
 log = logging.getLogger(__name__)
@@ -398,6 +399,10 @@ def main():
     sub_parser = parser.add_subparsers()
     sub_parser.required = True
     sub_parser.dest = "command"
+
+    # Cloud data retrieval
+    cloud_download_parser = sub_parser.add_parser("cloud-download")
+    cloud_download_parser.set_defaults(func=lambda _: cloud_data_retrieval.run_gui())
 
     # Gallery
     gallery_parser = sub_parser.add_parser("gallery")
