@@ -33,7 +33,7 @@ This module provides a custom work-stealing thread pool for downloading API M da
 
 from dataclasses import dataclass
 import time
-from typing import List
+from typing import List, Optional
 from multiprocessing import cpu_count, Manager, Process, Queue
 import queue
 
@@ -77,10 +77,15 @@ def download_process(
 
 
 def download_files(
-    urls: List[str], out_dir: str, retries: int, num_processes: int = cpu_count()
+    urls: List[str],
+    out_dir: str,
+    retries: int,
+    num_processes: int = cpu_count(),
+    out_queue: Optional[Queue] = None,
 ) -&gt; None:
     &#34;&#34;&#34;
     Downloads files in parallel from the provided URLs.
+    :param out_queue: If provided, send results to this queue instead of printing them
     :param urls: URLs to files to retrieve.
     :param out_dir: The base output directory where files should be stored.
     :param retries: The number of times to retry a failed download.
@@ -115,12 +120,17 @@ def download_files(
         remaining: float = ((100.0 / percentage) * time_range) - time_range
 
         total_bytes += res.resp_len
-        print(
-            f&#34;\r[{(i + 1):5} / {len(urls):5}] [{percentage:04.1f}%] &#34;
-            f&#34;[{total_bytes:10} bytes] [est time remaining {remaining:06.1f}s] {res.data_key:&gt;55}&#34;,
-            end=&#34;&#34;,
-        )
+
+        out_str: str = f&#34;\r[{(i + 1):5} / {len(urls):5}] [{percentage:04.1f}%] [{total_bytes:10} bytes] &#34; \
+                       f&#34;[est time remaining {remaining:06.1f}s] {res.data_key:&gt;55}&#34;
+        if out_queue is None:
+            print(out_str)
+        else:
+            out_queue.put(out_str, False)
         i += 1
+
+    if out_queue is not None:
+        out_queue.put(&#34;done&#34;, False)
 
     # Wait for all processes in pool to finish
     for process in processes:
@@ -135,10 +145,11 @@ def download_files(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.data_client.download_files"><code class="name flex">
-<span>def <span class="ident">download_files</span></span>(<span>urls: typing.List[str], out_dir: str, retries: int, num_processes: int = 12) ‑> NoneType</span>
+<span>def <span class="ident">download_files</span></span>(<span>urls: typing.List[str], out_dir: str, retries: int, num_processes: int = 16, out_queue: typing.Optional[<bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x7f468412e280>>] = None) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Downloads files in parallel from the provided URLs.
+:param out_queue: If provided, send results to this queue instead of printing them
 :param urls: URLs to files to retrieve.
 :param out_dir: The base output directory where files should be stored.
 :param retries: The number of times to retry a failed download.
@@ -148,10 +159,15 @@ def download_files(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def download_files(
-    urls: List[str], out_dir: str, retries: int, num_processes: int = cpu_count()
+    urls: List[str],
+    out_dir: str,
+    retries: int,
+    num_processes: int = cpu_count(),
+    out_queue: Optional[Queue] = None,
 ) -&gt; None:
     &#34;&#34;&#34;
     Downloads files in parallel from the provided URLs.
+    :param out_queue: If provided, send results to this queue instead of printing them
     :param urls: URLs to files to retrieve.
     :param out_dir: The base output directory where files should be stored.
     :param retries: The number of times to retry a failed download.
@@ -186,12 +202,17 @@ def download_files(
         remaining: float = ((100.0 / percentage) * time_range) - time_range
 
         total_bytes += res.resp_len
-        print(
-            f&#34;\r[{(i + 1):5} / {len(urls):5}] [{percentage:04.1f}%] &#34;
-            f&#34;[{total_bytes:10} bytes] [est time remaining {remaining:06.1f}s] {res.data_key:&gt;55}&#34;,
-            end=&#34;&#34;,
-        )
+
+        out_str: str = f&#34;\r[{(i + 1):5} / {len(urls):5}] [{percentage:04.1f}%] [{total_bytes:10} bytes] &#34; \
+                       f&#34;[est time remaining {remaining:06.1f}s] {res.data_key:&gt;55}&#34;
+        if out_queue is None:
+            print(out_str)
+        else:
+            out_queue.put(out_str, False)
         i += 1
+
+    if out_queue is not None:
+        out_queue.put(&#34;done&#34;, False)
 
     # Wait for all processes in pool to finish
     for process in processes:
@@ -199,7 +220,7 @@ def download_files(
 </details>
 </dd>
 <dt id="redvox.cloud.data_client.download_process"><code class="name flex">
-<span>def <span class="ident">download_process</span></span>(<span>input_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x150712610>>, result_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x150712610>>, out_dir: str, retries: int) ‑> NoneType</span>
+<span>def <span class="ident">download_process</span></span>(<span>input_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x7f468412e280>>, result_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x7f468412e280>>, out_dir: str, retries: int) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A function that runs in a separate process for downloading RedVox data.
@@ -250,7 +271,8 @@ def download_files(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DownloadResult:
+<pre><code class="python">@dataclass
+class DownloadResult:
     &#34;&#34;&#34;
     The result of downloading a file.
     &#34;&#34;&#34;

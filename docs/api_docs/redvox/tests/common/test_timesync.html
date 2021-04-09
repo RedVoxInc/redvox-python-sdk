@@ -31,6 +31,7 @@
 tests for timesync
 &#34;&#34;&#34;
 import unittest
+import contextlib
 import numpy as np
 import redvox.tests as tests
 from redvox.common import timesync as ts
@@ -41,9 +42,10 @@ from redvox.common.io import ReadFilter
 class TimesyncTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -&gt; None:
-        result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
-                                      read_filter=ReadFilter(station_ids=[&#34;1637680001&#34;]))
-        cls.time_sync_analysis = result.get_station_by_id(&#34;1637680001&#34;).timesync_analysis
+        with contextlib.redirect_stdout(None):
+            result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
+                                          read_filter=ReadFilter(station_ids={&#34;1637680001&#34;}))
+            cls.time_sync_analysis = result.get_station_by_id(&#34;1637680001&#34;).timesync_analysis
 
     def test_validate_sensors(self):
         test_ts = ts.TimeSyncData()
@@ -186,9 +188,10 @@ not have a method with the specified name.</p></div>
 <pre><code class="python">class TimesyncTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -&gt; None:
-        result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
-                                      read_filter=ReadFilter(station_ids=[&#34;1637680001&#34;]))
-        cls.time_sync_analysis = result.get_station_by_id(&#34;1637680001&#34;).timesync_analysis
+        with contextlib.redirect_stdout(None):
+            result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
+                                          read_filter=ReadFilter(station_ids={&#34;1637680001&#34;}))
+            cls.time_sync_analysis = result.get_station_by_id(&#34;1637680001&#34;).timesync_analysis
 
     def test_validate_sensors(self):
         test_ts = ts.TimeSyncData()
@@ -298,9 +301,10 @@ not have a method with the specified name.</p></div>
 </summary>
 <pre><code class="python">@classmethod
 def setUpClass(cls) -&gt; None:
-    result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
-                                  read_filter=ReadFilter(station_ids=[&#34;1637680001&#34;]))
-    cls.time_sync_analysis = result.get_station_by_id(&#34;1637680001&#34;).timesync_analysis</code></pre>
+    with contextlib.redirect_stdout(None):
+        result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
+                                      read_filter=ReadFilter(station_ids={&#34;1637680001&#34;}))
+        cls.time_sync_analysis = result.get_station_by_id(&#34;1637680001&#34;).timesync_analysis</code></pre>
 </details>
 </dd>
 </dl>

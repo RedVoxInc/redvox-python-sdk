@@ -33,6 +33,7 @@ This module contains API definitions and functions for working with raw RedVox d
 
 from dataclasses import dataclass
 from enum import Enum
+from multiprocessing.queues import Queue
 from typing import Callable, List, Optional, Tuple
 
 from dataclasses_json import dataclass_json
@@ -109,13 +110,13 @@ class DataRangeResp:
 
     signed_urls: List[str]
 
-    def download_fs(self, out_dir: str, retries: int = 3) -&gt; None:
+    def download_fs(self, out_dir: str, retries: int = 3, out_queue: Optional[Queue] = None) -&gt; None:
         &#34;&#34;&#34;
         Download the referenced packets to the provided output directory.
         :param out_dir: Output directory to store the downloaded files.
         :param retries: Number of times to retry downloading the file on failure.
         &#34;&#34;&#34;
-        data_client.download_files(self.signed_urls, out_dir, retries)
+        data_client.download_files(self.signed_urls, out_dir, retries, out_queue=out_queue)
 
     def append(self, other: &#34;DataRangeResp&#34;) -&gt; &#34;DataRangeResp&#34;:
         &#34;&#34;&#34;
@@ -248,7 +249,7 @@ def request_range_data(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.data_api.request_range_data"><code class="name flex">
-<span>def <span class="ident">request_range_data</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, data_range_req: <a title="redvox.cloud.data_api.DataRangeReq" href="#redvox.cloud.data_api.DataRangeReq">DataRangeReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None, req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
+<span>def <span class="ident">request_range_data</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, data_range_req: <a title="redvox.cloud.data_api.DataRangeReq" href="#redvox.cloud.data_api.DataRangeReq">DataRangeReq</a>, session: typing.Optional[requests.sessions.Session] = None, timeout: typing.Optional[float] = None, req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Requests signed URLs for a range of RedVox packets.
@@ -337,7 +338,7 @@ def request_range_data(
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.request_report_data"><code class="name flex">
-<span>def <span class="ident">request_report_data</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, report_data_req: <a title="redvox.cloud.data_api.ReportDataReq" href="#redvox.cloud.data_api.ReportDataReq">ReportDataReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> typing.Union[<a title="redvox.cloud.data_api.ReportDataResp" href="#redvox.cloud.data_api.ReportDataResp">ReportDataResp</a>, NoneType]</span>
+<span>def <span class="ident">request_report_data</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, report_data_req: <a title="redvox.cloud.data_api.ReportDataReq" href="#redvox.cloud.data_api.ReportDataReq">ReportDataReq</a>, session: typing.Optional[requests.sessions.Session] = None, timeout: typing.Optional[float] = None) ‑> typing.Optional[<a title="redvox.cloud.data_api.ReportDataResp" href="#redvox.cloud.data_api.ReportDataResp">ReportDataResp</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Makes an API call to generate a signed URL of a RedVox report.
@@ -386,7 +387,7 @@ def request_range_data(
 <dl>
 <dt id="redvox.cloud.data_api.DataRangeReq"><code class="flex name class">
 <span>class <span class="ident">DataRangeReq</span></span>
-<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, redvox_ids: typing.List[str], secret_token: typing.Union[str, NoneType] = None)</span>
+<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, redvox_ids: typing.List[str], secret_token: typing.Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Definition of data range request.</p></div>
@@ -394,7 +395,9 @@ def request_range_data(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DataRangeReq:
+<pre><code class="python">@dataclass_json
+@dataclass
+class DataRangeReq:
     &#34;&#34;&#34;
     Definition of data range request.
     &#34;&#34;&#34;
@@ -419,7 +422,7 @@ def request_range_data(
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.data_api.DataRangeReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Union[str, NoneType]</code></dt>
+<dt id="redvox.cloud.data_api.DataRangeReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -612,20 +615,22 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DataRangeResp:
+<pre><code class="python">@dataclass_json
+@dataclass
+class DataRangeResp:
     &#34;&#34;&#34;
     Definition of a data range response.
     &#34;&#34;&#34;
 
     signed_urls: List[str]
 
-    def download_fs(self, out_dir: str, retries: int = 3) -&gt; None:
+    def download_fs(self, out_dir: str, retries: int = 3, out_queue: Optional[Queue] = None) -&gt; None:
         &#34;&#34;&#34;
         Download the referenced packets to the provided output directory.
         :param out_dir: Output directory to store the downloaded files.
         :param retries: Number of times to retry downloading the file on failure.
         &#34;&#34;&#34;
-        data_client.download_files(self.signed_urls, out_dir, retries)
+        data_client.download_files(self.signed_urls, out_dir, retries, out_queue=out_queue)
 
     def append(self, other: &#34;DataRangeResp&#34;) -&gt; &#34;DataRangeResp&#34;:
         &#34;&#34;&#34;
@@ -752,7 +757,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.DataRangeResp.download_fs"><code class="name flex">
-<span>def <span class="ident">download_fs</span></span>(<span>self, out_dir: str, retries: int = 3) ‑> NoneType</span>
+<span>def <span class="ident">download_fs</span></span>(<span>self, out_dir: str, retries: int = 3, out_queue: typing.Optional[multiprocessing.queues.Queue] = None) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Download the referenced packets to the provided output directory.
@@ -762,13 +767,13 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def download_fs(self, out_dir: str, retries: int = 3) -&gt; None:
+<pre><code class="python">def download_fs(self, out_dir: str, retries: int = 3, out_queue: Optional[Queue] = None) -&gt; None:
     &#34;&#34;&#34;
     Download the referenced packets to the provided output directory.
     :param out_dir: Output directory to store the downloaded files.
     :param retries: Number of times to retry downloading the file on failure.
     &#34;&#34;&#34;
-    data_client.download_files(self.signed_urls, out_dir, retries)</code></pre>
+    data_client.download_files(self.signed_urls, out_dir, retries, out_queue=out_queue)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.DataRangeResp.to_dict"><code class="name flex">
@@ -821,7 +826,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.data_api.ReportDataReq"><code class="flex name class">
 <span>class <span class="ident">ReportDataReq</span></span>
-<span>(</span><span>auth_token: str, report_id: str, secret_token: typing.Union[str, NoneType] = None)</span>
+<span>(</span><span>auth_token: str, report_id: str, secret_token: typing.Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A request for a signed URL to a RedVox report distribution.</p></div>
@@ -829,7 +834,9 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ReportDataReq:
+<pre><code class="python">@dataclass_json
+@dataclass
+class ReportDataReq:
     &#34;&#34;&#34;
     A request for a signed URL to a RedVox report distribution.
     &#34;&#34;&#34;
@@ -848,7 +855,7 @@ def schema(cls: Type[A],
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.data_api.ReportDataReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Union[str, NoneType]</code></dt>
+<dt id="redvox.cloud.data_api.ReportDataReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -998,7 +1005,9 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ReportDataResp:
+<pre><code class="python">@dataclass_json
+@dataclass
+class ReportDataResp:
     &#34;&#34;&#34;
     Response for a report signed URL.
     &#34;&#34;&#34;
@@ -1119,7 +1128,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.data_api.ReportDataResp.download_buf"><code class="name flex">
-<span>def <span class="ident">download_buf</span></span>(<span>self, retries: int = 3) ‑> typing.Union[bytes, NoneType]</span>
+<span>def <span class="ident">download_buf</span></span>(<span>self, retries: int = 3) ‑> typing.Optional[bytes]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Downloads the zip compressed report data and returns it as a byte buffer.

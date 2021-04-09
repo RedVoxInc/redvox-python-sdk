@@ -129,7 +129,7 @@ class SensorData:
         type: SensorType, enumerated type of sensor
         data_df: dataframe of the sensor data; always has timestamps as the first column,
                     the other columns are the data fields
-        sample_rate: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
+        sample_rate_hz: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
         sample_interval_s: float, mean duration in seconds between samples, default np.nan, usually 1/sample_rate
         sample_interval_std_s: float, standard deviation in seconds between samples, default np.nan
         is_sample_rate_fixed: bool, True if sample rate is constant, default False
@@ -142,7 +142,7 @@ class SensorData:
         sensor_name: str,
         sensor_data: pd.DataFrame,
         sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
-        sample_rate: float = np.nan,
+        sample_rate_hz: float = np.nan,
         sample_interval_s: float = np.nan,
         sample_interval_std_s: float = np.nan,
         is_sample_rate_fixed: bool = False,
@@ -155,7 +155,7 @@ class SensorData:
         :param sensor_type: enumerated type of the sensor, default SensorType.UNKNOWN_SENSOR
         :param sensor_data: dataframe with the timestamps and sensor data; first column is always the timestamps,
                             the other columns are the data channels in the sensor
-        :param sample_rate: sample rate in hz of the data
+        :param sample_rate_hz: sample rate in hz of the data
         :param sample_interval_s: sample interval in seconds of the data
         :param sample_interval_std_s: std dev of sample interval in seconds of the data
         :param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
@@ -171,7 +171,7 @@ class SensorData:
         self.name: str = sensor_name
         self.type: SensorType = sensor_type
         self.data_df: pd.DataFrame = sensor_data.infer_objects()
-        self.sample_rate: float = sample_rate
+        self.sample_rate_hz: float = sample_rate_hz
         self.sample_interval_s: float = sample_interval_s
         self.sample_interval_std_s: float = sample_interval_std_s
         self.is_sample_rate_fixed: bool = is_sample_rate_fixed
@@ -205,7 +205,7 @@ class SensorData:
                 self.sample_interval_std_s = dtu.microseconds_to_seconds(
                     float(np.std(timestamp_diffs))
                 )
-                self.sample_rate = (
+                self.sample_rate_hz = (
                     np.nan
                     if self.is_sample_interval_invalid()
                     else 1 / self.sample_interval_s
@@ -213,7 +213,7 @@ class SensorData:
             else:
                 self.sample_interval_s = np.nan
                 self.sample_interval_std_s = np.nan
-                self.sample_rate = np.nan
+                self.sample_rate_hz = np.nan
         return self
 
     def append_data(
@@ -310,7 +310,7 @@ class SensorData:
             self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *
                                                                  (1 + offset_model.slope))
             if self.sample_interval_s &gt; 0:
-                self.sample_rate = 1 / self.sample_interval_s
+                self.sample_rate_hz = 1 / self.sample_interval_s
                 self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
         self.timestamps_altered = True
 
@@ -354,7 +354,7 @@ class SensorData:
 <dl>
 <dt id="redvox.common.sensor_data.SensorData"><code class="flex name class">
 <span>class <span class="ident">SensorData</span></span>
-<span>(</span><span>sensor_name: str, sensor_data: pandas.core.frame.DataFrame, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="#redvox.common.sensor_data.SensorType">SensorType</a> = SensorType.UNKNOWN_SENSOR, sample_rate: float = nan, sample_interval_s: float = nan, sample_interval_std_s: float = nan, is_sample_rate_fixed: bool = False, are_timestamps_altered: bool = False, calculate_stats: bool = False)</span>
+<span>(</span><span>sensor_name: str, sensor_data: pandas.core.frame.DataFrame, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="#redvox.common.sensor_data.SensorType">SensorType</a> = SensorType.UNKNOWN_SENSOR, sample_rate_hz: float = nan, sample_interval_s: float = nan, sample_interval_std_s: float = nan, is_sample_rate_fixed: bool = False, are_timestamps_altered: bool = False, calculate_stats: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Generic SensorData class for API-independent analysis</p>
@@ -363,7 +363,7 @@ class SensorData:
 type: SensorType, enumerated type of sensor
 data_df: dataframe of the sensor data; always has timestamps as the first column,
 the other columns are the data fields
-sample_rate: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
+sample_rate_hz: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
 sample_interval_s: float, mean duration in seconds between samples, default np.nan, usually 1/sample_rate
 sample_interval_std_s: float, standard deviation in seconds between samples, default np.nan
 is_sample_rate_fixed: bool, True if sample rate is constant, default False
@@ -374,7 +374,7 @@ default False</p>
 :param sensor_type: enumerated type of the sensor, default SensorType.UNKNOWN_SENSOR
 :param sensor_data: dataframe with the timestamps and sensor data; first column is always the timestamps,
 the other columns are the data channels in the sensor
-:param sample_rate: sample rate in hz of the data
+:param sample_rate_hz: sample rate in hz of the data
 :param sample_interval_s: sample interval in seconds of the data
 :param sample_interval_std_s: std dev of sample interval in seconds of the data
 :param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
@@ -394,7 +394,7 @@ default False</p></div>
         type: SensorType, enumerated type of sensor
         data_df: dataframe of the sensor data; always has timestamps as the first column,
                     the other columns are the data fields
-        sample_rate: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
+        sample_rate_hz: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
         sample_interval_s: float, mean duration in seconds between samples, default np.nan, usually 1/sample_rate
         sample_interval_std_s: float, standard deviation in seconds between samples, default np.nan
         is_sample_rate_fixed: bool, True if sample rate is constant, default False
@@ -407,7 +407,7 @@ default False</p></div>
         sensor_name: str,
         sensor_data: pd.DataFrame,
         sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
-        sample_rate: float = np.nan,
+        sample_rate_hz: float = np.nan,
         sample_interval_s: float = np.nan,
         sample_interval_std_s: float = np.nan,
         is_sample_rate_fixed: bool = False,
@@ -420,7 +420,7 @@ default False</p></div>
         :param sensor_type: enumerated type of the sensor, default SensorType.UNKNOWN_SENSOR
         :param sensor_data: dataframe with the timestamps and sensor data; first column is always the timestamps,
                             the other columns are the data channels in the sensor
-        :param sample_rate: sample rate in hz of the data
+        :param sample_rate_hz: sample rate in hz of the data
         :param sample_interval_s: sample interval in seconds of the data
         :param sample_interval_std_s: std dev of sample interval in seconds of the data
         :param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
@@ -436,7 +436,7 @@ default False</p></div>
         self.name: str = sensor_name
         self.type: SensorType = sensor_type
         self.data_df: pd.DataFrame = sensor_data.infer_objects()
-        self.sample_rate: float = sample_rate
+        self.sample_rate_hz: float = sample_rate_hz
         self.sample_interval_s: float = sample_interval_s
         self.sample_interval_std_s: float = sample_interval_std_s
         self.is_sample_rate_fixed: bool = is_sample_rate_fixed
@@ -470,7 +470,7 @@ default False</p></div>
                 self.sample_interval_std_s = dtu.microseconds_to_seconds(
                     float(np.std(timestamp_diffs))
                 )
-                self.sample_rate = (
+                self.sample_rate_hz = (
                     np.nan
                     if self.is_sample_interval_invalid()
                     else 1 / self.sample_interval_s
@@ -478,7 +478,7 @@ default False</p></div>
             else:
                 self.sample_interval_s = np.nan
                 self.sample_interval_std_s = np.nan
-                self.sample_rate = np.nan
+                self.sample_rate_hz = np.nan
         return self
 
     def append_data(
@@ -575,7 +575,7 @@ default False</p></div>
             self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *
                                                                  (1 + offset_model.slope))
             if self.sample_interval_s &gt; 0:
-                self.sample_rate = 1 / self.sample_interval_s
+                self.sample_rate_hz = 1 / self.sample_interval_s
                 self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
         self.timestamps_altered = True
 
@@ -847,7 +847,7 @@ Updates the SensorData object with the new values
             self.sample_interval_std_s = dtu.microseconds_to_seconds(
                 float(np.std(timestamp_diffs))
             )
-            self.sample_rate = (
+            self.sample_rate_hz = (
                 np.nan
                 if self.is_sample_interval_invalid()
                 else 1 / self.sample_interval_s
@@ -855,7 +855,7 @@ Updates the SensorData object with the new values
         else:
             self.sample_interval_s = np.nan
             self.sample_interval_std_s = np.nan
-            self.sample_rate = np.nan
+            self.sample_rate_hz = np.nan
     return self</code></pre>
 </details>
 </dd>
@@ -945,7 +945,7 @@ Updates the SensorData object with the new values
         self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *
                                                              (1 + offset_model.slope))
         if self.sample_interval_s &gt; 0:
-            self.sample_rate = 1 / self.sample_interval_s
+            self.sample_rate_hz = 1 / self.sample_interval_s
             self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
     self.timestamps_altered = True</code></pre>
 </details>

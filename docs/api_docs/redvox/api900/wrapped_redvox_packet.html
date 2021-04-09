@@ -2590,7 +2590,7 @@ directly.</p>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.accelerometer_sensor"><code class="name flex">
-<span>def <span class="ident">accelerometer_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api900.sensors.accelerometer_sensor.AccelerometerSensor" href="sensors/accelerometer_sensor.html#redvox.api900.sensors.accelerometer_sensor.AccelerometerSensor">AccelerometerSensor</a>, NoneType]</span>
+<span>def <span class="ident">accelerometer_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.api900.sensors.accelerometer_sensor.AccelerometerSensor" href="sensors/accelerometer_sensor.html#redvox.api900.sensors.accelerometer_sensor.AccelerometerSensor">AccelerometerSensor</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the high-level accelerometer channel API or None if this packet doesn't contain a channel of this type.
@@ -2780,7 +2780,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.barometer_sensor"><code class="name flex">
-<span>def <span class="ident">barometer_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api900.sensors.barometer_sensor.BarometerSensor" href="sensors/barometer_sensor.html#redvox.api900.sensors.barometer_sensor.BarometerSensor">BarometerSensor</a>, NoneType]</span>
+<span>def <span class="ident">barometer_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.api900.sensors.barometer_sensor.BarometerSensor" href="sensors/barometer_sensor.html#redvox.api900.sensors.barometer_sensor.BarometerSensor">BarometerSensor</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the high-level barometer channel API or None if this packet doesn't contain a channel of this type.
@@ -2819,7 +2819,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.best_latency"><code class="name flex">
-<span>def <span class="ident">best_latency</span></span>(<span>self) ‑> typing.Union[float, NoneType]</span>
+<span>def <span class="ident">best_latency</span></span>(<span>self) ‑> typing.Optional[float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the best latency from the metadata if it exists.
@@ -2840,7 +2840,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.best_offset"><code class="name flex">
-<span>def <span class="ident">best_offset</span></span>(<span>self) ‑> typing.Union[float, NoneType]</span>
+<span>def <span class="ident">best_offset</span></span>(<span>self) ‑> typing.Optional[float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the best offset from the metadata if it exists.
@@ -3142,7 +3142,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.gyroscope_sensor"><code class="name flex">
-<span>def <span class="ident">gyroscope_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor" href="sensors/gyroscope_sensor.html#redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor">GyroscopeSensor</a>, NoneType]</span>
+<span>def <span class="ident">gyroscope_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor" href="sensors/gyroscope_sensor.html#redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor">GyroscopeSensor</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the high-level gyroscope channel API or None if this packet doesn't contain a channel of this type.
@@ -3350,7 +3350,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.image_sensor"><code class="name flex">
-<span>def <span class="ident">image_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api900.sensors.image_sensor.ImageSensor" href="sensors/image_sensor.html#redvox.api900.sensors.image_sensor.ImageSensor">ImageSensor</a>, NoneType]</span>
+<span>def <span class="ident">image_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.api900.sensors.image_sensor.ImageSensor" href="sensors/image_sensor.html#redvox.api900.sensors.image_sensor.ImageSensor">ImageSensor</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the high-level image channel API or None if this packet doesn't contain a channel of this type.
@@ -3371,7 +3371,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.infrared_sensor"><code class="name flex">
-<span>def <span class="ident">infrared_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api900.sensors.infrared_sensor.InfraredSensor" href="sensors/infrared_sensor.html#redvox.api900.sensors.infrared_sensor.InfraredSensor">InfraredSensor</a>, NoneType]</span>
+<span>def <span class="ident">infrared_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.api900.sensors.infrared_sensor.InfraredSensor" href="sensors/infrared_sensor.html#redvox.api900.sensors.infrared_sensor.InfraredSensor">InfraredSensor</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the high-level infrared channel API or None if this packet doesn't contain a channel of this type.
@@ -3471,7 +3471,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.light_sensor"><code class="name flex">
-<span>def <span class="ident">light_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api900.sensors.light_sensor.LightSensor" href="sensors/light_sensor.html#redvox.api900.sensors.light_sensor.LightSensor">LightSensor</a>, NoneType]</span>
+<span>def <span class="ident">light_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.api900.sensors.light_sensor.LightSensor" href="sensors/light_sensor.html#redvox.api900.sensors.light_sensor.LightSensor">LightSensor</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the high-level light channel API or None if this packet doesn't contain a channel of this type.
@@ -3492,7 +3492,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.location_sensor"><code class="name flex">
-<span>def <span class="ident">location_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api900.sensors.location_sensor.LocationSensor" href="sensors/location_sensor.html#redvox.api900.sensors.location_sensor.LocationSensor">LocationSensor</a>, NoneType]</span>
+<span>def <span class="ident">location_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.api900.sensors.location_sensor.LocationSensor" href="sensors/location_sensor.html#redvox.api900.sensors.location_sensor.LocationSensor">LocationSensor</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the high-level location channel API or None if this packet doesn't contain a channel of this type.
@@ -3513,7 +3513,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.mach_time_zero"><code class="name flex">
-<span>def <span class="ident">mach_time_zero</span></span>(<span>self) ‑> typing.Union[int, NoneType]</span>
+<span>def <span class="ident">mach_time_zero</span></span>(<span>self) ‑> typing.Optional[int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the mach time zero from the metadata if it exists.
@@ -3547,7 +3547,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.magnetometer_sensor"><code class="name flex">
-<span>def <span class="ident">magnetometer_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api900.sensors.magnetometer_sensor.MagnetometerSensor" href="sensors/magnetometer_sensor.html#redvox.api900.sensors.magnetometer_sensor.MagnetometerSensor">MagnetometerSensor</a>, NoneType]</span>
+<span>def <span class="ident">magnetometer_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.api900.sensors.magnetometer_sensor.MagnetometerSensor" href="sensors/magnetometer_sensor.html#redvox.api900.sensors.magnetometer_sensor.MagnetometerSensor">MagnetometerSensor</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the high-level magnetometer channel API or None if this packet doesn't contain a channel of this type.
@@ -3604,7 +3604,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.microphone_sensor"><code class="name flex">
-<span>def <span class="ident">microphone_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api900.sensors.microphone_sensor.MicrophoneSensor" href="sensors/microphone_sensor.html#redvox.api900.sensors.microphone_sensor.MicrophoneSensor">MicrophoneSensor</a>, NoneType]</span>
+<span>def <span class="ident">microphone_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.api900.sensors.microphone_sensor.MicrophoneSensor" href="sensors/microphone_sensor.html#redvox.api900.sensors.microphone_sensor.MicrophoneSensor">MicrophoneSensor</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the high-level microphone channel API or None if this packet doesn't contain a channel of this type.
@@ -3679,7 +3679,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.set_accelerometer_sensor"><code class="name flex">
-<span>def <span class="ident">set_accelerometer_sensor</span></span>(<span>self, accelerometer_sensor: typing.Union[<a title="redvox.api900.sensors.accelerometer_sensor.AccelerometerSensor" href="sensors/accelerometer_sensor.html#redvox.api900.sensors.accelerometer_sensor.AccelerometerSensor">AccelerometerSensor</a>, NoneType]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+<span>def <span class="ident">set_accelerometer_sensor</span></span>(<span>self, accelerometer_sensor: typing.Optional[<a title="redvox.api900.sensors.accelerometer_sensor.AccelerometerSensor" href="sensors/accelerometer_sensor.html#redvox.api900.sensors.accelerometer_sensor.AccelerometerSensor">AccelerometerSensor</a>]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets this packet's accelerometer sensor. A channel can be removed by passing in None.
@@ -3858,7 +3858,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.set_barometer_sensor"><code class="name flex">
-<span>def <span class="ident">set_barometer_sensor</span></span>(<span>self, barometer_sensor: typing.Union[<a title="redvox.api900.sensors.barometer_sensor.BarometerSensor" href="sensors/barometer_sensor.html#redvox.api900.sensors.barometer_sensor.BarometerSensor">BarometerSensor</a>, NoneType]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+<span>def <span class="ident">set_barometer_sensor</span></span>(<span>self, barometer_sensor: typing.Optional[<a title="redvox.api900.sensors.barometer_sensor.BarometerSensor" href="sensors/barometer_sensor.html#redvox.api900.sensors.barometer_sensor.BarometerSensor">BarometerSensor</a>]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets this packets barometer sensor. A channel can be removed by passing in None.
@@ -4059,7 +4059,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.set_gyroscope_sensor"><code class="name flex">
-<span>def <span class="ident">set_gyroscope_sensor</span></span>(<span>self, gyroscope_sensor: typing.Union[<a title="redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor" href="sensors/gyroscope_sensor.html#redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor">GyroscopeSensor</a>, NoneType]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+<span>def <span class="ident">set_gyroscope_sensor</span></span>(<span>self, gyroscope_sensor: typing.Optional[<a title="redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor" href="sensors/gyroscope_sensor.html#redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor">GyroscopeSensor</a>]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets this packet's gyroscope sensor. A channel can be removed by passing in None.
@@ -4087,7 +4087,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.set_image_sensor"><code class="name flex">
-<span>def <span class="ident">set_image_sensor</span></span>(<span>self, image_sensor: typing.Union[<a title="redvox.api900.sensors.image_sensor.ImageSensor" href="sensors/image_sensor.html#redvox.api900.sensors.image_sensor.ImageSensor">ImageSensor</a>, NoneType]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+<span>def <span class="ident">set_image_sensor</span></span>(<span>self, image_sensor: typing.Optional[<a title="redvox.api900.sensors.image_sensor.ImageSensor" href="sensors/image_sensor.html#redvox.api900.sensors.image_sensor.ImageSensor">ImageSensor</a>]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Set's the image channel.
@@ -4112,7 +4112,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.set_infrared_sensor"><code class="name flex">
-<span>def <span class="ident">set_infrared_sensor</span></span>(<span>self, infrared_sensor: typing.Union[<a title="redvox.api900.sensors.infrared_sensor.InfraredSensor" href="sensors/infrared_sensor.html#redvox.api900.sensors.infrared_sensor.InfraredSensor">InfraredSensor</a>, NoneType]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+<span>def <span class="ident">set_infrared_sensor</span></span>(<span>self, infrared_sensor: typing.Optional[<a title="redvox.api900.sensors.infrared_sensor.InfraredSensor" href="sensors/infrared_sensor.html#redvox.api900.sensors.infrared_sensor.InfraredSensor">InfraredSensor</a>]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets this packet's infrared sensor. A channel can be removed by passing in None.
@@ -4216,7 +4216,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.set_light_sensor"><code class="name flex">
-<span>def <span class="ident">set_light_sensor</span></span>(<span>self, light_sensor: typing.Union[<a title="redvox.api900.sensors.light_sensor.LightSensor" href="sensors/light_sensor.html#redvox.api900.sensors.light_sensor.LightSensor">LightSensor</a>, NoneType]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+<span>def <span class="ident">set_light_sensor</span></span>(<span>self, light_sensor: typing.Optional[<a title="redvox.api900.sensors.light_sensor.LightSensor" href="sensors/light_sensor.html#redvox.api900.sensors.light_sensor.LightSensor">LightSensor</a>]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets this packet's light sensor. A channel can be removed by passing in None.
@@ -4243,7 +4243,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.set_location_sensor"><code class="name flex">
-<span>def <span class="ident">set_location_sensor</span></span>(<span>self, location_sensor: typing.Union[<a title="redvox.api900.sensors.location_sensor.LocationSensor" href="sensors/location_sensor.html#redvox.api900.sensors.location_sensor.LocationSensor">LocationSensor</a>, NoneType]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+<span>def <span class="ident">set_location_sensor</span></span>(<span>self, location_sensor: typing.Optional[<a title="redvox.api900.sensors.location_sensor.LocationSensor" href="sensors/location_sensor.html#redvox.api900.sensors.location_sensor.LocationSensor">LocationSensor</a>]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets this packet's location sensor. A channel can be removed by passing in None.
@@ -4291,7 +4291,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.set_magnetometer_sensor"><code class="name flex">
-<span>def <span class="ident">set_magnetometer_sensor</span></span>(<span>self, magnetometer_sensor: typing.Union[<a title="redvox.api900.sensors.magnetometer_sensor.MagnetometerSensor" href="sensors/magnetometer_sensor.html#redvox.api900.sensors.magnetometer_sensor.MagnetometerSensor">MagnetometerSensor</a>, NoneType]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+<span>def <span class="ident">set_magnetometer_sensor</span></span>(<span>self, magnetometer_sensor: typing.Optional[<a title="redvox.api900.sensors.magnetometer_sensor.MagnetometerSensor" href="sensors/magnetometer_sensor.html#redvox.api900.sensors.magnetometer_sensor.MagnetometerSensor">MagnetometerSensor</a>]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets this packet's magnetomer sensor. A channel can be removed by passing in None.
@@ -4361,7 +4361,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.set_microphone_sensor"><code class="name flex">
-<span>def <span class="ident">set_microphone_sensor</span></span>(<span>self, microphone_sensor: typing.Union[<a title="redvox.api900.sensors.microphone_sensor.MicrophoneSensor" href="sensors/microphone_sensor.html#redvox.api900.sensors.microphone_sensor.MicrophoneSensor">MicrophoneSensor</a>, NoneType]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+<span>def <span class="ident">set_microphone_sensor</span></span>(<span>self, microphone_sensor: typing.Optional[<a title="redvox.api900.sensors.microphone_sensor.MicrophoneSensor" href="sensors/microphone_sensor.html#redvox.api900.sensors.microphone_sensor.MicrophoneSensor">MicrophoneSensor</a>]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets this packets microphone sensor. A channel can be removed by passing in None.
@@ -4427,7 +4427,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.set_time_synchronization_sensor"><code class="name flex">
-<span>def <span class="ident">set_time_synchronization_sensor</span></span>(<span>self, time_synchronization_sensor: typing.Union[<a title="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor" href="sensors/time_synchronization_sensor.html#redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor">TimeSynchronizationSensor</a>, NoneType]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
+<span>def <span class="ident">set_time_synchronization_sensor</span></span>(<span>self, time_synchronization_sensor: typing.Optional[<a title="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor" href="sensors/time_synchronization_sensor.html#redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor">TimeSynchronizationSensor</a>]) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets this packet's time sync sensor. A channel can be removed by passing in None.
@@ -4512,7 +4512,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.time_synchronization_sensor"><code class="name flex">
-<span>def <span class="ident">time_synchronization_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor" href="sensors/time_synchronization_sensor.html#redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor">TimeSynchronizationSensor</a>, NoneType]</span>
+<span>def <span class="ident">time_synchronization_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor" href="sensors/time_synchronization_sensor.html#redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor">TimeSynchronizationSensor</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the high-level time synchronization channel API or None if this packet doesn't contain a channel of
@@ -4614,7 +4614,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.write_json"><code class="name flex">
-<span>def <span class="ident">write_json</span></span>(<span>self, directory: str, filename: typing.Union[str, NoneType] = None)</span>
+<span>def <span class="ident">write_json</span></span>(<span>self, directory: str, filename: typing.Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Writes a RedVox compliant .json file to the specified directory.
@@ -4637,7 +4637,7 @@ description of this field.</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket.write_rdvxz"><code class="name flex">
-<span>def <span class="ident">write_rdvxz</span></span>(<span>self, directory: str, filename: typing.Union[str, NoneType] = None)</span>
+<span>def <span class="ident">write_rdvxz</span></span>(<span>self, directory: str, filename: typing.Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Writes a compressed .rdvxz file to the specified directory.

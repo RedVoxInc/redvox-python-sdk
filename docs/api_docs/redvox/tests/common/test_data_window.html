@@ -31,6 +31,7 @@
 tests for data window objects
 &#34;&#34;&#34;
 import unittest
+import contextlib
 
 import redvox.tests as tests
 import redvox.common.date_time_utils as dt
@@ -43,53 +44,56 @@ class DataWindowTest(unittest.TestCase):
         cls.input_dir = tests.TEST_DATA_DIR
 
     def test_data_window_simple(self):
-        datawindow = dw.DataWindow(
-            input_dir=self.input_dir,
-            structured_layout=False
-        )
-        self.assertEqual(len(datawindow.stations), 3)
-        self.assertEqual(len(datawindow.station_ids), 3)
-        self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
-        self.assertEqual(len(datawindow.extensions), 2)
-        self.assertEqual(len(datawindow.api_versions), 2)
+        with contextlib.redirect_stdout(None):
+            datawindow = dw.DataWindow(
+                input_dir=self.input_dir,
+                structured_layout=False
+            )
+            self.assertEqual(len(datawindow.stations), 3)
+            self.assertEqual(len(datawindow.station_ids), 3)
+            self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
+            self.assertEqual(len(datawindow.extensions), 2)
+            self.assertEqual(len(datawindow.api_versions), 2)
 
     def test_data_window(self):
-        datawindow = dw.DataWindow(
-            input_dir=self.input_dir,
-            structured_layout=False,
-            station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
-        )
-        self.assertEqual(len(datawindow.stations), 2)
-        test_station = datawindow.get_station(&#34;1637650010&#34;)
-        self.assertTrue(test_station.is_timestamps_updated)
-        self.assertNotEqual(test_station.first_data_timestamp,
-                            test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
-        self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;).audio_sensor())
-        test_sensor = datawindow.get_station(&#34;1637650010&#34;).accelerometer_sensor()
-        self.assertEqual(test_sensor.num_samples(), 643)
-        self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
-        test_sensor = datawindow.get_station(&#34;0000000001&#34;).audio_sensor()
-        self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 720000)
-        test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
-        self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 5)
+        with contextlib.redirect_stdout(None):
+            datawindow = dw.DataWindow(
+                input_dir=self.input_dir,
+                structured_layout=False,
+                station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
+            )
+            self.assertEqual(len(datawindow.stations), 2)
+            test_station = datawindow.get_station(&#34;1637650010&#34;)
+            self.assertTrue(test_station.is_timestamps_updated)
+            self.assertNotEqual(test_station.first_data_timestamp,
+                                test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
+            self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;).audio_sensor())
+            test_sensor = datawindow.get_station(&#34;1637650010&#34;).accelerometer_sensor()
+            self.assertEqual(test_sensor.num_samples(), 643)
+            self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
+            test_sensor = datawindow.get_station(&#34;0000000001&#34;).audio_sensor()
+            self.assertIsNotNone(test_sensor)
+            self.assertEqual(test_sensor.num_samples(), 720000)
+            test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
+            self.assertIsNotNone(test_sensor)
+            self.assertEqual(test_sensor.num_samples(), 5)
 
     def test_dw_with_start_end(self):
-        dw_with_start_end = dw.DataWindow(
-            input_dir=self.input_dir,
-            station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
-            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189455),
-            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189465),
-            structured_layout=False,
-        )
-        self.assertEqual(len(dw_with_start_end.stations), 1)
-        audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).audio_sensor()
-        self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 480000)
-        loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).location_sensor()
-        self.assertIsNotNone(loc_sensor)
-        self.assertEqual(loc_sensor.num_samples(), 4)
+        with contextlib.redirect_stdout(None):
+            dw_with_start_end = dw.DataWindow(
+                input_dir=self.input_dir,
+                station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
+                start_datetime=dt.datetime_from_epoch_seconds_utc(1597189455),
+                end_datetime=dt.datetime_from_epoch_seconds_utc(1597189465),
+                structured_layout=False,
+            )
+            self.assertEqual(len(dw_with_start_end.stations), 1)
+            audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).audio_sensor()
+            self.assertIsNotNone(audio_sensor)
+            self.assertEqual(audio_sensor.num_samples(), 480000)
+            loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).location_sensor()
+            self.assertIsNotNone(loc_sensor)
+            self.assertEqual(loc_sensor.num_samples(), 4)
 
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(
@@ -152,53 +156,56 @@ not have a method with the specified name.</p></div>
         cls.input_dir = tests.TEST_DATA_DIR
 
     def test_data_window_simple(self):
-        datawindow = dw.DataWindow(
-            input_dir=self.input_dir,
-            structured_layout=False
-        )
-        self.assertEqual(len(datawindow.stations), 3)
-        self.assertEqual(len(datawindow.station_ids), 3)
-        self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
-        self.assertEqual(len(datawindow.extensions), 2)
-        self.assertEqual(len(datawindow.api_versions), 2)
+        with contextlib.redirect_stdout(None):
+            datawindow = dw.DataWindow(
+                input_dir=self.input_dir,
+                structured_layout=False
+            )
+            self.assertEqual(len(datawindow.stations), 3)
+            self.assertEqual(len(datawindow.station_ids), 3)
+            self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
+            self.assertEqual(len(datawindow.extensions), 2)
+            self.assertEqual(len(datawindow.api_versions), 2)
 
     def test_data_window(self):
-        datawindow = dw.DataWindow(
-            input_dir=self.input_dir,
-            structured_layout=False,
-            station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
-        )
-        self.assertEqual(len(datawindow.stations), 2)
-        test_station = datawindow.get_station(&#34;1637650010&#34;)
-        self.assertTrue(test_station.is_timestamps_updated)
-        self.assertNotEqual(test_station.first_data_timestamp,
-                            test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
-        self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;).audio_sensor())
-        test_sensor = datawindow.get_station(&#34;1637650010&#34;).accelerometer_sensor()
-        self.assertEqual(test_sensor.num_samples(), 643)
-        self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
-        test_sensor = datawindow.get_station(&#34;0000000001&#34;).audio_sensor()
-        self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 720000)
-        test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
-        self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 5)
+        with contextlib.redirect_stdout(None):
+            datawindow = dw.DataWindow(
+                input_dir=self.input_dir,
+                structured_layout=False,
+                station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
+            )
+            self.assertEqual(len(datawindow.stations), 2)
+            test_station = datawindow.get_station(&#34;1637650010&#34;)
+            self.assertTrue(test_station.is_timestamps_updated)
+            self.assertNotEqual(test_station.first_data_timestamp,
+                                test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
+            self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;).audio_sensor())
+            test_sensor = datawindow.get_station(&#34;1637650010&#34;).accelerometer_sensor()
+            self.assertEqual(test_sensor.num_samples(), 643)
+            self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
+            test_sensor = datawindow.get_station(&#34;0000000001&#34;).audio_sensor()
+            self.assertIsNotNone(test_sensor)
+            self.assertEqual(test_sensor.num_samples(), 720000)
+            test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
+            self.assertIsNotNone(test_sensor)
+            self.assertEqual(test_sensor.num_samples(), 5)
 
     def test_dw_with_start_end(self):
-        dw_with_start_end = dw.DataWindow(
-            input_dir=self.input_dir,
-            station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
-            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189455),
-            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189465),
-            structured_layout=False,
-        )
-        self.assertEqual(len(dw_with_start_end.stations), 1)
-        audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).audio_sensor()
-        self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 480000)
-        loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).location_sensor()
-        self.assertIsNotNone(loc_sensor)
-        self.assertEqual(loc_sensor.num_samples(), 4)
+        with contextlib.redirect_stdout(None):
+            dw_with_start_end = dw.DataWindow(
+                input_dir=self.input_dir,
+                station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
+                start_datetime=dt.datetime_from_epoch_seconds_utc(1597189455),
+                end_datetime=dt.datetime_from_epoch_seconds_utc(1597189465),
+                structured_layout=False,
+            )
+            self.assertEqual(len(dw_with_start_end.stations), 1)
+            audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).audio_sensor()
+            self.assertIsNotNone(audio_sensor)
+            self.assertEqual(audio_sensor.num_samples(), 480000)
+            loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).location_sensor()
+            self.assertIsNotNone(loc_sensor)
+            self.assertEqual(loc_sensor.num_samples(), 4)
 
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(
@@ -241,26 +248,27 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_data_window(self):
-    datawindow = dw.DataWindow(
-        input_dir=self.input_dir,
-        structured_layout=False,
-        station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
-    )
-    self.assertEqual(len(datawindow.stations), 2)
-    test_station = datawindow.get_station(&#34;1637650010&#34;)
-    self.assertTrue(test_station.is_timestamps_updated)
-    self.assertNotEqual(test_station.first_data_timestamp,
-                        test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
-    self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;).audio_sensor())
-    test_sensor = datawindow.get_station(&#34;1637650010&#34;).accelerometer_sensor()
-    self.assertEqual(test_sensor.num_samples(), 643)
-    self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
-    test_sensor = datawindow.get_station(&#34;0000000001&#34;).audio_sensor()
-    self.assertIsNotNone(test_sensor)
-    self.assertEqual(test_sensor.num_samples(), 720000)
-    test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
-    self.assertIsNotNone(test_sensor)
-    self.assertEqual(test_sensor.num_samples(), 5)</code></pre>
+    with contextlib.redirect_stdout(None):
+        datawindow = dw.DataWindow(
+            input_dir=self.input_dir,
+            structured_layout=False,
+            station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
+        )
+        self.assertEqual(len(datawindow.stations), 2)
+        test_station = datawindow.get_station(&#34;1637650010&#34;)
+        self.assertTrue(test_station.is_timestamps_updated)
+        self.assertNotEqual(test_station.first_data_timestamp,
+                            test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
+        self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;).audio_sensor())
+        test_sensor = datawindow.get_station(&#34;1637650010&#34;).accelerometer_sensor()
+        self.assertEqual(test_sensor.num_samples(), 643)
+        self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
+        test_sensor = datawindow.get_station(&#34;0000000001&#34;).audio_sensor()
+        self.assertIsNotNone(test_sensor)
+        self.assertEqual(test_sensor.num_samples(), 720000)
+        test_sensor = datawindow.get_station(&#34;0000000001&#34;).location_sensor()
+        self.assertIsNotNone(test_sensor)
+        self.assertEqual(test_sensor.num_samples(), 5)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest.test_data_window_simple"><code class="name flex">
@@ -273,15 +281,16 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_data_window_simple(self):
-    datawindow = dw.DataWindow(
-        input_dir=self.input_dir,
-        structured_layout=False
-    )
-    self.assertEqual(len(datawindow.stations), 3)
-    self.assertEqual(len(datawindow.station_ids), 3)
-    self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
-    self.assertEqual(len(datawindow.extensions), 2)
-    self.assertEqual(len(datawindow.api_versions), 2)</code></pre>
+    with contextlib.redirect_stdout(None):
+        datawindow = dw.DataWindow(
+            input_dir=self.input_dir,
+            structured_layout=False
+        )
+        self.assertEqual(len(datawindow.stations), 3)
+        self.assertEqual(len(datawindow.station_ids), 3)
+        self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
+        self.assertEqual(len(datawindow.extensions), 2)
+        self.assertEqual(len(datawindow.api_versions), 2)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid"><code class="name flex">
@@ -312,20 +321,21 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_dw_with_start_end(self):
-    dw_with_start_end = dw.DataWindow(
-        input_dir=self.input_dir,
-        station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
-        start_datetime=dt.datetime_from_epoch_seconds_utc(1597189455),
-        end_datetime=dt.datetime_from_epoch_seconds_utc(1597189465),
-        structured_layout=False,
-    )
-    self.assertEqual(len(dw_with_start_end.stations), 1)
-    audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).audio_sensor()
-    self.assertIsNotNone(audio_sensor)
-    self.assertEqual(audio_sensor.num_samples(), 480000)
-    loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).location_sensor()
-    self.assertIsNotNone(loc_sensor)
-    self.assertEqual(loc_sensor.num_samples(), 4)</code></pre>
+    with contextlib.redirect_stdout(None):
+        dw_with_start_end = dw.DataWindow(
+            input_dir=self.input_dir,
+            station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
+            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189455),
+            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189465),
+            structured_layout=False,
+        )
+        self.assertEqual(len(dw_with_start_end.stations), 1)
+        audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).audio_sensor()
+        self.assertIsNotNone(audio_sensor)
+        self.assertEqual(audio_sensor.num_samples(), 480000)
+        loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;).location_sensor()
+        self.assertIsNotNone(loc_sensor)
+        self.assertEqual(loc_sensor.num_samples(), 4)</code></pre>
 </details>
 </dd>
 </dl>

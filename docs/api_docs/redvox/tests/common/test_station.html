@@ -30,6 +30,7 @@
 <pre><code class="python">&#34;&#34;&#34;
 tests for station
 &#34;&#34;&#34;
+import json
 import unittest
 import contextlib
 
@@ -46,18 +47,19 @@ from redvox.common.sensor_reader_utils import get_empty_sensor_data
 class StationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -&gt; None:
-        reader = api_reader.ApiReader(
-            tests.TEST_DATA_DIR,
-            False,
-            ReadFilter(extensions={&#34;.rdvxm&#34;}, station_ids={&#34;0000000001&#34;}),
-        )
-        cls.apim_station = reader.get_station_by_id(&#34;0000000001&#34;)
-        reader = api_reader.ApiReader(
-            tests.TEST_DATA_DIR,
-            False,
-            ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
-        )
-        cls.api900_station = reader.get_station_by_id(&#34;1637650010&#34;)
+        with contextlib.redirect_stdout(None):
+            reader = api_reader.ApiReader(
+                tests.TEST_DATA_DIR,
+                False,
+                ReadFilter(extensions={&#34;.rdvxm&#34;}, station_ids={&#34;0000000001&#34;}),
+            )
+            cls.apim_station = reader.get_station_by_id(&#34;0000000001&#34;)
+            reader = api_reader.ApiReader(
+                tests.TEST_DATA_DIR,
+                False,
+                ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
+            )
+            cls.api900_station = reader.get_station_by_id(&#34;1637650010&#34;)
 
     def test_empty_station(self):
         empty_apim_station = Station([])
@@ -77,7 +79,7 @@ class StationTest(unittest.TestCase):
         )
         self.assertTrue(self.api900_station.has_audio_sensor())
         audio_sensor = self.api900_station.audio_sensor()
-        self.assertEqual(audio_sensor.sample_rate, 80)
+        self.assertEqual(audio_sensor.sample_rate_hz, 80)
         self.assertTrue(audio_sensor.is_sample_rate_fixed)
         self.assertTrue(self.api900_station.has_location_sensor())
         loc_sensor = self.api900_station.location_sensor()
@@ -88,7 +90,7 @@ class StationTest(unittest.TestCase):
         self.assertEqual(self.apim_station.timesync_analysis.get_best_latency(), 1296.0)
         audio_sensor = self.apim_station.audio_sensor()
         self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.sample_rate, 48000.0)
+        self.assertEqual(audio_sensor.sample_rate_hz, 48000.0)
         self.assertTrue(audio_sensor.is_sample_rate_fixed)
         loc_sensor = self.apim_station.location_sensor()
         self.assertIsNotNone(loc_sensor)
@@ -121,6 +123,7 @@ class StationTest(unittest.TestCase):
         empty_apim_station.set_id(self.apim_station.get_id()).set_uuid(
             self.apim_station.get_uuid()
         ).set_start_timestamp(self.apim_station.get_start_timestamp())
+        empty_apim_station.metadata = self.apim_station.metadata
         empty_apim_station.append_station(self.apim_station)
         self.assertEqual(len(empty_apim_station.data), 2)
         self.assertEqual(
@@ -133,11 +136,11 @@ class StationTest(unittest.TestCase):
         empty_apim_station.append_sensor(self.apim_station.audio_sensor())
         self.assertEqual(len(empty_apim_station.data), 1)
         self.assertTrue(empty_apim_station.has_audio_sensor())
-        self.assertEqual(empty_apim_station.audio_sensor().sample_rate, 48000.0)
+        self.assertEqual(empty_apim_station.audio_sensor().sample_rate_hz, 48000.0)
         self.assertTrue(empty_apim_station.audio_sensor().is_sample_rate_fixed)
         empty_apim_station.append_sensor(self.api900_station.pressure_sensor())
         self.assertAlmostEqual(
-            empty_apim_station.pressure_sensor().sample_rate, 5.01, 2
+            empty_apim_station.pressure_sensor().sample_rate_hz, 5.01, 2
         )
 
     def test_set_sensor(self):
@@ -154,19 +157,20 @@ class StationTest(unittest.TestCase):
         empty_apim_station.set_audio_sensor(self.apim_station.audio_sensor())
         self.assertTrue(empty_apim_station.has_audio_sensor())
         self.assertTrue(empty_apim_station.has_audio_data())
-        self.assertEqual(empty_apim_station.audio_sensor().sample_rate, 48000)
+        self.assertEqual(empty_apim_station.audio_sensor().sample_rate_hz, 48000)
 
     def test_update_timestamps(self):
-        updated_station = api_reader.ApiReader(
-            tests.TEST_DATA_DIR,
-            False,
-            ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
-        ).get_station_by_id(&#34;1637650010&#34;)
-        self.assertEqual(updated_station.first_data_timestamp,
-                         updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
-        updated_station.update_timestamps()
-        self.assertNotEqual(updated_station.first_data_timestamp,
-                            updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])</code></pre>
+        with contextlib.redirect_stdout(None):
+            updated_station = api_reader.ApiReader(
+                tests.TEST_DATA_DIR,
+                False,
+                ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
+            ).get_station_by_id(&#34;1637650010&#34;)
+            self.assertEqual(updated_station.first_data_timestamp,
+                             updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
+            updated_station.update_timestamps()
+            self.assertNotEqual(updated_station.first_data_timestamp,
+                                updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])</code></pre>
 </details>
 </section>
 <section>
@@ -218,18 +222,19 @@ not have a method with the specified name.</p></div>
 <pre><code class="python">class StationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -&gt; None:
-        reader = api_reader.ApiReader(
-            tests.TEST_DATA_DIR,
-            False,
-            ReadFilter(extensions={&#34;.rdvxm&#34;}, station_ids={&#34;0000000001&#34;}),
-        )
-        cls.apim_station = reader.get_station_by_id(&#34;0000000001&#34;)
-        reader = api_reader.ApiReader(
-            tests.TEST_DATA_DIR,
-            False,
-            ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
-        )
-        cls.api900_station = reader.get_station_by_id(&#34;1637650010&#34;)
+        with contextlib.redirect_stdout(None):
+            reader = api_reader.ApiReader(
+                tests.TEST_DATA_DIR,
+                False,
+                ReadFilter(extensions={&#34;.rdvxm&#34;}, station_ids={&#34;0000000001&#34;}),
+            )
+            cls.apim_station = reader.get_station_by_id(&#34;0000000001&#34;)
+            reader = api_reader.ApiReader(
+                tests.TEST_DATA_DIR,
+                False,
+                ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
+            )
+            cls.api900_station = reader.get_station_by_id(&#34;1637650010&#34;)
 
     def test_empty_station(self):
         empty_apim_station = Station([])
@@ -249,7 +254,7 @@ not have a method with the specified name.</p></div>
         )
         self.assertTrue(self.api900_station.has_audio_sensor())
         audio_sensor = self.api900_station.audio_sensor()
-        self.assertEqual(audio_sensor.sample_rate, 80)
+        self.assertEqual(audio_sensor.sample_rate_hz, 80)
         self.assertTrue(audio_sensor.is_sample_rate_fixed)
         self.assertTrue(self.api900_station.has_location_sensor())
         loc_sensor = self.api900_station.location_sensor()
@@ -260,7 +265,7 @@ not have a method with the specified name.</p></div>
         self.assertEqual(self.apim_station.timesync_analysis.get_best_latency(), 1296.0)
         audio_sensor = self.apim_station.audio_sensor()
         self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.sample_rate, 48000.0)
+        self.assertEqual(audio_sensor.sample_rate_hz, 48000.0)
         self.assertTrue(audio_sensor.is_sample_rate_fixed)
         loc_sensor = self.apim_station.location_sensor()
         self.assertIsNotNone(loc_sensor)
@@ -293,6 +298,7 @@ not have a method with the specified name.</p></div>
         empty_apim_station.set_id(self.apim_station.get_id()).set_uuid(
             self.apim_station.get_uuid()
         ).set_start_timestamp(self.apim_station.get_start_timestamp())
+        empty_apim_station.metadata = self.apim_station.metadata
         empty_apim_station.append_station(self.apim_station)
         self.assertEqual(len(empty_apim_station.data), 2)
         self.assertEqual(
@@ -305,11 +311,11 @@ not have a method with the specified name.</p></div>
         empty_apim_station.append_sensor(self.apim_station.audio_sensor())
         self.assertEqual(len(empty_apim_station.data), 1)
         self.assertTrue(empty_apim_station.has_audio_sensor())
-        self.assertEqual(empty_apim_station.audio_sensor().sample_rate, 48000.0)
+        self.assertEqual(empty_apim_station.audio_sensor().sample_rate_hz, 48000.0)
         self.assertTrue(empty_apim_station.audio_sensor().is_sample_rate_fixed)
         empty_apim_station.append_sensor(self.api900_station.pressure_sensor())
         self.assertAlmostEqual(
-            empty_apim_station.pressure_sensor().sample_rate, 5.01, 2
+            empty_apim_station.pressure_sensor().sample_rate_hz, 5.01, 2
         )
 
     def test_set_sensor(self):
@@ -326,19 +332,20 @@ not have a method with the specified name.</p></div>
         empty_apim_station.set_audio_sensor(self.apim_station.audio_sensor())
         self.assertTrue(empty_apim_station.has_audio_sensor())
         self.assertTrue(empty_apim_station.has_audio_data())
-        self.assertEqual(empty_apim_station.audio_sensor().sample_rate, 48000)
+        self.assertEqual(empty_apim_station.audio_sensor().sample_rate_hz, 48000)
 
     def test_update_timestamps(self):
-        updated_station = api_reader.ApiReader(
-            tests.TEST_DATA_DIR,
-            False,
-            ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
-        ).get_station_by_id(&#34;1637650010&#34;)
-        self.assertEqual(updated_station.first_data_timestamp,
-                         updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
-        updated_station.update_timestamps()
-        self.assertNotEqual(updated_station.first_data_timestamp,
-                            updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])</code></pre>
+        with contextlib.redirect_stdout(None):
+            updated_station = api_reader.ApiReader(
+                tests.TEST_DATA_DIR,
+                False,
+                ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
+            ).get_station_by_id(&#34;1637650010&#34;)
+            self.assertEqual(updated_station.first_data_timestamp,
+                             updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
+            updated_station.update_timestamps()
+            self.assertNotEqual(updated_station.first_data_timestamp,
+                                updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -357,18 +364,19 @@ not have a method with the specified name.</p></div>
 </summary>
 <pre><code class="python">@classmethod
 def setUpClass(cls) -&gt; None:
-    reader = api_reader.ApiReader(
-        tests.TEST_DATA_DIR,
-        False,
-        ReadFilter(extensions={&#34;.rdvxm&#34;}, station_ids={&#34;0000000001&#34;}),
-    )
-    cls.apim_station = reader.get_station_by_id(&#34;0000000001&#34;)
-    reader = api_reader.ApiReader(
-        tests.TEST_DATA_DIR,
-        False,
-        ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
-    )
-    cls.api900_station = reader.get_station_by_id(&#34;1637650010&#34;)</code></pre>
+    with contextlib.redirect_stdout(None):
+        reader = api_reader.ApiReader(
+            tests.TEST_DATA_DIR,
+            False,
+            ReadFilter(extensions={&#34;.rdvxm&#34;}, station_ids={&#34;0000000001&#34;}),
+        )
+        cls.apim_station = reader.get_station_by_id(&#34;0000000001&#34;)
+        reader = api_reader.ApiReader(
+            tests.TEST_DATA_DIR,
+            False,
+            ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
+        )
+        cls.api900_station = reader.get_station_by_id(&#34;1637650010&#34;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -390,7 +398,7 @@ def setUpClass(cls) -&gt; None:
     )
     self.assertTrue(self.api900_station.has_audio_sensor())
     audio_sensor = self.api900_station.audio_sensor()
-    self.assertEqual(audio_sensor.sample_rate, 80)
+    self.assertEqual(audio_sensor.sample_rate_hz, 80)
     self.assertTrue(audio_sensor.is_sample_rate_fixed)
     self.assertTrue(self.api900_station.has_location_sensor())
     loc_sensor = self.api900_station.location_sensor()
@@ -411,7 +419,7 @@ def setUpClass(cls) -&gt; None:
     self.assertEqual(self.apim_station.timesync_analysis.get_best_latency(), 1296.0)
     audio_sensor = self.apim_station.audio_sensor()
     self.assertIsNotNone(audio_sensor)
-    self.assertEqual(audio_sensor.sample_rate, 48000.0)
+    self.assertEqual(audio_sensor.sample_rate_hz, 48000.0)
     self.assertTrue(audio_sensor.is_sample_rate_fixed)
     loc_sensor = self.apim_station.location_sensor()
     self.assertIsNotNone(loc_sensor)
@@ -438,11 +446,11 @@ def setUpClass(cls) -&gt; None:
     empty_apim_station.append_sensor(self.apim_station.audio_sensor())
     self.assertEqual(len(empty_apim_station.data), 1)
     self.assertTrue(empty_apim_station.has_audio_sensor())
-    self.assertEqual(empty_apim_station.audio_sensor().sample_rate, 48000.0)
+    self.assertEqual(empty_apim_station.audio_sensor().sample_rate_hz, 48000.0)
     self.assertTrue(empty_apim_station.audio_sensor().is_sample_rate_fixed)
     empty_apim_station.append_sensor(self.api900_station.pressure_sensor())
     self.assertAlmostEqual(
-        empty_apim_station.pressure_sensor().sample_rate, 5.01, 2
+        empty_apim_station.pressure_sensor().sample_rate_hz, 5.01, 2
     )</code></pre>
 </details>
 </dd>
@@ -476,6 +484,7 @@ def setUpClass(cls) -&gt; None:
     empty_apim_station.set_id(self.apim_station.get_id()).set_uuid(
         self.apim_station.get_uuid()
     ).set_start_timestamp(self.apim_station.get_start_timestamp())
+    empty_apim_station.metadata = self.apim_station.metadata
     empty_apim_station.append_station(self.apim_station)
     self.assertEqual(len(empty_apim_station.data), 2)
     self.assertEqual(
@@ -558,7 +567,7 @@ def setUpClass(cls) -&gt; None:
     empty_apim_station.set_audio_sensor(self.apim_station.audio_sensor())
     self.assertTrue(empty_apim_station.has_audio_sensor())
     self.assertTrue(empty_apim_station.has_audio_data())
-    self.assertEqual(empty_apim_station.audio_sensor().sample_rate, 48000)</code></pre>
+    self.assertEqual(empty_apim_station.audio_sensor().sample_rate_hz, 48000)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_station.StationTest.test_update_timestamps"><code class="name flex">
@@ -571,16 +580,17 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_update_timestamps(self):
-    updated_station = api_reader.ApiReader(
-        tests.TEST_DATA_DIR,
-        False,
-        ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
-    ).get_station_by_id(&#34;1637650010&#34;)
-    self.assertEqual(updated_station.first_data_timestamp,
-                     updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
-    updated_station.update_timestamps()
-    self.assertNotEqual(updated_station.first_data_timestamp,
-                        updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])</code></pre>
+    with contextlib.redirect_stdout(None):
+        updated_station = api_reader.ApiReader(
+            tests.TEST_DATA_DIR,
+            False,
+            ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
+        ).get_station_by_id(&#34;1637650010&#34;)
+        self.assertEqual(updated_station.first_data_timestamp,
+                         updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
+        updated_station.update_timestamps()
+        self.assertNotEqual(updated_station.first_data_timestamp,
+                            updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])</code></pre>
 </details>
 </dd>
 </dl>

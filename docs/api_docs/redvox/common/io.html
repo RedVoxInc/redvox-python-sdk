@@ -69,6 +69,7 @@ from redvox.common.date_time_utils import (
 if TYPE_CHECKING:
     from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
     from redvox.common.data_window import DataWindow
+    from redvox.common.station import Station
 
 
 def _is_int(value: str) -&gt; Optional[int]:
@@ -593,6 +594,7 @@ def index_unstructured(
     :param base_dir: Directory containing unstructured data.
     :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
     :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+    :param pool: Pool for multiprocessing
     :return: An iterator of valid paths.
     &#34;&#34;&#34;
     check_type(base_dir, [str])
@@ -646,6 +648,8 @@ def index_structured_api_900(
     This parses a structured API 900 directory structure and identifies files that match the provided filter.
     :param base_dir: Base directory (should be named api900)
     :param read_filter: Filter to filter files with
+    :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+    :param pool: Pool for multiprocessing
     :return: A list of wrapped packets on an empty list if none match the filter or none are found
     &#34;&#34;&#34;
     index: Index = Index()
@@ -690,6 +694,8 @@ def index_structured_api_1000(
     This parses a structured API M directory structure and identifies files that match the provided filter.
     :param base_dir: Base directory (should be named api1000)
     :param read_filter: Filter to filter files with
+    :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+    :param pool: Pool for multiprocessing
     :return: A list of wrapped packets on an empty list if none match the filter or none are found
     &#34;&#34;&#34;
     index: Index = Index()
@@ -738,6 +744,7 @@ def index_structured(
     :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
                      API 900 and API 1000.
     :param read_filter: Filter to further filter results.
+    :param pool: Pool for multiprocessing
     :return: An Index of RedVox files.
     &#34;&#34;&#34;
     base_path: PurePath = PurePath(base_dir)
@@ -869,40 +876,113 @@ def sort_unstructured_redvox_data(
     return True
 
 
-# def data_window_to_json(
-#         data_win: &#34;DataWindow&#34;,
-#         base_dir: str = &#34;.&#34;,
-#         file_name: Optional[str] = None
-# ) -&gt; Path:
-#     &#34;&#34;&#34;
-#     Converts a data window to json format
-#     :param data_win: the data window object to convert
-#     :param base_dir: the base directory to write the json file to
-#     :param file_name: the optional file name.  If None, a default file name is created using this format:
-#                         [start_ts]_[end_ts]_[num_stations].json
-#     :return: The path to the written file
-#     &#34;&#34;&#34;
-#     _file_name: str = (
-#         file_name
-#         if file_name is not None
-#         else f&#34;{data_win.start_datetime.timestamp()}&#34;
-#              f&#34;_{data_win.end_datetime.timestamp()}&#34;
-#              f&#34;_{len(data_win.get_all_station_ids())}.json&#34;
-#     )
-#     file_path: Path = Path(base_dir).joinpath(_file_name)
-#     with open(file_path, &#34;w&#34;) as f_p:
-#         f_p.write(json.dumps([{st.id: st.start_timestamp} for st in data_win.get_all_stations()]))
-#         return file_path.resolve(False)
-#
-#
-# def json_to_data_window(path: str) -&gt; Dict:
-#     &#34;&#34;&#34;
-#     load a data window from json written to disk
-#     :param path: path to the json file to read
-#     :return: a string representing the json-ified data window
-#     &#34;&#34;&#34;
-#     with open(path, &#39;r&#39;) as r_f:
-#         return json.loads(r_f.read())
+def station_to_json(
+        station: &#34;Station&#34;
+) -&gt; str:
+    &#34;&#34;&#34;
+    converts a station into a json string
+    :param station: the station to convert
+    :return: the station as a json string
+    &#34;&#34;&#34;
+    station_dict = {&#34;id&#34;: station.id,
+                    &#34;uuid&#34;: station.uuid,
+                    &#34;start_timestamp&#34;: station.start_timestamp,
+                    &#34;audio_sample_rate_hz&#34;: station.audio_sample_rate_hz,
+                    &#34;is_audio_scrambled&#34;: station.is_audio_scrambled,
+                    &#34;is_timestamps_updated&#34;: station.is_timestamps_updated,
+                    &#34;data&#34;: &#34;I AM FILEPATH TO DATA FILE&#34;,
+                    &#34;metadata&#34;: {
+                        &#34;api&#34;: station.metadata.api,
+                        &#34;sub_api&#34;: station.metadata.sub_api,
+                        &#34;make&#34;: station.metadata.make,
+                        &#34;model&#34;: station.metadata.model,
+                        &#34;os&#34;: station.metadata.os.value,
+                        &#34;os_version&#34;: station.metadata.os_version,
+                        &#34;app&#34;: station.metadata.app,
+                        &#34;app_version&#34;: station.metadata.app_version,
+                        &#34;data_is_private&#34;: station.metadata.is_private,
+                        &#34;packet_duration_s&#34;: station.metadata.packet_duration_s
+                    },
+                    &#34;packet_metadata&#34;: [
+                        {
+                            &#34;start_mach_timestamp&#34;: p.packet_start_mach_timestamp,
+                            &#34;end_mach_timestamp&#34;: p.packet_end_mach_timestamp,
+                            &#34;start_os_timestamp&#34;: p.packet_start_os_timestamp,
+                            &#34;end_os_timestamp&#34;: p.packet_end_os_timestamp,
+                            &#34;timing_info_score&#34;: p.timing_info_score
+                        }
+                        for p in station.packet_metadata
+                    ],
+                    &#34;timesync_analysis&#34;: {
+                        &#34;timesync_data&#34;: [
+                            {
+                                &#34;server_acquisition_timestamp&#34;: t.server_acquisition_timestamp,
+                                &#34;time_sync_exchanges_df&#34;: &#34;I AM A FILE PATH TO TIMESYNC DATA&#34;,
+                                &#34;latencies&#34;: t.latencies.tolist(),
+                                &#34;best_latency_index&#34;: int(t.best_latency_index),
+                                &#34;best_latency&#34;: t.best_latency,
+                                &#34;mean_latency&#34;: float(t.mean_latency),
+                                &#34;latency_std&#34;: float(t.latency_std),
+                                &#34;offsets&#34;: t.offsets.tolist(),
+                                &#34;best_offset&#34;: t.best_offset,
+                                &#34;mean_offset&#34;: float(t.mean_offset),
+                                &#34;offset_std&#34;: float(t.offset_std),
+                                &#34;best_tri_msg_index&#34;: int(t.best_tri_msg_index),
+                                &#34;best_msg_timestamp_index&#34;: t.best_msg_timestamp_index,
+                                &#34;acquire_travel_time&#34;: t.acquire_travel_time
+                            }
+                            for t in station.timesync_analysis.timesync_data
+                        ],
+                        &#34;offset_model&#34;: {
+                            &#34;start_time&#34;: station.timesync_analysis.offset_model.start_time,
+                            &#34;end_time&#34;: station.timesync_analysis.offset_model.end_time,
+                            &#34;k_bins&#34;: station.timesync_analysis.offset_model.k_bins,
+                            &#34;n_samples&#34;: station.timesync_analysis.offset_model.n_samples,
+                            &#34;slope&#34;: station.timesync_analysis.offset_model.slope,
+                            &#34;intercept&#34;: station.timesync_analysis.offset_model.intercept,
+                            &#34;score&#34;: station.timesync_analysis.offset_model.score,
+                            &#34;mean_latency&#34;: station.timesync_analysis.offset_model.mean_latency,
+                            &#34;std_dev_latency&#34;: station.timesync_analysis.offset_model.std_dev_latency
+                        }
+                    },
+                    }
+    return json.dumps(station_dict)
+
+
+def data_window_to_json(
+        data_win: &#34;DataWindow&#34;,
+        base_dir: str = &#34;.&#34;,
+        file_name: Optional[str] = None
+) -&gt; Path:
+    &#34;&#34;&#34;
+    Converts a data window to json format
+    :param data_win: the data window object to convert
+    :param base_dir: the base directory to write the json file to
+    :param file_name: the optional file name.  If None, a default file name is created using this format:
+                        [start_ts]_[end_ts]_[num_stations].json
+    :return: The path to the written file
+    &#34;&#34;&#34;
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f&#34;{data_win.start_datetime.timestamp()}&#34;
+             f&#34;_{data_win.end_datetime.timestamp()}&#34;
+             f&#34;_{len(data_win.get_all_station_ids())}.json&#34;
+    )
+    file_path: Path = Path(base_dir).joinpath(_file_name)
+    with open(file_path, &#34;w&#34;) as f_p:
+        f_p.write(json.dumps([{st.id: st.start_timestamp} for st in data_win.get_all_stations()]))
+        return file_path.resolve(False)
+
+
+def json_to_data_window(path: str) -&gt; Dict:
+    &#34;&#34;&#34;
+    load a data window from json written to disk
+    :param path: path to the json file to read
+    :return: a string representing the json-ified data window
+    &#34;&#34;&#34;
+    with open(path, &#39;r&#39;) as r_f:
+        return json.loads(r_f.read())
 
 
 @dataclass
@@ -964,6 +1044,47 @@ def deserialize_data_window(path: str) -&gt; &#34;DataWindow&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="redvox.common.io.data_window_to_json"><code class="name flex">
+<span>def <span class="ident">data_window_to_json</span></span>(<span>data_win: DataWindow, base_dir: str = '.', file_name: typing.Optional[str] = None) ‑> pathlib.Path</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a data window to json format
+:param data_win: the data window object to convert
+:param base_dir: the base directory to write the json file to
+:param file_name: the optional file name.
+If None, a default file name is created using this format:
+[start_ts]<em>[end_ts]</em>[num_stations].json
+:return: The path to the written file</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def data_window_to_json(
+        data_win: &#34;DataWindow&#34;,
+        base_dir: str = &#34;.&#34;,
+        file_name: Optional[str] = None
+) -&gt; Path:
+    &#34;&#34;&#34;
+    Converts a data window to json format
+    :param data_win: the data window object to convert
+    :param base_dir: the base directory to write the json file to
+    :param file_name: the optional file name.  If None, a default file name is created using this format:
+                        [start_ts]_[end_ts]_[num_stations].json
+    :return: The path to the written file
+    &#34;&#34;&#34;
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f&#34;{data_win.start_datetime.timestamp()}&#34;
+             f&#34;_{data_win.end_datetime.timestamp()}&#34;
+             f&#34;_{len(data_win.get_all_station_ids())}.json&#34;
+    )
+    file_path: Path = Path(base_dir).joinpath(_file_name)
+    with open(file_path, &#34;w&#34;) as f_p:
+        f_p.write(json.dumps([{st.id: st.start_timestamp} for st in data_win.get_all_stations()]))
+        return file_path.resolve(False)</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.io.deserialize_data_window"><code class="name flex">
 <span>def <span class="ident">deserialize_data_window</span></span>(<span>path: str) ‑> DataWindow</span>
 </code></dt>
@@ -986,13 +1107,14 @@ def deserialize_data_window(path: str) -&gt; &#34;DataWindow&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured"><code class="name flex">
-<span>def <span class="ident">index_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), pool: typing.Union[multiprocessing.pool.Pool, NoneType] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), pool: typing.Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>"Indexes both API 900 and API 1000 structured directory layouts.
 :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
 API 900 and API 1000.
 :param read_filter: Filter to further filter results.
+:param pool: Pool for multiprocessing
 :return: An Index of RedVox files.</p></div>
 <details class="source">
 <summary>
@@ -1008,6 +1130,7 @@ API 900 and API 1000.
     :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
                      API 900 and API 1000.
     :param read_filter: Filter to further filter results.
+    :param pool: Pool for multiprocessing
     :return: An Index of RedVox files.
     &#34;&#34;&#34;
     base_path: PurePath = PurePath(base_dir)
@@ -1054,12 +1177,14 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_1000"><code class="name flex">
-<span>def <span class="ident">index_structured_api_1000</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: typing.Union[multiprocessing.pool.Pool, NoneType] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_1000</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: typing.Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API M directory structure and identifies files that match the provided filter.
 :param base_dir: Base directory (should be named api1000)
 :param read_filter: Filter to filter files with
+:param sort: When True, the resulting Index will be sorted before being returned (default=True).
+:param pool: Pool for multiprocessing
 :return: A list of wrapped packets on an empty list if none match the filter or none are found</p></div>
 <details class="source">
 <summary>
@@ -1075,6 +1200,8 @@ API 900 and API 1000.
     This parses a structured API M directory structure and identifies files that match the provided filter.
     :param base_dir: Base directory (should be named api1000)
     :param read_filter: Filter to filter files with
+    :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+    :param pool: Pool for multiprocessing
     :return: A list of wrapped packets on an empty list if none match the filter or none are found
     &#34;&#34;&#34;
     index: Index = Index()
@@ -1114,12 +1241,14 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_900"><code class="name flex">
-<span>def <span class="ident">index_structured_api_900</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: typing.Union[multiprocessing.pool.Pool, NoneType] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_900</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: typing.Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API 900 directory structure and identifies files that match the provided filter.
 :param base_dir: Base directory (should be named api900)
 :param read_filter: Filter to filter files with
+:param sort: When True, the resulting Index will be sorted before being returned (default=True).
+:param pool: Pool for multiprocessing
 :return: A list of wrapped packets on an empty list if none match the filter or none are found</p></div>
 <details class="source">
 <summary>
@@ -1135,6 +1264,8 @@ API 900 and API 1000.
     This parses a structured API 900 directory structure and identifies files that match the provided filter.
     :param base_dir: Base directory (should be named api900)
     :param read_filter: Filter to filter files with
+    :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+    :param pool: Pool for multiprocessing
     :return: A list of wrapped packets on an empty list if none match the filter or none are found
     &#34;&#34;&#34;
     index: Index = Index()
@@ -1170,13 +1301,14 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_unstructured"><code class="name flex">
-<span>def <span class="ident">index_unstructured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: typing.Union[multiprocessing.pool.Pool, NoneType] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_unstructured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: typing.Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the list of file paths that match the given filter for unstructured data.
 :param base_dir: Directory containing unstructured data.
 :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
 :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+:param pool: Pool for multiprocessing
 :return: An iterator of valid paths.</p></div>
 <details class="source">
 <summary>
@@ -1193,6 +1325,7 @@ API 900 and API 1000.
     :param base_dir: Directory containing unstructured data.
     :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
     :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+    :param pool: Pool for multiprocessing
     :return: An iterator of valid paths.
     &#34;&#34;&#34;
     check_type(base_dir, [str])
@@ -1236,8 +1369,29 @@ API 900 and API 1000.
     return index</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.io.json_to_data_window"><code class="name flex">
+<span>def <span class="ident">json_to_data_window</span></span>(<span>path: str) ‑> typing.Dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load a data window from json written to disk
+:param path: path to the json file to read
+:return: a string representing the json-ified data window</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def json_to_data_window(path: str) -&gt; Dict:
+    &#34;&#34;&#34;
+    load a data window from json written to disk
+    :param path: path to the json file to read
+    :return: a string representing the json-ified data window
+    &#34;&#34;&#34;
+    with open(path, &#39;r&#39;) as r_f:
+        return json.loads(r_f.read())</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.io.serialize_data_window"><code class="name flex">
-<span>def <span class="ident">serialize_data_window</span></span>(<span>data_window: DataWindow, base_dir: str = '.', file_name: typing.Union[str, NoneType] = None, compression_factor: int = 4) ‑> pathlib.Path</span>
+<span>def <span class="ident">serialize_data_window</span></span>(<span>data_window: DataWindow, base_dir: str = '.', file_name: typing.Optional[str] = None, compression_factor: int = 4) ‑> pathlib.Path</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Serializes and compresses a DataWindow to a file.
@@ -1288,7 +1442,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.sort_unstructured_redvox_data"><code class="name flex">
-<span>def <span class="ident">sort_unstructured_redvox_data</span></span>(<span>input_dir: str, output_dir: typing.Union[str, NoneType] = None, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), copy: bool = True) ‑> bool</span>
+<span>def <span class="ident">sort_unstructured_redvox_data</span></span>(<span>input_dir: str, output_dir: typing.Optional[str] = None, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), copy: bool = True) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>takes all redvox files in input_dir and sorts them into appropriate sub-directories
@@ -1388,6 +1542,90 @@ is set to False, the files will instead by moved.</p>
     return True</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.io.station_to_json"><code class="name flex">
+<span>def <span class="ident">station_to_json</span></span>(<span>station: Station) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>converts a station into a json string
+:param station: the station to convert
+:return: the station as a json string</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def station_to_json(
+        station: &#34;Station&#34;
+) -&gt; str:
+    &#34;&#34;&#34;
+    converts a station into a json string
+    :param station: the station to convert
+    :return: the station as a json string
+    &#34;&#34;&#34;
+    station_dict = {&#34;id&#34;: station.id,
+                    &#34;uuid&#34;: station.uuid,
+                    &#34;start_timestamp&#34;: station.start_timestamp,
+                    &#34;audio_sample_rate_hz&#34;: station.audio_sample_rate_hz,
+                    &#34;is_audio_scrambled&#34;: station.is_audio_scrambled,
+                    &#34;is_timestamps_updated&#34;: station.is_timestamps_updated,
+                    &#34;data&#34;: &#34;I AM FILEPATH TO DATA FILE&#34;,
+                    &#34;metadata&#34;: {
+                        &#34;api&#34;: station.metadata.api,
+                        &#34;sub_api&#34;: station.metadata.sub_api,
+                        &#34;make&#34;: station.metadata.make,
+                        &#34;model&#34;: station.metadata.model,
+                        &#34;os&#34;: station.metadata.os.value,
+                        &#34;os_version&#34;: station.metadata.os_version,
+                        &#34;app&#34;: station.metadata.app,
+                        &#34;app_version&#34;: station.metadata.app_version,
+                        &#34;data_is_private&#34;: station.metadata.is_private,
+                        &#34;packet_duration_s&#34;: station.metadata.packet_duration_s
+                    },
+                    &#34;packet_metadata&#34;: [
+                        {
+                            &#34;start_mach_timestamp&#34;: p.packet_start_mach_timestamp,
+                            &#34;end_mach_timestamp&#34;: p.packet_end_mach_timestamp,
+                            &#34;start_os_timestamp&#34;: p.packet_start_os_timestamp,
+                            &#34;end_os_timestamp&#34;: p.packet_end_os_timestamp,
+                            &#34;timing_info_score&#34;: p.timing_info_score
+                        }
+                        for p in station.packet_metadata
+                    ],
+                    &#34;timesync_analysis&#34;: {
+                        &#34;timesync_data&#34;: [
+                            {
+                                &#34;server_acquisition_timestamp&#34;: t.server_acquisition_timestamp,
+                                &#34;time_sync_exchanges_df&#34;: &#34;I AM A FILE PATH TO TIMESYNC DATA&#34;,
+                                &#34;latencies&#34;: t.latencies.tolist(),
+                                &#34;best_latency_index&#34;: int(t.best_latency_index),
+                                &#34;best_latency&#34;: t.best_latency,
+                                &#34;mean_latency&#34;: float(t.mean_latency),
+                                &#34;latency_std&#34;: float(t.latency_std),
+                                &#34;offsets&#34;: t.offsets.tolist(),
+                                &#34;best_offset&#34;: t.best_offset,
+                                &#34;mean_offset&#34;: float(t.mean_offset),
+                                &#34;offset_std&#34;: float(t.offset_std),
+                                &#34;best_tri_msg_index&#34;: int(t.best_tri_msg_index),
+                                &#34;best_msg_timestamp_index&#34;: t.best_msg_timestamp_index,
+                                &#34;acquire_travel_time&#34;: t.acquire_travel_time
+                            }
+                            for t in station.timesync_analysis.timesync_data
+                        ],
+                        &#34;offset_model&#34;: {
+                            &#34;start_time&#34;: station.timesync_analysis.offset_model.start_time,
+                            &#34;end_time&#34;: station.timesync_analysis.offset_model.end_time,
+                            &#34;k_bins&#34;: station.timesync_analysis.offset_model.k_bins,
+                            &#34;n_samples&#34;: station.timesync_analysis.offset_model.n_samples,
+                            &#34;slope&#34;: station.timesync_analysis.offset_model.slope,
+                            &#34;intercept&#34;: station.timesync_analysis.offset_model.intercept,
+                            &#34;score&#34;: station.timesync_analysis.offset_model.score,
+                            &#34;mean_latency&#34;: station.timesync_analysis.offset_model.mean_latency,
+                            &#34;std_dev_latency&#34;: station.timesync_analysis.offset_model.std_dev_latency
+                        }
+                    },
+                    }
+    return json.dumps(station_dict)</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -1403,7 +1641,8 @@ is set to False, the files will instead by moved.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DataWindowSerializationResult:
+<pre><code class="python">@dataclass
+class DataWindowSerializationResult:
     path: str
     serialized_bytes: int
     compressed_bytes: int</code></pre>
@@ -1434,7 +1673,8 @@ is set to False, the files will instead by moved.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Index:
+<pre><code class="python">@dataclass
+class Index:
     &#34;&#34;&#34;
     An index of available RedVox files from the file system.
     &#34;&#34;&#34;
@@ -1538,7 +1778,7 @@ is set to False, the files will instead by moved.</p>
 </details>
 </dd>
 <dt id="redvox.common.io.Index.read"><code class="name flex">
-<span>def <span class="ident">read</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> typing.List[typing.Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
+<span>def <span class="ident">read</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> typing.List[typing.Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, deserialize, and wrap RedVox data pointed to by this index.
@@ -1579,7 +1819,7 @@ is set to False, the files will instead by moved.</p>
 </details>
 </dd>
 <dt id="redvox.common.io.Index.stream"><code class="name flex">
-<span>def <span class="ident">stream</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> typing.Iterator[typing.Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
+<span>def <span class="ident">stream</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> typing.Iterator[typing.Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
@@ -1631,7 +1871,8 @@ information stored in standard RedVox file names.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class IndexEntry:
+<pre><code class="python">@dataclass
+class IndexEntry:
     &#34;&#34;&#34;
     This class represents a single index entry. It extracts and encapsulated API agnostic fields that represent the
     information stored in standard RedVox file names.
@@ -1746,7 +1987,7 @@ information stored in standard RedVox file names.</p></div>
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.common.io.IndexEntry.from_path"><code class="name flex">
-<span>def <span class="ident">from_path</span></span>(<span>path_str: str, strict: bool = True) ‑> typing.Union[<a title="redvox.common.io.IndexEntry" href="#redvox.common.io.IndexEntry">IndexEntry</a>, NoneType]</span>
+<span>def <span class="ident">from_path</span></span>(<span>path_str: str, strict: bool = True) ‑> typing.Optional[<a title="redvox.common.io.IndexEntry" href="#redvox.common.io.IndexEntry">IndexEntry</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Attempts to parse a file path into an IndexEntry. If a given path is not recognized as a valid RedVox file,
@@ -1848,7 +2089,8 @@ def from_path(path_str: str, strict: bool = True) -&gt; Optional[&#34;IndexEntry
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class IndexStationSummary:
+<pre><code class="python">@dataclass
+class IndexStationSummary:
     &#34;&#34;&#34;
     Summary of a single station in the index.
     &#34;&#34;&#34;
@@ -1976,7 +2218,8 @@ def from_entry(entry: IndexEntry) -&gt; &#34;IndexStationSummary&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class IndexSummary:
+<pre><code class="python">@dataclass
+class IndexSummary:
     &#34;&#34;&#34;
     Summarizes the contents of the index.
     &#34;&#34;&#34;
@@ -2211,7 +2454,7 @@ None will count packets from all API versions.
 </dd>
 <dt id="redvox.common.io.ReadFilter"><code class="flex name class">
 <span>class <span class="ident">ReadFilter</span></span>
-<span>(</span><span>start_dt: typing.Union[datetime.datetime, NoneType] = None, end_dt: typing.Union[datetime.datetime, NoneType] = None, station_ids: typing.Union[typing.Set[str], NoneType] = None, extensions: typing.Union[typing.Set[str], NoneType] = &lt;factory&gt;, start_dt_buf: typing.Union[datetime.timedelta, NoneType] = datetime.timedelta(seconds=120), end_dt_buf: typing.Union[datetime.timedelta, NoneType] = datetime.timedelta(seconds=120), api_versions: typing.Union[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>], NoneType] = &lt;factory&gt;)</span>
+<span>(</span><span>start_dt: typing.Optional[datetime.datetime] = None, end_dt: typing.Optional[datetime.datetime] = None, station_ids: typing.Optional[typing.Set[str]] = None, extensions: typing.Optional[typing.Set[str]] = &lt;factory&gt;, start_dt_buf: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=120), end_dt_buf: typing.Optional[datetime.timedelta] = datetime.timedelta(seconds=120), api_versions: typing.Optional[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]] = &lt;factory&gt;)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Filter RedVox files from the file system.</p></div>
@@ -2219,7 +2462,8 @@ None will count packets from all API versions.
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ReadFilter:
+<pre><code class="python">@dataclass
+class ReadFilter:
     &#34;&#34;&#34;
     Filter RedVox files from the file system.
     &#34;&#34;&#34;
@@ -2401,31 +2645,31 @@ None will count packets from all API versions.
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.common.io.ReadFilter.api_versions"><code class="name">var <span class="ident">api_versions</span> : typing.Union[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>], NoneType]</code></dt>
+<dt id="redvox.common.io.ReadFilter.api_versions"><code class="name">var <span class="ident">api_versions</span> : typing.Optional[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.io.ReadFilter.end_dt"><code class="name">var <span class="ident">end_dt</span> : typing.Union[datetime.datetime, NoneType]</code></dt>
+<dt id="redvox.common.io.ReadFilter.end_dt"><code class="name">var <span class="ident">end_dt</span> : typing.Optional[datetime.datetime]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.io.ReadFilter.end_dt_buf"><code class="name">var <span class="ident">end_dt_buf</span> : typing.Union[datetime.timedelta, NoneType]</code></dt>
+<dt id="redvox.common.io.ReadFilter.end_dt_buf"><code class="name">var <span class="ident">end_dt_buf</span> : typing.Optional[datetime.timedelta]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.io.ReadFilter.extensions"><code class="name">var <span class="ident">extensions</span> : typing.Union[typing.Set[str], NoneType]</code></dt>
+<dt id="redvox.common.io.ReadFilter.extensions"><code class="name">var <span class="ident">extensions</span> : typing.Optional[typing.Set[str]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.io.ReadFilter.start_dt"><code class="name">var <span class="ident">start_dt</span> : typing.Union[datetime.datetime, NoneType]</code></dt>
+<dt id="redvox.common.io.ReadFilter.start_dt"><code class="name">var <span class="ident">start_dt</span> : typing.Optional[datetime.datetime]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.io.ReadFilter.start_dt_buf"><code class="name">var <span class="ident">start_dt_buf</span> : typing.Union[datetime.timedelta, NoneType]</code></dt>
+<dt id="redvox.common.io.ReadFilter.start_dt_buf"><code class="name">var <span class="ident">start_dt_buf</span> : typing.Optional[datetime.timedelta]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.io.ReadFilter.station_ids"><code class="name">var <span class="ident">station_ids</span> : typing.Union[typing.Set[str], NoneType]</code></dt>
+<dt id="redvox.common.io.ReadFilter.station_ids"><code class="name">var <span class="ident">station_ids</span> : typing.Optional[typing.Set[str]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2551,7 +2795,7 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.ReadFilter.with_api_versions"><code class="name flex">
-<span>def <span class="ident">with_api_versions</span></span>(<span>self, api_versions: typing.Union[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>], NoneType]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+<span>def <span class="ident">with_api_versions</span></span>(<span>self, api_versions: typing.Optional[typing.Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Filters for specified API versions.
@@ -2575,7 +2819,7 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.ReadFilter.with_end_dt"><code class="name flex">
-<span>def <span class="ident">with_end_dt</span></span>(<span>self, end_dt: typing.Union[datetime.datetime, NoneType]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+<span>def <span class="ident">with_end_dt</span></span>(<span>self, end_dt: typing.Optional[datetime.datetime]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Adds an end datetime filter.
@@ -2597,7 +2841,7 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.ReadFilter.with_end_dt_buf"><code class="name flex">
-<span>def <span class="ident">with_end_dt_buf</span></span>(<span>self, end_dt_buf: typing.Union[datetime.timedelta, NoneType]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+<span>def <span class="ident">with_end_dt_buf</span></span>(<span>self, end_dt_buf: typing.Optional[datetime.timedelta]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Modifies the time buffer appended to the end time.
@@ -2619,7 +2863,7 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.ReadFilter.with_end_ts"><code class="name flex">
-<span>def <span class="ident">with_end_ts</span></span>(<span>self, end_ts: typing.Union[float, NoneType]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+<span>def <span class="ident">with_end_ts</span></span>(<span>self, end_ts: typing.Optional[float]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Like with_end_dt, but uses a microsecond timestamp.
@@ -2643,7 +2887,7 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.ReadFilter.with_extensions"><code class="name flex">
-<span>def <span class="ident">with_extensions</span></span>(<span>self, extensions: typing.Union[typing.Set[str], NoneType]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+<span>def <span class="ident">with_extensions</span></span>(<span>self, extensions: typing.Optional[typing.Set[str]]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Filters against known file extensions.
@@ -2665,7 +2909,7 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.ReadFilter.with_start_dt"><code class="name flex">
-<span>def <span class="ident">with_start_dt</span></span>(<span>self, start_dt: typing.Union[datetime.datetime, NoneType]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+<span>def <span class="ident">with_start_dt</span></span>(<span>self, start_dt: typing.Optional[datetime.datetime]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Adds a start datetime filter.
@@ -2687,7 +2931,7 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.ReadFilter.with_start_dt_buf"><code class="name flex">
-<span>def <span class="ident">with_start_dt_buf</span></span>(<span>self, start_dt_buf: typing.Union[datetime.timedelta, NoneType]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+<span>def <span class="ident">with_start_dt_buf</span></span>(<span>self, start_dt_buf: typing.Optional[datetime.timedelta]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Modifies the time buffer prepended to the start time.
@@ -2709,7 +2953,7 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.ReadFilter.with_start_ts"><code class="name flex">
-<span>def <span class="ident">with_start_ts</span></span>(<span>self, start_ts: typing.Union[float, NoneType]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+<span>def <span class="ident">with_start_ts</span></span>(<span>self, start_ts: typing.Optional[float]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Adds a start time filter.
@@ -2733,7 +2977,7 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.ReadFilter.with_station_ids"><code class="name flex">
-<span>def <span class="ident">with_station_ids</span></span>(<span>self, station_ids: typing.Union[typing.Set[str], NoneType]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
+<span>def <span class="ident">with_station_ids</span></span>(<span>self, station_ids: typing.Optional[typing.Set[str]]) ‑> <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Add a station id filter. Filters against provided station ids.
@@ -2772,13 +3016,16 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="redvox.common.io.data_window_to_json" href="#redvox.common.io.data_window_to_json">data_window_to_json</a></code></li>
 <li><code><a title="redvox.common.io.deserialize_data_window" href="#redvox.common.io.deserialize_data_window">deserialize_data_window</a></code></li>
 <li><code><a title="redvox.common.io.index_structured" href="#redvox.common.io.index_structured">index_structured</a></code></li>
 <li><code><a title="redvox.common.io.index_structured_api_1000" href="#redvox.common.io.index_structured_api_1000">index_structured_api_1000</a></code></li>
 <li><code><a title="redvox.common.io.index_structured_api_900" href="#redvox.common.io.index_structured_api_900">index_structured_api_900</a></code></li>
 <li><code><a title="redvox.common.io.index_unstructured" href="#redvox.common.io.index_unstructured">index_unstructured</a></code></li>
+<li><code><a title="redvox.common.io.json_to_data_window" href="#redvox.common.io.json_to_data_window">json_to_data_window</a></code></li>
 <li><code><a title="redvox.common.io.serialize_data_window" href="#redvox.common.io.serialize_data_window">serialize_data_window</a></code></li>
 <li><code><a title="redvox.common.io.sort_unstructured_redvox_data" href="#redvox.common.io.sort_unstructured_redvox_data">sort_unstructured_redvox_data</a></code></li>
+<li><code><a title="redvox.common.io.station_to_json" href="#redvox.common.io.station_to_json">station_to_json</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
