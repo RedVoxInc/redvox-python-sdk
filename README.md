@@ -9,6 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc18 (2021-4-9)
+
+* Added JSON writing and reading utility to Data Window
+
 ### 3.0.0rc17 (2021-4-8)
 
 * Add GUI for downloading RedVox data from the cloud

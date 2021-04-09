@@ -3,6 +3,7 @@ tests for data window objects
 """
 import unittest
 import contextlib
+import tempfile
 
 import redvox.tests as tests
 import redvox.common.date_time_utils as dt
@@ -73,3 +74,46 @@ class DataWindowTest(unittest.TestCase):
             structured_layout=False,
         )
         self.assertIsNone(dw_invalid.get_station("does_not_exist"))
+
+
+class DataWindowJsonTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.temp_dir = tempfile.TemporaryDirectory()
+        cls.temp_dir_path = cls.temp_dir.name
+
+    def test_dw_json_pkl_compression(self):
+        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={"0000000001"})
+        json_str = d_w.to_json_file(self.temp_dir_path, "d_w.json", "pkl")
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()))
+        self.assertTrue("0000000001" in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station("0000000001").has_audio_data())
+        json_str = d_w.to_json(self.temp_dir_path, "d_w.json", "pkl")
+        unjsonified = dw.DataWindow.from_json(json_str)
+        self.assertTrue("0000000001" in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station("0000000001").has_audio_data())
+
+    def test_dw_json_lz4_compression(self):
+        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={"0000000001"})
+        json_str = d_w.to_json_file(self.temp_dir_path, "d_w.json", "lz4")
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()))
+        self.assertTrue("0000000001" in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station("0000000001").has_audio_data())
+        json_str = d_w.to_json(self.temp_dir_path, "d_w.json", "lz4")
+        unjsonified = dw.DataWindow.from_json(json_str)
+        self.assertTrue("0000000001" in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station("0000000001").has_audio_data())
+
+    def test_empty_dw_json(self):
+        d_w = dw.DataWindow(".")
+        json_str = d_w.to_json_file(self.temp_dir_path, "d_w.json", "pkl")
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()))
+        self.assertEqual(len(unjsonified.station_ids), 0)
+        json_str = d_w.to_json(self.temp_dir_path, "d_w.json", "lz4")
+        unjsonified = dw.DataWindow.from_json(json_str)
+        self.assertEqual(len(unjsonified.station_ids), 0)
+
+    # noinspection PyUnresolvedReferences
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.temp_dir.cleanup()

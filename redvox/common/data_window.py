@@ -7,6 +7,7 @@ from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
+import pickle
 
 import numpy as np
 
@@ -64,7 +65,7 @@ class DataWindow:
             extensions: Optional[Set[str]] = None,
             api_versions: Optional[Set[io.ApiVersion]] = None,
             apply_correction: bool = True,
-            debug: bool = False,
+            debug: bool = False
     ):
         """
         initialize the data window with params
@@ -201,24 +202,83 @@ class DataWindow:
         """
         return io.serialize_data_window(self, base_dir, file_name, compression_factor)
 
-    def to_json(self, base_dir: str = ".", file_name: Optional[str] = None) -> Path:
+    def to_json_file(self, base_dir: str = ".", file_name: Optional[str] = None,
+                     compression_format: str = "lz4") -> Path:
         """
         Converts the data window into a JSON file and writes it to disk.
         :param base_dir: base directory to write the json file to.  Default . (local directory)
         :param file_name: the optional file name.  If None, a default file name is created using this format:
                             [start_ts]_[end_ts]_[num_stations].json
+        :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The path to the written file
         """
-        return io.data_window_to_json(self, base_dir, file_name)
+        return io.data_window_to_json_file(self, base_dir, file_name, compression_format)
+
+    def to_json(self, compressed_file_base_dir: str = ".", compressed_file_name: Optional[str] = None,
+                compression_format: str = "lz4") -> str:
+        """
+        Converts the data window into a JSON string
+        :param compressed_file_base_dir: base directory to write the json file to.  Default . (local directory)
+        :param compressed_file_name: the optional file name.  If None, a default file name is created using this format:
+                                        [start_ts]_[end_ts]_[num_stations].[compression_format]
+        :param compression_format: the type of compression to use on the data window object.  default lz4
+        :return: The json string
+        """
+        return io.data_window_to_json(self, compressed_file_base_dir, compressed_file_name, compression_format)
 
     @staticmethod
-    def from_json(path: str) -> Dict:
+    def from_json_file(path: str, start_dt: Optional[dtu.datetime] = None,
+                       end_dt: Optional[dtu.datetime] = None,
+                       station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindow"]:
         """
-        Reads a JSON file and converts it to a data window
+        Reads a JSON file and checks if:
+            * The requested times are within the JSON file's times
+            * The requested stations are a subset of the JSON file's stations
         :param path: the path to the JSON file to read
-        :return: a dictionary? FOR NOW todo: data window?
+        :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
+        :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
+        :param station_ids: the station ids to check against.  if not given, assumes True.  default None
+        :return: the data window if it suffices, otherwise None
         """
-        return io.json_to_data_window(path)
+        info = io.json_file_to_data_window(path)
+        if start_dt and info["start_datetime"] > dtu.datetime_to_epoch_microseconds_utc(start_dt):
+            return None
+        if end_dt and info["end_datetime"] < dtu.datetime_to_epoch_microseconds_utc(end_dt):
+            return None
+        if station_ids and not all(a in info["station_ids"] for a in station_ids):
+            return None
+        if info["compression_format"] == "lz4":
+            return DataWindow.deserialize(info["file_path"])
+        else:
+            with open(info["file_path"], 'rb') as fp:
+                return pickle.load(fp)
+
+    @staticmethod
+    def from_json(json_str: str, start_dt: Optional[dtu.datetime] = None,
+                  end_dt: Optional[dtu.datetime] = None,
+                  station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindow"]:
+        """
+        Reads a JSON string and checks if:
+            * The requested times are within the JSON file's times
+            * The requested stations are a subset of the JSON file's stations
+        :param json_str: the JSON to read
+        :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
+        :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
+        :param station_ids: the station ids to check against.  if not given, assumes True.  default None
+        :return: the data window if it suffices, otherwise None
+        """
+        info = io.json_to_data_window(json_str)
+        if start_dt and info["start_datetime"] > dtu.datetime_to_epoch_microseconds_utc(start_dt):
+            return None
+        if end_dt and info["end_datetime"] < dtu.datetime_to_epoch_microseconds_utc(end_dt):
+            return None
+        if station_ids and not all(a in info["station_ids"] for a in station_ids):
+            return None
+        if info["compression_format"] == "lz4":
+            return DataWindow.deserialize(info["file_path"])
+        else:
+            with open(info["file_path"], 'rb') as fp:
+                return pickle.load(fp)
 
     def _has_time_window(self) -> bool:
         """

@@ -33,6 +33,7 @@ from redvox.common.versioning import check_version, ApiVersion
 from redvox.common.date_time_utils import (
     datetime_from_epoch_microseconds_utc as dt_us,
     datetime_from_epoch_milliseconds_utc as dt_ms,
+    datetime_to_epoch_microseconds_utc as us_dt,
     truncate_dt_ymd,
     truncate_dt_ymdh,
 )
@@ -40,7 +41,6 @@ from redvox.common.date_time_utils import (
 if TYPE_CHECKING:
     from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
     from redvox.common.data_window import DataWindow
-    from redvox.common.station import Station
 
 
 def _is_int(value: str) -> Optional[int]:
@@ -847,83 +847,50 @@ def sort_unstructured_redvox_data(
     return True
 
 
-def station_to_json(
-        station: "Station"
-) -> str:
-    """
-    converts a station into a json string
-    :param station: the station to convert
-    :return: the station as a json string
-    """
-    station_dict = {"id": station.id,
-                    "uuid": station.uuid,
-                    "start_timestamp": station.start_timestamp,
-                    "audio_sample_rate_hz": station.audio_sample_rate_hz,
-                    "is_audio_scrambled": station.is_audio_scrambled,
-                    "is_timestamps_updated": station.is_timestamps_updated,
-                    "data": "I AM FILEPATH TO DATA FILE",
-                    "metadata": {
-                        "api": station.metadata.api,
-                        "sub_api": station.metadata.sub_api,
-                        "make": station.metadata.make,
-                        "model": station.metadata.model,
-                        "os": station.metadata.os.value,
-                        "os_version": station.metadata.os_version,
-                        "app": station.metadata.app,
-                        "app_version": station.metadata.app_version,
-                        "data_is_private": station.metadata.is_private,
-                        "packet_duration_s": station.metadata.packet_duration_s
-                    },
-                    "packet_metadata": [
-                        {
-                            "start_mach_timestamp": p.packet_start_mach_timestamp,
-                            "end_mach_timestamp": p.packet_end_mach_timestamp,
-                            "start_os_timestamp": p.packet_start_os_timestamp,
-                            "end_os_timestamp": p.packet_end_os_timestamp,
-                            "timing_info_score": p.timing_info_score
-                        }
-                        for p in station.packet_metadata
-                    ],
-                    "timesync_analysis": {
-                        "timesync_data": [
-                            {
-                                "server_acquisition_timestamp": t.server_acquisition_timestamp,
-                                "time_sync_exchanges_df": "I AM A FILE PATH TO TIMESYNC DATA",
-                                "latencies": t.latencies.tolist(),
-                                "best_latency_index": int(t.best_latency_index),
-                                "best_latency": t.best_latency,
-                                "mean_latency": float(t.mean_latency),
-                                "latency_std": float(t.latency_std),
-                                "offsets": t.offsets.tolist(),
-                                "best_offset": t.best_offset,
-                                "mean_offset": float(t.mean_offset),
-                                "offset_std": float(t.offset_std),
-                                "best_tri_msg_index": int(t.best_tri_msg_index),
-                                "best_msg_timestamp_index": t.best_msg_timestamp_index,
-                                "acquire_travel_time": t.acquire_travel_time
-                            }
-                            for t in station.timesync_analysis.timesync_data
-                        ],
-                        "offset_model": {
-                            "start_time": station.timesync_analysis.offset_model.start_time,
-                            "end_time": station.timesync_analysis.offset_model.end_time,
-                            "k_bins": station.timesync_analysis.offset_model.k_bins,
-                            "n_samples": station.timesync_analysis.offset_model.n_samples,
-                            "slope": station.timesync_analysis.offset_model.slope,
-                            "intercept": station.timesync_analysis.offset_model.intercept,
-                            "score": station.timesync_analysis.offset_model.score,
-                            "mean_latency": station.timesync_analysis.offset_model.mean_latency,
-                            "std_dev_latency": station.timesync_analysis.offset_model.std_dev_latency
-                        }
-                    },
-                    }
-    return json.dumps(station_dict)
-
-
 def data_window_to_json(
         data_win: "DataWindow",
         base_dir: str = ".",
-        file_name: Optional[str] = None
+        file_name: Optional[str] = None,
+        compression_format: str = "lz4"
+) -> str:
+    """
+    Converts a data window to json format
+    :param data_win: the data window object to convert
+    :param base_dir: the base directory to write the data file to
+    :param file_name: the data object's optional file name.
+                        If None, a default file name is created using this format:
+                        [start_ts]_[end_ts]_[num_stations].[compression_type]
+    :param compression_format: the compression format to use.  default lz4
+    :return: The path to the written file
+    """
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f"{data_win.start_datetime.timestamp()}"
+             f"_{data_win.end_datetime.timestamp()}"
+             f"_{len(data_win.get_all_station_ids())}"
+    )
+    if compression_format == "lz4":
+        dfp = str(serialize_data_window(data_win, base_dir, _file_name + ".pkl.lz4").resolve())
+    else:
+        dfp = os.path.join(base_dir, _file_name + ".pkl")
+        with open(dfp, "wb") as compressed_out:
+            pickle.dump(data_win, compressed_out)
+    data_win_dict = {
+        "start_datetime": us_dt(data_win.start_datetime) if data_win.start_datetime else None,
+        "end_datetime": us_dt(data_win.end_datetime) if data_win.end_datetime else None,
+        "station_ids": list(data_win.station_ids),
+        "compression_format": compression_format,
+        "file_path": dfp
+    }
+    return json.dumps(data_win_dict)
+
+
+def data_window_to_json_file(
+        data_win: "DataWindow",
+        base_dir: str = ".",
+        file_name: Optional[str] = None,
+        compression_format: str = "lz4"
 ) -> Path:
     """
     Converts a data window to json format
@@ -931,6 +898,7 @@ def data_window_to_json(
     :param base_dir: the base directory to write the json file to
     :param file_name: the optional file name.  If None, a default file name is created using this format:
                         [start_ts]_[end_ts]_[num_stations].json
+    :param compression_format: the type of compression to use.  default lz4
     :return: The path to the written file
     """
     _file_name: str = (
@@ -942,18 +910,27 @@ def data_window_to_json(
     )
     file_path: Path = Path(base_dir).joinpath(_file_name)
     with open(file_path, "w") as f_p:
-        f_p.write(json.dumps([{st.id: st.start_timestamp} for st in data_win.get_all_stations()]))
+        f_p.write(data_window_to_json(data_win, base_dir, file_name, compression_format))
         return file_path.resolve(False)
 
 
-def json_to_data_window(path: str) -> Dict:
+def json_file_to_data_window(path: str) -> Dict:
     """
     load a data window from json written to disk
     :param path: path to the json file to read
-    :return: a string representing the json-ified data window
+    :return: a dictionary representing a json-ified data window
     """
     with open(path, 'r') as r_f:
         return json.loads(r_f.read())
+
+
+def json_to_data_window(json_str: str) -> Dict:
+    """
+    load a data window from json string
+    :param json_str: json string to read
+    :return: a dictionary of a data window
+    """
+    return json.loads(json_str)
 
 
 @dataclass

@@ -1,7 +1,6 @@
 """
 tests for station
 """
-import json
 import unittest
 import contextlib
 
@@ -142,4 +141,3 @@ class StationTest(unittest.TestCase):
             updated_station.update_timestamps()
             self.assertNotEqual(updated_station.first_data_timestamp,
                                 updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])
-

@@ -464,8 +464,6 @@ class IndexTests(IoTestCase):
             io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_-1")),
         ]
 
-
-
         index = io.Index(entries)
         index.sort()
         self.assertEqual([
@@ -559,8 +557,6 @@ class IndexTests(IoTestCase):
         self.assertEqual(8, len(index.entries))
 
     def test_read_filtered(self):
-        from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
-
         index: io.Index = io.Index([
             io.IndexEntry.from_path(
                 copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1609459200000.rdvxz")),
@@ -868,10 +864,13 @@ class ReadFilterTests(IoTestCase):
     def test_api_version_multi(self):
         read_filter = io.ReadFilter() \
             .with_extensions(None) \
-            .with_api_versions({
-            io.ApiVersion.API_900,
-            io.ApiVersion.API_1000,
-            io.ApiVersion.UNKNOWN})
+            .with_api_versions(
+            {
+                io.ApiVersion.API_900,
+                io.ApiVersion.API_1000,
+                io.ApiVersion.UNKNOWN
+            }
+        )
 
         api_900_path = copy_exact(self.template_900_path,
                                   self.unstructured_900_dir,
@@ -906,9 +905,9 @@ class IndexSummaryTests(IoTestCase):
         self.assertEqual(2, summary.total_packets(io.ApiVersion.API_900))
         self.assertEqual(2, summary.total_packets(io.ApiVersion.API_1000))
 
-        self.assertEqual(set(["1", "2", "3", "4"]), set(summary.station_ids()))
-        self.assertEqual(set(["1", "2"]), set(summary.station_ids(io.ApiVersion.API_900)))
-        self.assertEqual(set(["3", "4"]), set(summary.station_ids(io.ApiVersion.API_1000)))
+        self.assertEqual({"1", "2", "3", "4"}, set(summary.station_ids()))
+        self.assertEqual({"1", "2"}, set(summary.station_ids(io.ApiVersion.API_900)))
+        self.assertEqual({"3", "4"}, set(summary.station_ids(io.ApiVersion.API_1000)))
 
 
 class IndexStationSummaryTests(IoTestCase):
