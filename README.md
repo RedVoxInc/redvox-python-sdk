@@ -9,7 +9,7 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
-### 3.0.0rc16 (2021-4-8)
+### 3.0.0rc17 (2021-4-8)
 
 * Add GUI for downloading RedVox data from the cloud
 * Update GUI libraries to PySide6

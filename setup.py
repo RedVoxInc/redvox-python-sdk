@@ -36,7 +36,7 @@ setup(name=redvox.NAME,
       long_description=open('README.md').read(),
       install_requires=requirements,
       extras_require={
-          "GUI":  ["PySide2>=5.15.0", "matplotlib>=3.2.2"],
+          "GUI":  ["PySide6>=6.0.2", "matplotlib>=3.2.2"],
       },
       entry_points={
             'console_scripts': [
