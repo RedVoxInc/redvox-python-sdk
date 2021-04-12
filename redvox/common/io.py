@@ -730,10 +730,10 @@ def index_structured(
 
     # API 900
     if base_path.name == "api900":
-        return index_structured_api_900(base_dir, read_filter)
+        return index_structured_api_900(base_dir, read_filter, pool=_pool)
     # API 1000
     elif base_path.name == "api1000":
-        return index_structured_api_1000(base_dir, read_filter)
+        return index_structured_api_1000(base_dir, read_filter, pool=_pool)
     # Maybe parent to one or both?
     else:
         index: Index = Index()
@@ -745,6 +745,7 @@ def index_structured(
                         str(base_path.joinpath("api900")),
                         read_filter,
                         sort=False,
+                        pool=_pool
                     ).entries
                 )
             )
@@ -756,6 +757,7 @@ def index_structured(
                         str(base_path.joinpath("api1000")),
                         read_filter,
                         sort=False,
+                        pool=_pool
                     ).entries
                 )
             )
