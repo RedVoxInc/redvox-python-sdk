@@ -10,6 +10,7 @@ import multiprocessing
 import numpy as np
 
 from redvox.common.timesync import TimeSyncData
+from redvox.common.parallel_utils import maybe_parallel_map
 
 # noinspection Mypy
 if TYPE_CHECKING:
@@ -297,10 +298,16 @@ def extract_stats_parallel(
     indices: List[io.Index] = list(map(lambda entries: io.Index(entries), partitioned))
 
     # Run da buggahs in parallel
-    _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
-    nested: List[List[StationStat]] = _pool.map(extract_stats_serial, indices)
-    if pool is None:
-        _pool.close()
+    # _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
+    # nested: List[List[StationStat]] = _pool.map(extract_stats_serial, indices)
+    # if pool is None:
+    #     _pool.close()
+    nested: Iterator[List[StationStat]] = maybe_parallel_map(
+        pool,
+        extract_stats_serial,
+        iter(indices),
+        lambda: len(indices) > 128
+    )
     return [item for sublist in nested for item in sublist]
 
 
@@ -316,13 +323,14 @@ def extract_stats(
                                  parallel, otherwise they are read in serial.
     :return: A list of StationStat objects.
     """
-    if len(index.entries) >= min_len_for_parallel:
-        _pool: multiprocessing.pool.Pool = (
-            multiprocessing.Pool() if pool is None else pool
-        )
-        stats: List[StationStat] = extract_stats_parallel(index)
-        if pool is None:
-            _pool.close()
-        return stats
-    else:
-        return extract_stats_serial(index)
+    return extract_stats_parallel(index, pool)
+    # if len(index.entries) >= min_len_for_parallel:
+    #     _pool: multiprocessing.pool.Pool = (
+    #         multiprocessing.Pool() if pool is None else pool
+    #     )
+    #     stats: List[StationStat] = extract_stats_parallel(index)
+    #     if pool is None:
+    #         _pool.close()
+    #     return stats
+    # else:
+    #     return extract_stats_serial(index)

@@ -13,6 +13,7 @@ import numpy as np
 
 from redvox.common import date_time_utils as dtu
 from redvox.common import io
+from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.api_reader import ApiReader
@@ -523,7 +524,8 @@ class DataWindow:
         # Parallel update
         # Apply timing correction in parallel by station
         if self.apply_correction:
-            stations = _pool.map(Station.update_timestamps, stations)
+            # stations = _pool.map(Station.update_timestamps, stations)
+            stations = list(maybe_parallel_map(_pool, Station.update_timestamps, iter(stations)))
 
         for station in stations:
             if station.id:

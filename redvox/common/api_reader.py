@@ -4,7 +4,7 @@ Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 """
 from collections import defaultdict
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Iterator
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
@@ -16,6 +16,7 @@ from redvox.common import offset_model
 from redvox.common import api_conversions as ac
 from redvox.common import io
 from redvox.common import file_statistics as fs
+from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 
 
@@ -111,7 +112,7 @@ class ApiReader:
         if not reader_filter:
             reader_filter = self.filter
         if self.structured_dir:
-            index = io.index_structured(self.base_dir, reader_filter, _pool)
+            index = io.index_structured(self.base_dir, reader_filter, pool=_pool)
         else:
             index = io.index_unstructured(self.base_dir, reader_filter, pool=_pool)
         if pool is None:
@@ -275,15 +276,21 @@ class ApiReader:
         :return: a list of all stations represented by the data packets
         """
         station_ids: List[str] = self.index_summary.station_ids()
-        _pool: multiprocessing.pool.Pool = (
-            multiprocessing.Pool() if pool is None else pool
+        stations_opt: Iterator[Optional[Station]] = maybe_parallel_map(
+            pool,
+            self.get_station_by_id,
+            iter(station_ids),
+            lambda: len(station_ids) > 2
         )
-
-        stations_opt: List[Optional[Station]] = _pool.map(
-            self.get_station_by_id, station_ids
-        )
-        if pool is None:
-            _pool.close()
+        # _pool: multiprocessing.pool.Pool = (
+        #     multiprocessing.Pool() if pool is None else pool
+        # )
+        #
+        # stations_opt: List[Optional[Station]] = _pool.map(
+        #     self.get_station_by_id, station_ids
+        # )
+        # if pool is None:
+        #     _pool.close()
         # noinspection Mypy
         return list(filter(lambda station: station is not None, stations_opt))
 
