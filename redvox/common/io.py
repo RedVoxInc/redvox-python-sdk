@@ -37,6 +37,7 @@ from redvox.common.date_time_utils import (
     truncate_dt_ymd,
     truncate_dt_ymdh,
 )
+from redvox.common.parallel_utils import maybe_parallel_map
 
 if TYPE_CHECKING:
     from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
@@ -585,17 +586,21 @@ def index_unstructured(
         paths: List[str] = glob(os.path.join(base_dir, pattern))
         all_paths.extend(paths)
 
-    all_entries: Iterator[Optional[IndexEntry]]
-
-    if len(all_paths) > 128:
-        _pool: multiprocessing.pool.Pool = (
-            multiprocessing.Pool() if pool is None else pool
-        )
-        all_entries = _pool.imap(IndexEntry.from_path, iter(all_paths))
-        if pool is None:
-            _pool.close()
-    else:
-        all_entries = map(IndexEntry.from_path, all_paths)
+    all_entries: Iterator[Optional[IndexEntry]] = maybe_parallel_map(
+        pool,
+        IndexEntry.from_path,
+        iter(all_paths),
+        lambda: len(all_paths) > 128
+    )
+    # if len(all_paths) > 128:
+    #     _pool: multiprocessing.pool.Pool = (
+    #         multiprocessing.Pool() if pool is None else pool
+    #     )
+    #     all_entries = _pool.imap(IndexEntry.from_path, iter(all_paths))
+    #     if pool is None:
+    #         _pool.close()
+    # else:
+    #     all_entries = map(IndexEntry.from_path, all_paths)
 
     entries: Iterator[IndexEntry] = filter(
         read_filter.apply, filter(_not_none, all_entries)
