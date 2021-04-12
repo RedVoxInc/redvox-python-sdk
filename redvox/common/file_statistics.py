@@ -306,7 +306,8 @@ def extract_stats_parallel(
         pool,
         extract_stats_serial,
         iter(indices),
-        lambda: len(indices) > 128
+        lambda: len(indices) > 128,
+        chunk_size=64
     )
     return [item for sublist in nested for item in sublist]
 

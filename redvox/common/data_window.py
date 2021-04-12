@@ -525,7 +525,7 @@ class DataWindow:
         # Apply timing correction in parallel by station
         if self.apply_correction:
             # stations = _pool.map(Station.update_timestamps, stations)
-            stations = list(maybe_parallel_map(_pool, Station.update_timestamps, iter(stations)))
+            stations = list(maybe_parallel_map(_pool, Station.update_timestamps, iter(stations), chunk_size=1))
 
         for station in stations:
             if station.id:

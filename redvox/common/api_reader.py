@@ -280,7 +280,8 @@ class ApiReader:
             pool,
             self.get_station_by_id,
             iter(station_ids),
-            lambda: len(station_ids) > 2
+            lambda: len(station_ids) > 2,
+            chunk_size=1
         )
         # _pool: multiprocessing.pool.Pool = (
         #     multiprocessing.Pool() if pool is None else pool

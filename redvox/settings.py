@@ -45,4 +45,4 @@ def is_parallelism_enabled() -> bool:
     Returns whether or not parallelism is enabled with the SDK.
     :return: Whether or not parallelism is enabled with the SDK.
     """
-    return True if __PARALLELISM_ENABLED is None else __PARALLELISM_ENABLED
+    return False if __PARALLELISM_ENABLED is None else __PARALLELISM_ENABLED

@@ -590,7 +590,8 @@ def index_unstructured(
         pool,
         IndexEntry.from_path,
         iter(all_paths),
-        lambda: len(all_paths) > 128
+        lambda: len(all_paths) > 128,
+        chunk_size=64
     )
 
     # if len(all_paths) > 128:
