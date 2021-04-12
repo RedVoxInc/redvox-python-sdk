@@ -592,6 +592,7 @@ def index_unstructured(
         iter(all_paths),
         lambda: len(all_paths) > 128
     )
+
     # if len(all_paths) > 128:
     #     _pool: multiprocessing.pool.Pool = (
     #         multiprocessing.Pool() if pool is None else pool
