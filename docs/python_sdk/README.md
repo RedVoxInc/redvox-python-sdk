@@ -1986,3 +1986,21 @@ See: [Cloud Services Documentation](cloud)
 ## Tweaking SDK Settings
 
 The SDK now defines globally accessible settings that can be tweaked either through the SDK or by setting environmental variables.
+
+### Enabling and Disabling Parallelism
+
+Where possible, the SDK provides the ability to perform certain tasks concurrently using multiple processes. Enabling parallelism is useful for very large data sets, whereas the overhead of parallelism can slow down the processing of small data sets.
+
+By default, parallelism is disabled. It can be enabled either through a global setting or by setting an environmental variable.
+
+To enable parallelism programmatically, see the following example:
+
+```python
+import redvox.settings as settings
+
+settings.set_parallelism_enabled(True)
+```
+
+To enable or disable parallelism through an environment variable, set the environment variable `REDVOX_ENABLE_PARALLELISM` to either `true` or `false`.
+
+
