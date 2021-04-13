@@ -282,17 +282,17 @@ def load_apim_image(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData
     :param wrapped_packet: packet with data to load
     :return: image sensor data if it exists, None otherwise
     """
-    image = wrapped_packet.get_sensors().get_image()
-    if image and wrapped_packet.get_sensors().validate_image():
-        timestamps = image.get_timestamps().get_timestamps()
-        codecs = np.full(len(timestamps), image.get_image_codec().value)
+    image_sensor = wrapped_packet.get_sensors().get_image()
+    if image_sensor and wrapped_packet.get_sensors().validate_image():
+        timestamps = image_sensor .get_timestamps().get_timestamps()
+        codecs = np.full(len(timestamps), image_sensor .get_image_codec().value)
         data_df = pd.DataFrame(
-            np.transpose([timestamps, timestamps, image.get_samples(), codecs]),
+            np.transpose([timestamps, timestamps, image_sensor .get_samples(), codecs]),
             columns=["timestamps", "unaltered_timestamps", "image", "image_codec"],
         )
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            get_sensor_description(image),
+            get_sensor_description(image_sensor),
             data_df,
             SensorType.IMAGE,
             sample_rate,
@@ -311,11 +311,11 @@ def load_apim_image_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
     """
     data_list = [[], [], []]
     for packet in wrapped_packets:
-        image = packet.get_sensors().get_image()
-        if image and packet.get_sensors().validate_image():
-            data_list[0].append(image.get_timestamps().get_timestamps())
-            data_list[1].append(image.get_samples())
-            data_list[2].append(np.full(len(data_list[0]), image.get_image_codec().value))
+        image_sensor = packet.get_sensors().get_image()
+        if image_sensor and packet.get_sensors().validate_image():
+            data_list[0].append(image_sensor.get_timestamps().get_timestamps())
+            data_list[1].append(image_sensor.get_samples())
+            data_list[2].append(np.full(len(data_list[0]), image_sensor.get_image_codec().value))
     if len(data_list[0]) > 0:
         data_df = pd.DataFrame(
             np.transpose([data_list[0], data_list[0], data_list[1], data_list[2]]),
