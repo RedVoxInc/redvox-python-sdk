@@ -13,7 +13,7 @@ RedVox cloud services can only be accessed when utilizing a Premium RedVox subsc
   * [Storing authentication information in the environment](#storing-authentication-information-in-the-environment)
 - [Setting up the Cloud Client](#setting-up-the-cloud-client)
 - [Retrieving Timing Statistics](#retrieving-timing-statistics)
-- [Raw Data Requests](#raw-data-requests)
+- [Ranged Data Requests](#ranged-data-requests)
 
 <!-- tocstop -->
 

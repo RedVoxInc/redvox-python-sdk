@@ -36,6 +36,8 @@ The RedVox Python SDK contains routines for reading, creating, and writing RedVo
     + [Working with the BestLocation type](#working-with-the-bestlocation-type)
 - [SDK High-Level API and Usage (DataWindow)](#sdk-high-level-api-and-usage-datawindow)
 - [Accessing RedVox Cloud Services](#accessing-redvox-cloud-services)
+- [Tweaking SDK Settings](#tweaking-sdk-settings)
+  * [Enabling and Disabling Parallelism](#enabling-and-disabling-parallelism)
 
 <!-- tocstop -->
 

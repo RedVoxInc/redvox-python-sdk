@@ -9,6 +9,7 @@ Accessing RedVox Cloud services through the SDK requires a Premium subscription.
 <!-- toc -->
 
 - [Command Line Interface (CLI)](#command-line-interface-cli)
+  * [cloud-download Command Details](#cloud-download-command-details)
   * [data-req Command Details](#data-req-command-details)
   * [data-req-report Command Details](#data-req-report-command-details)
   * [gallery Command Details](#gallery-command-details)
@@ -63,6 +64,28 @@ $ redvox-cli data-req --help
 ```
 
 _[Table of Contents](#table-of-contents)_
+
+### cloud-download Command Details
+
+The `cloud-download` command can be provided to open a GUI that makes it easy to request and download data from the RedVox Cloud.
+
+This feature requires a RedVox Premium Subscription. 
+
+This feature is only provided when the SDK is installed with the `GUI` extra (i.e. `pip install "redvox[GUI]"==[latest version here]`)
+
+When ran, you should see a GUI appear with options.
+
+![GUI](img/gui.png)
+
+The username and password accept authentication information created when registering an account on redvox.io.
+
+The host and port should not be changed unless you are connecting to a custom server. The timeout can be set up to an hour for long running requests. Retries can be set up to 10.
+
+The start and end time windows are in UTC. Station IDs should be listed one per line. The output directory where the data is downloaded to can be customized otherwise the current working directory is used. When `Download Data` is clicked, a request is made to the server. There may be a slight pause between when the request is made and when data begins to download. You may follow the download progress in the log at the bottom of the GUI. 
+
+The username, password, and server settings can be optionally preloaded by storing these settings in your environment: https://github.com/RedVoxInc/redvox-python-sdk/tree/master/docs/python_sdk/cloud#authenticating-with-redvox-cloud-services
+
+
 
 ### data-req Command Details
 
