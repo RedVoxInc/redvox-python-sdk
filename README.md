@@ -9,6 +9,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc20 (2021-4-13)
+
+* Fixed loading sensors when some packets do not include all sensors from adjacent packets
+* Moved Station documentation out of DataWindow documentation.
+
 ### 3.0.0rc19 (2021-4-12)
 
 * Add ability to optionally enable or disable SDK parallelism through global settings or environmental variables
