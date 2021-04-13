@@ -2,7 +2,7 @@
 This module loads sensor data from Redvox packets
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -10,7 +10,7 @@ import pandas as pd
 from redvox.common import date_time_utils as dtu
 from redvox.common import gap_and_pad_utils as gpu
 from redvox.common.sensor_data import SensorType, SensorData
-from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single
+from redvox.api1000.wrapped_redvox_packet.sensors import xyz, single, audio, image, location
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
 
@@ -24,6 +24,57 @@ def get_empty_sensor_data(
     :return: empty sensor
     """
     return SensorData(name, pd.DataFrame([], columns=["timestamps"]), sensor_type)
+
+
+def get_sensor_description(sensor: Union[xyz.Xyz, single.Single, audio.Audio, image.Image, location.Location]) -> str:
+    """
+    read the sensor's description from the sensor
+    :param sensor: the sensor to read the description from
+    :return: the sensor's description
+    """
+    return sensor.get_sensor_description()
+
+
+def get_sensor_description_list(wrapped_packets: List[WrappedRedvoxPacketM], sensor_type: SensorType) -> str:
+    """
+    read the sensor_type sensor's description from a list of packets
+    :param wrapped_packets: the list of packets to read from
+    :param sensor_type: the SensorType of the sensor to read the description of
+    :return: the sensor_type sensor's description
+    """
+    for packet in wrapped_packets:
+        if sensor_type == SensorType.AUDIO and packet.get_sensors().has_audio():
+            return get_sensor_description(packet.get_sensors().get_audio())
+        if sensor_type == SensorType.IMAGE and packet.get_sensors().has_image():
+            return get_sensor_description(packet.get_sensors().get_image())
+        if sensor_type == SensorType.LOCATION and packet.get_sensors().has_location():
+            return get_sensor_description(packet.get_sensors().get_location())
+        if sensor_type == SensorType.PRESSURE and packet.get_sensors().has_pressure():
+            return get_sensor_description(packet.get_sensors().get_pressure())
+        if sensor_type == SensorType.ACCELEROMETER and packet.get_sensors().has_accelerometer():
+            return get_sensor_description(packet.get_sensors().get_accelerometer())
+        if sensor_type == SensorType.AMBIENT_TEMPERATURE and packet.get_sensors().has_ambient_temperature():
+            return get_sensor_description(packet.get_sensors().get_ambient_temperature())
+        if sensor_type == SensorType.COMPRESSED_AUDIO and packet.get_sensors().has_compressed_audio():
+            return get_sensor_description(packet.get_sensors().get_compressed_audio())
+        if sensor_type == SensorType.GRAVITY and packet.get_sensors().has_gravity():
+            return get_sensor_description(packet.get_sensors().get_gravity())
+        if sensor_type == SensorType.GYROSCOPE and packet.get_sensors().has_gyroscope():
+            return get_sensor_description(packet.get_sensors().get_gyroscope())
+        if sensor_type == SensorType.LIGHT and packet.get_sensors().has_light():
+            return get_sensor_description(packet.get_sensors().get_light())
+        if sensor_type == SensorType.LINEAR_ACCELERATION and packet.get_sensors().has_linear_acceleration():
+            return get_sensor_description(packet.get_sensors().get_linear_acceleration())
+        if sensor_type == SensorType.MAGNETOMETER and packet.get_sensors().has_magnetometer():
+            return get_sensor_description(packet.get_sensors().get_magnetometer())
+        if sensor_type == SensorType.ORIENTATION and packet.get_sensors().has_orientation():
+            return get_sensor_description(packet.get_sensors().get_orientation())
+        if sensor_type == SensorType.PROXIMITY and packet.get_sensors().has_proximity():
+            return get_sensor_description(packet.get_sensors().get_proximity())
+        if sensor_type == SensorType.RELATIVE_HUMIDITY and packet.get_sensors().has_relative_humidity():
+            return get_sensor_description(packet.get_sensors().get_relative_humidity())
+        if sensor_type == SensorType.ROTATION_VECTOR and packet.get_sensors().has_rotation_vector():
+            return get_sensor_description(packet.get_sensors().get_rotation_vector())
 
 
 def get_sample_statistics(data_df: pd.DataFrame) -> Tuple[float, float, float]:
@@ -109,15 +160,16 @@ def load_apim_audio(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData
     :param wrapped_packet: packet with data to load
     :return: audio sensor data if it exists, None otherwise
     """
-    audio = wrapped_packet.get_sensors().get_audio()
-    if audio and wrapped_packet.get_sensors().validate_audio():
-        sample_rate_hz = audio.get_sample_rate()
-        data_for_df = audio.get_samples().get_values()
+    audio_sensor = wrapped_packet.get_sensors().get_audio()
+    if audio_sensor and wrapped_packet.get_sensors().validate_audio():
+        sample_rate_hz = audio_sensor.get_sample_rate()
+        data_for_df = audio_sensor.get_samples().get_values()
         timestamps = gpu.calc_evenly_sampled_timestamps(
-            audio.get_first_sample_timestamp(), audio.get_num_samples(), dtu.seconds_to_microseconds(1/sample_rate_hz)
+            audio_sensor.get_first_sample_timestamp(), audio_sensor.get_num_samples(),
+            dtu.seconds_to_microseconds(1/sample_rate_hz)
         )
         return SensorData(
-            audio.get_sensor_description(),
+            get_sensor_description(audio_sensor),
             pd.DataFrame(
                 np.transpose([timestamps, timestamps, data_for_df]),
                 columns=["timestamps", "unaltered_timestamps", "microphone"],
@@ -149,7 +201,7 @@ def load_apim_audio_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
                 df = gpu.fill_audio_gaps(packet_info, dtu.seconds_to_microseconds(1/sample_rate_hz))
 
                 return SensorData(
-                    wrapped_packets[0].get_sensors().get_audio().get_sensor_description(),
+                    get_sensor_description_list(wrapped_packets, SensorType.AUDIO),
                     df,
                     SensorType.AUDIO,
                     sample_rate_hz,
@@ -173,7 +225,7 @@ def load_apim_compressed_audio(wrapped_packet: WrappedRedvoxPacketM) -> Optional
     if comp_audio and wrapped_packet.get_sensors().validate_compressed_audio():
         sample_rate_hz = comp_audio.get_sample_rate()
         return SensorData(
-            comp_audio.get_sensor_description(),
+            get_sensor_description(comp_audio),
             pd.DataFrame(
                 np.transpose(
                     [
@@ -210,7 +262,7 @@ def load_apim_compressed_audio_from_list(wrapped_packets: List[WrappedRedvoxPack
     if len(data_df[0]) > 0:
         sample_rate_hz = wrapped_packets[0].get_sensors().get_compressed_audio().get_sample_rate()
         return SensorData(
-            wrapped_packets[0].get_sensors().get_compressed_audio().get_sensor_description(),
+            get_sensor_description_list(wrapped_packets, SensorType.COMPRESSED_AUDIO),
             pd.DataFrame(
                 np.transpose([data_df[0], data_df[0], data_df[1], data_df[2]]),
                 columns=["timestamps", "unaltered_timestamps", "compressed_audio", "audio_codec"],
@@ -240,7 +292,7 @@ def load_apim_image(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData
         )
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            image.get_sensor_description(),
+            get_sensor_description(image),
             data_df,
             SensorType.IMAGE,
             sample_rate,
@@ -271,7 +323,7 @@ def load_apim_image_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
         )
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            wrapped_packets[0].get_sensors().get_image().get_sensor_description(),
+            get_sensor_description_list(wrapped_packets, SensorType.IMAGE),
             data_df,
             SensorType.IMAGE,
             sample_rate,
@@ -362,7 +414,7 @@ def load_apim_location(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorD
         )
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            loc.get_sensor_description(),
+            get_sensor_description(loc),
             data_df,
             SensorType.LOCATION,
             sample_rate,
@@ -441,7 +493,7 @@ def load_apim_location_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) ->
     if len(data_for_df[0]) > 0:
         data_for_df.insert(1, data_for_df[0].copy())
         return SensorData(
-            wrapped_packets[0].get_sensors().get_location().get_sensor_description(),
+            get_sensor_description_list(wrapped_packets, SensorType.LOCATION),
             pd.DataFrame(np.transpose(data_for_df), columns=[
                 "timestamps",
                 "unaltered_timestamps",
@@ -473,7 +525,7 @@ def load_apim_pressure(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorD
         data_df = read_apim_single_sensor(pressure, "pressure")
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            pressure.get_sensor_description(),
+            get_sensor_description(pressure),
             data_df,
             SensorType.PRESSURE,
             sample_rate,
@@ -498,7 +550,7 @@ def load_apim_pressure_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) ->
             timestamps.extend(pressure.get_timestamps().get_timestamps())
     if len(data_df) > 0:
         return SensorData(
-            wrapped_packets[0].get_sensors().get_pressure().get_sensor_description(),
+            get_sensor_description_list(wrapped_packets, SensorType.PRESSURE),
             pd.DataFrame(np.transpose([timestamps, timestamps, data_df]),
                          columns=["timestamps", "unaltered_timestamps", "pressure"]),
             SensorType.PRESSURE,
@@ -518,7 +570,7 @@ def load_apim_light(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData
         data_df = read_apim_single_sensor(light, "light")
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            light.get_sensor_description(),
+            get_sensor_description(light),
             data_df,
             SensorType.LIGHT,
             sample_rate,
@@ -543,7 +595,7 @@ def load_apim_light_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
             timestamps.extend(light.get_timestamps().get_timestamps())
     if len(data_df) > 0:
         return SensorData(
-            wrapped_packets[0].get_sensors().get_light().get_sensor_description(),
+            get_sensor_description_list(wrapped_packets, SensorType.LIGHT),
             pd.DataFrame(np.transpose([timestamps, timestamps, data_df]),
                          columns=["timestamps", "unaltered_timestamps", "light"]),
             SensorType.LIGHT,
@@ -563,7 +615,7 @@ def load_apim_proximity(wrapped_packet: WrappedRedvoxPacketM) -> Optional[Sensor
         data_df = read_apim_single_sensor(proximity, "proximity")
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            proximity.get_sensor_description(),
+            get_sensor_description(proximity),
             data_df,
             SensorType.PROXIMITY,
             sample_rate,
@@ -588,7 +640,7 @@ def load_apim_proximity_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -
             timestamps.extend(proximity.get_timestamps().get_timestamps())
     if len(data_df) > 0:
         return SensorData(
-            wrapped_packets[0].get_sensors().get_proximity().get_sensor_description(),
+            get_sensor_description_list(wrapped_packets, SensorType.PROXIMITY),
             pd.DataFrame(np.transpose([timestamps, timestamps, data_df]),
                          columns=["timestamps", "unaltered_timestamps", "proximity"]),
             SensorType.PROXIMITY,
@@ -608,7 +660,7 @@ def load_apim_ambient_temp(wrapped_packet: WrappedRedvoxPacketM) -> Optional[Sen
         data_df = read_apim_single_sensor(ambient_temp, "ambient_temp")
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            ambient_temp.get_sensor_description(),
+            get_sensor_description(ambient_temp),
             data_df,
             SensorType.AMBIENT_TEMPERATURE,
             sample_rate,
@@ -633,7 +685,7 @@ def load_apim_ambient_temp_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
             timestamps.extend(amb_temp.get_timestamps().get_timestamps())
     if len(data_df) > 0:
         return SensorData(
-            wrapped_packets[0].get_sensors().get_ambient_temperature().get_sensor_description(),
+            get_sensor_description_list(wrapped_packets, SensorType.AMBIENT_TEMPERATURE),
             pd.DataFrame(np.transpose([timestamps, timestamps, data_df]),
                          columns=["timestamps", "unaltered_timestamps", "ambient_temp"]),
             SensorType.AMBIENT_TEMPERATURE,
@@ -653,7 +705,7 @@ def load_apim_rel_humidity(wrapped_packet: WrappedRedvoxPacketM) -> Optional[Sen
         data_df = read_apim_single_sensor(rel_humidity, "rel_humidity")
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            rel_humidity.get_sensor_description(),
+            get_sensor_description(rel_humidity),
             data_df,
             SensorType.RELATIVE_HUMIDITY,
             sample_rate,
@@ -678,7 +730,7 @@ def load_apim_rel_humidity_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
             timestamps.extend(rel_hum.get_timestamps().get_timestamps())
     if len(data_df) > 0:
         return SensorData(
-            wrapped_packets[0].get_sensors().get_relative_humidity().get_sensor_description(),
+            get_sensor_description_list(wrapped_packets, SensorType.RELATIVE_HUMIDITY),
             pd.DataFrame(np.transpose([timestamps, timestamps, data_df]),
                          columns=["timestamps", "unaltered_timestamps", "rel_humidity"]),
             SensorType.RELATIVE_HUMIDITY,
@@ -698,7 +750,7 @@ def load_apim_accelerometer(wrapped_packet: WrappedRedvoxPacketM) -> Optional[Se
         data_df = read_apim_xyz_sensor(accel, "accelerometer")
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            accel.get_sensor_description(),
+            get_sensor_description(accel),
             data_df,
             SensorType.ACCELEROMETER,
             sample_rate,
@@ -724,7 +776,7 @@ def load_apim_accelerometer_from_list(wrapped_packets: List[WrappedRedvoxPacketM
             data_df[3].extend(accel.get_z_samples().get_values())
     if len(data_df[0]) > 0:
         return load_apim_xyz_sensor(SensorType.ACCELEROMETER, data_df, "accelerometer",
-                                    wrapped_packets[0].get_sensors().get_accelerometer().get_sensor_description())
+                                    get_sensor_description_list(wrapped_packets, SensorType.ACCELEROMETER))
     return None
 
 
@@ -739,7 +791,7 @@ def load_apim_magnetometer(wrapped_packet: WrappedRedvoxPacketM) -> Optional[Sen
         data_df = read_apim_xyz_sensor(mag, "magnetometer")
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            mag.get_sensor_description(),
+            get_sensor_description(mag),
             data_df,
             SensorType.MAGNETOMETER,
             sample_rate,
@@ -765,7 +817,7 @@ def load_apim_magnetometer_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
             data_df[3].extend(mag.get_z_samples().get_values())
     if len(data_df[0]) > 0:
         return load_apim_xyz_sensor(SensorType.MAGNETOMETER, data_df, "magnetometer",
-                                    wrapped_packets[0].get_sensors().get_magnetometer().get_sensor_description())
+                                    get_sensor_description_list(wrapped_packets, SensorType.MAGNETOMETER))
     return None
 
 
@@ -780,7 +832,7 @@ def load_apim_gyroscope(wrapped_packet: WrappedRedvoxPacketM) -> Optional[Sensor
         data_df = read_apim_xyz_sensor(gyro, "gyroscope")
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            gyro.get_sensor_description(),
+            get_sensor_description(gyro),
             data_df,
             SensorType.GYROSCOPE,
             sample_rate,
@@ -806,7 +858,7 @@ def load_apim_gyroscope_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -
             data_df[3].extend(gyro.get_z_samples().get_values())
     if len(data_df[0]) > 0:
         return load_apim_xyz_sensor(SensorType.GYROSCOPE, data_df, "gyroscope",
-                                    wrapped_packets[0].get_sensors().get_gyroscope().get_sensor_description())
+                                    get_sensor_description_list(wrapped_packets, SensorType.GYROSCOPE))
     return None
 
 
@@ -821,7 +873,7 @@ def load_apim_gravity(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorDa
         data_df = read_apim_xyz_sensor(gravity, "gravity")
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            gravity.get_sensor_description(),
+            get_sensor_description(gravity),
             data_df,
             SensorType.GRAVITY,
             sample_rate,
@@ -847,7 +899,7 @@ def load_apim_gravity_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> 
             data_df[3].extend(gravity.get_z_samples().get_values())
     if len(data_df[0]) > 0:
         return load_apim_xyz_sensor(SensorType.GRAVITY, data_df, "gravity",
-                                    wrapped_packets[0].get_sensors().get_gravity().get_sensor_description())
+                                    get_sensor_description_list(wrapped_packets, SensorType.GRAVITY))
     return None
 
 
@@ -862,7 +914,7 @@ def load_apim_orientation(wrapped_packet: WrappedRedvoxPacketM) -> Optional[Sens
         data_df = read_apim_xyz_sensor(orientation, "orientation")
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            orientation.get_sensor_description(),
+            get_sensor_description(orientation),
             data_df,
             SensorType.ORIENTATION,
             sample_rate,
@@ -888,7 +940,7 @@ def load_apim_orientation_from_list(wrapped_packets: List[WrappedRedvoxPacketM])
             data_df[3].extend(orient.get_z_samples().get_values())
     if len(data_df[0]) > 0:
         return load_apim_xyz_sensor(SensorType.ORIENTATION, data_df, "orientation",
-                                    wrapped_packets[0].get_sensors().get_orientation().get_sensor_description())
+                                    get_sensor_description_list(wrapped_packets, SensorType.ORIENTATION))
     return None
 
 
@@ -903,7 +955,7 @@ def load_apim_linear_accel(wrapped_packet: WrappedRedvoxPacketM) -> Optional[Sen
         data_df = read_apim_xyz_sensor(linear_accel, "linear_accel")
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            linear_accel.get_sensor_description(),
+            get_sensor_description(linear_accel),
             data_df,
             SensorType.LINEAR_ACCELERATION,
             sample_rate,
@@ -929,7 +981,7 @@ def load_apim_linear_accel_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
             data_df[3].extend(lin_acc.get_z_samples().get_values())
     if len(data_df[0]) > 0:
         return load_apim_xyz_sensor(SensorType.LINEAR_ACCELERATION, data_df, "linear_accel",
-                                    wrapped_packets[0].get_sensors().get_linear_acceleration().get_sensor_description())
+                                    get_sensor_description_list(wrapped_packets, SensorType.LINEAR_ACCELERATION))
     return None
 
 
@@ -944,7 +996,7 @@ def load_apim_rotation_vector(wrapped_packet: WrappedRedvoxPacketM) -> Optional[
         data_df = read_apim_xyz_sensor(rotation, "rotation_vector")
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
-            rotation.get_sensor_description(),
+            get_sensor_description(rotation),
             data_df,
             SensorType.ROTATION_VECTOR,
             sample_rate,
@@ -970,7 +1022,7 @@ def load_apim_rotation_vector_from_list(wrapped_packets: List[WrappedRedvoxPacke
             data_df[3].extend(rot_vec.get_z_samples().get_values())
     if len(data_df[0]) > 0:
         return load_apim_xyz_sensor(SensorType.ROTATION_VECTOR, data_df, "rotation_vector",
-                                    wrapped_packets[0].get_sensors().get_rotation_vector().get_sensor_description())
+                                    get_sensor_description_list(wrapped_packets, SensorType.ROTATION_VECTOR))
     return None
 
 
