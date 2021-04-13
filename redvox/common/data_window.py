@@ -208,7 +208,8 @@ class DataWindow:
         """
         Converts the data window into a JSON file and writes it to disk.
         :param base_dir: base directory to write the json file to.  Default . (local directory)
-        :param file_name: the optional file name.  If None, a default file name is created using this format:
+        :param file_name: the optional file name.  Do not include a file extension.
+                            If None, a default file name is created using this format:
                             [start_ts]_[end_ts]_[num_stations].json
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The path to the written file
@@ -220,7 +221,8 @@ class DataWindow:
         """
         Converts the data window into a JSON string
         :param compressed_file_base_dir: base directory to write the json file to.  Default . (local directory)
-        :param compressed_file_name: the optional file name.  If None, a default file name is created using this format:
+        :param compressed_file_name: the optional file name.  Do not include a file extension.
+                                        If None, a default file name is created using this format:
                                         [start_ts]_[end_ts]_[num_stations].[compression_format]
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The json string
@@ -241,18 +243,7 @@ class DataWindow:
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        info = io.json_file_to_data_window(path)
-        if start_dt and info["start_datetime"] > dtu.datetime_to_epoch_microseconds_utc(start_dt):
-            return None
-        if end_dt and info["end_datetime"] < dtu.datetime_to_epoch_microseconds_utc(end_dt):
-            return None
-        if station_ids and not all(a in info["station_ids"] for a in station_ids):
-            return None
-        if info["compression_format"] == "lz4":
-            return DataWindow.deserialize(info["file_path"])
-        else:
-            with open(info["file_path"], 'rb') as fp:
-                return pickle.load(fp)
+        return DataWindow.from_json_dict(io.json_file_to_data_window(path), start_dt, end_dt, station_ids)
 
     @staticmethod
     def from_json(json_str: str, start_dt: Optional[dtu.datetime] = None,
@@ -268,17 +259,32 @@ class DataWindow:
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        info = io.json_to_data_window(json_str)
-        if start_dt and info["start_datetime"] > dtu.datetime_to_epoch_microseconds_utc(start_dt):
+        return DataWindow.from_json_dict(io.json_to_data_window(json_str), start_dt, end_dt, station_ids)
+
+    @staticmethod
+    def from_json_dict(json_dict: Dict, start_dt: Optional[dtu.datetime] = None,
+                       end_dt: Optional[dtu.datetime] = None,
+                       station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindow"]:
+        """
+        Reads a JSON string and checks if:
+            * The requested times are within the JSON file's times
+            * The requested stations are a subset of the JSON file's stations
+        :param json_dict: the dictionary to read
+        :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
+        :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
+        :param station_ids: the station ids to check against.  if not given, assumes True.  default None
+        :return: the data window if it suffices, otherwise None
+        """
+        if start_dt and json_dict["start_datetime"] > dtu.datetime_to_epoch_microseconds_utc(start_dt):
             return None
-        if end_dt and info["end_datetime"] < dtu.datetime_to_epoch_microseconds_utc(end_dt):
+        if end_dt and json_dict["end_datetime"] < dtu.datetime_to_epoch_microseconds_utc(end_dt):
             return None
-        if station_ids and not all(a in info["station_ids"] for a in station_ids):
+        if station_ids and not all(a in json_dict["station_ids"] for a in station_ids):
             return None
-        if info["compression_format"] == "lz4":
-            return DataWindow.deserialize(info["file_path"])
+        if json_dict["compression_format"] == "lz4":
+            return DataWindow.deserialize(json_dict["file_path"])
         else:
-            with open(info["file_path"], 'rb') as fp:
+            with open(json_dict["file_path"], 'rb') as fp:
                 return pickle.load(fp)
 
     def _has_time_window(self) -> bool:

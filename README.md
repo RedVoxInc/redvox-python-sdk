@@ -12,6 +12,9 @@ This repository contains code for reading and working with the RedVox API 900 an
 ### 3.0.0rc19 (2021-4-12)
 
 * Add ability to optionally enable or disable SDK parallelism through global settings or environmental variables
+* Added how to use JSON writing and reading to DataWindow docs
+* Updated Station.audio_sample_rate_hz to Station.audio_sample_rate_nominal_hz
+* Added StationMetadata.station_description; the station's text description
 
 ### 3.0.0rc18 (2021-4-9)
 

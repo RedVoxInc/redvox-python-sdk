@@ -88,6 +88,7 @@ class StationMetadata:
         app_version: str, station app version, default empty string
         is_private: bool, is station data private, default False
         packet_duration_s: float, duration of the packet in seconds, default np.nan
+        station_description: str, description of the station, default empty string
         other_metadata: dict, str: str of other metadata from the packet, default empty list
     """
 
@@ -113,6 +114,7 @@ class StationMetadata:
             self.app_version = packet.get_station_information().get_app_version()
             self.is_private = packet.get_station_information().get_is_private()
             self.packet_duration_s = packet.get_packet_duration_s()
+            self.station_description = packet.get_station_information().get_description()
         else:
             self.api = np.nan
             self.sub_api = np.nan
@@ -123,6 +125,7 @@ class StationMetadata:
             self.app_version = ""
             self.is_private = False
             self.packet_duration_s = np.nan
+            self.station_description = ""
 
     def validate_metadata(self, other_metadata: "StationMetadata") -> bool:
         """
@@ -138,7 +141,8 @@ class StationMetadata:
             and self.os_version == other_metadata.os_version \
             and self.app_version == other_metadata.app_version \
             and self.is_private == other_metadata.is_private \
-            and self.packet_duration_s == other_metadata.packet_duration_s
+            and self.packet_duration_s == other_metadata.packet_duration_s \
+            and self.station_description == other_metadata.station_description
 
 
 class StationPacketMetadata:

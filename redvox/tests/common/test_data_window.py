@@ -104,6 +104,37 @@ class DataWindowJsonTest(unittest.TestCase):
         self.assertTrue("0000000001" in unjsonified.station_ids)
         self.assertTrue(unjsonified.get_station("0000000001").has_audio_data())
 
+    def test_dw_json_start_dt(self):
+        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={"0000000001"})
+        json_str = d_w.to_json_file(self.temp_dir_path, "d_w.json", "lz4")
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                                   start_dt=dt.datetime_from_epoch_seconds_utc(1597189455))
+        self.assertTrue("0000000001" in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station("0000000001").has_audio_data())
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                                   start_dt=dt.datetime_from_epoch_seconds_utc(1597189300))
+        self.assertIsNone(unjsonified)
+
+    def test_dw_json_end_dt(self):
+        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={"0000000001"})
+        json_str = d_w.to_json_file(self.temp_dir_path, "d_w.json", "lz4")
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                                   end_dt=dt.datetime_from_epoch_seconds_utc(1597189465))
+        self.assertTrue("0000000001" in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station("0000000001").has_audio_data())
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                                   end_dt=dt.datetime_from_epoch_seconds_utc(1597189495))
+        self.assertIsNone(unjsonified)
+
+    def test_dw_json_station_ids(self):
+        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={"0000000001"})
+        json_str = d_w.to_json_file(self.temp_dir_path, "d_w.json", "lz4")
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()), station_ids=["0000000001"])
+        self.assertTrue("0000000001" in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station("0000000001").has_audio_data())
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()), station_ids=["0000000002"])
+        self.assertIsNone(unjsonified)
+
     def test_empty_dw_json(self):
         d_w = dw.DataWindow(".")
         json_str = d_w.to_json_file(self.temp_dir_path, "d_w.json", "pkl")

@@ -112,7 +112,7 @@ _[Table of Contents](#table-of-contents)_
 #### Optional Data Window Parameters
 These parameters do not have to be set when creating a DataWindow.  Default values for each will be given.
 
-Your data must be stored in one of two ways:
+First, please note that your data must be stored in one of two ways:
 1. `Unstructured`: All files exist in the `input_dir`.
 2. `Structured`: Files are organized by date and time as specified in the [API-M repo](https://github.com/RedVoxInc/redvox-api-1000/blob/master/docs/standards/filenames_and_directory_structures.md#standard-directory-structure).
 
@@ -178,6 +178,7 @@ _[Table of Contents](#table-of-contents)_
 DataWindows can be created in two ways.  The first is by invoking the initializer function of the class.
 
 ```python
+from redvox.common.data_window import DataWindow
 datawindow = DataWindow(input_dir=input_dir_str),
                         structured_layout=True_or_False,
                         start_datetime=requested_start_datetime,
@@ -265,6 +266,18 @@ plt.xlabel(f"microseconds from {requested_start_datetime}")
 plt.show()
 ```
 
+We can even save our DataWindow as a file for later.  Saving the DataWindow allows it to be loaded quickly, instead of going through the entire creation process.
+```python
+from redvox.common.io import serialize_data_window, data_window_to_json_file
+serialize_data_window(data_window=datawindow,
+                      base_dir=output_dir,
+                      file_name=serialized_file_name)
+data_window_to_json_file(data_window=datawindow,
+                         base_dir=output_dir,
+                         file_name=json_file_name,
+                         compression_format="lz4")
+```
+
 _[Table of Contents](#table-of-contents)_
 
 ### Data Window Functions
@@ -302,6 +315,126 @@ _Example:_
 station_ids = datawindow.get_all_station_ids()
 for id in station_ids:
     print(id)
+```
+
+These functions allow you to save and load DataWindow objects.
+
+1. `serialize(base_dir: str = ".", file_name: Optional[str] = None, compression_factor: int = 4)`
+
+Serializes and compresses the DataWindow to a file.  The file will have the format: `base_dir/file_name`.
+
+If no base directory is provided, uses the current directory (".")
+
+If no file name is provided, the default file name is `[start_ts]_[end_ts]_[num_stations].pkl.lz4`
+
+Compression_factor is a value between 1 and 12. Higher values provide better compression, but take longer (default=4).
+
+Returns the path to the written file.
+
+_Example:_
+```python
+datawindow.serialize(output_dir, "dw_serial.pkl.lz4")
+```
+
+2. `deserialize(path: str)`
+
+Decompresses and deserializes a DataWindow written to disk.
+
+Returns the DataWindow.
+
+_Example:_
+```python
+datawindow.deserialize(f"{output_dir}/dw_serial.pkl.lz4")
+```
+
+3. `to_json_file(base_dir: str = ".", file_name: Optional[str] = None, compression_format: str = "lz4")`
+
+Serializes and compresses the DataWindow to a file, then saves metadata about the DataWindow to a JSON file.
+
+If no base directory is provided, uses the current directory (".")
+
+If no file name is provided, the default file name is `[start_ts]_[end_ts]_[num_stations]`
+
+_Do not include a file extension with the file name_
+
+Valid values for compression_format: `"lz4", "pkl"`
+
+The metadata saved is:
+* Start datetime
+* End datetime
+* List of Station ids
+
+_Example:_
+```python
+datawindow.to_json_file(output_dir, "dw_serial", "lz4")
+```
+
+4. `to_json(self, compressed_file_base_dir: str = ".", compressed_file_name: Optional[str] = None, compression_format: str = "lz4")`
+
+Serializes and compresses the DataWindow to a file, then saves metadata about the DataWindow to a JSON string.
+
+If no base directory is provided, uses the current directory (".")
+
+If no file name is provided, the default file name is `[start_ts]_[end_ts]_[num_stations]`
+
+_Do not include a file extension with the file name_
+
+Valid values for compression_format: `"lz4", "pkl"`
+
+The metadata saved is:
+* Start datetime
+* End datetime
+* List of Station ids
+
+_Example:_
+```python
+datawindow.to_json(output_dir, "dw_serial", "lz4")
+```
+
+5. `from_json_file(path: str, start_dt: Optional[dtu.datetime] = None, end_dt: Optional[dtu.datetime] = None, station_ids: Optional[Iterable[str]] = None)`
+
+Reads a JSON file describing a DataWindow, then checks the metadata against the user's requirements.
+
+Returns a DataWindow if successful and None if not.
+
+In order for the DataWindow to be loaded, all of these must be true:
+* The start datetime of the DataWindow must be at or before the start_dt parameter
+* The end datetime of the DataWindow must be at or after the end_dt parameter
+* The DataWindow must contain all the ids specified in the station_ids parameter
+
+If any of the above three parameters are not specified, their respective conditions will be considered True.
+
+_Example:_
+```python
+from redvox.common.data_window import DataWindow
+dw = DataWindow.from_json(json_str)
+dw = DataWindow.from_json(json_str, start_dt=datetime(2020, 1, 1, 0, 0, 0))
+dw = DataWindow.from_json(json_str, end_dt=datetime(2020, 12, 31, 0, 0, 0))
+dw = DataWindow.from_json(json_str, station_ids=["1234567890", "9876543210"])
+dw = DataWindow.from_json(json_str, start_dt=datetime(2020, 1, 1, 0, 0, 0), end_dt=datetime(2020, 12, 31, 0, 0, 0), station_ids=["1234567890", "9876543210"])
+```
+
+6. `from_json(json_str: str, start_dt: Optional[dtu.datetime] = None, end_dt: Optional[dtu.datetime] = None, station_ids: Optional[Iterable[str]] = None)`
+
+Reads a JSON string describing a DataWindow, then checks the metadata against the user's requirements.
+
+Returns a DataWindow if successful and None if not.
+
+In order for the DataWindow to be loaded, all of these must be true:
+* The start datetime of the DataWindow must be at or before the start_dt parameter
+* The end datetime of the DataWindow must be at or after the end_dt parameter
+* The DataWindow must contain all the ids specified in the station_ids parameter
+
+If any of the above three parameters are not specified, their respective conditions will be considered True.
+
+_Example:_
+```python
+from redvox.common.data_window import DataWindow
+dw = DataWindow.from_json(json_str)
+dw = DataWindow.from_json(json_str, start_dt=datetime(2020, 1, 1, 0, 0, 0))
+dw = DataWindow.from_json(json_str, end_dt=datetime(2020, 12, 31, 0, 0, 0))
+dw = DataWindow.from_json(json_str, station_ids=["1234567890", "9876543210"])
+dw = DataWindow.from_json(json_str, start_dt=datetime(2020, 1, 1, 0, 0, 0), end_dt=datetime(2020, 12, 31, 0, 0, 0), station_ids=["1234567890", "9876543210"])
 ```
 
 Refer to the [DataWindow API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/data_window.html) as needed.
@@ -360,9 +493,9 @@ Once the data is verified as within the confines of our request, the data must b
 
 1. All data files are completely read into memory.
 
-2. The data files are organized into Station objects.  Files are put into a station if and only if each of these three values are equal across each file: station id, station uuid, and station start timestamp
+2. The data files are organized into Station objects.  Files are put into a station if and only if each of these values are equal across each file: station id, station uuid, station start timestamp and station metadata
 
-* Any errors encountered while creating the Station object will cause the Data Window to stop.
+* Any errors encountered while creating the Station object will cause the Data Window to stop.  Information about which value(s) that were not consistent will be displayed.
 
 ### Data Preparation
 
@@ -420,7 +553,7 @@ These are the properties of the Station class:
 5. `start_timestamp`: float; microseconds since epoch UTC when the station started recording, default np.nan
 6. `first_data_timestamp`: float; microseconds since epoch UTC of the first data point, default np.nan
 7. `station_end_timestamp`: float; microseconds since epoch UTC of the last data point, default np.nan
-9. `audio_sample_rate_hz`: float; sample rate of audio component in hz, default np.nan
+9. `audio_sample_rate_nominal_hz`: float of nominal sample rate of audio component in hz, default np.nan
 10. `is_audio_scrambled`: boolean; True if audio data is scrambled, default False
 11. `is_timestamps_updated`: boolean; True if timestamps have been altered from original data values, default False
 12. `timesync_analysis`: TimeSyncAnalysis object; contains information about the station's timing values
@@ -498,7 +631,7 @@ These are the properties of the SensorData class:
 1. `name`: string; name of sensor
 2. `type`: SensorType; enumerated type of sensor
 3. `data_df`: dataframe of the sensor data; always has timestamps as the first column, the other columns are the data fields
-4. `sample_rate`: float; sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
+4. `sample_rate_hz`: float; sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
 5. `sample_interval_s`: float; mean duration in seconds between samples, default np.nan, usually 1/sample_rate
 6. `sample_interval_std_s`: float; standard deviation in seconds between samples, default np.nan
 7. `is_sample_rate_fixed`: boolean; True if sample rate is constant, default False

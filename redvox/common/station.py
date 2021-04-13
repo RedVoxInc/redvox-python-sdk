@@ -10,7 +10,6 @@ from types import FunctionType
 import numpy as np
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-from redvox.common import io
 from redvox.common import sensor_data as sd
 from redvox.common import sensor_reader_utils as sdru
 from redvox.common import station_utils as st_utils
@@ -34,7 +33,7 @@ class Station:
         start_timestamp: float of microseconds since epoch UTC when the station started recording, default np.nan
         first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan
         last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan
-        audio_sample_rate_hz: float of sample rate of audio component in hz, default np.nan
+        audio_sample_rate_nominal_hz: float of nominal sample rate of audio component in hz, default np.nan
         is_audio_scrambled: bool, True if audio data is scrambled, default False
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
         timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
@@ -62,15 +61,15 @@ class Station:
             self._set_all_sensors(data_packets)
             self._get_start_and_end_timestamps()
             if self.has_audio_sensor():
-                self.audio_sample_rate_hz = self.audio_sensor().sample_rate_hz
+                self.audio_sample_rate_nominal_hz = self.audio_sensor().sample_rate_hz
                 self.is_audio_scrambled = (
                     data_packets[0].get_sensors().get_audio().get_is_scrambled()
                 )
             else:
-                self.audio_sample_rate_hz = np.nan
+                self.audio_sample_rate_nominal_hz = np.nan
                 self.is_audio_scrambled = False
             self.timesync_analysis = \
-                TimeSyncAnalysis(self.id, self.audio_sample_rate_hz,
+                TimeSyncAnalysis(self.id, self.audio_sample_rate_nominal_hz,
                                  self.start_timestamp).from_packets(data_packets)
         else:
             self.id = None
@@ -79,16 +78,9 @@ class Station:
             self.start_timestamp = np.nan
             self.first_data_timestamp = np.nan
             self.last_data_timestamp = np.nan
-            self.audio_sample_rate_hz = np.nan
+            self.audio_sample_rate_nominal_hz = np.nan
             self.is_audio_scrambled = False
             self.timesync_analysis = TimeSyncAnalysis()
-
-    def station_as_json(self) -> str:
-        """
-        converts the station into a json string
-        :return: JSON string representing the station's metadata
-        """
-        return io.station_to_json(self)
 
     def _sort_metadata_packets(self):
         """
@@ -186,7 +178,7 @@ class Station:
             self._sort_metadata_packets()
             self._get_start_and_end_timestamps()
             new_timesync_analysis = TimeSyncAnalysis(
-                self.id, self.audio_sample_rate_hz, self.start_timestamp,
+                self.id, self.audio_sample_rate_nominal_hz, self.start_timestamp,
                 self.timesync_analysis.timesync_data + new_station.timesync_analysis.timesync_data
             )
             self.timesync_analysis = new_timesync_analysis
