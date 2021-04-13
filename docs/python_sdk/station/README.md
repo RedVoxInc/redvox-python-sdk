@@ -14,7 +14,7 @@ Station is a Python class designed to store format-agnostic station and sensor d
   * [Using Station](#using-station)
   * [StationMetadata](#station-metadata)
   * [StationPacketMetadata](#station-packet-metadata)
-  * [Timesync](#timesync)
+  * [Timesync and Offset Model](#timesync-and-offset-model)
 - [Sensor Data](#sensor-data)
   * [Sensor Data Properties](#sensor-data-properties)
   * [Sensor Data Functions](#sensor-data-functions)
@@ -40,8 +40,7 @@ _[Table of Contents](#table-of-contents)_
 
 ### Station Properties
 
-These are the properties of the Station class:
-
+These are the properties of the Station class and their default values:
 1. `id`: string; id of the station, default None
 2. `uuid`: string; uuid of the station, default None
 3. `data`: dictionary of sensor type and sensor data associated with the station, default empty dictionary
@@ -53,7 +52,7 @@ These are the properties of the Station class:
 9. `audio_sample_rate_nominal_hz`: float of nominal sample rate of audio component in hz, default np.nan
 10. `is_audio_scrambled`: boolean; True if audio data is scrambled, default False
 11. `is_timestamps_updated`: boolean; True if timestamps have been altered from original data values, default False
-12. `timesync_analysis`: TimeSyncAnalysis object; contains information about the station's timing values
+12. `timesync_analysis`: TimeSyncAnalysis object; contains information about the station's timing values.  Refer to the [Timesync Documentation](#timesync-and-offset-model) for more information
 
 _[Table of Contents](#table-of-contents)_
 
@@ -102,7 +101,8 @@ The table below shows the sensor name and the function call required to access t
 |location            |location_sensor()               |
 |station health      |health_sensor()                 |
 
-*** Some stations may use alternate names for their sensors instead of the ones listed above.  
+*** Some stations may use alternate names for their sensors instead of the ones listed above.
+The accessor functions do not change if the sensor's name changes (i.e. you still use audio_sensor() to access the microphone sensor and its data)  
 Common replacements are:
 * microphone instead of audio
 * barometer instead of pressure
@@ -113,17 +113,131 @@ Refer to the [SensorData](#sensor-data) section on how to access the data.
 We recommend only reading information from the Station objects.  
 Setting or changing any of the properties in Station may cause unexpected results.
 
+_Example:_
+```python
+from redvox.common.data_window import DataWindow
+
+dw = DataWindow(input_dir_str)
+
+my_station = dw.get_station("id01")
+
+my_id = my_station.id
+first_timestamp = my_station.first_data_timestamp
+last_timestamp = my_station.last_data_timestamp
+mean_packet_duration = my_station.get_mean_packet_duration()
+my_key = my_station.get_key()
+if my_station.has_audio_sensor():
+    audio_sensor = my_station.audio_sensor()
+```
+
 _[Table of Contents](#table-of-contents)_
 
 ### Station Metadata
+
+StationMetadata is the properties of a station that do not change while the station is on.  Any change in the metadata usually signals a change in the station.
+
+Please note that while the properties id, uuid, start_timestamp, audio_sample_rate_nominal_hz, and is_audio_scrambled are technically metadata, they are very important to identifying the station and must be quickly and easily available to read.  Therefore, they exist directly within Station.
+
+These are the properties of the StationMetadata class and their default values:
+1. `api`: float; api version, default np.nan
+2. `sub_api`: float; sub api version, default np.nan
+3. `make`: string; station make, default empty string
+4. `model`: string; station model, default empty string
+5. `os`: OsType enumeration; station OS, default OsType.UNKNOWN_OS
+6. `os_version`: string; station OS version, default empty string
+7. `app`: string; station app, default empty string
+8. `app_version`: string; station app version, default empty string
+9. `is_private`: boolean; is station data private, default False
+10. `packet_duration_s`: float; duration of the packet in seconds, default np.nan
+11. `station_description`: string; description of the station, default empty string
+12. `other_metadata`: dictionary of string to string of other metadata from the packet, default empty list
+
+We recommend only reading information from the StationMetadata objects.  
+Setting or changing any of the properties in StationMetadata may cause unexpected results.
+
+_Example:_
+```python
+from redvox.common.data_window import DataWindow
+
+dw = DataWindow(input_dir_str)
+
+my_station = dw.get_station("id01")
+
+my_metadata = my_station.metadata
+print(my_metadata.make)
+print(my_metadata.model)
+print(my_metadata.station_description)
+print(my_metadata.packet_duration_s)
+```
 
 _[Table of Contents](#table-of-contents)_
 
 ### Station Packet Metadata
 
+StationPacketMetadata is the properties of the packets that contain the station's data that change between packets.
+
+These are the properties of the StationPacketMetadata class and their defaults:
+1. `packet_start_mach_timestamp`: float; machine timestamp of packet start in microseconds since epoch UTC
+2. `packet_end_mach_timestamp`: float; machine timestamp of packet end in microseconds since epoch UTC
+3. `packet_start_os_timestamp`: float; os timestamp of packet start in microseconds since epoch UTC
+4. `packet_end_os_timestamp`: float; os timestamp of packet end in microseconds since epoch UTC
+5. `timing_info_score`: float; quality of timing information
+6. `other_metadata`: dictionary of string to string of other metadata from the packet, default empty list
+
+We recommend only reading information from the StationPacketMetadata objects.  
+Setting or changing any of the properties in StationPacketMetadata may cause unexpected results.
+
+_Example:_
+```python
+from redvox.common.data_window import DataWindow
+
+dw = DataWindow(input_dir_str)
+
+my_station = dw.get_station("id01")
+
+for packet in my_station.packet_metadata:
+  print(packet.packet_start_mach_timestamp)
+  print(packet.packet_end_mach_timestamp)
+```
+
 _[Table of Contents](#table-of-contents)_
 
-### Timesync
+### Timesync and Offset Model
+
+The timesync_analysis property of Station contains information about the clock synchronization.
+The information is stored as a TimeSyncAnalysis object.
+
+Within the TimeSyncAnalysis object is an OffsetModel object.  OffsetModel is the primary source for information used to correct the Station's timestamps.
+
+The OffsetModel computes the slope, or change in offset, for the duration of the Station's data, as well as the starting offset value, or intercept, at the first timestamp of the audio data.
+
+These are the properties of the OffsetModel class and their default values:
+1. `start_time`: float; start timestamp of model in microseconds since epoch UTC
+2. `end_time`: float; end timestamp of model in microseconds since epoch UTC
+3. `k_bins`: int; the number of data bins used to create the model, default is 1 if model is empty
+4. `n_samples`: int; the number of samples per data bin; default is 3 (minimum to create a balanced line)
+5. `slope`: float; the slope of the change in offset
+6. `intercept`: float; the offset at start_time
+7. `score`: float; R2 value of the model; 1.0 is best, 0.0 is worst
+8. `mean_latency`: float; mean latency of the data
+9. `std_dev_latency`: float; latency standard deviation
+
+We recommend only reading information from the TimeSyncAnalysis and OffsetModel objects.  
+Setting or changing any of the properties may cause unexpected results.
+
+_Example:_
+```python
+from redvox.common.data_window import DataWindow
+
+dw = DataWindow(input_dir_str)
+
+my_station = dw.get_station("id01")
+
+my_ts = my_station.timesync_analysis
+my_om = my_ts.offset_model
+print(my_om.slope)
+print(my_om.intercept)
+```
 
 _[Table of Contents](#table-of-contents)_
 
@@ -196,7 +310,7 @@ The table below shows which columns can be accessed by each sensor
 |location            |latitude, longitude, altitude, speed, bearing, horizontal_accuracy, vertical_accuracy, speed_accuracy, bearing_accuracy, location_provider|
 |station health      |battery_charge_remaining, battery_current_strength, internal_temp_c, network_type, network_strength, power_state, avail_ram, avail_disk, cell_service|
 
-Please note that entering an invalid channel name for a sensor will raise an error and print the list of allowed names.
+*** Please note that entering an invalid channel name for a sensor will raise an error and print the list of allowed names.
 
 The table below lists the sensors and their data's units
 
