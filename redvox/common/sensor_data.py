@@ -47,7 +47,11 @@ class SensorType(enum.Enum):
         :param type_str: string to convert
         :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
         """
-        if type_str.lower() == "mic" or type_str.lower() == "audio":
+        if (
+            type_str.lower() == "audio"
+            or type_str.lower() == "mic"
+            or type_str.lower() == "microphone"
+        ):
             return SensorType.AUDIO
         elif type_str.lower() == "accelerometer" or type_str.lower() == "accel":
             return SensorType.ACCELEROMETER
