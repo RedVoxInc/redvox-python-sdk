@@ -1,3 +1,7 @@
+"""
+Module that contains utilities for working with data in parallel.
+"""
+
 import multiprocessing
 from multiprocessing.pool import Pool
 from typing import Callable, Iterator, Optional, TypeVar
@@ -13,14 +17,32 @@ def maybe_parallel_map(pool: Optional[Pool],
                        iterator: Iterator[T],
                        condition: Optional[Callable[[],  bool]] = None,
                        chunk_size: int = 64) -> Iterator[R]:
+    """
+    Maps a function over a set of values. This will either be run in parallel or serially depending on the value
+    of redvox.settings.
+    :param pool: An optional pool. If a pool is provided, the user is responsible for closing the pool. If the pool
+                 is not provided, one is created by this process and then closed at the end of this process.
+    :param map_fn: A function that maps each value in the provided iterator.
+    :param iterator: An iterator of elements to be mapped.
+    :param condition: An optional condition, that when provided, will be checked and if the condition passes, this
+                      function may run in parallel. This is useful for things like, only run in parallel if more than
+                      n entries are provided.
+    :param chunk_size: An optional chunk side to pass to parallel maps.
+    :return: A transformed iterator.
+    """
+
+    # If a condition is not provided, then it's always True.
     _condition: bool = True if condition is None else condition()
     res: R
     if settings.is_parallelism_enabled() and _condition:
         _pool: Pool = multiprocessing.Pool() if pool is None else pool
         for res in _pool.imap(map_fn, iterator, chunksize=chunk_size):
             yield res
+
+        # If we're managing this pool, close it.
         if pool is None:
             _pool.close()
     else:
+        # Run serially
         for res in map(map_fn, iterator):
             yield res
