@@ -492,8 +492,6 @@ class IndexTests(IoTestCase):
             io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_-1&#34;)),
         ]
 
-
-
         index = io.Index(entries)
         index.sort()
         self.assertEqual([
@@ -587,8 +585,6 @@ class IndexTests(IoTestCase):
         self.assertEqual(8, len(index.entries))
 
     def test_read_filtered(self):
-        from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
-
         index: io.Index = io.Index([
             io.IndexEntry.from_path(
                 copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200000.rdvxz&#34;)),
@@ -896,10 +892,13 @@ class ReadFilterTests(IoTestCase):
     def test_api_version_multi(self):
         read_filter = io.ReadFilter() \
             .with_extensions(None) \
-            .with_api_versions({
-            io.ApiVersion.API_900,
-            io.ApiVersion.API_1000,
-            io.ApiVersion.UNKNOWN})
+            .with_api_versions(
+            {
+                io.ApiVersion.API_900,
+                io.ApiVersion.API_1000,
+                io.ApiVersion.UNKNOWN
+            }
+        )
 
         api_900_path = copy_exact(self.template_900_path,
                                   self.unstructured_900_dir,
@@ -934,9 +933,9 @@ class IndexSummaryTests(IoTestCase):
         self.assertEqual(2, summary.total_packets(io.ApiVersion.API_900))
         self.assertEqual(2, summary.total_packets(io.ApiVersion.API_1000))
 
-        self.assertEqual(set([&#34;1&#34;, &#34;2&#34;, &#34;3&#34;, &#34;4&#34;]), set(summary.station_ids()))
-        self.assertEqual(set([&#34;1&#34;, &#34;2&#34;]), set(summary.station_ids(io.ApiVersion.API_900)))
-        self.assertEqual(set([&#34;3&#34;, &#34;4&#34;]), set(summary.station_ids(io.ApiVersion.API_1000)))
+        self.assertEqual({&#34;1&#34;, &#34;2&#34;, &#34;3&#34;, &#34;4&#34;}, set(summary.station_ids()))
+        self.assertEqual({&#34;1&#34;, &#34;2&#34;}, set(summary.station_ids(io.ApiVersion.API_900)))
+        self.assertEqual({&#34;3&#34;, &#34;4&#34;}, set(summary.station_ids(io.ApiVersion.API_1000)))
 
 
 class IndexStationSummaryTests(IoTestCase):
@@ -1092,7 +1091,7 @@ class IndexStationSummaryTests(IoTestCase):
 </details>
 </dd>
 <dt id="redvox.tests.common.test_io.write_min_api_1000"><code class="name flex">
-<span>def <span class="ident">write_min_api_1000</span></span>(<span>base_dir: str, file_name: typing.Optional[str] = None) ‑> str</span>
+<span>def <span class="ident">write_min_api_1000</span></span>(<span>base_dir: str, file_name: typing.Union[str, NoneType] = None) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1107,7 +1106,7 @@ class IndexStationSummaryTests(IoTestCase):
 </details>
 </dd>
 <dt id="redvox.tests.common.test_io.write_min_api_900"><code class="name flex">
-<span>def <span class="ident">write_min_api_900</span></span>(<span>base_dir: str, file_name: typing.Optional[str] = None) ‑> str</span>
+<span>def <span class="ident">write_min_api_900</span></span>(<span>base_dir: str, file_name: typing.Union[str, NoneType] = None) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2051,9 +2050,9 @@ not have a method with the specified name.</p></div>
         self.assertEqual(2, summary.total_packets(io.ApiVersion.API_900))
         self.assertEqual(2, summary.total_packets(io.ApiVersion.API_1000))
 
-        self.assertEqual(set([&#34;1&#34;, &#34;2&#34;, &#34;3&#34;, &#34;4&#34;]), set(summary.station_ids()))
-        self.assertEqual(set([&#34;1&#34;, &#34;2&#34;]), set(summary.station_ids(io.ApiVersion.API_900)))
-        self.assertEqual(set([&#34;3&#34;, &#34;4&#34;]), set(summary.station_ids(io.ApiVersion.API_1000)))</code></pre>
+        self.assertEqual({&#34;1&#34;, &#34;2&#34;, &#34;3&#34;, &#34;4&#34;}, set(summary.station_ids()))
+        self.assertEqual({&#34;1&#34;, &#34;2&#34;}, set(summary.station_ids(io.ApiVersion.API_900)))
+        self.assertEqual({&#34;3&#34;, &#34;4&#34;}, set(summary.station_ids(io.ApiVersion.API_1000)))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2098,9 +2097,9 @@ not have a method with the specified name.</p></div>
     self.assertEqual(2, summary.total_packets(io.ApiVersion.API_900))
     self.assertEqual(2, summary.total_packets(io.ApiVersion.API_1000))
 
-    self.assertEqual(set([&#34;1&#34;, &#34;2&#34;, &#34;3&#34;, &#34;4&#34;]), set(summary.station_ids()))
-    self.assertEqual(set([&#34;1&#34;, &#34;2&#34;]), set(summary.station_ids(io.ApiVersion.API_900)))
-    self.assertEqual(set([&#34;3&#34;, &#34;4&#34;]), set(summary.station_ids(io.ApiVersion.API_1000)))</code></pre>
+    self.assertEqual({&#34;1&#34;, &#34;2&#34;, &#34;3&#34;, &#34;4&#34;}, set(summary.station_ids()))
+    self.assertEqual({&#34;1&#34;, &#34;2&#34;}, set(summary.station_ids(io.ApiVersion.API_900)))
+    self.assertEqual({&#34;3&#34;, &#34;4&#34;}, set(summary.station_ids(io.ApiVersion.API_1000)))</code></pre>
 </details>
 </dd>
 </dl>
@@ -2181,8 +2180,6 @@ not have a method with the specified name.</p></div>
             io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_0.rdvxm&#34;)),
             io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_-1&#34;)),
         ]
-
-
 
         index = io.Index(entries)
         index.sort()
@@ -2277,8 +2274,6 @@ not have a method with the specified name.</p></div>
         self.assertEqual(8, len(index.entries))
 
     def test_read_filtered(self):
-        from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
-
         index: io.Index = io.Index([
             io.IndexEntry.from_path(
                 copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200000.rdvxz&#34;)),
@@ -2411,8 +2406,6 @@ not have a method with the specified name.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_read_filtered(self):
-    from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
-
     index: io.Index = io.Index([
         io.IndexEntry.from_path(
             copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200000.rdvxz&#34;)),
@@ -2466,8 +2459,6 @@ not have a method with the specified name.</p></div>
         io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_0.rdvxm&#34;)),
         io.IndexEntry.from_path(copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_-1&#34;)),
     ]
-
-
 
     index = io.Index(entries)
     index.sort()
@@ -3393,10 +3384,13 @@ not have a method with the specified name.</p></div>
     def test_api_version_multi(self):
         read_filter = io.ReadFilter() \
             .with_extensions(None) \
-            .with_api_versions({
-            io.ApiVersion.API_900,
-            io.ApiVersion.API_1000,
-            io.ApiVersion.UNKNOWN})
+            .with_api_versions(
+            {
+                io.ApiVersion.API_900,
+                io.ApiVersion.API_1000,
+                io.ApiVersion.UNKNOWN
+            }
+        )
 
         api_900_path = copy_exact(self.template_900_path,
                                   self.unstructured_900_dir,
@@ -3515,10 +3509,13 @@ not have a method with the specified name.</p></div>
 <pre><code class="python">def test_api_version_multi(self):
     read_filter = io.ReadFilter() \
         .with_extensions(None) \
-        .with_api_versions({
-        io.ApiVersion.API_900,
-        io.ApiVersion.API_1000,
-        io.ApiVersion.UNKNOWN})
+        .with_api_versions(
+        {
+            io.ApiVersion.API_900,
+            io.ApiVersion.API_1000,
+            io.ApiVersion.UNKNOWN
+        }
+    )
 
     api_900_path = copy_exact(self.template_900_path,
                               self.unstructured_900_dir,

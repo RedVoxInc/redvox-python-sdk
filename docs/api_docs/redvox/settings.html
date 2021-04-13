@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
-<title>redvox.cloud.api API documentation</title>
-<meta name="description" content="This module contains methods for interacting with the RedVox cloud based API." />
+<title>redvox.settings API documentation</title>
+<meta name="description" content="Provides global settings that tweak the inner workings of the SDK." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -19,88 +19,65 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>redvox.cloud.api</code></h1>
+<h1 class="title">Module <code>redvox.settings</code></h1>
 </header>
 <section id="section-intro">
-<p>This module contains methods for interacting with the RedVox cloud based API.</p>
+<p>Provides global settings that tweak the inner workings of the SDK.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
-This module contains methods for interacting with the RedVox cloud based API.
+Provides global settings that tweak the inner workings of the SDK.
 &#34;&#34;&#34;
-# from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
 
-import requests
+import os
+from typing import Optional
 
-from redvox.cloud.config import RedVoxConfig
-import redvox.cloud.errors as cloud_errors
-from redvox.cloud.routes import RoutesV1
+REDVOX_ENABLE_PARALLELISM_ENV: str = &#34;REDVOX_ENABLE_PARALLELISM&#34;
 
 
-def post_req(
-    redvox_config: RedVoxConfig,
-    route: str,
-    req: Any,
-    resp_transform: Callable[[requests.Response], Any],
-    session: Optional[requests.Session] = None,
-    timeout: Optional[float] = 10.0,
-) -&gt; Optional[Any]:
+def is_parallelism_enabled_env() -&gt; Optional[bool]:
     &#34;&#34;&#34;
-    Performs an HTTP POST request.
-    :param redvox_config: API endpoint configuration.
-    :param route: Route to POST to.
-    :param req: Request to send in POST.
-    :param resp_transform: Function to transform the response into something we can use.
-    :param session: The HTTP session.
-    :param timeout: An (optional) timeout.
-    :return: The optional response.
+    Tests if parallelism is enabled or disabled by checking the presence and value of an environmental variable.
+    If the env var DNE, None is returned. If the env var does exist, it is parsed as either &#34;true&#34; or &#34;false&#34; into
+    the corresponding boolean and returned. If the env var exists, but is not one of &#34;true&#34; or &#34;false&#34;, None is
+    returned.
+    :return: Either True or False if the env var exists and can be parsed or None.
     &#34;&#34;&#34;
-    url: str = redvox_config.url(route)
-    # noinspection Mypy
-    req_dict: Dict = req.to_dict()
+    if REDVOX_ENABLE_PARALLELISM_ENV not in os.environ:
+        return None
 
-    try:
-        if session:
-            resp: requests.Response = session.post(url, json=req_dict, timeout=timeout)
-        else:
-            resp = requests.post(url, json=req_dict, timeout=timeout)
-        if resp.status_code == 200:
-            # noinspection Mypy
-            return resp_transform(resp)
-        else:
-            return None
-    except requests.RequestException as ex:
-        raise cloud_errors.ApiConnectionError(
-            f&#34;Error making POST request to {url}: with body: {req_dict}: {ex}&#34;
-        )
-
-
-def health_check(
-    redvox_config: RedVoxConfig,
-    session: Optional[requests.Session] = None,
-    timeout: Optional[float] = 10.0,
-) -&gt; bool:
-    &#34;&#34;&#34;
-    Check that the Cloud API endpoint is up.
-    :param redvox_config: The API config.
-    :param session: An (optional) session for re-using an HTTP client.
-    :param timeout: An optional timeout.
-    :return: True if the endpoint is up, False otherwise.
-    &#34;&#34;&#34;
-    url: str = redvox_config.url(RoutesV1.HEALTH_CHECK)
-
-    if session:
-        resp: requests.Response = session.get(url, timeout=timeout)
-    else:
-        resp = requests.get(url, timeout=timeout)
-
-    if resp.status_code == 200:
+    env_val: str = os.environ.get(REDVOX_ENABLE_PARALLELISM_ENV).lower()
+    if env_val == &#34;true&#34;:
         return True
+    elif env_val == &#34;false&#34;:
+        return False
+    else:
+        return None
 
-    return False</code></pre>
+
+__PARALLELISM_ENABLED: Optional[bool] = is_parallelism_enabled_env()
+
+
+def set_parallelism_enabled(parallelism_enabled: bool) -&gt; None:
+    &#34;&#34;&#34;
+    Sets whether parallelism is enabled or disabled within the SDK.
+    :param parallelism_enabled: True to enable, False otherwise
+    &#34;&#34;&#34;
+    global __PARALLELISM_ENABLED
+    __PARALLELISM_ENABLED = parallelism_enabled
+
+
+def is_parallelism_enabled() -&gt; bool:
+    &#34;&#34;&#34;
+    Returns whether or not parallelism is enabled with the SDK.
+    :return: Whether or not parallelism is enabled with the SDK.
+    &#34;&#34;&#34;
+    global __PARALLELISM_ENABLED
+    if __PARALLELISM_ENABLED is None:
+        __PARALLELISM_ENABLED = is_parallelism_enabled_env()
+    return False if __PARALLELISM_ENABLED is None else __PARALLELISM_ENABLED</code></pre>
 </details>
 </section>
 <section>
@@ -110,96 +87,77 @@ def health_check(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="redvox.cloud.api.health_check"><code class="name flex">
-<span>def <span class="ident">health_check</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = 10.0) ‑> bool</span>
+<dt id="redvox.settings.is_parallelism_enabled"><code class="name flex">
+<span>def <span class="ident">is_parallelism_enabled</span></span>(<span>) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Check that the Cloud API endpoint is up.
-:param redvox_config: The API config.
-:param session: An (optional) session for re-using an HTTP client.
-:param timeout: An optional timeout.
-:return: True if the endpoint is up, False otherwise.</p></div>
+<div class="desc"><p>Returns whether or not parallelism is enabled with the SDK.
+:return: Whether or not parallelism is enabled with the SDK.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def health_check(
-    redvox_config: RedVoxConfig,
-    session: Optional[requests.Session] = None,
-    timeout: Optional[float] = 10.0,
-) -&gt; bool:
+<pre><code class="python">def is_parallelism_enabled() -&gt; bool:
     &#34;&#34;&#34;
-    Check that the Cloud API endpoint is up.
-    :param redvox_config: The API config.
-    :param session: An (optional) session for re-using an HTTP client.
-    :param timeout: An optional timeout.
-    :return: True if the endpoint is up, False otherwise.
+    Returns whether or not parallelism is enabled with the SDK.
+    :return: Whether or not parallelism is enabled with the SDK.
     &#34;&#34;&#34;
-    url: str = redvox_config.url(RoutesV1.HEALTH_CHECK)
-
-    if session:
-        resp: requests.Response = session.get(url, timeout=timeout)
-    else:
-        resp = requests.get(url, timeout=timeout)
-
-    if resp.status_code == 200:
-        return True
-
-    return False</code></pre>
+    global __PARALLELISM_ENABLED
+    if __PARALLELISM_ENABLED is None:
+        __PARALLELISM_ENABLED = is_parallelism_enabled_env()
+    return False if __PARALLELISM_ENABLED is None else __PARALLELISM_ENABLED</code></pre>
 </details>
 </dd>
-<dt id="redvox.cloud.api.post_req"><code class="name flex">
-<span>def <span class="ident">post_req</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, route: str, req: typing.Any, resp_transform: typing.Callable[[requests.models.Response], typing.Any], session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = 10.0) ‑> typing.Union[typing.Any, NoneType]</span>
+<dt id="redvox.settings.is_parallelism_enabled_env"><code class="name flex">
+<span>def <span class="ident">is_parallelism_enabled_env</span></span>(<span>) ‑> typing.Union[bool, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Performs an HTTP POST request.
-:param redvox_config: API endpoint configuration.
-:param route: Route to POST to.
-:param req: Request to send in POST.
-:param resp_transform: Function to transform the response into something we can use.
-:param session: The HTTP session.
-:param timeout: An (optional) timeout.
-:return: The optional response.</p></div>
+<div class="desc"><p>Tests if parallelism is enabled or disabled by checking the presence and value of an environmental variable.
+If the env var DNE, None is returned. If the env var does exist, it is parsed as either "true" or "false" into
+the corresponding boolean and returned. If the env var exists, but is not one of "true" or "false", None is
+returned.
+:return: Either True or False if the env var exists and can be parsed or None.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def post_req(
-    redvox_config: RedVoxConfig,
-    route: str,
-    req: Any,
-    resp_transform: Callable[[requests.Response], Any],
-    session: Optional[requests.Session] = None,
-    timeout: Optional[float] = 10.0,
-) -&gt; Optional[Any]:
+<pre><code class="python">def is_parallelism_enabled_env() -&gt; Optional[bool]:
     &#34;&#34;&#34;
-    Performs an HTTP POST request.
-    :param redvox_config: API endpoint configuration.
-    :param route: Route to POST to.
-    :param req: Request to send in POST.
-    :param resp_transform: Function to transform the response into something we can use.
-    :param session: The HTTP session.
-    :param timeout: An (optional) timeout.
-    :return: The optional response.
+    Tests if parallelism is enabled or disabled by checking the presence and value of an environmental variable.
+    If the env var DNE, None is returned. If the env var does exist, it is parsed as either &#34;true&#34; or &#34;false&#34; into
+    the corresponding boolean and returned. If the env var exists, but is not one of &#34;true&#34; or &#34;false&#34;, None is
+    returned.
+    :return: Either True or False if the env var exists and can be parsed or None.
     &#34;&#34;&#34;
-    url: str = redvox_config.url(route)
-    # noinspection Mypy
-    req_dict: Dict = req.to_dict()
+    if REDVOX_ENABLE_PARALLELISM_ENV not in os.environ:
+        return None
 
-    try:
-        if session:
-            resp: requests.Response = session.post(url, json=req_dict, timeout=timeout)
-        else:
-            resp = requests.post(url, json=req_dict, timeout=timeout)
-        if resp.status_code == 200:
-            # noinspection Mypy
-            return resp_transform(resp)
-        else:
-            return None
-    except requests.RequestException as ex:
-        raise cloud_errors.ApiConnectionError(
-            f&#34;Error making POST request to {url}: with body: {req_dict}: {ex}&#34;
-        )</code></pre>
+    env_val: str = os.environ.get(REDVOX_ENABLE_PARALLELISM_ENV).lower()
+    if env_val == &#34;true&#34;:
+        return True
+    elif env_val == &#34;false&#34;:
+        return False
+    else:
+        return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.settings.set_parallelism_enabled"><code class="name flex">
+<span>def <span class="ident">set_parallelism_enabled</span></span>(<span>parallelism_enabled: bool) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets whether parallelism is enabled or disabled within the SDK.
+:param parallelism_enabled: True to enable, False otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_parallelism_enabled(parallelism_enabled: bool) -&gt; None:
+    &#34;&#34;&#34;
+    Sets whether parallelism is enabled or disabled within the SDK.
+    :param parallelism_enabled: True to enable, False otherwise
+    &#34;&#34;&#34;
+    global __PARALLELISM_ENABLED
+    __PARALLELISM_ENABLED = parallelism_enabled</code></pre>
 </details>
 </dd>
 </dl>
@@ -215,13 +173,14 @@ def health_check(
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="redvox.cloud" href="index.html">redvox.cloud</a></code></li>
+<li><code><a title="redvox" href="index.html">redvox</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="redvox.cloud.api.health_check" href="#redvox.cloud.api.health_check">health_check</a></code></li>
-<li><code><a title="redvox.cloud.api.post_req" href="#redvox.cloud.api.post_req">post_req</a></code></li>
+<li><code><a title="redvox.settings.is_parallelism_enabled" href="#redvox.settings.is_parallelism_enabled">is_parallelism_enabled</a></code></li>
+<li><code><a title="redvox.settings.is_parallelism_enabled_env" href="#redvox.settings.is_parallelism_enabled_env">is_parallelism_enabled_env</a></code></li>
+<li><code><a title="redvox.settings.set_parallelism_enabled" href="#redvox.settings.set_parallelism_enabled">set_parallelism_enabled</a></code></li>
 </ul>
 </li>
 </ul>

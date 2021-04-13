@@ -422,7 +422,7 @@ def compute_offsets(station_stats: List[&#34;StationStat&#34;]) -&gt; Optional[T
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.common.offset_model.compute_offsets"><code class="name flex">
-<span>def <span class="ident">compute_offsets</span></span>(<span>station_stats: typing.List[ForwardRef('StationStat')]) ‑> typing.Optional[<a title="redvox.common.offset_model.TimingOffsets" href="#redvox.common.offset_model.TimingOffsets">TimingOffsets</a>]</span>
+<span>def <span class="ident">compute_offsets</span></span>(<span>station_stats: typing.List[ForwardRef('StationStat')]) ‑> typing.Union[<a title="redvox.common.offset_model.TimingOffsets" href="#redvox.common.offset_model.TimingOffsets">TimingOffsets</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Computes the offsets from the provided station statistics.
@@ -631,7 +631,7 @@ Negative values are also adjusted to be 0.0.
 </details>
 </dd>
 <dt id="redvox.common.offset_model.mapf"><code class="name flex">
-<span>def <span class="ident">mapf</span></span>(<span>val: typing.Optional[float]) ‑> float</span>
+<span>def <span class="ident">mapf</span></span>(<span>val: typing.Union[float, NoneType]) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Maps an optional float to floats by replacing Nones with NaNs.
@@ -1004,8 +1004,7 @@ def empty_model() -&gt; &#34;OffsetModel&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass
-class TimingOffsets:
+<pre><code class="python">class TimingOffsets:
     &#34;&#34;&#34;
     Represents the start and end offsets of a timing corrected window.
     &#34;&#34;&#34;

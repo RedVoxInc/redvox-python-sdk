@@ -106,7 +106,7 @@ def none_or_empty(value: Optional[Union[List, str, np.ndarray]]) -&gt; bool:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.api1000.common.typing.check_type"><code class="name flex">
-<span>def <span class="ident">check_type</span></span>(<span>value: typing.Any, valid_types: typing.List[typing.Any], exception: typing.Optional[typing.Callable[[str], <a title="redvox.api1000.errors.ApiMError" href="../errors.html#redvox.api1000.errors.ApiMError">ApiMError</a>]] = None, additional_info: typing.Optional[str] = None) ‑> NoneType</span>
+<span>def <span class="ident">check_type</span></span>(<span>value: typing.Any, valid_types: typing.List[typing.Any], exception: typing.Union[typing.Callable[[str], <a title="redvox.api1000.errors.ApiMError" href="../errors.html#redvox.api1000.errors.ApiMError">ApiMError</a>], NoneType] = None, additional_info: typing.Union[str, NoneType] = None) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This provides some rudimentary type checking when setting API M data.

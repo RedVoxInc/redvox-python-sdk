@@ -37,7 +37,7 @@ Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 &#34;&#34;&#34;
 from collections import defaultdict
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Iterator
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
@@ -49,6 +49,7 @@ from redvox.common import offset_model
 from redvox.common import api_conversions as ac
 from redvox.common import io
 from redvox.common import file_statistics as fs
+from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 
 
@@ -144,7 +145,7 @@ class ApiReader:
         if not reader_filter:
             reader_filter = self.filter
         if self.structured_dir:
-            index = io.index_structured(self.base_dir, reader_filter, _pool)
+            index = io.index_structured(self.base_dir, reader_filter, pool=_pool)
         else:
             index = io.index_unstructured(self.base_dir, reader_filter, pool=_pool)
         if pool is None:
@@ -308,15 +309,22 @@ class ApiReader:
         :return: a list of all stations represented by the data packets
         &#34;&#34;&#34;
         station_ids: List[str] = self.index_summary.station_ids()
-        _pool: multiprocessing.pool.Pool = (
-            multiprocessing.Pool() if pool is None else pool
+        stations_opt: Iterator[Optional[Station]] = maybe_parallel_map(
+            pool,
+            self.get_station_by_id,
+            iter(station_ids),
+            lambda: len(station_ids) &gt; 2,
+            chunk_size=1
         )
-
-        stations_opt: List[Optional[Station]] = _pool.map(
-            self.get_station_by_id, station_ids
-        )
-        if pool is None:
-            _pool.close()
+        # _pool: multiprocessing.pool.Pool = (
+        #     multiprocessing.Pool() if pool is None else pool
+        # )
+        #
+        # stations_opt: List[Optional[Station]] = _pool.map(
+        #     self.get_station_by_id, station_ids
+        # )
+        # if pool is None:
+        #     _pool.close()
         # noinspection Mypy
         return list(filter(lambda station: station is not None, stations_opt))
 
@@ -353,7 +361,7 @@ class ApiReader:
 <dl>
 <dt id="redvox.common.api_reader.ApiReader"><code class="flex name class">
 <span>class <span class="ident">ApiReader</span></span>
-<span>(</span><span>base_dir: str, structured_dir: bool = False, read_filter: <a title="redvox.common.io.ReadFilter" href="io.html#redvox.common.io.ReadFilter">ReadFilter</a> = None, debug: bool = False, pool: typing.Optional[multiprocessing.pool.Pool] = None)</span>
+<span>(</span><span>base_dir: str, structured_dir: bool = False, read_filter: <a title="redvox.common.io.ReadFilter" href="io.html#redvox.common.io.ReadFilter">ReadFilter</a> = None, debug: bool = False, pool: typing.Union[multiprocessing.pool.Pool, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reads data from api 900 or api 1000 format, converting all data read into WrappedRedvoxPacketM for
@@ -476,7 +484,7 @@ Default False.</p></div>
         if not reader_filter:
             reader_filter = self.filter
         if self.structured_dir:
-            index = io.index_structured(self.base_dir, reader_filter, _pool)
+            index = io.index_structured(self.base_dir, reader_filter, pool=_pool)
         else:
             index = io.index_unstructured(self.base_dir, reader_filter, pool=_pool)
         if pool is None:
@@ -640,15 +648,22 @@ Default False.</p></div>
         :return: a list of all stations represented by the data packets
         &#34;&#34;&#34;
         station_ids: List[str] = self.index_summary.station_ids()
-        _pool: multiprocessing.pool.Pool = (
-            multiprocessing.Pool() if pool is None else pool
+        stations_opt: Iterator[Optional[Station]] = maybe_parallel_map(
+            pool,
+            self.get_station_by_id,
+            iter(station_ids),
+            lambda: len(station_ids) &gt; 2,
+            chunk_size=1
         )
-
-        stations_opt: List[Optional[Station]] = _pool.map(
-            self.get_station_by_id, station_ids
-        )
-        if pool is None:
-            _pool.close()
+        # _pool: multiprocessing.pool.Pool = (
+        #     multiprocessing.Pool() if pool is None else pool
+        # )
+        #
+        # stations_opt: List[Optional[Station]] = _pool.map(
+        #     self.get_station_by_id, station_ids
+        # )
+        # if pool is None:
+        #     _pool.close()
         # noinspection Mypy
         return list(filter(lambda station: station is not None, stations_opt))
 
@@ -676,7 +691,7 @@ Default False.</p></div>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.api_reader.ApiReader.get_station_by_id"><code class="name flex">
-<span>def <span class="ident">get_station_by_id</span></span>(<span>self, get_id: str) ‑> typing.Optional[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
+<span>def <span class="ident">get_station_by_id</span></span>(<span>self, get_id: str) ‑> typing.Union[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param get_id: the id to filter on
@@ -694,7 +709,7 @@ Default False.</p></div>
 </details>
 </dd>
 <dt id="redvox.common.api_reader.ApiReader.get_stations"><code class="name flex">
-<span>def <span class="ident">get_stations</span></span>(<span>self, pool: typing.Optional[multiprocessing.pool.Pool] = None) ‑> typing.List[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
+<span>def <span class="ident">get_stations</span></span>(<span>self, pool: typing.Union[multiprocessing.pool.Pool, NoneType] = None) ‑> typing.List[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: a list of all stations represented by the data packets</p></div>
@@ -709,15 +724,22 @@ Default False.</p></div>
     :return: a list of all stations represented by the data packets
     &#34;&#34;&#34;
     station_ids: List[str] = self.index_summary.station_ids()
-    _pool: multiprocessing.pool.Pool = (
-        multiprocessing.Pool() if pool is None else pool
+    stations_opt: Iterator[Optional[Station]] = maybe_parallel_map(
+        pool,
+        self.get_station_by_id,
+        iter(station_ids),
+        lambda: len(station_ids) &gt; 2,
+        chunk_size=1
     )
-
-    stations_opt: List[Optional[Station]] = _pool.map(
-        self.get_station_by_id, station_ids
-    )
-    if pool is None:
-        _pool.close()
+    # _pool: multiprocessing.pool.Pool = (
+    #     multiprocessing.Pool() if pool is None else pool
+    # )
+    #
+    # stations_opt: List[Optional[Station]] = _pool.map(
+    #     self.get_station_by_id, station_ids
+    # )
+    # if pool is None:
+    #     _pool.close()
     # noinspection Mypy
     return list(filter(lambda station: station is not None, stations_opt))</code></pre>
 </details>
@@ -762,7 +784,7 @@ Default False.</p></div>
 </details>
 </dd>
 <dt id="redvox.common.api_reader.ApiReader.read_files_as_stations"><code class="name flex">
-<span>def <span class="ident">read_files_as_stations</span></span>(<span>self, pool: typing.Optional[multiprocessing.pool.Pool] = None) ‑> typing.Dict[str, <a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
+<span>def <span class="ident">read_files_as_stations</span></span>(<span>self, pool: typing.Union[multiprocessing.pool.Pool, NoneType] = None) ‑> typing.Dict[str, <a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: a dictionary of all station_id to station pairs represented by the data packets</p></div>
@@ -786,7 +808,7 @@ Default False.</p></div>
 </details>
 </dd>
 <dt id="redvox.common.api_reader.ApiReader.read_files_by_id"><code class="name flex">
-<span>def <span class="ident">read_files_by_id</span></span>(<span>self, get_id: str) ‑> typing.Optional[typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
+<span>def <span class="ident">read_files_by_id</span></span>(<span>self, get_id: str) ‑> typing.Union[typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>], NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param get_id: the id to filter on

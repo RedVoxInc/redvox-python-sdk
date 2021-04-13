@@ -1052,7 +1052,7 @@ class Station:
 <dl>
 <dt id="redvox.common.station.Station"><code class="flex name class">
 <span>class <span class="ident">Station</span></span>
-<span>(</span><span>data_packets: typing.Optional[typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]] = None)</span>
+<span>(</span><span>data_packets: typing.Union[typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>], NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>generic station for api-independent stuff; uses API M as the core data object since its quite versatile
@@ -2073,7 +2073,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.station.Station.accelerometer_sensor"><code class="name flex">
-<span>def <span class="ident">accelerometer_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">accelerometer_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the accelerometer sensor if it exists
@@ -2093,7 +2093,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.ambient_temperature_sensor"><code class="name flex">
-<span>def <span class="ident">ambient_temperature_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">ambient_temperature_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the ambient temperature sensor if it exists
@@ -2181,7 +2181,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.audio_sensor"><code class="name flex">
-<span>def <span class="ident">audio_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">audio_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the audio sensor if it exists
@@ -2201,7 +2201,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.barometer_sensor"><code class="name flex">
-<span>def <span class="ident">barometer_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">barometer_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the barometer (aka pressure) sensor if it exists
@@ -2246,7 +2246,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.compressed_audio_sensor"><code class="name flex">
-<span>def <span class="ident">compressed_audio_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">compressed_audio_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the compressed audio sensor if it exists
@@ -2266,7 +2266,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_id"><code class="name flex">
-<span>def <span class="ident">get_id</span></span>(<span>self) ‑> typing.Optional[str]</span>
+<span>def <span class="ident">get_id</span></span>(<span>self) ‑> typing.Union[str, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: the station id or None if it doesn't exist</p></div>
@@ -2282,7 +2282,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_key"><code class="name flex">
-<span>def <span class="ident">get_key</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.station_utils.StationKey" href="station_utils.html#redvox.common.station_utils.StationKey">StationKey</a>]</span>
+<span>def <span class="ident">get_key</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.station_utils.StationKey" href="station_utils.html#redvox.common.station_utils.StationKey">StationKey</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: the station's key if id, uuid and start timestamp is set, or None if key cannot be created</p></div>
@@ -2356,7 +2356,7 @@ number of audio sensor's data points and the number of packets
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_uuid"><code class="name flex">
-<span>def <span class="ident">get_uuid</span></span>(<span>self) ‑> typing.Optional[str]</span>
+<span>def <span class="ident">get_uuid</span></span>(<span>self) ‑> typing.Union[str, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: the station uuid or None if it doesn't exist</p></div>
@@ -2372,7 +2372,7 @@ number of audio sensor's data points and the number of packets
 </details>
 </dd>
 <dt id="redvox.common.station.Station.gravity_sensor"><code class="name flex">
-<span>def <span class="ident">gravity_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">gravity_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the gravity sensor if it exists
@@ -2392,7 +2392,7 @@ number of audio sensor's data points and the number of packets
 </details>
 </dd>
 <dt id="redvox.common.station.Station.gyroscope_sensor"><code class="name flex">
-<span>def <span class="ident">gyroscope_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">gyroscope_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the gyroscope sensor if it exists
@@ -3121,7 +3121,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.health_sensor"><code class="name flex">
-<span>def <span class="ident">health_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">health_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the station health sensor if it exists
@@ -3141,7 +3141,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.image_sensor"><code class="name flex">
-<span>def <span class="ident">image_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">image_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the image sensor if it exists
@@ -3161,7 +3161,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.infrared_sensor"><code class="name flex">
-<span>def <span class="ident">infrared_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">infrared_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the infrared (proximity) sensor if it exists
@@ -3179,7 +3179,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.light_sensor"><code class="name flex">
-<span>def <span class="ident">light_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">light_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the light sensor if it exists
@@ -3199,7 +3199,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.linear_acceleration_sensor"><code class="name flex">
-<span>def <span class="ident">linear_acceleration_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">linear_acceleration_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the linear acceleration sensor if it exists
@@ -3219,7 +3219,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.location_sensor"><code class="name flex">
-<span>def <span class="ident">location_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">location_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the location sensor if it exists
@@ -3239,7 +3239,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.magnetometer_sensor"><code class="name flex">
-<span>def <span class="ident">magnetometer_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">magnetometer_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the magnetometer sensor if it exists
@@ -3259,7 +3259,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.orientation_sensor"><code class="name flex">
-<span>def <span class="ident">orientation_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">orientation_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the orientation sensor if it exists
@@ -3279,7 +3279,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.pressure_sensor"><code class="name flex">
-<span>def <span class="ident">pressure_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">pressure_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the pressure sensor if it exists
@@ -3299,7 +3299,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.proximity_sensor"><code class="name flex">
-<span>def <span class="ident">proximity_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">proximity_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the proximity sensor if it exists
@@ -3319,7 +3319,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.relative_humidity_sensor"><code class="name flex">
-<span>def <span class="ident">relative_humidity_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">relative_humidity_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the relative humidity sensor if it exists
@@ -3339,7 +3339,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.rotation_vector_sensor"><code class="name flex">
-<span>def <span class="ident">rotation_vector_sensor</span></span>(<span>self) ‑> typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
+<span>def <span class="ident">rotation_vector_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the rotation vector sensor if it exists
@@ -3359,7 +3359,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_accelerometer_sensor"><code class="name flex">
-<span>def <span class="ident">set_accelerometer_sensor</span></span>(<span>self, acc_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_accelerometer_sensor</span></span>(<span>self, acc_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the accelerometer sensor; can remove accelerometer sensor by passing None
@@ -3385,7 +3385,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_ambient_temperature_sensor"><code class="name flex">
-<span>def <span class="ident">set_ambient_temperature_sensor</span></span>(<span>self, amb_temp_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_ambient_temperature_sensor</span></span>(<span>self, amb_temp_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the ambient temperature sensor; can remove ambient temperature sensor by passing None
@@ -3411,7 +3411,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_audio_sensor"><code class="name flex">
-<span>def <span class="ident">set_audio_sensor</span></span>(<span>self, audio_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_audio_sensor</span></span>(<span>self, audio_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the audio sensor; can remove audio sensor by passing None
@@ -3437,7 +3437,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_barometer_sensor"><code class="name flex">
-<span>def <span class="ident">set_barometer_sensor</span></span>(<span>self, bar_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_barometer_sensor</span></span>(<span>self, bar_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the barometer (pressure) sensor; can remove barometer sensor by passing None
@@ -3459,7 +3459,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_compressed_audio_sensor"><code class="name flex">
-<span>def <span class="ident">set_compressed_audio_sensor</span></span>(<span>self, comp_audio_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_compressed_audio_sensor</span></span>(<span>self, comp_audio_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the compressed audio sensor; can remove compressed audio sensor by passing None
@@ -3485,7 +3485,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_gravity_sensor"><code class="name flex">
-<span>def <span class="ident">set_gravity_sensor</span></span>(<span>self, grav_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_gravity_sensor</span></span>(<span>self, grav_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the gravity sensor; can remove gravity sensor by passing None
@@ -3511,7 +3511,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_gyroscope_sensor"><code class="name flex">
-<span>def <span class="ident">set_gyroscope_sensor</span></span>(<span>self, gyro_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_gyroscope_sensor</span></span>(<span>self, gyro_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the gyroscope sensor; can remove gyroscope sensor by passing None
@@ -3537,7 +3537,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_health_sensor"><code class="name flex">
-<span>def <span class="ident">set_health_sensor</span></span>(<span>self, health_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_health_sensor</span></span>(<span>self, health_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the health sensor; can remove health sensor by passing None
@@ -3584,7 +3584,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_image_sensor"><code class="name flex">
-<span>def <span class="ident">set_image_sensor</span></span>(<span>self, img_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_image_sensor</span></span>(<span>self, img_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the image sensor; can remove image sensor by passing None
@@ -3608,7 +3608,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_infrared_sensor"><code class="name flex">
-<span>def <span class="ident">set_infrared_sensor</span></span>(<span>self, infrd_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_infrared_sensor</span></span>(<span>self, infrd_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the infrared sensor; can remove infrared sensor by passing None
@@ -3630,7 +3630,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_light_sensor"><code class="name flex">
-<span>def <span class="ident">set_light_sensor</span></span>(<span>self, light_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_light_sensor</span></span>(<span>self, light_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the light sensor; can remove light sensor by passing None
@@ -3656,7 +3656,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_linear_acceleration_sensor"><code class="name flex">
-<span>def <span class="ident">set_linear_acceleration_sensor</span></span>(<span>self, lin_acc_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_linear_acceleration_sensor</span></span>(<span>self, lin_acc_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the linear acceleration sensor; can remove linear acceleration sensor by passing None
@@ -3682,7 +3682,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_location_sensor"><code class="name flex">
-<span>def <span class="ident">set_location_sensor</span></span>(<span>self, loc_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_location_sensor</span></span>(<span>self, loc_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the location sensor; can remove location sensor by passing None
@@ -3708,7 +3708,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_magnetometer_sensor"><code class="name flex">
-<span>def <span class="ident">set_magnetometer_sensor</span></span>(<span>self, mag_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_magnetometer_sensor</span></span>(<span>self, mag_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the magnetometer sensor; can remove magnetometer sensor by passing None
@@ -3734,7 +3734,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_orientation_sensor"><code class="name flex">
-<span>def <span class="ident">set_orientation_sensor</span></span>(<span>self, orientation_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_orientation_sensor</span></span>(<span>self, orientation_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the orientation sensor; can remove orientation sensor by passing None
@@ -3760,7 +3760,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_pressure_sensor"><code class="name flex">
-<span>def <span class="ident">set_pressure_sensor</span></span>(<span>self, pressure_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_pressure_sensor</span></span>(<span>self, pressure_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the pressure sensor; can remove pressure sensor by passing None
@@ -3786,7 +3786,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_proximity_sensor"><code class="name flex">
-<span>def <span class="ident">set_proximity_sensor</span></span>(<span>self, proximity_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_proximity_sensor</span></span>(<span>self, proximity_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the proximity sensor; can remove proximity sensor by passing None
@@ -3812,7 +3812,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_relative_humidity_sensor"><code class="name flex">
-<span>def <span class="ident">set_relative_humidity_sensor</span></span>(<span>self, rel_hum_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_relative_humidity_sensor</span></span>(<span>self, rel_hum_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the relative humidity sensor; can remove relative humidity sensor by passing None
@@ -3838,7 +3838,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_rotation_vector_sensor"><code class="name flex">
-<span>def <span class="ident">set_rotation_vector_sensor</span></span>(<span>self, rot_vec_sensor: typing.Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_rotation_vector_sensor</span></span>(<span>self, rot_vec_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the rotation vector sensor; can remove rotation vector sensor by passing None

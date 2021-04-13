@@ -26,425 +26,430 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import datetime
-from multiprocessing import Manager, Process, Queue
-import os.path
-import sys
-from typing import List, Optional
+<pre><code class="python">try:
+    import datetime
+    from multiprocessing import Manager, Process, Queue
+    import os.path
+    import sys
+    from typing import List, Optional
 
 
-# noinspection Mypy
-from redvox.cloud.client import cloud_client, CloudClient
+    # noinspection Mypy
+    from redvox.cloud.client import cloud_client, CloudClient
 
-# noinspection Mypy
-from redvox.cloud.config import RedVoxConfig
+    # noinspection Mypy
+    from redvox.cloud.config import RedVoxConfig
 
-# noinspection Mypy
-from redvox.cloud.data_api import DataRangeReqType
+    # noinspection Mypy
+    from redvox.cloud.data_api import DataRangeReqType
 
-# noinspection PyPackageRequirements
-import PySide6.QtCore
+    # noinspection PyPackageRequirements
+    import PySide6.QtCore
 
-# noinspection PyPackageRequirements
-from PySide6.QtGui import QIntValidator
+    # noinspection PyPackageRequirements
+    from PySide6.QtGui import QIntValidator
 
-# noinspection PyPackageRequirements
-from PySide6 import QtWidgets
+    # noinspection PyPackageRequirements
+    from PySide6 import QtWidgets
 
-# noinspection PyPackageRequirements
-from PySide6.QtWidgets import (
-    QApplication,
-    QCheckBox,
-    QDateTimeEdit,
-    QDialog,
-    QFileDialog,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QRadioButton,
-    QTextEdit,
-    QVBoxLayout,
-    QWidget,
-)
-
-
-class WindowSelectionWidget(QWidget):
-    def __init__(self, parent=None):
-        super(WindowSelectionWidget, self).__init__(parent)
-
-        self.start_dt: QDateTimeEdit = QDateTimeEdit()
-        self.end_dt: QDateTimeEdit = QDateTimeEdit()
-
-        now: datetime.datetime = datetime.datetime.now()
-        fifteen_minutes_ago: datetime.datetime = now - datetime.timedelta(minutes=15)
-        date_fmt: str = &#34;yyyy-MM-dd HH:mm UTC&#34;
-
-        self.start_dt.setDisplayFormat(date_fmt)
-        self.start_dt.setTimeSpec(PySide6.QtCore.Qt.UTC)
-        self.end_dt.setDisplayFormat(date_fmt)
-        self.end_dt.setTimeSpec(PySide6.QtCore.Qt.UTC)
-        self.start_dt.setCalendarPopup(True)
-        self.end_dt.setCalendarPopup(True)
-        self.start_dt.setDateTime(fifteen_minutes_ago)
-        self.end_dt.setDateTime(now)
-
-        layout: QHBoxLayout = QHBoxLayout()
-
-        layout.addWidget(QLabel(&#34;Start&#34;))
-        layout.addWidget(self.start_dt)
-        layout.addWidget(QLabel(&#34;End&#34;))
-        layout.addWidget(self.end_dt)
-
-        self.setLayout(layout)
-
-    def validate(self) -&gt; List[str]:
-        errors: List[str] = []
-        if self.start_dt.dateTime() &gt;= self.end_dt.dateTime():
-            errors.append(&#34;Start of time window must be strictly less than end of time window&#34;)
-        return errors
+    # noinspection PyPackageRequirements
+    from PySide6.QtWidgets import (
+        QApplication,
+        QCheckBox,
+        QDateTimeEdit,
+        QDialog,
+        QFileDialog,
+        QHBoxLayout,
+        QLabel,
+        QLineEdit,
+        QPushButton,
+        QRadioButton,
+        QTextEdit,
+        QVBoxLayout,
+        QWidget,
+    )
 
 
-def empty_text(s: str) -&gt; bool:
-    return s.strip() == &#34;&#34;
+    class WindowSelectionWidget(QWidget):
+        def __init__(self, parent=None):
+            super(WindowSelectionWidget, self).__init__(parent)
+
+            self.start_dt: QDateTimeEdit = QDateTimeEdit()
+            self.end_dt: QDateTimeEdit = QDateTimeEdit()
+
+            now: datetime.datetime = datetime.datetime.now()
+            fifteen_minutes_ago: datetime.datetime = now - datetime.timedelta(minutes=15)
+            date_fmt: str = &#34;yyyy-MM-dd HH:mm UTC&#34;
+
+            self.start_dt.setDisplayFormat(date_fmt)
+            self.start_dt.setTimeSpec(PySide6.QtCore.Qt.UTC)
+            self.end_dt.setDisplayFormat(date_fmt)
+            self.end_dt.setTimeSpec(PySide6.QtCore.Qt.UTC)
+            self.start_dt.setCalendarPopup(True)
+            self.end_dt.setCalendarPopup(True)
+            self.start_dt.setDateTime(fifteen_minutes_ago)
+            self.end_dt.setDateTime(now)
+
+            layout: QHBoxLayout = QHBoxLayout()
+
+            layout.addWidget(QLabel(&#34;Start&#34;))
+            layout.addWidget(self.start_dt)
+            layout.addWidget(QLabel(&#34;End&#34;))
+            layout.addWidget(self.end_dt)
+
+            self.setLayout(layout)
+
+        def validate(self) -&gt; List[str]:
+            errors: List[str] = []
+            if self.start_dt.dateTime() &gt;= self.end_dt.dateTime():
+                errors.append(&#34;Start of time window must be strictly less than end of time window&#34;)
+            return errors
 
 
-class ServerSelectionWidget(QWidget):
-    def __init__(self, redvox_config: Optional[RedVoxConfig], parent=None):
-        super(ServerSelectionWidget, self).__init__(parent)
+    def empty_text(s: str) -&gt; bool:
+        return s.strip() == &#34;&#34;
 
-        int_validator = QIntValidator()
 
-        self.https: QRadioButton = QRadioButton()
-        self.https.setText(&#34;HTTPS&#34;)
-        self.http: QRadioButton = QRadioButton()
-        self.http.setText(&#34;HTTP&#34;)
+    class ServerSelectionWidget(QWidget):
+        def __init__(self, redvox_config: Optional[RedVoxConfig], parent=None):
+            super(ServerSelectionWidget, self).__init__(parent)
 
-        self.host: QLineEdit = QLineEdit()
-        self.port: QLineEdit = QLineEdit()
-        self.port.setValidator(int_validator)
+            int_validator = QIntValidator()
 
-        self.timeout: QLineEdit = QLineEdit()
-        self.retries: QLineEdit = QLineEdit()
+            self.https: QRadioButton = QRadioButton()
+            self.https.setText(&#34;HTTPS&#34;)
+            self.http: QRadioButton = QRadioButton()
+            self.http.setText(&#34;HTTP&#34;)
 
-        self.timeout.setValidator(int_validator)
-        self.retries.setValidator(int_validator)
+            self.host: QLineEdit = QLineEdit()
+            self.port: QLineEdit = QLineEdit()
+            self.port.setValidator(int_validator)
 
-        self.disable_timing_correction: QCheckBox = QCheckBox()
+            self.timeout: QLineEdit = QLineEdit()
+            self.retries: QLineEdit = QLineEdit()
 
-        if redvox_config is not None:
-            self.host.setText(redvox_config.host)
-            self.port.setText(str(redvox_config.port))
-            if redvox_config.protocol == &#34;http&#34;:
-                self.http.setChecked(True)
+            self.timeout.setValidator(int_validator)
+            self.retries.setValidator(int_validator)
+
+            self.disable_timing_correction: QCheckBox = QCheckBox()
+
+            if redvox_config is not None:
+                self.host.setText(redvox_config.host)
+                self.port.setText(str(redvox_config.port))
+                if redvox_config.protocol == &#34;http&#34;:
+                    self.http.setChecked(True)
+                else:
+                    self.https.setChecked(True)
             else:
                 self.https.setChecked(True)
-        else:
-            self.https.setChecked(True)
-            self.host.setText(&#34;redvox.io&#34;)
-            self.port.setText(&#34;8080&#34;)
-
-        self.timeout.setText(&#34;120&#34;)
-        self.retries.setText(&#34;3&#34;)
-
-        self.disable_timing_correction.setText(&#34;Disable Timing Correction&#34;)
-        self.disable_timing_correction.setChecked(True)
-
-        layout: QVBoxLayout = QVBoxLayout()
-        server_widget: QWidget = QWidget()
-        server_options_widget: QWidget = QWidget()
-        server_layout: QHBoxLayout = QHBoxLayout()
-        server_options_layout: QHBoxLayout = QHBoxLayout()
-        server_widget.setLayout(server_layout)
-        server_options_widget.setLayout(server_options_layout)
-
-        server_layout.addWidget(QLabel(&#34;Protocol&#34;))
-        server_layout.addWidget(self.https)
-        server_layout.addWidget(self.http)
-        server_layout.addWidget(QLabel(&#34;Host&#34;))
-        server_layout.addWidget(self.host)
-        server_layout.addWidget(QLabel(&#34;Port&#34;))
-        server_layout.addWidget(self.port)
+                self.host.setText(&#34;redvox.io&#34;)
+                self.port.setText(&#34;8080&#34;)
+
+            self.timeout.setText(&#34;120&#34;)
+            self.retries.setText(&#34;3&#34;)
+
+            self.disable_timing_correction.setText(&#34;Disable Timing Correction&#34;)
+            self.disable_timing_correction.setChecked(True)
 
-        server_options_layout.addWidget(QLabel(&#34;Timeout&#34;))
-        server_options_layout.addWidget(self.timeout)
-        server_options_layout.addWidget(QLabel(&#34;Retries&#34;))
-        server_options_layout.addWidget(self.retries)
-        server_options_layout.addWidget(self.disable_timing_correction)
+            layout: QVBoxLayout = QVBoxLayout()
+            server_widget: QWidget = QWidget()
+            server_options_widget: QWidget = QWidget()
+            server_layout: QHBoxLayout = QHBoxLayout()
+            server_options_layout: QHBoxLayout = QHBoxLayout()
+            server_widget.setLayout(server_layout)
+            server_options_widget.setLayout(server_options_layout)
 
-        layout.addWidget(server_widget)
-        layout.addWidget(server_options_widget)
+            server_layout.addWidget(QLabel(&#34;Protocol&#34;))
+            server_layout.addWidget(self.https)
+            server_layout.addWidget(self.http)
+            server_layout.addWidget(QLabel(&#34;Host&#34;))
+            server_layout.addWidget(self.host)
+            server_layout.addWidget(QLabel(&#34;Port&#34;))
+            server_layout.addWidget(self.port)
 
-        self.setLayout(layout)
+            server_options_layout.addWidget(QLabel(&#34;Timeout&#34;))
+            server_options_layout.addWidget(self.timeout)
+            server_options_layout.addWidget(QLabel(&#34;Retries&#34;))
+            server_options_layout.addWidget(self.retries)
+            server_options_layout.addWidget(self.disable_timing_correction)
 
-    def validate(self) -&gt; List[str]:
-        errors: List[str] = []
-        if empty_text(self.host.text()):
-            errors.append(&#34;Host must be provided&#34;)
-        if empty_text(self.port.text()):
-            errors.append(&#34;Port must be provided&#34;)
-        if empty_text(self.timeout.text()):
-            errors.append(&#34;Timeout must be provided&#34;)
-        if empty_text(self.retries.text()):
-            errors.append(&#34;Retries must be provided&#34;)
-        return errors
-
-
-class AuthenticationWidget(QWidget):
-    def __init__(self, redvox_config: Optional[RedVoxConfig], parent=None):
-        super(AuthenticationWidget, self).__init__(parent)
+            layout.addWidget(server_widget)
+            layout.addWidget(server_options_widget)
 
-        self.username: QLineEdit = QLineEdit()
-        self.password: QLineEdit = QLineEdit()
-        self.password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
-
-        if redvox_config is not None:
-            self.username.setText(redvox_config.username)
-            self.password.setText(redvox_config.password)
-
-        layout: QHBoxLayout = QHBoxLayout()
+            self.setLayout(layout)
 
-        layout.addWidget(QLabel(&#34;Username&#34;))
-        layout.addWidget(self.username)
-
-        layout.addWidget(QLabel(&#34;Password&#34;))
-        layout.addWidget(self.password)
-
-        self.setLayout(layout)
-
-    def validate(self) -&gt; List[str]:
-        errors: List[str] = []
-        if empty_text(self.username.text()):
-            errors.append(&#34;Username must be provided&#34;)
-        if empty_text(self.password.text()):
-            errors.append(&#34;Password must be provided&#34;)
-        return errors
-
-
-class ApiSelectionWidget(QWidget):
-    def __init__(self, parent=None):
-        super(ApiSelectionWidget, self).__init__(parent)
-
-        self.api_900_1000: QRadioButton = QRadioButton()
-        self.api_900_1000.setText(&#34;API 900 and 1000&#34;)
-        self.api_900: QRadioButton = QRadioButton()
-        self.api_900.setText(&#34;API 900&#34;)
-        self.api_1000: QRadioButton = QRadioButton()
-        self.api_1000.setText(&#34;API 1000&#34;)
+        def validate(self) -&gt; List[str]:
+            errors: List[str] = []
+            if empty_text(self.host.text()):
+                errors.append(&#34;Host must be provided&#34;)
+            if empty_text(self.port.text()):
+                errors.append(&#34;Port must be provided&#34;)
+            if empty_text(self.timeout.text()):
+                errors.append(&#34;Timeout must be provided&#34;)
+            if empty_text(self.retries.text()):
+                errors.append(&#34;Retries must be provided&#34;)
+            return errors
 
-        self.api_900_1000.setChecked(True)
 
-        layout: QHBoxLayout = QHBoxLayout()
-        layout.addWidget(self.api_900_1000)
-        layout.addWidget(self.api_900)
-        layout.addWidget(self.api_1000)
+    class AuthenticationWidget(QWidget):
+        def __init__(self, redvox_config: Optional[RedVoxConfig], parent=None):
+            super(AuthenticationWidget, self).__init__(parent)
 
-        self.setLayout(layout)
+            self.username: QLineEdit = QLineEdit()
+            self.password: QLineEdit = QLineEdit()
+            self.password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
 
+            if redvox_config is not None:
+                self.username.setText(redvox_config.username)
+                self.password.setText(redvox_config.password)
 
-class OutputDirectoryWidget(QWidget):
-    def __init__(self, parent=None):
-        super(OutputDirectoryWidget, self).__init__(parent)
+            layout: QHBoxLayout = QHBoxLayout()
 
-        self.output_dir: QLineEdit = QLineEdit()
-        self.open_file: QPushButton = QPushButton(&#34;Select&#34;)
+            layout.addWidget(QLabel(&#34;Username&#34;))
+            layout.addWidget(self.username)
+
+            layout.addWidget(QLabel(&#34;Password&#34;))
+            layout.addWidget(self.password)
+
+            self.setLayout(layout)
+
+        def validate(self) -&gt; List[str]:
+            errors: List[str] = []
+            if empty_text(self.username.text()):
+                errors.append(&#34;Username must be provided&#34;)
+            if empty_text(self.password.text()):
+                errors.append(&#34;Password must be provided&#34;)
+            return errors
+
+
+    class ApiSelectionWidget(QWidget):
+        def __init__(self, parent=None):
+            super(ApiSelectionWidget, self).__init__(parent)
 
-        # noinspection PyUnresolvedReferences
-        self.open_file.clicked.connect(self.open_dialog)
+            self.api_900_1000: QRadioButton = QRadioButton()
+            self.api_900_1000.setText(&#34;API 900 and 1000&#34;)
+            self.api_900: QRadioButton = QRadioButton()
+            self.api_900.setText(&#34;API 900&#34;)
+            self.api_1000: QRadioButton = QRadioButton()
+            self.api_1000.setText(&#34;API 1000&#34;)
 
-        self.output_dir.setText(&#34;.&#34;)
+            self.api_900_1000.setChecked(True)
 
-        layout: QHBoxLayout = QHBoxLayout()
-        layout.addWidget(self.output_dir)
-        layout.addWidget(self.open_file)
+            layout: QHBoxLayout = QHBoxLayout()
+            layout.addWidget(self.api_900_1000)
+            layout.addWidget(self.api_900)
+            layout.addWidget(self.api_1000)
 
-        self.setLayout(layout)
+            self.setLayout(layout)
 
-    def open_dialog(self):
-        self.output_dir.setText(QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly))
 
-    def validate(self) -&gt; List[str]:
-        errors: List[str] = []
-
-        if empty_text(self.output_dir.text()):
-            errors.append(&#34;Output directory must be set&#34;)
-
-        if not os.path.isdir(self.output_dir.text()):
-            errors.append(&#34;Output directory does not exist&#34;)
-
-        return errors
-
-
-def download_process(
-        redvox_config: RedVoxConfig,
-        timeout: int,
-        req_start: int,
-        req_end: int,
-        station_ids: List[str],
-        api_type: DataRangeReqType,
-        correct_query_timing: bool,
-        out_dir: str,
-        retries: int,
-        out_queue: Queue,
-):
-    client: CloudClient
-    with cloud_client(redvox_config, timeout=float(timeout)) as client:
-        resp = client.request_data_range(req_start, req_end, station_ids, api_type, correct_query_timing)
-        resp.download_fs(out_dir, retries, out_queue=out_queue)
-
-
-class DataDownloadGui(QDialog):
-    def __init__(self, parent=None):
-        super(DataDownloadGui, self).__init__(parent)
-        self.setWindowTitle(&#34;RedVox Cloud Data Downloader&#34;)
-        self.setMinimumWidth(1600)
-        self.setMinimumHeight(900)
-
-        redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find()
-
-        self.authentication_widget: AuthenticationWidget = AuthenticationWidget(redvox_config)
-        self.server_selection_widget: ServerSelectionWidget = ServerSelectionWidget(redvox_config)
-        self.window_selection_widget: WindowSelectionWidget = WindowSelectionWidget()
-        self.station_ids_widget: QTextEdit = QTextEdit()
-        self.api_selection_widget: ApiSelectionWidget = ApiSelectionWidget()
-        self.output_directory_widget: OutputDirectoryWidget = OutputDirectoryWidget()
-        self.download_data_btn: QPushButton = QPushButton(&#34;Download Data&#34;)
-        # noinspection PyUnresolvedReferences
-        self.download_data_btn.clicked.connect(self.download_data)
-
-        self.log: QTextEdit = QTextEdit()
-        self.log.setReadOnly(True)
-        self.info = lambda msg: self.log.append(f&#34;{datetime.datetime.utcnow()}: {msg}&#34;)
-
-        layout: QVBoxLayout = QVBoxLayout()
-
-        layout.addWidget(QLabel(&#34;RedVox Authentication&#34;))
-        layout.addWidget(self.authentication_widget)
-
-        layout.addWidget(QLabel(&#34;Server Selection&#34;))
-        layout.addWidget(self.server_selection_widget)
-
-        layout.addWidget(QLabel(&#34;Data Window Selection&#34;))
-        layout.addWidget(self.window_selection_widget)
-
-        layout.addWidget(QLabel(&#34;Station IDs (one per line)&#34;))
-        layout.addWidget(self.station_ids_widget)
-
-        layout.addWidget(QLabel(&#34;API Selection&#34;))
-        layout.addWidget(self.api_selection_widget)
-
-        layout.addWidget(QLabel(&#34;Output Directory&#34;))
-        layout.addWidget(self.output_directory_widget)
-
-        layout.addWidget(self.download_data_btn)
-
-        layout.addWidget(QLabel(&#34;Log&#34;))
-        layout.addWidget(self.log)
-
-        self.setLayout(layout)
-
-    def download_data(self):
-        validation_errors: List[str] = self.validate()
-        if len(validation_errors) &gt; 0:
-            self.info(&#34;Errors encountered&#34;)
-            for error in validation_errors:
-                self.info(error)
-            return
-
-        username: str = self.authentication_widget.username.text()
-        password: str = self.authentication_widget.password.text()
-        protocol: str
-        if self.server_selection_widget.https.isChecked():
-            protocol = &#34;https&#34;
-        else:
-            protocol = &#34;http&#34;
-        host: str = self.server_selection_widget.host.text()
-        port: int = int(self.server_selection_widget.port.text())
-        out_dir: str = self.output_directory_widget.output_dir.text()
-        redvox_config: RedVoxConfig = RedVoxConfig(username, password, protocol, host, port)
-        req_start: int = int(self.window_selection_widget.start_dt.dateTime().toSecsSinceEpoch())
-        req_end: int = int(self.window_selection_widget.end_dt.dateTime().toSecsSinceEpoch())
-        station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines(False)
-        api_type: DataRangeReqType
-        if self.api_selection_widget.api_900_1000.isChecked():
-            # noinspection PyTypeChecker
-            api_type = DataRangeReqType.API_900_1000
-        elif self.api_selection_widget.api_1000.isChecked():
-            # noinspection PyTypeChecker
-            api_type = DataRangeReqType.API_1000
-        else:
-            # noinspection PyTypeChecker
-            api_type = DataRangeReqType.API_900
-
-        retries: int = int(self.server_selection_widget.retries.text())
-        timeout: int = int(self.server_selection_widget.timeout.text())
-        correct_query_timing: bool = not self.server_selection_widget.disable_timing_correction.isChecked()
-
-        manager = Manager()
-        out_queue = manager.Queue(1024)
-
-        process = Process(
-            target=download_process,
-            args=(
-                redvox_config,
-                timeout,
-                req_start,
-                req_end,
-                station_ids,
-                api_type,
-                correct_query_timing,
-                out_dir,
-                retries,
-                out_queue,
-            ),
-        )
-
-        process.start()
-
-        result: str = &#34;&#34;
-        while result != &#34;done&#34;:
-            # noinspection PyBroadException
-            try:
-                result = out_queue.get(block=True, timeout=0.1)
-                self.info(result)
-                QApplication.processEvents()
-            except:
-                pass
-
-    def validate(self) -&gt; List[str]:
-        errors: List[str] = []
-
-        station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines()
-        if len(station_ids) == 0:
-            errors.append(&#34;At least one station ID must be provided&#34;)
-
-        for station_id in station_ids:
-            try:
-                int(station_id)
-            except ValueError:
-                errors.append(f&#34;{station_id} does not appear to be a valid station&#34;)
-
-        for widget in [
-            self.window_selection_widget,
-            self.authentication_widget,
-            self.server_selection_widget,
-            self.output_directory_widget,
-        ]:
-            # noinspection Mypy
-            errors.extend(widget.validate())
-
-        return errors
-
-
-def run_gui() -&gt; None:
-    app = QApplication(sys.argv)
-    form = DataDownloadGui()
-    form.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == &#34;__main__&#34;:
-    run_gui()</code></pre>
+    class OutputDirectoryWidget(QWidget):
+        def __init__(self, parent=None):
+            super(OutputDirectoryWidget, self).__init__(parent)
+
+            self.output_dir: QLineEdit = QLineEdit()
+            self.open_file: QPushButton = QPushButton(&#34;Select&#34;)
+
+            # noinspection PyUnresolvedReferences
+            self.open_file.clicked.connect(self.open_dialog)
+
+            self.output_dir.setText(&#34;.&#34;)
+
+            layout: QHBoxLayout = QHBoxLayout()
+            layout.addWidget(self.output_dir)
+            layout.addWidget(self.open_file)
+
+            self.setLayout(layout)
+
+        def open_dialog(self):
+            self.output_dir.setText(QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly))
+
+        def validate(self) -&gt; List[str]:
+            errors: List[str] = []
+
+            if empty_text(self.output_dir.text()):
+                errors.append(&#34;Output directory must be set&#34;)
+
+            if not os.path.isdir(self.output_dir.text()):
+                errors.append(&#34;Output directory does not exist&#34;)
+
+            return errors
+
+
+    def download_process(
+            redvox_config: RedVoxConfig,
+            timeout: int,
+            req_start: int,
+            req_end: int,
+            station_ids: List[str],
+            api_type: DataRangeReqType,
+            correct_query_timing: bool,
+            out_dir: str,
+            retries: int,
+            out_queue: Queue,
+    ):
+        client: CloudClient
+        with cloud_client(redvox_config, timeout=float(timeout)) as client:
+            resp = client.request_data_range(req_start, req_end, station_ids, api_type, correct_query_timing)
+            resp.download_fs(out_dir, retries, out_queue=out_queue)
+
+
+    class DataDownloadGui(QDialog):
+        def __init__(self, parent=None):
+            super(DataDownloadGui, self).__init__(parent)
+            self.setWindowTitle(&#34;RedVox Cloud Data Downloader&#34;)
+            self.setMinimumWidth(1600)
+            self.setMinimumHeight(900)
+
+            redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find()
+
+            self.authentication_widget: AuthenticationWidget = AuthenticationWidget(redvox_config)
+            self.server_selection_widget: ServerSelectionWidget = ServerSelectionWidget(redvox_config)
+            self.window_selection_widget: WindowSelectionWidget = WindowSelectionWidget()
+            self.station_ids_widget: QTextEdit = QTextEdit()
+            self.api_selection_widget: ApiSelectionWidget = ApiSelectionWidget()
+            self.output_directory_widget: OutputDirectoryWidget = OutputDirectoryWidget()
+            self.download_data_btn: QPushButton = QPushButton(&#34;Download Data&#34;)
+            # noinspection PyUnresolvedReferences
+            self.download_data_btn.clicked.connect(self.download_data)
+
+            self.log: QTextEdit = QTextEdit()
+            self.log.setReadOnly(True)
+            self.info = lambda msg: self.log.append(f&#34;{datetime.datetime.utcnow()}: {msg}&#34;)
+
+            layout: QVBoxLayout = QVBoxLayout()
+
+            layout.addWidget(QLabel(&#34;RedVox Authentication&#34;))
+            layout.addWidget(self.authentication_widget)
+
+            layout.addWidget(QLabel(&#34;Server Selection&#34;))
+            layout.addWidget(self.server_selection_widget)
+
+            layout.addWidget(QLabel(&#34;Data Window Selection&#34;))
+            layout.addWidget(self.window_selection_widget)
+
+            layout.addWidget(QLabel(&#34;Station IDs (one per line)&#34;))
+            layout.addWidget(self.station_ids_widget)
+
+            layout.addWidget(QLabel(&#34;API Selection&#34;))
+            layout.addWidget(self.api_selection_widget)
+
+            layout.addWidget(QLabel(&#34;Output Directory&#34;))
+            layout.addWidget(self.output_directory_widget)
+
+            layout.addWidget(self.download_data_btn)
+
+            layout.addWidget(QLabel(&#34;Log&#34;))
+            layout.addWidget(self.log)
+
+            self.setLayout(layout)
+
+        def download_data(self):
+            validation_errors: List[str] = self.validate()
+            if len(validation_errors) &gt; 0:
+                self.info(&#34;Errors encountered&#34;)
+                for error in validation_errors:
+                    self.info(error)
+                return
+
+            username: str = self.authentication_widget.username.text()
+            password: str = self.authentication_widget.password.text()
+            protocol: str
+            if self.server_selection_widget.https.isChecked():
+                protocol = &#34;https&#34;
+            else:
+                protocol = &#34;http&#34;
+            host: str = self.server_selection_widget.host.text()
+            port: int = int(self.server_selection_widget.port.text())
+            out_dir: str = self.output_directory_widget.output_dir.text()
+            redvox_config: RedVoxConfig = RedVoxConfig(username, password, protocol, host, port)
+            req_start: int = int(self.window_selection_widget.start_dt.dateTime().toSecsSinceEpoch())
+            req_end: int = int(self.window_selection_widget.end_dt.dateTime().toSecsSinceEpoch())
+            station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines(False)
+            api_type: DataRangeReqType
+            if self.api_selection_widget.api_900_1000.isChecked():
+                # noinspection PyTypeChecker
+                api_type = DataRangeReqType.API_900_1000
+            elif self.api_selection_widget.api_1000.isChecked():
+                # noinspection PyTypeChecker
+                api_type = DataRangeReqType.API_1000
+            else:
+                # noinspection PyTypeChecker
+                api_type = DataRangeReqType.API_900
+
+            retries: int = int(self.server_selection_widget.retries.text())
+            timeout: int = int(self.server_selection_widget.timeout.text())
+            correct_query_timing: bool = not self.server_selection_widget.disable_timing_correction.isChecked()
+
+            manager = Manager()
+            out_queue = manager.Queue(1024)
+
+            process = Process(
+                target=download_process,
+                args=(
+                    redvox_config,
+                    timeout,
+                    req_start,
+                    req_end,
+                    station_ids,
+                    api_type,
+                    correct_query_timing,
+                    out_dir,
+                    retries,
+                    out_queue,
+                ),
+            )
+
+            process.start()
+
+            result: str = &#34;&#34;
+            while result != &#34;done&#34;:
+                # noinspection PyBroadException
+                try:
+                    result = out_queue.get(block=True, timeout=0.1)
+                    self.info(result)
+                    QApplication.processEvents()
+                except:
+                    pass
+
+        def validate(self) -&gt; List[str]:
+            errors: List[str] = []
+
+            station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines()
+            if len(station_ids) == 0:
+                errors.append(&#34;At least one station ID must be provided&#34;)
+
+            for station_id in station_ids:
+                try:
+                    int(station_id)
+                except ValueError:
+                    errors.append(f&#34;{station_id} does not appear to be a valid station&#34;)
+
+            for widget in [
+                self.window_selection_widget,
+                self.authentication_widget,
+                self.server_selection_widget,
+                self.output_directory_widget,
+            ]:
+                # noinspection Mypy
+                errors.extend(widget.validate())
+
+            return errors
+
+
+    def run_gui() -&gt; None:
+        app = QApplication(sys.argv)
+        form = DataDownloadGui()
+        form.show()
+        sys.exit(app.exec_())
+
+
+    if __name__ == &#34;__main__&#34;:
+        run_gui()
+
+except ImportError:
+    import warnings
+    warnings.warn(&#34;GUI dependencies are not installed. Install the &#39;GUI&#39; extra to enable this functionality.&#34;)</code></pre>
 </details>
 </section>
 <section>
@@ -455,7 +460,7 @@ if __name__ == &#34;__main__&#34;:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.common.gui.cloud_data_retrieval.download_process"><code class="name flex">
-<span>def <span class="ident">download_process</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, timeout: int, req_start: int, req_end: int, station_ids: typing.List[str], api_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="../../cloud/data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a>, correct_query_timing: bool, out_dir: str, retries: int, out_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x7f468412e280>>)</span>
+<span>def <span class="ident">download_process</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, timeout: int, req_start: int, req_end: int, station_ids: typing.List[str], api_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="../../cloud/data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a>, correct_query_timing: bool, out_dir: str, retries: int, out_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x140ebb2b0>>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -520,8 +525,8 @@ if __name__ == &#34;__main__&#34;:
 <span>(</span><span>parent=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>QWidget(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
-<p><strong>init</strong>(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<div class="desc"><p>QWidget(self, parent: typing.Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: typing.Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -565,11 +570,11 @@ See help(type(self)) for accurate signature.</p></div>
 </dd>
 <dt id="redvox.common.gui.cloud_data_retrieval.AuthenticationWidget"><code class="flex name class">
 <span>class <span class="ident">AuthenticationWidget</span></span>
-<span>(</span><span>redvox_config: typing.Optional[<a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>], parent=None)</span>
+<span>(</span><span>redvox_config: typing.Union[<a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, NoneType], parent=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>QWidget(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
-<p><strong>init</strong>(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<div class="desc"><p>QWidget(self, parent: typing.Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: typing.Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -647,8 +652,8 @@ See help(type(self)) for accurate signature.</p></div>
 <span>(</span><span>parent=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>QDialog(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
-<p><strong>init</strong>(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<div class="desc"><p>QDialog(self, parent: typing.Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: typing.Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -933,8 +938,8 @@ See help(type(self)) for accurate signature.</p></div>
 <span>(</span><span>parent=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>QWidget(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
-<p><strong>init</strong>(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<div class="desc"><p>QWidget(self, parent: typing.Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: typing.Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -1027,11 +1032,11 @@ See help(type(self)) for accurate signature.</p></div>
 </dd>
 <dt id="redvox.common.gui.cloud_data_retrieval.ServerSelectionWidget"><code class="flex name class">
 <span>class <span class="ident">ServerSelectionWidget</span></span>
-<span>(</span><span>redvox_config: typing.Optional[<a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>], parent=None)</span>
+<span>(</span><span>redvox_config: typing.Union[<a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, NoneType], parent=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>QWidget(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
-<p><strong>init</strong>(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<div class="desc"><p>QWidget(self, parent: typing.Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: typing.Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -1163,8 +1168,8 @@ See help(type(self)) for accurate signature.</p></div>
 <span>(</span><span>parent=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>QWidget(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
-<p><strong>init</strong>(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<div class="desc"><p>QWidget(self, parent: typing.Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: typing.Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
