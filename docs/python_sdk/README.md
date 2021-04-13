@@ -1982,3 +1982,7 @@ _[Table of Contents](#table-of-contents)_
 ## Accessing RedVox Cloud Services
 
 See: [Cloud Services Documentation](cloud)
+
+## Tweaking SDK Settings
+
+The SDK now defines globally accessible settings that can be tweaked either through the SDK or by setting environmental variables.
