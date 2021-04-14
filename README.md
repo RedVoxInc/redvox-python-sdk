@@ -9,6 +9,12 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc21 (2021-4-14)
+
+* Fix cloud based query timing correction for non-contiguous data
+* Provide more log message in GUI data downloader
+* Make GUI data downloader more resistant and responsive to errors
+
 ### 3.0.0rc20 (2021-4-13)
 
 * Fixed loading sensors when some packets do not include all sensors from adjacent packets
