@@ -260,10 +260,15 @@ try:
             retries: int,
             out_queue: Queue,
     ):
-        client: CloudClient
-        with cloud_client(redvox_config, timeout=float(timeout)) as client:
-            resp = client.request_data_range(req_start, req_end, station_ids, api_type, correct_query_timing)
-            resp.download_fs(out_dir, retries, out_queue=out_queue)
+
+        try:
+            client: CloudClient
+            with cloud_client(redvox_config, timeout=float(timeout)) as client:
+                resp = client.request_data_range(req_start, req_end, station_ids, api_type, correct_query_timing)
+                resp.download_fs(out_dir, retries, out_queue=out_queue)
+        except Exception as e:
+            out_queue.put(f"Encountered an error: {e}")
+            out_queue.put("done")
 
 
     class DataDownloadGui(QDialog):
@@ -355,6 +360,8 @@ try:
 
             manager = Manager()
             out_queue = manager.Queue(1024)
+
+            self.info("Starting data query")
 
             process = Process(
                 target=download_process,
