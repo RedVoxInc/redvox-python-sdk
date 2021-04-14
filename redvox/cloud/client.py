@@ -544,6 +544,7 @@ class CloudClient:
                         [corrected_query.station_id],
                     )
                 )
+            return resp
         else:
             # No timing correction requested, go ahead just make the original uncorrected request
             return _make_req(start_ts_s, end_ts_s, station_ids)

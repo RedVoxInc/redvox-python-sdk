@@ -13,7 +13,10 @@ import redvox.common.file_statistics as file_stats
 from redvox.cloud.api import post_req
 from redvox.cloud.config import RedVoxConfig
 from redvox.cloud.routes import RoutesV1
-from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as us2dt
+from redvox.common.date_time_utils import (
+    datetime_from_epoch_microseconds_utc as us2dt,
+    datetime_to_epoch_microseconds_utc as dt2us,
+)
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -81,8 +84,8 @@ class StationStat:
             _map_opt(
                 self.gps_dts, lambda dts: list(map(GpsDateTime.into_file_stat, dts))
             ),
-            (self.packet_start_dt + self.packet_duration) / 2.0,
             self.latency,
+            (self.packet_start_dt + (self.packet_duration / 2.0)),
             self.offset,
             self.sample_rate_hz,
             _map_opt(self.packet_duration, lambda dur: timedelta(microseconds=dur)),
@@ -95,6 +98,7 @@ class StationStatReq:
     """
     A StationStatReq container.
     """
+
     auth_token: str
     start_ts_s: int
     end_ts_s: int
@@ -107,6 +111,7 @@ class StationStatsResp:
     """
     A response type converted into the file_statistics module representation.
     """
+
     station_stats: List[file_stats.StationStat]
 
 
@@ -116,6 +121,7 @@ class StationStatResp:
     """
     A response contain StationStat instances.
     """
+
     station_stats: List[StationStat]
 
     def into_station_stats_resp(self) -> StationStatsResp:

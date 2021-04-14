@@ -53,7 +53,7 @@ def correct_query_timing(
     )
 
     station_stat: "StationStat"
-    for station_stat in station_stats_resp.station_stats:
+    for station_stat in station_stats:
         grouped[station_stat.station_id][station_stat.app_start_dt].append(station_stat)
 
     # Compute new queries

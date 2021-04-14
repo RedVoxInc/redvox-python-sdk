@@ -317,6 +317,7 @@ class TimingOffsets:
     """
     Represents the start and end offsets of a timing corrected window.
     """
+
     start_offset: timedelta
     adjusted_start: datetime
     end_offset: timedelta
@@ -362,25 +363,22 @@ def compute_offsets(station_stats: List["StationStat"]) -> Optional[TimingOffset
 
     # Prep clock model
     start_dt: datetime = station_stats[0].packet_start_dt
-    end_dt: datetime = station_stats[-1].packet_start_dt + station_stats[-1].packet_duration
+    end_dt: datetime = (
+        station_stats[-1].packet_start_dt + station_stats[-1].packet_duration
+    )
     start_time: float = dt_utils.datetime_to_epoch_microseconds_utc(start_dt)
     end_time: float = dt_utils.datetime_to_epoch_microseconds_utc(end_dt)
 
-    model: OffsetModel = OffsetModel(
-        latencies,
-        offsets,
-        times,
-        start_time,
-        end_time
-    )
+    model: OffsetModel = OffsetModel(latencies, offsets, times, start_time, end_time)
 
     # Compute new start and end offsets
-    start_offset: timedelta = timedelta(microseconds=model.get_offset_at_new_time(start_time))
-    end_offset: timedelta = timedelta(microseconds=model.get_offset_at_new_time(end_time))
+    start_offset: timedelta = timedelta(
+        microseconds=model.get_offset_at_new_time(start_time)
+    )
+    end_offset: timedelta = timedelta(
+        microseconds=model.get_offset_at_new_time(end_time)
+    )
 
     return TimingOffsets(
-        start_offset,
-        start_dt + start_offset,
-        end_offset,
-        end_dt + end_offset
+        start_offset, start_dt + start_offset, end_offset, end_dt + end_offset
     )
