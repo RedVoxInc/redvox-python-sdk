@@ -18,6 +18,9 @@ if TYPE_CHECKING:
 
 @dataclass
 class CorrectedQuery:
+    """
+    A set of fields required for a corrected timing query.
+    """
     station_id: str
     original_start_ts: float
     original_end_ts: float
@@ -25,15 +28,31 @@ class CorrectedQuery:
     corrected_end_ts: float
 
     def start_offset(self) -> float:
+        """
+        Computes the start offset.
+        :return: The start offset.
+        """
         return self.corrected_start_ts - self.original_start_ts
 
     def end_offset(self) -> float:
+        """
+        Computes the end offset.
+        :return: The end offset.
+        """
         return self.corrected_end_ts - self.original_end_ts
 
 
 def correct_query_timing(
     client: "CloudClient", start_ts: int, end_ts: int, station_ids: List[str]
 ) -> Optional[List[CorrectedQuery]]:
+    """
+    Corrects the timing for a given cloud range query.
+    :param client: An instance of a cloud client.
+    :param start_ts: The start of the query window.
+    :param end_ts: The end of the query window.
+    :param station_ids: A list of station IDs in the query.
+    :return: A list of query corrections per station and per app start time.
+    """
 
     station_stats_resp: Optional["StationStatsResp"] = client.request_station_stats(
         start_ts, end_ts, station_ids

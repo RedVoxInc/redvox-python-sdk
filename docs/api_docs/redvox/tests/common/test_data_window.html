@@ -133,6 +133,37 @@ class DataWindowJsonTest(unittest.TestCase):
         self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
         self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;).has_audio_data())
 
+    def test_dw_json_start_dt(self):
+        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
+        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w.json&#34;, &#34;lz4&#34;)
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                                   start_dt=dt.datetime_from_epoch_seconds_utc(1597189455))
+        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;).has_audio_data())
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                                   start_dt=dt.datetime_from_epoch_seconds_utc(1597189300))
+        self.assertIsNone(unjsonified)
+
+    def test_dw_json_end_dt(self):
+        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
+        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w.json&#34;, &#34;lz4&#34;)
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                                   end_dt=dt.datetime_from_epoch_seconds_utc(1597189465))
+        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;).has_audio_data())
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                                   end_dt=dt.datetime_from_epoch_seconds_utc(1597189495))
+        self.assertIsNone(unjsonified)
+
+    def test_dw_json_station_ids(self):
+        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
+        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w.json&#34;, &#34;lz4&#34;)
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()), station_ids=[&#34;0000000001&#34;])
+        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;).has_audio_data())
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()), station_ids=[&#34;0000000002&#34;])
+        self.assertIsNone(unjsonified)
+
     def test_empty_dw_json(self):
         d_w = dw.DataWindow(&#34;.&#34;)
         json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w.json&#34;, &#34;pkl&#34;)
@@ -222,6 +253,37 @@ not have a method with the specified name.</p></div>
         self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
         self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;).has_audio_data())
 
+    def test_dw_json_start_dt(self):
+        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
+        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w.json&#34;, &#34;lz4&#34;)
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                                   start_dt=dt.datetime_from_epoch_seconds_utc(1597189455))
+        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;).has_audio_data())
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                                   start_dt=dt.datetime_from_epoch_seconds_utc(1597189300))
+        self.assertIsNone(unjsonified)
+
+    def test_dw_json_end_dt(self):
+        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
+        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w.json&#34;, &#34;lz4&#34;)
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                                   end_dt=dt.datetime_from_epoch_seconds_utc(1597189465))
+        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;).has_audio_data())
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                                   end_dt=dt.datetime_from_epoch_seconds_utc(1597189495))
+        self.assertIsNone(unjsonified)
+
+    def test_dw_json_station_ids(self):
+        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
+        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w.json&#34;, &#34;lz4&#34;)
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()), station_ids=[&#34;0000000001&#34;])
+        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
+        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;).has_audio_data())
+        unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()), station_ids=[&#34;0000000002&#34;])
+        self.assertIsNone(unjsonified)
+
     def test_empty_dw_json(self):
         d_w = dw.DataWindow(&#34;.&#34;)
         json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w.json&#34;, &#34;pkl&#34;)
@@ -274,6 +336,27 @@ def tearDownClass(cls) -&gt; None:
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_end_dt"><code class="name flex">
+<span>def <span class="ident">test_dw_json_end_dt</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_dw_json_end_dt(self):
+    d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
+    json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w.json&#34;, &#34;lz4&#34;)
+    unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                               end_dt=dt.datetime_from_epoch_seconds_utc(1597189465))
+    self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
+    self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;).has_audio_data())
+    unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                               end_dt=dt.datetime_from_epoch_seconds_utc(1597189495))
+    self.assertIsNone(unjsonified)</code></pre>
+</details>
+</dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_lz4_compression"><code class="name flex">
 <span>def <span class="ident">test_dw_json_lz4_compression</span></span>(<span>self)</span>
 </code></dt>
@@ -314,6 +397,46 @@ def tearDownClass(cls) -&gt; None:
     unjsonified = dw.DataWindow.from_json(json_str)
     self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
     self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;).has_audio_data())</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_start_dt"><code class="name flex">
+<span>def <span class="ident">test_dw_json_start_dt</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_dw_json_start_dt(self):
+    d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
+    json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w.json&#34;, &#34;lz4&#34;)
+    unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                               start_dt=dt.datetime_from_epoch_seconds_utc(1597189455))
+    self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
+    self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;).has_audio_data())
+    unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()),
+                                               start_dt=dt.datetime_from_epoch_seconds_utc(1597189300))
+    self.assertIsNone(unjsonified)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_station_ids"><code class="name flex">
+<span>def <span class="ident">test_dw_json_station_ids</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_dw_json_station_ids(self):
+    d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
+    json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w.json&#34;, &#34;lz4&#34;)
+    unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()), station_ids=[&#34;0000000001&#34;])
+    self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
+    self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;).has_audio_data())
+    unjsonified = dw.DataWindow.from_json_file(str(json_str.resolve()), station_ids=[&#34;0000000002&#34;])
+    self.assertIsNone(unjsonified)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.test_empty_dw_json"><code class="name flex">
@@ -585,8 +708,11 @@ def setUpClass(cls) -&gt; None:
 <ul class="">
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.setUpClass" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.setUpClass">setUpClass</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.tearDownClass" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.tearDownClass">tearDownClass</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_end_dt" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_end_dt">test_dw_json_end_dt</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_lz4_compression" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_lz4_compression">test_dw_json_lz4_compression</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_pkl_compression" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_pkl_compression">test_dw_json_pkl_compression</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_start_dt" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_start_dt">test_dw_json_start_dt</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_station_ids" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_station_ids">test_dw_json_station_ids</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.test_empty_dw_json" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.test_empty_dw_json">test_empty_dw_json</a></code></li>
 </ul>
 </li>

@@ -78,7 +78,11 @@ class SensorType(enum.Enum):
         :param type_str: string to convert
         :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
         &#34;&#34;&#34;
-        if type_str.lower() == &#34;mic&#34; or type_str.lower() == &#34;audio&#34;:
+        if (
+            type_str.lower() == &#34;audio&#34;
+            or type_str.lower() == &#34;mic&#34;
+            or type_str.lower() == &#34;microphone&#34;
+        ):
             return SensorType.AUDIO
         elif type_str.lower() == &#34;accelerometer&#34; or type_str.lower() == &#34;accel&#34;:
             return SensorType.ACCELEROMETER
@@ -996,7 +1000,11 @@ Updates the SensorData object with the new values
         :param type_str: string to convert
         :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
         &#34;&#34;&#34;
-        if type_str.lower() == &#34;mic&#34; or type_str.lower() == &#34;audio&#34;:
+        if (
+            type_str.lower() == &#34;audio&#34;
+            or type_str.lower() == &#34;mic&#34;
+            or type_str.lower() == &#34;microphone&#34;
+        ):
             return SensorType.AUDIO
         elif type_str.lower() == &#34;accelerometer&#34; or type_str.lower() == &#34;accel&#34;:
             return SensorType.ACCELEROMETER
@@ -1141,7 +1149,11 @@ def type_from_str(type_str: str) -&gt; &#34;SensorType&#34;:
     :param type_str: string to convert
     :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
     &#34;&#34;&#34;
-    if type_str.lower() == &#34;mic&#34; or type_str.lower() == &#34;audio&#34;:
+    if (
+        type_str.lower() == &#34;audio&#34;
+        or type_str.lower() == &#34;mic&#34;
+        or type_str.lower() == &#34;microphone&#34;
+    ):
         return SensorType.AUDIO
     elif type_str.lower() == &#34;accelerometer&#34; or type_str.lower() == &#34;accel&#34;:
         return SensorType.ACCELEROMETER
