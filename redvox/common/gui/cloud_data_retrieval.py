@@ -121,7 +121,7 @@ try:
             self.retries.setText("3")
 
             self.disable_timing_correction.setText("Disable Timing Correction")
-            self.disable_timing_correction.setChecked(True)
+            self.disable_timing_correction.setChecked(False)
 
             layout: QVBoxLayout = QVBoxLayout()
             server_widget: QWidget = QWidget()
