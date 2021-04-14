@@ -5,7 +5,6 @@ try:
     import sys
     from typing import List, Optional
 
-
     # noinspection Mypy
     from redvox.cloud.client import cloud_client, CloudClient
 
@@ -41,7 +40,6 @@ try:
         QWidget,
     )
 
-
     class WindowSelectionWidget(QWidget):
         def __init__(self, parent=None):
             super(WindowSelectionWidget, self).__init__(parent)
@@ -50,7 +48,9 @@ try:
             self.end_dt: QDateTimeEdit = QDateTimeEdit()
 
             now: datetime.datetime = datetime.datetime.now()
-            fifteen_minutes_ago: datetime.datetime = now - datetime.timedelta(minutes=15)
+            fifteen_minutes_ago: datetime.datetime = now - datetime.timedelta(
+                minutes=15
+            )
             date_fmt: str = "yyyy-MM-dd HH:mm UTC"
 
             self.start_dt.setDisplayFormat(date_fmt)
@@ -74,13 +74,13 @@ try:
         def validate(self) -> List[str]:
             errors: List[str] = []
             if self.start_dt.dateTime() >= self.end_dt.dateTime():
-                errors.append("Start of time window must be strictly less than end of time window")
+                errors.append(
+                    "Start of time window must be strictly less than end of time window"
+                )
             return errors
-
 
     def empty_text(s: str) -> bool:
         return s.strip() == ""
-
 
     class ServerSelectionWidget(QWidget):
         def __init__(self, redvox_config: Optional[RedVoxConfig], parent=None):
@@ -162,7 +162,6 @@ try:
                 errors.append("Retries must be provided")
             return errors
 
-
     class AuthenticationWidget(QWidget):
         def __init__(self, redvox_config: Optional[RedVoxConfig], parent=None):
             super(AuthenticationWidget, self).__init__(parent)
@@ -193,7 +192,6 @@ try:
                 errors.append("Password must be provided")
             return errors
 
-
     class ApiSelectionWidget(QWidget):
         def __init__(self, parent=None):
             super(ApiSelectionWidget, self).__init__(parent)
@@ -214,7 +212,6 @@ try:
 
             self.setLayout(layout)
 
-
     class OutputDirectoryWidget(QWidget):
         def __init__(self, parent=None):
             super(OutputDirectoryWidget, self).__init__(parent)
@@ -234,7 +231,9 @@ try:
             self.setLayout(layout)
 
         def open_dialog(self):
-            self.output_dir.setText(QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly))
+            self.output_dir.setText(
+                QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly)
+            )
 
         def validate(self) -> List[str]:
             errors: List[str] = []
@@ -247,29 +246,34 @@ try:
 
             return errors
 
-
     def download_process(
-            redvox_config: RedVoxConfig,
-            timeout: int,
-            req_start: int,
-            req_end: int,
-            station_ids: List[str],
-            api_type: DataRangeReqType,
-            correct_query_timing: bool,
-            out_dir: str,
-            retries: int,
-            out_queue: Queue,
+        redvox_config: RedVoxConfig,
+        timeout: int,
+        req_start: int,
+        req_end: int,
+        station_ids: List[str],
+        api_type: DataRangeReqType,
+        correct_query_timing: bool,
+        out_dir: str,
+        retries: int,
+        out_queue: Queue,
     ):
 
         try:
             client: CloudClient
             with cloud_client(redvox_config, timeout=float(timeout)) as client:
-                resp = client.request_data_range(req_start, req_end, station_ids, api_type, correct_query_timing)
+                resp = client.request_data_range(
+                    req_start,
+                    req_end,
+                    station_ids,
+                    api_type,
+                    correct_query_timing,
+                    out_queue=out_queue,
+                )
                 resp.download_fs(out_dir, retries, out_queue=out_queue)
         except Exception as e:
             out_queue.put(f"Encountered an error: {e}")
             out_queue.put("done")
-
 
     class DataDownloadGui(QDialog):
         def __init__(self, parent=None):
@@ -280,19 +284,29 @@ try:
 
             redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find()
 
-            self.authentication_widget: AuthenticationWidget = AuthenticationWidget(redvox_config)
-            self.server_selection_widget: ServerSelectionWidget = ServerSelectionWidget(redvox_config)
-            self.window_selection_widget: WindowSelectionWidget = WindowSelectionWidget()
+            self.authentication_widget: AuthenticationWidget = AuthenticationWidget(
+                redvox_config
+            )
+            self.server_selection_widget: ServerSelectionWidget = ServerSelectionWidget(
+                redvox_config
+            )
+            self.window_selection_widget: WindowSelectionWidget = (
+                WindowSelectionWidget()
+            )
             self.station_ids_widget: QTextEdit = QTextEdit()
             self.api_selection_widget: ApiSelectionWidget = ApiSelectionWidget()
-            self.output_directory_widget: OutputDirectoryWidget = OutputDirectoryWidget()
+            self.output_directory_widget: OutputDirectoryWidget = (
+                OutputDirectoryWidget()
+            )
             self.download_data_btn: QPushButton = QPushButton("Download Data")
             # noinspection PyUnresolvedReferences
             self.download_data_btn.clicked.connect(self.download_data)
 
             self.log: QTextEdit = QTextEdit()
             self.log.setReadOnly(True)
-            self.info = lambda msg: self.log.append(f"{datetime.datetime.utcnow()}: {msg}")
+            self.info = lambda msg: self.log.append(
+                f"{datetime.datetime.utcnow()}: {msg}"
+            )
 
             layout: QVBoxLayout = QVBoxLayout()
 
@@ -339,10 +353,18 @@ try:
             host: str = self.server_selection_widget.host.text()
             port: int = int(self.server_selection_widget.port.text())
             out_dir: str = self.output_directory_widget.output_dir.text()
-            redvox_config: RedVoxConfig = RedVoxConfig(username, password, protocol, host, port)
-            req_start: int = int(self.window_selection_widget.start_dt.dateTime().toSecsSinceEpoch())
-            req_end: int = int(self.window_selection_widget.end_dt.dateTime().toSecsSinceEpoch())
-            station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines(False)
+            redvox_config: RedVoxConfig = RedVoxConfig(
+                username, password, protocol, host, port
+            )
+            req_start: int = int(
+                self.window_selection_widget.start_dt.dateTime().toSecsSinceEpoch()
+            )
+            req_end: int = int(
+                self.window_selection_widget.end_dt.dateTime().toSecsSinceEpoch()
+            )
+            station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines(
+                False
+            )
             api_type: DataRangeReqType
             if self.api_selection_widget.api_900_1000.isChecked():
                 # noinspection PyTypeChecker
@@ -356,7 +378,9 @@ try:
 
             retries: int = int(self.server_selection_widget.retries.text())
             timeout: int = int(self.server_selection_widget.timeout.text())
-            correct_query_timing: bool = not self.server_selection_widget.disable_timing_correction.isChecked()
+            correct_query_timing: bool = (
+                not self.server_selection_widget.disable_timing_correction.isChecked()
+            )
 
             manager = Manager()
             out_queue = manager.Queue(1024)
@@ -415,17 +439,18 @@ try:
 
             return errors
 
-
     def run_gui() -> None:
         app = QApplication(sys.argv)
         form = DataDownloadGui()
         form.show()
         sys.exit(app.exec_())
 
-
     if __name__ == "__main__":
         run_gui()
 
 except ImportError:
     import warnings
-    warnings.warn("GUI dependencies are not installed. Install the 'GUI' extra to enable this functionality.")
+
+    warnings.warn(
+        "GUI dependencies are not installed. Install the 'GUI' extra to enable this functionality."
+    )

@@ -8,6 +8,7 @@ an up-to-date authentication token for making authenticated API requests.
 from collections import defaultdict
 import contextlib
 import threading
+from multiprocessing import Queue
 from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import requests
@@ -471,6 +472,7 @@ class CloudClient:
         station_ids: List[str],
         req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900_1000,
         correct_query_timing: bool = True,
+        out_queue: Optional[Queue] = None
     ) -> data_api.DataRangeResp:
         """
         Request signed URLs for RedVox packets.
@@ -533,10 +535,15 @@ class CloudClient:
             resp: data_api.DataRangeResp = data_api.DataRangeResp([])
             corrected_query: "CorrectedQuery"
             for corrected_query in corrected_queries:
-                print(
-                    f"Running timing corrected query for {corrected_query.station_id} "
-                    f"start offset={corrected_query.start_offset()} end offset={corrected_query.end_offset()}"
-                )
+                correction_msg: str = f"Running timing corrected query for {corrected_query.station_id} " \
+                                      f"start offset={corrected_query.start_offset()} " \
+                                      f"end offset={corrected_query.end_offset()}"
+
+                if out_queue is None:
+                    print(correction_msg)
+                else:
+                    out_queue.put(correction_msg, block=False)
+
                 resp.append(
                     _make_req(
                         round(corrected_query.corrected_start_ts),
