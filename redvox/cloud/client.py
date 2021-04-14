@@ -18,6 +18,10 @@ from redvox.cloud.config import RedVoxConfig
 import redvox.cloud.errors as cloud_errors
 import redvox.common.constants as constants
 from redvox.common.offset_model import compute_offsets
+from redvox.cloud.query_timing_correction import (
+    correct_query_timing as do_correct_query_timing,
+    CorrectedQuery,
+)
 import redvox.cloud.data_api as data_api
 import redvox.cloud.metadata_api as metadata_api
 import redvox.cloud.station_stats as station_stats_api
@@ -26,6 +30,7 @@ if TYPE_CHECKING:
     from redvox.cloud.station_stats import StationStatsResp
     from redvox.common.file_statistics import StationStat
     from redvox.common.offset_model import TimingOffsets
+    from redvox.cloud.query_timing_correction import CorrectedQuery
 
 
 def chunk_time_range(
@@ -515,52 +520,30 @@ class CloudClient:
         # If timing correction was requested, we want to find the corrected start and end offsets in order to
         # request the correct range of data for each station's particular clock offset
         if correct_query_timing:
-            station_stats: Optional["StationStatsResp"] = self.request_station_stats(
-                start_ts_s, end_ts_s, station_ids
-            )
+            corrected_queries: Optional[
+                List["CorrectedQuery"]
+            ] = do_correct_query_timing(self, start_ts_s, end_ts_s, station_ids)
 
-            # If none, we can't apply a correction
-            if station_stats is None:
+            # If we get nothing back, we can't apply a correction
+            if corrected_queries is None or len(corrected_queries) == 0:
+                print("No timing corrections returned, running original query.")
                 return _make_req(start_ts_s, end_ts_s, station_ids)
 
-            # Group stats by station
-            station_to_stats: Dict[str, List["StationStat"]] = defaultdict(list)
-            stats: "StationStat"
-            for stats in station_stats.station_stats:
-                station_to_stats[f"{stats.station_id}:{stats.station_uuid}"].append(
-                    stats
-                )
-
-            # Initialize a final response that we can use to append each corrected response onto
+            # Make a request for each corrected query, aggregating the results of each request
             resp: data_api.DataRangeResp = data_api.DataRangeResp([])
-
-            # For each station, make the data request with the updated start and end times for that station.
-            # Merge the multiple responses into a single response.
-            for station, all_stats in station_to_stats.items():
-                timing_offsets: Optional["TimingOffsets"] = compute_offsets(all_stats)
-
-                start_offset: int = (
-                    timing_offsets.start_offset.seconds
-                    if timing_offsets is not None
-                    else 0
+            corrected_query: "CorrectedQuery"
+            for corrected_query in corrected_queries:
+                print(
+                    f"Running timing correct query for {corrected_query.station_id} "
+                    f"start offset={corrected_query.start_offset()} end offset={corrected_query.end_offset()}"
                 )
-                end_offset: int = (
-                    timing_offsets.end_offset.seconds
-                    if timing_offsets is not None
-                    else 0
-                )
-
-                print(f"Correcting query for station={station}")
-                print(f"\tstart diff: {start_offset}")
-                print(f"\tend diff: {end_offset}")
-
                 resp.append(
                     _make_req(
-                        start_ts_s + start_offset, end_ts_s + end_offset, [station.split(":")[0]]
+                        round(corrected_query.corrected_start_ts),
+                        round(corrected_query.corrected_end_ts),
+                        [corrected_query.station_id],
                     )
                 )
-
-            return resp
         else:
             # No timing correction requested, go ahead just make the original uncorrected request
             return _make_req(start_ts_s, end_ts_s, station_ids)
