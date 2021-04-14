@@ -534,7 +534,7 @@ class CloudClient:
             corrected_query: "CorrectedQuery"
             for corrected_query in corrected_queries:
                 print(
-                    f"Running timing correct query for {corrected_query.station_id} "
+                    f"Running timing corrected query for {corrected_query.station_id} "
                     f"start offset={corrected_query.start_offset()} end offset={corrected_query.end_offset()}"
                 )
                 resp.append(
