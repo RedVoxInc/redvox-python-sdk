@@ -239,7 +239,8 @@ class DataWindow:
         &#34;&#34;&#34;
         Converts the data window into a JSON file and writes it to disk.
         :param base_dir: base directory to write the json file to.  Default . (local directory)
-        :param file_name: the optional file name.  If None, a default file name is created using this format:
+        :param file_name: the optional file name.  Do not include a file extension.
+                            If None, a default file name is created using this format:
                             [start_ts]_[end_ts]_[num_stations].json
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The path to the written file
@@ -251,7 +252,8 @@ class DataWindow:
         &#34;&#34;&#34;
         Converts the data window into a JSON string
         :param compressed_file_base_dir: base directory to write the json file to.  Default . (local directory)
-        :param compressed_file_name: the optional file name.  If None, a default file name is created using this format:
+        :param compressed_file_name: the optional file name.  Do not include a file extension.
+                                        If None, a default file name is created using this format:
                                         [start_ts]_[end_ts]_[num_stations].[compression_format]
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The json string
@@ -272,18 +274,7 @@ class DataWindow:
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         &#34;&#34;&#34;
-        info = io.json_file_to_data_window(path)
-        if start_dt and info[&#34;start_datetime&#34;] &gt; dtu.datetime_to_epoch_microseconds_utc(start_dt):
-            return None
-        if end_dt and info[&#34;end_datetime&#34;] &lt; dtu.datetime_to_epoch_microseconds_utc(end_dt):
-            return None
-        if station_ids and not all(a in info[&#34;station_ids&#34;] for a in station_ids):
-            return None
-        if info[&#34;compression_format&#34;] == &#34;lz4&#34;:
-            return DataWindow.deserialize(info[&#34;file_path&#34;])
-        else:
-            with open(info[&#34;file_path&#34;], &#39;rb&#39;) as fp:
-                return pickle.load(fp)
+        return DataWindow.from_json_dict(io.json_file_to_data_window(path), start_dt, end_dt, station_ids)
 
     @staticmethod
     def from_json(json_str: str, start_dt: Optional[dtu.datetime] = None,
@@ -299,17 +290,32 @@ class DataWindow:
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         &#34;&#34;&#34;
-        info = io.json_to_data_window(json_str)
-        if start_dt and info[&#34;start_datetime&#34;] &gt; dtu.datetime_to_epoch_microseconds_utc(start_dt):
+        return DataWindow.from_json_dict(io.json_to_data_window(json_str), start_dt, end_dt, station_ids)
+
+    @staticmethod
+    def from_json_dict(json_dict: Dict, start_dt: Optional[dtu.datetime] = None,
+                       end_dt: Optional[dtu.datetime] = None,
+                       station_ids: Optional[Iterable[str]] = None) -&gt; Optional[&#34;DataWindow&#34;]:
+        &#34;&#34;&#34;
+        Reads a JSON string and checks if:
+            * The requested times are within the JSON file&#39;s times
+            * The requested stations are a subset of the JSON file&#39;s stations
+        :param json_dict: the dictionary to read
+        :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
+        :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
+        :param station_ids: the station ids to check against.  if not given, assumes True.  default None
+        :return: the data window if it suffices, otherwise None
+        &#34;&#34;&#34;
+        if start_dt and json_dict[&#34;start_datetime&#34;] &gt; dtu.datetime_to_epoch_microseconds_utc(start_dt):
             return None
-        if end_dt and info[&#34;end_datetime&#34;] &lt; dtu.datetime_to_epoch_microseconds_utc(end_dt):
+        if end_dt and json_dict[&#34;end_datetime&#34;] &lt; dtu.datetime_to_epoch_microseconds_utc(end_dt):
             return None
-        if station_ids and not all(a in info[&#34;station_ids&#34;] for a in station_ids):
+        if station_ids and not all(a in json_dict[&#34;station_ids&#34;] for a in station_ids):
             return None
-        if info[&#34;compression_format&#34;] == &#34;lz4&#34;:
-            return DataWindow.deserialize(info[&#34;file_path&#34;])
+        if json_dict[&#34;compression_format&#34;] == &#34;lz4&#34;:
+            return DataWindow.deserialize(json_dict[&#34;file_path&#34;])
         else:
-            with open(info[&#34;file_path&#34;], &#39;rb&#39;) as fp:
+            with open(json_dict[&#34;file_path&#34;], &#39;rb&#39;) as fp:
                 return pickle.load(fp)
 
     def _has_time_window(self) -&gt; bool:
@@ -909,7 +915,8 @@ Default True
         &#34;&#34;&#34;
         Converts the data window into a JSON file and writes it to disk.
         :param base_dir: base directory to write the json file to.  Default . (local directory)
-        :param file_name: the optional file name.  If None, a default file name is created using this format:
+        :param file_name: the optional file name.  Do not include a file extension.
+                            If None, a default file name is created using this format:
                             [start_ts]_[end_ts]_[num_stations].json
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The path to the written file
@@ -921,7 +928,8 @@ Default True
         &#34;&#34;&#34;
         Converts the data window into a JSON string
         :param compressed_file_base_dir: base directory to write the json file to.  Default . (local directory)
-        :param compressed_file_name: the optional file name.  If None, a default file name is created using this format:
+        :param compressed_file_name: the optional file name.  Do not include a file extension.
+                                        If None, a default file name is created using this format:
                                         [start_ts]_[end_ts]_[num_stations].[compression_format]
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The json string
@@ -942,18 +950,7 @@ Default True
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         &#34;&#34;&#34;
-        info = io.json_file_to_data_window(path)
-        if start_dt and info[&#34;start_datetime&#34;] &gt; dtu.datetime_to_epoch_microseconds_utc(start_dt):
-            return None
-        if end_dt and info[&#34;end_datetime&#34;] &lt; dtu.datetime_to_epoch_microseconds_utc(end_dt):
-            return None
-        if station_ids and not all(a in info[&#34;station_ids&#34;] for a in station_ids):
-            return None
-        if info[&#34;compression_format&#34;] == &#34;lz4&#34;:
-            return DataWindow.deserialize(info[&#34;file_path&#34;])
-        else:
-            with open(info[&#34;file_path&#34;], &#39;rb&#39;) as fp:
-                return pickle.load(fp)
+        return DataWindow.from_json_dict(io.json_file_to_data_window(path), start_dt, end_dt, station_ids)
 
     @staticmethod
     def from_json(json_str: str, start_dt: Optional[dtu.datetime] = None,
@@ -969,17 +966,32 @@ Default True
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         &#34;&#34;&#34;
-        info = io.json_to_data_window(json_str)
-        if start_dt and info[&#34;start_datetime&#34;] &gt; dtu.datetime_to_epoch_microseconds_utc(start_dt):
+        return DataWindow.from_json_dict(io.json_to_data_window(json_str), start_dt, end_dt, station_ids)
+
+    @staticmethod
+    def from_json_dict(json_dict: Dict, start_dt: Optional[dtu.datetime] = None,
+                       end_dt: Optional[dtu.datetime] = None,
+                       station_ids: Optional[Iterable[str]] = None) -&gt; Optional[&#34;DataWindow&#34;]:
+        &#34;&#34;&#34;
+        Reads a JSON string and checks if:
+            * The requested times are within the JSON file&#39;s times
+            * The requested stations are a subset of the JSON file&#39;s stations
+        :param json_dict: the dictionary to read
+        :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
+        :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
+        :param station_ids: the station ids to check against.  if not given, assumes True.  default None
+        :return: the data window if it suffices, otherwise None
+        &#34;&#34;&#34;
+        if start_dt and json_dict[&#34;start_datetime&#34;] &gt; dtu.datetime_to_epoch_microseconds_utc(start_dt):
             return None
-        if end_dt and info[&#34;end_datetime&#34;] &lt; dtu.datetime_to_epoch_microseconds_utc(end_dt):
+        if end_dt and json_dict[&#34;end_datetime&#34;] &lt; dtu.datetime_to_epoch_microseconds_utc(end_dt):
             return None
-        if station_ids and not all(a in info[&#34;station_ids&#34;] for a in station_ids):
+        if station_ids and not all(a in json_dict[&#34;station_ids&#34;] for a in station_ids):
             return None
-        if info[&#34;compression_format&#34;] == &#34;lz4&#34;:
-            return DataWindow.deserialize(info[&#34;file_path&#34;])
+        if json_dict[&#34;compression_format&#34;] == &#34;lz4&#34;:
+            return DataWindow.deserialize(json_dict[&#34;file_path&#34;])
         else:
-            with open(info[&#34;file_path&#34;], &#39;rb&#39;) as fp:
+            with open(json_dict[&#34;file_path&#34;], &#39;rb&#39;) as fp:
                 return pickle.load(fp)
 
     def _has_time_window(self) -&gt; bool:
@@ -1415,17 +1427,55 @@ def from_json(json_str: str, start_dt: Optional[dtu.datetime] = None,
     :param station_ids: the station ids to check against.  if not given, assumes True.  default None
     :return: the data window if it suffices, otherwise None
     &#34;&#34;&#34;
-    info = io.json_to_data_window(json_str)
-    if start_dt and info[&#34;start_datetime&#34;] &gt; dtu.datetime_to_epoch_microseconds_utc(start_dt):
+    return DataWindow.from_json_dict(io.json_to_data_window(json_str), start_dt, end_dt, station_ids)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window.DataWindow.from_json_dict"><code class="name flex">
+<span>def <span class="ident">from_json_dict</span></span>(<span>json_dict: typing.Dict, start_dt: typing.Union[datetime.datetime, NoneType] = None, end_dt: typing.Union[datetime.datetime, NoneType] = None, station_ids: typing.Union[typing.Iterable[str], NoneType] = None) ‑> typing.Union[<a title="redvox.common.data_window.DataWindow" href="#redvox.common.data_window.DataWindow">DataWindow</a>, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reads a JSON string and checks if:
+* The requested times are within the JSON file's times
+* The requested stations are a subset of the JSON file's stations
+:param json_dict: the dictionary to read
+:param start_dt: the start datetime to check against.
+if not given, assumes True.
+default None
+:param end_dt: the end datetime to check against.
+if not given, assumes True.
+default None
+:param station_ids: the station ids to check against.
+if not given, assumes True.
+default None
+:return: the data window if it suffices, otherwise None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_json_dict(json_dict: Dict, start_dt: Optional[dtu.datetime] = None,
+                   end_dt: Optional[dtu.datetime] = None,
+                   station_ids: Optional[Iterable[str]] = None) -&gt; Optional[&#34;DataWindow&#34;]:
+    &#34;&#34;&#34;
+    Reads a JSON string and checks if:
+        * The requested times are within the JSON file&#39;s times
+        * The requested stations are a subset of the JSON file&#39;s stations
+    :param json_dict: the dictionary to read
+    :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
+    :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
+    :param station_ids: the station ids to check against.  if not given, assumes True.  default None
+    :return: the data window if it suffices, otherwise None
+    &#34;&#34;&#34;
+    if start_dt and json_dict[&#34;start_datetime&#34;] &gt; dtu.datetime_to_epoch_microseconds_utc(start_dt):
         return None
-    if end_dt and info[&#34;end_datetime&#34;] &lt; dtu.datetime_to_epoch_microseconds_utc(end_dt):
+    if end_dt and json_dict[&#34;end_datetime&#34;] &lt; dtu.datetime_to_epoch_microseconds_utc(end_dt):
         return None
-    if station_ids and not all(a in info[&#34;station_ids&#34;] for a in station_ids):
+    if station_ids and not all(a in json_dict[&#34;station_ids&#34;] for a in station_ids):
         return None
-    if info[&#34;compression_format&#34;] == &#34;lz4&#34;:
-        return DataWindow.deserialize(info[&#34;file_path&#34;])
+    if json_dict[&#34;compression_format&#34;] == &#34;lz4&#34;:
+        return DataWindow.deserialize(json_dict[&#34;file_path&#34;])
     else:
-        with open(info[&#34;file_path&#34;], &#39;rb&#39;) as fp:
+        with open(json_dict[&#34;file_path&#34;], &#39;rb&#39;) as fp:
             return pickle.load(fp)</code></pre>
 </details>
 </dd>
@@ -1465,18 +1515,7 @@ def from_json_file(path: str, start_dt: Optional[dtu.datetime] = None,
     :param station_ids: the station ids to check against.  if not given, assumes True.  default None
     :return: the data window if it suffices, otherwise None
     &#34;&#34;&#34;
-    info = io.json_file_to_data_window(path)
-    if start_dt and info[&#34;start_datetime&#34;] &gt; dtu.datetime_to_epoch_microseconds_utc(start_dt):
-        return None
-    if end_dt and info[&#34;end_datetime&#34;] &lt; dtu.datetime_to_epoch_microseconds_utc(end_dt):
-        return None
-    if station_ids and not all(a in info[&#34;station_ids&#34;] for a in station_ids):
-        return None
-    if info[&#34;compression_format&#34;] == &#34;lz4&#34;:
-        return DataWindow.deserialize(info[&#34;file_path&#34;])
-    else:
-        with open(info[&#34;file_path&#34;], &#39;rb&#39;) as fp:
-            return pickle.load(fp)</code></pre>
+    return DataWindow.from_json_dict(io.json_file_to_data_window(path), start_dt, end_dt, station_ids)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1889,6 +1928,7 @@ Updates sensor in place, returns nothing.
 :param compressed_file_base_dir: base directory to write the json file to.
 Default . (local directory)
 :param compressed_file_name: the optional file name.
+Do not include a file extension.
 If None, a default file name is created using this format:
 [start_ts]<em>[end_ts]</em>[num_stations].[compression_format]
 :param compression_format: the type of compression to use on the data window object.
@@ -1903,7 +1943,8 @@ default lz4
     &#34;&#34;&#34;
     Converts the data window into a JSON string
     :param compressed_file_base_dir: base directory to write the json file to.  Default . (local directory)
-    :param compressed_file_name: the optional file name.  If None, a default file name is created using this format:
+    :param compressed_file_name: the optional file name.  Do not include a file extension.
+                                    If None, a default file name is created using this format:
                                     [start_ts]_[end_ts]_[num_stations].[compression_format]
     :param compression_format: the type of compression to use on the data window object.  default lz4
     :return: The json string
@@ -1919,6 +1960,7 @@ default lz4
 :param base_dir: base directory to write the json file to.
 Default . (local directory)
 :param file_name: the optional file name.
+Do not include a file extension.
 If None, a default file name is created using this format:
 [start_ts]<em>[end_ts]</em>[num_stations].json
 :param compression_format: the type of compression to use on the data window object.
@@ -1933,7 +1975,8 @@ default lz4
     &#34;&#34;&#34;
     Converts the data window into a JSON file and writes it to disk.
     :param base_dir: base directory to write the json file to.  Default . (local directory)
-    :param file_name: the optional file name.  If None, a default file name is created using this format:
+    :param file_name: the optional file name.  Do not include a file extension.
+                        If None, a default file name is created using this format:
                         [start_ts]_[end_ts]_[num_stations].json
     :param compression_format: the type of compression to use on the data window object.  default lz4
     :return: The path to the written file
@@ -1974,6 +2017,7 @@ default lz4
 <li><code><a title="redvox.common.data_window.DataWindow.from_config" href="#redvox.common.data_window.DataWindow.from_config">from_config</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.from_config_file" href="#redvox.common.data_window.DataWindow.from_config_file">from_config_file</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.from_json" href="#redvox.common.data_window.DataWindow.from_json">from_json</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindow.from_json_dict" href="#redvox.common.data_window.DataWindow.from_json_dict">from_json_dict</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.from_json_file" href="#redvox.common.data_window.DataWindow.from_json_file">from_json_file</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.get_all_station_ids" href="#redvox.common.data_window.DataWindow.get_all_station_ids">get_all_station_ids</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.get_all_stations" href="#redvox.common.data_window.DataWindow.get_all_stations">get_all_stations</a></code></li>

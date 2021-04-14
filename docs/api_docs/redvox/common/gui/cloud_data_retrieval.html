@@ -33,7 +33,6 @@
     import sys
     from typing import List, Optional
 
-
     # noinspection Mypy
     from redvox.cloud.client import cloud_client, CloudClient
 
@@ -69,7 +68,6 @@
         QWidget,
     )
 
-
     class WindowSelectionWidget(QWidget):
         def __init__(self, parent=None):
             super(WindowSelectionWidget, self).__init__(parent)
@@ -78,7 +76,9 @@
             self.end_dt: QDateTimeEdit = QDateTimeEdit()
 
             now: datetime.datetime = datetime.datetime.now()
-            fifteen_minutes_ago: datetime.datetime = now - datetime.timedelta(minutes=15)
+            fifteen_minutes_ago: datetime.datetime = now - datetime.timedelta(
+                minutes=15
+            )
             date_fmt: str = &#34;yyyy-MM-dd HH:mm UTC&#34;
 
             self.start_dt.setDisplayFormat(date_fmt)
@@ -102,13 +102,13 @@
         def validate(self) -&gt; List[str]:
             errors: List[str] = []
             if self.start_dt.dateTime() &gt;= self.end_dt.dateTime():
-                errors.append(&#34;Start of time window must be strictly less than end of time window&#34;)
+                errors.append(
+                    &#34;Start of time window must be strictly less than end of time window&#34;
+                )
             return errors
-
 
     def empty_text(s: str) -&gt; bool:
         return s.strip() == &#34;&#34;
-
 
     class ServerSelectionWidget(QWidget):
         def __init__(self, redvox_config: Optional[RedVoxConfig], parent=None):
@@ -149,7 +149,7 @@
             self.retries.setText(&#34;3&#34;)
 
             self.disable_timing_correction.setText(&#34;Disable Timing Correction&#34;)
-            self.disable_timing_correction.setChecked(True)
+            self.disable_timing_correction.setChecked(False)
 
             layout: QVBoxLayout = QVBoxLayout()
             server_widget: QWidget = QWidget()
@@ -190,7 +190,6 @@
                 errors.append(&#34;Retries must be provided&#34;)
             return errors
 
-
     class AuthenticationWidget(QWidget):
         def __init__(self, redvox_config: Optional[RedVoxConfig], parent=None):
             super(AuthenticationWidget, self).__init__(parent)
@@ -221,7 +220,6 @@
                 errors.append(&#34;Password must be provided&#34;)
             return errors
 
-
     class ApiSelectionWidget(QWidget):
         def __init__(self, parent=None):
             super(ApiSelectionWidget, self).__init__(parent)
@@ -242,7 +240,6 @@
 
             self.setLayout(layout)
 
-
     class OutputDirectoryWidget(QWidget):
         def __init__(self, parent=None):
             super(OutputDirectoryWidget, self).__init__(parent)
@@ -262,7 +259,9 @@
             self.setLayout(layout)
 
         def open_dialog(self):
-            self.output_dir.setText(QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly))
+            self.output_dir.setText(
+                QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly)
+            )
 
         def validate(self) -&gt; List[str]:
             errors: List[str] = []
@@ -275,24 +274,34 @@
 
             return errors
 
-
     def download_process(
-            redvox_config: RedVoxConfig,
-            timeout: int,
-            req_start: int,
-            req_end: int,
-            station_ids: List[str],
-            api_type: DataRangeReqType,
-            correct_query_timing: bool,
-            out_dir: str,
-            retries: int,
-            out_queue: Queue,
+        redvox_config: RedVoxConfig,
+        timeout: int,
+        req_start: int,
+        req_end: int,
+        station_ids: List[str],
+        api_type: DataRangeReqType,
+        correct_query_timing: bool,
+        out_dir: str,
+        retries: int,
+        out_queue: Queue,
     ):
-        client: CloudClient
-        with cloud_client(redvox_config, timeout=float(timeout)) as client:
-            resp = client.request_data_range(req_start, req_end, station_ids, api_type, correct_query_timing)
-            resp.download_fs(out_dir, retries, out_queue=out_queue)
 
+        try:
+            client: CloudClient
+            with cloud_client(redvox_config, timeout=float(timeout)) as client:
+                resp = client.request_data_range(
+                    req_start,
+                    req_end,
+                    station_ids,
+                    api_type,
+                    correct_query_timing,
+                    out_queue=out_queue,
+                )
+                resp.download_fs(out_dir, retries, out_queue=out_queue)
+        except Exception as e:
+            out_queue.put(f&#34;Encountered an error: {e}&#34;)
+            out_queue.put(&#34;done&#34;)
 
     class DataDownloadGui(QDialog):
         def __init__(self, parent=None):
@@ -303,19 +312,29 @@
 
             redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find()
 
-            self.authentication_widget: AuthenticationWidget = AuthenticationWidget(redvox_config)
-            self.server_selection_widget: ServerSelectionWidget = ServerSelectionWidget(redvox_config)
-            self.window_selection_widget: WindowSelectionWidget = WindowSelectionWidget()
+            self.authentication_widget: AuthenticationWidget = AuthenticationWidget(
+                redvox_config
+            )
+            self.server_selection_widget: ServerSelectionWidget = ServerSelectionWidget(
+                redvox_config
+            )
+            self.window_selection_widget: WindowSelectionWidget = (
+                WindowSelectionWidget()
+            )
             self.station_ids_widget: QTextEdit = QTextEdit()
             self.api_selection_widget: ApiSelectionWidget = ApiSelectionWidget()
-            self.output_directory_widget: OutputDirectoryWidget = OutputDirectoryWidget()
+            self.output_directory_widget: OutputDirectoryWidget = (
+                OutputDirectoryWidget()
+            )
             self.download_data_btn: QPushButton = QPushButton(&#34;Download Data&#34;)
             # noinspection PyUnresolvedReferences
             self.download_data_btn.clicked.connect(self.download_data)
 
             self.log: QTextEdit = QTextEdit()
             self.log.setReadOnly(True)
-            self.info = lambda msg: self.log.append(f&#34;{datetime.datetime.utcnow()}: {msg}&#34;)
+            self.info = lambda msg: self.log.append(
+                f&#34;{datetime.datetime.utcnow()}: {msg}&#34;
+            )
 
             layout: QVBoxLayout = QVBoxLayout()
 
@@ -362,10 +381,18 @@
             host: str = self.server_selection_widget.host.text()
             port: int = int(self.server_selection_widget.port.text())
             out_dir: str = self.output_directory_widget.output_dir.text()
-            redvox_config: RedVoxConfig = RedVoxConfig(username, password, protocol, host, port)
-            req_start: int = int(self.window_selection_widget.start_dt.dateTime().toSecsSinceEpoch())
-            req_end: int = int(self.window_selection_widget.end_dt.dateTime().toSecsSinceEpoch())
-            station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines(False)
+            redvox_config: RedVoxConfig = RedVoxConfig(
+                username, password, protocol, host, port
+            )
+            req_start: int = int(
+                self.window_selection_widget.start_dt.dateTime().toSecsSinceEpoch()
+            )
+            req_end: int = int(
+                self.window_selection_widget.end_dt.dateTime().toSecsSinceEpoch()
+            )
+            station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines(
+                False
+            )
             api_type: DataRangeReqType
             if self.api_selection_widget.api_900_1000.isChecked():
                 # noinspection PyTypeChecker
@@ -379,10 +406,14 @@
 
             retries: int = int(self.server_selection_widget.retries.text())
             timeout: int = int(self.server_selection_widget.timeout.text())
-            correct_query_timing: bool = not self.server_selection_widget.disable_timing_correction.isChecked()
+            correct_query_timing: bool = (
+                not self.server_selection_widget.disable_timing_correction.isChecked()
+            )
 
             manager = Manager()
             out_queue = manager.Queue(1024)
+
+            self.info(&#34;Starting data query&#34;)
 
             process = Process(
                 target=download_process,
@@ -436,20 +467,21 @@
 
             return errors
 
-
     def run_gui() -&gt; None:
         app = QApplication(sys.argv)
         form = DataDownloadGui()
         form.show()
         sys.exit(app.exec_())
 
-
     if __name__ == &#34;__main__&#34;:
         run_gui()
 
 except ImportError:
     import warnings
-    warnings.warn(&#34;GUI dependencies are not installed. Install the &#39;GUI&#39; extra to enable this functionality.&#34;)</code></pre>
+
+    warnings.warn(
+        &#34;GUI dependencies are not installed. Install the &#39;GUI&#39; extra to enable this functionality.&#34;
+    )</code></pre>
 </details>
 </section>
 <section>
@@ -460,7 +492,7 @@ except ImportError:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.common.gui.cloud_data_retrieval.download_process"><code class="name flex">
-<span>def <span class="ident">download_process</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, timeout: int, req_start: int, req_end: int, station_ids: typing.List[str], api_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="../../cloud/data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a>, correct_query_timing: bool, out_dir: str, retries: int, out_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x140ebb2b0>>)</span>
+<span>def <span class="ident">download_process</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, timeout: int, req_start: int, req_end: int, station_ids: typing.List[str], api_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="../../cloud/data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a>, correct_query_timing: bool, out_dir: str, retries: int, out_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x144788370>>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -469,21 +501,33 @@ except ImportError:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def download_process(
-        redvox_config: RedVoxConfig,
-        timeout: int,
-        req_start: int,
-        req_end: int,
-        station_ids: List[str],
-        api_type: DataRangeReqType,
-        correct_query_timing: bool,
-        out_dir: str,
-        retries: int,
-        out_queue: Queue,
+    redvox_config: RedVoxConfig,
+    timeout: int,
+    req_start: int,
+    req_end: int,
+    station_ids: List[str],
+    api_type: DataRangeReqType,
+    correct_query_timing: bool,
+    out_dir: str,
+    retries: int,
+    out_queue: Queue,
 ):
-    client: CloudClient
-    with cloud_client(redvox_config, timeout=float(timeout)) as client:
-        resp = client.request_data_range(req_start, req_end, station_ids, api_type, correct_query_timing)
-        resp.download_fs(out_dir, retries, out_queue=out_queue)</code></pre>
+
+    try:
+        client: CloudClient
+        with cloud_client(redvox_config, timeout=float(timeout)) as client:
+            resp = client.request_data_range(
+                req_start,
+                req_end,
+                station_ids,
+                api_type,
+                correct_query_timing,
+                out_queue=out_queue,
+            )
+            resp.download_fs(out_dir, retries, out_queue=out_queue)
+    except Exception as e:
+        out_queue.put(f&#34;Encountered an error: {e}&#34;)
+        out_queue.put(&#34;done&#34;)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.gui.cloud_data_retrieval.empty_text"><code class="name flex">
@@ -669,19 +713,29 @@ See help(type(self)) for accurate signature.</p></div>
 
         redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find()
 
-        self.authentication_widget: AuthenticationWidget = AuthenticationWidget(redvox_config)
-        self.server_selection_widget: ServerSelectionWidget = ServerSelectionWidget(redvox_config)
-        self.window_selection_widget: WindowSelectionWidget = WindowSelectionWidget()
+        self.authentication_widget: AuthenticationWidget = AuthenticationWidget(
+            redvox_config
+        )
+        self.server_selection_widget: ServerSelectionWidget = ServerSelectionWidget(
+            redvox_config
+        )
+        self.window_selection_widget: WindowSelectionWidget = (
+            WindowSelectionWidget()
+        )
         self.station_ids_widget: QTextEdit = QTextEdit()
         self.api_selection_widget: ApiSelectionWidget = ApiSelectionWidget()
-        self.output_directory_widget: OutputDirectoryWidget = OutputDirectoryWidget()
+        self.output_directory_widget: OutputDirectoryWidget = (
+            OutputDirectoryWidget()
+        )
         self.download_data_btn: QPushButton = QPushButton(&#34;Download Data&#34;)
         # noinspection PyUnresolvedReferences
         self.download_data_btn.clicked.connect(self.download_data)
 
         self.log: QTextEdit = QTextEdit()
         self.log.setReadOnly(True)
-        self.info = lambda msg: self.log.append(f&#34;{datetime.datetime.utcnow()}: {msg}&#34;)
+        self.info = lambda msg: self.log.append(
+            f&#34;{datetime.datetime.utcnow()}: {msg}&#34;
+        )
 
         layout: QVBoxLayout = QVBoxLayout()
 
@@ -728,10 +782,18 @@ See help(type(self)) for accurate signature.</p></div>
         host: str = self.server_selection_widget.host.text()
         port: int = int(self.server_selection_widget.port.text())
         out_dir: str = self.output_directory_widget.output_dir.text()
-        redvox_config: RedVoxConfig = RedVoxConfig(username, password, protocol, host, port)
-        req_start: int = int(self.window_selection_widget.start_dt.dateTime().toSecsSinceEpoch())
-        req_end: int = int(self.window_selection_widget.end_dt.dateTime().toSecsSinceEpoch())
-        station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines(False)
+        redvox_config: RedVoxConfig = RedVoxConfig(
+            username, password, protocol, host, port
+        )
+        req_start: int = int(
+            self.window_selection_widget.start_dt.dateTime().toSecsSinceEpoch()
+        )
+        req_end: int = int(
+            self.window_selection_widget.end_dt.dateTime().toSecsSinceEpoch()
+        )
+        station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines(
+            False
+        )
         api_type: DataRangeReqType
         if self.api_selection_widget.api_900_1000.isChecked():
             # noinspection PyTypeChecker
@@ -745,10 +807,14 @@ See help(type(self)) for accurate signature.</p></div>
 
         retries: int = int(self.server_selection_widget.retries.text())
         timeout: int = int(self.server_selection_widget.timeout.text())
-        correct_query_timing: bool = not self.server_selection_widget.disable_timing_correction.isChecked()
+        correct_query_timing: bool = (
+            not self.server_selection_widget.disable_timing_correction.isChecked()
+        )
 
         manager = Manager()
         out_queue = manager.Queue(1024)
+
+        self.info(&#34;Starting data query&#34;)
 
         process = Process(
             target=download_process,
@@ -846,10 +912,18 @@ See help(type(self)) for accurate signature.</p></div>
     host: str = self.server_selection_widget.host.text()
     port: int = int(self.server_selection_widget.port.text())
     out_dir: str = self.output_directory_widget.output_dir.text()
-    redvox_config: RedVoxConfig = RedVoxConfig(username, password, protocol, host, port)
-    req_start: int = int(self.window_selection_widget.start_dt.dateTime().toSecsSinceEpoch())
-    req_end: int = int(self.window_selection_widget.end_dt.dateTime().toSecsSinceEpoch())
-    station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines(False)
+    redvox_config: RedVoxConfig = RedVoxConfig(
+        username, password, protocol, host, port
+    )
+    req_start: int = int(
+        self.window_selection_widget.start_dt.dateTime().toSecsSinceEpoch()
+    )
+    req_end: int = int(
+        self.window_selection_widget.end_dt.dateTime().toSecsSinceEpoch()
+    )
+    station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines(
+        False
+    )
     api_type: DataRangeReqType
     if self.api_selection_widget.api_900_1000.isChecked():
         # noinspection PyTypeChecker
@@ -863,10 +937,14 @@ See help(type(self)) for accurate signature.</p></div>
 
     retries: int = int(self.server_selection_widget.retries.text())
     timeout: int = int(self.server_selection_widget.timeout.text())
-    correct_query_timing: bool = not self.server_selection_widget.disable_timing_correction.isChecked()
+    correct_query_timing: bool = (
+        not self.server_selection_widget.disable_timing_correction.isChecked()
+    )
 
     manager = Manager()
     out_queue = manager.Queue(1024)
+
+    self.info(&#34;Starting data query&#34;)
 
     process = Process(
         target=download_process,
@@ -965,7 +1043,9 @@ See help(type(self)) for accurate signature.</p></div>
         self.setLayout(layout)
 
     def open_dialog(self):
-        self.output_dir.setText(QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly))
+        self.output_dir.setText(
+            QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly)
+        )
 
     def validate(self) -&gt; List[str]:
         errors: List[str] = []
@@ -1004,7 +1084,9 @@ See help(type(self)) for accurate signature.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def open_dialog(self):
-    self.output_dir.setText(QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly))</code></pre>
+    self.output_dir.setText(
+        QFileDialog.getExistingDirectory(options=QFileDialog.ShowDirsOnly)
+    )</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.gui.cloud_data_retrieval.OutputDirectoryWidget.validate"><code class="name flex">
@@ -1082,7 +1164,7 @@ See help(type(self)) for accurate signature.</p></div>
         self.retries.setText(&#34;3&#34;)
 
         self.disable_timing_correction.setText(&#34;Disable Timing Correction&#34;)
-        self.disable_timing_correction.setChecked(True)
+        self.disable_timing_correction.setChecked(False)
 
         layout: QVBoxLayout = QVBoxLayout()
         server_widget: QWidget = QWidget()
@@ -1184,7 +1266,9 @@ See help(type(self)) for accurate signature.</p></div>
         self.end_dt: QDateTimeEdit = QDateTimeEdit()
 
         now: datetime.datetime = datetime.datetime.now()
-        fifteen_minutes_ago: datetime.datetime = now - datetime.timedelta(minutes=15)
+        fifteen_minutes_ago: datetime.datetime = now - datetime.timedelta(
+            minutes=15
+        )
         date_fmt: str = &#34;yyyy-MM-dd HH:mm UTC&#34;
 
         self.start_dt.setDisplayFormat(date_fmt)
@@ -1208,7 +1292,9 @@ See help(type(self)) for accurate signature.</p></div>
     def validate(self) -&gt; List[str]:
         errors: List[str] = []
         if self.start_dt.dateTime() &gt;= self.end_dt.dateTime():
-            errors.append(&#34;Start of time window must be strictly less than end of time window&#34;)
+            errors.append(
+                &#34;Start of time window must be strictly less than end of time window&#34;
+            )
         return errors</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1239,7 +1325,9 @@ See help(type(self)) for accurate signature.</p></div>
 <pre><code class="python">def validate(self) -&gt; List[str]:
     errors: List[str] = []
     if self.start_dt.dateTime() &gt;= self.end_dt.dateTime():
-        errors.append(&#34;Start of time window must be strictly less than end of time window&#34;)
+        errors.append(
+            &#34;Start of time window must be strictly less than end of time window&#34;
+        )
     return errors</code></pre>
 </details>
 </dd>
