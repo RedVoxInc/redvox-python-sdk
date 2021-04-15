@@ -234,6 +234,43 @@ def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
     return dataframe
 
 
+def create_interpolated_timestamps_df(
+        end_points: pd.DataFrame,
+        sample_interval_micros: float,
+        gap_upper_limit: float = .9,
+) -> pd.DataFrame:
+    """
+    Creates a dataframe using the start and end data points to create data points separated by sample_interval_micros
+        between the start and end points
+    :param end_points: pd.Dataframe containing start and end points to gap fill on
+    :param sample_interval_micros: sample interval in microseconds of the timestamps
+    :param gap_upper_limit: fraction of sample interval required to confirm gap is at least 1 sample interval
+                            default .9 (90%)
+    :return: a dataframe consisting of the created data points
+    """
+    result_df = pd.DataFrame(columns=end_points.columns)
+    numeric = end_points.select_dtypes(include=[np.number])
+    numeric_start = numeric.iloc[0]
+    numeric_end = numeric.iloc[1]
+    numeric_diff = numeric_end - numeric_start
+    new_numeric = numeric_start.copy()
+    non_numeric = end_points.select_dtypes(exclude=[np.number])
+    non_numeric_start = non_numeric.iloc[0]
+    non_numeric_end = non_numeric.iloc[1]
+    # check if we have a gap that's more than 1 interval + the minimum duration of another interval
+    while numeric_diff["timestamps"] > sample_interval_micros * (1 + gap_upper_limit):
+        slope = numeric_diff / numeric_diff["timestamps"]
+        new_numeric += slope * sample_interval_micros
+        if np.abs(numeric_start["timestamps"] - new_numeric["timestamps"]) \
+                <= np.abs(numeric_end["timestamps"] - new_numeric["timestamps"]):
+            non_numeric_diff = non_numeric_start
+        else:
+            non_numeric_diff = non_numeric_end
+        result_df = result_df.append(pd.concat([new_numeric, non_numeric_diff]), ignore_index=True)
+        numeric_diff = numeric_end - new_numeric
+    return result_df
+
+
 def create_dataless_timestamps_df(
         start_timestamp: float,
         sample_interval_micros: float,
@@ -253,25 +290,30 @@ def create_dataless_timestamps_df(
     """
     empty_df = pd.DataFrame([], columns=columns)
     if num_samples_to_add > 0:
-        for column_index in columns:
-            if column_index == "timestamps":
-                if add_to_start:
-                    sample_interval_micros = -sample_interval_micros
-                empty_df[column_index] = (
-                        start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
-                )
-            elif column_index == "location_provider":
-                empty_df[column_index] = LocationProvider.UNKNOWN
-            elif column_index == "image_codec":
-                empty_df[column_index] = ImageCodec.UNKNOWN
-            elif column_index == "audio_codec":
-                empty_df[column_index] = AudioCodec.UNKNOWN
-            elif column_index == "network_type":
-                empty_df[column_index] = NetworkType.UNKNOWN_NETWORK
-            elif column_index == "power_state":
-                empty_df[column_index] = PowerState.UNKNOWN_POWER_STATE
-            elif column_index == "cell_service":
-                empty_df[column_index] = CellServiceState.UNKNOWN
-            else:
-                empty_df[column_index] = np.nan
+        if add_to_start:
+            sample_interval_micros = -sample_interval_micros
+        for t in [start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros]:
+            empty_df = pd.concat([empty_df, create_dataless_timestamp_column(t, columns)])
+    return empty_df
+
+
+def create_dataless_timestamp_column(timestamp: float, columns: pd.Index) -> pd.DataFrame:
+    empty_df = pd.DataFrame([], columns=columns)
+    for column_index in columns:
+        if column_index == "timestamps":
+            empty_df[column_index] = timestamp
+        elif column_index == "location_provider":
+            empty_df[column_index] = LocationProvider.UNKNOWN
+        elif column_index == "image_codec":
+            empty_df[column_index] = ImageCodec.UNKNOWN
+        elif column_index == "audio_codec":
+            empty_df[column_index] = AudioCodec.UNKNOWN
+        elif column_index == "network_type":
+            empty_df[column_index] = NetworkType.UNKNOWN_NETWORK
+        elif column_index == "power_state":
+            empty_df[column_index] = PowerState.UNKNOWN_POWER_STATE
+        elif column_index == "cell_service":
+            empty_df[column_index] = CellServiceState.UNKNOWN
+        else:
+            empty_df[column_index] = np.nan
     return empty_df

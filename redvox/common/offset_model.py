@@ -36,8 +36,9 @@ class OffsetModel:
         slope: float, the slope of the change in offset
         intercept: float, the offset at start_time
         score: float, R2 value of the model; 1.0 is best, 0.0 is worst
-        mean_latency: mean latency
-        std_dev_latency: latency standard deviation
+        mean_latency: float, mean latency
+        std_dev_latency: float, latency standard deviation
+        debug: boolean, if True, output additional information when running the OffsetModel, default False
     """
 
     def __init__(
@@ -48,6 +49,7 @@ class OffsetModel:
         start_time: float,
         end_time: float,
         n_samples: int = DEFAULT_SAMPLES,
+        debug: bool = False,
     ):
         """
         Create an OffsetModel
@@ -57,13 +59,15 @@ class OffsetModel:
         :param start_time: model's start timestamp in microseconds since epoch utc
         :param end_time: model's end timestamp in microseconds since epoch utc
         :param n_samples: number of samples per bin, default 3
+        :param debug: boolean for additional output when running OffsetModel, default False
         """
         self.start_time = start_time
         self.end_time = end_time
         self.k_bins = get_bins_per_5min(start_time, end_time)
         self.n_samples = n_samples
+        self.debug = debug
         latencies = np.where(latencies < MIN_VALID_LATENCY_MICROS, np.nan, latencies)
-        use_model = timesync_quality_check(latencies, start_time, end_time)
+        use_model = timesync_quality_check(latencies, start_time, end_time, self.debug)
         if use_model:
             # Organize the data into a data frame
             full_df = pd.DataFrame(data=times, columns=["times"])

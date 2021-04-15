@@ -209,9 +209,10 @@ def load_apim_audio_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
                     0.0,
                     True,
                     )
-            except ValueError:
-                print("Data arrays do not have the same number of points.\n"
-                      "Original error message: ", ValueError)
+            except ValueError as error:
+                print("Error occurred while loading audio data for station "
+                      f"{wrapped_packets[0].get_station_information().get_id()}.\n"
+                      f"Original error message: {error}")
     return None
 
 
@@ -263,10 +264,9 @@ def load_apim_compressed_audio_from_list(wrapped_packets: List[WrappedRedvoxPack
         sample_rate_hz = wrapped_packets[0].get_sensors().get_compressed_audio().get_sample_rate()
         return SensorData(
             get_sensor_description_list(wrapped_packets, SensorType.COMPRESSED_AUDIO),
-            pd.DataFrame(
-                np.transpose([data_df[0], data_df[0], data_df[1], data_df[2]]),
-                columns=["timestamps", "unaltered_timestamps", "compressed_audio", "audio_codec"],
-            ),
+            pd.DataFrame([data_df[0], data_df[0], data_df[1], data_df[2]],
+                         index=["timestamps", "unaltered_timestamps", "compressed_audio", "audio_codec"],
+                         ).T,
             SensorType.COMPRESSED_AUDIO,
             sample_rate_hz,
             1 / sample_rate_hz,
@@ -313,14 +313,13 @@ def load_apim_image_from_list(wrapped_packets: List[WrappedRedvoxPacketM]) -> Op
     for packet in wrapped_packets:
         image_sensor = packet.get_sensors().get_image()
         if image_sensor and packet.get_sensors().validate_image():
-            data_list[0].append(image_sensor.get_timestamps().get_timestamps())
-            data_list[1].append(image_sensor.get_samples())
-            data_list[2].append(np.full(len(data_list[0]), image_sensor.get_image_codec().value))
+            data_list[0].extend(image_sensor.get_timestamps().get_timestamps())
+            data_list[1].extend(image_sensor.get_samples())
+            data_list[2].extend(np.full(len(image_sensor.get_samples()), image_sensor.get_image_codec().value))
     if len(data_list[0]) > 0:
-        data_df = pd.DataFrame(
-            np.transpose([data_list[0], data_list[0], data_list[1], data_list[2]]),
-            columns=["timestamps", "unaltered_timestamps", "image", "image_codec"],
-        )
+        data_df = pd.DataFrame([data_list[0], data_list[0], data_list[1], data_list[2]],
+                               index=["timestamps", "unaltered_timestamps", "image", "image_codec"],
+                               ).T
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
             get_sensor_description_list(wrapped_packets, SensorType.IMAGE),

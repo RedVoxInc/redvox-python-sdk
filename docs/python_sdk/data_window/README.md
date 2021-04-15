@@ -227,7 +227,7 @@ Continuing with the example, we will look at the audio sensor of our station in 
 
 ```python
 audio_sensor = station.audio_sensor()
-print(audio_sensor.sample_rate)             # sample rate in hz
+print(audio_sensor.sample_rate_hz)             # sample rate in hz
 print(audio_sensor.is_sample_rate_fixed)    # is sample rate constant
 print(audio_sensor.sample_interval_s)       # sample interval in seconds
 print(audio_sensor.sample_interval_std_s)   # sample interval std dev
