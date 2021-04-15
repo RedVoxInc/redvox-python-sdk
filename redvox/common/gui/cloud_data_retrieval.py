@@ -362,9 +362,9 @@ try:
             req_end: int = int(
                 self.window_selection_widget.end_dt.dateTime().toSecsSinceEpoch()
             )
-            station_ids: List[str] = self.station_ids_widget.toPlainText().splitlines(
+            station_ids: List[str] = list(map(str.strip, self.station_ids_widget.toPlainText().splitlines(
                 False
-            )
+            )))
             api_type: DataRangeReqType
             if self.api_selection_widget.api_900_1000.isChecked():
                 # noinspection PyTypeChecker
