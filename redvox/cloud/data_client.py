@@ -40,8 +40,12 @@ def download_process(
             url: str = input_queue.get_nowait()
             data_key: str
             resp_len: int
-            data_key, resp_len = download_file(url, session, out_dir, retries)
-            result_queue.put(DownloadResult(data_key, resp_len), True, None)
+            try:
+                data_key, resp_len = download_file(url, session, out_dir, retries)
+                result_queue.put(DownloadResult(data_key, resp_len), True, None)
+            except FileExistsError:
+                print(f"File already exists, skipping...")
+                continue
     # Thrown when the queue is empty
     except queue.Empty:
         session.close()
