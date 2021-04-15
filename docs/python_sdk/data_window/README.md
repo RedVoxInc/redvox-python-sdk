@@ -5,6 +5,8 @@ The RedVox Python SDK contains routines for reading, creating, and writing RedVo
 DataWindow is a Python class designed to fetch data from a source.  It provides many filter options to the user, and will always attempt to get as much information as the user requests.
 It is capable of reading and exporting to various formats.
 
+If you wish to learn more about the low-level class used to construct DataWindow, refer to the [Station Documentation](station)
+
 ## Table of Contents
 
 <!-- toc -->
@@ -25,6 +27,7 @@ It is capable of reading and exporting to various formats.
   * [Data Aggregation](#data-aggregation)
   * [Data Preparation](#data-preparation)
   * [Data Window Complete](#data-window-complete)
+- [Low-Level Data Access](#low-level-data-access)
 - [DataWindow Example Code](#datawindow-example-code)
 
 <!-- tocstop -->
@@ -221,7 +224,7 @@ We recommend using the get_all_stations() and get_station(station_id) methods to
 
 Each Station contains data from the sensors, as well as some metadata about the Station.
 
-Refer to the [Station](../station) documentation or the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/station.html) for more information about how to use Station objects.
+Refer to the [Station](station) documentation or the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/station.html) for more information about how to use Station objects.
 
 Continuing with the example, we will look at the audio sensor of our station in this example:
 
@@ -513,6 +516,14 @@ The data is now organized by Station.  This process will be performed on all Sta
 ### Data Window Complete
 
 The Data Window has completed all operations and is ready for you to use!
+
+_[Table of Contents](#table-of-contents)_
+
+## Low-Level Data Access
+
+DataWindow uses Station objects to hold its processed data.
+
+Refer to [Station Documentation](station) for more information.
 
 _[Table of Contents](#table-of-contents)_
 

@@ -1,4 +1,4 @@
-# <img src="../img/redvox_logo.png" height="25"> **RedVox Python SDK Data Window Manual**
+# <img src="../img/redvox_logo.png" height="25"> **RedVox Python SDK Station and SensorData Manual**
 
 The RedVox Python SDK contains routines for reading, creating, and writing RedVox API 900 and RedVox API 1000 data files. The SDK is open-source.
 
@@ -307,7 +307,7 @@ The table below shows which columns can be accessed by each sensor
 |rotation vector     |rotation_vector_x, rotation_vector_y, rotation_vector_z|
 |gyroscope           |gyroscope_x, gyroscope_y, gyroscope_z|
 |gravity             |gravity_x, gravity_y, gravity_z |
-|location            |latitude, longitude, altitude, speed, bearing, horizontal_accuracy, vertical_accuracy, speed_accuracy, bearing_accuracy, location_provider|
+|location            |gps_timestamps, latitude, longitude, altitude, speed, bearing, horizontal_accuracy, vertical_accuracy, speed_accuracy, bearing_accuracy, location_provider|
 |station health      |battery_charge_remaining, battery_current_strength, internal_temp_c, network_type, network_strength, power_state, avail_ram, avail_disk, cell_service|
 
 *** Please note that entering an invalid channel name for a sensor will raise an error and print the list of allowed names.
@@ -332,7 +332,8 @@ The table below lists the sensors and their data's units
 |proximity               |                        |cm (this is also known as infrared sensor)|
 |relative humidity       |                        |percentage|
 |rotation vector         |                        |Unitless|
-|location                |latitude, longitude, bearing, bearing accuracy|degrees| 
+|location                |gps_timestamps          |microseconds since epoch UTC|
+|                        |latitude, longitude, bearing, bearing accuracy|degrees| 
 |                        |altitude, horizontal accuracy, vertical accuracy|meters|
 |                        |speed, speed_accuracy   |meters per second|
 |                        |location_provider       |enumeration of LocationProvider|

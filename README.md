@@ -9,6 +9,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc22 (2021-4-15)
+
+* Added gps timestamps to location sensors
+* DataWindow and Station documentation updated
+
 ### 3.0.0rc21 (2021-4-14)
 
 * Fix cloud based query timing correction for non-contiguous data
