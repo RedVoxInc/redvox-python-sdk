@@ -53,7 +53,7 @@ class StationTest(unittest.TestCase):
         self.assertTrue(audio_sensor.is_sample_rate_fixed)
         self.assertTrue(self.api900_station.has_location_sensor())
         loc_sensor = self.api900_station.location_sensor()
-        self.assertEqual(loc_sensor.data_df.shape, (2, 12))
+        self.assertEqual(loc_sensor.data_df.shape, (2, 13))
 
     def test_apim_station(self):
         self.assertEqual(len(self.apim_station.data), 2)
@@ -64,7 +64,7 @@ class StationTest(unittest.TestCase):
         self.assertTrue(audio_sensor.is_sample_rate_fixed)
         loc_sensor = self.apim_station.location_sensor()
         self.assertIsNotNone(loc_sensor)
-        self.assertEqual(loc_sensor.data_df.shape, (3, 12))
+        self.assertEqual(loc_sensor.data_df.shape, (3, 13))
         self.assertAlmostEqual(loc_sensor.get_data_channel("latitude")[0], 21.309, 3)
         accel_sensor = self.apim_station.accelerometer_sensor()
         self.assertIsNone(accel_sensor)

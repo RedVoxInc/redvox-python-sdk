@@ -15,6 +15,8 @@ DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS: int = 5000
 DEFAULT_GAP_UPPER_LIMIT: float = 0.8
 # percent of packet duration/sample rate required for gap to be considered nothing
 DEFAULT_GAP_LOWER_LIMIT: float = 0.02
+# columns for audio dataframe
+AUDIO_DF_COLUMNS = ["timestamps", "unaltered_timestamps", "microphone"]
 
 
 def calc_evenly_sampled_timestamps(
@@ -171,15 +173,12 @@ def fill_audio_gaps(
     :param gap_lower_limit: percentage of packet length required to disregard gap
     :return: dataframe without gaps
     """
-    result_df = pd.DataFrame(np.transpose([[], [], []]),
-                             columns=["timestamps", "unaltered_timestamps", "microphone"])
+    result_df = pd.DataFrame(np.transpose([[], [], []]), columns=AUDIO_DF_COLUMNS)
     last_data_timestamp: Optional[float] = None
     for packet in packet_data:
         samples_in_packet = packet[2]
         start_ts = packet[0]
         packet_length = sample_interval_micros * samples_in_packet
-        estimated_df = pd.DataFrame(np.transpose([[], [], []]),
-                                    columns=["timestamps", "unaltered_timestamps", "microphone"])
         if last_data_timestamp:
             # check if start_ts is close to the last timestamp in data_timestamps
             last_timestamp_diff = start_ts - last_data_timestamp
@@ -194,13 +193,13 @@ def fill_audio_gaps(
                     num_samples = samples_in_packet
                 else:
                     num_samples = np.ceil(last_timestamp_diff / sample_interval_micros) - 1
-                estimated_df = create_dataless_timestamps_df(last_data_timestamp, sample_interval_micros,
-                                                             estimated_df.columns, num_samples)
-                start_ts = estimated_df["timestamps"].iloc[-1] + sample_interval_micros
+                gap_df = create_dataless_timestamps_df(last_data_timestamp, sample_interval_micros,
+                                                       result_df.columns, num_samples)
+                start_ts = gap_df["timestamps"].iloc[-1] + sample_interval_micros
+                result_df = pd.concat([result_df, gap_df])
         estimated_ts = calc_evenly_sampled_timestamps(start_ts, samples_in_packet, sample_interval_micros)
-        result_df = pd.concat([result_df, estimated_df,
-                               pd.DataFrame(np.transpose([estimated_ts, estimated_ts, packet[1]]),
-                                            columns=["timestamps", "unaltered_timestamps", "microphone"])],
+        result_df = pd.concat([result_df, pd.DataFrame(np.transpose([estimated_ts, estimated_ts, packet[1]]),
+                                                       columns=AUDIO_DF_COLUMNS)],
                               ignore_index=True)
         last_data_timestamp = estimated_ts[-1]
     return result_df.sort_values("timestamps", ignore_index=True)
