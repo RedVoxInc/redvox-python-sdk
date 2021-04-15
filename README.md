@@ -9,6 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc23 (2021-4-15)
+
+* Fix bug when downloading data and file already exists
+
 ### 3.0.0rc22 (2021-4-15)
 
 * Added gps timestamps to location sensors
