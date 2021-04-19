@@ -9,6 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc24 (2021-4-16)
+
+* Add ability to stream metadata requests by chunk size chunks 
+
 ### 3.0.0rc23 (2021-4-15)
 
 * Fix bug when downloading data and file already exists
