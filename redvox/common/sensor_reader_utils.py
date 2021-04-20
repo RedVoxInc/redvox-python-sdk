@@ -387,7 +387,8 @@ def load_apim_image_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
         else:
             sample_rate = 1 / wrapped_packets[0].get_packet_duration_s()
         sample_interval = 1 / sample_rate
-        sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(data_list[0]))))
+        sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(data_list[0]))))\
+            if len(data_list[0]) > 1 else np.nan
         data_df = gpu.fill_gaps(pd.DataFrame(
             np.transpose([data_list[0], data_list[0], data_list[1], data_list[2]]),
             columns=IMAGE_COLUMNS), my_gaps, sample_interval)
@@ -1286,7 +1287,8 @@ def load_apim_health_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
         else:
             sample_rate = 1 / wrapped_packets[0].get_packet_duration_s()
         sample_interval = 1 / sample_rate
-        sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(data_list[0]))))
+        sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(data_list[0])))) \
+            if len(data_list[0]) > 1 else np.nan
         df = gpu.fill_gaps(pd.DataFrame(
             np.transpose(data_list),
             columns=["timestamps", "unaltered_timestamps", "battery_charge_remaining", "battery_current_strength",
