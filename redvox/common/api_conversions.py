@@ -283,14 +283,16 @@ def convert_api_900_to_1000(
         permission_location = _extract_meta_bool(loc_meta_900, "permissionLocation")
         enabled_location = _extract_meta_bool(loc_meta_900, "enabledLocation")
 
+        n_p = location_m.get_timestamps().get_timestamps_count()
+
         if desired_location:
-            location_m.get_location_providers().set_values([LocationProvider.USER])
+            location_m.get_location_providers().set_values([LocationProvider.USER for i in range(n_p)])
         elif enabled_location:
-            location_m.get_location_providers().set_values([LocationProvider.GPS])
+            location_m.get_location_providers().set_values([LocationProvider.GPS for i in range(n_p)])
         elif use_location and desired_location and permission_location:
-            location_m.get_location_providers().set_values([LocationProvider.NETWORK])
+            location_m.get_location_providers().set_values([LocationProvider.NETWORK for i in range(n_p)])
         else:
-            location_m.get_location_providers().set_values([LocationProvider.NONE])
+            location_m.get_location_providers().set_values([LocationProvider.NONE for i in range(n_p)])
 
         location_m.set_location_permissions_granted(permission_location)
         location_m.set_location_services_enabled(use_location)

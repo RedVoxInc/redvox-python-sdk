@@ -40,7 +40,7 @@ class ReaderTests(unittest.TestCase):
         audio = sdru.load_apim_audio(self.apim_files[0])
         self.assertEqual(audio.sample_rate_hz, 48000)
         self.assertEqual(audio.num_samples(), 240000)
-        audio_list = sdru.load_apim_audio_from_list(self.apim_files)
+        audio_list, gaps = sdru.load_apim_audio_from_list(self.apim_files)
         self.assertEqual(audio_list.sample_rate_hz, 48000)
         self.assertEqual(audio_list.num_samples(), 720000)
 
@@ -48,7 +48,7 @@ class ReaderTests(unittest.TestCase):
         location = sdru.load_apim_location(self.apim_files[0])
         self.assertTrue(np.isnan(location.sample_rate_hz))
         self.assertEqual(location.num_samples(), 1)
-        location_list = sdru.load_apim_location_from_list(self.apim_files)
+        location_list = sdru.load_apim_location_from_list(self.apim_files, [])
         self.assertAlmostEqual(location_list.sample_rate_hz, .2, 1)
         self.assertEqual(location_list.num_samples(), 3)
 

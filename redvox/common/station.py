@@ -37,6 +37,7 @@ class Station:
         is_audio_scrambled: bool, True if audio data is scrambled, default False
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
         timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
+        _gaps: List of Tuples of floats indicating start and end times of gaps.  Times are not inclusive of the gap.
     """
 
     def __init__(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None):
@@ -47,6 +48,7 @@ class Station:
         self.data = {}
         self.packet_metadata = []
         self.is_timestamps_updated = False
+        self._gaps = []
         if data_packets and st_utils.validate_station_key_list(data_packets, True):
             self.id = data_packets[0].get_station_information().get_id()
             self.uuid = data_packets[0].get_station_information().get_uuid()
@@ -225,9 +227,7 @@ class Station:
         calculate the mean packet duration using the stations' packets
         :return: mean duration of packets in microseconds
         """
-        return np.mean(
-            [tsd.packet_duration for tsd in self.timesync_analysis.timesync_data]
-        )
+        return float(np.mean([tsd.packet_duration for tsd in self.timesync_analysis.timesync_data]))
 
     def get_mean_packet_audio_samples(self) -> float:
         """
@@ -958,8 +958,10 @@ class Station:
         self.data = {}
         self.packet_metadata: List[st_utils.StationPacketMetadata] = [
             st_utils.StationPacketMetadata(packet) for packet in packets]
-        funcs = [sdru.load_apim_audio_from_list,
-                 sdru.load_apim_compressed_audio_from_list,
+        sensor, self._gaps = sdru.load_apim_audio_from_list(packets)
+        if sensor:
+            self.append_sensor(sensor)
+        funcs = [sdru.load_apim_compressed_audio_from_list,
                  sdru.load_apim_image_from_list,
                  sdru.load_apim_location_from_list,
                  sdru.load_apim_pressure_from_list,
@@ -976,7 +978,7 @@ class Station:
                  sdru.load_apim_rotation_vector_from_list,
                  sdru.load_apim_health_from_list,
                  ]
-        sensors = map(FunctionType.__call__, funcs, repeat(packets))
+        sensors = map(FunctionType.__call__, funcs, repeat(packets), repeat(self._gaps))
         for sensor in sensors:
             if sensor:
                 self.append_sensor(sensor)

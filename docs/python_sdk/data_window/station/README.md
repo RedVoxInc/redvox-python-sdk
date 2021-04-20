@@ -34,6 +34,8 @@ Station objects are comprised of a station key, the sensor data, data packet met
 
 Each Station has a unique key.  Keys are comprised of the Station's id, uuid, start timestamp since epoch UTC and the station's metadata.  Stations with the same key can be combined into one Station.
 
+Stations will do their best to fill any gaps that can be detected in the data.
+
 Refer to the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/station.html) as needed.
 
 _[Table of Contents](#table-of-contents)_
@@ -356,6 +358,8 @@ Copy the following lines as needed:
 ```python
 from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
+from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
+from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 ```
 
 _[Table of Contents](#table-of-contents)_

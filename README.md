@@ -9,9 +9,12 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
-### 3.0.0rc24 (2021-4-16)
+### 3.0.0rc24 (2021-4-19)
 
-* Add ability to stream metadata requests by chunk size chunks 
+* Add ability to stream metadata requests by chunk size chunks
+* gap filling performed when data is loaded instead of during data window creation
+* filled converted api900 location provider arrays to be same length as number of samples
+* fixed creation of interpolated points when dataframes do not contain expected types
 
 ### 3.0.0rc23 (2021-4-15)
 

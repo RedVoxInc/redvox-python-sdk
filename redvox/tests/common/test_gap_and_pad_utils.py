@@ -83,73 +83,73 @@ class PadDataTest(unittest.TestCase):
         )
 
 
-class FillGapTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        timestamps = [
-            dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(30),
-            dt.seconds_to_microseconds(100),
-        ]
-        cls.dataframe = pd.DataFrame(
-            np.transpose([timestamps, [1, 3, 10]]), columns=["timestamps", "temp"]
-        )
-        cls.singleton = pd.DataFrame(
-            [[timestamps[0], 1]], columns=["timestamps", "temp"]
-        )
-
-    def test_singleton_fill_gaps(self):
-        filled_singleton = gpu.fill_gaps(
-            self.singleton,
-            dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(10)
-        )
-        self.assertEqual(filled_singleton.shape, (1, 2))
-        self.assertEqual(
-            filled_singleton.loc[0, "timestamps"], dt.seconds_to_microseconds(10)
-        )
-
-    def test_fill_gaps(self):
-        filled_dataframe = gpu.fill_gaps(
-            self.dataframe,
-            dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(10)
-        )
-        self.assertEqual(filled_dataframe.shape, (10, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, "timestamps"], dt.seconds_to_microseconds(20)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, "timestamps"], dt.seconds_to_microseconds(30)
-        )
-
-    def test_fill_gaps_long_interval(self):
-        filled_dataframe = gpu.fill_gaps(
-            self.dataframe,
-            dt.seconds_to_microseconds(20),
-            dt.seconds_to_microseconds(10),
-        )
-        self.assertEqual(filled_dataframe.shape, (6, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, "timestamps"], dt.seconds_to_microseconds(30)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, "timestamps"], dt.seconds_to_microseconds(50)
-        )
-
-    def test_fill_gaps_long_gap(self):
-        filled_dataframe = gpu.fill_gaps(
-            self.dataframe,
-            dt.seconds_to_microseconds(10),
-            dt.seconds_to_microseconds(20),
-        )
-        self.assertEqual(filled_dataframe.shape, (9, 2))
-        self.assertEqual(
-            filled_dataframe.loc[1, "timestamps"], dt.seconds_to_microseconds(30)
-        )
-        self.assertEqual(
-            filled_dataframe.loc[2, "timestamps"], dt.seconds_to_microseconds(40)
-        )
+# class FillGapTest(unittest.TestCase):
+#     @classmethod
+#     def setUpClass(cls) -> None:
+#         timestamps = [
+#             dt.seconds_to_microseconds(10),
+#             dt.seconds_to_microseconds(30),
+#             dt.seconds_to_microseconds(100),
+#         ]
+#         cls.dataframe = pd.DataFrame(
+#             np.transpose([timestamps, [1, 3, 10]]), columns=["timestamps", "temp"]
+#         )
+#         cls.singleton = pd.DataFrame(
+#             [[timestamps[0], 1]], columns=["timestamps", "temp"]
+#         )
+#
+#     def test_singleton_fill_gaps(self):
+#         filled_singleton = gpu.fill_gaps(
+#             self.singleton,
+#             dt.seconds_to_microseconds(10),
+#             dt.seconds_to_microseconds(10)
+#         )
+#         self.assertEqual(filled_singleton.shape, (1, 2))
+#         self.assertEqual(
+#             filled_singleton.loc[0, "timestamps"], dt.seconds_to_microseconds(10)
+#         )
+#
+#     def test_fill_gaps(self):
+#         filled_dataframe = gpu.fill_gaps(
+#             self.dataframe,
+#             dt.seconds_to_microseconds(10),
+#             dt.seconds_to_microseconds(10)
+#         )
+#         self.assertEqual(filled_dataframe.shape, (10, 2))
+#         self.assertEqual(
+#             filled_dataframe.loc[1, "timestamps"], dt.seconds_to_microseconds(20)
+#         )
+#         self.assertEqual(
+#             filled_dataframe.loc[2, "timestamps"], dt.seconds_to_microseconds(30)
+#         )
+#
+#     def test_fill_gaps_long_interval(self):
+#         filled_dataframe = gpu.fill_gaps(
+#             self.dataframe,
+#             dt.seconds_to_microseconds(20),
+#             dt.seconds_to_microseconds(10),
+#         )
+#         self.assertEqual(filled_dataframe.shape, (6, 2))
+#         self.assertEqual(
+#             filled_dataframe.loc[1, "timestamps"], dt.seconds_to_microseconds(30)
+#         )
+#         self.assertEqual(
+#             filled_dataframe.loc[2, "timestamps"], dt.seconds_to_microseconds(50)
+#         )
+#
+#     def test_fill_gaps_long_gap(self):
+#         filled_dataframe = gpu.fill_gaps(
+#             self.dataframe,
+#             dt.seconds_to_microseconds(10),
+#             dt.seconds_to_microseconds(20),
+#         )
+#         self.assertEqual(filled_dataframe.shape, (9, 2))
+#         self.assertEqual(
+#             filled_dataframe.loc[1, "timestamps"], dt.seconds_to_microseconds(30)
+#         )
+#         self.assertEqual(
+#             filled_dataframe.loc[2, "timestamps"], dt.seconds_to_microseconds(40)
+#         )
 
 
 class CreateDatalessTimestampsDFTest(unittest.TestCase):
@@ -199,3 +199,41 @@ class CreateDatalessTimestampsDFTest(unittest.TestCase):
         self.assertEqual(len(new_df), 7)
         self.assertEqual(new_df.loc[0, "timestamps"], 7000)
         self.assertEqual(new_df.loc[6, "timestamps"], 1000)
+
+
+class InterpolateGapsTest(unittest.TestCase):
+    def test_create_simple_df(self):
+        my_df = pd.DataFrame([[1000, 50], [8000, 400], [9000, 450], [15000, 750]], columns=["timestamps", "data"])
+        gaps = [(1000, 8000), (9000, 15000)]
+        filled_df = gpu.fill_gaps(my_df, gaps)
+        self.assertEqual(len(filled_df["timestamps"]), 15)
+
+    def test_create_gap_after_end(self):
+        my_df = pd.DataFrame([[1000, 50], [8000, 400], [9000, 450], [15000, 750]], columns=["timestamps", "data"])
+        gaps = [(1000, 8000), (9000, 19000)]
+        filled_df = gpu.fill_gaps(my_df, gaps)
+        self.assertEqual(len(filled_df["timestamps"]), 15)
+
+    def test_create_gap_before_begin(self):
+        my_df = pd.DataFrame([[11000, 50], [18000, 400], [19000, 450], [25000, 750]], columns=["timestamps", "data"])
+        gaps = [(1000, 18000), (19000, 29000)]
+        filled_df = gpu.fill_gaps(my_df, gaps)
+        self.assertEqual(len(filled_df["timestamps"]), 15)
+
+    def test_create_gap_intersect_end(self):
+        my_df = pd.DataFrame([[1000, 50], [8000, 400], [9000, 450], [15000, 750]], columns=["timestamps", "data"])
+        gaps = [(1000, 7000), (6000, 8000), (9000, 15000)]
+        filled_df = gpu.fill_gaps(my_df, gaps)
+        self.assertEqual(len(filled_df["timestamps"]), 15)
+
+    def test_create_gap_intersect_begin(self):
+        my_df = pd.DataFrame([[1000, 50], [8000, 400], [9000, 450], [15000, 750]], columns=["timestamps", "data"])
+        gaps = [(5000, 8000), (1000, 7000), (9000, 15000)]
+        filled_df = gpu.fill_gaps(my_df, gaps)
+        self.assertEqual(len(filled_df["timestamps"]), 15)
+
+    def test_create_gap_overlap(self):
+        my_df = pd.DataFrame([[1000, 50], [8000, 400], [9000, 450], [15000, 750]], columns=["timestamps", "data"])
+        gaps = [(4000, 6000), (1000, 8000), (9000, 15000)]
+        filled_df = gpu.fill_gaps(my_df, gaps)
+        self.assertEqual(len(filled_df["timestamps"]), 15)

@@ -17,6 +17,11 @@ DEFAULT_GAP_UPPER_LIMIT: float = 0.8
 DEFAULT_GAP_LOWER_LIMIT: float = 0.02
 # columns for audio dataframe
 AUDIO_DF_COLUMNS = ["timestamps", "unaltered_timestamps", "microphone"]
+# columns that cannot be interpolated
+NON_INTERPOLATED_COLUMNS = ["compressed_audio", "image"]
+# columns that are not numeric but can be interpolated
+NON_NUMERIC_COLUMNS = ["location_provider", "image_codec", "audio_codec",
+                       "network_type", "power_state", "cell_service"]
 
 
 def calc_evenly_sampled_timestamps(
@@ -24,12 +29,47 @@ def calc_evenly_sampled_timestamps(
 ) -> np.array:
     """
     given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+
     :param start: float, start timestamp in microseconds
     :param samples: int, number of samples
     :param sample_interval_micros: float, sample interval in microseconds
     :return: np.array with evenly spaced timestamps starting at start
     """
     return start + (np.arange(0, samples) * sample_interval_micros)
+
+
+def check_gap_list(gaps: List[Tuple[float, float]], start_timestamp: float = None,
+                   end_timestamp: float = None) -> List[Tuple[float, float]]:
+    """
+    removes any gaps where end time <= start time, consolidates overlapping gaps, and ensures that no gap
+    starts or ends before start_timestamp and starts or ends after end_timestamp.  All timestamps are in
+    microseconds since epoch UTC
+
+    :param gaps: list of gaps to check
+    :param start_timestamp: lowest possible timestamp for a gap to start at
+    :param end_timestamp: lowest possible timestamp for a gap to end at
+    :return: list of correct, valid gaps
+    """
+    return_gaps: List[Tuple[float, float]] = []
+    for gap in gaps:
+        if start_timestamp:
+            gap = (np.max([start_timestamp, gap[0]]), np.max([start_timestamp, gap[1]]))
+        if end_timestamp:
+            gap = (np.min([end_timestamp, gap[0]]), np.min([end_timestamp, gap[1]]))
+        if gap[0] < gap[1]:
+            if len(return_gaps) < 1:
+                return_gaps.append(gap)
+            for a, r_g in enumerate(return_gaps):
+                if (gap[0] < r_g[0] and gap[1] < r_g[0]) or (gap[0] > r_g[1] and gap[1] > r_g[1]):
+                    return_gaps.append(gap)
+                    break
+                else:
+                    if gap[0] < r_g[0] < gap[1]:
+                        r_g = (gap[0], r_g[1])
+                    if gap[0] < r_g[1] < gap[1]:
+                        r_g = (r_g[0], gap[1])
+                    return_gaps[a] = r_g
+    return return_gaps
 
 
 def pad_data(
@@ -40,6 +80,7 @@ def pad_data(
 ) -> pd.DataFrame:
     """
     Pad the start and end of the dataframe with np.nan
+
     :param expected_start: timestamp indicating start time of the data to pad from
     :param expected_end: timestamp indicating end time of the data to pad from
     :param data_df: dataframe with timestamps as column "timestamps"
@@ -79,7 +120,7 @@ def pad_data(
     return result_df.sort_values("timestamps", ignore_index=True)
 
 
-def fill_gaps(
+def fill_gaps_old(
         data_df: pd.DataFrame,
         sample_interval_micros: float,
         gap_time_micros: float,
@@ -87,6 +128,7 @@ def fill_gaps(
 ) -> pd.DataFrame:
     """
     fills gaps in the dataframe with np.nan by interpolating timestamps based on the mean expected sample interval
+
     :param data_df: dataframe with timestamps as column "timestamps"
     :param sample_interval_micros: sample interval in microseconds
     :param gap_time_micros: minimum amount of microseconds between data points that would indicate a gap
@@ -131,13 +173,13 @@ def fill_gaps(
             first_data_df = data_df.iloc[:half_samples].copy().reset_index(drop=True)
             second_data_df = data_df.iloc[half_samples:].copy().reset_index(drop=True)
             # give half the samples to each recursive call
-            first_data_df = fill_gaps(
+            first_data_df = fill_gaps_old(
                 first_data_df,
                 sample_interval_micros,
                 gap_time_micros,
                 num_points_to_brute_force,
             )
-            second_data_df = fill_gaps(
+            second_data_df = fill_gaps_old(
                 second_data_df,
                 sample_interval_micros,
                 gap_time_micros,
@@ -146,35 +188,108 @@ def fill_gaps(
             result_df = first_data_df.append(second_data_df, ignore_index=True)
             if result_df["timestamps"].size < expected_num_points:
                 mid_df = data_df.iloc[half_samples-1:half_samples+1].copy().reset_index(drop=True)
-                mid_df = fill_gaps(mid_df, sample_interval_micros, gap_time_micros, num_points_to_brute_force)
+                mid_df = fill_gaps_old(mid_df, sample_interval_micros, gap_time_micros, num_points_to_brute_force)
                 mid_df = mid_df.iloc[1:len(mid_df["timestamps"])-1]
                 result_df = result_df.append(mid_df, ignore_index=True)
+    return result_df.sort_values("timestamps", ignore_index=True)
+
+
+def fill_gaps(
+        data_df: pd.DataFrame,
+        gaps: List[Tuple[float, float]],
+        sample_interval_micros: float = np.nan,
+        interpolate: bool = False
+) -> pd.DataFrame:
+    """
+    fills gaps in the dataframe with np.nan or interpolated values by interpolating timestamps based on the
+    calculated sample interval
+
+    :param data_df: dataframe with timestamps as column "timestamps"
+    :param gaps: list of tuples of known non-inclusive start and end timestamps of the gaps
+    :param sample_interval_micros: known sample interval of the data points, if not given,
+                                    sample rate will be calculated from existing non-gap points.  default np.nan
+    :param interpolate: if True, interpolate the data points, otherwise fill with np.nan or defaults for enums,
+                        default False
+    :return: dataframe without gaps
+    """
+    # extract the necessary information to compute gap size and gap timestamps
+    data_time_stamps = data_df["timestamps"].to_numpy()
+    result_df = data_df.copy()
+    if len(data_time_stamps) > 1:
+        gaps = check_gap_list(gaps, data_time_stamps[0], data_time_stamps[-1])
+        sample_intervals: List[float] = []
+        must_fill: List[Tuple[float, float]] = []
+        if len(gaps) > 0:
+            # check every pair of consecutive timestamps;
+            # if any of the values are within or around a gap, it is unreliable
+            gap_start = None
+            gap_end = None
+            for t in range(len(data_time_stamps) - 1):
+                not_gap = True
+                for g in gaps:
+                    # if first timestamp is in gap, then compute to second timestamp
+                    # if second timestamp is in gap, then compute from first timestamp
+                    if data_time_stamps[t] > g[0] and data_time_stamps[t+1] < g[1]:
+                        not_gap = False
+                    elif data_time_stamps[t] <= g[0] and data_time_stamps[t+1] >= g[1]:
+                        not_gap = False
+                        gap_start = data_time_stamps[t]
+                        gap_end = data_time_stamps[t+1]
+                    elif g[0] < data_time_stamps[t] < g[1]:
+                        not_gap = False
+                        gap_end = data_time_stamps[t+1]
+                    elif g[0] < data_time_stamps[t+1] < g[1]:
+                        not_gap = False
+                        gap_start = data_time_stamps[t]
+                if not_gap:
+                    sample_intervals.append(data_time_stamps[t+1] - data_time_stamps[t])
+                elif gap_start and gap_end:
+                    must_fill.append((gap_start, gap_end))
+                    gap_start = None
+                    gap_end = None
+            if len(sample_intervals) > 0:
+                if np.isnan(sample_interval_micros):
+                    sample_interval_micros: float = float(np.mean(sample_intervals))
+                # std_sample_interval = np.std(sample_intervals)
+                data_duration = data_time_stamps[-1] - data_time_stamps[0]
+                expected_samples = np.floor(data_duration / sample_interval_micros) + 1
+                if expected_samples > len(data_time_stamps):
+                    for f in must_fill:
+                        if interpolate:
+                            gap_df = result_df.loc[result_df["timestamps"].isin(f)]
+                            gap_df = create_interpolated_timestamps_df(gap_df, sample_interval_micros)
+                        else:
+                            gap_df = create_dataless_timestamps_df(f[0], sample_interval_micros, result_df.columns,
+                                                                   np.floor((f[1] - f[0]) / sample_interval_micros) - 1)
+                        result_df = pd.concat([result_df, gap_df], ignore_index=True)
     return result_df.sort_values("timestamps", ignore_index=True)
 
 
 def fill_audio_gaps(
         packet_data: List[Tuple[float, np.array, int]],
         sample_interval_micros: float,
-        gap_upper_limit: float = .9,
-        gap_lower_limit: float = .02
-) -> pd.DataFrame:
+        gap_upper_limit: float = DEFAULT_GAP_UPPER_LIMIT,
+        gap_lower_limit: float = DEFAULT_GAP_LOWER_LIMIT
+) -> (pd.DataFrame, List[Tuple[float, float]]):
     """
     fills gaps in the dataframe with np.nan by interpolating timestamps based on the expected sample interval
-      ignores gaps with duration less than or equal to packet length * gap_lower_limit
+      * ignores gaps with duration less than or equal to packet length * gap_lower_limit
+      * converts gaps with duration greater than or equal to packet length * gap_upper_limit into a multiple of
+        packet length
 
-      converts gaps with duration greater than or equal to packet length * gap_upper_limit into a multiple of
-      packet length
     :param packet_data: list of tuples, each tuple containing three pieces of packet information:
         * packet_start_timestamps: float of packet start timestamp in microseconds
         * audio_data: array of data points
         * samples_per_packet: int, number of samples in the packet
     :param sample_interval_micros: sample interval in microseconds
-    :param gap_upper_limit: percentage of packet length required to confirm gap is at least 1 packet
-    :param gap_lower_limit: percentage of packet length required to disregard gap
-    :return: dataframe without gaps
+    :param gap_upper_limit: percentage of packet length required to confirm gap is at least 1 packet,
+                            default DEFAULT_GAP_UPPER_LIMIT
+    :param gap_lower_limit: percentage of packet length required to disregard gap, default DEFAULT_GAP_LOWER_LIMIT
+    :return: dataframe without gaps and the list of timestamps of the non-inclusive start and end of the gaps
     """
     result_df = pd.DataFrame(np.transpose([[], [], []]), columns=AUDIO_DF_COLUMNS)
     last_data_timestamp: Optional[float] = None
+    gaps = []
     for packet in packet_data:
         samples_in_packet = packet[2]
         start_ts = packet[0]
@@ -189,20 +304,20 @@ def fill_audio_gaps(
                                  f"last timestamp of previous "
                                  f"packet: {dtu.microseconds_to_seconds(last_data_timestamp)}")
             else:
-                if np.abs(last_timestamp_diff) > gap_upper_limit * packet_length:
+                if last_timestamp_diff > gap_upper_limit * packet_length:
                     num_samples = samples_in_packet
                 else:
                     num_samples = np.ceil(last_timestamp_diff / sample_interval_micros) - 1
                 gap_df = create_dataless_timestamps_df(last_data_timestamp, sample_interval_micros,
                                                        result_df.columns, num_samples)
                 start_ts = gap_df["timestamps"].iloc[-1] + sample_interval_micros
+                gaps.append((last_data_timestamp, start_ts))
                 result_df = pd.concat([result_df, gap_df])
         estimated_ts = calc_evenly_sampled_timestamps(start_ts, samples_in_packet, sample_interval_micros)
         result_df = pd.concat([result_df, pd.DataFrame(np.transpose([estimated_ts, estimated_ts, packet[1]]),
-                                                       columns=AUDIO_DF_COLUMNS)],
-                              ignore_index=True)
+                                                       columns=AUDIO_DF_COLUMNS)], ignore_index=True)
         last_data_timestamp = estimated_ts[-1]
-    return result_df.sort_values("timestamps", ignore_index=True)
+    return result_df.sort_values("timestamps", ignore_index=True), gaps
 
 
 def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
@@ -217,6 +332,7 @@ def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
         * start_index must be non-negative and less than the length of dataframe
         * num_samples_to_add must be greater than 0
         * the points are added onto the end and the result is not sorted
+
     :param dataframe: dataframe to add dataless timestamps to
     :param start_index: index of the dataframe to use as starting point for creating new values
     :param sample_interval_micros: sample interval in microseconds of the timestamps
@@ -236,24 +352,26 @@ def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
 def create_interpolated_timestamps_df(
         end_points: pd.DataFrame,
         sample_interval_micros: float,
-        gap_upper_limit: float = .9,
+        gap_upper_limit: float = DEFAULT_GAP_UPPER_LIMIT,
 ) -> pd.DataFrame:
     """
     Creates a dataframe using the start and end data points to create data points separated by sample_interval_micros
-        between the start and end points
+    between the start and end points
+
     :param end_points: pd.Dataframe containing start and end points to gap fill on
     :param sample_interval_micros: sample interval in microseconds of the timestamps
     :param gap_upper_limit: fraction of sample interval required to confirm gap is at least 1 sample interval
-                            default .9 (90%)
+                            default DEFAULT_GAP_UPPER_LIMIT
     :return: a dataframe consisting of the created data points
     """
     result_df = pd.DataFrame(columns=end_points.columns)
-    numeric = end_points.select_dtypes(include=[np.number])
+    numeric = end_points[[col for col in end_points.columns
+                          if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
     numeric_start = numeric.iloc[0]
     numeric_end = numeric.iloc[1]
     numeric_diff = numeric_end - numeric_start
     new_numeric = numeric_start.copy()
-    non_numeric = end_points.select_dtypes(exclude=[np.number])
+    non_numeric = end_points[[col for col in end_points.columns if col in NON_NUMERIC_COLUMNS]]
     non_numeric_start = non_numeric.iloc[0]
     non_numeric_end = non_numeric.iloc[1]
     # check if we have a gap that's more than 1 interval + the minimum duration of another interval
@@ -265,6 +383,11 @@ def create_interpolated_timestamps_df(
             non_numeric_diff = non_numeric_start
         else:
             non_numeric_diff = non_numeric_end
+        non_interpolated_columns = [col for col in NON_INTERPOLATED_COLUMNS if col in result_df.columns]
+        if len(non_interpolated_columns) > 0:
+            non_interpolated = pd.DataFrame([np.full(len(non_interpolated_columns), np.nan)],
+                                            columns=[non_interpolated_columns])
+            non_numeric_diff = pd.concat([non_numeric_diff, non_interpolated])
         result_df = result_df.append(pd.concat([new_numeric, non_numeric_diff]), ignore_index=True)
         numeric_diff = numeric_end - new_numeric
     return result_df
@@ -279,7 +402,9 @@ def create_dataless_timestamps_df(
 ) -> pd.DataFrame:
     """
     Creates an empty dataframe with num_samples_to_add timestamps, using columns as the columns
+
     the first timestamp created is 1 sample_interval_s from the start_timestamp
+
     :param start_timestamp: timestamp in microseconds since epoch UTC to start calculating other timestamps from
     :param sample_interval_micros: fixed sample interval in microseconds since epoch UTC
     :param columns: dataframe the non-timestamp columns of the dataframe
@@ -297,22 +422,33 @@ def create_dataless_timestamps_df(
 
 
 def create_dataless_timestamp_column(timestamp: float, columns: pd.Index) -> pd.DataFrame:
+    vals = {'timestamps': timestamp,
+            'location_provider': LocationProvider.UNKNOWN,
+            'image_codec': ImageCodec.UNKNOWN,
+            'audio_codec': AudioCodec.UNKNOWN,
+            'network_type': NetworkType.UNKNOWN_NETWORK,
+            'power_state': PowerState.UNKNOWN_POWER_STATE,
+            'cell_service': CellServiceState.UNKNOWN}
     empty_df = pd.DataFrame([], columns=columns)
     for column_index in columns:
-        if column_index == "timestamps":
-            empty_df[column_index] = timestamp
-        elif column_index == "location_provider":
-            empty_df[column_index] = LocationProvider.UNKNOWN
-        elif column_index == "image_codec":
-            empty_df[column_index] = ImageCodec.UNKNOWN
-        elif column_index == "audio_codec":
-            empty_df[column_index] = AudioCodec.UNKNOWN
-        elif column_index == "network_type":
-            empty_df[column_index] = NetworkType.UNKNOWN_NETWORK
-        elif column_index == "power_state":
-            empty_df[column_index] = PowerState.UNKNOWN_POWER_STATE
-        elif column_index == "cell_service":
-            empty_df[column_index] = CellServiceState.UNKNOWN
+        if column_index in vals.keys():
+            empty_df[column_index] = vals[column_index]
         else:
             empty_df[column_index] = np.nan
+        # if column_index == "timestamps":
+        #     empty_df[column_index] = timestamp
+        # elif column_index == "location_provider":
+        #     empty_df[column_index] = LocationProvider.UNKNOWN
+        # elif column_index == "image_codec":
+        #     empty_df[column_index] = ImageCodec.UNKNOWN
+        # elif column_index == "audio_codec":
+        #     empty_df[column_index] = AudioCodec.UNKNOWN
+        # elif column_index == "network_type":
+        #     empty_df[column_index] = NetworkType.UNKNOWN_NETWORK
+        # elif column_index == "power_state":
+        #     empty_df[column_index] = PowerState.UNKNOWN_POWER_STATE
+        # elif column_index == "cell_service":
+        #     empty_df[column_index] = CellServiceState.UNKNOWN
+        # else:
+        #     empty_df[column_index] = np.nan
     return empty_df

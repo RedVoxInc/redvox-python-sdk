@@ -67,7 +67,7 @@ input_dir="relative/path/to/data_dir"
 
 _Windows examples_:
 ```python
-input_dir=\absolute\path\to\data_folder"
+input_dir="\absolute\path\to\data_folder"
 input_dir="C:\absolute\path\to\data_folder"
 input_dir="relative\path\to\data_folder"
 ```
@@ -85,6 +85,8 @@ _start_datetime:_ a datetime object representing the start of the request time f
 _Examples:_
 
 ```python
+import datetime
+import redvox.common.date_time_utils
 start_datetime=datetime.datetime(2021, 1, 1, 0, 0, 0)
 start_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 0, 0)
 ```
@@ -94,8 +96,10 @@ _end_datetime:_ a datetime object representing the end of the request time for t
 _Examples:_
 
 ```python
-end_datetime=datetime.datetime(2021, 1, 1, 0, 0, 0)
-end_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 0, 0)
+import datetime
+import redvox.common.date_time_utils
+end_datetime=datetime.datetime(2021, 1, 1, 0, 1, 0)
+end_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 1, 0)
 ```
 
 *** There may be some location timestamps which are outside the requested range.  This is normal.  They indicate the best position of the station, and the station has not moved since the timestamp of the best location.
@@ -133,6 +137,8 @@ _start_buffer_td:_ a timedelta object representing how much additional time befo
 _Examples:_
 
 ```python
+import datetime
+import redvox.common.date_time_utils
 start_buffer_td=datetime.timedelta(seconds=120)
 start_buffer_td=redvox.common.date_time_utils.timedelta(minutes=2)
 ```
@@ -142,6 +148,8 @@ _end_buffer_td:_ a timedelta object representing how much additional time after 
 _Examples:_
 
 ```python
+import datetime
+import redvox.common.date_time_utils
 end_buffer_td=datetime.timedelta(seconds=120)
 end_buffer_td=redvox.common.date_time_utils.timedelta(minutes=2)
 ```
@@ -156,13 +164,18 @@ _extensions:_ a set of strings representing the file extensions to filter on.  I
 
 _Example:_
 
-`extensions={".rdvxm", ".rdvxz"}`
+```python
+extensions={".rdvxm", ".rdvxz"}
+```
 
 _api_versions:_ a set of ApiVersion values representing the file types to filter on.  If `None` or not given, will return all file types that match the other filter criteria.  The default value is `None`.
 
 _Example:_
 
-`api_versions={ApiVersion.API_900, ApiVersion.API_1000}`
+```python
+from redvox.common.io import ApiVersion
+api_versions={ApiVersion.API_900, ApiVersion.API_1000}
+```
 
 _[Table of Contents](#table-of-contents)_
 
@@ -189,6 +202,7 @@ datawindow = DataWindow(input_dir=input_dir_str),
 You may prefer a simpler version of the code above that uses the defaults for more complex parameters:
 
 ```python
+from redvox.common.data_window import DataWindow
 datawindow = DataWindow(input_dir=input_dir_str),
                         structured_layout=True_or_False,
                         start_datetime=requested_start_datetime,
@@ -484,7 +498,9 @@ Once the data is verified as within the confines of our request, the data must b
 
 1. All data files are completely read into memory.
 
-2. The data files are organized into Station objects.  Files are put into a station if and only if each of these values are equal across each file: station id, station uuid, station start timestamp and station metadata
+2. The data files are organized into Station objects.  Files are put into a station if and only if each of these values are equal across each file: station id, station uuid, station start timestamp and station metadata.
+
+3. Station objects attempt to fill any recognizable gaps in the data by using other data points to calculate the expected sample interval.
 
 * Any errors encountered while creating the Station object will cause the Data Window to stop.  Information about which value(s) that were not consistent will be displayed.
 
@@ -502,12 +518,9 @@ The data is now organized by Station.  This process will be performed on all Sta
    * We will create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
    * The non-timestamp values of the rows are interpolated from existing data, or contain nan or default values (for enumerations) if not enough existing data.
 
-5. For each non-audio sensor, fill any gaps within the sensor's data.
-   * Gaps are filled by creating rows in the dataframe consisting of a calculated timestamp and nan or default values (for enumerations) for each other column in the row.
-   * Gap duration is defined by Data Window here: [(gap_time_s)](#advanced-optional-data-window-parameters)
-   * For evenly sampled sensors, a gap is a period of time longer than the amount specified by the Data Window or the mean sample rate of the data, whichever of the two is greater.
-   * For unevenly sampled sensors, a gap is a period of time longer than the amount specified by the Data Window or the mean sample rate + one standard deviation of the data, whichever of the two is greater.
-   * Gaps between the first data point and the requested start and between the last data point and the requested end are filled using the mean sample rate of the sensor.
+5. For each non-audio sensor, fill gaps in the sensor's data.
+   * The two points created in the previous step are only used as checks to stop creating points.
+   * Points are added using the sensor's mean sample interval, starting from the last non-created data point on each end.
 
 6. Update the Station metadata.
 
