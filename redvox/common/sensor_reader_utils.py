@@ -382,6 +382,7 @@ def load_apim_image_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
         elif len(data_list[0]) > 0:
             is_gap = True
     if len(data_list[0]) > 0:
+        # image is collected 1 per packet or 1 per second
         if len(data_list[0]) > len(wrapped_packets):
             sample_rate = 1.0
         else:
@@ -391,7 +392,7 @@ def load_apim_image_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
             if len(data_list[0]) > 1 else np.nan
         data_df = gpu.fill_gaps(pd.DataFrame(
             np.transpose([data_list[0], data_list[0], data_list[1], data_list[2]]),
-            columns=IMAGE_COLUMNS), my_gaps, sample_interval)
+            columns=IMAGE_COLUMNS), my_gaps, dtu.seconds_to_microseconds(sample_interval))
         return SensorData(
             get_sensor_description_list(wrapped_packets, SensorType.IMAGE),
             data_df,
@@ -1282,6 +1283,7 @@ def load_apim_health_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
             is_gap = True
     if len(data_list[0]) > 0:
         data_list.insert(1, data_list[0].copy())
+        # health is collected 1 per packet or 1 per second
         if len(data_list[0]) > len(wrapped_packets):
             sample_rate = 1.0
         else:
@@ -1294,7 +1296,7 @@ def load_apim_health_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
             columns=["timestamps", "unaltered_timestamps", "battery_charge_remaining", "battery_current_strength",
                      "internal_temp_c", "network_type", "network_strength", "power_state", "avail_ram", "avail_disk",
                      "cell_service"],
-        ), my_gaps, sample_interval, True)
+        ), my_gaps, dtu.seconds_to_microseconds(sample_interval), True)
         return SensorData(
             "station health",
             df,

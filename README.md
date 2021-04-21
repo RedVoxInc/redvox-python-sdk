@@ -9,6 +9,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc25 (2021-4-20)
+
+* updated gap filling to work when gaps are not pre-determined
+* removed extra step when creating data windows
+
 ### 3.0.0rc24 (2021-4-19)
 
 * Add ability to stream metadata requests by chunk size chunks

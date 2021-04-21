@@ -386,22 +386,6 @@ class DataWindow:
                 sensor.data_df = sensor.data_df.iloc[start_index:end_index+1].reset_index(
                     drop=True
                 )
-                if sensor.is_sample_interval_invalid():
-                    if self.debug:
-                        print(
-                            f"WARNING: Cannot fill gaps or pad {station_id} {sensor.type.name} "
-                            f"sensor; it has undefined sample interval and sample rate!"
-                        )
-                else:  # GAP FILL and PAD DATA
-                    sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
-                    sensor.data_df = gpu.fill_gaps_old(sensor.data_df, sample_interval_micros,
-                                                       dtu.seconds_to_microseconds(self.gap_time_s))
-                    sensor.data_df = gpu.pad_data(
-                        start_date_timestamp,
-                        end_date_timestamp,
-                        sensor.data_df,
-                        sample_interval_micros,
-                    )
                 # add in the nan-ed data points at the edges of the window if nothing beyond the edges
                 if first_after_end is None:
                     sensor.data_df = gpu.add_dataless_timestamps_to_df(sensor.data_df, sensor.num_samples() - 1,
@@ -415,6 +399,15 @@ class DataWindow:
                                                                               start_date_timestamp),
                                                                        1, True)
                     sensor.data_df.sort_values("timestamps", inplace=True, ignore_index=True)
+                if sensor.is_sample_interval_invalid():
+                    if self.debug:
+                        print(
+                            f"WARNING: Cannot fill gaps or pad {station_id} {sensor.type.name} "
+                            f"sensor; it has undefined sample interval and sample rate!"
+                        )
+                else:  # GAP FILL and PAD DATA
+                    sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    sensor.data_df = gpu.fill_gaps(sensor.data_df, [], sample_interval_micros=sample_interval_micros)
         elif self.debug:
             print(f"WARNING: Data window for {station_id} {sensor.type.name} sensor has no data points!")
 
