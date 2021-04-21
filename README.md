@@ -12,6 +12,7 @@ This repository contains code for reading and working with the RedVox API 900 an
 ### 3.0.0rc25 (2021-4-20)
 
 * updated gap filling to work when gaps are not pre-determined
+* improved gap filling performance
 * removed extra step when creating data windows
 
 ### 3.0.0rc24 (2021-4-19)
