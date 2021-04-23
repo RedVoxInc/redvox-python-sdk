@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 
 from redvox.common import date_time_utils as dtu
-from redvox.common.stats_helper import StatsContainer
 from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
@@ -37,6 +36,40 @@ def calc_evenly_sampled_timestamps(
     :return: np.array with evenly spaced timestamps starting at start
     """
     return start + (np.arange(0, samples) * sample_interval_micros)
+
+
+def check_gap_list(gaps: List[Tuple[float, float]], start_timestamp: float = None,
+                   end_timestamp: float = None) -> List[Tuple[float, float]]:
+    """
+    removes any gaps where end time <= start time, consolidates overlapping gaps, and ensures that no gap
+    starts or ends before start_timestamp and starts or ends after end_timestamp.  All timestamps are in
+    microseconds since epoch UTC
+
+    :param gaps: list of gaps to check
+    :param start_timestamp: lowest possible timestamp for a gap to start at
+    :param end_timestamp: lowest possible timestamp for a gap to end at
+    :return: list of correct, valid gaps
+    """
+    return_gaps: List[Tuple[float, float]] = []
+    for gap in gaps:
+        if start_timestamp:
+            gap = (np.max([start_timestamp, gap[0]]), np.max([start_timestamp, gap[1]]))
+        if end_timestamp:
+            gap = (np.min([end_timestamp, gap[0]]), np.min([end_timestamp, gap[1]]))
+        if gap[0] < gap[1]:
+            if len(return_gaps) < 1:
+                return_gaps.append(gap)
+            for a, r_g in enumerate(return_gaps):
+                if (gap[0] < r_g[0] and gap[1] < r_g[0]) or (gap[0] > r_g[1] and gap[1] > r_g[1]):
+                    return_gaps.append(gap)
+                    break
+                else:
+                    if gap[0] < r_g[0] < gap[1]:
+                        r_g = (gap[0], r_g[1])
+                    if gap[0] < r_g[1] < gap[1]:
+                        r_g = (r_g[0], gap[1])
+                    return_gaps[a] = r_g
+    return return_gaps
 
 
 def pad_data(
@@ -107,27 +140,29 @@ def fill_gaps(
     # extract the necessary information to compute gap size and gap timestamps
     data_time_stamps = data_df["timestamps"].to_numpy()
     result_df = data_df.copy()
-    # if len(data_time_stamps) > 1:
-    #     data_duration = data_time_stamps[-1] - data_time_stamps[0]
-    #     expected_samples = (np.floor(data_duration / sample_interval_micros)
-    #                         + (1 if data_duration % sample_interval_micros >=
-    #                            sample_interval_micros * DEFAULT_GAP_UPPER_LIMIT else 0)) + 1
-        # if expected_samples > len(data_time_stamps):
-            # for gap in gaps:
-            #     # if timestamps are around gaps, we have to update the values
-            #     new_start = np.argwhere([t <= gap[0] for t in data_time_stamps])[-1]
-            #     new_end = np.argwhere([t >= gap[1] for t in data_time_stamps])[0]
-            #     if new_end - new_start == 1:
-            #         my_gap = (data_time_stamps[new_start], data_time_stamps[new_end])
-            #     else:
-            #         my_gap = gap
-            #     if interpolate:
-            #         gap_df = result_df.loc[result_df["timestamps"].isin(my_gap)]
-            #         gap_df = create_interpolated_timestamps_df(gap_df, sample_interval_micros)
-            #     else:
-            #         gap_df = create_dataless_timestamps_df(my_gap[0], sample_interval_micros, result_df.columns,
-            #                                                int((my_gap[1] - my_gap[0]) / sample_interval_micros) - 1)
-            #     result_df = pd.concat([result_df, gap_df], ignore_index=True)
+    if len(data_time_stamps) > 1:
+        data_duration = data_time_stamps[-1] - data_time_stamps[0]
+        expected_samples = (np.floor(data_duration / sample_interval_micros)
+                            + (1 if data_duration % sample_interval_micros >=
+                               sample_interval_micros * DEFAULT_GAP_UPPER_LIMIT else 0)) + 1
+        if expected_samples > len(data_time_stamps):
+            # make it safe to alter the gap values
+            my_gaps = check_gap_list(gaps, data_time_stamps[0], data_time_stamps[-1])
+            for gap in my_gaps:
+                # if timestamps are around gaps, we have to update the values
+                before_start = np.argwhere([t <= gap[0] for t in data_time_stamps])
+                after_end = np.argwhere([t >= gap[1] for t in data_time_stamps])
+                if len(before_start) > 0:
+                    gap = (data_time_stamps[before_start[-1][0]], gap[1])
+                if len(after_end) > 0:
+                    gap = (gap[0], data_time_stamps[after_end[0][0]])
+                if interpolate:
+                    gap_df = result_df.loc[result_df["timestamps"].isin(gap)]
+                    gap_df = create_interpolated_timestamps_df(gap_df, sample_interval_micros)
+                else:
+                    gap_df = create_dataless_timestamps_df(gap[0], sample_interval_micros, result_df.columns,
+                                                           int((gap[1] - gap[0]) / sample_interval_micros) - 1)
+                result_df = pd.concat([result_df, gap_df], ignore_index=True)
     return result_df.sort_values("timestamps", ignore_index=True)
 
 

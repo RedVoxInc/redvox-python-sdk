@@ -140,6 +140,16 @@ class OffsetModel:
         """
         return new_time + self.get_offset_at_new_time(new_time)
 
+    def update_timestamps(self, timestamps: np.array) -> np.array:
+        """
+        updates a list of timestamps
+        :param timestamps: timestamps to update
+        :return: updated list of timestamps
+        """
+        if self.slope != 0.0:
+            return [self.update_time(t) for t in timestamps]
+        return [t + self.intercept for t in timestamps]
+
 
 # Method to get number of bins
 def get_bins_per_5min(start_time: float, end_time: float) -> int:
