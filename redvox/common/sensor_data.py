@@ -311,18 +311,18 @@ class SensorData:
         :param copy: if True and there are two points, copies the values of the closest point, default True
         :return: pd.Series of interpolated points
         """
-        first_point = self.data_df.iloc[first_point]
-        numeric_start = first_point[[col for col in self.data_df.columns
+        start_point = self.data_df.iloc[first_point]
+        numeric_start = start_point[[col for col in self.data_df.columns
                                      if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
-        non_numeric_start = first_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
+        non_numeric_start = start_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
         if second_point:
-            second_point = self.data_df.iloc[first_point + second_point]
-            numeric_end = second_point[[col for col in self.data_df.columns
-                                        if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
-            non_numeric_end = second_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
+            end_point = self.data_df.iloc[first_point + second_point]
+            numeric_end = end_point[[col for col in self.data_df.columns
+                                     if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+            non_numeric_end = end_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
             first_closer = \
-                np.abs(self.data_df.iloc[first_point]["timestamps"] - interpolate_timestamp) \
-                <= np.abs(self.data_df.iloc[second_point]["timestamps"] - interpolate_timestamp)
+                np.abs(start_point["timestamps"] - interpolate_timestamp) \
+                <= np.abs(end_point["timestamps"] - interpolate_timestamp)
             if first_closer:
                 non_numeric_diff = non_numeric_start
             else:
@@ -333,11 +333,10 @@ class SensorData:
                 else:
                     numeric_diff = numeric_end
             else:
-                numeric_series = self.data_df.select_dtypes(include=[np.number])
-                numeric_diff = numeric_series.iloc[second_point] - numeric_series.iloc[first_point]
-                numeric_diff = (numeric_diff / numeric_diff["timestamps"]) \
-                    * (interpolate_timestamp - numeric_series["timestamps"][first_point]) \
-                    + numeric_series.iloc[first_point]
+                numeric_diff = numeric_end - numeric_start
+                numeric_diff = \
+                    (numeric_diff / numeric_diff["timestamps"]) * \
+                    (interpolate_timestamp - numeric_start) + numeric_start
         else:
             numeric_diff = numeric_start
             non_numeric_diff = non_numeric_start

@@ -107,27 +107,27 @@ def fill_gaps(
     # extract the necessary information to compute gap size and gap timestamps
     data_time_stamps = data_df["timestamps"].to_numpy()
     result_df = data_df.copy()
-    if len(data_time_stamps) > 1:
-        data_duration = data_time_stamps[-1] - data_time_stamps[0]
-        expected_samples = (np.floor(data_duration / sample_interval_micros)
-                            + (1 if data_duration % sample_interval_micros >=
-                               sample_interval_micros * DEFAULT_GAP_UPPER_LIMIT else 0)) + 1
-        if expected_samples > len(data_time_stamps):
-            for gap in gaps:
-                # if timestamps are around gaps, we have to update the values
-                new_start = np.argwhere([t <= gap[0] for t in data_time_stamps])
-                new_end = np.argwhere([t >= gap[1] for t in data_time_stamps])
-                if new_end - new_start == 1:
-                    my_gap = (data_time_stamps[new_start], data_time_stamps[new_end])
-                else:
-                    my_gap = gap
-                if interpolate:
-                    gap_df = result_df.loc[result_df["timestamps"].isin(my_gap)]
-                    gap_df = create_interpolated_timestamps_df(gap_df, sample_interval_micros)
-                else:
-                    gap_df = create_dataless_timestamps_df(my_gap[0], sample_interval_micros, result_df.columns,
-                                                           int((my_gap[1] - my_gap[0]) / sample_interval_micros) - 1)
-                result_df = pd.concat([result_df, gap_df], ignore_index=True)
+    # if len(data_time_stamps) > 1:
+    #     data_duration = data_time_stamps[-1] - data_time_stamps[0]
+    #     expected_samples = (np.floor(data_duration / sample_interval_micros)
+    #                         + (1 if data_duration % sample_interval_micros >=
+    #                            sample_interval_micros * DEFAULT_GAP_UPPER_LIMIT else 0)) + 1
+        # if expected_samples > len(data_time_stamps):
+            # for gap in gaps:
+            #     # if timestamps are around gaps, we have to update the values
+            #     new_start = np.argwhere([t <= gap[0] for t in data_time_stamps])[-1]
+            #     new_end = np.argwhere([t >= gap[1] for t in data_time_stamps])[0]
+            #     if new_end - new_start == 1:
+            #         my_gap = (data_time_stamps[new_start], data_time_stamps[new_end])
+            #     else:
+            #         my_gap = gap
+            #     if interpolate:
+            #         gap_df = result_df.loc[result_df["timestamps"].isin(my_gap)]
+            #         gap_df = create_interpolated_timestamps_df(gap_df, sample_interval_micros)
+            #     else:
+            #         gap_df = create_dataless_timestamps_df(my_gap[0], sample_interval_micros, result_df.columns,
+            #                                                int((my_gap[1] - my_gap[0]) / sample_interval_micros) - 1)
+            #     result_df = pd.concat([result_df, gap_df], ignore_index=True)
     return result_df.sort_values("timestamps", ignore_index=True)
 
 
