@@ -17,6 +17,7 @@ from redvox.common import date_time_utils as dtu
 from redvox.common import io
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
+from redvox.common.station_utils import StationKey
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.api_reader import ApiReader
 from redvox.common.data_window_configuration import DataWindowConfig
@@ -44,6 +45,13 @@ class DataWindowExceptions:
         :param msg: error message to add
         """
         self.errors.append(msg)
+
+    def print(self):
+        """
+        print all errors
+        """
+        for error in self.errors:
+            print(error)
 
 
 class DataWindowSimple:
@@ -74,7 +82,7 @@ class DataWindowSimple:
         copy_edge_points: bool = True,
         debug: bool = False
     ):
-        print("SANIC SPEED")
+        print("Using Fast Mode")
 
         self.errors = DataWindowExceptions()
         self.input_directory: str = input_dir
@@ -102,6 +110,7 @@ class DataWindowSimple:
         self.debug: bool = debug
         self.stations: List[Station] = []
         self.create_data_window()
+        self.errors.print()
 
     @staticmethod
     def from_config_file(file: str) -> "DataWindowSimple":
@@ -207,6 +216,8 @@ class DataWindowSimple:
         # get the data to convert into a window
         a_r = ApiReader(self.input_directory, self.structured_layout, r_f, self.debug, _pool)
 
+        self.station_ids = a_r.index_summary.station_ids()
+
         files_by_id = [a_r.read_files_by_id(i) for i in a_r.index_summary.station_ids()]
 
         # Parallel update
@@ -215,7 +226,6 @@ class DataWindowSimple:
         stations = list(maybe_parallel_map(_pool, Station.update_timestamps, iter(self.stations), chunk_size=1))
 
         self._check_for_audio()
-        # Todo
 
         for station in stations:
             # set the window start and end if they were specified, otherwise use the bounds of the data
@@ -241,6 +251,20 @@ class DataWindowSimple:
     def _create_station(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None):
         if len(data_packets) > 0:
             self.stations.append(Station(data_packets))
+        return None
+        # for p in self.a_r.files_index.get_index_for_station_id(s_id).stream():
+        #     b = Station.from_packet(p)  # load the packet into the station
+        #     # if b is not the same as s, check if it's the same as another station
+        #     t = self._find_station(b.id, b.uuid, b.start_timestamp)
+        #     if t:
+        #         t.append_station(b)  # add b to existing station
+        #     else:
+        #         self.stations.append(b)  # b is new, add it to list of stations
+
+    def _find_station(self, station_id: str, uuid: str, start_time: float) -> Optional[Station]:
+        for s in self.stations:
+            if s.get_key() == StationKey(station_id, uuid, start_time):
+                return s
         return None
 
     def _check_for_audio(self):
@@ -283,8 +307,8 @@ class DataWindowSimple:
                     if meta.packet_start_mach_timestamp < end_date_timestamp and
                     meta.packet_end_mach_timestamp > start_date_timestamp]
         station.packet_metadata = new_meta
-        station.first_data_timestamp = start_date_timestamp
-        station.last_data_timestamp = end_date_timestamp
+        station.first_data_timestamp = station.audio_sensor().first_data_timestamp()
+        station.last_data_timestamp = station.audio_sensor().data_timestamps()[-1]
 
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
                        end_date_timestamp: float):
@@ -345,19 +369,19 @@ class DataWindowSimple:
                                                                                     1, self.copy_edge_points)
                     else:
                         # add in the nan-ed data points at the edges of the window
-                        sensor.data_df = gpu.add_dataless_timestamps_to_df(sensor.data_df, sensor.num_samples() - 1,
-                                                                           np.abs(sensor.last_data_timestamp() -
-                                                                                  end_date_timestamp),
-                                                                           1)
+                        sensor.data_df = gpu.add_dataless_timestamps_to_df(sensor.data_df, 0,
+                                                                           np.abs(sensor.first_data_timestamp() -
+                                                                                  start_date_timestamp),
+                                                                           1, True)
                     if first_after_end is not None:
                         sensor.data_df.iloc[first_after_end] = sensor.interpolate(end_date_timestamp,
                                                                                   first_after_end, -1,
                                                                                   self.copy_edge_points)
                     else:
-                        sensor.data_df = gpu.add_dataless_timestamps_to_df(sensor.data_df, 0,
-                                                                           np.abs(sensor.first_data_timestamp() -
-                                                                                  start_date_timestamp),
-                                                                           1, True)
+                        sensor.data_df = gpu.add_dataless_timestamps_to_df(sensor.data_df, sensor.num_samples() - 1,
+                                                                           np.abs(sensor.last_data_timestamp() -
+                                                                                  end_date_timestamp),
+                                                                           1)
                     end_index += 2  # added the 2 points on the edge
                     sensor.data_df.sort_values("timestamps", inplace=True, ignore_index=True)
                 sensor.data_df = sensor.data_df.iloc[start_index:end_index].reset_index(
@@ -696,12 +720,12 @@ class DataWindow:
                 start_index = 0
             if len(after_end) > 0:
                 first_after_end = after_end[0]
-                end_index = first_after_end - 1
+                end_index = first_after_end
             else:
                 first_after_end = None
-                end_index = sensor.num_samples() - 1
+                end_index = sensor.num_samples()
             # check if all the samples have been cut off
-            if end_index < start_index:
+            if end_index < start_index or start_index >= len(df_timestamps):
                 if last_before_start is not None and first_after_end is None:
                     sensor.data_df = sensor.data_df.iloc[last_before_start].to_frame().T
                     sensor.data_df["timestamps"] = start_date_timestamp
@@ -709,8 +733,10 @@ class DataWindow:
                     sensor.data_df = sensor.data_df.iloc[first_after_end].to_frame().T
                     sensor.data_df["timestamps"] = end_date_timestamp
                 elif last_before_start is not None and first_after_end is not None:
-                    sensor.data_df = sensor.interpolate(last_before_start, first_after_end,
-                                                        start_date_timestamp).to_frame().T
+                    sensor.data_df = sensor.interpolate(start_date_timestamp,
+                                                        last_before_start,
+                                                        first_after_end - last_before_start,
+                                                        ).to_frame().T
                 elif self.debug:
                     print(
                         f"WARNING: Data window for {station_id} {sensor.type.name} "
@@ -719,14 +745,16 @@ class DataWindow:
             else:
                 # update existing points immediately beyond the edge to be at the edge using interpolation.
                 if last_before_start is not None:
-                    sensor.data_df.iloc[last_before_start] = sensor.interpolate(last_before_start,
-                                                                                start_index, start_date_timestamp)
+                    sensor.data_df.iloc[last_before_start] = sensor.interpolate(start_date_timestamp,
+                                                                                last_before_start,
+                                                                                1)
                     start_index -= 1
                 if first_after_end is not None:
-                    sensor.data_df.iloc[first_after_end] = sensor.interpolate(first_after_end, end_index,
-                                                                              end_date_timestamp)
+                    sensor.data_df.iloc[first_after_end] = sensor.interpolate(end_date_timestamp,
+                                                                              first_after_end,
+                                                                              -1)
                     end_index += 1
-                sensor.data_df = sensor.data_df.iloc[start_index:end_index+1].reset_index(
+                sensor.data_df = sensor.data_df.iloc[start_index:end_index].reset_index(
                     drop=True
                 )
                 # add in the nan-ed data points at the edges of the window if nothing beyond the edges
@@ -735,13 +763,12 @@ class DataWindow:
                                                                        np.abs(sensor.last_data_timestamp() -
                                                                               end_date_timestamp),
                                                                        1)
-                    sensor.data_df.sort_values("timestamps", inplace=True, ignore_index=True)
                 if last_before_start is None:
                     sensor.data_df = gpu.add_dataless_timestamps_to_df(sensor.data_df, 0,
                                                                        np.abs(sensor.first_data_timestamp() -
                                                                               start_date_timestamp),
                                                                        1, True)
-                    sensor.data_df.sort_values("timestamps", inplace=True, ignore_index=True)
+                sensor.data_df.sort_values("timestamps", inplace=True, ignore_index=True)
                 if sensor.is_sample_interval_invalid():
                     if self.debug:
                         print(
@@ -812,8 +839,8 @@ class DataWindow:
                     if meta.packet_start_mach_timestamp < end_date_timestamp and
                     meta.packet_end_mach_timestamp > start_date_timestamp]
         station.packet_metadata = new_meta
-        station.first_data_timestamp = start_date_timestamp
-        station.last_data_timestamp = end_date_timestamp
+        station.first_data_timestamp = station.audio_sensor().first_data_timestamp()
+        station.last_data_timestamp = station.audio_sensor().data_timestamps()[-1]
 
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         """

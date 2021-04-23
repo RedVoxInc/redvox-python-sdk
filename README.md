@@ -9,6 +9,12 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc26 (2021-4-23)
+
+* fixed potential infinite loop when creating data windows
+* added tools to read raw protobuf instead of wrapped packets
+* added simplified data window process with the goal of producing results faster
+
 ### 3.0.0rc25 (2021-4-20)
 
 * updated gap filling to work when gaps are not pre-determined

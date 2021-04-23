@@ -40,7 +40,10 @@ class Station:
         _gaps: List of Tuples of floats indicating start and end times of gaps.  Times are not inclusive of the gap.
     """
 
-    def __init__(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None):
+    def __init__(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None,
+                 station_id: str = None,
+                 uuid: str = None,
+                 start_time: float = np.nan):
         """
         initialize Station
         :param data_packets: optional list of data packets representing the station, default None
@@ -74,10 +77,10 @@ class Station:
                 TimeSyncAnalysis(self.id, self.audio_sample_rate_nominal_hz,
                                  self.start_timestamp).from_packets(data_packets)
         else:
-            self.id = None
-            self.uuid = None
+            self.id = station_id
+            self.uuid = uuid
             self.metadata = st_utils.StationMetadata("None")
-            self.start_timestamp = np.nan
+            self.start_timestamp = start_time
             self.first_data_timestamp = np.nan
             self.last_data_timestamp = np.nan
             self.audio_sample_rate_nominal_hz = np.nan
@@ -982,6 +985,53 @@ class Station:
         for sensor in sensors:
             if sensor:
                 self.append_sensor(sensor)
+
+    @staticmethod
+    def from_packet(packet: WrappedRedvoxPacketM) -> "Station":
+        start_time = packet.get_timing_information().get_app_start_mach_timestamp()
+        return Station(station_id=packet.get_station_information().get_id(),
+                       uuid=packet.get_station_information().get_uuid(),
+                       start_time=np.nan if start_time < 0 else start_time)._load_packet(packet)
+
+    def load_packet(self, packet: WrappedRedvoxPacketM) -> "Station":
+        """
+        load all data from a packet
+        :param packet: packet to load data from
+        :return: updated station or a new station if it doesn't exist
+        """
+        start_time = packet.get_timing_information().get_app_start_mach_timestamp()
+        o_s = Station(station_id=packet.get_station_information().get_id(),
+                      uuid=packet.get_station_information().get_uuid(),
+                      start_time=np.nan if start_time < 0 else start_time)
+        if self.get_key() == o_s.get_key():
+            return self._load_packet(packet)
+        return o_s._load_packet(packet)
+
+    def _load_packet(self, packet: WrappedRedvoxPacketM) -> "Station":
+        self.packet_metadata.append(st_utils.StationPacketMetadata(packet))
+        funcs = [sdru.load_apim_audio,
+                 sdru.load_apim_compressed_audio,
+                 sdru.load_apim_image,
+                 sdru.load_apim_location,
+                 sdru.load_apim_pressure,
+                 sdru.load_apim_light,
+                 sdru.load_apim_ambient_temp,
+                 sdru.load_apim_rel_humidity,
+                 sdru.load_apim_proximity,
+                 sdru.load_apim_accelerometer,
+                 sdru.load_apim_gyroscope,
+                 sdru.load_apim_magnetometer,
+                 sdru.load_apim_gravity,
+                 sdru.load_apim_linear_accel,
+                 sdru.load_apim_orientation,
+                 sdru.load_apim_rotation_vector,
+                 sdru.load_apim_health,
+                 ]
+        sensors = map(lambda fn: fn(packet), funcs)
+        for sensor in sensors:
+            if sensor:
+                self.append_sensor(sensor)
+        return self
 
     def update_timestamps(self) -> "Station":
         """

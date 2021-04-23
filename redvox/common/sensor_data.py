@@ -3,7 +3,7 @@ Defines generic sensor data and data for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 """
 import enum
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -283,7 +283,7 @@ class SensorData:
         return self.data_df.columns.to_list()
 
     def update_data_timestamps(self, offset_model: om.OffsetModel):
-        self.data_df["timestamps"] = [offset_model.update_time(t) for t in self.data_timestamps()]
+        self.data_df["timestamps"] = offset_model.update_timestamps(self.data_timestamps())
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
             self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *
@@ -340,4 +340,5 @@ class SensorData:
         else:
             numeric_diff = numeric_start
             non_numeric_diff = non_numeric_start
+        numeric_diff["timestamps"] = interpolate_timestamp
         return pd.concat([numeric_diff, non_numeric_diff])
