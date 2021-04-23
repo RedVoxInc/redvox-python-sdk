@@ -6,7 +6,9 @@ import tempfile
 from typing import Optional, Union
 from unittest import TestCase
 
+from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.api900.lib.api900_pb2 import RedvoxPacket
 from redvox.common.date_time_utils import (
     datetime_from_epoch_milliseconds_utc as ms2dt,
     datetime_from_epoch_microseconds_utc as us2dt,
@@ -425,12 +427,26 @@ class IndexEntryTests(IoTestCase):
         self.assertIsNotNone(packet)
         self.assertEqual(900, packet.api())
 
+    def test_read_raw_900(self):
+        path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, "0000000900_1609459200000.rdvxz")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        packet = entry.read_raw()
+        self.assertIsNotNone(packet)
+        self.assertEqual(900, packet.api)
+
     def test_read_1000(self):
         path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0000001000_1609459200000000.rdvxm")
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
         packet = entry.read()
         self.assertIsNotNone(packet)
         self.assertEqual(1000.0, packet.get_api())
+
+    def test_read_raw_1000(self):
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, "0000001000_1609459200000000.rdvxm")
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        packet = entry.read_raw()
+        self.assertIsNotNone(packet)
+        self.assertEqual(1000.0, packet.api)
 
 
 class IndexTests(IoTestCase):
@@ -526,7 +542,36 @@ class IndexTests(IoTestCase):
 
         self.assertEqual(8, len(index.entries))
 
-    def test_read_all(self):
+    def test_stream_raw_all(self):
+        index: io.Index = io.Index([
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1609459200000.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1609459200001.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "901_1609459200000.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "901_1609459200001.rdvxz")),
+
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_1609459200000000.rdvxm")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_1609459200001000.foo")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_1609459200000000.rdvxm")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_1609459200001000.foo")),
+        ])
+
+        i: int = 0
+        for packet in index.stream_raw(io.ReadFilter.empty()):
+            self.assertTrue(isinstance(packet, RedvoxPacketM) or isinstance(packet, RedvoxPacket))
+            i += 1
+
+        self.assertEqual(8, len(index.entries))
+
+
+    def test_read_all_raw(self):
         from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
         index: io.Index = io.Index([
@@ -555,6 +600,35 @@ class IndexTests(IoTestCase):
             i += 1
 
         self.assertEqual(8, len(index.entries))
+
+    def test_read_raw_all(self):
+        index: io.Index = io.Index([
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1609459200000.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "900_1609459200001.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "901_1609459200000.rdvxz")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, "901_1609459200001.rdvxz")),
+
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_1609459200000000.rdvxm")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1000_1609459200001000.foo")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_1609459200000000.rdvxm")),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, "1001_1609459200001000.foo")),
+        ])
+
+        i: int = 0
+        for packet in index.read_raw(io.ReadFilter.empty()):
+            self.assertTrue(isinstance(packet, RedvoxPacketM) or isinstance(packet, RedvoxPacket))
+            i += 1
+
+        self.assertEqual(8, len(index.entries))
+
 
     def test_read_filtered(self):
         index: io.Index = io.Index([
