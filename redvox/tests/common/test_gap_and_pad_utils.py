@@ -199,35 +199,35 @@ class InterpolateGapsTest(unittest.TestCase):
     def test_create_simple_df(self):
         my_df = pd.DataFrame([[1000, 50], [8000, 400], [9000, 450], [15000, 750]], columns=["timestamps", "data"])
         gaps = [(1000, 8000), (9000, 15000)]
-        filled_df = gpu.fill_gaps(my_df, gaps)
+        filled_df = gpu.fill_gaps(my_df, gaps, 1000)
         self.assertEqual(len(filled_df["timestamps"]), 15)
 
     def test_create_gap_after_end(self):
         my_df = pd.DataFrame([[1000, 50], [8000, 400], [9000, 450], [15000, 750]], columns=["timestamps", "data"])
         gaps = [(1000, 8000), (9000, 19000)]
-        filled_df = gpu.fill_gaps(my_df, gaps)
+        filled_df = gpu.fill_gaps(my_df, gaps, 1000)
         self.assertEqual(len(filled_df["timestamps"]), 15)
 
     def test_create_gap_before_begin(self):
         my_df = pd.DataFrame([[11000, 50], [18000, 400], [19000, 450], [25000, 750]], columns=["timestamps", "data"])
         gaps = [(1000, 18000), (19000, 29000)]
-        filled_df = gpu.fill_gaps(my_df, gaps)
+        filled_df = gpu.fill_gaps(my_df, gaps, 1000)
         self.assertEqual(len(filled_df["timestamps"]), 15)
 
     def test_create_gap_intersect_end(self):
         my_df = pd.DataFrame([[1000, 50], [8000, 400], [9000, 450], [15000, 750]], columns=["timestamps", "data"])
         gaps = [(1000, 7000), (6000, 8000), (9000, 15000)]
-        filled_df = gpu.fill_gaps(my_df, gaps)
+        filled_df = gpu.fill_gaps(my_df, gaps, 1000)
         self.assertEqual(len(filled_df["timestamps"]), 15)
 
     def test_create_gap_intersect_begin(self):
         my_df = pd.DataFrame([[1000, 50], [8000, 400], [9000, 450], [15000, 750]], columns=["timestamps", "data"])
         gaps = [(5000, 8000), (1000, 7000), (9000, 15000)]
-        filled_df = gpu.fill_gaps(my_df, gaps)
+        filled_df = gpu.fill_gaps(my_df, gaps, 1000)
         self.assertEqual(len(filled_df["timestamps"]), 15)
 
     def test_create_gap_overlap(self):
         my_df = pd.DataFrame([[1000, 50], [8000, 400], [9000, 450], [15000, 750]], columns=["timestamps", "data"])
         gaps = [(4000, 6000), (1000, 8000), (9000, 15000)]
-        filled_df = gpu.fill_gaps(my_df, gaps)
+        filled_df = gpu.fill_gaps(my_df, gaps, 1000)
         self.assertEqual(len(filled_df["timestamps"]), 15)

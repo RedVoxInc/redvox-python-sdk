@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
+from redvox.common.stats_helper import StatsContainer
 from redvox.common import date_time_utils as dtu
 from redvox.common import gap_and_pad_utils as gpu
 from redvox.common.sensor_data import SensorType, SensorData
@@ -134,7 +135,7 @@ def read_apim_xyz_sensor(sensor: xyz.Xyz, column_id: str) -> pd.DataFrame:
 
 def load_apim_xyz_sensor(sensor_type: SensorType, data: List[List[float]],
                          gaps: List[Tuple[float, float]], column_name: str,
-                         description: str) -> Optional[SensorData]:
+                         description: str, sample_interval_micros: float) -> Optional[SensorData]:
     """
     create a three channel sensor of sensor_type with the column name, description, and data given.
     :param sensor_type: the SensorType of sensor to create
@@ -142,6 +143,7 @@ def load_apim_xyz_sensor(sensor_type: SensorType, data: List[List[float]],
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :param column_name: the name of the columns that contain the data
     :param description: the description of the sensor
+    :param sample_interval_micros: known sample interval in microseconds
     :return: SensorData object or None if no data
     """
     if len(data[0]) > 0:
@@ -150,7 +152,7 @@ def load_apim_xyz_sensor(sensor_type: SensorType, data: List[List[float]],
                                         f"{column_name}_x", f"{column_name}_y", f"{column_name}_z"])
         return SensorData(
             description,
-            gpu.fill_gaps(data_df, gaps, interpolate=True),
+            gpu.fill_gaps(data_df, gaps, sample_interval_micros),
             sensor_type,
             calculate_stats=True
         )
@@ -178,7 +180,7 @@ def read_apim_single_sensor(sensor: single.Single, column_id: str) -> pd.DataFra
 
 def load_apim_single_sensor(sensor_type: SensorType, timestamps: List[float], data: List[float],
                             gaps: List[Tuple[float, float]], column_name: str,
-                            description: str) -> Optional[SensorData]:
+                            description: str, sample_interval_micros: float) -> Optional[SensorData]:
     """
     Create a single channel sensor of sensor_type with the column name, timestamps, data, and description
     :param sensor_type: the SensorType of sensor to create
@@ -187,6 +189,7 @@ def load_apim_single_sensor(sensor_type: SensorType, timestamps: List[float], da
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :param column_name: the name of the columns that contain the data
     :param description: the description of the sensor
+    :param sample_interval_micros: known sample interval in microseconds
     :return:
     """
     if len(timestamps) > 0:
@@ -194,7 +197,7 @@ def load_apim_single_sensor(sensor_type: SensorType, timestamps: List[float], da
                                columns=["timestamps", "unaltered_timestamps", column_name])
         return SensorData(
             description,
-            gpu.fill_gaps(data_df, gaps, interpolate=True),
+            gpu.fill_gaps(data_df, gaps, sample_interval_micros),
             sensor_type,
             calculate_stats=True
         )
@@ -301,23 +304,17 @@ def load_apim_compressed_audio_from_list(wrapped_packets: List[WrappedRedvoxPack
     :return: compressed audio sensor data if it exists, None otherwise
     """
     data_list = [[], [], []]
-    is_gap = False
-    my_gaps = gaps.copy()
     for packet in wrapped_packets:
         comp_audio = packet.get_sensors().get_compressed_audio()
         if comp_audio and packet.get_sensors().validate_compressed_audio():
-            if is_gap:
-                my_gaps.append((data_list[0][-1], comp_audio.get_timestamps().get_timestamps()[0]))
-                is_gap = False
             data_list[0].append(comp_audio.get_first_sample_timestamp())
             data_list[1].append(comp_audio.get_audio_bytes())
             data_list[2].append(comp_audio.get_audio_codec())
-        elif len(data_list[0]) > 0:
-            is_gap = True
     if len(data_list[0]) > 0:
         data_df = gpu.fill_gaps(pd.DataFrame(
             np.tranpose([data_list[0], data_list[0], data_list[1], data_list[2]]),
-            columns=COMPRESSED_AUDIO_COLUMNS), my_gaps)
+            columns=COMPRESSED_AUDIO_COLUMNS), gaps,
+            dtu.seconds_to_microseconds(wrapped_packets[0].get_packet_duration_s()))
         data_df["audio_codec"] = [audio.AudioCodec(d) for d in data_df["audio_codec"]]
         sample_rate_hz = wrapped_packets[0].get_sensors().get_compressed_audio().get_sample_rate()
         return SensorData(
@@ -346,6 +343,7 @@ def load_apim_image(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData
             np.transpose([timestamps, timestamps, image_sensor .get_samples(), codecs]),
             columns=IMAGE_COLUMNS,
         )
+        data_df["image_codec"] = [image.ImageCodec(d) for d in data_df["image_codec"]]
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(data_df)
         return SensorData(
             get_sensor_description(image_sensor),
@@ -368,19 +366,12 @@ def load_apim_image_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
     :return: image sensor data if it exists, None otherwise
     """
     data_list = [[], [], []]
-    is_gap = False
-    my_gaps = gaps.copy()
     for packet in wrapped_packets:
         image_sensor = packet.get_sensors().get_image()
         if image_sensor and packet.get_sensors().validate_image():
-            if is_gap:
-                my_gaps.append((data_list[0][-1], image_sensor.get_timestamps().get_timestamps()[0]))
-                is_gap = False
             data_list[0].extend(image_sensor.get_timestamps().get_timestamps())
             data_list[1].extend(image_sensor.get_samples())
             data_list[2].extend([image_sensor.get_image_codec() for i in range(image_sensor.get_num_images())])
-        elif len(data_list[0]) > 0:
-            is_gap = True
     if len(data_list[0]) > 0:
         # image is collected 1 per packet or 1 per second
         if len(data_list[0]) > len(wrapped_packets):
@@ -390,12 +381,11 @@ def load_apim_image_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
         sample_interval = 1 / sample_rate
         sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(data_list[0]))))\
             if len(data_list[0]) > 1 else np.nan
-        data_df = gpu.fill_gaps(pd.DataFrame(
-            np.transpose([data_list[0], data_list[0], data_list[1], data_list[2]]),
-            columns=IMAGE_COLUMNS), my_gaps, dtu.seconds_to_microseconds(sample_interval))
         return SensorData(
             get_sensor_description_list(wrapped_packets, SensorType.IMAGE),
-            data_df,
+            gpu.fill_gaps(pd.DataFrame(
+                np.transpose([data_list[0], data_list[0], data_list[1], data_list[2]]),
+                columns=IMAGE_COLUMNS), gaps, dtu.seconds_to_microseconds(sample_interval)),
             SensorType.IMAGE,
             sample_rate,
             sample_interval,
@@ -492,14 +482,10 @@ def load_apim_location_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
     :return: location sensor data if it exists, None otherwise
     """
     data_list = [[], [], [], [], [], [], [], [], [], [], [], []]
-    is_gap = False
-    my_gaps = gaps.copy()
+    loc_stats = StatsContainer("location_sensor")
     for packet in wrapped_packets:
         loc = packet.get_sensors().get_location()
         if loc and packet.get_sensors().validate_location():
-            if is_gap:
-                my_gaps.append((data_list[0][-1], loc.get_timestamps().get_timestamps()[0]))
-                is_gap = False
             if loc.is_only_best_values():
                 if loc.get_last_best_location():
                     best_loc = loc.get_last_best_location()
@@ -517,14 +503,19 @@ def load_apim_location_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
                 data_list[9].append(best_loc.get_speed_accuracy())
                 data_list[10].append(best_loc.get_bearing_accuracy())
                 data_list[11].append(best_loc.get_location_provider())
+                loc_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
             else:
-                timestamps = loc.get_timestamps().get_timestamps()
-                num_samples = len(timestamps)
+                num_samples = loc.get_timestamps().get_timestamps_count()
                 if num_samples > 0:
+                    samples = loc.get_timestamps().get_timestamps()
+                    data_list[0].extend(samples)
+                    if num_samples == 1:
+                        loc_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+                    else:
+                        loc_stats.add(np.mean(np.diff(samples)), np.std(np.diff(samples)), num_samples - 1)
                     # data_list[4].extend([np.nan if len(samples) < i + 1
                     #                      else samples[i] for i in range(num_samples)])
                     for i in range(num_samples):
-                        data_list[0].append(timestamps[i])
                         samples = loc.get_timestamps_gps().get_timestamps()
                         data_list[1].append(np.nan if len(samples) <= i else samples[i])
                         samples = loc.get_latitude_samples().get_values()
@@ -548,15 +539,12 @@ def load_apim_location_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
                         samples = loc.get_location_providers().get_values()
                         data_list[11].append(location.LocationProvider["UNKNOWN"]
                                              if len(samples) < i + 1 else samples[i])
-        elif len(data_list[0]) > 0:
-            is_gap = True
     if len(data_list[0]) > 0:
         data_list.insert(1, data_list[0].copy())
-        df = gpu.fill_gaps(pd.DataFrame(np.transpose(data_list), columns=LOCATION_COLUMNS),
-                           my_gaps, interpolate=True)
         return SensorData(
             get_sensor_description_list(wrapped_packets, SensorType.LOCATION),
-            df,
+            gpu.fill_gaps(pd.DataFrame(np.transpose(data_list), columns=LOCATION_COLUMNS), gaps,
+                          loc_stats.mean_of_means()),
             SensorType.LOCATION,
             calculate_stats=True
         )
@@ -594,21 +582,21 @@ def load_apim_pressure_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
     """
     data_list = []
     timestamps = []
-    is_gap = False
-    my_gaps = gaps.copy()
+    pressure_stats = StatsContainer("pressure_sensor")
     for packet in wrapped_packets:
         pressure = packet.get_sensors().get_pressure()
         if pressure and packet.get_sensors().validate_pressure():
-            if is_gap:
-                my_gaps.append((data_list[-1], pressure.get_timestamps().get_timestamps()[0]))
-                is_gap = False
             data_list.extend(pressure.get_samples().get_values())
-            timestamps.extend(pressure.get_timestamps().get_timestamps())
-        elif len(data_list) > 0:
-            is_gap = True
+            ts = pressure.get_timestamps().get_timestamps()
+            timestamps.extend(ts)
+            if pressure.get_timestamps().get_timestamps_count() == 1:
+                pressure_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+            else:
+                pressure_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list) > 0:
-        return load_apim_single_sensor(SensorType.PRESSURE, timestamps, data_list, my_gaps, "pressure",
-                                       get_sensor_description_list(wrapped_packets, SensorType.PRESSURE))
+        return load_apim_single_sensor(SensorType.PRESSURE, timestamps, data_list, gaps, "pressure",
+                                       get_sensor_description_list(wrapped_packets, SensorType.PRESSURE),
+                                       pressure_stats.mean_of_means())
     return None
 
 
@@ -643,21 +631,21 @@ def load_apim_light_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
     """
     data_list = []
     timestamps = []
-    is_gap = False
-    my_gaps = gaps.copy()
+    light_stats = StatsContainer("light_sensor")
     for packet in wrapped_packets:
         light = packet.get_sensors().get_light()
         if light and packet.get_sensors().validate_light():
-            if is_gap:
-                my_gaps.append((data_list[-1], light.get_timestamps().get_timestamps()[0]))
-                is_gap = False
             data_list.extend(light.get_samples().get_values())
-            timestamps.extend(light.get_timestamps().get_timestamps())
-        elif len(data_list) > 0:
-            is_gap = True
+            ts = light.get_timestamps().get_timestamps()
+            timestamps.extend(ts)
+            if light.get_timestamps().get_timestamps_count() == 1:
+                light_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+            else:
+                light_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list) > 0:
-        return load_apim_single_sensor(SensorType.LIGHT, timestamps, data_list, my_gaps, "light",
-                                       get_sensor_description_list(wrapped_packets, SensorType.LIGHT))
+        return load_apim_single_sensor(SensorType.LIGHT, timestamps, data_list, gaps, "light",
+                                       get_sensor_description_list(wrapped_packets, SensorType.LIGHT),
+                                       light_stats.mean_of_means())
     return None
 
 
@@ -692,21 +680,21 @@ def load_apim_proximity_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
     """
     data_list = []
     timestamps = []
-    is_gap = False
-    my_gaps = gaps.copy()
+    proximity_stats = StatsContainer("proximity_sensor")
     for packet in wrapped_packets:
         proximity = packet.get_sensors().get_proximity()
         if proximity and packet.get_sensors().validate_proximity():
-            if is_gap:
-                my_gaps.append((data_list[-1], proximity.get_timestamps().get_timestamps()[0]))
-                is_gap = False
             data_list.extend(proximity.get_samples().get_values())
-            timestamps.extend(proximity.get_timestamps().get_timestamps())
-        elif len(data_list) > 0:
-            is_gap = True
+            ts = proximity.get_timestamps().get_timestamps()
+            timestamps.extend(ts)
+            if proximity.get_timestamps().get_timestamps_count() == 1:
+                proximity_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+            else:
+                proximity_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list) > 0:
-        return load_apim_single_sensor(SensorType.PROXIMITY, timestamps, data_list, my_gaps, "proximity",
-                                       get_sensor_description_list(wrapped_packets, SensorType.PROXIMITY))
+        return load_apim_single_sensor(SensorType.PROXIMITY, timestamps, data_list, gaps, "proximity",
+                                       get_sensor_description_list(wrapped_packets, SensorType.PROXIMITY),
+                                       proximity_stats.mean_of_means())
     return None
 
 
@@ -741,21 +729,21 @@ def load_apim_ambient_temp_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
     """
     data_list = []
     timestamps = []
-    is_gap = False
-    my_gaps = gaps.copy()
+    amb_temp_stats = StatsContainer("amb_temp_sensor")
     for packet in wrapped_packets:
         amb_temp = packet.get_sensors().get_ambient_temperature()
         if amb_temp and packet.get_sensors().validate_ambient_temperature():
-            if is_gap:
-                my_gaps.append((data_list[-1], amb_temp.get_timestamps().get_timestamps()[0]))
-                is_gap = False
             data_list.extend(amb_temp.get_samples().get_values())
-            timestamps.extend(amb_temp.get_timestamps().get_timestamps())
-        elif len(data_list) > 0:
-            is_gap = True
+            ts = amb_temp.get_timestamps().get_timestamps()
+            timestamps.extend(ts)
+            if amb_temp.get_timestamps().get_timestamps_count() == 1:
+                amb_temp_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+            else:
+                amb_temp_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list) > 0:
-        return load_apim_single_sensor(SensorType.AMBIENT_TEMPERATURE, timestamps, data_list, my_gaps, "ambient_temp",
-                                       get_sensor_description_list(wrapped_packets, SensorType.AMBIENT_TEMPERATURE))
+        return load_apim_single_sensor(SensorType.AMBIENT_TEMPERATURE, timestamps, data_list, gaps, "ambient_temp",
+                                       get_sensor_description_list(wrapped_packets, SensorType.AMBIENT_TEMPERATURE),
+                                       amb_temp_stats.mean_of_means())
     return None
 
 
@@ -790,21 +778,21 @@ def load_apim_rel_humidity_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
     """
     data_list = []
     timestamps = []
-    is_gap = False
-    my_gaps = gaps.copy()
+    rel_hum_stats = StatsContainer("rel_hum_sensor")
     for packet in wrapped_packets:
         rel_hum = packet.get_sensors().get_relative_humidity()
         if rel_hum and packet.get_sensors().validate_relative_humidity():
-            if is_gap:
-                my_gaps.append((data_list[-1], rel_hum.get_timestamps().get_timestamps()[0]))
-                is_gap = False
             data_list.extend(rel_hum.get_samples().get_values())
-            timestamps.extend(rel_hum.get_timestamps().get_timestamps())
-        elif len(data_list) > 0:
-            is_gap = True
+            ts = rel_hum.get_timestamps().get_timestamps()
+            timestamps.extend(ts)
+            if rel_hum.get_timestamps().get_timestamps_count() == 1:
+                rel_hum_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+            else:
+                rel_hum_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list) > 0:
-        return load_apim_single_sensor(SensorType.RELATIVE_HUMIDITY, timestamps, data_list, my_gaps, "rel_humidity",
-                                       get_sensor_description_list(wrapped_packets, SensorType.RELATIVE_HUMIDITY))
+        return load_apim_single_sensor(SensorType.RELATIVE_HUMIDITY, timestamps, data_list, gaps, "rel_humidity",
+                                       get_sensor_description_list(wrapped_packets, SensorType.RELATIVE_HUMIDITY),
+                                       rel_hum_stats.mean_of_means())
     return None
 
 
@@ -838,23 +826,23 @@ def load_apim_accelerometer_from_list(wrapped_packets: List[WrappedRedvoxPacketM
     :return: accelerometer sensor data if it exists, None otherwise
     """
     data_list = [[], [], [], []]
-    is_gap = False
-    my_gaps = gaps.copy()
+    accel_stats = StatsContainer("accel_sensor")
     for packet in wrapped_packets:
         accel = packet.get_sensors().get_accelerometer()
         if accel and packet.get_sensors().validate_accelerometer():
-            if is_gap:
-                my_gaps.append((data_list[0][-1], accel.get_timestamps().get_timestamps()[0]))
-                is_gap = False
-            data_list[0].extend(accel.get_timestamps().get_timestamps())
+            ts = accel.get_timestamps().get_timestamps()
+            data_list[0].extend(ts)
             data_list[1].extend(accel.get_x_samples().get_values())
             data_list[2].extend(accel.get_y_samples().get_values())
             data_list[3].extend(accel.get_z_samples().get_values())
-        elif len(data_list[0]) > 0:
-            is_gap = True
+            if accel.get_timestamps().get_timestamps_count() == 1:
+                accel_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+            else:
+                accel_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list[0]) > 0:
-        return load_apim_xyz_sensor(SensorType.ACCELEROMETER, data_list, my_gaps, "accelerometer",
-                                    get_sensor_description_list(wrapped_packets, SensorType.ACCELEROMETER))
+        return load_apim_xyz_sensor(SensorType.ACCELEROMETER, data_list, gaps, "accelerometer",
+                                    get_sensor_description_list(wrapped_packets, SensorType.ACCELEROMETER),
+                                    accel_stats.mean_of_means())
     return None
 
 
@@ -888,23 +876,23 @@ def load_apim_magnetometer_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
     :return: magnetometer sensor data if it exists, None otherwise
     """
     data_list = [[], [], [], []]
-    is_gap = False
-    my_gaps = gaps.copy()
+    mag_stats = StatsContainer("mag_sensor")
     for packet in wrapped_packets:
         mag = packet.get_sensors().get_magnetometer()
         if mag and packet.get_sensors().validate_magnetometer():
-            if is_gap:
-                my_gaps.append((data_list[0][-1], mag.get_timestamps().get_timestamps()[0]))
-                is_gap = False
-            data_list[0].extend(mag.get_timestamps().get_timestamps())
+            ts = mag.get_timestamps().get_timestamps()
+            data_list[0].extend(ts)
             data_list[1].extend(mag.get_x_samples().get_values())
             data_list[2].extend(mag.get_y_samples().get_values())
             data_list[3].extend(mag.get_z_samples().get_values())
-        elif len(data_list[0]) > 0:
-            is_gap = True
+            if mag.get_timestamps().get_timestamps_count() == 1:
+                mag_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+            else:
+                mag_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list[0]) > 0:
-        return load_apim_xyz_sensor(SensorType.MAGNETOMETER, data_list, my_gaps, "magnetometer",
-                                    get_sensor_description_list(wrapped_packets, SensorType.MAGNETOMETER))
+        return load_apim_xyz_sensor(SensorType.MAGNETOMETER, data_list, gaps, "magnetometer",
+                                    get_sensor_description_list(wrapped_packets, SensorType.MAGNETOMETER),
+                                    mag_stats.mean_of_means())
     return None
 
 
@@ -938,23 +926,23 @@ def load_apim_gyroscope_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
     :return: gyroscope sensor data if it exists, None otherwise
     """
     data_list = [[], [], [], []]
-    is_gap = False
-    my_gaps = gaps.copy()
+    gyro_stats = StatsContainer("gyro_sensor")
     for packet in wrapped_packets:
         gyro = packet.get_sensors().get_gyroscope()
         if gyro and packet.get_sensors().validate_gyroscope():
-            if is_gap:
-                my_gaps.append((data_list[0][-1], gyro.get_timestamps().get_timestamps()[0]))
-                is_gap = False
-            data_list[0].extend(gyro.get_timestamps().get_timestamps())
+            ts = gyro.get_timestamps().get_timestamps()
+            data_list[0].extend(ts)
             data_list[1].extend(gyro.get_x_samples().get_values())
             data_list[2].extend(gyro.get_y_samples().get_values())
             data_list[3].extend(gyro.get_z_samples().get_values())
-        elif len(data_list[0]) > 0:
-            is_gap = True
+            if gyro.get_timestamps().get_timestamps_count() == 1:
+                gyro_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+            else:
+                gyro_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list[0]) > 0:
-        return load_apim_xyz_sensor(SensorType.GYROSCOPE, data_list, my_gaps, "gyroscope",
-                                    get_sensor_description_list(wrapped_packets, SensorType.GYROSCOPE))
+        return load_apim_xyz_sensor(SensorType.GYROSCOPE, data_list, gaps, "gyroscope",
+                                    get_sensor_description_list(wrapped_packets, SensorType.GYROSCOPE),
+                                    gyro_stats.mean_of_means())
     return None
 
 
@@ -988,23 +976,23 @@ def load_apim_gravity_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
     :return: gravity sensor data if it exists, None otherwise
     """
     data_list = [[], [], [], []]
-    is_gap = False
-    my_gaps = gaps.copy()
+    gravity_stats = StatsContainer("gravity_sensor")
     for packet in wrapped_packets:
         gravity = packet.get_sensors().get_gravity()
         if gravity and packet.get_sensors().validate_gravity():
-            if is_gap:
-                my_gaps.append((data_list[0][-1], gravity.get_timestamps().get_timestamps()[0]))
-                is_gap = False
-            data_list[0].extend(gravity.get_timestamps().get_timestamps())
+            ts = gravity.get_timestamps().get_timestamps()
+            data_list[0].extend(ts)
             data_list[1].extend(gravity.get_x_samples().get_values())
             data_list[2].extend(gravity.get_y_samples().get_values())
             data_list[3].extend(gravity.get_z_samples().get_values())
-        elif len(data_list[0]) > 0:
-            is_gap = True
+            if gravity.get_timestamps().get_timestamps_count() == 1:
+                gravity_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+            else:
+                gravity_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list[0]) > 0:
-        return load_apim_xyz_sensor(SensorType.GRAVITY, data_list, my_gaps, "gravity",
-                                    get_sensor_description_list(wrapped_packets, SensorType.GRAVITY))
+        return load_apim_xyz_sensor(SensorType.GRAVITY, data_list, gaps, "gravity",
+                                    get_sensor_description_list(wrapped_packets, SensorType.GRAVITY),
+                                    gravity_stats.mean_of_means())
     return None
 
 
@@ -1038,23 +1026,23 @@ def load_apim_orientation_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
     :return: orientation sensor data if it exists, None otherwise
     """
     data_list = [[], [], [], []]
-    is_gap = False
-    my_gaps = gaps.copy()
+    orient_stats = StatsContainer("orient_sensor")
     for packet in wrapped_packets:
         orient = packet.get_sensors().get_orientation()
         if orient and packet.get_sensors().validate_orientation():
-            if is_gap:
-                my_gaps.append((data_list[0][-1], orient.get_timestamps().get_timestamps()[0]))
-                is_gap = False
-            data_list[0].extend(orient.get_timestamps().get_timestamps())
+            ts = orient.get_timestamps().get_timestamps()
+            data_list[0].extend(ts)
             data_list[1].extend(orient.get_x_samples().get_values())
             data_list[2].extend(orient.get_y_samples().get_values())
             data_list[3].extend(orient.get_z_samples().get_values())
-        elif len(data_list[0]) > 0:
-            is_gap = True
+            if orient.get_timestamps().get_timestamps_count() == 1:
+                orient_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+            else:
+                orient_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list[0]) > 0:
-        return load_apim_xyz_sensor(SensorType.ORIENTATION, data_list, my_gaps, "orientation",
-                                    get_sensor_description_list(wrapped_packets, SensorType.ORIENTATION))
+        return load_apim_xyz_sensor(SensorType.ORIENTATION, data_list, gaps, "orientation",
+                                    get_sensor_description_list(wrapped_packets, SensorType.ORIENTATION),
+                                    orient_stats.mean_of_means())
     return None
 
 
@@ -1088,23 +1076,23 @@ def load_apim_linear_accel_from_list(wrapped_packets: List[WrappedRedvoxPacketM]
     :return: linear acceleration sensor data if it exists, None otherwise
     """
     data_list = [[], [], [], []]
-    is_gap = False
-    my_gaps = gaps.copy()
+    lin_acc_stats = StatsContainer("lin_acc_sensor")
     for packet in wrapped_packets:
         lin_acc = packet.get_sensors().get_linear_acceleration()
         if lin_acc and packet.get_sensors().validate_linear_acceleration():
-            if is_gap:
-                my_gaps.append((data_list[0][-1], lin_acc.get_timestamps().get_timestamps()[0]))
-                is_gap = False
-            data_list[0].extend(lin_acc.get_timestamps().get_timestamps())
+            ts = lin_acc.get_timestamps().get_timestamps()
+            data_list[0].extend(ts)
             data_list[1].extend(lin_acc.get_x_samples().get_values())
             data_list[2].extend(lin_acc.get_y_samples().get_values())
             data_list[3].extend(lin_acc.get_z_samples().get_values())
-        elif len(data_list[0]) > 0:
-            is_gap = True
+            if lin_acc.get_timestamps().get_timestamps_count() == 1:
+                lin_acc_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+            else:
+                lin_acc_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list[0]) > 0:
-        return load_apim_xyz_sensor(SensorType.LINEAR_ACCELERATION, data_list, my_gaps, "linear_accel",
-                                    get_sensor_description_list(wrapped_packets, SensorType.LINEAR_ACCELERATION))
+        return load_apim_xyz_sensor(SensorType.LINEAR_ACCELERATION, data_list, gaps, "linear_accel",
+                                    get_sensor_description_list(wrapped_packets, SensorType.LINEAR_ACCELERATION),
+                                    lin_acc_stats.mean_of_means())
     return None
 
 
@@ -1138,23 +1126,23 @@ def load_apim_rotation_vector_from_list(wrapped_packets: List[WrappedRedvoxPacke
     :return: rotation vector sensor data if it exists, None otherwise
     """
     data_list = [[], [], [], []]
-    is_gap = False
-    my_gaps = gaps.copy()
+    rot_vec_stats = StatsContainer("rot_vec_sensor")
     for packet in wrapped_packets:
         rot_vec = packet.get_sensors().get_rotation_vector()
         if rot_vec and packet.get_sensors().validate_rotation_vector():
-            if is_gap:
-                my_gaps.append((data_list[0][-1], rot_vec.get_timestamps().get_timestamps()[0]))
-                is_gap = False
-            data_list[0].extend(rot_vec.get_timestamps().get_timestamps())
+            ts = rot_vec.get_timestamps().get_timestamps()
+            data_list[0].extend(ts)
             data_list[1].extend(rot_vec.get_x_samples().get_values())
             data_list[2].extend(rot_vec.get_y_samples().get_values())
             data_list[3].extend(rot_vec.get_z_samples().get_values())
-        elif len(data_list[0]) > 0:
-            is_gap = True
+            if rot_vec.get_timestamps().get_timestamps_count() == 1:
+                rot_vec_stats.add(dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1)
+            else:
+                rot_vec_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list[0]) > 0:
-        return load_apim_xyz_sensor(SensorType.ROTATION_VECTOR, data_list, my_gaps, "rotation_vector",
-                                    get_sensor_description_list(wrapped_packets, SensorType.ROTATION_VECTOR))
+        return load_apim_xyz_sensor(SensorType.ROTATION_VECTOR, data_list, gaps, "rotation_vector",
+                                    get_sensor_description_list(wrapped_packets, SensorType.ROTATION_VECTOR),
+                                    rot_vec_stats.mean_of_means())
     return None
 
 
@@ -1234,16 +1222,11 @@ def load_apim_health_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
     :return: station health sensor data if it exists, None otherwise
     """
     data_list: List = [[], [], [], [], [], [], [], [], [], []]
-    is_gap = False
-    my_gaps = gaps.copy()
     for packet in wrapped_packets:
         metrics = packet.get_station_information().get_station_metrics()
         timestamps = metrics.get_timestamps().get_timestamps()
         num_samples = len(timestamps)
         if num_samples > 0:
-            if is_gap:
-                my_gaps.append((data_list[0][-1], timestamps[0]))
-                is_gap = False
             data_list[0].extend(timestamps)
             samples = metrics.get_battery().get_values()
             if len(samples) != num_samples:
@@ -1279,8 +1262,6 @@ def load_apim_health_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
             data_list[9].extend([CellServiceState["UNKNOWN"]
                                  if len(samples) < i + 1 else samples[i]
                                  for i in range(num_samples)])
-        elif len(data_list[0]) > 0:
-            is_gap = True
     if len(data_list[0]) > 0:
         data_list.insert(1, data_list[0].copy())
         # health is collected 1 per packet or 1 per second
@@ -1296,7 +1277,7 @@ def load_apim_health_from_list(wrapped_packets: List[WrappedRedvoxPacketM],
             columns=["timestamps", "unaltered_timestamps", "battery_charge_remaining", "battery_current_strength",
                      "internal_temp_c", "network_type", "network_strength", "power_state", "avail_ram", "avail_disk",
                      "cell_service"],
-        ), my_gaps, dtu.seconds_to_microseconds(sample_interval), True)
+        ), gaps, dtu.seconds_to_microseconds(sample_interval))
         return SensorData(
             "station health",
             df,
