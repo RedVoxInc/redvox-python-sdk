@@ -3,13 +3,19 @@ Defines generic sensor data and data for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 """
 import enum
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
 
 import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om
+
+# columns that cannot be interpolated
+NON_INTERPOLATED_COLUMNS = ["compressed_audio", "image"]
+# columns that are not numeric but can be interpolated
+NON_NUMERIC_COLUMNS = ["location_provider", "image_codec", "audio_codec",
+                       "network_type", "power_state", "cell_service"]
 
 
 # todo: add original timestamps to the dataframes
@@ -294,23 +300,44 @@ class SensorData:
         """
         self.data_df = self.data_df.sort_values("timestamps", ascending=ascending)
 
-    def interpolate(self, first_point: int, second_point: int, interpolate_timestamp: float) -> pd.Series:
+    def interpolate(self, interpolate_timestamp: float, first_point: int, second_point: int = 0,
+                    copy: bool = True) -> pd.Series:
         """
-        interpolates two points at the intercept value
+        interpolates two points at the intercept value.  the two points must be consecutive in the dataframe
+
+        :param interpolate_timestamp: timestamp to interpolate other values
         :param first_point: index of first point
-        :param second_point: index of second point
-        :param interpolate_timestamp: timestamp to be interpolate other values
+        :param second_point: delta to second point, default 0 (same as first point)
+        :param copy: if True and there are two points, copies the values of the closest point, default True
         :return: pd.Series of interpolated points
         """
-        numeric_series = self.data_df.select_dtypes(include=[np.number])
-        numeric_diff = numeric_series.iloc[second_point] - numeric_series.iloc[first_point]
-        numeric_diff = (numeric_diff / numeric_diff["timestamps"]) \
-            * (interpolate_timestamp - numeric_series["timestamps"][first_point]) \
-            + numeric_series.iloc[first_point]
-        non_numeric_series = self.data_df.select_dtypes(exclude=[np.number])
-        if np.abs(self.data_df.iloc[first_point]["timestamps"] - interpolate_timestamp) \
-                <= np.abs(self.data_df.iloc[second_point]["timestamps"] - interpolate_timestamp):
-            non_numeric_diff = non_numeric_series.iloc[first_point]
+        start_point = self.data_df.iloc[first_point]
+        numeric_start = start_point[[col for col in self.data_df.columns
+                                     if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+        non_numeric_start = start_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
+        if second_point:
+            end_point = self.data_df.iloc[first_point + second_point]
+            numeric_end = end_point[[col for col in self.data_df.columns
+                                     if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+            non_numeric_end = end_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
+            first_closer = \
+                np.abs(start_point["timestamps"] - interpolate_timestamp) \
+                <= np.abs(end_point["timestamps"] - interpolate_timestamp)
+            if first_closer:
+                non_numeric_diff = non_numeric_start
+            else:
+                non_numeric_diff = non_numeric_end
+            if copy:
+                if first_closer:
+                    numeric_diff = numeric_start
+                else:
+                    numeric_diff = numeric_end
+            else:
+                numeric_diff = numeric_end - numeric_start
+                numeric_diff = \
+                    (numeric_diff / numeric_diff["timestamps"]) * \
+                    (interpolate_timestamp - numeric_start) + numeric_start
         else:
-            non_numeric_diff = non_numeric_series.iloc[second_point]
+            numeric_diff = numeric_start
+            non_numeric_diff = non_numeric_start
         return pd.concat([numeric_diff, non_numeric_diff])
