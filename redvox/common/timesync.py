@@ -325,13 +325,19 @@ class TimeSyncAnalysis:
                 )
             else:
                 mtz: float = np.nan
+                best_latency: float = np.nan
+                best_offset: float = np.nan
+
                 for i, v in enumerate(packet.metadata):
-                    if v == "machTimeZero" and (i + 1) < len(packet.metadata):
-                        try:
+                    try:
+                        if v == "machTimeZero" and (i + 1) < len(packet.metadata):
                             mtz = float(packet.metadata[i + 1])
-                            break
-                        except (KeyError, ValueError):
-                            continue
+                        if v == "bestLatency" and (i + 1) < len(packet.metadata):
+                            best_latency = float(packet.metadata[i + 1])
+                        if v == "bestOffset" and (i + 1) < len(packet.metadata):
+                            best_offset = float(packet.metadata[i + 1])
+                    except (KeyError, ValueError):
+                        continue
 
                 tsd = TimeSyncData(
                     packet.redvox_id,
@@ -342,9 +348,8 @@ class TimeSyncAnalysis:
                     packet.server_timestamp_epoch_microseconds_utc,
                     packet.app_file_start_timestamp_machine,
                     None,
-                    None,
-                    None,
-                    None
+                    best_latency,
+                    best_offset,
                 )
 
             timesync_data.append(tsd)
