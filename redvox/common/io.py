@@ -26,9 +26,10 @@ from typing import (
 
 import lz4.frame
 
-from redvox.api900.reader import read_rdvxz_file
+from redvox.api900.reader import read_rdvxz_file, read_buffer
 from redvox.api1000.common.common import check_type
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.common.versioning import check_version, ApiVersion
 from redvox.common.date_time_utils import (
     datetime_from_epoch_microseconds_utc as dt_us,
@@ -42,6 +43,7 @@ from redvox.common.parallel_utils import maybe_parallel_map
 if TYPE_CHECKING:
     from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
     from redvox.common.data_window import DataWindow
+    from redvox.api900.lib.api900_pb2 import RedvoxPacket
 
 
 def _is_int(value: str) -> Optional[int]:
@@ -138,6 +140,22 @@ class IndexEntry:
             return read_rdvxz_file(self.full_path)
         elif self.api_version == ApiVersion.API_1000:
             return WrappedRedvoxPacketM.from_compressed_path(self.full_path)
+        else:
+            return None
+
+    def read_raw(self) -> Optional[Union["RedvoxPacket", RedvoxPacketM]]:
+        """
+        Reads, decompresses, and deserializes the RedVox file pointed to by this entry.
+        :return: One of RedvoxPacket, RedvoxPacketM, or None. Note that these are the raw protobuf types.
+        """
+        if self.api_version == ApiVersion.API_900:
+            with open(self.full_path, "rb") as buf_in:
+                return read_buffer(buf_in.read())
+        elif self.api_version == ApiVersion.API_1000:
+            with lz4.frame.open(self.full_path, "rb") as serialized_in:
+                proto: RedvoxPacketM = RedvoxPacketM()
+                proto.ParseFromString(serialized_in.read())
+                return proto
         else:
             return None
 
@@ -512,6 +530,18 @@ class Index:
         """
         return Index([en for en in self.entries if en.station_id == station_id])
 
+    def stream_raw(
+            self, read_filter: ReadFilter = ReadFilter()
+    ) -> Iterator[Union["RedvoxPacket", RedvoxPacketM]]:
+        """
+        Read, decompress, deserialize, and then stream RedVox data pointed to by this index.
+        :param read_filter: Additional filtering to specify which data should be streamed.
+        :return: An iterator over RedvoxPacket and RedvoxPacketM instances.
+        """
+        filtered: Iterator[IndexEntry] = filter(read_filter.apply, self.entries)
+        # noinspection Mypy
+        return map(IndexEntry.read_raw, filtered)
+
     def stream(
         self, read_filter: ReadFilter = ReadFilter()
     ) -> Iterator[Union["WrappedRedvoxPacket", WrappedRedvoxPacketM]]:
@@ -523,6 +553,16 @@ class Index:
         filtered: Iterator[IndexEntry] = filter(read_filter.apply, self.entries)
         # noinspection Mypy
         return map(IndexEntry.read, filtered)
+
+    def read_raw(
+            self, read_filter: ReadFilter = ReadFilter()
+    ) -> List[Union["RedvoxPacket", RedvoxPacketM]]:
+        """
+        Read, decompress, and deserialize RedVox data pointed to by this index.
+        :param read_filter: Additional filtering to specify which data should be read.
+        :return: An list of RedvoxPacket and RedvoxPacketM instances.
+        """
+        return list(self.stream_raw(read_filter))
 
     def read(
         self, read_filter: ReadFilter = ReadFilter()
