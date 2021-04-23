@@ -103,9 +103,8 @@ def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
 
     return channel.WhichOneof("payload")
 
-
-def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                          api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
+def payload_len(channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                      api900_pb2.UnevenlySampledChannel]) -> int:
     """
     Given an evenly or unevenly sampled channel, extracts the entire payload.
 
@@ -113,6 +112,36 @@ def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     protobuf type.
     :param channel: The protobuf channel to extract the payload from.
     :return: A numpy array of either floats or ints.
+    """
+    payload_type_str = payload_type(channel)
+
+    if payload_type_str == "byte_payload":
+        payload = len(channel.byte_payload.payload)
+    elif payload_type_str == "uint32_payload":
+        payload = len(channel.uint32_payload.payload)
+    elif payload_type_str == "uint64_payload":
+        payload = len(channel.uint64_payload.payload)
+    elif payload_type_str == "int32_payload":
+        payload = len(channel.int32_payload.payload)
+    elif payload_type_str == "int64_payload":
+        payload = len(channel.int64_payload.payload)
+    elif payload_type_str == "float32_payload":
+        payload = len(channel.float32_payload.payload)
+    elif payload_type_str == "float64_payload":
+        payload = len(channel.float64_payload.payload)
+    else:
+        payload = 0
+
+    return payload
+
+
+def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
+                                          api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
+    """
+    Given an evenly or unevenly sampled channel, extracts the length of the payload.
+
+    :param channel: The protobuf channel to extract the payload from.
+    :return: Length of the payload.
     """
     payload_type_str = payload_type(channel)
 

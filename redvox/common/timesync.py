@@ -15,6 +15,7 @@ import pandas as pd
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.api900.lib.api900_pb2 import RedvoxPacket
 from redvox.common.offset_model import OffsetModel
+import redvox.api900.reader_utils as util_900
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 from redvox.common import (
@@ -303,7 +304,7 @@ class TimeSyncAnalysis:
         """
         timesync_data: List[TimeSyncData] = []
 
-        # packet: Union[RedvoxPacketM, RedvoxPacket]
+        packet: Union[RedvoxPacketM, RedvoxPacket]
         for packet in packets:
             tsd: TimeSyncData
             if isinstance(packet, RedvoxPacketM):
@@ -323,13 +324,28 @@ class TimeSyncAnalysis:
                     packet.timing_information.best_offset
                 )
             else:
-                tsd = TimeSyncData()
-                # packet: RedvoxPacket
-                # tsd = TimeSyncData(
-                #     packet.redvox_id,
-                #     packet.uuid,
-                #     packet.
-                # )
+                mtz: float = np.nan
+                for i, v in enumerate(packet.metadata):
+                    if v == "machTimeZero" and (i + 1) < len(packet.metadata):
+                        try:
+                            mtz = float(packet.metadata[i + 1])
+                            break
+                        except (KeyError, ValueError):
+                            continue
+
+                tsd = TimeSyncData(
+                    packet.redvox_id,
+                    packet.evenly_sampled_channels[0].sample_rate_hz,
+                    util_900.payload_len(packet.evenly_sampled_channels[0]),
+                    mtz,
+                    packet.evenly_sampled_channels[0].first_sample_timestamp_epoch_microseconds_utc,
+                    packet.server_timestamp_epoch_microseconds_utc,
+                    packet.app_file_start_timestamp_machine,
+                    None,
+                    None,
+                    None,
+                    None
+                )
 
             timesync_data.append(tsd)
 

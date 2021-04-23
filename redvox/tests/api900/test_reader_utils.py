@@ -394,6 +394,9 @@ class InterleavedChannelTests(ArraysTestCase):
             self.mic_channel.get_payload(api900_pb2.MICROPHONE),
             numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
 
+    def test_get_payload_single_len(self):
+        self.assertEqual(10, len(self.mic_channel.get_payload(api900_pb2.MICROPHONE),))
+
     def test_get_payload_interleaved(self):
         self.assertArraysEqual(
             self.gps_channel.get_payload(api900_pb2.LATITUDE),
