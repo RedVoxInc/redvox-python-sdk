@@ -914,7 +914,9 @@ def load_apim_light(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     :param packet: packet with data to load
     :return: light sensor data if it exists, None otherwise
     """
-    return load_single(packet, SensorType.LIGHT, __LIGHT_FIELD_NAME, packet.sensors.light)
+    return load_single(
+        packet, SensorType.LIGHT, __LIGHT_FIELD_NAME, packet.sensors.light
+    )
     # light = wrapped_packet.get_sensors().get_light()
     # if light and wrapped_packet.get_sensors().validate_light():
     #     data_df = read_apim_single_sensor(light, "light")
@@ -941,7 +943,13 @@ def load_apim_light_from_list(
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: light sensor data if it exists, None otherwise
     """
-    return load_single_from_list(packets, gaps, SensorType.LIGHT, __LIGHT_FIELD_NAME, lambda packet: packet.sensors.light)
+    return load_single_from_list(
+        packets,
+        gaps,
+        SensorType.LIGHT,
+        __LIGHT_FIELD_NAME,
+        lambda packet: packet.sensors.light,
+    )
     # data_list = []
     # timestamps = []
     # light_stats = StatsContainer("light_sensor")
@@ -976,7 +984,9 @@ def load_apim_proximity(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     :param packet: packet with data to load
     :return: proximity sensor data if it exists, None otherwise
     """
-    return load_single(packet, SensorType.PROXIMITY, __PROXIMITY_FIELD_NAME, packet.sensors.proximity)
+    return load_single(
+        packet, SensorType.PROXIMITY, __PROXIMITY_FIELD_NAME, packet.sensors.proximity
+    )
     # proximity = packet.get_sensors().get_proximity()
     # if proximity and packet.get_sensors().validate_proximity():
     #     data_df = read_apim_single_sensor(proximity, "proximity")
@@ -1003,7 +1013,13 @@ def load_apim_proximity_from_list(
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: proximity sensor data if it exists, None otherwise
     """
-    return load_single_from_list(packets, gaps, SensorType.PROXIMITY, __PROXIMITY_FIELD_NAME, lambda packet: packet.sensors.proximity)
+    return load_single_from_list(
+        packets,
+        gaps,
+        SensorType.PROXIMITY,
+        __PROXIMITY_FIELD_NAME,
+        lambda packet: packet.sensors.proximity,
+    )
     # data_list = []
     # timestamps = []
     # proximity_stats = StatsContainer("proximity_sensor")
@@ -1042,7 +1058,12 @@ def load_apim_ambient_temp(
     :param packet: packet with data to load
     :return: ambient temperature sensor data if it exists, None otherwise
     """
-    return load_single(packet, SensorType.AMBIENT_TEMPERATURE, __AMBIENT_TEMPERATURE_FIELD_NAME, packet.sensors.ambient_temperature)
+    return load_single(
+        packet,
+        SensorType.AMBIENT_TEMPERATURE,
+        __AMBIENT_TEMPERATURE_FIELD_NAME,
+        packet.sensors.ambient_temperature,
+    )
     # ambient_temp = packet.get_sensors().get_ambient_temperature()
     # if ambient_temp and packet.get_sensors().validate_ambient_temperature():
     #     data_df = read_apim_single_sensor(ambient_temp, "ambient_temp")
@@ -1069,7 +1090,13 @@ def load_apim_ambient_temp_from_list(
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: ambient temperature sensor data if it exists, None otherwise
     """
-    return load_single_from_list(packets, gaps, SensorType.AMBIENT_TEMPERATURE, __AMBIENT_TEMPERATURE_FIELD_NAME, lambda packet: packet.sensors.ambient_temperature)
+    return load_single_from_list(
+        packets,
+        gaps,
+        SensorType.AMBIENT_TEMPERATURE,
+        __AMBIENT_TEMPERATURE_FIELD_NAME,
+        lambda packet: packet.sensors.ambient_temperature,
+    )
     # data_list = []
     # timestamps = []
     # amb_temp_stats = StatsContainer("amb_temp_sensor")
@@ -1103,67 +1130,80 @@ def load_apim_ambient_temp_from_list(
 
 
 def load_apim_rel_humidity(
-    wrapped_packet: WrappedRedvoxPacketM,
+    packet: api_m.RedvoxPacketM,
 ) -> Optional[SensorData]:
     """
     load relative humidity data from a single wrapped packet
-    :param wrapped_packet: packet with data to load
+    :param packet: packet with data to load
     :return: relative humidity sensor data if it exists, None otherwise
     """
-    rel_humidity = wrapped_packet.get_sensors().get_relative_humidity()
-    if rel_humidity and wrapped_packet.get_sensors().validate_relative_humidity():
-        data_df = read_apim_single_sensor(rel_humidity, "rel_humidity")
-        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
-            data_df
-        )
-        return SensorData(
-            get_sensor_description(rel_humidity),
-            data_df,
-            SensorType.RELATIVE_HUMIDITY,
-            sample_rate,
-            sample_interval,
-            sample_interval_std,
-            False,
-        )
+    return load_single(
+        packet,
+        SensorType.RELATIVE_HUMIDITY,
+        __RELATIVE_HUMIDITY_FIELD_NAME,
+        packet.sensors.relative_humidity,
+    )
+    # rel_humidity = packet.get_sensors().get_relative_humidity()
+    # if rel_humidity and packet.get_sensors().validate_relative_humidity():
+    #     data_df = read_apim_single_sensor(rel_humidity, "rel_humidity")
+    #     sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+    #         data_df
+    #     )
+    #     return SensorData(
+    #         get_sensor_description(rel_humidity),
+    #         data_df,
+    #         SensorType.RELATIVE_HUMIDITY,
+    #         sample_rate,
+    #         sample_interval,
+    #         sample_interval_std,
+    #         False,
+    #     )
 
 
 def load_apim_rel_humidity_from_list(
-    wrapped_packets: List[WrappedRedvoxPacketM], gaps: List[Tuple[float, float]]
+    packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
     load relative humidity data from a list of wrapped packets
-    :param wrapped_packets: packets with data to load
+    :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: relative humidity sensor data if it exists, None otherwise
     """
-    data_list = []
-    timestamps = []
-    rel_hum_stats = StatsContainer("rel_hum_sensor")
-    for packet in wrapped_packets:
-        rel_hum = packet.get_sensors().get_relative_humidity()
-        if rel_hum and packet.get_sensors().validate_relative_humidity():
-            data_list.extend(rel_hum.get_samples().get_values())
-            ts = rel_hum.get_timestamps().get_timestamps()
-            timestamps.extend(ts)
-            if rel_hum.get_timestamps().get_timestamps_count() == 1:
-                rel_hum_stats.add(
-                    dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1
-                )
-            else:
-                rel_hum_stats.add(
-                    np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1
-                )
-    if len(data_list) > 0:
-        return load_apim_single_sensor(
-            SensorType.RELATIVE_HUMIDITY,
-            timestamps,
-            data_list,
-            gaps,
-            "rel_humidity",
-            get_sensor_description_list(wrapped_packets, SensorType.RELATIVE_HUMIDITY),
-            rel_hum_stats.mean_of_means(),
-        )
-    return None
+    return load_single_from_list(
+        packets,
+        gaps,
+        SensorType.RELATIVE_HUMIDITY,
+        __RELATIVE_HUMIDITY_FIELD_NAME,
+        lambda packet: packet.sensors.relative_humidity,
+    )
+    # data_list = []
+    # timestamps = []
+    # rel_hum_stats = StatsContainer("rel_hum_sensor")
+    # for packet in packets:
+    #     rel_hum = packet.get_sensors().get_relative_humidity()
+    #     if rel_hum and packet.get_sensors().validate_relative_humidity():
+    #         data_list.extend(rel_hum.get_samples().get_values())
+    #         ts = rel_hum.get_timestamps().get_timestamps()
+    #         timestamps.extend(ts)
+    #         if rel_hum.get_timestamps().get_timestamps_count() == 1:
+    #             rel_hum_stats.add(
+    #                 dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1
+    #             )
+    #         else:
+    #             rel_hum_stats.add(
+    #                 np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1
+    #             )
+    # if len(data_list) > 0:
+    #     return load_apim_single_sensor(
+    #         SensorType.RELATIVE_HUMIDITY,
+    #         timestamps,
+    #         data_list,
+    #         gaps,
+    #         "rel_humidity",
+    #         get_sensor_description_list(packets, SensorType.RELATIVE_HUMIDITY),
+    #         rel_hum_stats.mean_of_means(),
+    #     )
+    # return None
 
 
 def load_apim_accelerometer(
