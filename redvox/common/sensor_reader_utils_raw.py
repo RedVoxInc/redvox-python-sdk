@@ -83,8 +83,12 @@ def __has_sensor(
     return False
 
 
-def __packet_duration(packet: api_m.RedvoxPacketM) -> float:
-    return (len(packet.sensors.audio.samples.values) / packet.sensors.audio.sample_rate) * 1_000_000.0
+def __packet_duration_s(packet: api_m.RedvoxPacketM) -> float:
+    return len(packet.sensors.audio.samples.values) / packet.sensors.audio.sample_rate
+
+
+def __packet_duration_us(packet: api_m.RedvoxPacketM) -> float:
+    return __packet_duration_s(packet) * 1_000_000.0
 
 
 def get_empty_sensor_data(
@@ -472,12 +476,10 @@ def load_apim_compressed_audio_from_list(
                 columns=COMPRESSED_AUDIO_COLUMNS,
             ),
             gaps,
-            __packet_duration(packets[0]),
+            __packet_duration_us(packets[0]),
         )
-        data_df["audio_codec"] = [audio.AudioCodec(d) for d in data_df["audio_codec"]]
-        sample_rate_hz = (
-            packets[0].sensors.compressed_audio.sample_rate
-        )
+        data_df["audio_codec"] = [d for d in data_df["audio_codec"]]
+        sample_rate_hz = packets[0].sensors.compressed_audio.sample_rate
         return SensorData(
             get_sensor_description_list(packets, SensorType.COMPRESSED_AUDIO),
             data_df,
@@ -499,17 +501,17 @@ def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     if __has_sensor(packet, __IMAGE_FIELD_NAME):
         image_sensor: api_m.RedvoxPacketM.Sensors.Image = packet.sensors.image
         timestamps: np.ndarray = np.array(image_sensor.timestamps.timestamps)
-        codecs = np.full(len(timestamps), image_sensor.get_image_codec().value)
+        codecs = np.full(len(timestamps), image_sensor.image_codec)
         data_df = pd.DataFrame(
-            np.transpose([timestamps, timestamps, image_sensor.get_samples(), codecs]),
+            np.transpose([timestamps, timestamps, image_sensor.samples, codecs]),
             columns=IMAGE_COLUMNS,
         )
-        data_df["image_codec"] = [image.ImageCodec(d) for d in data_df["image_codec"]]
+        data_df["image_codec"] = [d for d in data_df["image_codec"]]
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
             data_df
         )
         return SensorData(
-            get_sensor_description(image_sensor),
+            image_sensor.sensor_description,
             data_df,
             SensorType.IMAGE,
             sample_rate,
@@ -521,32 +523,33 @@ def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
 
 
 def load_apim_image_from_list(
-    wrapped_packets: List[WrappedRedvoxPacketM], gaps: List[Tuple[float, float]]
+    packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
     load image data from a list of wrapped packets
-    :param wrapped_packets: packets with data to load
+    :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: image sensor data if it exists, None otherwise
     """
     data_list = [[], [], []]
-    for packet in wrapped_packets:
-        image_sensor = packet.get_sensors().get_image()
-        if image_sensor and packet.get_sensors().validate_image():
-            data_list[0].extend(image_sensor.get_timestamps().get_timestamps())
-            data_list[1].extend(image_sensor.get_samples())
+    for packet in packets:
+        if __has_sensor(packet, __IMAGE_FIELD_NAME):
+            image_sensor = packet.sensors.image
+
+            data_list[0].extend(np.array(image_sensor.timestamps.timestamps))
+            data_list[1].extend(image_sensor.samples)
             data_list[2].extend(
                 [
-                    image_sensor.get_image_codec()
-                    for i in range(image_sensor.get_num_images())
+                    image_sensor.image_codec
+                    for i in range(len(image_sensor.timestamps.timestamps))
                 ]
             )
     if len(data_list[0]) > 0:
         # image is collected 1 per packet or 1 per second
-        if len(data_list[0]) > len(wrapped_packets):
+        if len(data_list[0]) > len(packets):
             sample_rate = 1.0
         else:
-            sample_rate = 1 / wrapped_packets[0].get_packet_duration_s()
+            sample_rate = 1 / __packet_duration_s(packets[0])
         sample_interval = 1 / sample_rate
         sample_interval_std = (
             dtu.microseconds_to_seconds(float(np.std(np.diff(data_list[0]))))
@@ -554,7 +557,7 @@ def load_apim_image_from_list(
             else np.nan
         )
         return SensorData(
-            get_sensor_description_list(wrapped_packets, SensorType.IMAGE),
+            get_sensor_description_list(packets, SensorType.IMAGE),
             gpu.fill_gaps(
                 pd.DataFrame(
                     np.transpose(
@@ -574,50 +577,61 @@ def load_apim_image_from_list(
     return None
 
 
-def load_apim_location(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData]:
+def __is_only_best_values(loc: api_m.RedvoxPacketM.Sensors.Location) -> bool:
+    """
+    :return: True if the location does not have data in it and has a last_best_location or overall_best_location
+    """
+    return len(loc.location_providers) < 1 and (
+        loc.HasField("last_best_location") or loc.HasField("overall_best_location")
+    )
+
+
+def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load location data from a single wrapped packet
-    :param wrapped_packet: packet with data to load
+    :param packet: packet with data to load
     :return: location sensor data if it exists, None otherwise
     """
-    loc = wrapped_packet.get_sensors().get_location()
-    if loc and wrapped_packet.get_sensors().validate_location():
-        if loc.is_only_best_values():
-            if loc.get_last_best_location():
-                best_loc = loc.get_last_best_location()
+    if __has_sensor(packet, __LOCATION_FIELD_NAME):
+        loc: api_m.RedvoxPacketM.Sensors.Location = packet.get_sensors().get_location()
+
+        if __is_only_best_values(loc):
+            best_loc: api_m.RedvoxPacketM.Sensors.Location.BestLocation
+            if loc.HasField("last_best_location"):
+                best_loc = loc.last_best_location
             else:
-                best_loc = loc.get_overall_best_location()
+                best_loc = loc.overall_best_location
             data_for_df = [
                 [
-                    best_loc.get_latitude_longitude_timestamp().get_mach(),
-                    best_loc.get_latitude_longitude_timestamp().get_mach(),
-                    best_loc.get_latitude_longitude_timestamp().get_gps(),
-                    best_loc.get_latitude(),
-                    best_loc.get_longitude(),
-                    best_loc.get_altitude(),
-                    best_loc.get_speed(),
-                    best_loc.get_bearing(),
-                    best_loc.get_horizontal_accuracy(),
-                    best_loc.get_vertical_accuracy(),
-                    best_loc.get_speed_accuracy(),
-                    best_loc.get_bearing_accuracy(),
-                    best_loc.get_location_provider(),
+                    best_loc.latitude_longitude_timestamp.mach,
+                    best_loc.latitude_longitude_timestamp.mach,
+                    best_loc.latitude_longitude_timestamp.gps,
+                    best_loc.latitude,
+                    best_loc.longitude,
+                    best_loc.altitude,
+                    best_loc.speed,
+                    best_loc.bearing,
+                    best_loc.horizontal_accuracy,
+                    best_loc.vertical_accuracy,
+                    best_loc.speed_accuracy,
+                    best_loc.bearing_accuracy,
+                    best_loc.location_provider,
                 ]
             ]
         else:
-            timestamps = loc.get_timestamps().get_timestamps()
+            timestamps: np.ndarray = np.array(loc.timestamps.timestamps)
             if len(timestamps) > 0:
-                gps_timestamps = loc.get_timestamps_gps().get_timestamps()
-                lat_samples = loc.get_latitude_samples().get_values()
-                lon_samples = loc.get_longitude_samples().get_values()
-                alt_samples = loc.get_altitude_samples().get_values()
-                spd_samples = loc.get_speed_samples().get_values()
-                bear_samples = loc.get_bearing_samples().get_values()
-                hor_acc_samples = loc.get_horizontal_accuracy_samples().get_values()
-                vert_acc_samples = loc.get_vertical_accuracy_samples().get_values()
-                spd_acc_samples = loc.get_speed_accuracy_samples().get_values()
-                bear_acc_samples = loc.get_bearing_accuracy_samples().get_values()
-                loc_prov_samples = loc.get_location_providers().get_values()
+                gps_timestamps = np.array(loc.timestamps_gps.timestamps)
+                lat_samples = np.array(loc.latitude_samples.values)
+                lon_samples = np.array(loc.longitude_samples.values)
+                alt_samples = np.array(loc.altitude_samples.values)
+                spd_samples = np.array(loc.speed_samples.values)
+                bear_samples = np.array(loc.bearing_samples.values)
+                hor_acc_samples = np.array(loc.horizontal_accuracy_samples.values)
+                vert_acc_samples = np.array(loc.vertical_accuracy_samples.values)
+                spd_acc_samples = np.array(loc.speed_accuracy_samples.values)
+                bear_acc_samples = np.array(loc.bearing_accuracy_samples.values)
+                loc_prov_samples = np.array(loc.location_providers)
                 data_for_df = []
                 for i in range(len(timestamps)):
                     new_entry = [
@@ -643,7 +657,7 @@ def load_apim_location(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorD
             data_df
         )
         return SensorData(
-            get_sensor_description(loc),
+            loc.sensor_description,
             data_df,
             SensorType.LOCATION,
             sample_rate,
