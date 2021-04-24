@@ -80,16 +80,16 @@ class ApiReader:
         _pool: multiprocessing.pool.Pool = (
             multiprocessing.Pool() if pool is None else pool
         )
-        # index = io.Index()
+        index = io.Index()
         # this guarantees that all ids we search for are valid
-        index = self._apply_filter(pool=_pool)
-        # for station_id in all_index.summarize().station_ids():
-        #     station_filter = self.filter.clone()
-        #     checked_index = self._check_station_stats(
-        #         station_filter.with_station_ids({station_id}),
-        #         pool=_pool
-        #     )
-        #     index.append(checked_index.entries)
+        all_index = self._apply_filter(pool=_pool)
+        for station_id in all_index.summarize().station_ids():
+            station_filter = self.filter.clone()
+            checked_index = self._check_station_stats(
+                station_filter.with_station_ids({station_id}),
+                pool=_pool
+            )
+            index.append(checked_index.entries)
 
         if pool is None:
             _pool.close()

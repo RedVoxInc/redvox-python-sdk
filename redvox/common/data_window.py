@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
 from dataclasses import dataclass, field
+
+import pandas as pd
 from dataclasses_json import dataclass_json
 import multiprocessing
 import multiprocessing.pool
@@ -727,11 +729,11 @@ class DataWindow:
             # check if all the samples have been cut off
             if end_index < start_index or start_index >= len(df_timestamps):
                 if last_before_start is not None and first_after_end is None:
-                    sensor.data_df = sensor.data_df.iloc[last_before_start].to_frame().T
-                    sensor.data_df["timestamps"] = start_date_timestamp
+                    sensor.data_df = sensor.data_df.iloc[[last_before_start]]
+                    sensor.data_df["timestamps"] = [start_date_timestamp]
                 elif last_before_start is None and first_after_end is not None:
-                    sensor.data_df = sensor.data_df.iloc[first_after_end].to_frame().T
-                    sensor.data_df["timestamps"] = end_date_timestamp
+                    sensor.data_df = sensor.data_df.iloc[[first_after_end]]
+                    sensor.data_df["timestamps"] = [end_date_timestamp]
                 elif last_before_start is not None and first_after_end is not None:
                     sensor.data_df = sensor.interpolate(start_date_timestamp,
                                                         last_before_start,
@@ -749,26 +751,21 @@ class DataWindow:
                                                                                 last_before_start,
                                                                                 1)
                     start_index -= 1
+                else:
+                    sensor.data_df = pd.concat([sensor.interpolate(start_date_timestamp, start_index).to_frame().T,
+                                                sensor.data_df])
+                    end_index += 1
                 if first_after_end is not None:
                     sensor.data_df.iloc[first_after_end] = sensor.interpolate(end_date_timestamp,
                                                                               first_after_end,
                                                                               -1)
-                    end_index += 1
+                else:
+                    sensor.data_df = pd.concat([sensor.data_df,
+                                                sensor.interpolate(end_date_timestamp, end_index-1).to_frame().T])
+                end_index += 1
                 sensor.data_df = sensor.data_df.iloc[start_index:end_index].reset_index(
                     drop=True
                 )
-                # add in the nan-ed data points at the edges of the window if nothing beyond the edges
-                if first_after_end is None:
-                    sensor.data_df = gpu.add_dataless_timestamps_to_df(sensor.data_df, sensor.num_samples() - 1,
-                                                                       np.abs(sensor.last_data_timestamp() -
-                                                                              end_date_timestamp),
-                                                                       1)
-                if last_before_start is None:
-                    sensor.data_df = gpu.add_dataless_timestamps_to_df(sensor.data_df, 0,
-                                                                       np.abs(sensor.first_data_timestamp() -
-                                                                              start_date_timestamp),
-                                                                       1, True)
-                sensor.data_df.sort_values("timestamps", inplace=True, ignore_index=True)
                 if sensor.is_sample_interval_invalid():
                     if self.debug:
                         print(
