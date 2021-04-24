@@ -466,7 +466,7 @@ def load_apim_compressed_audio_from_list(
         if __has_sensor(packet, __COMPRESSED_AUDIO_FIELD_NAME):
             comp_audio = packet.sensors.compressed_audio
             data_list[0].append(comp_audio.first_sample_timestamp)
-            data_list[1].append(np.array(list(comp_audio.audio_bytes)))
+            data_list[1].append(comp_audio.audio_bytes)
             data_list[2].append(comp_audio.audio_codec)
 
     if len(data_list[0]) > 0:
@@ -500,7 +500,7 @@ def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     if __has_sensor(packet, __IMAGE_FIELD_NAME):
         image_sensor: api_m.RedvoxPacketM.Sensors.Image = packet.sensors.image
-        timestamps: np.ndarray = np.array(image_sensor.timestamps.timestamps)
+        timestamps = image_sensor.timestamps.timestamps
         codecs = np.full(len(timestamps), image_sensor.image_codec)
         data_df = pd.DataFrame(
             np.transpose([timestamps, timestamps, image_sensor.samples, codecs]),
@@ -531,12 +531,12 @@ def load_apim_image_from_list(
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: image sensor data if it exists, None otherwise
     """
-    data_list = [[], [], []]
+    data_list: List[List[float]] = [[], [], []]
     for packet in packets:
         if __has_sensor(packet, __IMAGE_FIELD_NAME):
             image_sensor = packet.sensors.image
 
-            data_list[0].extend(np.array(image_sensor.timestamps.timestamps))
+            data_list[0].extend(image_sensor.timestamps.timestamps)
             data_list[1].extend(image_sensor.samples)
             data_list[2].extend(
                 [
@@ -619,19 +619,19 @@ def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
                 ]
             ]
         else:
-            timestamps: np.ndarray = np.array(loc.timestamps.timestamps)
+            timestamps = loc.timestamps.timestamps
             if len(timestamps) > 0:
-                gps_timestamps = np.array(loc.timestamps_gps.timestamps)
-                lat_samples = np.array(loc.latitude_samples.values)
-                lon_samples = np.array(loc.longitude_samples.values)
-                alt_samples = np.array(loc.altitude_samples.values)
-                spd_samples = np.array(loc.speed_samples.values)
-                bear_samples = np.array(loc.bearing_samples.values)
-                hor_acc_samples = np.array(loc.horizontal_accuracy_samples.values)
-                vert_acc_samples = np.array(loc.vertical_accuracy_samples.values)
-                spd_acc_samples = np.array(loc.speed_accuracy_samples.values)
-                bear_acc_samples = np.array(loc.bearing_accuracy_samples.values)
-                loc_prov_samples = np.array(loc.location_providers)
+                gps_timestamps = loc.timestamps_gps.timestamps
+                lat_samples = loc.latitude_samples.values
+                lon_samples = loc.longitude_samples.values
+                alt_samples = loc.altitude_samples.values
+                spd_samples = loc.speed_samples.values
+                bear_samples = loc.bearing_samples.values
+                hor_acc_samples = loc.horizontal_accuracy_samples.values
+                vert_acc_samples = loc.vertical_accuracy_samples.values
+                spd_acc_samples = loc.speed_accuracy_samples.values
+                bear_acc_samples = loc.bearing_accuracy_samples.values
+                loc_prov_samples = loc.location_providers
                 data_for_df = []
                 for i in range(len(timestamps)):
                     new_entry = [
@@ -677,13 +677,11 @@ def load_apim_location_from_list(
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: location sensor data if it exists, None otherwise
     """
-    data_list = [[], [], [], [], [], [], [], [], [], [], [], []]
+    data_list: List[List[float]] = [[], [], [], [], [], [], [], [], [], [], [], []]
     loc_stats = StatsContainer("location_sensor")
     for packet in packets:
         if __has_sensor(packet, __LOCATION_FIELD_NAME):
-            loc: api_m.RedvoxPacketM.Sensors.Location = (
-                packet.get_sensors().get_location()
-            )
+            loc: api_m.RedvoxPacketM.Sensors.Location = packet.sensors.location
 
             if __is_only_best_values(loc):
                 best_loc: api_m.RedvoxPacketM.Sensors.Location.BestLocation
@@ -707,7 +705,7 @@ def load_apim_location_from_list(
             else:
                 num_samples = len(loc.timestamps.timestamps)
                 if num_samples > 0:
-                    samples = np.array(loc.timestamps.timestamps)
+                    samples = loc.timestamps.timestamps
                     data_list[0].extend(samples)
                     if num_samples == 1:
                         loc_stats.add(
@@ -724,37 +722,37 @@ def load_apim_location_from_list(
                     # data_list[4].extend([np.nan if len(samples) < i + 1
                     #                      else samples[i] for i in range(num_samples)])
                     for i in range(num_samples):
-                        samples = np.array(loc.timestamps_gps.timestamps)
+                        samples = loc.timestamps_gps.timestamps
                         data_list[1].append(np.nan if len(samples) <= i else samples[i])
-                        samples = np.array(loc.latitude_samples.values)
+                        samples = loc.latitude_samples.values
                         data_list[2].append(samples[i])
-                        samples = np.array(loc.longitude_samples.values)
+                        samples = loc.longitude_samples.values
                         data_list[3].append(samples[i])
-                        samples = np.array(loc.altitude_samples.values)
+                        samples = loc.altitude_samples.values
                         data_list[4].append(
                             np.nan if len(samples) < i + 1 else samples[i]
                         )
-                        samples = np.array(loc.speed_samples.values)
+                        samples = loc.speed_samples.values
                         data_list[5].append(
                             np.nan if len(samples) < i + 1 else samples[i]
                         )
-                        samples = np.array(loc.bearing_samples.values)
+                        samples = loc.bearing_samples.values
                         data_list[6].append(
                             np.nan if len(samples) < i + 1 else samples[i]
                         )
-                        samples = np.array(loc.horizontal_accuracy_samples.values)
+                        samples = loc.horizontal_accuracy_samples.values
                         data_list[7].append(
                             np.nan if len(samples) < i + 1 else samples[i]
                         )
-                        samples = np.array(loc.vertical_accuracy_samples.values)
+                        samples = loc.vertical_accuracy_samples.values
                         data_list[8].append(
                             np.nan if len(samples) < i + 1 else samples[i]
                         )
-                        samples = np.array(loc.speed_accuracy_samples.values)
+                        samples = loc.speed_accuracy_samples.values
                         data_list[9].append(
                             np.nan if len(samples) < i + 1 else samples[i]
                         )
-                        samples = np.array(loc.bearing_accuracy_samples.values)
+                        samples = loc.bearing_accuracy_samples.values
                         data_list[10].append(
                             np.nan if len(samples) < i + 1 else samples[i]
                         )
@@ -808,14 +806,14 @@ def load_single_from_list(
     field_name: str,
     sensor_fn: Callable[[api_m.RedvoxPacketM], api_m.RedvoxPacketM.Sensors.Single],
 ) -> Optional[SensorData]:
-    data_list = []
-    timestamps = []
+    data_list: List[float] = []
+    timestamps: List[float] = []
     sensor_stats = StatsContainer(f"{field_name}_sensor")
     for packet in packets:
         if __has_sensor(packet, field_name):
             sensor: api_m.RedvoxPacketM.Sensors.Single = sensor_fn(packet)
-            data_list.extend(np.array(sensor.samples.values))
-            ts = np.array(sensor.timestamps.timestamps)
+            data_list.extend(sensor.samples.values)
+            ts = sensor.timestamps.timestamps
             timestamps.extend(ts)
             if len(sensor.timestamps.timestamps) == 1:
                 sensor_stats.add(__packet_duration_us(packet), 0, 1)
@@ -1206,24 +1204,21 @@ def load_apim_rel_humidity_from_list(
     # return None
 
 
-def load_apim_accelerometer(
-    wrapped_packet: WrappedRedvoxPacketM,
-) -> Optional[SensorData]:
-    """
-    load accelerometer data from a single wrapped packet
-    :param wrapped_packet: packet with data to load
-    :return: accelerometer sensor data if it exists, None otherwise
-    """
-    accel = wrapped_packet.get_sensors().get_accelerometer()
-    if accel and wrapped_packet.get_sensors().validate_accelerometer():
-        data_df = read_apim_xyz_sensor(accel, "accelerometer")
+def load_xyz(
+    packet: api_m.RedvoxPacketM,
+    sensor_type: SensorType,
+    field_name: str,
+    sensor: api_m.RedvoxPacketM.Sensors.Xyz,
+):
+    if __has_sensor(packet, field_name):
+        data_df = read_apim_xyz_sensor(sensor, field_name)
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
             data_df
         )
         return SensorData(
-            get_sensor_description(accel),
+            sensor.sensor_description,
             data_df,
-            SensorType.ACCELEROMETER,
+            sensor_type,
             sample_rate,
             sample_interval,
             sample_interval_std,
@@ -1231,41 +1226,114 @@ def load_apim_accelerometer(
         )
 
 
+def load_xyz_from_list(
+    packets: List[api_m.RedvoxPacketM],
+    gaps: List[Tuple[float, float]],
+    sensor_type: SensorType,
+    field_name: str,
+    sensor_fn: Callable[[api_m.RedvoxPacketM], api_m.RedvoxPacketM.Sensors.Xyz],
+) -> Optional[SensorData]:
+    data_list: List[List[float]] = [[], [], [], []]
+    sensor_stats = StatsContainer(f"{field_name}_sensor")
+    packet: api_m.RedvoxPacketM
+    for packet in packets:
+        if __has_sensor(packet, field_name):
+            sensor: api_m.RedvoxPacketM.Sensors.Xyz = sensor_fn(packet)
+
+            ts = sensor.timestamps.timestamps
+            data_list[0].extend(ts)
+            data_list[1].extend(sensor.x_samples.values)
+            data_list[2].extend(sensor.y_samples.values)
+            data_list[3].extend(sensor.z_samples.values)
+            if len(sensor.timestamps.timestamps) == 1:
+                sensor_stats.add(__packet_duration_us(packet), 0, 1)
+            else:
+                sensor_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
+    if len(data_list[0]) > 0:
+        return load_apim_xyz_sensor(
+            sensor_type,
+            data_list,
+            gaps,
+            field_name,
+            get_sensor_description_list(packets, sensor_type),
+            sensor_stats.mean_of_means(),
+        )
+    return None
+
+
+def load_apim_accelerometer(
+    packet: api_m.RedvoxPacketM,
+) -> Optional[SensorData]:
+    """
+    load accelerometer data from a single wrapped packet
+    :param packet: packet with data to load
+    :return: accelerometer sensor data if it exists, None otherwise
+    """
+    return load_xyz(
+        packet,
+        SensorType.ACCELEROMETER,
+        __ACCELEROMETER_FIELD_NAME,
+        packet.sensors.accelerometer,
+    )
+    # accel = packet.get_sensors().get_accelerometer()
+    # if accel and packet.get_sensors().validate_accelerometer():
+    #     data_df = read_apim_xyz_sensor(accel, "accelerometer")
+    #     sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
+    #         data_df
+    #     )
+    #     return SensorData(
+    #         get_sensor_description(accel),
+    #         data_df,
+    #         SensorType.ACCELEROMETER,
+    #         sample_rate,
+    #         sample_interval,
+    #         sample_interval_std,
+    #         False,
+    #     )
+
+
 def load_apim_accelerometer_from_list(
-    wrapped_packets: List[WrappedRedvoxPacketM], gaps: List[Tuple[float, float]]
+    packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
     load accelerometer data from a list of wrapped packets
-    :param wrapped_packets: packets with data to load
+    :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: accelerometer sensor data if it exists, None otherwise
     """
-    data_list = [[], [], [], []]
-    accel_stats = StatsContainer("accel_sensor")
-    for packet in wrapped_packets:
-        accel = packet.get_sensors().get_accelerometer()
-        if accel and packet.get_sensors().validate_accelerometer():
-            ts = accel.get_timestamps().get_timestamps()
-            data_list[0].extend(ts)
-            data_list[1].extend(accel.get_x_samples().get_values())
-            data_list[2].extend(accel.get_y_samples().get_values())
-            data_list[3].extend(accel.get_z_samples().get_values())
-            if accel.get_timestamps().get_timestamps_count() == 1:
-                accel_stats.add(
-                    dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1
-                )
-            else:
-                accel_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
-    if len(data_list[0]) > 0:
-        return load_apim_xyz_sensor(
-            SensorType.ACCELEROMETER,
-            data_list,
-            gaps,
-            "accelerometer",
-            get_sensor_description_list(wrapped_packets, SensorType.ACCELEROMETER),
-            accel_stats.mean_of_means(),
-        )
-    return None
+    return load_xyz_from_list(
+        packets,
+        gaps,
+        SensorType.ACCELEROMETER,
+        __ACCELEROMETER_FIELD_NAME,
+        lambda packet: packet.sensors.accelerometer,
+    )
+    # data_list = [[], [], [], []]
+    # accel_stats = StatsContainer("accel_sensor")
+    # for packet in wrapped_packets:
+    #     accel = packet.get_sensors().get_accelerometer()
+    #     if accel and packet.get_sensors().validate_accelerometer():
+    #         ts = accel.get_timestamps().get_timestamps()
+    #         data_list[0].extend(ts)
+    #         data_list[1].extend(accel.get_x_samples().get_values())
+    #         data_list[2].extend(accel.get_y_samples().get_values())
+    #         data_list[3].extend(accel.get_z_samples().get_values())
+    #         if accel.get_timestamps().get_timestamps_count() == 1:
+    #             accel_stats.add(
+    #                 dtu.seconds_to_microseconds(packet.get_packet_duration_s()), 0, 1
+    #             )
+    #         else:
+    #             accel_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
+    # if len(data_list[0]) > 0:
+    #     return load_apim_xyz_sensor(
+    #         SensorType.ACCELEROMETER,
+    #         data_list,
+    #         gaps,
+    #         "accelerometer",
+    #         get_sensor_description_list(wrapped_packets, SensorType.ACCELEROMETER),
+    #         accel_stats.mean_of_means(),
+    #     )
+    # return None
 
 
 def load_apim_magnetometer(
