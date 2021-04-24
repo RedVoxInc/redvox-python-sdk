@@ -9,6 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc27 (2021-4-23)
+
+* fixed bug when creating edge points in data windows
+
 ### 3.0.0rc26 (2021-4-23)
 
 * fixed potential infinite loop when creating data windows
