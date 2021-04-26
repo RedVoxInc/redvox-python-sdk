@@ -2,31 +2,40 @@
 This module loads sensor data from Redvox packets
 """
 
-from typing import List, Optional, Tuple, Union, Callable, Dict
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
 # noinspection Mypy
 import pandas as pd
 
-from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
+import redvox.api1000.proto.redvox_api_m_pb2 as api_m
+from redvox.api1000.wrapped_redvox_packet.station_information import (
+    NetworkType,
+    PowerState,
+    CellServiceState,
+)
 from redvox.common.stats_helper import StatsContainer
 from redvox.common import date_time_utils as dtu
 from redvox.common import gap_and_pad_utils as gpu
 from redvox.common.sensor_data import SensorType, SensorData
 
-
-import redvox.api1000.proto.redvox_api_m_pb2 as api_m
-
 # Dataframe column definitions
-COMPRESSED_AUDIO_COLUMNS = [
+COMPRESSED_AUDIO_COLUMNS: List[str] = [
     "timestamps",
     "unaltered_timestamps",
     "compressed_audio",
     "audio_codec",
 ]
-IMAGE_COLUMNS = ["timestamps", "unaltered_timestamps", "image", "image_codec"]
-LOCATION_COLUMNS = [
+
+IMAGE_COLUMNS: List[str] = [
+    "timestamps",
+    "unaltered_timestamps",
+    "image",
+    "image_codec",
+]
+
+LOCATION_COLUMNS: List[str] = [
     "timestamps",
     "unaltered_timestamps",
     "gps_timestamps",
@@ -63,6 +72,7 @@ __VELOCITY: str = "velocity"
 
 __SENSOR_TYPE_TO_FIELD_NAME: Dict[SensorType, str] = {
     SensorType.UNKNOWN_SENSOR: "unknown",
+    SensorType.STATION_HEALTH: "unknown",
     SensorType.ACCELEROMETER: __ACCELEROMETER_FIELD_NAME,
     SensorType.AMBIENT_TEMPERATURE: __AMBIENT_TEMPERATURE_FIELD_NAME,
     SensorType.AUDIO: __AUDIO_FIELD_NAME,
@@ -80,22 +90,24 @@ __SENSOR_TYPE_TO_FIELD_NAME: Dict[SensorType, str] = {
     SensorType.RELATIVE_HUMIDITY: __RELATIVE_HUMIDITY_FIELD_NAME,
     SensorType.ROTATION_VECTOR: __ROTATION_VECTOR,
     SensorType.INFRARED: __PROXIMITY_FIELD_NAME,
-    SensorType.STATION_HEALTH: "unknown",
 }
 
+Sensor = Union[
+    api_m.RedvoxPacketM.Sensors.Xyz,
+    api_m.RedvoxPacketM.Sensors.Single,
+    api_m.RedvoxPacketM.Sensors.Audio,
+    api_m.RedvoxPacketM.Sensors.Image,
+    api_m.RedvoxPacketM.Sensors.Location,
+    api_m.RedvoxPacketM.Sensors.CompressedAudio,
+]
+
+# Maps a sensor type to a function that can extract that sensor for a particular packet.
 __SENSOR_TYPE_TO_SENSOR_FN: Dict[
     SensorType,
     Optional[
         Callable[
             [api_m.RedvoxPacketM],
-            Union[
-                api_m.RedvoxPacketM.Sensors.Xyz,
-                api_m.RedvoxPacketM.Sensors.Single,
-                api_m.RedvoxPacketM.Sensors.Audio,
-                api_m.RedvoxPacketM.Sensors.Image,
-                api_m.RedvoxPacketM.Sensors.Location,
-                api_m.RedvoxPacketM.Sensors.CompressedAudio,
-            ],
+            Sensor,
         ]
     ],
 ] = {
@@ -124,6 +136,12 @@ __SENSOR_TYPE_TO_SENSOR_FN: Dict[
 def __has_sensor(
     data: Union[api_m.RedvoxPacketM, api_m.RedvoxPacketM.Sensors], field_name: str
 ) -> bool:
+    """
+    Returns true if the given packet or sensors instance contains the valid sensor.
+    :param data: Either a packet or a packet's sensors message.
+    :param field_name: The name of the sensor being checked.
+    :return: True if the sensor exists, False otherwise.
+    """
     if isinstance(data, api_m.RedvoxPacketM):
         # noinspection Mypy,PyTypeChecker
         return data.sensors.HasField(field_name)
@@ -136,10 +154,20 @@ def __has_sensor(
 
 
 def __packet_duration_s(packet: api_m.RedvoxPacketM) -> float:
+    """
+    Returns the packet duration in seconds.
+    :param packet: The packet to calculate the duration for.
+    :return: The packet duration in seconds.
+    """
     return len(packet.sensors.audio.samples.values) / packet.sensors.audio.sample_rate
 
 
 def __packet_duration_us(packet: api_m.RedvoxPacketM) -> float:
+    """
+    Returns the packet duration in microseconds.
+    :param packet: The packet to calculate the duration for.
+    :return: The packet duration in microseconds.
+    """
     return __packet_duration_s(packet) * 1_000_000.0
 
 
@@ -155,15 +183,7 @@ def get_empty_sensor_data(
     return SensorData(name, pd.DataFrame([], columns=["timestamps"]), sensor_type)
 
 
-def get_sensor_description(
-    sensor: Union[
-        api_m.RedvoxPacketM.Sensors.Xyz,
-        api_m.RedvoxPacketM.Sensors.Single,
-        api_m.RedvoxPacketM.Sensors.Audio,
-        api_m.RedvoxPacketM.Sensors.Image,
-        api_m.RedvoxPacketM.Sensors.Location,
-    ]
-) -> str:
+def get_sensor_description(sensor: Sensor) -> str:
     """
     read the sensor's description from the sensor
     :param sensor: the sensor to read the description from
@@ -174,7 +194,7 @@ def get_sensor_description(
 
 def get_sensor_description_list(
     packets: List[api_m.RedvoxPacketM], sensor_type: SensorType
-) -> str:
+) -> Optional[str]:
     """
     read the sensor_type sensor's description from a list of packets
     :param packets: the list of packets to read from
@@ -182,12 +202,15 @@ def get_sensor_description_list(
     :return: the sensor_type sensor's description
     """
 
+    field_name: str = __SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
+    sensor_fn: Optional[
+        Callable[[api_m.RedvoxPacketM], Sensor]
+    ] = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     for packet in packets:
-        field_name: str = __SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
-        if __has_sensor(packet, field_name):
-            sensor_fn = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
-            if sensor_fn is not None:
-                return sensor_fn(packet).sensor_description
+        if __has_sensor(packet, field_name) and sensor_fn is not None:
+            return sensor_fn(packet).sensor_description
+
+    return None
 
 
 def get_sample_statistics(data_df: pd.DataFrame) -> Tuple[float, float, float]:
@@ -196,6 +219,8 @@ def get_sample_statistics(data_df: pd.DataFrame) -> Tuple[float, float, float]:
     :param data_df: the dataframe containing timestamps to calculate statistics from
     :return: a Tuple containing the sample rate, interval and interval std dev
     """
+    sample_interval: float
+    sample_interval_std: float
     if data_df["timestamps"].size > 1:
         sample_interval = dtu.microseconds_to_seconds(
             float(np.mean(np.diff(data_df["timestamps"])))
@@ -206,7 +231,7 @@ def get_sample_statistics(data_df: pd.DataFrame) -> Tuple[float, float, float]:
     else:
         sample_interval = np.nan
         sample_interval_std = np.nan
-    return 1 / sample_interval, sample_interval, sample_interval_std
+    return 1.0 / sample_interval, sample_interval, sample_interval_std
 
 
 def read_apim_xyz_sensor(
@@ -221,7 +246,7 @@ def read_apim_xyz_sensor(
     """
     timestamps: np.ndarray = np.array(sensor.timestamps.timestamps)
     try:
-        columns = [
+        columns: List[str] = [
             "timestamps",
             "unaltered_timestamps",
             f"{column_id}_x",
@@ -263,7 +288,7 @@ def load_apim_xyz_sensor(
     :return: SensorData object or None if no data
     """
     if len(data[0]) > 0:
-        data_df = pd.DataFrame(
+        data_df: pd.DataFrame = pd.DataFrame(
             np.transpose([data[0], data[0], data[1], data[2], data[3]]),
             columns=[
                 "timestamps",
@@ -294,7 +319,7 @@ def read_apim_single_sensor(
     """
     timestamps: np.ndarray = np.array(sensor.timestamps.timestamps)
     try:
-        columns = ["timestamps", "unaltered_timestamps", column_id]
+        columns: List[str] = ["timestamps", "unaltered_timestamps", column_id]
         return pd.DataFrame(
             np.transpose([timestamps, timestamps, np.array(sensor.samples.values)]),
             columns=columns,
@@ -324,7 +349,7 @@ def load_apim_single_sensor(
     :return:
     """
     if len(timestamps) > 0:
-        data_df = pd.DataFrame(
+        data_df: pd.DataFrame = pd.DataFrame(
             np.transpose([timestamps, timestamps, data]),
             columns=["timestamps", "unaltered_timestamps", column_name],
         )
@@ -384,7 +409,7 @@ def load_apim_audio_from_list(
             packets[0], __AUDIO_FIELD_NAME
         ):  # and packets[0].get_sensors().validate_audio():
             try:
-                sample_rate_hz = packets[0].sensors.audio.sample_rate
+                sample_rate_hz: float = packets[0].sensors.audio.sample_rate
                 packet_info = [
                     (
                         p.sensors.audio.first_sample_timestamp,
@@ -781,7 +806,9 @@ def load_single(
     sensor_type: SensorType,
 ) -> Optional[SensorData]:
     field_name: str = __SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
-    sensor_fn = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    sensor_fn: Optional[
+        Callable[[api_m.RedvoxPacketM], Sensor]
+    ] = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     if __has_sensor(packet, field_name) and sensor_fn is not None:
         sensor = sensor_fn(packet)
         data_df = read_apim_single_sensor(sensor, field_name)
@@ -807,8 +834,10 @@ def load_single_from_list(
     field_name: str = __SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
     data_list: List[float] = []
     timestamps: List[float] = []
-    sensor_stats = StatsContainer(f"{field_name}_sensor")
-    sensor_fn = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    sensor_stats: StatsContainer = StatsContainer(f"{field_name}_sensor")
+    sensor_fn: Optional[
+        Callable[[api_m.RedvoxPacketM], Sensor]
+    ] = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     for packet in packets:
         if __has_sensor(packet, field_name) and sensor_fn is not None:
             sensor: api_m.RedvoxPacketM.Sensors.Single = sensor_fn(packet)
@@ -972,7 +1001,9 @@ def load_xyz(
     sensor_type: SensorType,
 ):
     field_name: str = __SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
-    sensor_fn = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    sensor_fn: Optional[
+        Callable[[api_m.RedvoxPacketM], Sensor]
+    ] = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     if __has_sensor(packet, field_name) and sensor_fn is not None:
         sensor = sensor_fn(packet)
         data_df = read_apim_xyz_sensor(sensor, field_name)
@@ -997,9 +1028,11 @@ def load_xyz_from_list(
 ) -> Optional[SensorData]:
     field_name: str = __SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
     data_list: List[List[float]] = [[], [], [], []]
-    sensor_stats = StatsContainer(f"{field_name}_sensor")
+    sensor_stats: StatsContainer = StatsContainer(f"{field_name}_sensor")
     packet: api_m.RedvoxPacketM
-    sensor_fn = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    sensor_fn: Optional[
+        Callable[[api_m.RedvoxPacketM], Sensor]
+    ] = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     for packet in packets:
         if __has_sensor(packet, field_name) and sensor_fn is not None:
             sensor: api_m.RedvoxPacketM.Sensors.Xyz = sensor_fn(packet)
@@ -1229,7 +1262,9 @@ def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     :param packet: packet with data to load
     :return: station health data if it exists, None otherwise
     """
-    metrics: api_m.RedvoxPacketM.StationInformation.StationMetrics = packet.station_information.station_metrics
+    metrics: api_m.RedvoxPacketM.StationInformation.StationMetrics = (
+        packet.station_information.station_metrics
+    )
     timestamps = metrics.timestamps.timestamps
     if len(timestamps) > 0:
         bat_samples = metrics.battery.values
@@ -1293,7 +1328,7 @@ def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
 
 
 def load_apim_health_from_list(
-        packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
+    packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
     load station health data from a list of wrapped packets
