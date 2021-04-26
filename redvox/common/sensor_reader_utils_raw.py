@@ -9,6 +9,7 @@ import numpy as np
 # noinspection Mypy
 import pandas as pd
 
+from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
 from redvox.common.stats_helper import StatsContainer
 from redvox.common import date_time_utils as dtu
 from redvox.common import gap_and_pad_utils as gpu
@@ -1222,179 +1223,179 @@ def load_apim_rotation_vector_from_list(
     )
 
 
-# def load_apim_health(wrapped_packet: WrappedRedvoxPacketM) -> Optional[SensorData]:
-#     """
-#     load station health data from a single wrapped packet
-#     :param wrapped_packet: packet with data to load
-#     :return: station health data if it exists, None otherwise
-#     """
-#     metrics = wrapped_packet.get_station_information().get_station_metrics()
-#     timestamps = metrics.get_timestamps().get_timestamps()
-#     if len(timestamps) > 0:
-#         bat_samples = metrics.get_battery().get_values()
-#         bat_cur_samples = metrics.get_battery_current().get_values()
-#         temp_samples = metrics.get_temperature().get_values()
-#         net_samples = metrics.get_network_type().get_values()
-#         net_str_samples = metrics.get_network_strength().get_values()
-#         pow_samples = metrics.get_power_state().get_values()
-#         avail_ram_samples = metrics.get_available_ram().get_values()
-#         avail_disk_samples = metrics.get_available_disk().get_values()
-#         cell_samples = metrics.get_cell_service_state().get_values()
-#         data_for_df = []
-#         for i in range(len(timestamps)):
-#             new_entry = [
-#                 timestamps[i],
-#                 timestamps[i],
-#                 np.nan if len(bat_samples) < i + 1 else bat_samples[i],
-#                 np.nan if len(bat_cur_samples) < i + 1 else bat_cur_samples[i],
-#                 np.nan if len(temp_samples) < i + 1 else temp_samples[i],
-#                 np.nan if len(net_samples) < i + 1 else net_samples[i],
-#                 np.nan if len(net_str_samples) < i + 1 else net_str_samples[i],
-#                 np.nan if len(pow_samples) < i + 1 else pow_samples[i],
-#                 np.nan if len(avail_ram_samples) < i + 1 else avail_ram_samples[i],
-#                 np.nan if len(avail_disk_samples) < i + 1 else avail_disk_samples[i],
-#                 np.nan if len(cell_samples) < i + 1 else cell_samples[i],
-#             ]
-#             data_for_df.append(new_entry)
-#         data_df = pd.DataFrame(
-#             data_for_df,
-#             columns=[
-#                 "timestamps",
-#                 "unaltered_timestamps",
-#                 "battery_charge_remaining",
-#                 "battery_current_strength",
-#                 "internal_temp_c",
-#                 "network_type",
-#                 "network_strength",
-#                 "power_state",
-#                 "avail_ram",
-#                 "avail_disk",
-#                 "cell_service",
-#             ],
-#         )
-#         if len(timestamps) > 1:
-#             sample_rate = 1
-#             sample_interval_std = dtu.microseconds_to_seconds(
-#                 float(np.std(np.diff(data_df["timestamps"])))
-#             )
-#         else:
-#             sample_rate = 1 / wrapped_packet.get_packet_duration_s()
-#             sample_interval_std = np.nan
-#         return SensorData(
-#             "station health",
-#             data_df,
-#             SensorType.STATION_HEALTH,
-#             sample_rate,
-#             1 / sample_rate,
-#             sample_interval_std,
-#         )
-#     return None
-#
-#
-# def load_apim_health_from_list(
-#         wrapped_packets: List[WrappedRedvoxPacketM], gaps: List[Tuple[float, float]]
-# ) -> Optional[SensorData]:
-#     """
-#     load station health data from a list of wrapped packets
-#     :param wrapped_packets: packets with data to load
-#     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
-#     :return: station health sensor data if it exists, None otherwise
-#     """
-#     data_list: List = [[], [], [], [], [], [], [], [], [], []]
-#     for packet in wrapped_packets:
-#         metrics = packet.get_station_information().get_station_metrics()
-#         timestamps = metrics.get_timestamps().get_timestamps()
-#         num_samples = len(timestamps)
-#         if num_samples > 0:
-#             data_list[0].extend(timestamps)
-#             samples = metrics.get_battery().get_values()
-#             if len(samples) != num_samples:
-#                 samples = np.full(num_samples, np.nan)
-#             data_list[1].extend(samples)
-#             samples = metrics.get_battery_current().get_values()
-#             if len(samples) != num_samples:
-#                 samples = np.full(num_samples, np.nan)
-#             data_list[2].extend(samples)
-#             samples = metrics.get_temperature().get_values()
-#             if len(samples) != num_samples:
-#                 samples = np.full(num_samples, np.nan)
-#             data_list[3].extend(samples)
-#             samples = metrics.get_network_type().get_values()
-#             data_list[4].extend(
-#                 [
-#                     NetworkType["UNKNOWN_NETWORK"]
-#                     if len(samples) < i + 1
-#                     else samples[i]
-#                     for i in range(num_samples)
-#                 ]
-#             )
-#             samples = metrics.get_network_strength().get_values()
-#             if len(samples) != num_samples:
-#                 samples = np.full(num_samples, np.nan)
-#             data_list[5].extend(samples)
-#             samples = metrics.get_power_state().get_values()
-#             data_list[6].extend(
-#                 [
-#                     PowerState["UNKNOWN_POWER_STATE"]
-#                     if len(samples) < i + 1
-#                     else samples[i]
-#                     for i in range(num_samples)
-#                 ]
-#             )
-#             samples = metrics.get_available_ram().get_values()
-#             if len(samples) != num_samples:
-#                 samples = np.full(num_samples, np.nan)
-#             data_list[7].extend(samples)
-#             samples = metrics.get_available_disk().get_values()
-#             data_list[8].extend(
-#                 samples if len(samples) == num_samples else np.full(num_samples, np.nan)
-#             )
-#             samples = metrics.get_cell_service_state().get_values()
-#             data_list[9].extend(
-#                 [
-#                     CellServiceState["UNKNOWN"] if len(samples) < i + 1 else samples[i]
-#                     for i in range(num_samples)
-#                 ]
-#             )
-#     if len(data_list[0]) > 0:
-#         data_list.insert(1, data_list[0].copy())
-#         # health is collected 1 per packet or 1 per second
-#         if len(data_list[0]) > len(wrapped_packets):
-#             sample_rate = 1.0
-#         else:
-#             sample_rate = 1 / wrapped_packets[0].get_packet_duration_s()
-#         sample_interval = 1 / sample_rate
-#         sample_interval_std = (
-#             dtu.microseconds_to_seconds(float(np.std(np.diff(data_list[0]))))
-#             if len(data_list[0]) > 1
-#             else np.nan
-#         )
-#         df = gpu.fill_gaps(
-#             pd.DataFrame(
-#                 np.transpose(data_list),
-#                 columns=[
-#                     "timestamps",
-#                     "unaltered_timestamps",
-#                     "battery_charge_remaining",
-#                     "battery_current_strength",
-#                     "internal_temp_c",
-#                     "network_type",
-#                     "network_strength",
-#                     "power_state",
-#                     "avail_ram",
-#                     "avail_disk",
-#                     "cell_service",
-#                 ],
-#             ),
-#             gaps,
-#             dtu.seconds_to_microseconds(sample_interval),
-#         )
-#         return SensorData(
-#             "station health",
-#             df,
-#             SensorType.STATION_HEALTH,
-#             sample_rate,
-#             sample_interval,
-#             sample_interval_std,
-#         )
-#     return None
+def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
+    """
+    load station health data from a single wrapped packet
+    :param packet: packet with data to load
+    :return: station health data if it exists, None otherwise
+    """
+    metrics: api_m.RedvoxPacketM.StationInformation.StationMetrics = packet.station_information.station_metrics
+    timestamps = metrics.timestamps.timestamps
+    if len(timestamps) > 0:
+        bat_samples = metrics.battery.values
+        bat_cur_samples = metrics.battery_current.values
+        temp_samples = metrics.temperature.values
+        net_samples = metrics.network_type
+        net_str_samples = metrics.network_strength.values
+        pow_samples = metrics.power_state
+        avail_ram_samples = metrics.available_ram.values
+        avail_disk_samples = metrics.available_disk.values
+        cell_samples = metrics.cell_service_state
+        data_for_df = []
+        for i in range(len(timestamps)):
+            new_entry = [
+                timestamps[i],
+                timestamps[i],
+                np.nan if len(bat_samples) < i + 1 else bat_samples[i],
+                np.nan if len(bat_cur_samples) < i + 1 else bat_cur_samples[i],
+                np.nan if len(temp_samples) < i + 1 else temp_samples[i],
+                np.nan if len(net_samples) < i + 1 else net_samples[i],
+                np.nan if len(net_str_samples) < i + 1 else net_str_samples[i],
+                np.nan if len(pow_samples) < i + 1 else pow_samples[i],
+                np.nan if len(avail_ram_samples) < i + 1 else avail_ram_samples[i],
+                np.nan if len(avail_disk_samples) < i + 1 else avail_disk_samples[i],
+                np.nan if len(cell_samples) < i + 1 else cell_samples[i],
+            ]
+            data_for_df.append(new_entry)
+        data_df = pd.DataFrame(
+            data_for_df,
+            columns=[
+                "timestamps",
+                "unaltered_timestamps",
+                "battery_charge_remaining",
+                "battery_current_strength",
+                "internal_temp_c",
+                "network_type",
+                "network_strength",
+                "power_state",
+                "avail_ram",
+                "avail_disk",
+                "cell_service",
+            ],
+        )
+        if len(timestamps) > 1:
+            sample_rate = 1
+            sample_interval_std = dtu.microseconds_to_seconds(
+                float(np.std(np.diff(data_df["timestamps"])))
+            )
+        else:
+            sample_rate = 1.0 / __packet_duration_s(packet)
+            sample_interval_std = np.nan
+        return SensorData(
+            "station health",
+            data_df,
+            SensorType.STATION_HEALTH,
+            sample_rate,
+            1 / sample_rate,
+            sample_interval_std,
+        )
+    return None
+
+
+def load_apim_health_from_list(
+        packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
+) -> Optional[SensorData]:
+    """
+    load station health data from a list of wrapped packets
+    :param packets: packets with data to load
+    :param gaps: the list of non-inclusive start and end times of the gaps in the packets
+    :return: station health sensor data if it exists, None otherwise
+    """
+    data_list: List[List[float]] = [[], [], [], [], [], [], [], [], [], []]
+    for packet in packets:
+        metrics = packet.station_information.station_metrics
+        timestamps = metrics.timestamps.timestamps
+        num_samples = len(timestamps)
+        if num_samples > 0:
+            data_list[0].extend(timestamps)
+            samples = metrics.battery.values
+            if len(samples) != num_samples:
+                samples = np.full(num_samples, np.nan)
+            data_list[1].extend(samples)
+            samples = metrics.battery_current.values
+            if len(samples) != num_samples:
+                samples = np.full(num_samples, np.nan)
+            data_list[2].extend(samples)
+            samples = metrics.temperature.values
+            if len(samples) != num_samples:
+                samples = np.full(num_samples, np.nan)
+            data_list[3].extend(samples)
+            samples = metrics.network_type
+            data_list[4].extend(
+                [
+                    NetworkType["UNKNOWN_NETWORK"]
+                    if len(samples) < i + 1
+                    else samples[i]
+                    for i in range(num_samples)
+                ]
+            )
+            samples = metrics.network_strength.values
+            if len(samples) != num_samples:
+                samples = np.full(num_samples, np.nan)
+            data_list[5].extend(samples)
+            samples = metrics.power_state
+            data_list[6].extend(
+                [
+                    PowerState["UNKNOWN_POWER_STATE"]
+                    if len(samples) < i + 1
+                    else samples[i]
+                    for i in range(num_samples)
+                ]
+            )
+            samples = metrics.available_ram.values
+            if len(samples) != num_samples:
+                samples = np.full(num_samples, np.nan)
+            data_list[7].extend(samples)
+            samples = metrics.available_disk.values
+            data_list[8].extend(
+                samples if len(samples) == num_samples else np.full(num_samples, np.nan)
+            )
+            samples = metrics.cell_service_state
+            data_list[9].extend(
+                [
+                    CellServiceState["UNKNOWN"] if len(samples) < i + 1 else samples[i]
+                    for i in range(num_samples)
+                ]
+            )
+    if len(data_list[0]) > 0:
+        data_list.insert(1, data_list[0].copy())
+        # health is collected 1 per packet or 1 per second
+        if len(data_list[0]) > len(packets):
+            sample_rate = 1.0
+        else:
+            sample_rate = 1.0 / __packet_duration_s(packets[0])
+        sample_interval = 1 / sample_rate
+        sample_interval_std = (
+            dtu.microseconds_to_seconds(float(np.std(np.diff(data_list[0]))))
+            if len(data_list[0]) > 1
+            else np.nan
+        )
+        df = gpu.fill_gaps(
+            pd.DataFrame(
+                np.transpose(data_list),
+                columns=[
+                    "timestamps",
+                    "unaltered_timestamps",
+                    "battery_charge_remaining",
+                    "battery_current_strength",
+                    "internal_temp_c",
+                    "network_type",
+                    "network_strength",
+                    "power_state",
+                    "avail_ram",
+                    "avail_disk",
+                    "cell_service",
+                ],
+            ),
+            gaps,
+            dtu.seconds_to_microseconds(sample_interval),
+        )
+        return SensorData(
+            "station health",
+            df,
+            SensorType.STATION_HEALTH,
+            sample_rate,
+            sample_interval,
+            sample_interval_std,
+        )
+    return None
