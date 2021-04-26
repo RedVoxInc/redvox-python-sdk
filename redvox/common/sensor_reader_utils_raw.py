@@ -2,28 +2,18 @@
 This module loads sensor data from Redvox packets
 """
 
-from typing import List, Optional, Tuple, Union, Callable
+from typing import List, Optional, Tuple, Union, Callable, Dict
 
 import numpy as np
+
+# noinspection Mypy
 import pandas as pd
 
 from redvox.common.stats_helper import StatsContainer
 from redvox.common import date_time_utils as dtu
 from redvox.common import gap_and_pad_utils as gpu
 from redvox.common.sensor_data import SensorType, SensorData
-from redvox.api1000.wrapped_redvox_packet.sensors import (
-    xyz,
-    single,
-    audio,
-    image,
-    location,
-)
-from redvox.api1000.wrapped_redvox_packet.station_information import (
-    NetworkType,
-    CellServiceState,
-    PowerState,
-)
-from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+
 
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 
@@ -70,14 +60,75 @@ __RELATIVE_HUMIDITY_FIELD_NAME: str = "relative_humidity"
 __ROTATION_VECTOR: str = "rotation_vector"
 __VELOCITY: str = "velocity"
 
+__SENSOR_TYPE_TO_FIELD_NAME: Dict[SensorType, str] = {
+    SensorType.UNKNOWN_SENSOR: "unknown",
+    SensorType.ACCELEROMETER: __ACCELEROMETER_FIELD_NAME,
+    SensorType.AMBIENT_TEMPERATURE: __AMBIENT_TEMPERATURE_FIELD_NAME,
+    SensorType.AUDIO: __AUDIO_FIELD_NAME,
+    SensorType.COMPRESSED_AUDIO: __COMPRESSED_AUDIO_FIELD_NAME,
+    SensorType.GRAVITY: __GRAVITY_FIELD_NAME,
+    SensorType.GYROSCOPE: __GYROSCOPE_FIELD_NAME,
+    SensorType.IMAGE: __IMAGE_FIELD_NAME,
+    SensorType.LIGHT: __LIGHT_FIELD_NAME,
+    SensorType.LINEAR_ACCELERATION: __LINEAR_ACCELERATION_FIELD_NAME,
+    SensorType.LOCATION: __LOCATION_FIELD_NAME,
+    SensorType.MAGNETOMETER: __MAGNETOMETER_FIELD_NAME,
+    SensorType.ORIENTATION: __ORIENTATION_FIELD_NAME,
+    SensorType.PRESSURE: __PRESSURE_FIELD_NAME,
+    SensorType.PROXIMITY: __PROXIMITY_FIELD_NAME,
+    SensorType.RELATIVE_HUMIDITY: __RELATIVE_HUMIDITY_FIELD_NAME,
+    SensorType.ROTATION_VECTOR: __ROTATION_VECTOR,
+    SensorType.INFRARED: __PROXIMITY_FIELD_NAME,
+    SensorType.STATION_HEALTH: "unknown",
+}
+
+__SENSOR_TYPE_TO_SENSOR_FN: Dict[
+    SensorType,
+    Optional[
+        Callable[
+            [api_m.RedvoxPacketM],
+            Union[
+                api_m.RedvoxPacketM.Sensors.Xyz,
+                api_m.RedvoxPacketM.Sensors.Single,
+                api_m.RedvoxPacketM.Sensors.Audio,
+                api_m.RedvoxPacketM.Sensors.Image,
+                api_m.RedvoxPacketM.Sensors.Location,
+                api_m.RedvoxPacketM.Sensors.CompressedAudio,
+            ],
+        ]
+    ],
+] = {
+    SensorType.UNKNOWN_SENSOR: None,
+    SensorType.STATION_HEALTH: None,
+    SensorType.ACCELEROMETER: lambda packet: packet.sensors.accelerometer,
+    SensorType.AMBIENT_TEMPERATURE: lambda packet: packet.sensors.ambient_temperature,
+    SensorType.AUDIO: lambda packet: packet.sensors.audio,
+    SensorType.COMPRESSED_AUDIO: lambda packet: packet.sensors.compressed_audio,
+    SensorType.GRAVITY: lambda packet: packet.sensors.gravity,
+    SensorType.GYROSCOPE: lambda packet: packet.sensors.gyroscope,
+    SensorType.IMAGE: lambda packet: packet.sensors.image,
+    SensorType.LIGHT: lambda packet: packet.sensors.light,
+    SensorType.LINEAR_ACCELERATION: lambda packet: packet.sensors.linear_acceleration,
+    SensorType.LOCATION: lambda packet: packet.sensors.location,
+    SensorType.MAGNETOMETER: lambda packet: packet.sensors.magnetometer,
+    SensorType.ORIENTATION: lambda packet: packet.sensors.orientation,
+    SensorType.PRESSURE: lambda packet: packet.sensors.pressure,
+    SensorType.PROXIMITY: lambda packet: packet.sensors.proximity,
+    SensorType.RELATIVE_HUMIDITY: lambda packet: packet.sensors.relative_humidity,
+    SensorType.ROTATION_VECTOR: lambda packet: packet.sensors.rotation_vector,
+    SensorType.INFRARED: lambda packet: packet.sensors.proximity,
+}
+
 
 def __has_sensor(
     data: Union[api_m.RedvoxPacketM, api_m.RedvoxPacketM.Sensors], field_name: str
 ) -> bool:
     if isinstance(data, api_m.RedvoxPacketM):
+        # noinspection Mypy,PyTypeChecker
         return data.sensors.HasField(field_name)
 
     if isinstance(data, api_m.RedvoxPacketM.Sensors):
+        # noinspection Mypy,PyTypeChecker
         return data.HasField(field_name)
 
     return False
@@ -131,64 +182,11 @@ def get_sensor_description_list(
     """
 
     for packet in packets:
-        if sensor_type == SensorType.AUDIO and __has_sensor(packet, __AUDIO_FIELD_NAME):
-            return packet.sensors.audio.sensor_description
-        if sensor_type == SensorType.IMAGE and __has_sensor(packet, __IMAGE_FIELD_NAME):
-            return packet.sensors.image.sensor_description
-        if sensor_type == SensorType.LOCATION and __has_sensor(
-            packet, __LOCATION_FIELD_NAME
-        ):
-            return packet.sensors.location.sensor_description
-        if sensor_type == SensorType.PRESSURE and __has_sensor(
-            packet, __PRESSURE_FIELD_NAME
-        ):
-            return packet.sensors.pressure.sensor_description
-        if sensor_type == SensorType.ACCELEROMETER and __has_sensor(
-            packet, __ACCELEROMETER_FIELD_NAME
-        ):
-            return packet.sensors.accelerometer.sensor_description
-        if sensor_type == SensorType.AMBIENT_TEMPERATURE and __has_sensor(
-            packet, __AMBIENT_TEMPERATURE_FIELD_NAME
-        ):
-            return packet.sensors.ambient_temperature.sensor_description
-        if sensor_type == SensorType.COMPRESSED_AUDIO and __has_sensor(
-            packet, __COMPRESSED_AUDIO_FIELD_NAME
-        ):
-            return packet.sensors.compressed_audio.sensor_description
-        if sensor_type == SensorType.GRAVITY and __has_sensor(
-            packet, __GRAVITY_FIELD_NAME
-        ):
-            return packet.sensors.gravity.sensor_description
-        if sensor_type == SensorType.GYROSCOPE and __has_sensor(
-            packet, __GYROSCOPE_FIELD_NAME
-        ):
-            return packet.sensors.gyroscope.sensor_description
-        if sensor_type == SensorType.LIGHT and __has_sensor(packet, __LIGHT_FIELD_NAME):
-            return packet.sensors.light.sensor_description
-        if sensor_type == SensorType.LINEAR_ACCELERATION and __has_sensor(
-            packet, __LINEAR_ACCELERATION_FIELD_NAME
-        ):
-            return packet.sensors.linear_acceleration.sensor_description
-        if sensor_type == SensorType.MAGNETOMETER and __has_sensor(
-            packet, __MAGNETOMETER_FIELD_NAME
-        ):
-            return packet.sensors.magnetometer.sensor_description
-        if sensor_type == SensorType.ORIENTATION and __has_sensor(
-            packet, __ORIENTATION_FIELD_NAME
-        ):
-            return packet.sensors.orientation.sensor_description
-        if sensor_type == SensorType.PROXIMITY and __has_sensor(
-            packet, __PROXIMITY_FIELD_NAME
-        ):
-            return packet.sensors.proximity.sensor_description
-        if sensor_type == SensorType.RELATIVE_HUMIDITY and __has_sensor(
-            packet, __RELATIVE_HUMIDITY_FIELD_NAME
-        ):
-            return packet.sensors.relative_humidity.sensor_description
-        if sensor_type == SensorType.ROTATION_VECTOR and __has_sensor(
-            packet, __ROTATION_VECTOR
-        ):
-            return packet.sensors.rotation_vector.sensor_description
+        field_name: str = __SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
+        if __has_sensor(packet, field_name):
+            sensor_fn = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+            if sensor_fn is not None:
+                return sensor_fn(packet).sensor_description
 
 
 def get_sample_statistics(data_df: pd.DataFrame) -> Tuple[float, float, float]:
@@ -373,7 +371,7 @@ def load_apim_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
 
 def load_apim_audio_from_list(
     packets: List[api_m.RedvoxPacketM],
-) -> (Optional[SensorData], List[Tuple[float, float]]):
+) -> Tuple[Optional[SensorData], List[Tuple[float, float]]]:
     """
     load audio data from a list of wrapped packets
     NOTE: This only works because audio sensors in the list should all have the same number of data points.
@@ -413,7 +411,7 @@ def load_apim_audio_from_list(
             except ValueError as error:
                 print(
                     "Error occurred while loading audio data for station "
-                    f"{packets[0].get_station_information().get_id()}.\n"
+                    f"{packets[0].station_information.id}.\n"
                     f"Original error message: {error}"
                 )
     return None, []
@@ -593,7 +591,7 @@ def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     :return: location sensor data if it exists, None otherwise
     """
     if __has_sensor(packet, __LOCATION_FIELD_NAME):
-        loc: api_m.RedvoxPacketM.Sensors.Location = packet.get_sensors().get_location()
+        loc: api_m.RedvoxPacketM.Sensors.Location = packet.sensors.location
 
         if __is_only_best_values(loc):
             best_loc: api_m.RedvoxPacketM.Sensors.Location.BestLocation
@@ -756,7 +754,7 @@ def load_apim_location_from_list(
                         data_list[10].append(
                             np.nan if len(samples) < i + 1 else samples[i]
                         )
-                        samples = loc.location_providers
+                        samples = list(loc.location_providers)
                         data_list[11].append(
                             api_m.RedvoxPacketM.Sensors.Location.LocationProvider.UNKNOWN
                             if len(samples) < i + 1
@@ -780,10 +778,11 @@ def load_apim_location_from_list(
 def load_single(
     packet: api_m.RedvoxPacketM,
     sensor_type: SensorType,
-    field_name: str,
-    sensor: api_m.RedvoxPacketM.Sensors.Single,
 ) -> Optional[SensorData]:
-    if __has_sensor(packet, field_name):
+    field_name: str = __SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
+    sensor_fn = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    if __has_sensor(packet, field_name) and sensor_fn is not None:
+        sensor = sensor_fn(packet)
         data_df = read_apim_single_sensor(sensor, field_name)
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
             data_df
@@ -803,14 +802,14 @@ def load_single_from_list(
     packets: List[api_m.RedvoxPacketM],
     gaps: List[Tuple[float, float]],
     sensor_type: SensorType,
-    field_name: str,
-    sensor_fn: Callable[[api_m.RedvoxPacketM], api_m.RedvoxPacketM.Sensors.Single],
 ) -> Optional[SensorData]:
+    field_name: str = __SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
     data_list: List[float] = []
     timestamps: List[float] = []
     sensor_stats = StatsContainer(f"{field_name}_sensor")
+    sensor_fn = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     for packet in packets:
-        if __has_sensor(packet, field_name):
+        if __has_sensor(packet, field_name) and sensor_fn is not None:
             sensor: api_m.RedvoxPacketM.Sensors.Single = sensor_fn(packet)
             data_list.extend(sensor.samples.values)
             ts = sensor.timestamps.timestamps
@@ -838,9 +837,7 @@ def load_apim_pressure(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     :param packet: packet with data to load
     :return: pressure sensor data if it exists, None otherwise
     """
-    return load_single(
-        packet, SensorType.PRESSURE, __PRESSURE_FIELD_NAME, packet.sensors.pressure
-    )
+    return load_single(packet, SensorType.PRESSURE)
 
 
 def load_apim_pressure_from_list(
@@ -856,8 +853,6 @@ def load_apim_pressure_from_list(
         packets,
         gaps,
         SensorType.PRESSURE,
-        __PRESSURE_FIELD_NAME,
-        lambda packet: packet.sensors.pressure,
     )
 
 
@@ -867,9 +862,7 @@ def load_apim_light(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     :param packet: packet with data to load
     :return: light sensor data if it exists, None otherwise
     """
-    return load_single(
-        packet, SensorType.LIGHT, __LIGHT_FIELD_NAME, packet.sensors.light
-    )
+    return load_single(packet, SensorType.LIGHT)
 
 
 def load_apim_light_from_list(
@@ -885,8 +878,6 @@ def load_apim_light_from_list(
         packets,
         gaps,
         SensorType.LIGHT,
-        __LIGHT_FIELD_NAME,
-        lambda packet: packet.sensors.light,
     )
 
 
@@ -896,9 +887,7 @@ def load_apim_proximity(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     :param packet: packet with data to load
     :return: proximity sensor data if it exists, None otherwise
     """
-    return load_single(
-        packet, SensorType.PROXIMITY, __PROXIMITY_FIELD_NAME, packet.sensors.proximity
-    )
+    return load_single(packet, SensorType.PROXIMITY)
 
 
 def load_apim_proximity_from_list(
@@ -914,8 +903,6 @@ def load_apim_proximity_from_list(
         packets,
         gaps,
         SensorType.PROXIMITY,
-        __PROXIMITY_FIELD_NAME,
-        lambda packet: packet.sensors.proximity,
     )
 
 
@@ -930,8 +917,6 @@ def load_apim_ambient_temp(
     return load_single(
         packet,
         SensorType.AMBIENT_TEMPERATURE,
-        __AMBIENT_TEMPERATURE_FIELD_NAME,
-        packet.sensors.ambient_temperature,
     )
 
 
@@ -948,8 +933,6 @@ def load_apim_ambient_temp_from_list(
         packets,
         gaps,
         SensorType.AMBIENT_TEMPERATURE,
-        __AMBIENT_TEMPERATURE_FIELD_NAME,
-        lambda packet: packet.sensors.ambient_temperature,
     )
 
 
@@ -964,8 +947,6 @@ def load_apim_rel_humidity(
     return load_single(
         packet,
         SensorType.RELATIVE_HUMIDITY,
-        __RELATIVE_HUMIDITY_FIELD_NAME,
-        packet.sensors.relative_humidity,
     )
 
 
@@ -982,18 +963,17 @@ def load_apim_rel_humidity_from_list(
         packets,
         gaps,
         SensorType.RELATIVE_HUMIDITY,
-        __RELATIVE_HUMIDITY_FIELD_NAME,
-        lambda packet: packet.sensors.relative_humidity,
     )
 
 
 def load_xyz(
     packet: api_m.RedvoxPacketM,
     sensor_type: SensorType,
-    field_name: str,
-    sensor: api_m.RedvoxPacketM.Sensors.Xyz,
 ):
-    if __has_sensor(packet, field_name):
+    field_name: str = __SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
+    sensor_fn = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    if __has_sensor(packet, field_name) and sensor_fn is not None:
+        sensor = sensor_fn(packet)
         data_df = read_apim_xyz_sensor(sensor, field_name)
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
             data_df
@@ -1013,14 +993,14 @@ def load_xyz_from_list(
     packets: List[api_m.RedvoxPacketM],
     gaps: List[Tuple[float, float]],
     sensor_type: SensorType,
-    field_name: str,
-    sensor_fn: Callable[[api_m.RedvoxPacketM], api_m.RedvoxPacketM.Sensors.Xyz],
 ) -> Optional[SensorData]:
+    field_name: str = __SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
     data_list: List[List[float]] = [[], [], [], []]
     sensor_stats = StatsContainer(f"{field_name}_sensor")
     packet: api_m.RedvoxPacketM
+    sensor_fn = __SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     for packet in packets:
-        if __has_sensor(packet, field_name):
+        if __has_sensor(packet, field_name) and sensor_fn is not None:
             sensor: api_m.RedvoxPacketM.Sensors.Xyz = sensor_fn(packet)
 
             ts = sensor.timestamps.timestamps
@@ -1055,8 +1035,6 @@ def load_apim_accelerometer(
     return load_xyz(
         packet,
         SensorType.ACCELEROMETER,
-        __ACCELEROMETER_FIELD_NAME,
-        packet.sensors.accelerometer,
     )
 
 
@@ -1073,8 +1051,6 @@ def load_apim_accelerometer_from_list(
         packets,
         gaps,
         SensorType.ACCELEROMETER,
-        __ACCELEROMETER_FIELD_NAME,
-        lambda packet: packet.sensors.accelerometer,
     )
 
 
@@ -1089,8 +1065,6 @@ def load_apim_magnetometer(
     return load_xyz(
         packet,
         SensorType.MAGNETOMETER,
-        __MAGNETOMETER_FIELD_NAME,
-        packet.sensors.magnetometer,
     )
 
 
@@ -1107,8 +1081,6 @@ def load_apim_magnetometer_from_list(
         packets,
         gaps,
         SensorType.MAGNETOMETER,
-        __MAGNETOMETER_FIELD_NAME,
-        lambda packet: packet.sensors.magnetometer,
     )
 
 
@@ -1118,9 +1090,7 @@ def load_apim_gyroscope(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     :param packet: packet with data to load
     :return: gyroscope sensor data if it exists, None otherwise
     """
-    return load_xyz(
-        packet, SensorType.GYROSCOPE, __GYROSCOPE_FIELD_NAME, packet.sensors.gyroscope
-    )
+    return load_xyz(packet, SensorType.GYROSCOPE)
 
 
 def load_apim_gyroscope_from_list(
@@ -1136,8 +1106,6 @@ def load_apim_gyroscope_from_list(
         packets,
         gaps,
         SensorType.GYROSCOPE,
-        __GYROSCOPE_FIELD_NAME,
-        lambda packet: packet.sensors.gyroscope,
     )
 
 
@@ -1147,9 +1115,7 @@ def load_apim_gravity(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     :param packet: packet with data to load
     :return: gravity sensor data if it exists, None otherwise
     """
-    return load_xyz(
-        packet, SensorType.GRAVITY, __GRAVITY_FIELD_NAME, packet.sensors.gravity
-    )
+    return load_xyz(packet, SensorType.GRAVITY)
 
 
 def load_apim_gravity_from_list(
@@ -1165,8 +1131,6 @@ def load_apim_gravity_from_list(
         packets,
         gaps,
         SensorType.GRAVITY,
-        __GRAVITY_FIELD_NAME,
-        lambda packet: packet.sensors.gravity,
     )
 
 
@@ -1179,8 +1143,6 @@ def load_apim_orientation(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     return load_xyz(
         packet,
         SensorType.ORIENTATION,
-        __ORIENTATION_FIELD_NAME,
-        packet.sensors.orientation,
     )
 
 
@@ -1197,8 +1159,6 @@ def load_apim_orientation_from_list(
         packets,
         gaps,
         SensorType.ORIENTATION,
-        __ORIENTATION_FIELD_NAME,
-        lambda packet: packet.sensors.orientation,
     )
 
 
@@ -1213,8 +1173,6 @@ def load_apim_linear_accel(
     return load_xyz(
         packet,
         SensorType.LINEAR_ACCELERATION,
-        __LINEAR_ACCELERATION_FIELD_NAME,
-        packet.sensors.linear_acceleration,
     )
 
 
@@ -1231,8 +1189,6 @@ def load_apim_linear_accel_from_list(
         packets,
         gaps,
         SensorType.LINEAR_ACCELERATION,
-        __LINEAR_ACCELERATION_FIELD_NAME,
-        lambda packet: packet.sensors.linear_acceleration,
     )
 
 
@@ -1247,8 +1203,6 @@ def load_apim_rotation_vector(
     return load_xyz(
         packet,
         SensorType.ROTATION_VECTOR,
-        __ROTATION_VECTOR,
-        packet.sensors.rotation_vector,
     )
 
 
@@ -1265,8 +1219,6 @@ def load_apim_rotation_vector_from_list(
         packets,
         gaps,
         SensorType.ROTATION_VECTOR,
-        __ROTATION_VECTOR,
-        lambda packet: packet.sensors.rotation_vector,
     )
 
 
