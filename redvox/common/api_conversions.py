@@ -16,8 +16,9 @@ from typing import List, Optional, Dict
 import numpy as np
 
 import redvox.api1000.common.common as common_m
-import redvox.api1000.proto.redvox_api_m_pb2 as redvox_api_m_pb2
+import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 import redvox.common.date_time_utils as dt_utls
+import redvox.api900.lib.api900_pb2 as api_900
 import redvox.api900.reader as reader_900
 from redvox.api1000.wrapped_redvox_packet.sensors.sensors import Sensors
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
@@ -43,8 +44,29 @@ def _denormalize_audio_count(norm: float) -> int:
     return int(round(norm * float(_NORMALIZATION_CONSTANT)))
 
 
+def _migrate_synch_exchanges_900_to_1000_raw(
+        synch_exchanges: np.ndarray,
+) -> List[api_m.RedvoxPacketM.TimingInformation.SynchExchange]:
+    exchanges: List[api_m.RedvoxPacketM.TimingInformation.SynchExchange] = []
+
+    for i in range(0, len(synch_exchanges), 6):
+        exchange: api_m.RedvoxPacketM.TimingInformation.SynchExchange = (
+            api_m.RedvoxPacketM.TimingInformation.SynchExchange()
+        )
+        exchange.a1 = float(synch_exchanges[i])
+        exchange.a2 = float(synch_exchanges[i + 1])
+        exchange.a3 = float(synch_exchanges[i + 2])
+        exchange.b1 = float(synch_exchanges[i + 3])
+        exchange.b2 = float(synch_exchanges[i + 4])
+        exchange.b3 = float(synch_exchanges[i + 5])
+
+        exchanges.append(exchange)
+
+    return exchanges
+
+
 def _migrate_synch_exchanges_900_to_1000(
-    synch_exchanges: np.ndarray,
+        synch_exchanges: np.ndarray,
 ) -> List[SynchExchange]:
     exchanges: List[SynchExchange] = []
 
@@ -112,9 +134,13 @@ def _migrate_os_type_1000_to_900(os: OsType) -> str:
         return os.name
 
 
+def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPacketM:
+    raise RuntimeError("convert_api_900_to_1000_raw not implemented")
+
+
 # noinspection DuplicatedCode
 def convert_api_900_to_1000(
-    wrapped_packet_900: reader_900.WrappedRedvoxPacket,
+        wrapped_packet_900: reader_900.WrappedRedvoxPacket,
 ) -> WrappedRedvoxPacketM:
     """
     Converts a wrapped API 900 packet into a wrapped API M packet.
@@ -209,7 +235,9 @@ def convert_api_900_to_1000(
         reader_900.MicrophoneSensor
     ] = wrapped_packet_900.microphone_sensor()
     if mic_sensor_900 is not None:
-        normalized_audio: np.ndarray = mic_sensor_900.payload_values() / _NORMALIZATION_CONSTANT
+        normalized_audio: np.ndarray = (
+                mic_sensor_900.payload_values() / _NORMALIZATION_CONSTANT
+        )
         audio_sensor_m = sensors_m.new_audio()
         audio_sensor_m.set_first_sample_timestamp(
             mic_sensor_900.first_sample_timestamp_epoch_microseconds_utc()
@@ -286,13 +314,21 @@ def convert_api_900_to_1000(
         n_p = location_m.get_timestamps().get_timestamps_count()
 
         if desired_location:
-            location_m.get_location_providers().set_values([LocationProvider.USER for i in range(n_p)])
+            location_m.get_location_providers().set_values(
+                [LocationProvider.USER for i in range(n_p)]
+            )
         elif enabled_location:
-            location_m.get_location_providers().set_values([LocationProvider.GPS for i in range(n_p)])
+            location_m.get_location_providers().set_values(
+                [LocationProvider.GPS for i in range(n_p)]
+            )
         elif use_location and desired_location and permission_location:
-            location_m.get_location_providers().set_values([LocationProvider.NETWORK for i in range(n_p)])
+            location_m.get_location_providers().set_values(
+                [LocationProvider.NETWORK for i in range(n_p)]
+            )
         else:
-            location_m.get_location_providers().set_values([LocationProvider.NONE for i in range(n_p)])
+            location_m.get_location_providers().set_values(
+                [LocationProvider.NONE for i in range(n_p)]
+            )
 
         location_m.set_location_permissions_granted(permission_location)
         location_m.set_location_services_enabled(use_location)
@@ -408,7 +444,7 @@ def convert_api_900_to_1000(
 
 
 def convert_api_1000_to_900(
-    wrapped_packet_m: WrappedRedvoxPacketM,
+        wrapped_packet_m: WrappedRedvoxPacketM,
 ) -> reader_900.WrappedRedvoxPacket:
     """
     Converts an API M wrapped packet into an API 900 wrapped packet.
