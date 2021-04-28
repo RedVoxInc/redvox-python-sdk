@@ -229,13 +229,10 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     packet_m.timing_information.best_latency = best_latency
     packet_m.timing_information.best_offset = best_offset
 
-    # CHECK POINT
+    synch_sensor: api_900.UnevenlySampledChannel = reader_utils.find_uneven_channel_raw(packet, {api_900.ChannelType.TIME_SYNCHRONIZATION})
+    synch_payload = reader_utils.extract_payload(synch_sensor)
+    packet_m.timing_information.synch_exchanges[:] = _migrate_synch_exchanges_900_to_1000_raw(synch_payload)
 
-    # time_sensor = packet.time_synchronization_sensor()
-    # if time_sensor is not None:
-    #     packet_m.get_timing_information().get_synch_exchanges().set_values(
-    #         _migrate_synch_exchanges_900_to_1000(time_sensor.payload_values())
-    #     )
     #
     # # Sensors
     # sensors_m: Sensors = packet_m.get_sensors()
