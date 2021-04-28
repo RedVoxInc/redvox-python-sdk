@@ -243,28 +243,22 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     packet_m.sensors.audio.encoding = "counts"
     normalized_audio: np.ndarray = reader_utils.extract_payload(audio_900) / _NORMALIZATION_CONSTANT
     packet_m.sensors.audio.samples.values[:] = list(normalized_audio)
+    packet_m.sensors.audio.samples.unit = api_m.RedvoxPacketM.Unit.NORMALIZED_COUNTS
     for i in range(0, len(audio_900.metadata), 2):
         v: str = audio_900.metadata[i + 1] if (i + 1) < len(audio_900.metadata) else ""
         packet_m.sensors.audio.metadata[audio_900.metadata[i]] = v
 
+    # Pressure
+    barometer_900: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet, api_900.ChannelType.BAROMETER)
+    if barometer_900 is not None:
+        packet_m.sensors.pressure.sensor_description = barometer_900.sensor_name
+        packet_m.sensors.pressure.timestamps[:] = barometer_900.timestamps_microseconds_utc
+        packet_m.sensors.pressure.samples.values[:] = list(reader_utils.extract_payload(barometer_900))
+        packet_m.sensors.pressure.samples.unit = api_m.RedvoxPacketM.Unit.KILOPASCAL
+        for i in range(0, len(barometer_900.metadata), 2):
+            v: str = barometer_900.metadata[i + 1] if (i + 1) < len(barometer_900.metadata) else ""
+            packet_m.sensors.audio.metadata[barometer_900.metadata[i]] = v
 
-    # # Barometer
-    # barometer_sensor_900: Optional[
-    #     reader_900.BarometerSensor
-    # ] = packet.barometer_sensor()
-    # if barometer_sensor_900 is not None:
-    #     pressure_sensor_m = sensors_m.new_pressure()
-    #     pressure_sensor_m.set_sensor_description(barometer_sensor_900.sensor_name())
-    #     pressure_sensor_m.get_timestamps().set_timestamps(
-    #         barometer_sensor_900.timestamps_microseconds_utc(), True
-    #     )
-    #     pressure_sensor_m.get_samples().set_values(
-    #         barometer_sensor_900.payload_values(), True
-    #     )
-    #     pressure_sensor_m.get_metadata().set_metadata(
-    #         barometer_sensor_900.metadata_as_dict()
-    #     )
-    #
     # # Location
     # # TODO: rework
     # location_sensor_900: Optional[
