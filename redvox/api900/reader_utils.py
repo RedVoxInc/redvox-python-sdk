@@ -11,7 +11,6 @@ from google.protobuf.internal import containers
 import lz4.block
 import numpy
 
-
 import redvox.api900.exceptions as exceptions
 import redvox.api900.lib.api900_pb2 as api900_pb2
 
@@ -102,6 +101,7 @@ def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
         return "No channel to hold payload"
 
     return channel.WhichOneof("payload")
+
 
 def payload_len(channel: typing.Union[api900_pb2.EvenlySampledChannel,
                                       api900_pb2.UnevenlySampledChannel]) -> int:
@@ -368,6 +368,40 @@ def get_metadata(metadata: typing.List[str], k: str) -> str:
         return ""
 
     return metadata[idx + 1]
+
+
+def find_uneven_channel_raw(packet: api900_pb2.RedvoxPacket,
+                            channel_types: typing.Set[api900_pb2.ChannelType]) -> typing.Optional[api900_pb2.UnevenlySampledChannel]:
+    channel: api900_pb2.UnevenlySampledChannel
+    for channel in packet.unevenly_sampled_channels:
+        for local_type in channel.channel_types:
+            if local_type in channel_types:
+                return channel
+    return None
+
+
+T = typing.TypeVar("T")
+
+
+def get_metadata_raw(metadata: typing.List[str],
+                     k: str,
+                     and_then: typing.Optional[typing.Callable[[str], T]] = None,
+                     or_default: typing.Optional[typing.Union[str, T]] = None) -> typing.Optional[typing.Union[str, T]]:
+    """
+    Given a meta-data key, extract the value.
+    :param metadata: List of metadata to extract value from.
+    :param k: The meta-data key.
+    :return: The value corresponding to the key or an empty string.
+    """
+    for i, v in enumerate(metadata):
+        if v == k and (i + 1) < len(metadata):
+            try:
+                r: str = metadata[i + 1]
+                return r if and_then is None else and_then(r)
+            except:
+                return None
+
+    return or_default
 
 
 def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:

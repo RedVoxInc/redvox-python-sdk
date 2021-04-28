@@ -10,8 +10,8 @@ Provides functionality for converting between API versions.
 # TODO: Rework location sensor conversions
 # TODO: Add functions for converting compressed audio... in fact, this might make the most sent from converting API 900
 # TODO:   into API M data since FLAC requires integers
-
-from typing import List, Optional, Dict
+import typing
+from typing import Callable, Set, List, Optional, Dict, Union
 
 import numpy as np
 
@@ -30,6 +30,7 @@ from redvox.api1000.wrapped_redvox_packet.station_information import (
 from redvox.api1000.wrapped_redvox_packet.timing_information import SynchExchange
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 import redvox
+import redvox.api900.reader_utils as reader_utils
 
 _NORMALIZATION_CONSTANT: int = 0x7FFFFF
 NAN: float = float("nan")
@@ -84,6 +85,26 @@ def _migrate_synch_exchanges_900_to_1000(
 
 
 # todo: can set default return to np.nan?
+def _find_mach_time_zero_raw(packet: api_900.RedvoxPacket) -> int:
+    # if "machTimeZero" in packet.metadata_as_dict():
+    #     return int(packet.metadata_as_dict()["machTimeZero"])
+    key: str = "machTimeZero"
+    mtz: Optional[int] = reader_utils.get_metadata_raw(packet.metadata, key, int)
+    if mtz is None:
+        location_sensor: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet, {
+            api_900.ChannelType.LATITUDE,
+            api_900.ChannelType.LONGITUDE,
+            api_900.ChannelType.ALTITUDE,
+            api_900.ChannelType.SPEED
+        })
+        if location_sensor is not None:
+            mtz = reader_utils.get_metadata_raw(location_sensor.metadata, key, int)
+            if mtz is not None:
+                return mtz
+
+    return -1
+
+
 def _find_mach_time_zero(packet: reader_900.WrappedRedvoxPacket) -> int:
     if "machTimeZero" in packet.metadata_as_dict():
         return int(packet.metadata_as_dict()["machTimeZero"])
@@ -108,6 +129,18 @@ def _packet_length_microseconds_900(packet: reader_900.WrappedRedvoxPacket) -> i
         return round(dt_utls.seconds_to_microseconds(length_seconds))
 
     return 0
+
+
+def _packet_length_microseconds_900_raw(packet: api_900.RedvoxPacket) -> int:
+    if len(packet.evenly_sampled_channels) == 0:
+        return 0
+
+    microphone_sensor: api_900.EvenlySampledChannel = packet.evenly_sampled_channels[0]
+
+    sample_rate_hz: float = microphone_sensor.sample_rate_hz
+    total_samples: int = reader_utils.payload_len(microphone_sensor)
+    length_seconds: float = float(total_samples) / sample_rate_hz
+    return round(dt_utls.seconds_to_microseconds(length_seconds))
 
 
 # noinspection PyTypeChecker
@@ -180,253 +213,243 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     packet_m.station_information.station_metrics.battery.values[:] = [packet.battery_level_percent]
 
     # Timing information
-    mach_time_900: int = packet.app_file_start_timestamp_machine()
-    os_time_900: int = (
-        packet.app_file_start_timestamp_epoch_microseconds_utc()
-    )
-    len_micros: int = _packet_length_microseconds_900(packet)
-    best_latency: Optional[float] = packet.best_latency()
-    best_latency = best_latency if best_latency is not None else NAN
-    best_offset: Optional[float] = packet.best_offset()
-    best_offset = best_offset if best_offset is not None else NAN
+    mach_time_900: int = packet.app_file_start_timestamp_machine
+    os_time_900: int = packet.app_file_start_timestamp_epoch_microseconds_utc
+    len_micros: int = _packet_length_microseconds_900_raw(packet)
+    best_latency: float = reader_utils.get_metadata_raw(packet.metadata, "bestLatency", float, NAN)
+    best_offset: float = reader_utils.get_metadata_raw(packet.metadata, "bestOffset", float, NAN)
 
-    packet_m.get_timing_information().set_unit(
-        common_m.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
-    ).set_packet_start_mach_timestamp(mach_time_900).set_packet_start_os_timestamp(
-        os_time_900
-    ).set_packet_end_mach_timestamp(
-        mach_time_900 + len_micros
-    ).set_packet_end_os_timestamp(
-        os_time_900 + len_micros
-    ).set_server_acquisition_arrival_timestamp(
-        packet.server_timestamp_epoch_microseconds_utc()
-    ).set_app_start_mach_timestamp(
-        _find_mach_time_zero(packet)
-    ).set_best_latency(
-        best_latency
-    ).set_best_offset(
-        best_offset
-    )
+    packet_m.timing_information.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+    packet_m.timing_information.packet_start_mach_timestamp = mach_time_900
+    packet_m.timing_information.packet_start_os_timestamp = os_time_900
+    packet_m.timing_information.packet_end_mach_timestamp = mach_time_900 + len_micros
+    packet_m.timing_information.server_acquisition_arrival_timestamp = packet.server_timestamp_epoch_microseconds_utc
+    packet_m.timing_information.packet_end_os_timestamp = os_time_900 + len_micros
+    packet_m.timing_information.app_start_mach_timestamp = _find_mach_time_zero_raw(packet)
+    packet_m.timing_information.best_latency = best_latency
+    packet_m.timing_information.best_offset = best_offset
 
-    time_sensor = packet.time_synchronization_sensor()
-    if time_sensor is not None:
-        packet_m.get_timing_information().get_synch_exchanges().set_values(
-            _migrate_synch_exchanges_900_to_1000(time_sensor.payload_values())
-        )
+    # CHECK POINT
 
-    # Sensors
-    sensors_m: Sensors = packet_m.get_sensors()
-    # Microphone / Audio
-    mic_sensor_900: Optional[
-        reader_900.MicrophoneSensor
-    ] = packet.microphone_sensor()
-    if mic_sensor_900 is not None:
-        normalized_audio: np.ndarray = (
-                mic_sensor_900.payload_values() / _NORMALIZATION_CONSTANT
-        )
-        audio_sensor_m = sensors_m.new_audio()
-        audio_sensor_m.set_first_sample_timestamp(
-            mic_sensor_900.first_sample_timestamp_epoch_microseconds_utc()
-        ).set_is_scrambled(packet.is_scrambled()).set_sample_rate(
-            mic_sensor_900.sample_rate_hz()
-        ).set_sensor_description(
-            mic_sensor_900.sensor_name()
-        ).get_samples().set_values(
-            normalized_audio, update_value_statistics=True
-        )
-        audio_sensor_m.get_metadata().set_metadata(mic_sensor_900.metadata_as_dict())
-
-    # Barometer
-    barometer_sensor_900: Optional[
-        reader_900.BarometerSensor
-    ] = packet.barometer_sensor()
-    if barometer_sensor_900 is not None:
-        pressure_sensor_m = sensors_m.new_pressure()
-        pressure_sensor_m.set_sensor_description(barometer_sensor_900.sensor_name())
-        pressure_sensor_m.get_timestamps().set_timestamps(
-            barometer_sensor_900.timestamps_microseconds_utc(), True
-        )
-        pressure_sensor_m.get_samples().set_values(
-            barometer_sensor_900.payload_values(), True
-        )
-        pressure_sensor_m.get_metadata().set_metadata(
-            barometer_sensor_900.metadata_as_dict()
-        )
-
-    # Location
-    # TODO: rework
-    location_sensor_900: Optional[
-        reader_900.LocationSensor
-    ] = packet.location_sensor()
-    if location_sensor_900 is not None:
-        location_m = sensors_m.new_location()
-        location_m.set_sensor_description(location_sensor_900.sensor_name())
-        location_m.get_timestamps().set_timestamps(
-            location_sensor_900.timestamps_microseconds_utc(), True
-        )
-        if location_sensor_900.check_for_preset_lat_lon():
-            lat_lon: np.ndarray = location_sensor_900.get_payload_lat_lon()
-            location_m.get_latitude_samples().set_values(lat_lon[:1], True)
-            location_m.get_longitude_samples().set_values(lat_lon[1:], True)
-        else:
-            location_m.get_latitude_samples().set_values(
-                location_sensor_900.payload_values_latitude(), True
-            )
-            location_m.get_longitude_samples().set_values(
-                location_sensor_900.payload_values_longitude(), True
-            )
-            location_m.get_altitude_samples().set_values(
-                location_sensor_900.payload_values_altitude(), True
-            )
-            location_m.get_speed_samples().set_values(
-                location_sensor_900.payload_values_speed(), True
-            )
-            location_m.get_horizontal_accuracy_samples().set_values(
-                location_sensor_900.payload_values_accuracy(), True
-            )
-
-        def _extract_meta_bool(metad: Dict[str, str], key: str) -> bool:
-            if key not in metad:
-                return False
-
-            return metad[key] == "T"
-
-        loc_meta_900 = location_sensor_900.metadata_as_dict()
-        use_location = _extract_meta_bool(loc_meta_900, "useLocation")
-        desired_location = _extract_meta_bool(loc_meta_900, "desiredLocation")
-        permission_location = _extract_meta_bool(loc_meta_900, "permissionLocation")
-        enabled_location = _extract_meta_bool(loc_meta_900, "enabledLocation")
-
-        n_p = location_m.get_timestamps().get_timestamps_count()
-
-        if desired_location:
-            location_m.get_location_providers().set_values(
-                [LocationProvider.USER for i in range(n_p)]
-            )
-        elif enabled_location:
-            location_m.get_location_providers().set_values(
-                [LocationProvider.GPS for i in range(n_p)]
-            )
-        elif use_location and desired_location and permission_location:
-            location_m.get_location_providers().set_values(
-                [LocationProvider.NETWORK for i in range(n_p)]
-            )
-        else:
-            location_m.get_location_providers().set_values(
-                [LocationProvider.NONE for i in range(n_p)]
-            )
-
-        location_m.set_location_permissions_granted(permission_location)
-        location_m.set_location_services_enabled(use_location)
-        location_m.set_location_services_requested(desired_location)
-
-        # Once we're done here, we should remove the original metadata
-        if "useLocation" in loc_meta_900:
-            del loc_meta_900["useLocation"]
-        if "desiredLocation" in loc_meta_900:
-            del loc_meta_900["desiredLocation"]
-        if "permissionLocation" in loc_meta_900:
-            del loc_meta_900["permissionLocation"]
-        if "enabledLocation" in loc_meta_900:
-            del loc_meta_900["enabledLocation"]
-        if "machTimeZero" in loc_meta_900:
-            del loc_meta_900["machTimeZero"]
-        location_m.get_metadata().set_metadata(loc_meta_900)
-
-    # Time Synchronization
-    # This was already added to the timing information
-
-    # Accelerometer
-    accelerometer_900 = packet.accelerometer_sensor()
-    if accelerometer_900 is not None:
-        accelerometer_m = sensors_m.new_accelerometer()
-        accelerometer_m.set_sensor_description(accelerometer_900.sensor_name())
-        accelerometer_m.get_timestamps().set_timestamps(
-            accelerometer_900.timestamps_microseconds_utc(), True
-        )
-        accelerometer_m.get_x_samples().set_values(
-            accelerometer_900.payload_values_x(), True
-        )
-        accelerometer_m.get_y_samples().set_values(
-            accelerometer_900.payload_values_y(), True
-        )
-        accelerometer_m.get_z_samples().set_values(
-            accelerometer_900.payload_values_z(), True
-        )
-        accelerometer_m.get_metadata().set_metadata(
-            accelerometer_900.metadata_as_dict()
-        )
-
-    # Magnetometer
-    magnetometer_900 = packet.magnetometer_sensor()
-    if magnetometer_900 is not None:
-        magnetometer_m = sensors_m.new_magnetometer()
-        magnetometer_m.set_sensor_description(magnetometer_900.sensor_name())
-        magnetometer_m.get_timestamps().set_timestamps(
-            magnetometer_900.timestamps_microseconds_utc(), True
-        )
-        magnetometer_m.get_x_samples().set_values(
-            magnetometer_900.payload_values_x(), True
-        )
-        magnetometer_m.get_y_samples().set_values(
-            magnetometer_900.payload_values_y(), True
-        )
-        magnetometer_m.get_z_samples().set_values(
-            magnetometer_900.payload_values_z(), True
-        )
-        magnetometer_m.get_metadata().set_metadata(magnetometer_900.metadata_as_dict())
-
-    # Gyroscope
-    gyroscope_900 = packet.gyroscope_sensor()
-    if gyroscope_900 is not None:
-        gyroscope_m = sensors_m.new_gyroscope()
-        gyroscope_m.set_sensor_description(gyroscope_900.sensor_name())
-        gyroscope_m.get_timestamps().set_timestamps(
-            gyroscope_900.timestamps_microseconds_utc(), True
-        )
-        gyroscope_m.get_x_samples().set_values(gyroscope_900.payload_values_x(), True)
-        gyroscope_m.get_y_samples().set_values(gyroscope_900.payload_values_y(), True)
-        gyroscope_m.get_z_samples().set_values(gyroscope_900.payload_values_z(), True)
-        gyroscope_m.get_metadata().set_metadata(gyroscope_900.metadata_as_dict())
-
-    # Light
-    light_900 = packet.light_sensor()
-    if light_900 is not None:
-        light_m = sensors_m.new_light()
-        light_m.set_sensor_description(light_900.sensor_name())
-        light_m.get_timestamps().set_timestamps(
-            light_900.timestamps_microseconds_utc(), True
-        )
-        light_m.get_samples().set_values(light_900.payload_values(), True)
-        light_m.get_metadata().set_metadata(light_900.metadata_as_dict())
-
-    # Image
-    # TODO: Implement
-
-    # Proximity
-    proximity_900 = packet.infrared_sensor()
-    if proximity_900 is not None:
-        proximity_m = sensors_m.new_proximity()
-        proximity_m.set_sensor_description(proximity_900.sensor_name())
-        proximity_m.get_timestamps().set_timestamps(
-            proximity_900.timestamps_microseconds_utc(), True
-        )
-        proximity_m.get_samples().set_values(proximity_900.payload_values(), True)
-        proximity_m.get_metadata().set_metadata(proximity_900.metadata_as_dict())
-
-    # Removed any other API 900 top-level metadata now that its been used
-    meta = packet.metadata_as_dict()
-    if "machTimeZero" in meta:
-        del meta["machTimeZero"]
-    if "bestOffset" in meta:
-        del meta["bestOffset"]
-    if "bestLatency" in meta:
-        del meta["bestLatency"]
-    packet_m.get_metadata().append_metadata(
-        "migrated_from_api_900", f"v{redvox.VERSION}"
-    )
-
-    return packet_m
+    # time_sensor = packet.time_synchronization_sensor()
+    # if time_sensor is not None:
+    #     packet_m.get_timing_information().get_synch_exchanges().set_values(
+    #         _migrate_synch_exchanges_900_to_1000(time_sensor.payload_values())
+    #     )
+    #
+    # # Sensors
+    # sensors_m: Sensors = packet_m.get_sensors()
+    # # Microphone / Audio
+    # mic_sensor_900: Optional[
+    #     reader_900.MicrophoneSensor
+    # ] = packet.microphone_sensor()
+    # if mic_sensor_900 is not None:
+    #     normalized_audio: np.ndarray = (
+    #             mic_sensor_900.payload_values() / _NORMALIZATION_CONSTANT
+    #     )
+    #     audio_sensor_m = sensors_m.new_audio()
+    #     audio_sensor_m.set_first_sample_timestamp(
+    #         mic_sensor_900.first_sample_timestamp_epoch_microseconds_utc()
+    #     ).set_is_scrambled(packet.is_scrambled()).set_sample_rate(
+    #         mic_sensor_900.sample_rate_hz()
+    #     ).set_sensor_description(
+    #         mic_sensor_900.sensor_name()
+    #     ).get_samples().set_values(
+    #         normalized_audio, update_value_statistics=True
+    #     )
+    #     audio_sensor_m.get_metadata().set_metadata(mic_sensor_900.metadata_as_dict())
+    #
+    # # Barometer
+    # barometer_sensor_900: Optional[
+    #     reader_900.BarometerSensor
+    # ] = packet.barometer_sensor()
+    # if barometer_sensor_900 is not None:
+    #     pressure_sensor_m = sensors_m.new_pressure()
+    #     pressure_sensor_m.set_sensor_description(barometer_sensor_900.sensor_name())
+    #     pressure_sensor_m.get_timestamps().set_timestamps(
+    #         barometer_sensor_900.timestamps_microseconds_utc(), True
+    #     )
+    #     pressure_sensor_m.get_samples().set_values(
+    #         barometer_sensor_900.payload_values(), True
+    #     )
+    #     pressure_sensor_m.get_metadata().set_metadata(
+    #         barometer_sensor_900.metadata_as_dict()
+    #     )
+    #
+    # # Location
+    # # TODO: rework
+    # location_sensor_900: Optional[
+    #     reader_900.LocationSensor
+    # ] = packet.location_sensor()
+    # if location_sensor_900 is not None:
+    #     location_m = sensors_m.new_location()
+    #     location_m.set_sensor_description(location_sensor_900.sensor_name())
+    #     location_m.get_timestamps().set_timestamps(
+    #         location_sensor_900.timestamps_microseconds_utc(), True
+    #     )
+    #     if location_sensor_900.check_for_preset_lat_lon():
+    #         lat_lon: np.ndarray = location_sensor_900.get_payload_lat_lon()
+    #         location_m.get_latitude_samples().set_values(lat_lon[:1], True)
+    #         location_m.get_longitude_samples().set_values(lat_lon[1:], True)
+    #     else:
+    #         location_m.get_latitude_samples().set_values(
+    #             location_sensor_900.payload_values_latitude(), True
+    #         )
+    #         location_m.get_longitude_samples().set_values(
+    #             location_sensor_900.payload_values_longitude(), True
+    #         )
+    #         location_m.get_altitude_samples().set_values(
+    #             location_sensor_900.payload_values_altitude(), True
+    #         )
+    #         location_m.get_speed_samples().set_values(
+    #             location_sensor_900.payload_values_speed(), True
+    #         )
+    #         location_m.get_horizontal_accuracy_samples().set_values(
+    #             location_sensor_900.payload_values_accuracy(), True
+    #         )
+    #
+    #     def _extract_meta_bool(metad: Dict[str, str], key: str) -> bool:
+    #         if key not in metad:
+    #             return False
+    #
+    #         return metad[key] == "T"
+    #
+    #     loc_meta_900 = location_sensor_900.metadata_as_dict()
+    #     use_location = _extract_meta_bool(loc_meta_900, "useLocation")
+    #     desired_location = _extract_meta_bool(loc_meta_900, "desiredLocation")
+    #     permission_location = _extract_meta_bool(loc_meta_900, "permissionLocation")
+    #     enabled_location = _extract_meta_bool(loc_meta_900, "enabledLocation")
+    #
+    #     n_p = location_m.get_timestamps().get_timestamps_count()
+    #
+    #     if desired_location:
+    #         location_m.get_location_providers().set_values(
+    #             [LocationProvider.USER for i in range(n_p)]
+    #         )
+    #     elif enabled_location:
+    #         location_m.get_location_providers().set_values(
+    #             [LocationProvider.GPS for i in range(n_p)]
+    #         )
+    #     elif use_location and desired_location and permission_location:
+    #         location_m.get_location_providers().set_values(
+    #             [LocationProvider.NETWORK for i in range(n_p)]
+    #         )
+    #     else:
+    #         location_m.get_location_providers().set_values(
+    #             [LocationProvider.NONE for i in range(n_p)]
+    #         )
+    #
+    #     location_m.set_location_permissions_granted(permission_location)
+    #     location_m.set_location_services_enabled(use_location)
+    #     location_m.set_location_services_requested(desired_location)
+    #
+    #     # Once we're done here, we should remove the original metadata
+    #     if "useLocation" in loc_meta_900:
+    #         del loc_meta_900["useLocation"]
+    #     if "desiredLocation" in loc_meta_900:
+    #         del loc_meta_900["desiredLocation"]
+    #     if "permissionLocation" in loc_meta_900:
+    #         del loc_meta_900["permissionLocation"]
+    #     if "enabledLocation" in loc_meta_900:
+    #         del loc_meta_900["enabledLocation"]
+    #     if "machTimeZero" in loc_meta_900:
+    #         del loc_meta_900["machTimeZero"]
+    #     location_m.get_metadata().set_metadata(loc_meta_900)
+    #
+    # # Time Synchronization
+    # # This was already added to the timing information
+    #
+    # # Accelerometer
+    # accelerometer_900 = packet.accelerometer_sensor()
+    # if accelerometer_900 is not None:
+    #     accelerometer_m = sensors_m.new_accelerometer()
+    #     accelerometer_m.set_sensor_description(accelerometer_900.sensor_name())
+    #     accelerometer_m.get_timestamps().set_timestamps(
+    #         accelerometer_900.timestamps_microseconds_utc(), True
+    #     )
+    #     accelerometer_m.get_x_samples().set_values(
+    #         accelerometer_900.payload_values_x(), True
+    #     )
+    #     accelerometer_m.get_y_samples().set_values(
+    #         accelerometer_900.payload_values_y(), True
+    #     )
+    #     accelerometer_m.get_z_samples().set_values(
+    #         accelerometer_900.payload_values_z(), True
+    #     )
+    #     accelerometer_m.get_metadata().set_metadata(
+    #         accelerometer_900.metadata_as_dict()
+    #     )
+    #
+    # # Magnetometer
+    # magnetometer_900 = packet.magnetometer_sensor()
+    # if magnetometer_900 is not None:
+    #     magnetometer_m = sensors_m.new_magnetometer()
+    #     magnetometer_m.set_sensor_description(magnetometer_900.sensor_name())
+    #     magnetometer_m.get_timestamps().set_timestamps(
+    #         magnetometer_900.timestamps_microseconds_utc(), True
+    #     )
+    #     magnetometer_m.get_x_samples().set_values(
+    #         magnetometer_900.payload_values_x(), True
+    #     )
+    #     magnetometer_m.get_y_samples().set_values(
+    #         magnetometer_900.payload_values_y(), True
+    #     )
+    #     magnetometer_m.get_z_samples().set_values(
+    #         magnetometer_900.payload_values_z(), True
+    #     )
+    #     magnetometer_m.get_metadata().set_metadata(magnetometer_900.metadata_as_dict())
+    #
+    # # Gyroscope
+    # gyroscope_900 = packet.gyroscope_sensor()
+    # if gyroscope_900 is not None:
+    #     gyroscope_m = sensors_m.new_gyroscope()
+    #     gyroscope_m.set_sensor_description(gyroscope_900.sensor_name())
+    #     gyroscope_m.get_timestamps().set_timestamps(
+    #         gyroscope_900.timestamps_microseconds_utc(), True
+    #     )
+    #     gyroscope_m.get_x_samples().set_values(gyroscope_900.payload_values_x(), True)
+    #     gyroscope_m.get_y_samples().set_values(gyroscope_900.payload_values_y(), True)
+    #     gyroscope_m.get_z_samples().set_values(gyroscope_900.payload_values_z(), True)
+    #     gyroscope_m.get_metadata().set_metadata(gyroscope_900.metadata_as_dict())
+    #
+    # # Light
+    # light_900 = packet.light_sensor()
+    # if light_900 is not None:
+    #     light_m = sensors_m.new_light()
+    #     light_m.set_sensor_description(light_900.sensor_name())
+    #     light_m.get_timestamps().set_timestamps(
+    #         light_900.timestamps_microseconds_utc(), True
+    #     )
+    #     light_m.get_samples().set_values(light_900.payload_values(), True)
+    #     light_m.get_metadata().set_metadata(light_900.metadata_as_dict())
+    #
+    # # Image
+    # # TODO: Implement
+    #
+    # # Proximity
+    # proximity_900 = packet.infrared_sensor()
+    # if proximity_900 is not None:
+    #     proximity_m = sensors_m.new_proximity()
+    #     proximity_m.set_sensor_description(proximity_900.sensor_name())
+    #     proximity_m.get_timestamps().set_timestamps(
+    #         proximity_900.timestamps_microseconds_utc(), True
+    #     )
+    #     proximity_m.get_samples().set_values(proximity_900.payload_values(), True)
+    #     proximity_m.get_metadata().set_metadata(proximity_900.metadata_as_dict())
+    #
+    # # Removed any other API 900 top-level metadata now that its been used
+    # meta = packet.metadata_as_dict()
+    # if "machTimeZero" in meta:
+    #     del meta["machTimeZero"]
+    # if "bestOffset" in meta:
+    #     del meta["bestOffset"]
+    # if "bestLatency" in meta:
+    #     del meta["bestLatency"]
+    # packet_m.get_metadata().append_metadata(
+    #     "migrated_from_api_900", f"v{redvox.VERSION}"
+    # )
+    #
+    # return packet_m
 
 
 
