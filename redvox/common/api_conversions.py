@@ -233,29 +233,21 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     synch_payload = reader_utils.extract_payload(synch_sensor)
     packet_m.timing_information.synch_exchanges[:] = _migrate_synch_exchanges_900_to_1000_raw(synch_payload)
 
-    #
-    # # Sensors
-    # sensors_m: Sensors = packet_m.get_sensors()
-    # # Microphone / Audio
-    # mic_sensor_900: Optional[
-    #     reader_900.MicrophoneSensor
-    # ] = packet.microphone_sensor()
-    # if mic_sensor_900 is not None:
-    #     normalized_audio: np.ndarray = (
-    #             mic_sensor_900.payload_values() / _NORMALIZATION_CONSTANT
-    #     )
-    #     audio_sensor_m = sensors_m.new_audio()
-    #     audio_sensor_m.set_first_sample_timestamp(
-    #         mic_sensor_900.first_sample_timestamp_epoch_microseconds_utc()
-    #     ).set_is_scrambled(packet.is_scrambled()).set_sample_rate(
-    #         mic_sensor_900.sample_rate_hz()
-    #     ).set_sensor_description(
-    #         mic_sensor_900.sensor_name()
-    #     ).get_samples().set_values(
-    #         normalized_audio, update_value_statistics=True
-    #     )
-    #     audio_sensor_m.get_metadata().set_metadata(mic_sensor_900.metadata_as_dict())
-    #
+    # Sensors
+    # Microphone / Audio
+    audio_900: api_900.EvenlySampledChannel = packet.evenly_sampled_channels[0]
+    packet_m.sensors.audio.sensor_description = audio_900.sensor_name
+    packet_m.sensors.audio.sample_rate = audio_900.sample_rate_hz
+    packet_m.sensors.audio.first_sample_timestamp = audio_900.first_sample_timestamp_epoch_microseconds_utc
+    packet_m.sensors.audio.bits_of_precision = 16.0
+    packet_m.sensors.audio.encoding = "counts"
+    normalized_audio: np.ndarray = reader_utils.extract_payload(audio_900) / _NORMALIZATION_CONSTANT
+    packet_m.sensors.audio.samples.values[:] = list(normalized_audio)
+    for i in range(0, len(audio_900.metadata), 2):
+        v: str = audio_900.metadata[i + 1] if (i + 1) < len(audio_900.metadata) else ""
+        packet_m.sensors.audio.metadata[audio_900.metadata[i]] = v
+
+
     # # Barometer
     # barometer_sensor_900: Optional[
     #     reader_900.BarometerSensor
