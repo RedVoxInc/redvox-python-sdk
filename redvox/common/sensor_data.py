@@ -308,14 +308,14 @@ class SensorData:
         :param interpolate_timestamp: timestamp to interpolate other values
         :param first_point: index of first point
         :param second_point: delta to second point, default 0 (same as first point)
-        :param copy: if True and there are two points, copies the values of the closest point, default True
+        :param copy: if True, copies the values of the first point, default True
         :return: pd.Series of interpolated points
         """
         start_point = self.data_df.iloc[first_point]
         numeric_start = start_point[[col for col in self.data_df.columns
                                      if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
         non_numeric_start = start_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
-        if second_point:
+        if not copy and second_point:
             end_point = self.data_df.iloc[first_point + second_point]
             numeric_end = end_point[[col for col in self.data_df.columns
                                      if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
@@ -327,16 +327,16 @@ class SensorData:
                 non_numeric_diff = non_numeric_start
             else:
                 non_numeric_diff = non_numeric_end
-            if copy:
-                if first_closer:
-                    numeric_diff = numeric_start
-                else:
-                    numeric_diff = numeric_end
-            else:
-                numeric_diff = numeric_end - numeric_start
-                numeric_diff = \
-                    (numeric_diff / numeric_diff["timestamps"]) * \
-                    (interpolate_timestamp - numeric_start) + numeric_start
+            # if copy:
+            #     if first_closer:
+            #         numeric_diff = numeric_start
+            #     else:
+            #         numeric_diff = numeric_end
+            # else:
+            numeric_diff = numeric_end - numeric_start
+            numeric_diff = \
+                (numeric_diff / numeric_diff["timestamps"]) * \
+                (interpolate_timestamp - numeric_start) + numeric_start
         else:
             numeric_diff = numeric_start
             non_numeric_diff = non_numeric_start

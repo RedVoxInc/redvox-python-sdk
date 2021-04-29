@@ -300,7 +300,7 @@ def load_apim_xyz_sensor(
         )
         return SensorData(
             description,
-            gpu.fill_gaps(data_df, gaps, sample_interval_micros),
+            gpu.fill_gaps(data_df, gaps, sample_interval_micros, True),
             sensor_type,
             calculate_stats=True,
         )
@@ -355,7 +355,7 @@ def load_apim_single_sensor(
         )
         return SensorData(
             description,
-            gpu.fill_gaps(data_df, gaps, sample_interval_micros),
+            gpu.fill_gaps(data_df, gaps, sample_interval_micros, True),
             sensor_type,
             calculate_stats=True,
         )
@@ -501,6 +501,7 @@ def load_apim_compressed_audio_from_list(
             ),
             gaps,
             __packet_duration_us(packets[0]),
+            True,
         )
         data_df["audio_codec"] = [d for d in data_df["audio_codec"]]
         sample_rate_hz = packets[0].sensors.compressed_audio.sample_rate
@@ -580,17 +581,22 @@ def load_apim_image_from_list(
             if len(data_list[0]) > 1
             else np.nan
         )
+        df = pd.DataFrame(
+                np.transpose(
+                    [data_list[0], data_list[0], data_list[1], data_list[2]]
+                ),
+                columns=IMAGE_COLUMNS,
+            )
+        df["timestamps"] = df["timestamps"].astype(float)
+        df["unaltered_timestamps"] = df["unaltered_timestamps"].astype(float)
+        df["image_codec"] = df["image_codec"].astype(float)
         return SensorData(
             get_sensor_description_list(packets, SensorType.IMAGE),
             gpu.fill_gaps(
-                pd.DataFrame(
-                    np.transpose(
-                        [data_list[0], data_list[0], data_list[1], data_list[2]]
-                    ),
-                    columns=IMAGE_COLUMNS,
-                ),
+                df,
                 gaps,
                 dtu.seconds_to_microseconds(sample_interval),
+                True,
             ),
             SensorType.IMAGE,
             sample_rate,
@@ -794,6 +800,7 @@ def load_apim_location_from_list(
                 pd.DataFrame(np.transpose(data_list), columns=LOCATION_COLUMNS),
                 gaps,
                 loc_stats.mean_of_means(),
+                True,
             ),
             SensorType.LOCATION,
             calculate_stats=True,
@@ -1424,6 +1431,7 @@ def load_apim_health_from_list(
             ),
             gaps,
             dtu.seconds_to_microseconds(sample_interval),
+            True,
         )
         return SensorData(
             "station health",

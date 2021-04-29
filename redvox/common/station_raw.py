@@ -3,7 +3,7 @@ Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
 """
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Tuple
 from itertools import repeat
 from types import FunctionType
 
@@ -12,7 +12,6 @@ import numpy as np
 from redvox.common import sensor_data as sd
 from redvox.common import sensor_reader_utils_raw as sdru
 from redvox.common import station_utils as st_utils
-from redvox.common.sensor_data import SensorData
 from redvox.common.timesync import TimeSyncAnalysis
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 
@@ -26,7 +25,7 @@ class StationRaw:
         Have the same start time
         Have the same audio sample rate
     Properties:
-        data: dict of sensor type and sensor data associated with the station, default empty dictionary
+        data: list sensor data associated with the station, default empty dictionary
         metadata: StationMetadata consistent across all packets, default empty StationMetadata
         packet_metadata: list of StationPacketMetadata that changes from packet to packet, default empty list
         id: str id of the station, default None
@@ -52,7 +51,7 @@ class StationRaw:
         initialize Station
         :param data_packets: optional list of data packets representing the station, default None
         """
-        self.data = {}
+        self.data = []
         self.packet_metadata: List[st_utils.StationPacketMetadataRaw] = []
         self.is_timestamps_updated = False
         self._gaps: List[Tuple[float, float]] = []
@@ -71,7 +70,7 @@ class StationRaw:
             self.metadata = st_utils.StationMetadataRaw("Redvox", data_packets[0])
             self._set_all_sensors(data_packets)
             self._get_start_and_end_timestamps()
-            audio_sensor: Optional[SensorData] = self.audio_sensor()
+            audio_sensor: Optional[sd.SensorData] = self.audio_sensor()
             if audio_sensor is not None:
                 self.audio_sample_rate_nominal_hz = audio_sensor.sample_rate_hz
                 self.is_audio_scrambled = data_packets[0].sensors.audio.is_scrambled
@@ -198,23 +197,37 @@ class StationRaw:
             )
             self.timesync_analysis = new_timesync_analysis
 
-    def append_station_data(self, new_station_data: Dict[sd.SensorType, sd.SensorData]):
+    def append_station_data(self, new_station_data: List[sd.SensorData]):
         """
         append new station data to existing station data
         :param new_station_data: the dictionary of data to add
         """
-        for sensor_type, sensor_data in new_station_data.items():
+        for sensor_data in new_station_data:
             self.append_sensor(sensor_data)
+
+    def get_station_sensor_types(self) -> List[sd.SensorType]:
+        """
+        :return: a list of sensor types in the station
+        """
+        return [s.type for s in self.data]
+
+    def get_sensor_by_type(self, sensor_type: sd.SensorType) -> Optional[sd.SensorData]:
+        """
+        :param sensor_type: type of sensor to get
+        :return: the sensor of the type or None if it doesn't exist
+        """
+        for s in self.data:
+            if s.type == sensor_type:
+                return s
+        return None
 
     def append_sensor(self, sensor_data: sd.SensorData):
         """
         append sensor data to an existing sensor_type or add a new sensor to the dictionary
         :param sensor_data: the data to append
         """
-        if sensor_data.type in self.data.keys():
-            self.data[sensor_data.type] = self.data[sensor_data.type].append_data(
-                sensor_data.data_df
-            )
+        if sensor_data.type in self.get_station_sensor_types():
+            self.get_sensor_by_type(sensor_data.type).append_data(sensor_data.data_df)
         else:
             self._add_sensor(sensor_data.type, sensor_data)
 
@@ -223,8 +236,8 @@ class StationRaw:
         removes a sensor from the sensor data dictionary if it exists
         :param sensor_type: the sensor to remove
         """
-        if sensor_type in self.data.keys():
-            self.data.pop(sensor_type)
+        if sensor_type in self.get_station_sensor_types():
+            self.data.remove(self.get_sensor_by_type(sensor_type))
 
     def _add_sensor(self, sensor_type: sd.SensorType, sensor: sd.SensorData):
         """
@@ -232,16 +245,15 @@ class StationRaw:
         :param sensor_type: the type of sensor to add
         :param sensor: the sensor data to add
         """
-        if sensor_type in self.data.keys():
+        if sensor_type in self.get_station_sensor_types():
             raise ValueError(
                 f"Cannot add sensor type ({sensor_type.name}) that already exists in packet!"
             )
         else:
-            self.data[sensor_type] = sensor
+            self.data.append(sensor)
 
     def get_mean_packet_duration(self) -> float:
         """
-        calculate the mean packet duration using the stations' packets
         :return: mean duration of packets in microseconds
         """
         return float(
@@ -261,27 +273,22 @@ class StationRaw:
 
     def has_audio_sensor(self) -> bool:
         """
-        check if audio sensor is in the station's data
         :return: True if audio sensor exists
         """
-        return sd.SensorType.AUDIO in self.data.keys()
+        return sd.SensorType.AUDIO in self.get_station_sensor_types()
 
     def has_audio_data(self) -> bool:
         """
-        check if the audio sensor has any data
-        :return: True if audio sensor has any data
+        :return: True if audio sensor exists and has any data
         """
-        audio_sensor: Optional[SensorData] = self.audio_sensor()
+        audio_sensor: Optional[sd.SensorData] = self.audio_sensor()
         return audio_sensor is not None and audio_sensor.num_samples() > 0
 
     def audio_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the audio sensor if it exists
         :return: audio sensor if it exists, None otherwise
         """
-        if self.has_audio_sensor():
-            return self.data[sd.SensorType.AUDIO]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.AUDIO)
 
     def set_audio_sensor(
         self, audio_sensor: Optional[sd.SensorData] = None
@@ -299,27 +306,22 @@ class StationRaw:
 
     def has_location_sensor(self) -> bool:
         """
-        check if location sensor is in the station's data
         :return: True if location sensor exists
         """
-        return sd.SensorType.LOCATION in self.data.keys()
+        return sd.SensorType.LOCATION in self.get_station_sensor_types()
 
     def has_location_data(self) -> bool:
         """
-        check if the location sensor has any data
-        :return: True if location sensor has any data
+        :return: True if location sensor exists and has any data
         """
-        location_sensor: Optional[SensorData] = self.location_sensor()
+        location_sensor: Optional[sd.SensorData] = self.location_sensor()
         return location_sensor is not None and location_sensor.num_samples() > 0
 
     def location_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the location sensor if it exists
         :return: location sensor if it exists, None otherwise
         """
-        if self.has_location_sensor():
-            return self.data[sd.SensorType.LOCATION]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.LOCATION)
 
     def set_location_sensor(
         self, loc_sensor: Optional[sd.SensorData] = None
@@ -337,27 +339,22 @@ class StationRaw:
 
     def has_accelerometer_sensor(self) -> bool:
         """
-        check if accelerometer sensor is in the station's data
         :return: True if accelerometer sensor exists
         """
-        return sd.SensorType.ACCELEROMETER in self.data.keys()
+        return sd.SensorType.ACCELEROMETER in self.get_station_sensor_types()
 
     def has_accelerometer_data(self) -> bool:
         """
-        check if the accelerometer sensor has any data
-        :return: True if accelerometer sensor has any data
+        :return: True if accelerometer sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.accelerometer_sensor()
+        sensor: Optional[sd.SensorData] = self.accelerometer_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def accelerometer_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the accelerometer sensor if it exists
         :return: accelerometer sensor if it exists, None otherwise
         """
-        if self.has_accelerometer_sensor():
-            return self.data[sd.SensorType.ACCELEROMETER]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.ACCELEROMETER)
 
     def set_accelerometer_sensor(
         self, acc_sensor: Optional[sd.SensorData] = None
@@ -375,27 +372,22 @@ class StationRaw:
 
     def has_magnetometer_sensor(self) -> bool:
         """
-        check if magnetometer sensor is in the station's data
         :return: True if magnetometer sensor exists
         """
-        return sd.SensorType.MAGNETOMETER in self.data.keys()
+        return sd.SensorType.MAGNETOMETER in self.get_station_sensor_types()
 
     def has_magnetometer_data(self) -> bool:
         """
-        check if the magnetometer sensor has any data
-        :return: True if magnetometer sensor has any data
+        :return: True if magnetometer sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.magnetometer_sensor()
+        sensor: Optional[sd.SensorData] = self.magnetometer_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def magnetometer_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the magnetometer sensor if it exists
         :return: magnetometer sensor if it exists, None otherwise
         """
-        if self.has_magnetometer_sensor():
-            return self.data[sd.SensorType.MAGNETOMETER]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.MAGNETOMETER)
 
     def set_magnetometer_sensor(
         self, mag_sensor: Optional[sd.SensorData] = None
@@ -413,27 +405,22 @@ class StationRaw:
 
     def has_gyroscope_sensor(self) -> bool:
         """
-        check if gyroscope sensor is in the station's data
         :return: True if gyroscope sensor exists
         """
-        return sd.SensorType.GYROSCOPE in self.data.keys()
+        return sd.SensorType.GYROSCOPE in self.get_station_sensor_types()
 
     def has_gyroscope_data(self) -> bool:
         """
-        check if the gyroscope sensor has any data
-        :return: True if gyroscope sensor has any data
+        :return: True if gyroscope sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.gyroscope_sensor()
+        sensor: Optional[sd.SensorData] = self.gyroscope_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def gyroscope_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the gyroscope sensor if it exists
         :return: gyroscope sensor if it exists, None otherwise
         """
-        if self.has_gyroscope_sensor():
-            return self.data[sd.SensorType.GYROSCOPE]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.GYROSCOPE)
 
     def set_gyroscope_sensor(
         self, gyro_sensor: Optional[sd.SensorData] = None
@@ -451,27 +438,22 @@ class StationRaw:
 
     def has_pressure_sensor(self) -> bool:
         """
-        check if pressure sensor is in the station's data
         :return: True if pressure sensor exists
         """
-        return sd.SensorType.PRESSURE in self.data.keys()
+        return sd.SensorType.PRESSURE in self.get_station_sensor_types()
 
     def has_pressure_data(self) -> bool:
         """
-        check if the pressure sensor has any data
-        :return: True if pressure sensor has any data
+        :return: True if pressure sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.pressure_sensor()
+        sensor: Optional[sd.SensorData] = self.pressure_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def pressure_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the pressure sensor if it exists
         :return: pressure sensor if it exists, None otherwise
         """
-        if self.has_pressure_sensor():
-            return self.data[sd.SensorType.PRESSURE]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.PRESSURE)
 
     def set_pressure_sensor(
         self, pressure_sensor: Optional[sd.SensorData] = None
@@ -489,22 +471,19 @@ class StationRaw:
 
     def has_barometer_sensor(self) -> bool:
         """
-        check if barometer (aka pressure) sensor is in any of the packets
-        :return: True if barometer sensor exists
+        :return: True if barometer (pressure) sensor exists
         """
         return self.has_pressure_sensor()
 
     def has_barometer_data(self) -> bool:
         """
-        check if the barometer (aka pressure)  sensor has any data
-        :return: True if barometer sensor has any data
+        :return: True if barometer (pressure) sensor exists and has any data
         """
         return self.has_pressure_data()
 
     def barometer_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the barometer (aka pressure) sensor if it exists
-        :return: barometer sensor if it exists, None otherwise
+        :return: barometer (pressure) sensor if it exists, None otherwise
         """
         return self.pressure_sensor()
 
@@ -520,27 +499,22 @@ class StationRaw:
 
     def has_light_sensor(self) -> bool:
         """
-        check if light sensor is in the station's data
         :return: True if light sensor exists
         """
-        return sd.SensorType.LIGHT in self.data.keys()
+        return sd.SensorType.LIGHT in self.get_station_sensor_types()
 
     def has_light_data(self) -> bool:
         """
-        check if the light sensor has any data
-        :return: True if light sensor has any data
+        :return: True if light sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.light_sensor()
+        sensor: Optional[sd.SensorData] = self.light_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def light_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the light sensor if it exists
         :return: light sensor if it exists, None otherwise
         """
-        if self.has_light_sensor():
-            return self.data[sd.SensorType.LIGHT]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.LIGHT)
 
     def set_light_sensor(
         self, light_sensor: Optional[sd.SensorData] = None
@@ -558,22 +532,19 @@ class StationRaw:
 
     def has_infrared_sensor(self) -> bool:
         """
-        check if infrared (proximity) sensor is in any of the packets
-        :return: True if infrared sensor exists
+        :return: True if infrared (proximity) sensor exists
         """
         return self.has_proximity_sensor()
 
     def has_infrared_data(self) -> bool:
         """
-        check if infrared (proximity) sensor has any data
-        :return: True if infrared sensor has any data
+        :return: True if infrared (proximity) sensor exists and has any data
         """
         return self.has_proximity_data()
 
     def infrared_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the infrared (proximity) sensor if it exists
-        :return: infrared sensor if it exists, None otherwise
+        :return: infrared (proximity) sensor if it exists, None otherwise
         """
         return self.proximity_sensor()
 
@@ -589,27 +560,22 @@ class StationRaw:
 
     def has_proximity_sensor(self) -> bool:
         """
-        check if proximity sensor is in the station's data
         :return: True if proximity sensor exists
         """
-        return sd.SensorType.PROXIMITY in self.data.keys()
+        return sd.SensorType.PROXIMITY in self.get_station_sensor_types()
 
     def has_proximity_data(self) -> bool:
         """
-        check if the proximity sensor has any data
-        :return: True if proximity sensor has any data
+        :return: True if proximity sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.proximity_sensor()
+        sensor: Optional[sd.SensorData] = self.proximity_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def proximity_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the proximity sensor if it exists
         :return: proximity sensor if it exists, None otherwise
         """
-        if self.has_proximity_sensor():
-            return self.data[sd.SensorType.PROXIMITY]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.PROXIMITY)
 
     def set_proximity_sensor(
         self, proximity_sensor: Optional[sd.SensorData] = None
@@ -627,27 +593,22 @@ class StationRaw:
 
     def has_image_sensor(self) -> bool:
         """
-        check if image sensor is in the station's data
         :return: True if image sensor exists
         """
-        return sd.SensorType.IMAGE in self.data.keys()
+        return sd.SensorType.IMAGE in self.get_station_sensor_types()
 
     def has_image_data(self) -> bool:
         """
-        check if the image sensor has any data
-        :return: True if image sensor has any data
+        :return: True if image sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.image_sensor()
+        sensor: Optional[sd.SensorData] = self.image_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def image_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the image sensor if it exists
         :return: image sensor if it exists, None otherwise
         """
-        if self.has_image_sensor():
-            return self.data[sd.SensorType.IMAGE]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.IMAGE)
 
     def set_image_sensor(self, img_sensor: Optional[sd.SensorData] = None) -> "StationRaw":
         """
@@ -663,27 +624,22 @@ class StationRaw:
 
     def has_ambient_temperature_sensor(self) -> bool:
         """
-        check if ambient temperature sensor is in the station's data
         :return: True if ambient temperature sensor exists
         """
-        return sd.SensorType.AMBIENT_TEMPERATURE in self.data.keys()
+        return sd.SensorType.AMBIENT_TEMPERATURE in self.get_station_sensor_types()
 
     def has_ambient_temperature_data(self) -> bool:
         """
-        check if the ambient temperature sensor has any data
-        :return: True if ambient temperature sensor has any data
+        :return: True if ambient temperature sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.ambient_temperature_sensor()
+        sensor: Optional[sd.SensorData] = self.ambient_temperature_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def ambient_temperature_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the ambient temperature sensor if it exists
         :return: ambient temperature sensor if it exists, None otherwise
         """
-        if self.has_ambient_temperature_sensor():
-            return self.data[sd.SensorType.AMBIENT_TEMPERATURE]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.AMBIENT_TEMPERATURE)
 
     def set_ambient_temperature_sensor(
         self, amb_temp_sensor: Optional[sd.SensorData] = None
@@ -701,27 +657,22 @@ class StationRaw:
 
     def has_relative_humidity_sensor(self) -> bool:
         """
-        check if relative humidity sensor is in the station's data
         :return: True if relative humidity sensor exists
         """
-        return sd.SensorType.RELATIVE_HUMIDITY in self.data.keys()
+        return sd.SensorType.RELATIVE_HUMIDITY in self.get_station_sensor_types()
 
     def has_relative_humidity_data(self) -> bool:
         """
-        check if the relative humidity sensor has any data
-        :return: True if relative humidity sensor has any data
+        :return: True if relative humidity sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.relative_humidity_sensor()
+        sensor: Optional[sd.SensorData] = self.relative_humidity_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def relative_humidity_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the relative humidity sensor if it exists
         :return: relative humidity sensor if it exists, None otherwise
         """
-        if self.has_relative_humidity_sensor():
-            return self.data[sd.SensorType.RELATIVE_HUMIDITY]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.RELATIVE_HUMIDITY)
 
     def set_relative_humidity_sensor(
         self, rel_hum_sensor: Optional[sd.SensorData] = None
@@ -739,27 +690,22 @@ class StationRaw:
 
     def has_gravity_sensor(self) -> bool:
         """
-        check if gravity sensor is in the station's data
         :return: True if gravity sensor exists
         """
-        return sd.SensorType.GRAVITY in self.data.keys()
+        return sd.SensorType.GRAVITY in self.get_station_sensor_types()
 
     def has_gravity_data(self) -> bool:
         """
-        check if the gravity sensor has any data
-        :return: True if gravity sensor has any data
+        :return: True if gravity sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.gravity_sensor()
+        sensor: Optional[sd.SensorData] = self.gravity_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def gravity_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the gravity sensor if it exists
         :return: gravity sensor if it exists, None otherwise
         """
-        if self.has_gravity_sensor():
-            return self.data[sd.SensorType.GRAVITY]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.GRAVITY)
 
     def set_gravity_sensor(
         self, grav_sensor: Optional[sd.SensorData] = None
@@ -777,27 +723,22 @@ class StationRaw:
 
     def has_linear_acceleration_sensor(self) -> bool:
         """
-        check if linear acceleration sensor is in the station's data
         :return: True if linear acceleration sensor exists
         """
-        return sd.SensorType.LINEAR_ACCELERATION in self.data.keys()
+        return sd.SensorType.LINEAR_ACCELERATION in self.get_station_sensor_types()
 
     def has_linear_acceleration_data(self) -> bool:
         """
-        check if the linear acceleration sensor has any data
-        :return: True if linear acceleration sensor has any data
+        :return: True if linear acceleration sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.linear_acceleration_sensor()
+        sensor: Optional[sd.SensorData] = self.linear_acceleration_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def linear_acceleration_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the linear acceleration sensor if it exists
         :return: linear acceleration sensor if it exists, None otherwise
         """
-        if self.has_linear_acceleration_sensor():
-            return self.data[sd.SensorType.LINEAR_ACCELERATION]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.LINEAR_ACCELERATION)
 
     def set_linear_acceleration_sensor(
         self, lin_acc_sensor: Optional[sd.SensorData] = None
@@ -815,27 +756,22 @@ class StationRaw:
 
     def has_orientation_sensor(self) -> bool:
         """
-        check if orientation sensor is in the station's data
         :return: True if orientation sensor exists
         """
-        return sd.SensorType.ORIENTATION in self.data.keys()
+        return sd.SensorType.ORIENTATION in self.get_station_sensor_types()
 
     def has_orientation_data(self) -> bool:
         """
-        check if the orientation sensor has any data
-        :return: True if orientation sensor has any data
+        :return: True if orientation sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.orientation_sensor()
+        sensor: Optional[sd.SensorData] = self.orientation_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def orientation_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the orientation sensor if it exists
         :return: orientation sensor if it exists, None otherwise
         """
-        if self.has_orientation_sensor():
-            return self.data[sd.SensorType.ORIENTATION]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.ORIENTATION)
 
     def set_orientation_sensor(
         self, orientation_sensor: Optional[sd.SensorData] = None
@@ -853,27 +789,22 @@ class StationRaw:
 
     def has_rotation_vector_sensor(self) -> bool:
         """
-        check if rotation vector sensor is in the station's data
         :return: True if rotation vector sensor exists
         """
-        return sd.SensorType.ROTATION_VECTOR in self.data.keys()
+        return sd.SensorType.ROTATION_VECTOR in self.get_station_sensor_types()
 
     def has_rotation_vector_data(self) -> bool:
         """
-        check if the rotation vector sensor has any data
-        :return: True if rotation vector sensor has any data
+        :return: True if rotation vector sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.rotation_vector_sensor()
+        sensor: Optional[sd.SensorData] = self.rotation_vector_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def rotation_vector_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the rotation vector sensor if it exists
         :return: rotation vector sensor if it exists, None otherwise
         """
-        if self.has_rotation_vector_sensor():
-            return self.data[sd.SensorType.ROTATION_VECTOR]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.ROTATION_VECTOR)
 
     def set_rotation_vector_sensor(
         self, rot_vec_sensor: Optional[sd.SensorData] = None
@@ -891,27 +822,22 @@ class StationRaw:
 
     def has_compressed_audio_sensor(self) -> bool:
         """
-        check if compressed audio sensor is in the station's data
         :return: True if compressed audio sensor exists
         """
-        return sd.SensorType.COMPRESSED_AUDIO in self.data.keys()
+        return sd.SensorType.COMPRESSED_AUDIO in self.get_station_sensor_types()
 
     def has_compressed_audio_data(self) -> bool:
         """
-        check if the compressed audio sensor has any data
-        :return: True if compressed audio sensor has any data
+        :return: True if compressed audio sensor exists and has any data
         """
-        sensor: Optional[SensorData] = self.compressed_audio_sensor()
+        sensor: Optional[sd.SensorData] = self.compressed_audio_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def compressed_audio_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the compressed audio sensor if it exists
         :return: compressed audio sensor if it exists, None otherwise
         """
-        if self.has_compressed_audio_sensor():
-            return self.data[sd.SensorType.COMPRESSED_AUDIO]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.COMPRESSED_AUDIO)
 
     def set_compressed_audio_sensor(
         self, comp_audio_sensor: Optional[sd.SensorData] = None
@@ -929,27 +855,22 @@ class StationRaw:
 
     def has_health_sensor(self) -> bool:
         """
-        check if health sensor (station metrics) is in any of the packets
-        :return: True if health sensor exists
+        :return: True if health sensor (station metrics) exists
         """
-        return sd.SensorType.STATION_HEALTH in self.data.keys()
+        return sd.SensorType.STATION_HEALTH in self.get_station_sensor_types()
 
     def has_health_data(self) -> bool:
         """
-        check if health sensor (station metrics) is in any of the packets
-        :return: True if health sensor exists
+        :return: True if health sensor (station metrics) exists and has data
         """
-        sensor: Optional[SensorData] = self.health_sensor()
+        sensor: Optional[sd.SensorData] = self.health_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
     def health_sensor(self) -> Optional[sd.SensorData]:
         """
-        return the station health sensor if it exists
-        :return: station health sensor if it exists, None otherwise
+        :return: station health sensor (station metrics) if it exists, None otherwise
         """
-        if self.has_health_sensor():
-            return self.data[sd.SensorType.STATION_HEALTH]
-        return None
+        return self.get_sensor_by_type(sd.SensorType.STATION_HEALTH)
 
     def set_health_sensor(
         self, health_sensor: Optional[sd.SensorData] = None
@@ -970,7 +891,6 @@ class StationRaw:
         set all sensors from the packets, as well as misc. metadata, and put it in the station
         :param packets: the packets to read data from
         """
-        self.data = {}
         self.packet_metadata = [
             st_utils.StationPacketMetadataRaw(packet) for packet in packets
         ]
@@ -1059,7 +979,7 @@ class StationRaw:
         if self.is_timestamps_updated:
             print("WARNING: Timestamps already corrected!")
         else:
-            for sensor in self.data.values():
+            for sensor in self.data:
                 sensor.update_data_timestamps(self.timesync_analysis.offset_model)
             for packet in self.packet_metadata:
                 packet.update_timestamps(self.timesync_analysis.offset_model)
