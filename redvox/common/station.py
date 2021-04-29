@@ -3,17 +3,22 @@ Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
 """
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Iterator, Union
 from itertools import repeat
 from types import FunctionType
 
 import numpy as np
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.common import sensor_reader_utils_raw as srur
 from redvox.common import sensor_data as sd
 from redvox.common import sensor_reader_utils as sdru
 from redvox.common import station_utils as st_utils
 from redvox.common.timesync import TimeSyncAnalysis
+from redvox.common.io import Index
+
+from redvox.api900.lib.api900_pb2 import RedvoxPacket
+from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 
 
 class Station:
@@ -40,10 +45,12 @@ class Station:
         _gaps: List of Tuples of floats indicating start and end times of gaps.  Times are not inclusive of the gap.
     """
 
-    def __init__(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None,
+    def __init__(self,
+                 data_packets: Optional[List[WrappedRedvoxPacketM]] = None,
                  station_id: str = None,
                  uuid: str = None,
-                 start_time: float = np.nan):
+                 start_time: float = np.nan,
+                 index: Optional[Index] = None):
         """
         initialize Station
         :param data_packets: optional list of data packets representing the station, default None
@@ -76,6 +83,8 @@ class Station:
             self.timesync_analysis = \
                 TimeSyncAnalysis(self.id, self.audio_sample_rate_nominal_hz,
                                  self.start_timestamp).from_packets(data_packets)
+        elif index:
+            self._set_all_sensors_raw(index.stream_raw())
         else:
             self.id = station_id
             self.uuid = uuid
@@ -985,6 +994,60 @@ class Station:
         for sensor in sensors:
             if sensor:
                 self.append_sensor(sensor)
+
+    def _set_all_sensors_raw(self, packets: Iterator[Union["RedvoxPacket", RedvoxPacketM]]):
+        """
+        use raw packets to create the station
+        :param packets: raw redvox api900 or api1000 packets
+        """
+        self.data = {}
+        # self.packet_metadata: List[st_utils.StationPacketMetadata] = [
+        #     st_utils.StationPacketMetadata(packet) for packet in packets]
+        p_l = [p for p in packets]
+        self.id = p_l[0].station_information.id
+        self.uuid = p_l[0].station_information.uuid
+        self.start_timestamp = p_l[0].timing_information.app_start_mach_timestamp
+        if self.start_timestamp < 0:
+            print(f"WARNING: Station {self.id} has start timestamp before epoch.  "
+                  f"Start timestamp reset to np.nan")
+            self.start_timestamp = np.nan
+        self.metadata = st_utils.StationMetadata("Redvox", WrappedRedvoxPacketM(p_l[0]))
+        sensor, self._gaps = srur.load_apim_audio_from_list(p_l)
+        if sensor:
+            self.append_sensor(sensor)
+        else:
+            print(f"WARNING: Station {self.id} cannot find audio data to load!")
+        funcs = [srur.load_apim_compressed_audio_from_list,
+                 srur.load_apim_image_from_list,
+                 srur.load_apim_location_from_list,
+                 srur.load_apim_pressure_from_list,
+                 srur.load_apim_light_from_list,
+                 srur.load_apim_ambient_temp_from_list,
+                 srur.load_apim_rel_humidity_from_list,
+                 srur.load_apim_proximity_from_list,
+                 srur.load_apim_accelerometer_from_list,
+                 srur.load_apim_gyroscope_from_list,
+                 srur.load_apim_magnetometer_from_list,
+                 srur.load_apim_gravity_from_list,
+                 srur.load_apim_linear_accel_from_list,
+                 srur.load_apim_orientation_from_list,
+                 srur.load_apim_rotation_vector_from_list,
+                 srur.load_apim_health_from_list,
+                 ]
+        sensors = map(FunctionType.__call__, funcs, repeat(p_l), repeat(self._gaps))
+        for sensor in sensors:
+            if sensor:
+                self.append_sensor(sensor)
+        self._get_start_and_end_timestamps()
+        if self.has_audio_sensor():
+            self.audio_sample_rate_nominal_hz = self.audio_sensor().sample_rate_hz
+            self.is_audio_scrambled = p_l[0].station_information.app_settings.scramble_audio_data
+        else:
+            self.audio_sample_rate_nominal_hz = np.nan
+            self.is_audio_scrambled = False
+        self.timesync_analysis = \
+            TimeSyncAnalysis(self.id, self.audio_sample_rate_nominal_hz,
+                             self.start_timestamp).from_raw_packets(p_l)
 
     @staticmethod
     def from_packet(packet: WrappedRedvoxPacketM) -> "Station":

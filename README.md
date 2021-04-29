@@ -9,6 +9,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc28 (2021-4-29)
+
+* Improved Data Window Performance via alternate methods; use parallelism for best performance
+* Raw protobuff reading implemented for station and sensor creation.
+
 ### 3.0.0rc27 (2021-4-23)
 
 * fixed bug when creating edge points in data windows

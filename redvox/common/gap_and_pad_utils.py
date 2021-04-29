@@ -1,4 +1,5 @@
 from typing import List, Tuple, Optional
+import enum
 
 import pandas as pd
 import numpy as np
@@ -22,6 +23,17 @@ NON_INTERPOLATED_COLUMNS = ["compressed_audio", "image"]
 # columns that are not numeric but can be interpolated
 NON_NUMERIC_COLUMNS = ["location_provider", "image_codec", "audio_codec",
                        "network_type", "power_state", "cell_service"]
+
+
+# noinspection Mypy,DuplicatedCode
+class DataPointCreationMode(enum.Enum):
+    """
+    Type of data point to create
+    """
+
+    NAN: int = 0
+    COPY: int = 1
+    INTERPOLATE: int = 2
 
 
 def calc_evenly_sampled_timestamps(
@@ -124,7 +136,7 @@ def fill_gaps(
         data_df: pd.DataFrame,
         gaps: List[Tuple[float, float]],
         sample_interval_micros: float,
-        interpolate: bool = False
+        copy: bool = False
 ) -> pd.DataFrame:
     """
     fills gaps in the dataframe with np.nan or interpolated values by interpolating timestamps based on the
@@ -133,8 +145,7 @@ def fill_gaps(
     :param data_df: dataframe with timestamps as column "timestamps"
     :param gaps: list of tuples of known non-inclusive start and end timestamps of the gaps
     :param sample_interval_micros: known sample interval of the data points
-    :param interpolate: if True, interpolate the data points, otherwise fill with np.nan or defaults for enums,
-                        default False
+    :param copy: if True, copy the data points, otherwise interpolate from edges, default False
     :return: dataframe without gaps
     """
     # extract the necessary information to compute gap size and gap timestamps
@@ -146,6 +157,10 @@ def fill_gaps(
                             + (1 if data_duration % sample_interval_micros >=
                                sample_interval_micros * DEFAULT_GAP_UPPER_LIMIT else 0)) + 1
         if expected_samples > len(data_time_stamps):
+            if copy:
+                pcm = DataPointCreationMode["COPY"]
+            else:
+                pcm = DataPointCreationMode["NAN"]
             # make it safe to alter the gap values
             my_gaps = check_gap_list(gaps, data_time_stamps[0], data_time_stamps[-1])
             for gap in my_gaps:
@@ -153,16 +168,28 @@ def fill_gaps(
                 before_start = np.argwhere([t <= gap[0] for t in data_time_stamps])
                 after_end = np.argwhere([t >= gap[1] for t in data_time_stamps])
                 if len(before_start) > 0:
-                    gap = (data_time_stamps[before_start[-1][0]], gap[1])
-                if len(after_end) > 0:
-                    gap = (gap[0], data_time_stamps[after_end[0][0]])
-                if interpolate:
-                    gap_df = result_df.loc[result_df["timestamps"].isin(gap)]
-                    gap_df = create_interpolated_timestamps_df(gap_df, sample_interval_micros)
+                    before_start = before_start[-1][0]
+                    # sim = gap[0] - data_time_stamps[before_start]
+                    # result_df = add_data_points_to_df(result_df, before_start, sim, point_creation_mode=pcm)
+                    gap = (data_time_stamps[before_start], gap[1])
                 else:
-                    gap_df = create_dataless_timestamps_df(gap[0], sample_interval_micros, result_df.columns,
-                                                           int((gap[1] - gap[0]) / sample_interval_micros) - 1)
-                result_df = pd.concat([result_df, gap_df], ignore_index=True)
+                    before_start = None
+                if len(after_end) > 0:
+                    after_end = after_end[0][0]
+                    # sim = gap[1] - data_time_stamps[after_end]
+                    gap = (gap[0], data_time_stamps[after_end])
+                else:
+                    after_end = None
+                num_new_points = int((gap[1] - gap[0]) / sample_interval_micros) - 1
+                if before_start is not None and after_end is not None:
+                    result_df = add_data_points_to_df(result_df, before_start, sample_interval_micros,
+                                                      num_new_points, pcm)
+                elif before_start is not None:
+                    result_df = add_data_points_to_df(result_df, before_start, sample_interval_micros,
+                                                      num_new_points, pcm)
+                elif after_end is not None:
+                    result_df = add_data_points_to_df(result_df, after_end, -sample_interval_micros,
+                                                      num_new_points, pcm)
     return result_df.sort_values("timestamps", ignore_index=True)
 
 
@@ -221,11 +248,88 @@ def fill_audio_gaps(
     return result_df.sort_values("timestamps", ignore_index=True), gaps
 
 
+def add_data_points_to_df(dataframe: pd.DataFrame,
+                          start_index: int,
+                          sample_interval_micros: float,
+                          num_samples_to_add: int = 1,
+                          point_creation_mode: DataPointCreationMode = DataPointCreationMode.COPY,
+                          ) -> pd.DataFrame:
+    """
+    adds data points to the dataframe, starting from the index specified.
+        Note:
+            * dataframe must not be empty
+            * start_index must be non-negative and less than the length of dataframe
+            * num_samples_to_add must be greater than 0
+            * the points are added onto the end and the result is not sorted
+        Options for point_creation_mode are:
+            * NAN: default values and nans
+            * COPY: copies of the start data point
+            * INTERPOLATE: interpolated values between start data point and adjacent point
+
+    :param dataframe: dataframe to add dataless timestamps to
+    :param start_index: index of the dataframe to use as starting point for creating new values
+    :param sample_interval_micros: sample interval in microseconds of the timestamps; use negative values to
+                                    add points before the start_index
+    :param num_samples_to_add: the number of timestamps to create, default 1
+    :param point_creation_mode: the mode of point creation to use
+    :return: updated dataframe with synthetic data points
+    """
+    if len(dataframe) > start_index and len(dataframe) > 0 and num_samples_to_add > 0:
+        start_timestamp = dataframe["timestamps"].iloc[start_index]
+        t = start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+        start_point = dataframe.iloc[start_index].copy()
+        # interpolate mode only uses the first created timestamp
+        if point_creation_mode == DataPointCreationMode.COPY:
+            empty_df = start_point
+            empty_df["timestamps"] = t[0]
+        elif point_creation_mode == DataPointCreationMode.INTERPOLATE:
+            numeric_start = start_point[[col for col in dataframe.columns
+                                         if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+            non_numeric_start = start_point[[col for col in dataframe.columns if col in NON_NUMERIC_COLUMNS]]
+            end_point = dataframe.iloc[start_index + (1 if sample_interval_micros > 0 else -1)]
+            numeric_end = end_point[[col for col in dataframe.columns
+                                     if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+            non_numeric_end = end_point[[col for col in dataframe.columns if col in NON_NUMERIC_COLUMNS]]
+            if np.abs(start_point["timestamps"] - t[0]) <= np.abs(end_point["timestamps"] - t[0]):
+                non_numeric_diff = non_numeric_start
+            else:
+                non_numeric_diff = non_numeric_end
+            numeric_diff = numeric_end - numeric_start
+            numeric_diff = \
+                (numeric_diff / numeric_diff["timestamps"]) * \
+                (t - numeric_start) + numeric_start
+            empty_df = pd.concat([numeric_diff, non_numeric_diff])
+        else:
+            empty_df = pd.DataFrame(np.full([num_samples_to_add, len(dataframe.columns)], np.nan),
+                                    columns=dataframe.columns)
+            for column_index in dataframe.columns:
+                if column_index == "timestamps":
+                    empty_df[column_index] = t
+                elif column_index == "location_provider":
+                    empty_df[column_index] = [LocationProvider["UNKNOWN"].value for i in range(num_samples_to_add)]
+                elif column_index == "image_codec":
+                    empty_df[column_index] = [ImageCodec["UNKNOWN"].value for i in range(num_samples_to_add)]
+                elif column_index == "audio_codec":
+                    empty_df[column_index] = [AudioCodec["UNKNOWN"].value for i in range(num_samples_to_add)]
+                elif column_index == "network_type":
+                    empty_df[column_index] = [NetworkType["UNKNOWN_NETWORK"].value for i in range(num_samples_to_add)]
+                elif column_index == "power_state":
+                    empty_df[column_index] = [PowerState["UNKNOWN_POWER_STATE"].value
+                                              for i in range(num_samples_to_add)]
+                elif column_index == "cell_service":
+                    empty_df[column_index] = [CellServiceState["UNKNOWN"].value for i in range(num_samples_to_add)]
+        dataframe = dataframe.append(empty_df, ignore_index=True)
+
+    return dataframe
+
+
 def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
                                   start_index: int,
                                   sample_interval_micros: float,
                                   num_samples_to_add: int,
-                                  add_to_start: bool = False,) -> pd.DataFrame:
+                                  add_to_start: bool = False,
+                                  copy: bool = True,
+                                  ) -> pd.DataFrame:
     """
     adds dataless timestamps directly to a dataframe that already contains data
       Note:
@@ -239,6 +343,7 @@ def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
     :param sample_interval_micros: sample interval in microseconds of the timestamps
     :param num_samples_to_add: the number of timestamps to create
     :param add_to_start: if True, subtracts sample_interval_micros from start_timestamp, default False
+    :param copy: if True, copy the value of the start point when creating new points, default True
     :return: updated dataframe with synthetic data points
     """
     if len(dataframe) > start_index and len(dataframe) > 0 and num_samples_to_add > 0:
@@ -253,6 +358,7 @@ def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
 def create_interpolated_timestamps_df(
         end_points: pd.DataFrame,
         sample_interval_micros: float,
+        copy: bool = True,
         gap_upper_limit: float = DEFAULT_GAP_UPPER_LIMIT,
 ) -> pd.DataFrame:
     """
@@ -261,6 +367,7 @@ def create_interpolated_timestamps_df(
 
     :param end_points: pd.Dataframe containing start and end points to gap fill on
     :param sample_interval_micros: sample interval in microseconds of the timestamps
+    :param copy: if True, copy the first data point instead of interpolating.  Default True
     :param gap_upper_limit: fraction of sample interval required to confirm gap is at least 1 sample interval
                             default DEFAULT_GAP_UPPER_LIMIT
     :return: a dataframe consisting of the created data points
@@ -275,15 +382,19 @@ def create_interpolated_timestamps_df(
     non_numeric = end_points[[col for col in end_points.columns if col in NON_NUMERIC_COLUMNS]]
     non_numeric_start = non_numeric.iloc[0]
     non_numeric_end = non_numeric.iloc[1]
+    slope = numeric_diff / numeric_diff["timestamps"]
     # check if we have a gap that's more than 1 interval + the minimum duration of another interval
     while numeric_diff["timestamps"] > sample_interval_micros * (1 + gap_upper_limit):
-        slope = numeric_diff / numeric_diff["timestamps"]
-        new_numeric += slope * sample_interval_micros
-        if np.abs(numeric_start["timestamps"] - new_numeric["timestamps"]) \
-                <= np.abs(numeric_end["timestamps"] - new_numeric["timestamps"]):
+        if copy:
+            new_numeric["timestamps"] += sample_interval_micros
             non_numeric_diff = non_numeric_start
         else:
-            non_numeric_diff = non_numeric_end
+            new_numeric += slope * sample_interval_micros
+            if np.abs(numeric_start["timestamps"] - new_numeric["timestamps"]) \
+                    <= np.abs(numeric_end["timestamps"] - new_numeric["timestamps"]):
+                non_numeric_diff = non_numeric_start
+            else:
+                non_numeric_diff = non_numeric_end
         non_interpolated_columns = [col for col in NON_INTERPOLATED_COLUMNS if col in result_df.columns]
         if len(non_interpolated_columns) > 0:
             non_interpolated = pd.DataFrame([np.full(len(non_interpolated_columns), np.nan)],
@@ -316,12 +427,12 @@ def create_dataless_timestamps_df(
     """
     empty_df = pd.DataFrame(np.full([num_samples_to_add, len(columns)], np.nan), columns=columns)
     enum_samples = {
-        "location_provider": LocationProvider.UNKNOWN,
-        "image_codec": ImageCodec.UNKNOWN,
-        "audio_codec": AudioCodec.UNKNOWN,
-        "network_type": NetworkType.UNKNOWN_NETWORK,
-        "power_state": PowerState.UNKNOWN_POWER_STATE,
-        "cell_service": CellServiceState.UNKNOWN
+        "location_provider": LocationProvider["UNKNOWN"].value,
+        "image_codec": ImageCodec["UNKNOWN"].value,
+        "audio_codec": AudioCodec["UNKNOWN"].value,
+        "network_type": NetworkType["UNKNOWN_NETWORK"].value,
+        "power_state": PowerState["UNKNOWN_POWER_STATE"].value,
+        "cell_service": CellServiceState["UNKNOWN"].value
     }
     if num_samples_to_add > 0:
         if add_to_start:
