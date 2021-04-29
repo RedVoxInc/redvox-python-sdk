@@ -402,8 +402,9 @@ def get_metadata(metadata: typing.List[str], k: str) -> str:
 
     return metadata[idx + 1]
 
+
 def extract_uneven_payload_idx_raw(
-        packet: api900_pb2.RedvoxPacket, channel_type
+    packet: api900_pb2.RedvoxPacket, channel_type
 ) -> typing.Optional[int]:
     channel: api900_pb2.UnevenlySampledChannel
     for channel in packet.unevenly_sampled_channels:
@@ -412,6 +413,7 @@ def extract_uneven_payload_idx_raw(
                 return i
 
     return None
+
 
 def extract_uneven_payload_raw(
     packet: api900_pb2.RedvoxPacket, channel_type
@@ -436,6 +438,22 @@ def find_uneven_channel_raw(packet: api900_pb2.RedvoxPacket, channel_types):
 
 
 T = typing.TypeVar("T")
+
+
+def get_metadata_or_default(
+    metadata: typing.List[str],
+    k: str,
+    and_then: typing.Callable[[str], T],
+    or_default: T,
+) -> T:
+    for i, v in enumerate(metadata):
+        if v == k and (i + 1) < len(metadata):
+            try:
+                return and_then(metadata[i + 1])
+            except:
+                return or_default
+
+    return or_default
 
 
 def get_metadata_raw(
