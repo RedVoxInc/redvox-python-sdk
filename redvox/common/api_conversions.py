@@ -31,6 +31,8 @@ from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPac
 import redvox
 import redvox.api900.reader_utils as reader_utils
 
+import sys
+
 _NORMALIZATION_CONSTANT: int = 0x7FFFFF
 NAN: float = float("nan")
 
@@ -206,10 +208,21 @@ def compute_stats_raw(
         values = np.array(has_stats.values)
         stats_container = has_stats.value_statistics
 
+    minv: float = sys.float_info.max
+    maxv: float = sys.float_info.min
+    sum: float = 0.0
+
+    for i in values:
+        if i < minv:
+            minv = i
+        if i > maxv:
+            maxv = i
+        sum += i
+
     stats_container.count = len(values)
-    stats_container.min = values.min()
-    stats_container.max = values.max()
-    stats_container.mean = values.mean()
+    stats_container.min = minv
+    stats_container.max = maxv
+    stats_container.mean = sum / len(values)
     stats_container.standard_deviation = values.std()
 
 
@@ -390,13 +403,15 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
         api_900.ChannelType.ACCURACY,
     })
     if loc_900 is not None:
+        total_samples: int = len(loc_900.timestamps_microseconds_utc)
         loc_payload: List[float] = list(reader_utils.extract_payload(loc_900))
         loc_m: api_m.RedvoxPacketM.Sensors.Location = packet_m.sensors.location
         loc_m.sensor_description = loc_900.sensor_name
         loc_m.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
         loc_m.timestamps.timestamps[:] = loc_900.timestamps_microseconds_utc
+        loc_m.timestamps_gps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        loc_m.timestamps_gps.timestamps[:] = [float("nan")] * total_samples
 
-        total_samples: int = len(loc_900.timestamps_microseconds_utc)
         total_channels: int = len(loc_900.channel_types)
 
         lat_idx: Optional[int] = reader_utils.extract_uneven_payload_idx_raw(packet, api_900.ChannelType.LATITUDE)
@@ -444,91 +459,64 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
         loc_m.bearing_accuracy_samples.unit = api_m.RedvoxPacketM.Unit.DECIMAL_DEGREES
         loc_m.bearing_accuracy_samples.values[:] = [float("nan") * total_samples]
 
-        # Compute states
+        # Compute stats
+        compute_stats_raw(loc_m.timestamps)
+        compute_stats_raw(loc_m.timestamps_gps)
+        compute_stats_raw(loc_m.latitude_samples)
+        compute_stats_raw(loc_m.longitude_samples)
+        compute_stats_raw(loc_m.altitude_samples)
+        compute_stats_raw(loc_m.speed_samples)
+        compute_stats_raw(loc_m.bearing_samples)
+        compute_stats_raw(loc_m.horizontal_accuracy_samples)
+        compute_stats_raw(loc_m.vertical_accuracy_samples)
+        compute_stats_raw(loc_m.speed_accuracy_samples)
+        compute_stats_raw(loc_m.bearing_accuracy_samples)
 
         # Bookkeeping
+        use_location: bool = reader_utils.get_metadata_raw(
+            loc_900.metadata,
+            "useLocation",
+            lambda v: v == "T",
+            False
+        )
+        desired_location: bool = reader_utils.get_metadata_raw(
+            loc_900.metadata,
+            "desiredLocation",
+            lambda v: v == "T",
+            False
+        )
+        permission_location: bool = reader_utils.get_metadata_raw(
+            loc_900.metadata,
+            "permissionLocation",
+            lambda v: v == "T",
+            False
+        )
+        enabled_location: bool = reader_utils.get_metadata_raw(
+            loc_900.metadata,
+            "enabledLocation",
+            lambda v: v == "T",
+            False
+        )
 
+        if desired_location:
+            loc_m.location_providers[:] = [api_m.RedvoxPacketM.Sensors.Location.LocationProvider.USER] * total_samples
+        elif enabled_location:
+            loc_m.location_providers[:] = [api_m.RedvoxPacketM.Sensors.Location.LocationProvider.GPS] * total_samples
+        elif use_location and desired_location and permission_location:
+            loc_m.location_providers[:] = [api_m.RedvoxPacketM.Sensors.Location.LocationProvider.NETWORK] * total_samples
+        else:
+            loc_m.location_providers[:] = [api_m.RedvoxPacketM.Sensors.Location.LocationProvider.NONE] * total_samples
 
+        loc_m.location_permissions_granted = permission_location
+        loc_m.location_services_enabled = use_location
+        loc_m.location_services_requested = desired_location
 
-            # # TODO: rework
-    # location_sensor_900: Optional[
-    #     reader_900.LocationSensor
-    # ] = packet.location_sensor()
-    # if location_sensor_900 is not None:
-    #     location_m = sensors_m.new_location()
-    #     location_m.set_sensor_description(location_sensor_900.sensor_name())
-    #     location_m.get_timestamps().set_timestamps(
-    #         location_sensor_900.timestamps_microseconds_utc(), True
-    #     )
-    #     if location_sensor_900.check_for_preset_lat_lon():
-    #         lat_lon: np.ndarray = location_sensor_900.get_payload_lat_lon()
-    #         location_m.get_latitude_samples().set_values(lat_lon[:1], True)
-    #         location_m.get_longitude_samples().set_values(lat_lon[1:], True)
-    #     else:
-    #         location_m.get_latitude_samples().set_values(
-    #             location_sensor_900.payload_values_latitude(), True
-    #         )
-    #         location_m.get_longitude_samples().set_values(
-    #             location_sensor_900.payload_values_longitude(), True
-    #         )
-    #         location_m.get_altitude_samples().set_values(
-    #             location_sensor_900.payload_values_altitude(), True
-    #         )
-    #         location_m.get_speed_samples().set_values(
-    #             location_sensor_900.payload_values_speed(), True
-    #         )
-    #         location_m.get_horizontal_accuracy_samples().set_values(
-    #             location_sensor_900.payload_values_accuracy(), True
-    #         )
-    #
-    #     def _extract_meta_bool(metad: Dict[str, str], key: str) -> bool:
-    #         if key not in metad:
-    #             return False
-    #
-    #         return metad[key] == "T"
-    #
-    #     loc_meta_900 = location_sensor_900.metadata_as_dict()
-    #     use_location = _extract_meta_bool(loc_meta_900, "useLocation")
-    #     desired_location = _extract_meta_bool(loc_meta_900, "desiredLocation")
-    #     permission_location = _extract_meta_bool(loc_meta_900, "permissionLocation")
-    #     enabled_location = _extract_meta_bool(loc_meta_900, "enabledLocation")
-    #
-    #     n_p = location_m.get_timestamps().get_timestamps_count()
-    #
-    #     if desired_location:
-    #         location_m.get_location_providers().set_values(
-    #             [LocationProvider.USER for i in range(n_p)]
-    #         )
-    #     elif enabled_location:
-    #         location_m.get_location_providers().set_values(
-    #             [LocationProvider.GPS for i in range(n_p)]
-    #         )
-    #     elif use_location and desired_location and permission_location:
-    #         location_m.get_location_providers().set_values(
-    #             [LocationProvider.NETWORK for i in range(n_p)]
-    #         )
-    #     else:
-    #         location_m.get_location_providers().set_values(
-    #             [LocationProvider.NONE for i in range(n_p)]
-    #         )
-    #
-    #     location_m.set_location_permissions_granted(permission_location)
-    #     location_m.set_location_services_enabled(use_location)
-    #     location_m.set_location_services_requested(desired_location)
-    #
-    #     # Once we're done here, we should remove the original metadata
-    #     if "useLocation" in loc_meta_900:
-    #         del loc_meta_900["useLocation"]
-    #     if "desiredLocation" in loc_meta_900:
-    #         del loc_meta_900["desiredLocation"]
-    #     if "permissionLocation" in loc_meta_900:
-    #         del loc_meta_900["permissionLocation"]
-    #     if "enabledLocation" in loc_meta_900:
-    #         del loc_meta_900["enabledLocation"]
-    #     if "machTimeZero" in loc_meta_900:
-    #         del loc_meta_900["machTimeZero"]
-    #     location_m.get_metadata().set_metadata(loc_meta_900)
-    #
+        for (i, k) in loc_900.metadata:
+            if i + 1 < len(loc_900.metadata):
+                loc_m.metadata[k] = loc_900.metadata[i + 1]
+            else:
+                loc_m.metadata[k] = ""
+
     # # Time Synchronization
     # # This was already added to the timing information
 
