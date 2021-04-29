@@ -208,21 +208,10 @@ def compute_stats_raw(
         values = np.array(has_stats.values)
         stats_container = has_stats.value_statistics
 
-    minv: float = sys.float_info.max
-    maxv: float = sys.float_info.min
-    sum: float = 0.0
-
-    for i in values:
-        if i < minv:
-            minv = i
-        if i > maxv:
-            maxv = i
-        sum += i
-
     stats_container.count = len(values)
-    stats_container.min = minv
-    stats_container.max = maxv
-    stats_container.mean = sum / len(values)
+    stats_container.min = values.min()
+    stats_container.max = values.max()
+    stats_container.mean = values.mean()
     stats_container.standard_deviation = values.std()
 
 
