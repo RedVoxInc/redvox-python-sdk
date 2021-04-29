@@ -247,27 +247,55 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     # API 900 does not maintain a copy of its settings. So we will not set anything in AppSettings
 
     # StationMetrics - We know a couple.
-    packet_m.station_information.station_metrics.timestamps.unit = (
+    station_metrics: api_m.RedvoxPacketM.StationInformation.StationMetrics = packet_m.station_information.station_metrics
+    station_metrics.timestamps.unit = (
         api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
     )
-    packet_m.station_information.station_metrics.timestamps.timestamps[:] = [
+    station_metrics.timestamps.timestamps[:] = [
         packet.app_file_start_timestamp_machine
     ]
-    packet_m.station_information.station_metrics.temperature.unit = (
+    station_metrics.temperature.unit = (
         api_m.RedvoxPacketM.Unit.DEGREES_CELSIUS
     )
-    packet_m.station_information.station_metrics.temperature.values[:] = [
+    station_metrics.temperature.values[:] = [
         packet.device_temperature_c
     ]
-    packet_m.station_information.station_metrics.battery.unit = (
+    station_metrics.battery.unit = (
         api_m.RedvoxPacketM.Unit.PERCENTAGE
     )
-    packet_m.station_information.station_metrics.battery.values[:] = [
+    station_metrics.battery.values[:] = [
         packet.battery_level_percent
     ]
-    compute_stats_raw(packet_m.station_information.station_metrics.timestamps)
-    compute_stats_raw(packet_m.station_information.station_metrics.temperature)
-    compute_stats_raw(packet_m.station_information.station_metrics.battery)
+
+    # And we can fill in defaults for those we don't know
+    station_metrics.available_disk.unit = api_m.RedvoxPacketM.Unit.BYTE
+    station_metrics.available_disk.values[:] = [float("nan")]
+    station_metrics.available_ram.unit = api_m.RedvoxPacketM.Unit.BYTE
+    station_metrics.available_ram.values[:] = [float("nan")]
+    station_metrics.cpu_utilization.unit = api_m.RedvoxPacketM.Unit.PERCENTAGE
+    station_metrics.cpu_utilization.values[:] = [float("nan")]
+    station_metrics.network_strength.unit = api_m.RedvoxPacketM.Unit.DECIBEL
+    station_metrics.network_strength.values[:] = [float("nan")]
+    station_metrics.battery_current.unit = api_m.RedvoxPacketM.Unit.MICROAMPERES
+    station_metrics.battery_current.values[:] = [float("nan")]
+    station_metrics.screen_brightness.unit = api_m.RedvoxPacketM.Unit.PERCENTAGE
+    station_metrics.screen_brightness.values[:] = [float("nan")]
+
+    station_metrics.network_type[:] = [api_m.RedvoxPacketM.StationInformation.StationMetrics.NetworkType.UNKNOWN_NETWORK]
+    station_metrics.cell_service_state[:] = [api_m.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState.UNKNOWN]
+    station_metrics.power_state[:] = [api_m.RedvoxPacketM.StationInformation.StationMetrics.PowerState.UNKNOWN_POWER_STATE]
+    station_metrics.wifi_wake_lock[:] = [api_m.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock.OTHER]
+    station_metrics.screen_state[:] = [api_m.RedvoxPacketM.StationInformation.StationMetrics.ScreenState.UNKNOWN_SCREEN_STATE]
+
+    compute_stats_raw(station_metrics.timestamps)
+    compute_stats_raw(station_metrics.temperature)
+    compute_stats_raw(station_metrics.battery)
+    compute_stats_raw(station_metrics.available_disk)
+    compute_stats_raw(station_metrics.available_ram)
+    compute_stats_raw(station_metrics.cpu_utilization)
+    compute_stats_raw(station_metrics.network_strength)
+    compute_stats_raw(station_metrics.battery_current)
+    compute_stats_raw(station_metrics.screen_brightness)
 
     # Timing information
     mach_time_900: int = packet.app_file_start_timestamp_machine
@@ -353,8 +381,76 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
         compute_stats_raw(packet_m.sensors.pressure.timestamps)
         compute_stats_raw(packet_m.sensors.pressure.samples)
 
-    # # Location
-    # # TODO: rework
+    # Location
+    loc_900: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet, {
+        api_900.ChannelType.LATITUDE,
+        api_900.ChannelType.LONGITUDE,
+        api_900.ChannelType.ALTITUDE,
+        api_900.ChannelType.SPEED,
+        api_900.ChannelType.ACCURACY,
+    })
+    if loc_900 is not None:
+        loc_payload: List[float] = list(reader_utils.extract_payload(loc_900))
+        loc_m: api_m.RedvoxPacketM.Sensors.Location = packet_m.sensors.location
+        loc_m.sensor_description = loc_900.sensor_name
+        loc_m.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        loc_m.timestamps.timestamps[:] = loc_900.timestamps_microseconds_utc
+
+        total_samples: int = len(loc_900.timestamps_microseconds_utc)
+        total_channels: int = len(loc_900.channel_types)
+
+        lat_idx: Optional[int] = reader_utils.extract_uneven_payload_idx_raw(packet, api_900.ChannelType.LATITUDE)
+        loc_m.latitude_samples.unit = api_m.RedvoxPacketM.Unit.DECIMAL_DEGREES
+        if lat_idx is not None:
+            loc_m.latitude_samples.values[:] = loc_payload[lat_idx::total_channels]
+        else:
+            loc_m.latitude_samples.values[:] = [float("nan") * total_samples]
+
+        lng_idx: Optional[int] = reader_utils.extract_uneven_payload_idx_raw(packet, api_900.ChannelType.LONGITUDE)
+        loc_m.longitude_samples.unit = api_m.RedvoxPacketM.Unit.DECIMAL_DEGREES
+        if lng_idx is not None:
+            loc_m.longitude_samples.values[:] = loc_payload[lng_idx::total_channels]
+        else:
+            loc_m.longitude_samples.values[:] = [float("nan") * total_samples]
+
+        alt_idx: Optional[int] = reader_utils.extract_uneven_payload_idx_raw(packet, api_900.ChannelType.ALTITUDE)
+        loc_m.altitude_samples.unit = api_m.RedvoxPacketM.Unit.METERS
+        if alt_idx is not None:
+            loc_m.altitude_samples.values[:] = loc_payload[alt_idx::total_channels]
+        else:
+            loc_m.altitude_samples.values[:] = [float("nan") * total_samples]
+
+        speed_idx: Optional[int] = reader_utils.extract_uneven_payload_idx_raw(packet, api_900.ChannelType.SPEED)
+        loc_m.speed_samples.unit = api_m.RedvoxPacketM.Unit.METERS_PER_SECOND
+        if speed_idx is not None:
+            loc_m.speed_samples.values[:] = loc_payload[speed_idx::total_channels]
+        else:
+            loc_m.speed_samples.values[:] = [float("nan") * total_samples]
+
+        acc_idx: Optional[int] = reader_utils.extract_uneven_payload_idx_raw(packet, api_900.ChannelType.ACCURACY)
+        loc_m.horizontal_accuracy_samples.unit = api_m.RedvoxPacketM.Unit.METERS
+        if acc_idx is not None:
+            loc_m.horizontal_accuracy_samples.values[:] = loc_payload[acc_idx::total_channels]
+        else:
+            loc_m.horizontal_accuracy_samples.values[:] = [float("nan") * total_samples]
+
+        loc_m.bearing_samples.unit = api_m.RedvoxPacketM.Unit.DECIMAL_DEGREES
+        loc_m.bearing_samples.values[:] = [float("nan") * total_samples]
+
+        loc_m.vertical_accuracy_samples.unit = api_m.RedvoxPacketM.Unit.METERS
+        loc_m.vertical_accuracy_samples.values[:] = [float("nan") * total_samples]
+        loc_m.speed_accuracy_samples.unit = api_m.RedvoxPacketM.Unit.METERS_PER_SECOND
+        loc_m.speed_accuracy_samples.values[:] = [float("nan") * total_samples]
+        loc_m.bearing_accuracy_samples.unit = api_m.RedvoxPacketM.Unit.DECIMAL_DEGREES
+        loc_m.bearing_accuracy_samples.values[:] = [float("nan") * total_samples]
+
+        # Compute states
+
+        # Bookkeeping
+
+
+
+            # # TODO: rework
     # location_sensor_900: Optional[
     #     reader_900.LocationSensor
     # ] = packet.location_sensor()

@@ -42,9 +42,13 @@ def lz4_decompress(buf: bytes) -> bytes:
     uncompressed_size = calculate_uncompressed_size(buf)
 
     if uncompressed_size <= 0:
-        raise exceptions.ReaderException("uncompressed size [{}] must be > 0".format(uncompressed_size))
+        raise exceptions.ReaderException(
+            "uncompressed size [{}] must be > 0".format(uncompressed_size)
+        )
 
-    return lz4.block.decompress(buf[4:], uncompressed_size=calculate_uncompressed_size(buf))
+    return lz4.block.decompress(
+        buf[4:], uncompressed_size=calculate_uncompressed_size(buf)
+    )
 
 
 # noinspection PyArgumentList
@@ -90,8 +94,11 @@ def from_json(redvox_packet_json: str) -> api900_pb2.RedvoxPacket:
     return json_format.Parse(redvox_packet_json, api900_pb2.RedvoxPacket())
 
 
-def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                       api900_pb2.UnevenlySampledChannel]) -> str:
+def payload_type(
+    channel: typing.Union[
+        api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel
+    ]
+) -> str:
     """
     Given a channel, return the internal protobuf string representation of the payload's data type.
     :param channel: The channel to check the data type of.
@@ -103,8 +110,11 @@ def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     return channel.WhichOneof("payload")
 
 
-def payload_len(channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                      api900_pb2.UnevenlySampledChannel]) -> int:
+def payload_len(
+    channel: typing.Union[
+        api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel
+    ]
+) -> int:
     """
     Given an evenly or unevenly sampled channel, extracts the entire payload.
 
@@ -135,8 +145,11 @@ def payload_len(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     return payload
 
 
-def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                          api900_pb2.UnevenlySampledChannel]) -> numpy.ndarray:
+def extract_payload(
+    channel: typing.Union[
+        api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel
+    ]
+) -> numpy.ndarray:
     """
     Given an evenly or unevenly sampled channel, extracts the length of the payload.
 
@@ -167,18 +180,26 @@ def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     return numpy.array(payload)
 
 
-def repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
-                                            containers.RepeatedScalarFieldContainer]) -> typing.List:
+def repeated_to_list(
+    repeated: typing.Union[
+        containers.RepeatedCompositeFieldContainer,
+        containers.RepeatedScalarFieldContainer,
+    ]
+) -> typing.List:
     """
     Transforms a repeated protobuf field into a list.
     :param repeated: The repeated field to transform.
     :return: A list of the repeated items.
     """
-    return repeated[0:len(repeated)]
+    return repeated[0 : len(repeated)]
 
 
-def repeated_to_array(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
-                                             containers.RepeatedScalarFieldContainer]) -> numpy.ndarray:
+def repeated_to_array(
+    repeated: typing.Union[
+        containers.RepeatedCompositeFieldContainer,
+        containers.RepeatedScalarFieldContainer,
+    ]
+) -> numpy.ndarray:
     """
     Transforms a repeated protobuf field into a numpy array.
     :param repeated: The repeated field to transform.
@@ -212,16 +233,24 @@ def deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -> numpy.
     """
 
     if offset < 0 or offset >= len(ndarray):
-        raise exceptions.ReaderException("offset {} out of range [{},{})".format(offset, 0, len(ndarray)))
+        raise exceptions.ReaderException(
+            "offset {} out of range [{},{})".format(offset, 0, len(ndarray))
+        )
 
     if offset >= step:
-        raise exceptions.ReaderException("offset {} must be smaller than step {}".format(offset, step))
+        raise exceptions.ReaderException(
+            "offset {} must be smaller than step {}".format(offset, step)
+        )
 
     if step <= 0 or step > len(ndarray):
-        raise exceptions.ReaderException("step {} out of range [{},{})".format(step, 0, len(ndarray)))
+        raise exceptions.ReaderException(
+            "step {} out of range [{},{})".format(step, 0, len(ndarray))
+        )
 
     if len(ndarray) % step != 0:
-        raise exceptions.ReaderException("step {} is not a multiple of {}".format(step, len(ndarray)))
+        raise exceptions.ReaderException(
+            "step {} is not a multiple of {}".format(step, len(ndarray))
+        )
 
     # pylint: disable=C1801
     if len(ndarray) == 0:
@@ -248,7 +277,9 @@ def interleave_arrays(arrays: typing.List[numpy.ndarray]) -> numpy.ndarray:
     :return: Interleaved arrays.
     """
     if len(arrays) < 2:
-        raise exceptions.ReaderException("At least 2 arrays are required for interleaving")
+        raise exceptions.ReaderException(
+            "At least 2 arrays are required for interleaving"
+        )
 
     if len(set(map(len, arrays))) > 1:
         raise exceptions.ReaderException("all arrays must be same size")
@@ -361,7 +392,9 @@ def get_metadata(metadata: typing.List[str], k: str) -> str:
     :return: The value corresponding to the key or an empty string.
     """
     if len(metadata) % 2 != 0:
-        raise exceptions.ReaderException("metadata list must contain an even number of items")
+        raise exceptions.ReaderException(
+            "metadata list must contain an even number of items"
+        )
 
     idx = safe_index_of(metadata, k)
     if idx < 0:
@@ -369,9 +402,31 @@ def get_metadata(metadata: typing.List[str], k: str) -> str:
 
     return metadata[idx + 1]
 
+def extract_uneven_payload_idx_raw(
+        packet: api900_pb2.RedvoxPacket, channel_type
+) -> typing.Optional[int]:
+    channel: api900_pb2.UnevenlySampledChannel
+    for channel in packet.unevenly_sampled_channels:
+        for (i, local_type) in enumerate(channel.channel_types):
+            if local_type == channel_type:
+                return i
 
-def find_uneven_channel_raw(packet: api900_pb2.RedvoxPacket,
-                            channel_types):
+    return None
+
+def extract_uneven_payload_raw(
+    packet: api900_pb2.RedvoxPacket, channel_type
+) -> typing.Optional[typing.List[float]]:
+    channel: api900_pb2.UnevenlySampledChannel
+    for channel in packet.unevenly_sampled_channels:
+        for (i, local_type) in enumerate(channel.channel_types):
+            if local_type == channel_type:
+                total_channels: int = len(channel.channel_types)
+                return list(extract_payload(channel))[i::total_channels]
+
+    return None
+
+
+def find_uneven_channel_raw(packet: api900_pb2.RedvoxPacket, channel_types):
     channel: api900_pb2.UnevenlySampledChannel
     for channel in packet.unevenly_sampled_channels:
         for local_type in channel.channel_types:
@@ -383,10 +438,12 @@ def find_uneven_channel_raw(packet: api900_pb2.RedvoxPacket,
 T = typing.TypeVar("T")
 
 
-def get_metadata_raw(metadata: typing.List[str],
-                     k: str,
-                     and_then: typing.Optional[typing.Callable[[str], T]] = None,
-                     or_default: typing.Optional[typing.Union[str, T]] = None) -> typing.Optional[typing.Union[str, T]]:
+def get_metadata_raw(
+    metadata: typing.List[str],
+    k: str,
+    and_then: typing.Optional[typing.Callable[[str], T]] = None,
+    or_default: typing.Optional[typing.Union[str, T]] = None,
+) -> typing.Optional[typing.Union[str, T]]:
     """
     Given a meta-data key, extract the value.
     :param metadata: List of metadata to extract value from.
@@ -414,7 +471,9 @@ def get_metadata_as_dict(metadata: typing.List[str]) -> typing.Dict[str, str]:
         return {}
 
     if len(metadata) % 2 != 0:
-        raise exceptions.ReaderException("metadata list must contain an even number of items")
+        raise exceptions.ReaderException(
+            "metadata list must contain an even number of items"
+        )
 
     metadata_dict = {}
     metadata_copy = metadata.copy()
