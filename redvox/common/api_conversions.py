@@ -60,6 +60,7 @@ def _migrate_synch_exchanges_900_to_1000_raw(
         exchange.b1 = float(synch_exchanges[i + 3])
         exchange.b2 = float(synch_exchanges[i + 4])
         exchange.b3 = float(synch_exchanges[i + 5])
+        exchange.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
 
         exchanges.append(exchange)
 
@@ -178,6 +179,29 @@ def _migrate_os_type_1000_to_900(os: OsType) -> str:
         return os.name
 
 
+def compute_stats_raw(has_stats: Union[
+    api_m.RedvoxPacketM.TimingPayload, api_m.RedvoxPacketM.SamplePayload, api_m.RedvoxPacketM.DoubleSamplePayload]):
+    values: np.ndarray
+    stats_container: api_m.RedvoxPacketM.SummaryStatistics
+    if isinstance(has_stats, api_m.RedvoxPacketM.TimingPayload):
+        values = np.array(has_stats.timestamps)
+        stats_container = has_stats.timestamp_statistics
+        mean_sr: float
+        std_sr: float
+        (mean_sr, std_sr) = common_m.sampling_rate_statistics(values)
+        has_stats.mean_sample_rate = mean_sr
+        has_stats.stdev_sample_rate = std_sr
+    else:
+        values = np.array(has_stats.values)
+        stats_container = has_stats.value_statistics
+
+    stats_container.count = len(values)
+    stats_container.min = values.min()
+    stats_container.max = values.max()
+    stats_container.mean = values.mean()
+    stats_container.standard_deviation = values.std()
+
+
 def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPacketM:
     """
     Converts a wrapped API 900 packet into a wrapped API M packet.
@@ -208,9 +232,15 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     # API 900 does not maintain a copy of its settings. So we will not set anything in AppSettings
 
     # StationMetrics - We know a couple.
+    packet_m.station_information.station_metrics.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
     packet_m.station_information.station_metrics.timestamps.timestamps[:] = [packet.app_file_start_timestamp_machine]
+    packet_m.station_information.station_metrics.temperature.unit = api_m.RedvoxPacketM.Unit.DEGREES_CELSIUS
     packet_m.station_information.station_metrics.temperature.values[:] = [packet.device_temperature_c]
+    packet_m.station_information.station_metrics.battery.unit = api_m.RedvoxPacketM.Unit.PERCENTAGE
     packet_m.station_information.station_metrics.battery.values[:] = [packet.battery_level_percent]
+    compute_stats_raw(packet_m.station_information.station_metrics.timestamps)
+    compute_stats_raw(packet_m.station_information.station_metrics.temperature)
+    compute_stats_raw(packet_m.station_information.station_metrics.battery)
 
     # Timing information
     mach_time_900: int = packet.app_file_start_timestamp_machine
@@ -229,9 +259,11 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     packet_m.timing_information.best_latency = best_latency
     packet_m.timing_information.best_offset = best_offset
 
-    synch_sensor: api_900.UnevenlySampledChannel = reader_utils.find_uneven_channel_raw(packet, {api_900.ChannelType.TIME_SYNCHRONIZATION})
-    synch_payload = reader_utils.extract_payload(synch_sensor)
-    packet_m.timing_information.synch_exchanges[:] = _migrate_synch_exchanges_900_to_1000_raw(synch_payload)
+    synch_sensor: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet, {
+        api_900.ChannelType.TIME_SYNCHRONIZATION})
+    if synch_sensor is not None:
+        synch_payload: np.ndarray = reader_utils.extract_payload(synch_sensor)
+        packet_m.timing_information.synch_exchanges[:] = _migrate_synch_exchanges_900_to_1000_raw(synch_payload)
 
     # Sensors
     # Microphone / Audio
@@ -247,9 +279,11 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     for i in range(0, len(audio_900.metadata), 2):
         v: str = audio_900.metadata[i + 1] if (i + 1) < len(audio_900.metadata) else ""
         packet_m.sensors.audio.metadata[audio_900.metadata[i]] = v
+    compute_stats_raw(packet_m.sensors.audio.samples)
 
     # Pressure
-    barometer_900: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet, api_900.ChannelType.BAROMETER)
+    barometer_900: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet,
+                                                                                                   api_900.ChannelType.BAROMETER)
     if barometer_900 is not None:
         packet_m.sensors.pressure.sensor_description = barometer_900.sensor_name
         packet_m.sensors.pressure.timestamps[:] = barometer_900.timestamps_microseconds_utc
@@ -433,7 +467,6 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     # )
     #
     # return packet_m
-
 
 
 # noinspection DuplicatedCode
