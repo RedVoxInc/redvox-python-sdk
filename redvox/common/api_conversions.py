@@ -286,12 +286,15 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
                                                                                                    api_900.ChannelType.BAROMETER)
     if barometer_900 is not None:
         packet_m.sensors.pressure.sensor_description = barometer_900.sensor_name
-        packet_m.sensors.pressure.timestamps[:] = barometer_900.timestamps_microseconds_utc
+        packet_m.sensors.pressure.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        packet_m.sensors.pressure.timestamps.timestamps[:] = barometer_900.timestamps_microseconds_utc
         packet_m.sensors.pressure.samples.values[:] = list(reader_utils.extract_payload(barometer_900))
         packet_m.sensors.pressure.samples.unit = api_m.RedvoxPacketM.Unit.KILOPASCAL
         for i in range(0, len(barometer_900.metadata), 2):
-            v: str = barometer_900.metadata[i + 1] if (i + 1) < len(barometer_900.metadata) else ""
+            v = barometer_900.metadata[i + 1] if (i + 1) < len(barometer_900.metadata) else ""
             packet_m.sensors.audio.metadata[barometer_900.metadata[i]] = v
+        compute_stats_raw(packet_m.sensors.pressure.timestamps)
+        compute_stats_raw(packet_m.sensors.pressure.samples)
 
     # # Location
     # # TODO: rework
@@ -375,59 +378,75 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     #
     # # Time Synchronization
     # # This was already added to the timing information
+
+    # Accelerometer
+    accel_900: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet, {api_900.ChannelType.ACCELEROMETER_X, api_900.ChannelType.ACCELEROMETER_Y, api_900.ChannelType.ACCELEROMETER_Z})
+    if accel_900 is not None:
+        packet_m.sensors.accelerometer.sensor_description = accel_900.sensor_name
+        packet_m.sensors.accelerometer.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        packet_m.sensors.accelerometer.timestamps.timestamps[:] = accel_900.timestamps_microseconds_utc
+        accel_payload: List[float] = list(reader_utils.extract_payload(accel_900))
+        packet_m.sensors.accelerometer.x_samples.unit = api_m.RedvoxPacketM.Unit.METERS_PER_SECOND_SQUARED
+        packet_m.sensors.accelerometer.x_samples.values[:] = accel_payload[0::3]
+        packet_m.sensors.accelerometer.y_samples.unit = api_m.RedvoxPacketM.Unit.METERS_PER_SECOND_SQUARED
+        packet_m.sensors.accelerometer.y_samples.values[:] = accel_payload[1::3]
+        packet_m.sensors.accelerometer.z_samples.unit = api_m.RedvoxPacketM.Unit.METERS_PER_SECOND_SQUARED
+        packet_m.sensors.accelerometer.z_samples.values[:] = accel_payload[2::3]
+        compute_stats_raw(packet_m.sensors.accelerometer.timestamps)
+        compute_stats_raw(packet_m.sensors.accelerometer.x_samples)
+        compute_stats_raw(packet_m.sensors.accelerometer.y_samples)
+        compute_stats_raw(packet_m.sensors.accelerometer.z_samples)
+
+    # Magnetometer
+    sensor: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(
+        packet,
+        {
+            api_900.ChannelType.MAGNETOMETER_X,
+            api_900.ChannelType.MAGNETOMETER_Y,
+            api_900.ChannelType.MAGNETOMETER_Z
+        }
+    )
+    if sensor is not None:
+        packet_m.sensors.magnetometer.sensor_description = sensor.sensor_name
+        packet_m.sensors.magnetometer.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        packet_m.sensors.magnetometer.timestamps.timestamps[:] = sensor.timestamps_microseconds_utc
+        sensor_payload: List[float] = list(reader_utils.extract_payload(sensor))
+        packet_m.sensors.magnetometer.x_samples.unit = api_m.RedvoxPacketM.Unit.MICROTESLA
+        packet_m.sensors.magnetometer.x_samples.values[:] = sensor_payload[0::3]
+        packet_m.sensors.magnetometer.y_samples.unit = api_m.RedvoxPacketM.Unit.MICROTESLA
+        packet_m.sensors.magnetometer.y_samples.values[:] = sensor_payload[1::3]
+        packet_m.sensors.magnetometer.z_samples.unit = api_m.RedvoxPacketM.Unit.MICROTESLA
+        packet_m.sensors.magnetometer.z_samples.values[:] = sensor_payload[2::3]
+        compute_stats_raw(packet_m.sensors.magnetometer.timestamps)
+        compute_stats_raw(packet_m.sensors.magnetometer.x_samples)
+        compute_stats_raw(packet_m.sensors.magnetometer.y_samples)
+        compute_stats_raw(packet_m.sensors.magnetometer.z_samples)
     #
-    # # Accelerometer
-    # accelerometer_900 = packet.accelerometer_sensor()
-    # if accelerometer_900 is not None:
-    #     accelerometer_m = sensors_m.new_accelerometer()
-    #     accelerometer_m.set_sensor_description(accelerometer_900.sensor_name())
-    #     accelerometer_m.get_timestamps().set_timestamps(
-    #         accelerometer_900.timestamps_microseconds_utc(), True
-    #     )
-    #     accelerometer_m.get_x_samples().set_values(
-    #         accelerometer_900.payload_values_x(), True
-    #     )
-    #     accelerometer_m.get_y_samples().set_values(
-    #         accelerometer_900.payload_values_y(), True
-    #     )
-    #     accelerometer_m.get_z_samples().set_values(
-    #         accelerometer_900.payload_values_z(), True
-    #     )
-    #     accelerometer_m.get_metadata().set_metadata(
-    #         accelerometer_900.metadata_as_dict()
-    #     )
-    #
-    # # Magnetometer
-    # magnetometer_900 = packet.magnetometer_sensor()
-    # if magnetometer_900 is not None:
-    #     magnetometer_m = sensors_m.new_magnetometer()
-    #     magnetometer_m.set_sensor_description(magnetometer_900.sensor_name())
-    #     magnetometer_m.get_timestamps().set_timestamps(
-    #         magnetometer_900.timestamps_microseconds_utc(), True
-    #     )
-    #     magnetometer_m.get_x_samples().set_values(
-    #         magnetometer_900.payload_values_x(), True
-    #     )
-    #     magnetometer_m.get_y_samples().set_values(
-    #         magnetometer_900.payload_values_y(), True
-    #     )
-    #     magnetometer_m.get_z_samples().set_values(
-    #         magnetometer_900.payload_values_z(), True
-    #     )
-    #     magnetometer_m.get_metadata().set_metadata(magnetometer_900.metadata_as_dict())
-    #
-    # # Gyroscope
-    # gyroscope_900 = packet.gyroscope_sensor()
-    # if gyroscope_900 is not None:
-    #     gyroscope_m = sensors_m.new_gyroscope()
-    #     gyroscope_m.set_sensor_description(gyroscope_900.sensor_name())
-    #     gyroscope_m.get_timestamps().set_timestamps(
-    #         gyroscope_900.timestamps_microseconds_utc(), True
-    #     )
-    #     gyroscope_m.get_x_samples().set_values(gyroscope_900.payload_values_x(), True)
-    #     gyroscope_m.get_y_samples().set_values(gyroscope_900.payload_values_y(), True)
-    #     gyroscope_m.get_z_samples().set_values(gyroscope_900.payload_values_z(), True)
-    #     gyroscope_m.get_metadata().set_metadata(gyroscope_900.metadata_as_dict())
+    # Gyroscope
+    sensor = reader_utils.find_uneven_channel_raw(
+        packet,
+        {
+            api_900.ChannelType.GYROSCOPE_X,
+            api_900.ChannelType.GYROSCOPE_Y,
+            api_900.ChannelType.GYROSCOPE_Z
+        }
+    )
+    if sensor is not None:
+        packet_m.sensors.gyroscope.sensor_description = sensor.sensor_name
+        packet_m.sensors.gyroscope.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        packet_m.sensors.gyroscope.timestamps.timestamps[:] = sensor.timestamps_microseconds_utc
+        sensor_payload = list(reader_utils.extract_payload(sensor))
+        packet_m.sensors.gyroscope.x_samples.unit = api_m.RedvoxPacketM.Unit.RADIANS_PER_SECOND
+        packet_m.sensors.gyroscope.x_samples.values[:] = sensor_payload[0::3]
+        packet_m.sensors.gyroscope.y_samples.unit = api_m.RedvoxPacketM.Unit.RADIANS_PER_SECOND
+        packet_m.sensors.gyroscope.y_samples.values[:] = sensor_payload[1::3]
+        packet_m.sensors.gyroscope.z_samples.unit = api_m.RedvoxPacketM.Unit.RADIANS_PER_SECOND
+        packet_m.sensors.gyroscope.z_samples.values[:] = sensor_payload[2::3]
+        compute_stats_raw(packet_m.sensors.gyroscope.timestamps)
+        compute_stats_raw(packet_m.sensors.gyroscope.x_samples)
+        compute_stats_raw(packet_m.sensors.gyroscope.y_samples)
+        compute_stats_raw(packet_m.sensors.gyroscope.z_samples)
+
     #
     # # Light
     # light_900 = packet.light_sensor()
