@@ -371,7 +371,7 @@ def get_metadata(metadata: typing.List[str], k: str) -> str:
 
 
 def find_uneven_channel_raw(packet: api900_pb2.RedvoxPacket,
-                            channel_types: typing.Set[api900_pb2.ChannelType]) -> typing.Optional[api900_pb2.UnevenlySampledChannel]:
+                            channel_types):
     channel: api900_pb2.UnevenlySampledChannel
     for channel in packet.unevenly_sampled_channels:
         for local_type in channel.channel_types:

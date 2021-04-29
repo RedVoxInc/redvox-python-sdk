@@ -213,7 +213,7 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     # Top-level metadata
     packet_m.api = 1000.0
     # noinspection PyUnresolvedReferences,Mypy
-    packet_m.sub_api = redvox_api_m_pb2.SUB_API
+    packet_m.sub_api = api_m.SUB_API
 
     # Station information
     packet_m.station_information.id = packet.redvox_id
@@ -483,7 +483,7 @@ def convert_api_900_to_1000(
     # Top-level metadata
     wrapped_packet_m.set_api(1000.0)
     # noinspection PyUnresolvedReferences,Mypy
-    wrapped_packet_m.set_sub_api(redvox_api_m_pb2.SUB_API)
+    wrapped_packet_m.set_sub_api(api_m.SUB_API)
 
     # Station information
     station_information: StationInformation = wrapped_packet_m.get_station_information()
