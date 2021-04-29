@@ -449,43 +449,40 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
 
     #
     # # Light
-    # light_900 = packet.light_sensor()
-    # if light_900 is not None:
-    #     light_m = sensors_m.new_light()
-    #     light_m.set_sensor_description(light_900.sensor_name())
-    #     light_m.get_timestamps().set_timestamps(
-    #         light_900.timestamps_microseconds_utc(), True
-    #     )
-    #     light_m.get_samples().set_values(light_900.payload_values(), True)
-    #     light_m.get_metadata().set_metadata(light_900.metadata_as_dict())
-    #
+    light_900: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet,
+                                                                                                   api_900.ChannelType.LIGHT)
+    if light_900 is not None:
+        packet_m.sensors.light.sensor_description = light_900.sensor_name
+        packet_m.sensors.light.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        packet_m.sensors.light.timestamps.timestamps[:] = light_900.timestamps_microseconds_utc
+        packet_m.sensors.light.samples.values[:] = list(reader_utils.extract_payload(light_900))
+        packet_m.sensors.light.samples.unit = api_m.RedvoxPacketM.Unit.LUX
+        for i in range(0, len(light_900.metadata), 2):
+            v = light_900.metadata[i + 1] if (i + 1) < len(light_900.metadata) else ""
+            packet_m.sensors.light.metadata[light_900.metadata[i]] = v
+        compute_stats_raw(packet_m.sensors.light.timestamps)
+        compute_stats_raw(packet_m.sensors.light.samples)
+
     # # Image
-    # # TODO: Implement
-    #
+    # Not implemented for conversion. Only a very small fraction of API 900 was ever image capable, and not the public
+    # app.
+    
     # # Proximity
-    # proximity_900 = packet.infrared_sensor()
-    # if proximity_900 is not None:
-    #     proximity_m = sensors_m.new_proximity()
-    #     proximity_m.set_sensor_description(proximity_900.sensor_name())
-    #     proximity_m.get_timestamps().set_timestamps(
-    #         proximity_900.timestamps_microseconds_utc(), True
-    #     )
-    #     proximity_m.get_samples().set_values(proximity_900.payload_values(), True)
-    #     proximity_m.get_metadata().set_metadata(proximity_900.metadata_as_dict())
-    #
-    # # Removed any other API 900 top-level metadata now that its been used
-    # meta = packet.metadata_as_dict()
-    # if "machTimeZero" in meta:
-    #     del meta["machTimeZero"]
-    # if "bestOffset" in meta:
-    #     del meta["bestOffset"]
-    # if "bestLatency" in meta:
-    #     del meta["bestLatency"]
-    # packet_m.get_metadata().append_metadata(
-    #     "migrated_from_api_900", f"v{redvox.VERSION}"
-    # )
-    #
-    # return packet_m
+    proximity_900: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet,
+                                                                                               api_900.ChannelType.INFRARED)
+    if proximity_900 is not None:
+        packet_m.sensors.proximity.sensor_description = proximity_900.sensor_name
+        packet_m.sensors.proximity.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        packet_m.sensors.proximity.timestamps.timestamps[:] = proximity_900.timestamps_microseconds_utc
+        packet_m.sensors.proximity.samples.values[:] = list(reader_utils.extract_payload(proximity_900))
+        packet_m.sensors.proximity.samples.unit = api_m.RedvoxPacketM.Unit.CENTIMETERS
+        for i in range(0, len(proximity_900.metadata), 2):
+            v = proximity_900.metadata[i + 1] if (i + 1) < len(proximity_900.metadata) else ""
+            packet_m.sensors.proximity.metadata[proximity_900.metadata[i]] = v
+        compute_stats_raw(packet_m.sensors.proximity.timestamps)
+        compute_stats_raw(packet_m.sensors.proximity.samples)
+
+    return packet_m
 
 
 # noinspection DuplicatedCode
