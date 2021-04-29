@@ -10,8 +10,7 @@ Provides functionality for converting between API versions.
 # TODO: Rework location sensor conversions
 # TODO: Add functions for converting compressed audio... in fact, this might make the most sent from converting API 900
 # TODO:   into API M data since FLAC requires integers
-import typing
-from typing import Callable, Set, List, Optional, Dict, Union
+from typing import List, Optional, Dict, Union
 
 import numpy as np
 
@@ -46,7 +45,7 @@ def _denormalize_audio_count(norm: float) -> int:
 
 
 def _migrate_synch_exchanges_900_to_1000_raw(
-        synch_exchanges: np.ndarray,
+    synch_exchanges: np.ndarray,
 ) -> List[api_m.RedvoxPacketM.TimingInformation.SynchExchange]:
     exchanges: List[api_m.RedvoxPacketM.TimingInformation.SynchExchange] = []
 
@@ -68,7 +67,7 @@ def _migrate_synch_exchanges_900_to_1000_raw(
 
 
 def _migrate_synch_exchanges_900_to_1000(
-        synch_exchanges: np.ndarray,
+    synch_exchanges: np.ndarray,
 ) -> List[SynchExchange]:
     exchanges: List[SynchExchange] = []
 
@@ -92,12 +91,17 @@ def _find_mach_time_zero_raw(packet: api_900.RedvoxPacket) -> int:
     key: str = "machTimeZero"
     mtz: Optional[int] = reader_utils.get_metadata_raw(packet.metadata, key, int)
     if mtz is None:
-        location_sensor: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet, {
-            api_900.ChannelType.LATITUDE,
-            api_900.ChannelType.LONGITUDE,
-            api_900.ChannelType.ALTITUDE,
-            api_900.ChannelType.SPEED
-        })
+        location_sensor: Optional[
+            api_900.UnevenlySampledChannel
+        ] = reader_utils.find_uneven_channel_raw(
+            packet,
+            {
+                api_900.ChannelType.LATITUDE,
+                api_900.ChannelType.LONGITUDE,
+                api_900.ChannelType.ALTITUDE,
+                api_900.ChannelType.SPEED,
+            },
+        )
         if location_sensor is not None:
             mtz = reader_utils.get_metadata_raw(location_sensor.metadata, key, int)
             if mtz is not None:
@@ -157,7 +161,9 @@ def _migrate_os_type_900_to_1000(os: str) -> OsType:
     return OsType.UNKNOWN_OS
 
 
-def _migrate_os_type_900_to_1000_raw(os: str) -> api_m.RedvoxPacketM.StationInformation.OsType:
+def _migrate_os_type_900_to_1000_raw(
+    os: str,
+) -> api_m.RedvoxPacketM.StationInformation.OsType:
     os_lower: str = os.lower()
     if os_lower == "android":
         return api_m.RedvoxPacketM.StationInformation.OsType.ANDROID
@@ -179,8 +185,13 @@ def _migrate_os_type_1000_to_900(os: OsType) -> str:
         return os.name
 
 
-def compute_stats_raw(has_stats: Union[
-    api_m.RedvoxPacketM.TimingPayload, api_m.RedvoxPacketM.SamplePayload, api_m.RedvoxPacketM.DoubleSamplePayload]):
+def compute_stats_raw(
+    has_stats: Union[
+        api_m.RedvoxPacketM.TimingPayload,
+        api_m.RedvoxPacketM.SamplePayload,
+        api_m.RedvoxPacketM.DoubleSamplePayload,
+    ]
+):
     values: np.ndarray
     stats_container: api_m.RedvoxPacketM.SummaryStatistics
     if isinstance(has_stats, api_m.RedvoxPacketM.TimingPayload):
@@ -225,19 +236,35 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     packet_m.station_information.app_version = packet.app_version
     packet_m.station_information.is_private = packet.is_private
 
-    packet_m.station_information.service_urls.acquisition_server = packet.acquisition_server
-    packet_m.station_information.service_urls.synch_server = packet.time_synchronization_server
+    packet_m.station_information.service_urls.acquisition_server = (
+        packet.acquisition_server
+    )
+    packet_m.station_information.service_urls.synch_server = (
+        packet.time_synchronization_server
+    )
     packet_m.station_information.service_urls.auth_server = packet.authentication_server
 
     # API 900 does not maintain a copy of its settings. So we will not set anything in AppSettings
 
     # StationMetrics - We know a couple.
-    packet_m.station_information.station_metrics.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
-    packet_m.station_information.station_metrics.timestamps.timestamps[:] = [packet.app_file_start_timestamp_machine]
-    packet_m.station_information.station_metrics.temperature.unit = api_m.RedvoxPacketM.Unit.DEGREES_CELSIUS
-    packet_m.station_information.station_metrics.temperature.values[:] = [packet.device_temperature_c]
-    packet_m.station_information.station_metrics.battery.unit = api_m.RedvoxPacketM.Unit.PERCENTAGE
-    packet_m.station_information.station_metrics.battery.values[:] = [packet.battery_level_percent]
+    packet_m.station_information.station_metrics.timestamps.unit = (
+        api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+    )
+    packet_m.station_information.station_metrics.timestamps.timestamps[:] = [
+        packet.app_file_start_timestamp_machine
+    ]
+    packet_m.station_information.station_metrics.temperature.unit = (
+        api_m.RedvoxPacketM.Unit.DEGREES_CELSIUS
+    )
+    packet_m.station_information.station_metrics.temperature.values[:] = [
+        packet.device_temperature_c
+    ]
+    packet_m.station_information.station_metrics.battery.unit = (
+        api_m.RedvoxPacketM.Unit.PERCENTAGE
+    )
+    packet_m.station_information.station_metrics.battery.values[:] = [
+        packet.battery_level_percent
+    ]
     compute_stats_raw(packet_m.station_information.station_metrics.timestamps)
     compute_stats_raw(packet_m.station_information.station_metrics.temperature)
     compute_stats_raw(packet_m.station_information.station_metrics.battery)
@@ -246,34 +273,53 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     mach_time_900: int = packet.app_file_start_timestamp_machine
     os_time_900: int = packet.app_file_start_timestamp_epoch_microseconds_utc
     len_micros: int = _packet_length_microseconds_900_raw(packet)
-    best_latency: float = reader_utils.get_metadata_raw(packet.metadata, "bestLatency", float, NAN)
-    best_offset: float = reader_utils.get_metadata_raw(packet.metadata, "bestOffset", float, NAN)
+    best_latency: float = reader_utils.get_metadata_raw(
+        packet.metadata, "bestLatency", float, NAN
+    )
+    best_offset: float = reader_utils.get_metadata_raw(
+        packet.metadata, "bestOffset", float, NAN
+    )
 
-    packet_m.timing_information.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+    packet_m.timing_information.unit = (
+        api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+    )
     packet_m.timing_information.packet_start_mach_timestamp = mach_time_900
     packet_m.timing_information.packet_start_os_timestamp = os_time_900
     packet_m.timing_information.packet_end_mach_timestamp = mach_time_900 + len_micros
-    packet_m.timing_information.server_acquisition_arrival_timestamp = packet.server_timestamp_epoch_microseconds_utc
+    packet_m.timing_information.server_acquisition_arrival_timestamp = (
+        packet.server_timestamp_epoch_microseconds_utc
+    )
     packet_m.timing_information.packet_end_os_timestamp = os_time_900 + len_micros
-    packet_m.timing_information.app_start_mach_timestamp = _find_mach_time_zero_raw(packet)
+    packet_m.timing_information.app_start_mach_timestamp = _find_mach_time_zero_raw(
+        packet
+    )
     packet_m.timing_information.best_latency = best_latency
     packet_m.timing_information.best_offset = best_offset
 
-    synch_sensor: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet, {
-        api_900.ChannelType.TIME_SYNCHRONIZATION})
+    synch_sensor: Optional[
+        api_900.UnevenlySampledChannel
+    ] = reader_utils.find_uneven_channel_raw(
+        packet, {api_900.ChannelType.TIME_SYNCHRONIZATION}
+    )
     if synch_sensor is not None:
         synch_payload: np.ndarray = reader_utils.extract_payload(synch_sensor)
-        packet_m.timing_information.synch_exchanges[:] = _migrate_synch_exchanges_900_to_1000_raw(synch_payload)
+        packet_m.timing_information.synch_exchanges[
+            :
+        ] = _migrate_synch_exchanges_900_to_1000_raw(synch_payload)
 
     # Sensors
     # Microphone / Audio
     audio_900: api_900.EvenlySampledChannel = packet.evenly_sampled_channels[0]
     packet_m.sensors.audio.sensor_description = audio_900.sensor_name
     packet_m.sensors.audio.sample_rate = audio_900.sample_rate_hz
-    packet_m.sensors.audio.first_sample_timestamp = audio_900.first_sample_timestamp_epoch_microseconds_utc
+    packet_m.sensors.audio.first_sample_timestamp = (
+        audio_900.first_sample_timestamp_epoch_microseconds_utc
+    )
     packet_m.sensors.audio.bits_of_precision = 16.0
     packet_m.sensors.audio.encoding = "counts"
-    normalized_audio: np.ndarray = reader_utils.extract_payload(audio_900) / _NORMALIZATION_CONSTANT
+    normalized_audio: np.ndarray = (
+        reader_utils.extract_payload(audio_900) / _NORMALIZATION_CONSTANT
+    )
     packet_m.sensors.audio.samples.values[:] = list(normalized_audio)
     packet_m.sensors.audio.samples.unit = api_m.RedvoxPacketM.Unit.NORMALIZED_COUNTS
     for i in range(0, len(audio_900.metadata), 2):
@@ -282,17 +328,28 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     compute_stats_raw(packet_m.sensors.audio.samples)
 
     # Pressure
-    barometer_900: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet,
-                                                                                                   api_900.ChannelType.BAROMETER)
+    barometer_900: Optional[
+        api_900.UnevenlySampledChannel
+    ] = reader_utils.find_uneven_channel_raw(packet, api_900.ChannelType.BAROMETER)
     if barometer_900 is not None:
         packet_m.sensors.pressure.sensor_description = barometer_900.sensor_name
-        packet_m.sensors.pressure.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
-        packet_m.sensors.pressure.timestamps.timestamps[:] = barometer_900.timestamps_microseconds_utc
-        packet_m.sensors.pressure.samples.values[:] = list(reader_utils.extract_payload(barometer_900))
+        packet_m.sensors.pressure.timestamps.unit = (
+            api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        )
+        packet_m.sensors.pressure.timestamps.timestamps[
+            :
+        ] = barometer_900.timestamps_microseconds_utc
+        packet_m.sensors.pressure.samples.values[:] = list(
+            reader_utils.extract_payload(barometer_900)
+        )
         packet_m.sensors.pressure.samples.unit = api_m.RedvoxPacketM.Unit.KILOPASCAL
         for i in range(0, len(barometer_900.metadata), 2):
-            v = barometer_900.metadata[i + 1] if (i + 1) < len(barometer_900.metadata) else ""
-            packet_m.sensors.audio.metadata[barometer_900.metadata[i]] = v
+            v = (
+                barometer_900.metadata[i + 1]
+                if (i + 1) < len(barometer_900.metadata)
+                else ""
+            )
+            packet_m.sensors.pressure.metadata[barometer_900.metadata[i]] = v
         compute_stats_raw(packet_m.sensors.pressure.timestamps)
         compute_stats_raw(packet_m.sensors.pressure.samples)
 
@@ -380,17 +437,36 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     # # This was already added to the timing information
 
     # Accelerometer
-    accel_900: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet, {api_900.ChannelType.ACCELEROMETER_X, api_900.ChannelType.ACCELEROMETER_Y, api_900.ChannelType.ACCELEROMETER_Z})
+    accel_900: Optional[
+        api_900.UnevenlySampledChannel
+    ] = reader_utils.find_uneven_channel_raw(
+        packet,
+        {
+            api_900.ChannelType.ACCELEROMETER_X,
+            api_900.ChannelType.ACCELEROMETER_Y,
+            api_900.ChannelType.ACCELEROMETER_Z,
+        },
+    )
     if accel_900 is not None:
         packet_m.sensors.accelerometer.sensor_description = accel_900.sensor_name
-        packet_m.sensors.accelerometer.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
-        packet_m.sensors.accelerometer.timestamps.timestamps[:] = accel_900.timestamps_microseconds_utc
+        packet_m.sensors.accelerometer.timestamps.unit = (
+            api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        )
+        packet_m.sensors.accelerometer.timestamps.timestamps[
+            :
+        ] = accel_900.timestamps_microseconds_utc
         accel_payload: List[float] = list(reader_utils.extract_payload(accel_900))
-        packet_m.sensors.accelerometer.x_samples.unit = api_m.RedvoxPacketM.Unit.METERS_PER_SECOND_SQUARED
+        packet_m.sensors.accelerometer.x_samples.unit = (
+            api_m.RedvoxPacketM.Unit.METERS_PER_SECOND_SQUARED
+        )
         packet_m.sensors.accelerometer.x_samples.values[:] = accel_payload[0::3]
-        packet_m.sensors.accelerometer.y_samples.unit = api_m.RedvoxPacketM.Unit.METERS_PER_SECOND_SQUARED
+        packet_m.sensors.accelerometer.y_samples.unit = (
+            api_m.RedvoxPacketM.Unit.METERS_PER_SECOND_SQUARED
+        )
         packet_m.sensors.accelerometer.y_samples.values[:] = accel_payload[1::3]
-        packet_m.sensors.accelerometer.z_samples.unit = api_m.RedvoxPacketM.Unit.METERS_PER_SECOND_SQUARED
+        packet_m.sensors.accelerometer.z_samples.unit = (
+            api_m.RedvoxPacketM.Unit.METERS_PER_SECOND_SQUARED
+        )
         packet_m.sensors.accelerometer.z_samples.values[:] = accel_payload[2::3]
         compute_stats_raw(packet_m.sensors.accelerometer.timestamps)
         compute_stats_raw(packet_m.sensors.accelerometer.x_samples)
@@ -398,24 +474,36 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
         compute_stats_raw(packet_m.sensors.accelerometer.z_samples)
 
     # Magnetometer
-    sensor: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(
+    sensor: Optional[
+        api_900.UnevenlySampledChannel
+    ] = reader_utils.find_uneven_channel_raw(
         packet,
         {
             api_900.ChannelType.MAGNETOMETER_X,
             api_900.ChannelType.MAGNETOMETER_Y,
-            api_900.ChannelType.MAGNETOMETER_Z
-        }
+            api_900.ChannelType.MAGNETOMETER_Z,
+        },
     )
     if sensor is not None:
         packet_m.sensors.magnetometer.sensor_description = sensor.sensor_name
-        packet_m.sensors.magnetometer.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
-        packet_m.sensors.magnetometer.timestamps.timestamps[:] = sensor.timestamps_microseconds_utc
+        packet_m.sensors.magnetometer.timestamps.unit = (
+            api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        )
+        packet_m.sensors.magnetometer.timestamps.timestamps[
+            :
+        ] = sensor.timestamps_microseconds_utc
         sensor_payload: List[float] = list(reader_utils.extract_payload(sensor))
-        packet_m.sensors.magnetometer.x_samples.unit = api_m.RedvoxPacketM.Unit.MICROTESLA
+        packet_m.sensors.magnetometer.x_samples.unit = (
+            api_m.RedvoxPacketM.Unit.MICROTESLA
+        )
         packet_m.sensors.magnetometer.x_samples.values[:] = sensor_payload[0::3]
-        packet_m.sensors.magnetometer.y_samples.unit = api_m.RedvoxPacketM.Unit.MICROTESLA
+        packet_m.sensors.magnetometer.y_samples.unit = (
+            api_m.RedvoxPacketM.Unit.MICROTESLA
+        )
         packet_m.sensors.magnetometer.y_samples.values[:] = sensor_payload[1::3]
-        packet_m.sensors.magnetometer.z_samples.unit = api_m.RedvoxPacketM.Unit.MICROTESLA
+        packet_m.sensors.magnetometer.z_samples.unit = (
+            api_m.RedvoxPacketM.Unit.MICROTESLA
+        )
         packet_m.sensors.magnetometer.z_samples.values[:] = sensor_payload[2::3]
         compute_stats_raw(packet_m.sensors.magnetometer.timestamps)
         compute_stats_raw(packet_m.sensors.magnetometer.x_samples)
@@ -428,19 +516,29 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
         {
             api_900.ChannelType.GYROSCOPE_X,
             api_900.ChannelType.GYROSCOPE_Y,
-            api_900.ChannelType.GYROSCOPE_Z
-        }
+            api_900.ChannelType.GYROSCOPE_Z,
+        },
     )
     if sensor is not None:
         packet_m.sensors.gyroscope.sensor_description = sensor.sensor_name
-        packet_m.sensors.gyroscope.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
-        packet_m.sensors.gyroscope.timestamps.timestamps[:] = sensor.timestamps_microseconds_utc
+        packet_m.sensors.gyroscope.timestamps.unit = (
+            api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        )
+        packet_m.sensors.gyroscope.timestamps.timestamps[
+            :
+        ] = sensor.timestamps_microseconds_utc
         sensor_payload = list(reader_utils.extract_payload(sensor))
-        packet_m.sensors.gyroscope.x_samples.unit = api_m.RedvoxPacketM.Unit.RADIANS_PER_SECOND
+        packet_m.sensors.gyroscope.x_samples.unit = (
+            api_m.RedvoxPacketM.Unit.RADIANS_PER_SECOND
+        )
         packet_m.sensors.gyroscope.x_samples.values[:] = sensor_payload[0::3]
-        packet_m.sensors.gyroscope.y_samples.unit = api_m.RedvoxPacketM.Unit.RADIANS_PER_SECOND
+        packet_m.sensors.gyroscope.y_samples.unit = (
+            api_m.RedvoxPacketM.Unit.RADIANS_PER_SECOND
+        )
         packet_m.sensors.gyroscope.y_samples.values[:] = sensor_payload[1::3]
-        packet_m.sensors.gyroscope.z_samples.unit = api_m.RedvoxPacketM.Unit.RADIANS_PER_SECOND
+        packet_m.sensors.gyroscope.z_samples.unit = (
+            api_m.RedvoxPacketM.Unit.RADIANS_PER_SECOND
+        )
         packet_m.sensors.gyroscope.z_samples.values[:] = sensor_payload[2::3]
         compute_stats_raw(packet_m.sensors.gyroscope.timestamps)
         compute_stats_raw(packet_m.sensors.gyroscope.x_samples)
@@ -449,13 +547,20 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
 
     #
     # # Light
-    light_900: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet,
-                                                                                                   api_900.ChannelType.LIGHT)
+    light_900: Optional[
+        api_900.UnevenlySampledChannel
+    ] = reader_utils.find_uneven_channel_raw(packet, api_900.ChannelType.LIGHT)
     if light_900 is not None:
         packet_m.sensors.light.sensor_description = light_900.sensor_name
-        packet_m.sensors.light.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
-        packet_m.sensors.light.timestamps.timestamps[:] = light_900.timestamps_microseconds_utc
-        packet_m.sensors.light.samples.values[:] = list(reader_utils.extract_payload(light_900))
+        packet_m.sensors.light.timestamps.unit = (
+            api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        )
+        packet_m.sensors.light.timestamps.timestamps[
+            :
+        ] = light_900.timestamps_microseconds_utc
+        packet_m.sensors.light.samples.values[:] = list(
+            reader_utils.extract_payload(light_900)
+        )
         packet_m.sensors.light.samples.unit = api_m.RedvoxPacketM.Unit.LUX
         for i in range(0, len(light_900.metadata), 2):
             v = light_900.metadata[i + 1] if (i + 1) < len(light_900.metadata) else ""
@@ -466,18 +571,29 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     # # Image
     # Not implemented for conversion. Only a very small fraction of API 900 was ever image capable, and not the public
     # app.
-    
+
     # # Proximity
-    proximity_900: Optional[api_900.UnevenlySampledChannel] = reader_utils.find_uneven_channel_raw(packet,
-                                                                                               api_900.ChannelType.INFRARED)
+    proximity_900: Optional[
+        api_900.UnevenlySampledChannel
+    ] = reader_utils.find_uneven_channel_raw(packet, api_900.ChannelType.INFRARED)
     if proximity_900 is not None:
         packet_m.sensors.proximity.sensor_description = proximity_900.sensor_name
-        packet_m.sensors.proximity.timestamps.unit = api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
-        packet_m.sensors.proximity.timestamps.timestamps[:] = proximity_900.timestamps_microseconds_utc
-        packet_m.sensors.proximity.samples.values[:] = list(reader_utils.extract_payload(proximity_900))
+        packet_m.sensors.proximity.timestamps.unit = (
+            api_m.RedvoxPacketM.Unit.MICROSECONDS_SINCE_UNIX_EPOCH
+        )
+        packet_m.sensors.proximity.timestamps.timestamps[
+            :
+        ] = proximity_900.timestamps_microseconds_utc
+        packet_m.sensors.proximity.samples.values[:] = list(
+            reader_utils.extract_payload(proximity_900)
+        )
         packet_m.sensors.proximity.samples.unit = api_m.RedvoxPacketM.Unit.CENTIMETERS
         for i in range(0, len(proximity_900.metadata), 2):
-            v = proximity_900.metadata[i + 1] if (i + 1) < len(proximity_900.metadata) else ""
+            v = (
+                proximity_900.metadata[i + 1]
+                if (i + 1) < len(proximity_900.metadata)
+                else ""
+            )
             packet_m.sensors.proximity.metadata[proximity_900.metadata[i]] = v
         compute_stats_raw(packet_m.sensors.proximity.timestamps)
         compute_stats_raw(packet_m.sensors.proximity.samples)
@@ -487,7 +603,7 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
 
 # noinspection DuplicatedCode
 def convert_api_900_to_1000(
-        wrapped_packet_900: reader_900.WrappedRedvoxPacket,
+    wrapped_packet_900: reader_900.WrappedRedvoxPacket,
 ) -> WrappedRedvoxPacketM:
     """
     Converts a wrapped API 900 packet into a wrapped API M packet.
@@ -583,7 +699,7 @@ def convert_api_900_to_1000(
     ] = wrapped_packet_900.microphone_sensor()
     if mic_sensor_900 is not None:
         normalized_audio: np.ndarray = (
-                mic_sensor_900.payload_values() / _NORMALIZATION_CONSTANT
+            mic_sensor_900.payload_values() / _NORMALIZATION_CONSTANT
         )
         audio_sensor_m = sensors_m.new_audio()
         audio_sensor_m.set_first_sample_timestamp(
@@ -791,7 +907,7 @@ def convert_api_900_to_1000(
 
 
 def convert_api_1000_to_900(
-        wrapped_packet_m: WrappedRedvoxPacketM,
+    wrapped_packet_m: WrappedRedvoxPacketM,
 ) -> reader_900.WrappedRedvoxPacket:
     """
     Converts an API M wrapped packet into an API 900 wrapped packet.
