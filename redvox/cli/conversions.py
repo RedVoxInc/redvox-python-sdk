@@ -139,7 +139,7 @@ def rdvxz_to_rdvxm(paths: List[str], out_dir: Optional[str] = None) -> bool:
             api_conversions.convert_api_900_to_1000_raw(packet_900)
         )
         file_name: str = f"{packet_1000.station_information.id}_{int(packet_1000.timing_information.packet_start_mach_timestamp)}.rdvxm"
-        with lz4.frame.open(os.path.join(out_dir, file_name), "wb") as fout:
+        with lz4.frame.open(os.path.join(out_dir, file_name), "wb", compression_level=12) as fout:
             fout.write(packet_1000.SerializeToString())
         # wrapped_packet_900: reader.WrappedRedvoxPacket = reader.read_rdvxz_file(path)
         # wrapped_packet_1000: WrappedRedvoxPacketM = api_conversions.convert_api_900_to_1000(wrapped_packet_900)
