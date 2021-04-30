@@ -720,6 +720,7 @@ def load_apim_location_from_list(
                 else:
                     best_loc = loc.overall_best_location
                 data_list[0].append(best_loc.latitude_longitude_timestamp.mach)
+                # data_list[0].append(packet.timing_information.packet_start_mach_timestamp)
                 data_list[1].append(best_loc.latitude_longitude_timestamp.gps)
                 data_list[2].append(best_loc.latitude)
                 data_list[3].append(best_loc.longitude)

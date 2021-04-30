@@ -150,8 +150,8 @@ def fill_gaps(
     """
     # extract the necessary information to compute gap size and gap timestamps
     data_time_stamps = data_df["timestamps"].to_numpy()
-    result_df = data_df.copy()
     if len(data_time_stamps) > 1:
+        result_df = data_df.copy()
         data_duration = data_time_stamps[-1] - data_time_stamps[0]
         expected_samples = (np.floor(data_duration / sample_interval_micros)
                             + (1 if data_duration % sample_interval_micros >=
@@ -190,7 +190,8 @@ def fill_gaps(
                 elif after_end is not None:
                     result_df = add_data_points_to_df(result_df, after_end, -sample_interval_micros,
                                                       num_new_points, pcm)
-    return result_df.sort_values("timestamps", ignore_index=True)
+        return result_df.sort_values("timestamps", ignore_index=True)
+    return data_df
 
 
 def fill_audio_gaps(
