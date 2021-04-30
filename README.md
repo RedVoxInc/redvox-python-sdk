@@ -11,8 +11,9 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ### 3.0.0rc28 (2021-4-29)
 
-* Improved Data Window Performance via alternate methods; use parallelism for best performance
-* Raw protobuff reading implemented for station and sensor creation.
+* Raw protobuf conversion from api900 to apiM implemented
+* Improved Data Window performance via DataWindowSimple class; use parallelism for best performance
+* Raw protobuf reading implemented for station and sensor creation.
 
 ### 3.0.0rc27 (2021-4-23)
 

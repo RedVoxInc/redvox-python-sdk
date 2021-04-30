@@ -222,11 +222,11 @@ class DataWindowSimple:
         self.station_ids = a_r.index_summary.station_ids()
 
         # files_by_id = [a_r.read_files_by_id(i) for i in a_r.index_summary.station_ids()]
-        files_by_id = [a_r.files_index.get_index_for_station_id(i) for i in a_r.index_summary.station_ids()]
+        # files_by_id = [a_r.read_files_by_id(i) for i in a_r.index_summary.station_ids()]
 
         # Parallel update
         # Apply timing correction in parallel by station
-        stations = list(maybe_parallel_map(_pool, self._create_station_raw, iter(files_by_id), chunk_size=1))
+        stations = a_r.get_stations()
         stations = list(maybe_parallel_map(_pool, StationRaw.update_timestamps, iter(stations), chunk_size=1))
 
         self._check_for_audio()
