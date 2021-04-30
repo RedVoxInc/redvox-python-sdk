@@ -226,8 +226,8 @@ class DataWindowSimple:
 
         # Parallel update
         # Apply timing correction in parallel by station
-        list(maybe_parallel_map(_pool, self._create_station_raw, iter(files_by_id), chunk_size=1))
-        stations = list(maybe_parallel_map(_pool, StationRaw.update_timestamps, iter(self.stations), chunk_size=1))
+        stations = list(maybe_parallel_map(_pool, self._create_station_raw, iter(files_by_id), chunk_size=1))
+        stations = list(maybe_parallel_map(_pool, StationRaw.update_timestamps, iter(stations), chunk_size=1))
 
         self._check_for_audio()
 
@@ -252,24 +252,11 @@ class DataWindowSimple:
         if pool is None:
             _pool.close()
 
-    def _create_station_raw(self, index: io.Index):
+    @staticmethod
+    def _create_station_raw(index: io.Index) -> Optional[StationRaw]:
         if len(index.entries) > 0:
-            print(f"{index.entries[0].station_id} num entries: {len(index.entries)}")
-            self.stations.append(StationRaw(list(index.stream_raw())))
+            return StationRaw(list(index.stream_raw()))
         return None
-
-    def _create_station(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None):
-        # if len(data_packets) > 0:
-        #     self.stations.append(Station(data_packets))
-        return None
-        # for p in self.a_r.files_index.get_index_for_station_id(s_id).stream():
-        #     b = Station.from_packet(p)  # load the packet into the station
-        #     # if b is not the same as s, check if it's the same as another station
-        #     t = self._find_station(b.id, b.uuid, b.start_timestamp)
-        #     if t:
-        #         t.append_station(b)  # add b to existing station
-        #     else:
-        #         self.stations.append(b)  # b is new, add it to list of stations
 
     def _find_station(self, station_id: str, uuid: str, start_time: float) -> Optional[StationRaw]:
         for s in self.stations:
@@ -319,6 +306,7 @@ class DataWindowSimple:
         station.packet_metadata = new_meta
         station.first_data_timestamp = station.audio_sensor().first_data_timestamp()
         station.last_data_timestamp = station.audio_sensor().data_timestamps()[-1]
+        self.stations.append(station)
 
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
                        end_date_timestamp: float):
