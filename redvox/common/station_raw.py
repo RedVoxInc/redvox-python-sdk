@@ -6,7 +6,9 @@ Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due
 from typing import List, Optional, Tuple
 from itertools import repeat
 from types import FunctionType
+from dataclasses import dataclass, field
 
+from dataclasses_json import dataclass_json
 import numpy as np
 
 from redvox.common import sensor_data as sd
@@ -14,6 +16,37 @@ from redvox.common import sensor_reader_utils_raw as sdru
 from redvox.common import station_utils as st_utils
 from redvox.common.timesync import TimeSyncAnalysis
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
+
+
+@dataclass_json()
+@dataclass
+class StationExceptions:
+    """
+    all the errors go here
+    """
+    errors: List[str] = field(default_factory=list)
+
+    def get(self) -> List[str]:
+        """
+        :return: the list of errors
+        """
+        return self.errors
+
+    def append(self, msg: str):
+        """
+        append an error message to the list of errors
+        :param msg: error message to add
+        """
+        self.errors.append(msg)
+
+    def print(self):
+        """
+        print all errors
+        """
+        if len(self.errors) > 0:
+            print("Errors encountered while creating station:")
+            for error in self.errors:
+                print(error)
 
 
 class StationRaw:
@@ -55,6 +88,7 @@ class StationRaw:
         self.packet_metadata: List[st_utils.StationPacketMetadataRaw] = []
         self.is_timestamps_updated = False
         self._gaps: List[Tuple[float, float]] = []
+        self.errors: StationExceptions = StationExceptions()
         if data_packets and st_utils.validate_station_key_list_raw(data_packets, True):
             self.id = data_packets[0].station_information.id
             self.uuid = data_packets[0].station_information.uuid
@@ -62,7 +96,7 @@ class StationRaw:
                 0
             ].timing_information.app_start_mach_timestamp
             if self.start_timestamp < 0:
-                print(
+                self.errors.append(
                     f"WARNING: Station {self.id} has start timestamp before epoch.  "
                     f"Start timestamp reset to np.nan"
                 )
@@ -91,6 +125,7 @@ class StationRaw:
             self.audio_sample_rate_nominal_hz = np.nan
             self.is_audio_scrambled = False
             self.timesync_analysis = TimeSyncAnalysis()
+        # self.errors.print()
 
     def _sort_metadata_packets(self):
         """
@@ -159,11 +194,11 @@ class StationRaw:
             if self.uuid:
                 if not np.isnan(self.start_timestamp):
                     return True
-                print("WARNING: Station start timestamp is not valid.")
+                self.errors.append("WARNING: Station start timestamp is not valid.")
             else:
-                print("WARNING: Station uuid is not valid.")
+                self.errors.append("WARNING: Station uuid is not valid.")
         else:
-            print("WARNING: Station id is not set.")
+            self.errors.append("WARNING: Station id is not set.")
         return False
 
     def get_key(self) -> Optional[st_utils.StationKey]:
@@ -977,7 +1012,7 @@ class StationRaw:
         updates the timestamps in the station using the offset model
         """
         if self.is_timestamps_updated:
-            print("WARNING: Timestamps already corrected!")
+            self.errors.append("WARNING: Timestamps already corrected!")
         else:
             for sensor in self.data:
                 sensor.update_data_timestamps(self.timesync_analysis.offset_model)

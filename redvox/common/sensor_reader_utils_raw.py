@@ -414,7 +414,6 @@ def load_apim_audio_from_list(
                     (
                         p.sensors.audio.first_sample_timestamp,
                         np.array(p.sensors.audio.samples.values),
-                        len(p.sensors.audio.samples.values),
                     )
                     for p in packets
                 ]

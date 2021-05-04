@@ -84,11 +84,13 @@ class ApiReaderRaw:
         # this guarantees that all ids we search for are valid
         all_index = self._apply_filter(pool=_pool)
         for station_id in all_index.summarize().station_ids():
-            station_filter = self.filter.clone()
-            checked_index = self._check_station_stats(
-                station_filter.with_station_ids({station_id}),
-                pool=_pool
-            )
+            id_index = all_index.get_index_for_station_id(station_id)
+            checked_index = self._check_station_stats2(id_index, pool=_pool)
+            # station_filter = self.filter.clone()
+            # checked_index = self._check_station_stats(
+            #     station_filter.with_station_ids({station_id}),
+            #     pool=_pool
+            # )
             index.append(checked_index.entries)
 
         if pool is None:
@@ -103,6 +105,7 @@ class ApiReaderRaw:
     ) -> io.Index:
         """
         apply the filter of the reader, or another filter if specified
+
         :param reader_filter: optional filter; if None, use the reader's filter, default None
         :return: index of the filtered files
         """
@@ -118,6 +121,87 @@ class ApiReaderRaw:
         if pool is None:
             _pool.close()
         return index
+
+    def _check_station_stats2(
+            self,
+            station_index: io.Index,
+            pool: Optional[multiprocessing.pool.Pool] = None,
+    ) -> io.Index:
+        """
+        check the index's results; if it has enough information, return it, otherwise search for more data.
+        The index should only request one station
+        :param station_index: index representing the requested information
+        :return: Index that includes as much information as possible that fits the request
+        """
+        _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
+        # if there are no restrictions on time or we found nothing, return the index
+        if (not self.filter.start_dt and not self.filter.end_dt) or len(station_index.entries) < 1:
+            return station_index
+        stats = fs.extract_stats(station_index, pool=_pool)
+
+        # Close pool if created here
+        if pool is None:
+            _pool.close()
+
+        timing_offsets: Optional[offset_model.TimingOffsets] = offset_model.compute_offsets(stats)
+
+        # punt if duration or other important values are invalid or if the latency array was empty
+        if timing_offsets is None:
+            return station_index
+
+        # if our filtered files encompass the request even when the packet times are updated, return the index
+        if (not self.filter.start_dt or timing_offsets.adjusted_start <= self.filter.start_dt) and (
+                not self.filter.end_dt or timing_offsets.adjusted_end >= self.filter.end_dt
+        ):
+            print(station_index.summarize().station_ids(), "ENOUGH DATA")
+        return station_index
+
+        # todo confirm not needed
+        # we have to update our filter to get more information
+        # new_filter = self.filter.clone().with_station_ids(set(station_index.summarize().station_ids()))
+        # no_more_start = True
+        # no_more_end = True
+        # # check if there is a packet just beyond the request times
+        # if self.filter.start_dt and timing_offsets.adjusted_start > self.filter.start_dt:
+        #     beyond_start = (
+        #             self.filter.start_dt - np.abs(timing_offsets.start_offset) - stats[0].packet_duration
+        #     )
+        #     start_filter = (
+        #         new_filter.clone()
+        #         .with_start_dt(beyond_start)
+        #         .with_end_dt(stats[0].packet_start_dt)
+        #         .with_end_dt_buf(timedelta(seconds=0))
+        #     )
+        #     start_index = self._apply_filter(start_filter)
+        #     # if the beyond check produces an earlier start date time,
+        #     #  then update filter, otherwise flag result as no more data to obtain
+        #     if (
+        #             len(start_index.entries) > 0
+        #             and start_index.entries[0].date_time < station_index.entries[0].date_time
+        #     ):
+        #         new_filter.with_start_dt(beyond_start)
+        #         no_more_start = False
+        # if self.filter.end_dt and timing_offsets.adjusted_end < self.filter.end_dt:
+        #     beyond_end = self.filter.end_dt + np.abs(timing_offsets.end_offset)
+        #     end_filter = (
+        #         new_filter.clone()
+        #         .with_start_dt(stats[-1].packet_start_dt + stats[-1].packet_duration)
+        #         .with_end_dt(beyond_end)
+        #         .with_start_dt_buf(timedelta(seconds=0))
+        #     )
+        #     end_index = self._apply_filter(end_filter)
+        #     # if the beyond check produces a later end date time,
+        #     #  then update filter, otherwise flag result as no more data to obtain
+        #     if (
+        #             len(end_index.entries) > 0
+        #             and end_index.entries[-1].date_time > station_index.entries[-1].date_time
+        #     ):
+        #         new_filter.with_end_dt(beyond_end)
+        #         no_more_end = False
+        # # if there is no more data to obtain from either end, return the original index
+        # if no_more_start and no_more_end:
+        #     return station_index
+        # return self._apply_filter(new_filter)
 
     def _check_station_stats(
         self,

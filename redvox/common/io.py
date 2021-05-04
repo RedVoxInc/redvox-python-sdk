@@ -323,13 +323,13 @@ class ReadFilter:
         start_buf: timedelta = (
             timedelta(seconds=0) if self.start_dt_buf is None else self.start_dt_buf
         )
-        if self.start_dt is not None and date_time < (dt_fn(self.start_dt) - start_buf):
+        if self.start_dt is not None and date_time < (dt_fn(self.start_dt - start_buf)):
             return False
 
         end_buf: timedelta = (
             timedelta(seconds=0) if self.end_dt_buf is None else self.end_dt_buf
         )
-        if self.end_dt is not None and date_time > (dt_fn(self.end_dt) + end_buf):
+        if self.end_dt is not None and date_time > (dt_fn(self.end_dt + end_buf)):
             return False
 
         return True

@@ -67,7 +67,7 @@ def validate_station_key_list_raw(
         if len(result) > 1:
             if debug:
                 print(
-                    f"WARNING: {data_packets[0].get_station_information().get_id()} "
+                    f"WARNING: {data_packets[0].station_information.id} "
                     f"{key} contains multiple unique values: {result}."
                 )
                 print(
