@@ -197,6 +197,137 @@ class DataWindowFast:
             config.debug,
         )
 
+    # todo: implement methods for Fast mode
+    # @staticmethod
+    # def deserialize(path: str) -> "DataWindowFast":
+    #     """
+    #     Decompresses and deserializes a DataWindow written to disk.
+    #     :param path: Path to the serialized and compressed data window.
+    #     :return: An instance of a DataWindow.
+    #     """
+    #     return io.deserialize_data_window(path)
+    #
+    # def serialize(self, base_dir: str = ".", file_name: Optional[str] = None, compression_factor: int = 4) -> Path:
+    #     """
+    #     Serializes and compresses this DataWindow to a file.
+    #     :param base_dir: The base directory to write the serialized file to (default=.).
+    #     :param file_name: The optional file name. If None, a default filename with the following format is used:
+    #                       [start_ts]_[end_ts]_[num_stations].pkl.lz4
+    #     :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take
+    #     longer. (default=4).
+    #     :return: The path to the written file.
+    #     """
+    #     return io.serialize_data_window(self, base_dir, file_name, compression_factor)
+    #
+    # def to_json_file(self, base_dir: str = ".", file_name: Optional[str] = None,
+    #                  compression_format: str = "lz4") -> Path:
+    #     """
+    #     Converts the data window into a JSON file and writes it to disk.
+    #     :param base_dir: base directory to write the json file to.  Default . (local directory)
+    #     :param file_name: the optional file name.  Do not include a file extension.
+    #                         If None, a default file name is created using this format:
+    #                         [start_ts]_[end_ts]_[num_stations].json
+    #     :param compression_format: the type of compression to use on the data window object.  default lz4
+    #     :return: The path to the written file
+    #     """
+    #     return io.data_window_to_json_file(self, base_dir, file_name, compression_format)
+    #
+    # def to_json(self, compressed_file_base_dir: str = ".", compressed_file_name: Optional[str] = None,
+    #             compression_format: str = "lz4") -> str:
+    #     """
+    #     Converts the data window into a JSON string
+    #     :param compressed_file_base_dir: base directory to write the json file to.  Default . (local directory)
+    #     :param compressed_file_name: the optional file name.  Do not include a file extension.
+    #                                     If None, a default file name is created using this format:
+    #                                     [start_ts]_[end_ts]_[num_stations].[compression_format]
+    #     :param compression_format: the type of compression to use on the data window object.  default lz4
+    #     :return: The json string
+    #     """
+    #     return io.data_window_to_json(self, compressed_file_base_dir, compressed_file_name, compression_format)
+    #
+    # @staticmethod
+    # def from_json_file(path: str, start_dt: Optional[dtu.datetime] = None,
+    #                    end_dt: Optional[dtu.datetime] = None,
+    #                    station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindow"]:
+    #     """
+    #     Reads a JSON file and checks if:
+    #         * The requested times are within the JSON file's times
+    #         * The requested stations are a subset of the JSON file's stations
+    #     :param path: the path to the JSON file to read
+    #     :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
+    #     :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
+    #     :param station_ids: the station ids to check against.  if not given, assumes True.  default None
+    #     :return: the data window if it suffices, otherwise None
+    #     """
+    #     return DataWindow.from_json_dict(io.json_file_to_data_window(path), start_dt, end_dt, station_ids)
+    #
+    # @staticmethod
+    # def from_json(json_str: str, start_dt: Optional[dtu.datetime] = None,
+    #               end_dt: Optional[dtu.datetime] = None,
+    #               station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindow"]:
+    #     """
+    #     Reads a JSON string and checks if:
+    #         * The requested times are within the JSON file's times
+    #         * The requested stations are a subset of the JSON file's stations
+    #     :param json_str: the JSON to read
+    #     :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
+    #     :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
+    #     :param station_ids: the station ids to check against.  if not given, assumes True.  default None
+    #     :return: the data window if it suffices, otherwise None
+    #     """
+    #     return DataWindow.from_json_dict(io.json_to_data_window(json_str), start_dt, end_dt, station_ids)
+    #
+    # @staticmethod
+    # def from_json_dict(json_dict: Dict, start_dt: Optional[dtu.datetime] = None,
+    #                    end_dt: Optional[dtu.datetime] = None,
+    #                    station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindow"]:
+    #     """
+    #     Reads a JSON string and checks if:
+    #         * The requested times are within the JSON file's times
+    #         * The requested stations are a subset of the JSON file's stations
+    #     :param json_dict: the dictionary to read
+    #     :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
+    #     :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
+    #     :param station_ids: the station ids to check against.  if not given, assumes True.  default None
+    #     :return: the data window if it suffices, otherwise None
+    #     """
+    #     if start_dt and json_dict["start_datetime"] > dtu.datetime_to_epoch_microseconds_utc(start_dt):
+    #         return None
+    #     if end_dt and json_dict["end_datetime"] < dtu.datetime_to_epoch_microseconds_utc(end_dt):
+    #         return None
+    #     if station_ids and not all(a in json_dict["station_ids"] for a in station_ids):
+    #         return None
+    #     if json_dict["compression_format"] == "lz4":
+    #         return DataWindow.deserialize(json_dict["file_path"])
+    #     else:
+    #         with open(json_dict["file_path"], 'rb') as fp:
+    #             return pickle.load(fp)
+
+    def _has_time_window(self) -> bool:
+        """
+        Returns true if there is a start or end datetime in the settings
+        :return: True if start_datetime or end_datetime exists
+        """
+        return self.start_datetime is not None or self.end_datetime is not None
+
+    def get_station(self, station_id: str, station_uuid: Optional[str] = None,
+                    start_timestamp: Optional[float] = None) -> Optional[StationRaw]:
+        """
+        Get a single station from the data window.  Must give at least the station's id.  Other parameters may be None,
+        and will get any station that matches the other, non-None parameters.
+
+        :param station_id: station id
+        :param station_uuid: station uuid, default None
+        :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
+        :return: A single station or None if the station cannot be found
+        """
+        for s in self.stations:
+            if s.get_key().check_key(station_id, station_uuid, start_timestamp):
+                return s
+        if self.debug:
+            print(f"Warning: Attempted to get station {station_id}, but that station is not in this data window!")
+        return None
+
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         """
         updates the data window to contain only the data within the window parameters
@@ -236,14 +367,10 @@ class DataWindowFast:
 
         self.station_ids = a_r.index_summary.station_ids()
 
-        # files_by_id = [a_r.read_files_by_id(i) for i in a_r.index_summary.station_ids()]
-        # files_by_id = [a_r.read_files_by_id(i) for i in a_r.index_summary.station_ids()]
-
         # Parallel update
         # Apply timing correction in parallel by station
-        stations = a_r.get_stations()
-        stations = list(maybe_parallel_map(_pool, StationRaw.update_timestamps, iter(stations), chunk_size=1))
-        stations = [s for s in stations if s.id is not None]
+        stations = list(maybe_parallel_map(_pool, StationRaw.update_timestamps,
+                                           iter(a_r.sort_files_by_station()), chunk_size=1))
 
         self._check_for_audio()
 
@@ -297,9 +424,8 @@ class DataWindowFast:
         searches the data window station_ids for any ids not in the data collected
         outputs a message for each id requested but has no data
         """
-        gathered_data_ids = [i.id for i in self.stations]
         for ids in self.station_ids:
-            if ids not in gathered_data_ids and self.debug:
+            if ids not in [i.id for i in self.stations] and self.debug:
                 self.errors.append(
                     f"WARNING: Requested {ids} but there is no data to read for that station"
                 )
@@ -347,7 +473,6 @@ class DataWindowFast:
             if len(before_start) > 0:
                 last_before_start = before_start[-1]
                 start_index = last_before_start + 1
-                last_before_start_timestamp = df_timestamps[last_before_start]
             else:
                 last_before_start = None
                 start_index = 0
@@ -355,13 +480,12 @@ class DataWindowFast:
             if len(after_end) > 0:
                 first_after_end = after_end[0]
                 end_index = first_after_end
-                first_after_end_timestamp = df_timestamps[first_after_end]
             else:
                 first_after_end = None
                 end_index = sensor.num_samples()
             # check if all the samples have been cut off
             is_audio = sensor.type == SensorType.AUDIO
-            if end_index < start_index:
+            if end_index <= start_index:
                 if is_audio:
                     self.errors.append(f"WARNING: Data window for {station_id} "
                                        f"Audio sensor has truncated all data points")
@@ -389,14 +513,11 @@ class DataWindowFast:
                 else:
                     new_point_mode = gpu.DataPointCreationMode["NAN"]
                 # add in the data points at the edges of the window
-                new_point_index = sensor.num_samples() - 1
-                new_point_si = end_date_timestamp - sensor.last_data_timestamp()
-                sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, new_point_index, new_point_si,
+                sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, sensor.num_samples() - 1,
+                                                           end_date_timestamp - sensor.last_data_timestamp(),
                                                            point_creation_mode=new_point_mode)
-                new_point_index = 0
-                new_point_si = start_date_timestamp - sensor.first_data_timestamp()
-                # add in the data points at the edges of the window
-                sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, new_point_index, new_point_si,
+                sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, 0,
+                                                           start_date_timestamp - sensor.first_data_timestamp(),
                                                            point_creation_mode=new_point_mode)
                 # gap fill goes here at some point
                 sensor.data_df.sort_values("timestamps", inplace=True, ignore_index=True)
