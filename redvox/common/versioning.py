@@ -27,9 +27,9 @@ class ApiVersion(Enum):
         :param version: version as string
         :return: enumerated value represented by string version
         """
-        if version == "API_900":
+        if version == "API_900" or version == "Api900":
             return ApiVersion.API_900
-        elif version == "API_1000":
+        elif version == "API_1000" or version == "Api1000":
             return ApiVersion.API_1000
         return ApiVersion.UNKNOWN
 
