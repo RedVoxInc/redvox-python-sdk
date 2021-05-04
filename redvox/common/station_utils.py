@@ -159,7 +159,39 @@ class StationKey:
         return f"StationKey:\nid:{self.id}, uuid:{self.uuid}, start_timestamp:{self.start_timestamp_micros}"
 
     def get_key(self) -> Tuple[str, str, float]:
+        """
+        :return: the key as a tuple
+        """
         return self.id, self.uuid, self.start_timestamp_micros
+
+    def check_key(self, station_id: Optional[str] = None, station_uuid: Optional[str] = None,
+                  start_timestamp: Optional[float] = None) -> bool:
+        """
+        check if the key has the values specified.  If the parameter is None, any value will match.
+        :param station_id: station id, default None
+        :param station_uuid: station uuid, default None
+        :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
+        :return: True if all parameters match key values
+        """
+        if station_id is not None and station_id != self.id:
+            print(f"Id {station_id} does not equal station's id: {self.id}")
+            return False
+        if station_uuid is not None and station_uuid != self.uuid:
+            print(f"Uuid {station_uuid} does not equal station's uuid: {self.uuid}")
+            return False
+        if start_timestamp is not None and start_timestamp != self.start_timestamp_micros:
+            print(f"Start timestamp {start_timestamp} does not equal station's "
+                  f"start timestamp: {self.start_timestamp_micros}")
+            return False
+        return True
+
+    def compare_key(self, other_key: "StationKey") -> bool:
+        """
+        compare key to another station's key
+        :param other_key: another station's key
+        :return: True if the keys match
+        """
+        return self.check_key(other_key.id, other_key.uuid, other_key.start_timestamp_micros)
 
 
 # todo add event streams?

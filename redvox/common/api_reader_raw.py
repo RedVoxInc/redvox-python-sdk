@@ -4,7 +4,7 @@ Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 """
 from collections import defaultdict
-from typing import List, Optional, Dict, Iterator
+from typing import List, Optional, Dict, Iterator, Tuple
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
@@ -149,59 +149,16 @@ class ApiReaderRaw:
         if timing_offsets is None:
             return station_index
 
-        # if our filtered files encompass the request even when the packet times are updated, return the index
-        if (not self.filter.start_dt or timing_offsets.adjusted_start <= self.filter.start_dt) and (
-                not self.filter.end_dt or timing_offsets.adjusted_end >= self.filter.end_dt
-        ):
-            print(station_index.summarize().station_ids(), "ENOUGH DATA")
-        return station_index
+        # if our filtered files do not encompass the request even when the packet times are updated, inform user
+        insufficient_str = ""
+        if self.filter.start_dt and timing_offsets.adjusted_start > self.filter.start_dt:
+            insufficient_str += " start"
+        if self.filter.end_dt and timing_offsets.adjusted_end < self.filter.end_dt:
+            insufficient_str += " end"
+        if len(insufficient_str) > 0:
+            print(f"{station_index.summarize().station_ids()} not enough data at{insufficient_str}")
 
-        # todo confirm not needed
-        # we have to update our filter to get more information
-        # new_filter = self.filter.clone().with_station_ids(set(station_index.summarize().station_ids()))
-        # no_more_start = True
-        # no_more_end = True
-        # # check if there is a packet just beyond the request times
-        # if self.filter.start_dt and timing_offsets.adjusted_start > self.filter.start_dt:
-        #     beyond_start = (
-        #             self.filter.start_dt - np.abs(timing_offsets.start_offset) - stats[0].packet_duration
-        #     )
-        #     start_filter = (
-        #         new_filter.clone()
-        #         .with_start_dt(beyond_start)
-        #         .with_end_dt(stats[0].packet_start_dt)
-        #         .with_end_dt_buf(timedelta(seconds=0))
-        #     )
-        #     start_index = self._apply_filter(start_filter)
-        #     # if the beyond check produces an earlier start date time,
-        #     #  then update filter, otherwise flag result as no more data to obtain
-        #     if (
-        #             len(start_index.entries) > 0
-        #             and start_index.entries[0].date_time < station_index.entries[0].date_time
-        #     ):
-        #         new_filter.with_start_dt(beyond_start)
-        #         no_more_start = False
-        # if self.filter.end_dt and timing_offsets.adjusted_end < self.filter.end_dt:
-        #     beyond_end = self.filter.end_dt + np.abs(timing_offsets.end_offset)
-        #     end_filter = (
-        #         new_filter.clone()
-        #         .with_start_dt(stats[-1].packet_start_dt + stats[-1].packet_duration)
-        #         .with_end_dt(beyond_end)
-        #         .with_start_dt_buf(timedelta(seconds=0))
-        #     )
-        #     end_index = self._apply_filter(end_filter)
-        #     # if the beyond check produces a later end date time,
-        #     #  then update filter, otherwise flag result as no more data to obtain
-        #     if (
-        #             len(end_index.entries) > 0
-        #             and end_index.entries[-1].date_time > station_index.entries[-1].date_time
-        #     ):
-        #         new_filter.with_end_dt(beyond_end)
-        #         no_more_end = False
-        # # if there is no more data to obtain from either end, return the original index
-        # if no_more_start and no_more_end:
-        #     return station_index
-        # return self._apply_filter(new_filter)
+        return station_index
 
     def _check_station_stats(
         self,
@@ -378,6 +335,21 @@ class ApiReaderRaw:
         #     _pool.close()
         # noinspection Mypy
         return list(filter(lambda station: station is not None, stations_opt))
+
+    def sort_files_by_station(self) -> List[StationRaw]:
+        stations: Dict[Tuple[str, str, float], List[api_m.RedvoxPacketM]] = {}
+        for k, v in self.read_files().items():
+            for f in v:
+                if (k, f.station_information.uuid, f.timing_information.app_start_mach_timestamp) in stations.keys():
+                    stations[k, f.station_information.uuid, f.timing_information.app_start_mach_timestamp].append(f)
+                else:
+                    stations[k, f.station_information.uuid, f.timing_information.app_start_mach_timestamp] = [f]
+        result = []
+        for v in stations.values():
+            s = StationRaw(v)
+            if s.id is not None:
+                result.append(s)
+        return result
 
     def read_files_as_stations(
         self, pool: Optional[multiprocessing.pool.Pool] = None
