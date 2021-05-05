@@ -595,6 +595,7 @@ def _list_subdirs(base_dir: str, valid_choices: Set[str]) -> Iterator[str]:
     return filter(valid_choices.__contains__, subdirs)
 
 
+# These fields are set at runtime and provide the implementation (either native or pure python) for IO methods
 __INDEX_STRUCTURED_FN: Callable[
     [str, ReadFilter, Optional[multiprocessing.pool.Pool]], Index
 ]
@@ -610,6 +611,11 @@ __INDEX_UNSTRUCTURED_FN: Callable[
 
 
 def __into_index_entry_py(entry) -> IndexEntry:
+    """
+    Converts a native index entry into a python index entry.
+    :param entry: A native index entry.
+    :return: A python index entry.
+    """
     return IndexEntry(
         entry.full_path,
         entry.station_id,
@@ -620,21 +626,42 @@ def __into_index_entry_py(entry) -> IndexEntry:
 
 
 def __into_index_py(index_native) -> Index:
+    """
+    Converts a native index into a python index.
+    :param index_native: A native index.
+    :return: A Python index.
+    """
     entries: List[IndexEntry] = list(map(__into_index_entry_py, index_native.entries))
     return Index(entries)
 
 
 def __map_opt(fn, v):
+    """
+    Maps the provided function on the value if v is not None, otherwise, returns None.
+    :param fn: The mapping function.
+    :param v: The optional value to map.
+    :return: The optional mapped value.
+    """
     if v is None:
         return None
     return fn(v)
 
 
 def __dur2us(dur: timedelta) -> float:
+    """
+    Converts a timedelta into microseconds.
+    :param dur: timedelta to convert
+    :return: Number of microseconds in the time delta.
+    """
     return dur.total_seconds() * 1_000_000.0
 
 
 def __api_native(apis_py: Set[ApiVersion]) -> Set[str]:
+    """
+    Convert python ApiVersions into native ApiVersions.
+    :param apis_py: Python API versions.
+    :return: Native API versions.
+    """
     r: Set[str] = set()
     for api_py in apis_py:
         if api_py == ApiVersion.API_900:
@@ -809,7 +836,7 @@ def index_structured_py(
     pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
     """
-    "Indexes both API 900 and API 1000 structured directory layouts.
+    Indexes both API 900 and API 1000 structured directory layouts.
     :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
                      API 900 and API 1000.
     :param read_filter: Filter to further filter results.
@@ -861,11 +888,19 @@ def index_structured_py(
         return index
 
 
+# Here we try to import the redvox_native module which provides natively compiled io functions.
+# This dynamically sets which functions are called at runtime. Either the native version (if found)
+# or the pure Python version.
 try:
     # noinspection PyUnresolvedReferences
     import redvox_native
 
     def __into_read_filter_native(read_filter: ReadFilter):
+        """
+        Converts a python read filter into a native read filter.
+        :param read_filter: Python read filter to convert.
+        :return: A native read filter.
+        """
         read_filter_native = redvox_native.ReadFilter()
         read_filter_native.start_dt = __map_opt(us_dt, read_filter.start_dt)
         read_filter_native.end_dt = __map_opt(us_dt, read_filter.end_dt)
@@ -885,6 +920,14 @@ try:
         sort: bool,
         pool: Optional[multiprocessing.pool.Pool],
     ) -> Index:
+        """
+        This parses a structured API 900 directory structure and identifies files that match the provided filter.
+        :param base_dir: Base directory (should be named api900)
+        :param read_filter: Filter to filter files with
+        :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+        :param pool: Pool for multiprocessing (not used in native)
+        :return: A list of wrapped packets on an empty list if none match the filter or none are found
+        """
         read_filter = __into_read_filter_native(read_filter)
         return __into_index_py(
             redvox_native.index_structured_900(base_dir, read_filter, sort)
@@ -896,6 +939,14 @@ try:
         sort: bool,
         pool: Optional[multiprocessing.pool.Pool],
     ) -> Index:
+        """
+        This parses a structured API M directory structure and identifies files that match the provided filter.
+        :param base_dir: Base directory (should be named api1000)
+        :param read_filter: Filter to filter files with
+        :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+        :param pool: Pool for multiprocessing (not used in native)
+        :return: A list of wrapped packets on an empty list if none match the filter or none are found
+        """
         read_filter = __into_read_filter_native(read_filter)
         return __into_index_py(
             redvox_native.index_structured_1000(base_dir, read_filter, sort)
@@ -906,6 +957,14 @@ try:
         read_filter: ReadFilter,
         pool: Optional[multiprocessing.pool.Pool],
     ) -> Index:
+        """
+        Indexes both API 900 and API 1000 structured directory layouts.
+        :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
+                         API 900 and API 1000.
+        :param read_filter: Filter to further filter results.
+        :param pool: Pool for multiprocessing (not used in native)
+        :return: An Index of RedVox files.
+        """
         read_filter = __into_read_filter_native(read_filter)
         return __into_index_py(redvox_native.index_structured(base_dir, read_filter))
 
@@ -915,6 +974,14 @@ try:
         sort: bool,
         pool: Optional[multiprocessing.pool.Pool],
     ) -> Index:
+        """
+        Returns the list of file paths that match the given filter for unstructured data.
+        :param base_dir: Directory containing unstructured data.
+        :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
+        :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+        :param pool: Pool for multiprocessing (not used in native implementation)
+        :return: An iterator of valid paths.
+        """
         read_filter = __into_read_filter_native(read_filter)
         return __into_index_py(
             redvox_native.index_unstructured(base_dir, read_filter, sort)
@@ -937,6 +1004,14 @@ def index_unstructured(
     sort: bool = True,
     pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
+    """
+    Returns the list of file paths that match the given filter for unstructured data.
+    :param base_dir: Directory containing unstructured data.
+    :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
+    :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+    :param pool: Pool for multiprocessing
+    :return: An iterator of valid paths.
+    """
     return __INDEX_UNSTRUCTURED_FN(base_dir, read_filter, sort, pool)
 
 
@@ -946,6 +1021,14 @@ def index_structured_api_900(
     sort: bool = True,
     pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
+    """
+    This parses a structured API 900 directory structure and identifies files that match the provided filter.
+    :param base_dir: Base directory (should be named api900)
+    :param read_filter: Filter to filter files with
+    :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+    :param pool: Pool for multiprocessing
+    :return: A list of wrapped packets on an empty list if none match the filter or none are found
+    """
     return __INDEX_STRUCTURED_900_FN(base_dir, read_filter, sort, pool)
 
 
@@ -955,6 +1038,14 @@ def index_structured_api_1000(
     sort: bool = True,
     pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
+    """
+    This parses a structured API M directory structure and identifies files that match the provided filter.
+    :param base_dir: Base directory (should be named api1000)
+    :param read_filter: Filter to filter files with
+    :param sort: When True, the resulting Index will be sorted before being returned (default=True).
+    :param pool: Pool for multiprocessing
+    :return: A list of wrapped packets on an empty list if none match the filter or none are found
+    """
     return __INDEX_STRUCTURED_1000_FN(base_dir, read_filter, sort, pool)
 
 
@@ -963,6 +1054,14 @@ def index_structured(
     read_filter: ReadFilter = ReadFilter(),
     pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
+    """
+    Indexes both API 900 and API 1000 structured directory layouts.
+    :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
+                     API 900 and API 1000.
+    :param read_filter: Filter to further filter results.
+    :param pool: Pool for multiprocessing
+    :return: An Index of RedVox files.
+    """
     return __INDEX_STRUCTURED_FN(base_dir, read_filter, pool)
 
 
